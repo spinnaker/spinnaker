@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
-import groovy.transform.CompileStatic
-
 import java.util.function.Function
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
@@ -466,6 +465,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       startTime           : execution.startTime?.toString(),
       endTime             : execution.endTime?.toString(),
       executingInstance   : execution.executingInstance,
+      executionEngine     : execution.executionEngine,
       status              : execution.status?.name(),
       authentication      : mapper.writeValueAsString(execution.authentication),
       paused              : mapper.writeValueAsString(execution.paused),
@@ -537,6 +537,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.startTime = map.startTime?.toLong()
       execution.endTime = map.endTime?.toLong()
       execution.executingInstance = map.executingInstance
+      execution.executionEngine = map.executionEngine
       execution.status = map.status ? ExecutionStatus.valueOf(map.status) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
       execution.paused = map.paused ? mapper.readValue(map.paused, Execution.PausedDetails) : null
@@ -554,7 +555,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         stage.endTime = map["stage.${stageId}.endTime".toString()]?.toLong()
         stage.status = ExecutionStatus.valueOf(map["stage.${stageId}.status".toString()])
         stage.initializationStage = map["stage.${stageId}.initializationStage".toString()].toBoolean()
-        stage.syntheticStageOwner = map["stage.${stageId}.syntheticStageOwner".toString()] ? Stage.SyntheticStageOwner.valueOf(map["stage.${stageId}.syntheticStageOwner".toString()]) : null
+        stage.syntheticStageOwner = map["stage.${stageId}.syntheticStageOwner".toString()] ? SyntheticStageOwner.valueOf(map["stage.${stageId}.syntheticStageOwner".toString()]) : null
         stage.parentStageId = map["stage.${stageId}.parentStageId".toString()]
         stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",")
         stage.scheduledTime = map["stage.${stageId}.scheduledTime".toString()]?.toLong()

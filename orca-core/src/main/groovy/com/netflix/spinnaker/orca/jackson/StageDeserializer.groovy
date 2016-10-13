@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.orca.jackson
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.*
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 /**
  * Deserializes stages as mutable or immutable objects appropriately
@@ -47,7 +49,6 @@ class StageDeserializer extends JsonDeserializer<Stage> {
 
   @Override
   Stage deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-    def stage = (Stage) OrcaJackson.deserialize(jp)
-    stage.immutable ? stage.asImmutable() : stage
+    (Stage) OrcaJackson.deserialize(jp)
   }
 }

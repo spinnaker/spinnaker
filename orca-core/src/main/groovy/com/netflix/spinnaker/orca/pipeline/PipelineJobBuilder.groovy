@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.parallel.PipelineInitializationStage
-import groovy.transform.CompileStatic
-import groovy.transform.PackageScope
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
@@ -61,7 +61,7 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
   @PackageScope
   JobFlowBuilder buildStart(Pipeline pipeline) {
     def jobBuilder = jobs.get(jobNameFor(pipeline))
-    pipelineListeners.each {
+    getPipelineListeners().each {
       jobBuilder = jobBuilder.listener(it)
     }
     jobBuilder.flow(initializationStep(steps, pipeline))
@@ -85,11 +85,11 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
     } else {
       initializationStage = StageBuilder.newStage(
         pipeline,
-        PipelineInitializationStage.PIPELINE_CONFIG_TYPE,
+        "pipelineInitialization",
         "Initialize",
         [:],
         null as Stage,
-        null as Stage.SyntheticStageOwner
+        null as SyntheticStageOwner
       )
 
       ((AbstractStage) initializationStage).id = "${pipeline.id}-initialize"

@@ -16,39 +16,36 @@
 
 package com.netflix.spinnaker.orca.igor.pipeline
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.RestartableStage
 import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StartScriptTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class ScriptStage extends LinearStage implements RestartableStage {
-  public static final String PIPELINE_CONFIG_TYPE = "script"
+class ScriptStage implements StageDefinitionBuilder, RestartableStage {
 
-  ScriptStage() {
-    super(PIPELINE_CONFIG_TYPE)
+  @Override
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("startScript", StartScriptTask)
+      .withTask("waitForScriptStart", MonitorQueuedJenkinsJobTask)
+      .withTask("monitorScript", MonitorJenkinsJobTask)
   }
 
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    [
-      buildStep(stage, "startScript", StartScriptTask),
-      buildStep(stage, "waitForScriptStart", MonitorQueuedJenkinsJobTask),
-      buildStep(stage, "monitorScript", MonitorJenkinsJobTask)
-    ]
-  }
-
-  @Override
-  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage) {
-    stage = super.prepareStageForRestart(executionRepository, stage)
+  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage, Collection<StageDefinitionBuilder> allStageBuilders) {
+    stage = StageDefinitionBuilder.StageDefinitionBuilderSupport
+      .prepareStageForRestart(executionRepository, stage, this, allStageBuilders)
     stage.startTime = null
     stage.endTime = null
 
@@ -58,7 +55,7 @@ class ScriptStage extends LinearStage implements RestartableStage {
     stage.context.remove("buildInfo")
     stage.context.remove("buildNumber")
 
-    stage.tasks.each { com.netflix.spinnaker.orca.pipeline.model.Task task ->
+    stage.tasks.each { Task task ->
       task.startTime = null
       task.endTime = null
       task.status = ExecutionStatus.NOT_STARTED

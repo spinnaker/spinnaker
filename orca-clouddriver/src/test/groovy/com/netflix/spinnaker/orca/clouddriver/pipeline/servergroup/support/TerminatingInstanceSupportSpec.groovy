@@ -37,7 +37,7 @@ class TerminatingInstanceSupportSpec extends Specification {
           credentials    : "creds",
           region         : "north-pole",
           serverGroupName: "santa-claus"
-      ] + stageMods).asImmutable()
+      ] + stageMods)
 
     when:
       def results = support.remainingInstances(stage)
@@ -62,7 +62,7 @@ class TerminatingInstanceSupportSpec extends Specification {
   @Unroll
   def "should lookup instances by searching"() {
     given:
-      def stage = new PipelineStage(new Pipeline(), "whatever", stageMods).asImmutable()
+    def stage = new PipelineStage(new Pipeline(), "whatever", stageMods)
 
 
     when:

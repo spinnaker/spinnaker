@@ -17,17 +17,22 @@
 package com.netflix.spinnaker.orca.front50
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.util.logging.Slf4j
+import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-class DependentPipelineStarter {
+class DependentPipelineStarter implements ApplicationContextAware {
+  private ApplicationContext applicationContext
 
   @Autowired
   ObjectMapper objectMapper
@@ -83,7 +88,11 @@ class DependentPipelineStarter {
     def t1 = new Thread(new Runnable() {
       @Override
       public void run() {
-        pipeline = pipelineStarter.start(json)
+        if (parentPipeline.executionEngine == Execution.V2_EXECUTION_ENGINE) {
+          pipeline = pipelineLauncher().start(json)
+        } else {
+          pipeline = pipelineStarter.start(json)
+        }
       }
     })
 
@@ -101,4 +110,16 @@ class DependentPipelineStarter {
 
   }
 
+  /**
+   * There is a circular dependency between DependentPipelineStarter <-> DependentPipelineExecutionListener <->
+   * SpringBatchExecutionListener that prevents a PipelineLauncher from being @Autowired.
+   */
+  PipelineLauncher pipelineLauncher() {
+    return applicationContext.getBean(PipelineLauncher)
+  }
+
+  @Override
+  void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext
+  }
 }

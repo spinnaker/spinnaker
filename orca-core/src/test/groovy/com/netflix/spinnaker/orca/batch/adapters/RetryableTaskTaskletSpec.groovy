@@ -23,53 +23,27 @@ import org.springframework.context.ApplicationContext
 import java.time.Clock
 import java.time.Instant
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.exceptions.TimeoutException
-import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
-import org.springframework.batch.core.BatchStatus
-import org.springframework.batch.core.Job
 import org.springframework.batch.core.StepExecution
-import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
-import org.springframework.retry.backoff.Sleeper
-import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
-import redis.clients.util.Pool
-import spock.lang.AutoCleanup
 import spock.lang.Shared
+import spock.lang.Specification
 import spock.lang.Unroll
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.model.Stage.STAGE_TIMEOUT_OVERRIDE_KEY
 import static java.time.ZoneOffset.UTC
 
-class RetryableTaskTaskletSpec extends BatchExecutionSpec {
-
-  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+class RetryableTaskTaskletSpec extends Specification {
 
   @Shared
   def stageNavigator = new StageNavigator(Mock(ApplicationContext))
-
-  def setupSpec() {
-    embeddedRedis = EmbeddedRedis.embed()
-  }
-
-  def cleanup() {
-    embeddedRedis.jedis.withCloseable { it.flushDB() }
-  }
-
-  Pool<Jedis> jedisPool = embeddedRedis.pool
 
   @Shared backoffPeriod = 1000L
   @Shared timeout = 60000L
@@ -77,72 +51,6 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   def task = Mock(RetryableTask) {
     getBackoffPeriod() >> backoffPeriod
     getTimeout() >> timeout
-  }
-
-  def sleeper = Mock(Sleeper)
-  def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPool, 1, 50)
-  def taskFactory = new TaskTaskletAdapter(executionRepository, [], stageNavigator, new NoopRegistry(), sleeper)
-  Pipeline pipeline
-
-  @Shared def random = Random.newInstance()
-
-  @Override
-  protected Job configureJob(JobBuilder jobBuilder) {
-    pipeline = Pipeline.builder().withStage("retryable").build()
-    def taskModel = new DefaultTask(id: random.nextLong(), name: "task1")
-    pipeline.stages.first().tasks << taskModel
-    executionRepository.store(pipeline)
-    def step = steps.get("${pipeline.stages[0].id}.retryable.${taskModel.name}.${taskModel.id}")
-      .tasklet(taskFactory.decorate(task))
-      .build()
-    jobBuilder.start(step).build()
-  }
-
-  void "should backoff when the task returns continuable"() {
-    when:
-    def jobExecution = launchJob(pipeline: pipeline.id)
-
-    then:
-    3 * task.execute(_) >>> [
-      new DefaultTaskResult(RUNNING),
-      new DefaultTaskResult(RUNNING),
-      new DefaultTaskResult(SUCCEEDED)
-    ]
-
-    and:
-    2 * sleeper.sleep(backoffPeriod)
-
-    and:
-    jobExecution.status == BatchStatus.COMPLETED
-  }
-
-  void "should not retry if task immediately succeeds"() {
-    given:
-    task.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-
-    when:
-    def jobExecution = launchJob(pipeline: pipeline.id)
-
-    then:
-    0 * sleeper._
-
-    and:
-    jobExecution.status == BatchStatus.COMPLETED
-  }
-
-  void "should not retry if an exception is thrown"() {
-    given:
-    task.execute(_) >> { throw new RuntimeException("o noes!") }
-
-    when:
-    def jobExecution = launchJob(pipeline: pipeline.id)
-
-    then:
-    0 * sleeper._
-
-    and:
-    jobExecution.status == BatchStatus.FAILED
   }
 
   @Unroll
@@ -200,7 +108,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), stageNavigator, clock)
 
     when:
-    def taskResult = tasklet.doExecuteTask(stage.asImmutable(), chunkContext)
+    def taskResult = tasklet.doExecuteTask(stage, chunkContext)
 
     then:
     stage.self.status == PAUSED

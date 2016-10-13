@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
+import com.netflix.spinnaker.orca.ExecutionStatus
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.repeat.RepeatStatus
@@ -31,27 +30,27 @@ class BatchStepStatus {
   ExitStatus exitStatus
   BatchStatus batchStatus
 
-  static BatchStepStatus mapResult(TaskResult result) {
-    switch (result.status) {
+  static BatchStepStatus mapResult(ExecutionStatus status) {
+    switch (status) {
       case ExecutionStatus.SUCCEEDED:
-        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, status.exitStatus, BatchStatus.COMPLETED)
       case ExecutionStatus.SUSPENDED:
-        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.STOPPED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, status.exitStatus, BatchStatus.STOPPED)
       case ExecutionStatus.TERMINAL:
-        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.FAILED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, status.exitStatus, BatchStatus.FAILED)
       case ExecutionStatus.RUNNING:
       case ExecutionStatus.PAUSED:
-        return new BatchStepStatus(RepeatStatus.CONTINUABLE, result.status.exitStatus, BatchStatus.STARTED)
+        return new BatchStepStatus(RepeatStatus.CONTINUABLE, status.exitStatus, BatchStatus.STARTED)
       case ExecutionStatus.CANCELED:
-        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, status.exitStatus, BatchStatus.COMPLETED)
       case ExecutionStatus.REDIRECT:
-        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, status.exitStatus, BatchStatus.COMPLETED)
       case ExecutionStatus.STOPPED:
-        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, status.exitStatus, BatchStatus.COMPLETED)
       case ExecutionStatus.SKIPPED:
-        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, status.exitStatus, BatchStatus.COMPLETED)
       case ExecutionStatus.FAILED_CONTINUE:
-        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, status.exitStatus, BatchStatus.COMPLETED)
     }
   }
 }

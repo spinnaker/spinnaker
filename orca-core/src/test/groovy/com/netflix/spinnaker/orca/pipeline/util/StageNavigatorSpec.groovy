@@ -17,28 +17,28 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
-import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
-
 class StageNavigatorSpec extends Specification {
+
   @Shared
   def stageBuilders = [
-    new ExampleStageBuilder("One"), new ExampleStageBuilder("Two"), new ExampleStageBuilder("Three")
+    new ExampleStageBuilder("One"),
+    new ExampleStageBuilder("Two"),
+    new ExampleStageBuilder("Three")
   ]
 
   @Subject
   def stageNavigator = new StageNavigator(null) {
     @Override
-    protected Collection<StageBuilder> stageBuilders() {
-      return stageBuilders
+    protected Collection<StageDefinitionBuilder> stageBuilders() {
+      stageBuilders
     }
   }
 
@@ -55,10 +55,10 @@ class StageNavigatorSpec extends Specification {
 
     expect:
     stage1.ancestors()*.stage*.type == ["One", "Two", "Three"]
-    stage1.ancestors({ Stage stage, StageBuilder stageBuilder -> false })*.stage*.type == []
-    stage1.ancestors({ Stage stage, StageBuilder stageBuilder -> true })*.stage*.type == ["One", "Two", "Three"]
-    stage1.ancestors({ Stage stage, StageBuilder stageBuilder -> stage.type == "One" })*.stage*.type == ["One"]
-    stage1.ancestors({ Stage stage, StageBuilder stageBuilder -> stage.type == "Four" })*.stage*.type == []
+    stage1.ancestors({ stage, builder -> false })*.stage*.type == []
+    stage1.ancestors({ stage, builder -> true })*.stage*.type == ["One", "Two", "Three"]
+    stage1.ancestors({ stage, builder -> stage.type == "One" })*.stage*.type == ["One"]
+    stage1.ancestors({ stage, builder -> stage.type == "Four" })*.stage*.type == []
   }
 
   def "traverses up the refId stage hierarchy"() {
@@ -78,7 +78,7 @@ class StageNavigatorSpec extends Specification {
 
     expect:
     // order is dependent on the order of a stage within `execution.stages`
-    stage1.ancestors({ Stage stage, StageBuilder stageBuilder -> true })*.stage*.type == ["One", "Two", "Four", "Three"]
+    stage1.ancestors()*.stage*.type == ["One", "Two", "Four", "Three"]
   }
 
   def "traverses up both synthetic and refId stage hierarchies"() {
@@ -99,7 +99,7 @@ class StageNavigatorSpec extends Specification {
 
     expect:
     // order is dependent on the order of a stage within `execution.stages`
-    stage1.ancestors({ Stage stage, StageBuilder stageBuilder -> true })*.stage*.type == ["One", "Two", "Three", "Four"]
+    stage1.ancestors()*.stage*.type == ["One", "Two", "Three", "Four"]
   }
 
   private Stage buildStage(String type) {
@@ -111,14 +111,16 @@ class StageNavigatorSpec extends Specification {
     return pipelineStage
   }
 
-  static class ExampleStageBuilder extends LinearStage {
-    ExampleStageBuilder(String name) {
-      super(name)
+  static class ExampleStageBuilder implements StageDefinitionBuilder {
+    private final String type
+
+    ExampleStageBuilder(String type) {
+      this.type = type
     }
 
     @Override
-    List<Step> buildSteps(Stage stage) {
-      []
+    String getType() {
+      return type
     }
   }
 

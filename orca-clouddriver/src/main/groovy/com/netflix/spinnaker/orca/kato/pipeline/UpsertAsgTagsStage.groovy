@@ -25,10 +25,9 @@ import org.springframework.stereotype.Component
 @Component
 @Deprecated
 class UpsertAsgTagsStage extends UpsertServerGroupTagsStage {
-  public static final String PIPELINE_CONFIG_TYPE = "upsertAsgTags"
-
-  UpsertAsgTagsStage() {
-    super(PIPELINE_CONFIG_TYPE)
+  @Override
+  String getType() {
+    return "upsertAsgTags"
   }
 }
 

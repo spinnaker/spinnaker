@@ -28,7 +28,7 @@ class PropertyChangeCleanupSpec extends Specification {
 
   def repository = Stub(ExecutionRepository)
   def mahe = Mock(MaheService)
-  @Subject def listener = new FastPropertyCleanupListener(repository, mahe)
+  @Subject def listener = new FastPropertyCleanupListener(mahe)
 
   def "a property created by a pipeline stage is cleaned up at the end"() {
     given:
@@ -40,7 +40,7 @@ class PropertyChangeCleanupSpec extends Specification {
     repository.retrievePipeline(pipeline.id) >> pipeline
 
     when:
-    listener.afterExecution("pipeline", pipeline.id)
+    listener.afterExecution(null, pipeline, null, true)
 
     then:
     1 * mahe.deleteProperty(propertyId, "spinnaker rollback", propertyEnv)
@@ -60,7 +60,7 @@ class PropertyChangeCleanupSpec extends Specification {
     repository.retrievePipeline(pipeline.id) >> pipeline
 
     when:
-    listener.afterExecution("pipeline", pipeline.id)
+    listener.afterExecution(null, pipeline, null, true)
 
     then:
     1 * mahe.createProperty([property: previous])

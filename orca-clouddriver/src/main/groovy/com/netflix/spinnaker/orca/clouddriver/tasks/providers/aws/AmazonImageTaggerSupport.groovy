@@ -17,13 +17,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
-import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 class AmazonImageTaggerSupport implements DeploymentDetailsAware {
   static Collection<String> upstreamImageIds(Stage sourceStage) {
-    def imageProvidingAncestorStages = sourceStage.ancestors { Stage stage, StageBuilder stageBuilder ->
+    def imageProvidingAncestorStages = sourceStage.ancestors { Stage stage, StageDefinitionBuilder stageBuilder ->
       def cloudProvider = stage.context.cloudProvider ?: stage.context.cloudProviderType
       return (stage.context.containsKey("imageId") || stage.context.containsKey("amiDetails")) && cloudProvider == "aws"
     }

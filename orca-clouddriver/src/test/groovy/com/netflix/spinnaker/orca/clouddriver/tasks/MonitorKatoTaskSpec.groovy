@@ -41,7 +41,7 @@ class MonitorKatoTaskSpec extends Specification {
     and:
     def stage = new PipelineStage(new Pipeline(), "whatever", [
       "kato.last.task.id": new TaskId(taskId)
-    ]).asImmutable()
+    ])
 
     expect:
     task.execute(stage).status == expectedResult
@@ -68,7 +68,7 @@ class MonitorKatoTaskSpec extends Specification {
         "kato.last.task.id": new TaskId(taskId),
         "kato.result.expected": katoResultExpected,
         "deploy.server.groups": [:]
-    ]).asImmutable()
+    ])
 
     expect:
     task.execute(stage).status == expectedResult
@@ -88,7 +88,7 @@ class MonitorKatoTaskSpec extends Specification {
   @Unroll
   def "should automatically succeed if task id does not exist"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "whatever", context).asImmutable()
+    def stage = new PipelineStage(new Pipeline(), "whatever", context)
 
     when:
     def result = task.execute(stage)
@@ -102,8 +102,6 @@ class MonitorKatoTaskSpec extends Specification {
     context                     | _
     ["kato.last.task.id": null] | _
     [:]                         | _
-    null                        | _
-
   }
 
 }

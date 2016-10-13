@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
@@ -25,8 +26,7 @@ class NoStrategy implements Strategy {
   final String name = "none"
 
   @Override
-  void composeFlow(Stage stage) {
-    // Do or do not, there is no try.
-    // In this case: do not.
+  <T extends Execution<T>> List<Stage<T>> composeFlow(Stage<T> stage) {
+    return []
   }
 }

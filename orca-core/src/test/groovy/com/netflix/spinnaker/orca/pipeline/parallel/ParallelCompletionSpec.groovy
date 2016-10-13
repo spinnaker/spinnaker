@@ -16,13 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipeline.parallel
 
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.SpringBatchConfiguration
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDetailsTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -31,42 +35,50 @@ import com.netflix.spinnaker.orca.test.JobCompletionListener
 import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import org.spockframework.spring.xml.SpockMockFactoryBean
+import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.test.context.ContextConfiguration
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
+@ContextConfiguration(classes=[
+  EmbeddedRedisConfiguration,
+  JesqueConfiguration,
+  TestConfiguration,
+  JobCompletionListener,
+  BatchTestConfiguration,
+  SpringBatchConfiguration,
+  OrcaConfiguration,
+  OrcaPersistenceConfiguration,
+  StageDetailsTask,
+  MockStageConfiguration
+])
+@Ignore
 class ParallelCompletionSpec extends Specification {
-
-  def applicationContext = new AnnotationConfigApplicationContext()
 
   @Autowired PipelineStarter pipelineStarter
   @Autowired JobCompletionListener jobCompletionListener
   @Autowired ExecutionRepository repository
+  @Autowired TestTask task
 
-  def task = Stub(Task)
+  @CompileStatic
+  static interface TestTask extends Task {}
 
-  def setup() {
-    def stage = new PipelineRestartingSpec.AutowiredTestStage("test", task)
-    applicationContext.with {
-      register(
-        EmbeddedRedisConfiguration,
-        JesqueConfiguration,
-        TestConfiguration,
-        JobCompletionListener,
-        BatchTestConfiguration,
-        OrcaConfiguration,
-        OrcaPersistenceConfiguration,
-        StageDetailsTask
-      )
-      beanFactory.registerSingleton("testStage", stage)
-      refresh()
-      beanFactory.autowireBean(stage)
-      beanFactory.autowireBean(this)
+  @CompileStatic
+  static class MockStageConfiguration {
+    @Bean FactoryBean<TestTask> testTask() {
+      new SpockMockFactoryBean<>(TestTask)
     }
-    stage.applicationContext = applicationContext
+
+    @Bean StageBuilder testStage() {
+      new PipelineRestartingSpec.TestStage(null ,null)
+    }
   }
 
   @Unroll

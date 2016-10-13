@@ -41,7 +41,7 @@ class MonitorBakeTaskSpec extends Specification {
   def "should return #taskStatus if bake is #bakeState"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new PipelineStage(pipeline, "bake", [region: "us-west-1", status: previousStatus]).asImmutable()
+    def stage = new PipelineStage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
 
     and:
     task.bakery = Stub(BakeryService) {
@@ -68,7 +68,7 @@ class MonitorBakeTaskSpec extends Specification {
     given:
     def id = randomUUID().toString()
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new PipelineStage(pipeline, "bake", [region: "us-west-1", status: previousStatus]).asImmutable()
+    def stage = new PipelineStage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
 
     and:
     task.bakery = Stub(BakeryService) {
@@ -95,7 +95,7 @@ class MonitorBakeTaskSpec extends Specification {
   def "outputs the updated bake status"() {
     given:
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
-    def stage = new PipelineStage(pipeline, "bake", [region: "us-west-1", status: previousStatus]).asImmutable()
+    def stage = new PipelineStage(pipeline, "bake", [region: "us-west-1", status: previousStatus])
 
     and:
     task.bakery = Stub(BakeryService) {

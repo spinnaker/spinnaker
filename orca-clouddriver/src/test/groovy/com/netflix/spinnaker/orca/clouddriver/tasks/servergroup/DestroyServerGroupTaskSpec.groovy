@@ -54,7 +54,7 @@ class DestroyServerGroupTaskSpec extends Specification {
       }
 
     when:
-      task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
       operations.size() == 1
@@ -73,7 +73,7 @@ class DestroyServerGroupTaskSpec extends Specification {
       }
 
     when:
-      def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
       result.status == ExecutionStatus.SUCCEEDED
@@ -93,7 +93,7 @@ class DestroyServerGroupTaskSpec extends Specification {
       TargetServerGroup.isDynamicallyBound(_) >> true
 
     when:
-      def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
       result.stageOutputs.asgName == "foo-v001"
@@ -114,7 +114,7 @@ class DestroyServerGroupTaskSpec extends Specification {
       }
 
     when:
-      def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
       result.status == ExecutionStatus.SUCCEEDED

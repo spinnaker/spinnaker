@@ -16,42 +16,38 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.tasks.PreconditionTask
-import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class CheckPreconditionsStage extends ParallelStage implements StepProvider {
+class CheckPreconditionsStage implements BranchingStageDefinitionBuilder {
+
   static final String PIPELINE_CONFIG_TYPE = "checkPreconditions"
 
-  @Autowired
-  List<PreconditionTask> preconditionTasks
+  private final List<? extends PreconditionTask> preconditionTasks
 
-  CheckPreconditionsStage() {
-    super(PIPELINE_CONFIG_TYPE)
+  @Autowired
+  CheckPreconditionsStage(List<? extends PreconditionTask> preconditionTasks) {
+    this.preconditionTasks = preconditionTasks
   }
 
   @Override
-  List<Step> buildSteps(Stage stage) {
+  def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     String preconditionType = stage.context.preconditionType
     if (!preconditionType) {
       throw new IllegalStateException("no preconditionType specified for stage $stage.id")
     }
-    Task preconditionTask = preconditionTasks.find { it.preconditionType == preconditionType }
+    Task preconditionTask = preconditionTasks.find {
+      it.preconditionType == preconditionType
+    }
     if (!preconditionTask) {
       throw new IllegalStateException("no Precondition implementation for type $preconditionType")
     }
-    [buildStep(stage, "checkPrecondition", preconditionTask)]
-  }
-
-  @Override
-  List<Step> buildParallelContextSteps(Stage stage) {
-    buildSteps(stage)
+    builder.withTask("checkPrecondition", preconditionTask.getClass() as Class<? extends Task>)
   }
 
   @Override
@@ -60,17 +56,7 @@ class CheckPreconditionsStage extends ParallelStage implements StepProvider {
   }
 
   @Override
-  Task completeParallel() {
-    new Task() {
-      @Override
-      TaskResult execute(Stage stage) {
-        DefaultTaskResult.SUCCEEDED
-      }
-    }
-  }
-
-  @Override
-  List<Map<String, Object>> parallelContexts(Stage stage) {
+  def <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
     stage.resolveStrategyParams()
     def baseContext = new HashMap(stage.context)
     List<Map> preconditions = baseContext.remove('preconditions') as List<Map>
@@ -80,7 +66,7 @@ class CheckPreconditionsStage extends ParallelStage implements StepProvider {
         preconditionType: preconditionConfig.type
       ]
 
-      context['context'] = context['context']?:[:]
+      context['context'] = context['context'] ?: [:]
 
       ['cluster', 'regions', 'credentials', 'zones'].each {
         context['context'][it] = context['context'][it] ?: baseContext[it]

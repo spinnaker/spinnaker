@@ -17,14 +17,10 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.InheritConstructors
-import org.springframework.batch.core.Step
-import org.springframework.batch.core.StepExecutionListener
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -32,109 +28,156 @@ class QuickPatchStageSpec extends Specification {
 
   def oortHelper = Mock(OortHelper)
   def bulkQuickPatchStage = Mock(BulkQuickPatchStage)
-  def step = Stub(Step)
+  def objectMapper = new OrcaObjectMapper()
 
-  @Subject quickPatchStage = new NoBatchQuickPatchStage(oortHelper: oortHelper, bulkQuickPatchStage: bulkQuickPatchStage, step: step)
+  @Subject
+    quickPatchStage = new QuickPatchStage(oortHelper: oortHelper, bulkQuickPatchStage: bulkQuickPatchStage)
 
   def "no-ops if there are no instances"() {
     given:
     def stage = new PipelineStage(new Pipeline(), "quickPatch", context)
 
+    and:
+    oortHelper.getInstancesForCluster(_, null, true, false) >> [:]
+
     expect:
     !stage.initializationStage
     stage.status == ExecutionStatus.NOT_STARTED
 
-    when:
-    def steps = quickPatchStage.buildSteps(stage)
-
-    then:
-    1 * oortHelper.getInstancesForCluster(_, null, true, false) >> [:]
-    steps.isEmpty()
-    stage.initializationStage
-    stage.status == ExecutionStatus.SUCCEEDED
-    0 * _
+    and:
+    quickPatchStage.aroundStages(stage).isEmpty()
 
     where:
     context = [:]
   }
-  def "configures bulk quickpatch"() {
+
+  def "quick patch can't run due to too many asgs"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "quickPatch", stageContext)
+    def config = [
+      application: "deck",
+      clusterName: "deck-cluster",
+      account    : "account",
+      region     : "us-east-1",
+      baseOs     : "ubuntu"
+    ]
+
+    and:
+    def stage = new PipelineStage(new Pipeline(), "quickPatch", config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
+
+    and:
+    oortHelper.getInstancesForCluster(config, null, true, false) >> {
+      throw new RuntimeException("too many asgs!")
+    }
 
     when:
-    def steps = quickPatchStage.buildSteps(stage)
+    quickPatchStage.aroundStages(stage)
 
     then:
-    1 * oortHelper.getInstancesForCluster(_, null, true, false) >> instances
-    steps == [step]
-    !stage.initializationStage
-    stage.status == ExecutionStatus.NOT_STARTED
-    stage.afterStages.size() == 1
-    with(stage.afterStages[0]) {
-      name == "bulkQuickPatchStage"
-      stageBuilder == bulkQuickPatchStage
-      context.instances == instances
-    }
-    0 * _
+    thrown(RuntimeException)
 
     where:
-    instances = (1..10).collect(this.&mkInstance).collectEntries { [(it.instanceId):it] }
-    stageContext = [
-      rollingPatch: false
+    asgNames = ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"]
+  }
+
+  def "configures bulk quickpatch"() {
+    given:
+    def config = [
+      application: "deck",
+      clusterName: "deck-cluster",
+      account    : "account",
+      region     : "us-east-1",
+      baseOs     : "ubuntu"
     ]
+
+    and:
+    oortHelper.getInstancesForCluster(config, null, true, false) >> expectedInstances
+
+    def stage = new PipelineStage(new Pipeline(), "quickPatch", config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
+
+    when:
+    def syntheticStages = quickPatchStage.aroundStages(stage)
+
+    then:
+    syntheticStages.size() == 1
+    syntheticStages*.type == [bulkQuickPatchStage.type]
+
+    and:
+    with(syntheticStages[0].context) {
+      application == "deck"
+      account == "account"
+      region == "us-east-1"
+      clusterName == "deck-cluster"
+      instanceIds == ["i-1234", "i-2345"]
+      instances.size() == expectedInstances.size()
+      instances.every {
+        it.value.hostName == expectedInstances.get(it.key).hostName
+        it.value.healthCheck == expectedInstances.get(it.key).healthCheck
+      }
+    }
+
+    where:
+    asgNames = ["deck-prestaging-v300"]
+    instance1 = [instanceId: "i-1234", publicDnsName: "foo.com", health: [[foo: "bar"], [healthCheckUrl: "http://foo.com:7001/healthCheck"]]]
+    instance2 = [instanceId: "i-2345", publicDnsName: "foo2.com", health: [[foo2: "bar"], [healthCheckUrl: "http://foo2.com:7001/healthCheck"]]]
+    expectedInstances = ["i-1234": [hostName: "foo.com", healthCheckUrl: "http://foo.com:7001/healthCheck"], "i-2345": [hostName: "foo2.com", healthCheckUrl: "http://foo.com:7001/healthCheck"]]
   }
 
   def "configures rolling quickpatch"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "quickPatch", stageContext)
+    def stage = new PipelineStage(new Pipeline(), "quickPatch", config)
 
     when:
-    def steps = quickPatchStage.buildSteps(stage)
+    def syntheticStages = quickPatchStage.aroundStages(stage)
 
     then:
-    1 * oortHelper.getInstancesForCluster(_, null, true, false) >> instances
-    steps == [step]
-    !stage.initializationStage
-    stage.status == ExecutionStatus.NOT_STARTED
-    stage.afterStages.size() == instances.size()
-    def stageInstances = [] as Set
-    stage.afterStages.each {
-      with(it) {
-        name == "bulkQuickPatchStage"
-        stageBuilder == bulkQuickPatchStage
-        context.instances.size() == 1
-        stageInstances.addAll(context.instances.keySet()) == true
+    1 * oortHelper.getInstancesForCluster(config, null, true, false) >> expectedInstances
+
+    and:
+    syntheticStages.size() == 2
+
+    and:
+    syntheticStages*.type.unique() == [bulkQuickPatchStage.type]
+
+    and:
+    with(syntheticStages[0].context) {
+      application == "deck"
+      account == "account"
+      region == "us-east-1"
+      clusterName == config.clusterName
+      instanceIds == ["i-1234"]
+      instances.size() == 1
+      instances.every {
+        it.value.hostName == expectedInstances.get(it.key).hostName
+        it.value.healthCheck == expectedInstances.get(it.key).healthCheck
       }
     }
-    stageInstances.sort() == instances.keySet().sort()
-    0 * _
+
+    and:
+    with(syntheticStages[1].context) {
+      application == "deck"
+      account == "account"
+      region == "us-east-1"
+      clusterName == config.clusterName
+      instanceIds == ["i-2345"]
+      instances.size() == 1
+      instances.every {
+        it.value.hostName == expectedInstances.get(it.key).hostName
+        it.value.healthCheck == expectedInstances.get(it.key).healthCheck
+      }
+    }
 
     where:
-    instances = (1..10).collect(this.&mkInstance).collectEntries { [(it.instanceId):it] }
-    stageContext = [
-      rollingPatch: true
-    ]
-  }
+    asgNames = ["deck-prestaging-v300"]
+    instance1 = [instanceId: "i-1234", publicDnsName: "foo.com", health: [[foo: "bar"], [healthCheckUrl: "http://foo.com:7001/healthCheck"]]]
+    instance2 = [instanceId: "i-2345", publicDnsName: "foo2.com", health: [[foo2: "bar"], [healthCheckUrl: "http://foo2.com:7001/healthCheck"]]]
+    expectedInstances = ["i-1234": [hostName: "foo.com", healthCheckUrl: "http://foo.com:7001/healthCheck"], "i-2345": [hostName: "foo2.com", healthCheckUrl: "http://foo.com:7001/healthCheck"]]
 
-  private Map mkInstance(int id) {
-    [
-      instanceId: "i-$id".toString(),
-      hostName: "h${id}.foo.com",
-      healthCheckUrl: "/health"
-    ]
-  }
-
-  /**
-   * This noops out the spring batch aspects of stage building which aren't really a concern for the purposes
-   * of this test
-   */
-  @InheritConstructors
-  static class NoBatchQuickPatchStage extends QuickPatchStage {
-    Step step
-
-    @Override
-    protected Step buildStep(Stage stage, String taskName, Class<? extends Task> taskType, StepExecutionListener... listeners) {
-      return step
-    }
+    config | _
+    [application: "deck", clusterName: "deck-cluster", account: "account", region: "us-east-1", rollingPatch: true, baseOs: "ubuntu"] | _
+    [application: "deck", clusterName: "deck", account: "account", region: "us-east-1", rollingPatch: true, baseOs: "ubuntu"] | _
   }
 }

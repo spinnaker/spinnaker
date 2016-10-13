@@ -34,7 +34,7 @@ import spock.lang.Unroll
 class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
   def oortHelper = Mock(OortHelper)
   def executionRepository = Mock(ExecutionRepository)
-  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
+  def stageNavigator = new StageNavigator(Stub(ApplicationContext))
 
   @Subject
   def task = new ApplySourceServerGroupCapacityTask(

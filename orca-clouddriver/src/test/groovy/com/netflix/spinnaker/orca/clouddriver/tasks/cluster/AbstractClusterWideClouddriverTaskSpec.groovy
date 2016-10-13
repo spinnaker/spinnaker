@@ -55,7 +55,7 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
       ]
     ])
 
-    (pipeline.stages[0] as AbstractStage).stageNavigator = new StageNavigator(Mock(ApplicationContext))
+    (pipeline.stages[0] as AbstractStage).stageNavigator = new StageNavigator(Stub(ApplicationContext))
     pipeline.stages[0].parentStageId = pipeline.stages[1].id
     pipeline.stages[1].requisiteStageRefIds = ["2"]
     pipeline.stages[2].refId = "2"

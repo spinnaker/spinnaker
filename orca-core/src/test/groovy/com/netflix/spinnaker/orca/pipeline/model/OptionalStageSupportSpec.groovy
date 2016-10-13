@@ -71,7 +71,7 @@ class OptionalStageSupportSpec extends Specification {
 
     pipeline.stages << new PipelineStage(pipeline, "", "Test2", [:])
     pipeline.stages[1].status = ExecutionStatus.SUCCEEDED
-    pipeline.stages[1].syntheticStageOwner = Stage.SyntheticStageOwner.STAGE_AFTER
+    pipeline.stages[1].syntheticStageOwner = SyntheticStageOwner.STAGE_AFTER
     pipeline.stages[1].parentStageId = pipeline.stages[0].id
 
     expect:

@@ -22,9 +22,8 @@ import org.springframework.stereotype.Component
 @Deprecated
 @Component
 class ModifyAsgLaunchConfigurationStage extends UpdateLaunchConfigStage {
-  public static final String PIPELINE_CONFIG_TYPE = "modifyAsgLaunchConfiguration"
-
-  ModifyAsgLaunchConfigurationStage() {
-    super(PIPELINE_CONFIG_TYPE)
+  @Override
+  String getType() {
+    return "modifyAsgLaunchConfiguration"
   }
 }

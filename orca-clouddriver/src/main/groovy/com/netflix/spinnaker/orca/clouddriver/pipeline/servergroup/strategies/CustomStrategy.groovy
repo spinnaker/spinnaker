@@ -16,23 +16,30 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.orca.batch.StageBuilderProvider
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 
 @Component
-class CustomStrategy implements Strategy {
+class CustomStrategy implements Strategy, ApplicationContextAware {
 
   final String name = "custom"
 
   @Autowired
   PipelineStage pipelineStage
 
+  ApplicationContext applicationContext
+
   @Override
-  void composeFlow(Stage stage) {
+  <T extends Execution<T>> List<Stage<T>> composeFlow(Stage<T> stage) {
 
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
 
@@ -48,7 +55,7 @@ class CustomStrategy implements Strategy {
       parentStageId                          : stage.id
     ]
 
-    if(stage.context.pipelineParameters){
+    if (stage.context.pipelineParameters) {
       parameters.putAll(stage.context.pipelineParameters as Map)
     }
 
@@ -59,11 +66,24 @@ class CustomStrategy implements Strategy {
       pipelineParameters : parameters
     ]
 
-    LinearStage.injectAfter(stage, "pipeline", pipelineStage, modifyCtx)
+    return [
+      newStage(
+        stage.execution,
+        pipelineStage.type,
+        "pipeline",
+        modifyCtx,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
+    ]
   }
 
   @Override
   boolean replacesBasicSteps() {
     return true
+  }
+
+  StageBuilderProvider getStageBuilderProvider() {
+    return applicationContext.getBean(StageBuilderProvider)
   }
 }

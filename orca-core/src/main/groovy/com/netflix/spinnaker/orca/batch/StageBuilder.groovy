@@ -1,7 +1,7 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import groovy.util.logging.Slf4j
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Function
 import com.google.common.base.Optional
@@ -23,14 +27,9 @@ import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.security.AuthenticatedRequest
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
-import groovy.transform.PackageScope
-import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -42,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.core.task.SimpleAsyncTaskExecutor
+import static java.lang.Boolean.parseBoolean
 import static java.util.Collections.EMPTY_LIST
 
 /**
@@ -53,14 +53,14 @@ import static java.util.Collections.EMPTY_LIST
  */
 @CompileStatic
 @Slf4j
+@Deprecated
 abstract class StageBuilder implements ApplicationContextAware {
   private static final int MAX_PARALLEL_CONCURRENCY = 25
 
   final String type
 
   private StepBuilderFactory steps
-  private TaskTaskletAdapter taskTaskletAdapter
-  private List<StepExecutionListener> taskListeners
+  private Collection<TaskTaskletAdapter> taskTaskletAdapters
   private ApplicationContext applicationContext
 
   @Autowired
@@ -83,7 +83,7 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @param stage the stage configuration.
    * @return the resulting builder after any steps are appended.
    */
-  final FlowBuilder build(FlowBuilder jobBuilder, Stage stage) {
+  final <Q> FlowBuilder<Q> build(FlowBuilder<Q> jobBuilder, Stage stage) {
     try {
       if (stage.execution.parallel) {
         return buildParallel(jobBuilder, stage)
@@ -106,78 +106,6 @@ abstract class StageBuilder implements ApplicationContextAware {
 
       return jobBuilder
     }
-  }
-
-  /**
-   * Prepares a stage for restarting by:
-   * - marking the halted task as NOT_STARTED and resetting its start and end times
-   * - marking the stage as RUNNING
-   */
-  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage) {
-    stage.execution.canceled = false
-    stage.execution.stages
-         .findAll { it.status == ExecutionStatus.CANCELED }
-         .each { Stage it ->
-           it.status = ExecutionStatus.NOT_STARTED
-           it.tasks
-             .findAll { it.status == ExecutionStatus.CANCELED }
-             .each { task ->
-               task.startTime = null
-               task.endTime = null
-               task.status = ExecutionStatus.NOT_STARTED
-             }
-         }
-
-    def childStages = stage.execution.stages.findAll {
-      def requisiteStageRefIds = it.requisiteStageRefIds ?: []
-      if (it.context.requisiteIds) {
-        requisiteStageRefIds.addAll(it.context.requisiteIds as Collection<String>)
-      }
-
-      // only want to consider completed child stages
-      return it.status.complete && requisiteStageRefIds.contains(stage.refId)
-    }
-
-    def stageBuilders = getStageBuilders()
-    childStages.each { Stage childStage ->
-      def stageBuilder = stageBuilders.find { it.type == childStage.type } ?: this
-      stageBuilder.prepareStageForRestart(executionRepository, childStage)
-
-      // the default `prepareStageForRestart` behavior sets a stage back to RUNNING, that's not appropriate for child stages
-      childStage.status = ExecutionStatus.NOT_STARTED
-      childStage.tasks.each {
-        it.startTime = null
-        it.endTime = null
-        it.status = ExecutionStatus.NOT_STARTED
-      }
-      executionRepository.storeStage((PipelineStage) childStage)
-    }
-
-    stage.tasks.find { it.status.halt }.each { com.netflix.spinnaker.orca.pipeline.model.Task task ->
-      task.startTime = null
-      task.endTime = null
-      task.status = ExecutionStatus.NOT_STARTED
-    }
-    stage.context["restartDetails"] = [
-      "restartedBy": AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
-      "restartTime": System.currentTimeMillis()
-    ] as Map<String, Object>
-
-    if (stage.context.exception) {
-      stage.context.restartDetails["previousException"] = stage.context.exception
-      stage.context.remove("exception")
-    }
-    stage.status = ExecutionStatus.RUNNING
-    stage.startTime = null
-    stage.endTime = null
-    executionRepository.storeStage((PipelineStage) stage)
-
-    if (stage.execution.paused?.isPaused()) {
-      // pipeline appears to be PAUSED and should be resumed regardless of current TERMINAL status
-      executionRepository.resume(stage.execution.id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), true)
-    }
-
-    return stage
   }
 
   @Deprecated
@@ -204,7 +132,7 @@ abstract class StageBuilder implements ApplicationContextAware {
   @VisibleForTesting
   @PackageScope
   FlowBuilder buildDependentStages(FlowBuilder jobBuilder, Stage stage) {
-    def stageBuilders = applicationContext.getBeansOfType(StageBuilder).values()
+    def stageBuilders = getAllStageBuilders()
     def dependantStages = stage.execution.stages.findAll {
       it.requisiteStageRefIds?.contains(stage.refId)
     }
@@ -233,7 +161,7 @@ abstract class StageBuilder implements ApplicationContextAware {
           "Wait For Parent Tasks",
           [requisiteIds: childStage.requisiteStageRefIds] as Map,
           null as Stage,
-          null as Stage.SyntheticStageOwner
+          null as SyntheticStageOwner
         )
         ((AbstractStage) waitForStage).id = "${childStage.id}-waitForRequisite"
 
@@ -245,7 +173,7 @@ abstract class StageBuilder implements ApplicationContextAware {
 
         // child stage should be added after the artificial join stage
         def childFlowBuilder = new FlowBuilder<Flow>("ChildExecution.${childStage.refId}.${childStage.id}")
-        flows << waitForBuilder.next(childStageBuilder.build(childFlowBuilder, childStage).build() as Flow).build()
+        flows << waitForBuilder.next(childStageBuilder.build(childFlowBuilder, childStage).build()).build()
       } else {
         // single parent child, no need for an artificial join stage
         def flowBuilder = new FlowBuilder<Flow>("ChildExecution.${childStage.refId}.${childStage.id}")
@@ -292,7 +220,7 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @param taskType The +Task+ implementation class.
    * @return a +Step+ that will execute an instance of the required +Task+.
    */
-  protected Step buildStep(Stage stage, String taskName, Class<? extends Task> taskType, StepExecutionListener... listeners) {
+  Step buildStep(Stage stage, String taskName, Class<? extends Task> taskType, StepExecutionListener... listeners) {
     buildStep stage, taskName, applicationContext.getBean(taskType), listeners
   }
 
@@ -305,8 +233,13 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @return a +Step+ that will execute the specified +Task+.
    */
   protected Step buildStep(Stage stage, String taskName, Task task, StepExecutionListener... listeners) {
-    createStepWithListeners(stage, taskName, listeners)
-      .tasklet(taskTaskletAdapter.decorate(task))
+    def builder = createStepWithListeners(stage, taskName, listeners)
+    def adapter = taskTaskletAdapters.find {
+      parseBoolean(stage.context.runWithAkka as String) || parseBoolean(stage.execution.context.runWithAkka as String) ? it.akkaEnabled() : !it.akkaEnabled()
+    }
+    builder = builder
+      .tasklet(adapter.decorate(task))
+    builder
       .allowStartIfComplete(this instanceof RestartableStage)
       .build()
   }
@@ -344,13 +277,16 @@ abstract class StageBuilder implements ApplicationContextAware {
   }
 
   @Autowired
-  void setTaskTaskletAdapter(TaskTaskletAdapter taskTaskletAdapter) {
-    this.taskTaskletAdapter = taskTaskletAdapter
+  void setTaskTaskletAdapters(Collection<? extends TaskTaskletAdapter> taskTaskletAdapters) {
+    this.taskTaskletAdapters = taskTaskletAdapters
   }
 
-  @Autowired
-  void setTaskListeners(List<StepExecutionListener> taskListeners) {
-    this.taskListeners = taskListeners
+  ExecutionListenerProvider getExecutionListenerProvider() {
+    return applicationContext.getBean(ExecutionListenerProvider)
+  }
+
+  Collection<StageBuilder> getAllStageBuilders() {
+    return applicationContext.getBean(StageBuilderProvider).all()
   }
 
   @Override
@@ -365,32 +301,15 @@ abstract class StageBuilder implements ApplicationContextAware {
   @VisibleForTesting
   @PackageScope
   List<StepExecutionListener> getTaskListeners() {
-    Optional.fromNullable(taskListeners)
+    Optional.fromNullable(getExecutionListenerProvider().allStepExecutionListeners() ?: [])
       .transform(ImmutableList.&copyOf as Function)
       .or(EMPTY_LIST)
   }
 
   static Stage newStage(Execution execution, String type, String name, Map<String, Object> context,
-                        Stage parent, Stage.SyntheticStageOwner stageOwner) {
-    def stage
-    if (execution instanceof Orchestration) {
-      stage = new OrchestrationStage(execution, type, context)
-    } else {
-      stage = new PipelineStage(execution as Pipeline, type, name, context)
-    }
-    stage.parentStageId = parent?.id
-    stage.syntheticStageOwner = stageOwner
-
-    // Look upstream until you find the ultimate ancestor parent (parent w/ no parentStageId)
-    while (parent?.parentStageId != null) {
-      parent = execution.stages.find { it.id == parent.parentStageId }
-    }
-
-    if (parent) {
-      // If a parent exists, the new stage id should be deterministically generated
-      stage.id = parent.id + "-" + ((AbstractStage) parent).stageCounter.incrementAndGet() + "-" + stage.name?.replaceAll("[^A-Za-z0-9]", "")
-    }
-
-    stage
+                        Stage parent, SyntheticStageOwner stageOwner) {
+    return StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage(
+      execution, type, name, context, parent, stageOwner
+    )
   }
 }

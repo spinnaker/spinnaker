@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.BiFunction
+import groovy.transform.CompileStatic
+import groovy.transform.ToString
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
@@ -24,38 +27,29 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TreeTraversingParser
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import groovy.transform.CompileStatic
-import groovy.transform.ToString
 import static ExecutionStatus.NOT_STARTED
-import static java.util.Collections.EMPTY_MAP
 
 @CompileStatic
 @ToString(includeNames = true)
-abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializable {
+abstract class AbstractStage<T extends Execution<T>> implements Stage<T>, Serializable {
   String id = UUID.randomUUID()
   String type
   String name
   Long startTime
   Long endTime
   ExecutionStatus status = NOT_STARTED
-  void setStatus(ExecutionStatus status) {
-    this.status = status
-  }
-  @JsonBackReference
-  T execution
+  @JsonBackReference T execution
   Map<String, Object> context = [:]
-  boolean immutable = false
+  final boolean immutable = false
   boolean initializationStage = false
   List<Task> tasks = []
   String parentStageId
-
   String refId
-  Collection<String> requisiteStageRefIds
-
-  Stage.SyntheticStageOwner syntheticStageOwner
+  Collection<String> requisiteStageRefIds = []
+  SyntheticStageOwner syntheticStageOwner
   List<InjectedStageConfiguration> beforeStages = []
   List<InjectedStageConfiguration> afterStages = []
   long scheduledTime
@@ -65,6 +59,7 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   @JsonIgnore
   AtomicInteger stageCounter = new AtomicInteger(0)
 
+  @Deprecated
   @JsonIgnore
   AtomicInteger taskCounter = new AtomicInteger(0)
 
@@ -100,42 +95,13 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   }
 
   AbstractStage(Execution execution, String type) {
-    this(execution, type, EMPTY_MAP)
+    this(execution, type, [:])
   }
 
-  @Override
-  Stage preceding(String type) {
-    def i = execution.stages.indexOf(this)
-    execution.stages[i..0].find {
-      it.type == type
-    }
-  }
-
-  Stage<T> asImmutable() {
-    if (execution?.appConfig) {
-      context.appConfig = execution.appConfig
-    }
-    ImmutableStageSupport.toImmutable(this)
-  }
-
-  @Override
-  Stage<T> getSelf() {
-    this
-  }
-
-  @Override
-  public <O> O mapTo(Class<O> type) {
-    mapTo(null, type)
-  }
 
   @Override
   public <O> O mapTo(String pointer, Class<O> type) {
     objectMapper.readValue(new TreeTraversingParser(getPointer(pointer ?: ""), objectMapper), type)
-  }
-
-  @Override
-  public void commit(Object obj) {
-    commit "", obj
   }
 
   @Override
@@ -150,12 +116,8 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   }
 
   @Override
-  List<StageNavigator.Result> ancestors(Closure<Boolean> matcher = { Stage stage, StageBuilder stageBuilder -> true }) {
+  List<StageNavigator.Result> ancestors(BiFunction<Stage<T>, StageDefinitionBuilder, Boolean> matcher) {
     return stageNavigator ? stageNavigator.findAll(this, matcher) :[]
-  }
-
-  @Override
-  void resolveStrategyParams() {
   }
 
   private JsonNode getPointer(String pointer, ObjectNode rootNode = contextToNode()) {

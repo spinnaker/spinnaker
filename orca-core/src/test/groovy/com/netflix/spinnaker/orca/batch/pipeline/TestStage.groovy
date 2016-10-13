@@ -16,38 +16,22 @@
 
 package com.netflix.spinnaker.orca.batch.pipeline
 
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
-import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
-import org.springframework.batch.core.StepExecutionListener
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.context.support.GenericApplicationContext
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 /**
  * A stub +Stage+ implementation for unit tests that doesn't need to be Spring-wired in order to work. It will
  * just add one or more pre-defined +Tasks+ (probably mocks) to the pipeline.
  */
 @CompileStatic
-class TestStage extends LinearStage {
-
+class TestStage implements StageDefinitionBuilder {
   private final List<Task> tasks = []
 
-  TestStage(String name, StepBuilderFactory steps, ExecutionRepository executionRepository, Task... tasks) {
-    super(name)
-    this.steps = steps
-
-    def applicationContext = new GenericApplicationContext()
-    applicationContext.refresh()
-    this.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [], new StageNavigator(applicationContext))
-    this.taskListeners = [
-      new StageStatusPropagationListener(executionRepository)
-    ] as List<StepExecutionListener>
+  TestStage(Task... tasks) {
     this.tasks.addAll tasks
   }
 
@@ -61,10 +45,10 @@ class TestStage extends LinearStage {
   }
 
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    def i = 1
-    tasks.collect { Task task ->
-      buildStep (stage, "task${i++}", task)
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    tasks.eachWithIndex { task, i ->
+      builder
+        .withTask("task${i + 1}", task.getClass() as Class<? extends Task>)
     }
   }
 }

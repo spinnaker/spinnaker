@@ -15,45 +15,24 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.pipeline.loadbalancer
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.DeleteLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.DeleteLoadBalancerTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
-
-/**
- * Created by aglover on 9/26/14.
- */
 
 @Component
 @CompileStatic
-class DeleteLoadBalancerStage extends LinearStage {
-
-  public static final String PIPELINE_CONFIG_TYPE = "deleteLoadBalancer"
-
-  DeleteLoadBalancerStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
-  /**
-   * This constructor only exists so we can properly instantiate the deprecated subclass DeleteAmazonLoadBalancerStage.
-   * Once that deprecated subclass goes away, this constructor should be removed as well.
-   *
-   * @deprecated use DeleteLoadBalancerStage() instead.
-   */
-  @Deprecated
-  DeleteLoadBalancerStage(String stageName) {
-    super(stageName)
-  }
-
+class DeleteLoadBalancerStage implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "deleteLoadBalancer", DeleteLoadBalancerTask)
-    def step2 = buildStep(stage, "forceCacheRefresh", DeleteLoadBalancerForceRefreshTask)
-    def step3 = buildStep(stage, "monitorDelete", MonitorKatoTask)
-    [step1, step2, step3]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("deleteLoadBalancer", DeleteLoadBalancerTask)
+      .withTask("forceCacheRefresh", DeleteLoadBalancerForceRefreshTask)
+      .withTask("monitorDelete", MonitorKatoTask)
   }
 }

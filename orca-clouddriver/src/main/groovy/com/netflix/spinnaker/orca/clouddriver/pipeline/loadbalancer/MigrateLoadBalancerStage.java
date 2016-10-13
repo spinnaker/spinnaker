@@ -18,28 +18,21 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.loadbalancer;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.MigrateLoadBalancerTask;
-import com.netflix.spinnaker.orca.pipeline.LinearStage;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.batch.core.Step;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
-public class MigrateLoadBalancerStage extends LinearStage {
+public class MigrateLoadBalancerStage implements StageDefinitionBuilder {
 
   public static final String PIPELINE_CONFIG_TYPE = "migrateLoadBalancer";
 
-  MigrateLoadBalancerStage() {
-    super(PIPELINE_CONFIG_TYPE);
-  }
-
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    List<Step> steps = new ArrayList<>();
-    steps.add(buildStep(stage, "migrateLoadBalancer", MigrateLoadBalancerTask.class));
-    steps.add(buildStep(stage, "monitorMigration", MonitorKatoTask.class));
-    return steps;
+  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("migrateLoadBalancer", MigrateLoadBalancerTask.class)
+      .withTask("monitorMigration", MonitorKatoTask.class);
   }
 }

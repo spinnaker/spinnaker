@@ -16,15 +16,18 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
-import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.kato.pipeline.Nameable
-import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
+import com.netflix.spinnaker.orca.kato.pipeline.Nameable
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 
 @Slf4j
-abstract class TargetServerGroupLinearStageSupport extends LinearStage implements Nameable {
+abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBuilder, Nameable {
 
   @Autowired
   TargetServerGroupResolver resolver
@@ -34,26 +37,29 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
 
   String name = this.type
 
-  TargetServerGroupLinearStageSupport(String name) {
-    super(name)
+  @Override
+  def <T extends Execution> List<Stage<T>> aroundStages(Stage<T> parentStage) {
+    return composeTargets(parentStage)
   }
 
-  void composeTargets(Stage stage) {
+  List<Stage> composeTargets(Stage stage) {
     stage.resolveStrategyParams()
     def params = TargetServerGroup.Params.fromStage(stage)
     if (TargetServerGroup.isDynamicallyBound(stage)) {
-      composeDynamicTargets(stage, params)
-    } else {
-      composeStaticTargets(stage, params)
+      return composeDynamicTargets(stage, params)
     }
+
+    return composeStaticTargets(stage, params)
   }
 
-  private void composeStaticTargets(Stage stage, TargetServerGroup.Params params) {
+  private List<Stage> composeStaticTargets(Stage stage, TargetServerGroup.Params params) {
     if (stage.parentStageId) {
       // Only process this stage as-is when the user specifies. Otherwise, the targets should already be defined in the
       // context.
-      return
+      return []
     }
+
+    def stages = []
 
     def targets = resolver.resolveByParams(params)
     def descriptionList = buildStaticTargetDescriptions(stage, targets)
@@ -61,23 +67,25 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
     stage.context.putAll(first)
 
     preStatic(first).each {
-      injectBefore(stage, it.name, it.stage, it.context)
+      stages << newStage(stage.execution, it.stage.type, it.name, it.context, stage, STAGE_BEFORE)
     }
     postStatic(first).each {
-      injectAfter(stage, it.name, it.stage, it.context)
+      stages << newStage(stage.execution, it.stage.type, it.name, it.context, stage, STAGE_AFTER)
     }
 
     for (description in descriptionList) {
       preStatic(description).each {
         // Operations done after the first iteration must all be added with injectAfter.
-        injectAfter(stage, it.name, it.stage, it.context)
+        stages << newStage(stage.execution, it.stage.type, it.name, it.context, stage, STAGE_AFTER)
       }
-      injectAfter(stage, name, this, description)
+      stages << newStage(stage.execution, this.type, name, description, stage, STAGE_AFTER)
 
       postStatic(description).each {
-        injectAfter(stage, it.name, it.stage, it.context)
+        stages << newStage(stage.execution, it.stage.type, it.name, it.context, stage, STAGE_AFTER)
       }
     }
+
+    return stages
   }
 
   protected List<Map<String, Object>> buildStaticTargetDescriptions(Stage stage, List<TargetServerGroup> targets) {
@@ -101,14 +109,16 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
     descriptions
   }
 
-  private void composeDynamicTargets(Stage stage, TargetServerGroup.Params params) {
+  private List<Stage> composeDynamicTargets(Stage stage, TargetServerGroup.Params params) {
     if (stage.parentStageId) {
       // We only want to determine the target server groups once per stage, so only inject if this is the root stage,
       // i.e. the one the user configured.
       // This may become a bad assumption, or a limiting one, in that we cannot inject a dynamic stage ourselves
       // as part of some other stage that is not itself injecting a determineTargetReferences stage.
-      return
+      return []
     }
+
+    def stages = []
 
     // Scrub the context of any preset location.
     stage.context.with {
@@ -132,10 +142,10 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
     stage.context.targetLocation = [type: initialLocation.type.name(), value: initialLocation.value]
 
     preDynamic(stage.context).each {
-      injectBefore(stage, it.name, it.stage, it.context)
+      stages << newStage(stage.execution, it.stage.type, it.name, it.context, stage, STAGE_BEFORE)
     }
     postDynamic(stage.context).each {
-      injectAfter(stage, it.name, it.stage, it.context)
+      stages << newStage(stage.execution, it.stage.type, it.name, it.context, stage, STAGE_AFTER)
     }
 
     for (location in remainingLocations) {
@@ -144,16 +154,17 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
       ctx.targetLocation = [type: location.type.name(), value: location.value]
       preDynamic(ctx).each {
         // Operations done after the first pre-postDynamic injection must all be added with injectAfter.
-        injectAfter(stage, it.name, it.stage, it.context)
+        stages << newStage(stage.execution, it.stage.type, it.name, it.context, stage, STAGE_AFTER)
       }
-      injectAfter(stage, name, this, ctx)
+      stages << newStage(stage.execution, this.type, name, ctx, stage, STAGE_AFTER)
       postDynamic(ctx).each {
-        injectAfter(stage, it.name, it.stage, it.context)
+        stages << newStage(stage.execution, it.stage.type, it.name, it.context, stage, STAGE_AFTER)
       }
     }
 
     // For silly reasons, this must be added after the pre/post-DynamicInject to get the execution order right.
-    injectBefore(stage, DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE, determineTargetServerGroupStage, dtsgContext)
+    stages << newStage(stage.execution, determineTargetServerGroupStage.type, DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE, dtsgContext, stage, STAGE_BEFORE)
+    return stages
   }
 
   protected List<Injectable> preStatic(Map descriptor) {}
@@ -166,7 +177,7 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
 
   static class Injectable {
     String name
-    StageBuilder stage
+    StageDefinitionBuilder stage
     Map<String, Object> context
   }
 }

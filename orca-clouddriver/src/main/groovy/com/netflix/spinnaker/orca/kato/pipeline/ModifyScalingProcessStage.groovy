@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ModifyAwsScalingProcessStage
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
 import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.ResumeScalingProcessTask
 import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.SuspendScalingProcessTask
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
@@ -32,34 +33,25 @@ import org.springframework.stereotype.Component
 @Deprecated
 class ModifyScalingProcessStage extends TargetReferenceLinearStageSupport {
 
-  static final String PIPELINE_CONFIG_TYPE = "modifyScalingProcess"
-
-  ModifyScalingProcessStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    composeTargets(stage)
-
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     def data = stage.mapTo(StageData)
     switch (data.action) {
       case StageAction.suspend:
-        return [
-          buildStep(stage, "suspend", SuspendScalingProcessTask),
-          buildStep(stage, "monitor", MonitorKatoTask),
-          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-          buildStep(stage, "waitForScalingProcesses", ModifyAwsScalingProcessStage.WaitForScalingProcess)
-        ]
+        builder
+          .withTask("suspend", SuspendScalingProcessTask)
+        break
       case StageAction.resume:
-        return [
-          buildStep(stage, "resume", ResumeScalingProcessTask),
-          buildStep(stage, "monitor", MonitorKatoTask),
-          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-          buildStep(stage, "waitForScalingProcesses", ModifyAwsScalingProcessStage.WaitForScalingProcess)
-        ]
+        builder
+          .withTask("resume", ResumeScalingProcessTask)
+        break
+      default:
+        throw new RuntimeException("No action specified!")
     }
-    throw new RuntimeException("No action specified!")
+    builder
+      .withTask("monitor", MonitorKatoTask)
+      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+      .withTask("waitForScalingProcesses", ModifyAwsScalingProcessStage.WaitForScalingProcess)
   }
 
   enum StageAction {

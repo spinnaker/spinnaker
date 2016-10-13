@@ -41,7 +41,7 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     task.oort = Mock(OortService)
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     1 * task.oort.forceCacheUpdate('aws', UpsertLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> { String cloudProvider, String type, Map<String, ? extends Object> body ->

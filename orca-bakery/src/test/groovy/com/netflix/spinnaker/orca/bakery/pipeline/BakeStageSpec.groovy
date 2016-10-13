@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
+import groovy.time.TimeCategory
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import groovy.time.TimeCategory
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -84,7 +84,7 @@ class BakeStageSpec extends Specification {
     }
 
     when:
-    def taskResult = new BakeStage().completeParallel().execute(pipelineStage)
+    def taskResult = new BakeStage.CompleteParallelBakeTask().execute(pipelineStage)
 
     then:
     taskResult.globalOutputs == [
@@ -121,7 +121,8 @@ class BakeStageSpec extends Specification {
     }
   }
 
-  private static List<Map> expectedContexts(String amiSuffix, String... regions) {
+  private
+  static List<Map> expectedContexts(String amiSuffix, String... regions) {
     return regions.collect {
       [amiSuffix: amiSuffix, type: BakeStage.PIPELINE_CONFIG_TYPE, "region": it, name: "Bake in ${it}"]
     }

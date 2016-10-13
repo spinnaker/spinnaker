@@ -18,12 +18,15 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 
 @Deprecated
-abstract class TargetReferenceLinearStageSupport extends LinearStage {
+abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuilder {
   @Autowired
   ObjectMapper objectMapper
 
@@ -33,31 +36,34 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
   @Autowired
   DetermineTargetReferenceStage determineTargetReferenceStage
 
-  TargetReferenceLinearStageSupport(String name) {
-    super(name)
+  @Override
+  def <T extends Execution> List<Stage<T>> aroundStages(Stage<T> parentStage) {
+    return composeTargets(parentStage)
   }
 
-  void composeTargets(Stage stage) {
+  List<Stage> composeTargets(Stage stage) {
     stage.resolveStrategyParams()
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
-      composeDynamicTargets(stage)
-    } else {
-      composeStaticTargets(stage)
+      return composeDynamicTargets(stage)
     }
+
+    return composeStaticTargets(stage)
   }
 
-  private void composeStaticTargets(Stage stage) {
+  private List<Stage> composeStaticTargets(Stage stage) {
     def descriptionList = buildStaticTargetDescriptions(stage)
     if (descriptionList.empty) {
       throw new TargetReferenceNotFoundException("Could not find any server groups for specified target")
     }
     def first = descriptionList.remove(0)
     stage.context.putAll(first)
+
     if (descriptionList.size()) {
-      for (description in descriptionList) {
-        injectAfter(stage, this.type, this, description)
+      return descriptionList.collect {
+        newStage(stage.execution, this.type, this.type, it, stage, SyntheticStageOwner.STAGE_AFTER)
       }
     }
+    return []
   }
 
   private List<Map<String, Object>> buildStaticTargetDescriptions(Stage stage) {
@@ -77,7 +83,9 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
     }
   }
 
-  private void composeDynamicTargets(Stage stage) {
+  private List<Stage> composeDynamicTargets(Stage stage) {
+    def stages = []
+
     // We only want to determine the target ASGs once per stage, so only inject if this is the root stage, i.e.
     // the one the user configured
     // This may become a bad assumption, or a limiting one, in that we cannot inject a dynamic stage ourselves
@@ -86,16 +94,27 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
       def configuredRegions = stage.context.regions
       Map injectedContext = new HashMap(stage.context)
       injectedContext.regions = new ArrayList(configuredRegions)
-      injectBefore(stage, "determineTargetReferences", determineTargetReferenceStage, injectedContext)
+      stages << newStage(
+        stage.execution,
+        determineTargetReferenceStage.type,
+        "determineTargetReferences",
+        injectedContext,
+        stage,
+        SyntheticStageOwner.STAGE_BEFORE
+      )
 
       if (configuredRegions.size() > 1) {
         stage.context.region = configuredRegions.remove(0)
         for (region in configuredRegions) {
           def description = new HashMap(stage.context)
           description.region = region
-          injectAfter(stage, this.type, this, description)
+          stages << newStage(
+            stage.execution, this.type, this.type, description, stage, SyntheticStageOwner.STAGE_AFTER
+          )
         }
       }
     }
+
+    return stages
   }
 }

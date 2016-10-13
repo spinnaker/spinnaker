@@ -65,7 +65,6 @@ class JesqueControlSpec extends Specification {
     !workerPool.isPaused()
   }
 
-  @Configuration
   static class DummyHandlerConfiguration {
     @Bean PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
       new PropertyPlaceholderConfigurer()

@@ -16,30 +16,24 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.CopyAmazonLoadBalancerTask
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancerForceRefreshTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.kato.tasks.CopyAmazonLoadBalancerTask
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class CopyAmazonLoadBalancerStage extends LinearStage {
-
-  public static final String PIPELINE_CONFIG_TYPE = "copyAmazonLoadBalancer"
-
-  CopyAmazonLoadBalancerStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
+class CopyAmazonLoadBalancerStage implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "copyAmazonLoadBalancer", CopyAmazonLoadBalancerTask)
-    def step2 = buildStep(stage, "monitorCopy", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", UpsertLoadBalancerForceRefreshTask)
-    [step1, step2, step3]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("copyAmazonLoadBalancer", CopyAmazonLoadBalancerTask)
+      .withTask("monitorCopy", MonitorKatoTask)
+      .withTask("forceCacheRefresh", UpsertLoadBalancerForceRefreshTask)
   }
 }

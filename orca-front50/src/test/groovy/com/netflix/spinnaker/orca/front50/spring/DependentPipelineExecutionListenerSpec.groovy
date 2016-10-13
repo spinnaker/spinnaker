@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Task
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
@@ -32,7 +31,6 @@ import spock.lang.Subject
 class DependentPipelineExecutionListenerSpec extends Specification {
 
   def front50Service = Mock(Front50Service)
-  def executionRepository = Mock(ExecutionRepository)
   def dependentPipelineStarter = Mock(DependentPipelineStarter)
   def jobExecution = new JobExecution(0L, new JobParameters([pipeline: new JobParameter('something')]))
   def pipelineConfig = [
@@ -54,7 +52,9 @@ class DependentPipelineExecutionListenerSpec extends Specification {
   ).build()
 
   @Subject
-  DependentPipelineExecutionListener listener = new DependentPipelineExecutionListener(executionRepository, front50Service, dependentPipelineStarter)
+  DependentPipelineExecutionListener listener = new DependentPipelineExecutionListener(
+    front50Service, dependentPipelineStarter
+  )
 
   def "should trigger downstream pipeline when status and pipelines match"() {
     given:
@@ -64,13 +64,12 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     }
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    executionRepository.retrievePipeline(_) >> pipeline
     front50Service.getAllPipelines() >> [
       pipelineConfig
     ]
 
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, pipeline, null, true)
 
     then:
     1 * dependentPipelineStarter.trigger(_, _, _, _, _)
@@ -88,7 +87,6 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
 
     pipeline.pipelineConfigId = id
-    executionRepository.retrievePipeline(_) >> pipeline
 
     pipelineConfig.triggers.first().status = ['successful']
 
@@ -97,7 +95,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     ]
 
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, pipeline, null, true)
 
     then:
     0 * dependentPipelineStarter._
@@ -117,13 +115,12 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     }
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    executionRepository.retrievePipeline(_) >> pipeline
     front50Service.getAllPipelines() >> [
       pipelineConfig, pipelineConfig, pipelineConfig
     ]
 
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, pipeline, null, true)
 
     then:
     3 * dependentPipelineStarter._
@@ -140,19 +137,18 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
-    executionRepository.retrievePipeline(_) >> pipeline
     front50Service.getAllPipelines() >> [
       pipelineConfig
     ]
 
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, pipeline, null, true)
 
     then:
     0 * dependentPipelineStarter._
   }
 
-  def "ignores executions with null pipelineConfigIds"(){
+  def "ignores executions with null pipelineConfigIds"() {
     pipeline.stages.each {
       it.status = ExecutionStatus.SUCCEEDED
       it.tasks = [Mock(Task)]
@@ -161,13 +157,12 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     pipelineConfig.triggers.first().pipeline = null
     pipeline.pipelineConfigId = null
 
-    executionRepository.retrievePipeline(_) >> pipeline
     front50Service.getAllPipelines() >> [
       pipelineConfig
     ]
 
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, pipeline, null, true)
 
     then:
     0 * dependentPipelineStarter._

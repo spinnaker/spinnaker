@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies;
 
-import com.netflix.spinnaker.orca.batch.StageBuilder;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
 import java.util.Collections;
@@ -52,7 +52,7 @@ public interface DeployStagePreProcessor {
 
   class StageDefinition {
     String name;
-    StageBuilder stageBuilder;
+    StageDefinitionBuilder stageDefinitionBuilder;
     Map context;
   }
 }

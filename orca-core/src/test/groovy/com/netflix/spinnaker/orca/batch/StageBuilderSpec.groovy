@@ -18,14 +18,11 @@ package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.context.ApplicationContext
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -78,6 +75,7 @@ class StageBuilderSpec extends Specification {
     stage.context.exception.details.errors == ["Expected Exception"]
   }
 
+  @Ignore("coverage moved to StageDefinitonBuilderSpec")
   def "should prepare completed downstream stages for restart"() {
     given:
     def executionRepository = Mock(ExecutionRepository)
@@ -128,6 +126,7 @@ class StageBuilderSpec extends Specification {
     pipeline.stages[2].tasks[0].status == ExecutionStatus.SUCCEEDED
   }
 
+  @Ignore("coverage moved to StageDefinitonBuilderSpec")
   def "should resume a paused pipeline when restarting"() {
     def executionRepository = Mock(ExecutionRepository)
     def stageBuilder = new StageBuilder("bake", []) {

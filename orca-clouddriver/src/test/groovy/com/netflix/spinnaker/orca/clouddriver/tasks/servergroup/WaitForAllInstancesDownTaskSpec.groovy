@@ -76,7 +76,7 @@ class WaitForAllInstancesDownTaskSpec extends Specification {
       'targetop.asg.disableAsg.name'   : 'front50-v000',
       'targetop.asg.disableAsg.regions': ['us-east-1'],
       'account.name'                   : 'test'
-    ]).asImmutable()
+    ])
 
     expect:
     task.execute(stage).status == ExecutionStatus.SUCCEEDED

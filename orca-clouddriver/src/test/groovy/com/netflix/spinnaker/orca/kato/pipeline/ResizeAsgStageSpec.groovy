@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
@@ -32,6 +30,7 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import spock.lang.AutoCleanup
@@ -60,15 +59,13 @@ class ResizeAsgStageSpec extends Specification {
   def mapper = OrcaObjectMapper.DEFAULT
   def targetReferenceSupport = Mock(TargetReferenceSupport)
   def resizeSupport = new ResizeSupport(targetReferenceSupport: targetReferenceSupport)
-  def stageBuilder = new ResizeAsgStage(targetReferenceSupport: targetReferenceSupport, resizeSupport: resizeSupport)
-  def executionRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPool, 1, 50)
+  def stageBuilder = new ResizeAsgStage()
 
   def setup() {
-    stageBuilder.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
-    stageBuilder.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [], stageNavigator)
-    stageBuilder.applicationContext = Stub(ApplicationContext) {
-      getBean(_) >> { Class type -> type.newInstance() }
-    }
+    stageBuilder.modifyScalingProcessStage = new ModifyScalingProcessStage()
+    stageBuilder.determineTargetReferenceStage = new DetermineTargetReferenceStage()
+    stageBuilder.targetReferenceSupport = targetReferenceSupport
+    stageBuilder.resizeSupport = resizeSupport
   }
 
   void "should create basic stage according to inputs"() {
@@ -78,20 +75,27 @@ class ResizeAsgStageSpec extends Specification {
     def stage = new PipelineStage(new Pipeline(), "resizeAsg", config)
 
     when:
-    stageBuilder.buildSteps(stage)
+    stageBuilder.buildTaskGraph(stage)
+
+    then:
+    stage.status == ExecutionStatus.SUCCEEDED
+
+    when:
+    def syntheticStages = stageBuilder.aroundStages(stage)
+    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
+    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> asgs.collect {
       new TargetReference(region: it.region, asg: it)
     }
 
-    stage.status == ExecutionStatus.SUCCEEDED
-    stage.beforeStages.collect { it.context } == asgs.collect {
+    beforeStages.collect { it.context } == asgs.collect {
       [
         asgName: it.name, credentials: 'test', regions: [it.region], action: 'resume', processes: ['Launch', 'Terminate']
       ]
     }
-    stage.afterStages.collect { it.context } == [config] + asgs.collect {
+    afterStages.collect { it.context } == [config] + asgs.collect {
       [
         asgName: it.name, credentials: 'test', regions: [it.region], action: 'suspend'
       ]
@@ -130,15 +134,17 @@ class ResizeAsgStageSpec extends Specification {
     def stage = new PipelineStage(new Pipeline(), "resizeAsg", config)
 
     when:
-    stageBuilder.buildSteps(stage)
+    def syntheticStages = stageBuilder.aroundStages(stage)
+    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
+    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [targetRef]
 
-    stage.afterStages.size() == 2
-    stage.afterStages[0].context.asgName == asgName
-    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
-    stage.beforeStages*.name == ["resumeScalingProcesses"]
+    afterStages.size() == 2
+    afterStages[0].context.asgName == asgName
+    afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
+    beforeStages*.name == ["resumeScalingProcesses"]
 
     where:
     target         | asgName            | targetRef
@@ -170,17 +176,19 @@ class ResizeAsgStageSpec extends Specification {
     def stage = new PipelineStage(new Pipeline(), "resizeAsg", config)
 
     when:
-    stageBuilder.buildSteps(stage)
+    def syntheticStages = stageBuilder.aroundStages(stage)
+    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
+    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
     _ * targetReferenceSupport.isDynamicallyBound(_) >> true
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-east-1",
       cluster: "testapp-asg")]
 
-    stage.afterStages.size() == 2
-    stage.beforeStages.size() == 2
-    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
-    stage.beforeStages*.name == ['resumeScalingProcesses', 'determineTargetReferences']
+    afterStages.size() == 2
+    beforeStages.size() == 2
+    afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
+    beforeStages*.name == ['resumeScalingProcesses', 'determineTargetReferences']
 
     where:
     target << ['ancestor_asg_dynamic', 'current_asg_dynamic']

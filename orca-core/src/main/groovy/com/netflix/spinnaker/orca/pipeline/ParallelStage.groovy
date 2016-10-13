@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -23,7 +24,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.batch.core.job.flow.Flow
@@ -33,10 +34,11 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor
 import org.springframework.stereotype.Component
 
 @Component
+@Deprecated
 @CompileStatic
 abstract class ParallelStage extends StageBuilder {
-  @Autowired
-  List<StepProvider> stepProviders
+  @Autowired(required = false)
+  List<StepProvider> stepProviders = []
 
   ParallelStage(String name) {
     super(name)
@@ -92,7 +94,7 @@ abstract class ParallelStage extends StageBuilder {
   protected List<Flow> buildFlows(Stage stage) {
     return parallelContexts(stage).collect { Map context ->
       def nextStage = newStage(
-        stage.execution, context.type as String, context.name as String, new HashMap(context), stage, Stage.SyntheticStageOwner.STAGE_AFTER
+        stage.execution, context.type as String, context.name as String, new HashMap(context), stage, SyntheticStageOwner.STAGE_AFTER
       )
       stage.execution.stages.add(nextStage)
 

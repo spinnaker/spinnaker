@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.spring.DependentPipelineExecutionListener
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
@@ -77,10 +76,9 @@ class Front50Configuration {
 
   @Bean
   DependentPipelineExecutionListener dependentPipelineExecutionListener(
-    ExecutionRepository executionRepository,
     Front50Service front50Service,
     DependentPipelineStarter dependentPipelineStarter
   ) {
-    new DependentPipelineExecutionListener(executionRepository, front50Service, dependentPipelineStarter)
+    new DependentPipelineExecutionListener(front50Service, dependentPipelineStarter)
   }
 }

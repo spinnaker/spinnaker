@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceConfiguration
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -59,7 +59,7 @@ class DisableAsgTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.size() == 1
@@ -78,7 +78,7 @@ class DisableAsgTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
@@ -94,7 +94,7 @@ class DisableAsgTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     1 * task.targetReferenceSupport.isDynamicallyBound(stage) >> true

@@ -19,58 +19,44 @@ package com.netflix.spinnaker.orca.front50.spring
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.listeners.ExecutionListener
+import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobExecutionListener
-import org.springframework.core.annotation.Order
 
 @Slf4j
-@Order(0)
 @CompileDynamic
-class DependentPipelineExecutionListener implements JobExecutionListener {
+class DependentPipelineExecutionListener implements ExecutionListener {
 
-  protected final ExecutionRepository executionRepository
   private final Front50Service front50Service
   private DependentPipelineStarter dependentPipelineStarter
 
-  DependentPipelineExecutionListener(ExecutionRepository executionRepository, Front50Service front50Service, DependentPipelineStarter dependentPipelineStarter) {
-    this.executionRepository = executionRepository
+  DependentPipelineExecutionListener(Front50Service front50Service, DependentPipelineStarter dependentPipelineStarter) {
     this.front50Service = front50Service
     this.dependentPipelineStarter = dependentPipelineStarter
   }
 
   @Override
-  void beforeJob(JobExecution jobExecution) {
-  }
+  void afterExecution(Persister persister, Execution execution, ExecutionStatus executionStatus, boolean wasSuccessful) {
+    if (!execution || !(execution instanceof Pipeline)) {
+      return
+    }
 
-  @Override
-  void afterJob(JobExecution jobExecution) {
-    def execution = currentExecution(jobExecution)
-    if (execution && execution.pipelineConfigId) {
-      front50Service.getAllPipelines().each {
-        it.triggers.each { trigger ->
-          if (trigger.enabled &&
-            trigger.type == 'pipeline' &&
-            trigger.pipeline &&
-            trigger.pipeline == execution.pipelineConfigId &&
-            trigger.status.contains(convertStatus(execution))
-          ) {
-            dependentPipelineStarter.trigger(it, execution.trigger?.user, execution, [:], null)
-          }
+    def pipelineExecution = (Pipeline) execution
+
+    front50Service.getAllPipelines().each {
+      it.triggers.each { trigger ->
+        if (trigger.enabled &&
+          trigger.type == 'pipeline' &&
+          trigger.pipeline &&
+          trigger.pipeline == pipelineExecution.pipelineConfigId &&
+          trigger.status.contains(convertStatus(pipelineExecution))
+        ) {
+          dependentPipelineStarter.trigger(it, pipelineExecution.trigger?.user as String, pipelineExecution, [:], null)
         }
       }
-    }
-  }
-
-  protected final Execution currentExecution(JobExecution jobExecution) {
-    if (jobExecution.jobParameters.parameters.containsKey("pipeline")) {
-      String id = jobExecution.jobParameters.getString("pipeline")
-      executionRepository.retrievePipeline(id)
-    } else {
-      null
     }
   }
 

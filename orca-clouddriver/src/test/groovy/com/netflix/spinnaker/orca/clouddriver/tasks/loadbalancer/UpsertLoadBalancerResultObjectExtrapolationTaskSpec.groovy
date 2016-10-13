@@ -47,7 +47,7 @@ class UpsertLoadBalancerResultObjectExtrapolationTaskSpec extends Specification 
   void "should put extrapolate resulting DNS name from resultObjects"() {
     setup:
     def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, "whatever", ["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")]).asImmutable()
+    def stage = new PipelineStage(pipeline, "whatever", ["kato.tasks": katoTasks, "kato.last.task.id": new TaskId("1")])
 
     when:
     def result = task.execute(stage)

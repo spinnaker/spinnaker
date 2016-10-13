@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -48,12 +49,15 @@ class HighlanderStrategySpec extends Specification {
       def strat = new HighlanderStrategy(shrinkClusterStage: shrinkClusterStage)
 
     when:
-      strat.composeFlow(stage)
+      def syntheticStages = strat.composeFlow(stage)
+    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
+    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-      stage.afterStages.size() == 1
-      stage.afterStages.last().stageBuilder == shrinkClusterStage
-      stage.afterStages.last().context == [
+      beforeStages.isEmpty()
+      afterStages.size() == 1
+      afterStages.last().type == shrinkClusterStage.type
+      afterStages.last().context == [
           credentials                   : "testAccount",
           (locationType)                : locationValue,
           cluster                       : "unit-tests",

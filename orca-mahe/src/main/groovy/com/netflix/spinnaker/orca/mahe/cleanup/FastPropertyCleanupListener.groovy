@@ -16,28 +16,32 @@
 
 package com.netflix.spinnaker.orca.mahe.cleanup
 
-import com.netflix.spinnaker.orca.batch.ExecutionListener
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.listeners.ExecutionListener
+import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.mahe.MaheService
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component
 @Order(0)
-class FastPropertyCleanupListener extends ExecutionListener {
+class FastPropertyCleanupListener implements ExecutionListener {
 
   private final MaheService mahe
 
   @Autowired
-  FastPropertyCleanupListener(ExecutionRepository executionRepository, MaheService mahe) {
-    super(executionRepository)
+  FastPropertyCleanupListener(MaheService mahe) {
     this.mahe = mahe
   }
 
   @Override
-  void afterExecution(String type, String id) {
-    execution(type, id).with {
+  public void afterExecution(Persister persister,
+                             Execution execution,
+                             ExecutionStatus executionStatus,
+                             boolean wasSuccessful) {
+    execution.with {
       context.propertyIdList.each {
         if (it.previous) {
           mahe.createProperty([property: it.previous])

@@ -136,7 +136,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = new ObjectMapper().readValue(
-      mockMvc.perform(get("/applications/$app/tasks")).andReturn().response.contentAsString, ArrayList)
+    mockMvc.perform(get("/applications/$app/tasks")).andReturn().response.contentAsString, ArrayList)
 
     then:
     response.id == ['not-started-2', 'not-started-1', 'not-too-old', 'pretty-new']

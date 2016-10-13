@@ -47,7 +47,7 @@ class TaskTaskletSpec extends Specification {
   @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
 
   @Shared
-  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
+  def stageNavigator = new StageNavigator(Stub(ApplicationContext))
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
@@ -148,7 +148,6 @@ class TaskTaskletSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    stageArgument.immutable
     stageArgument.type == stage.type
     stageArgument.context == stage.context + ["batch.task.id.task1": stepExecution.id]
   }

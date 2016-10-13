@@ -19,10 +19,12 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import spock.lang.Shared
 import spock.lang.Specification
@@ -34,12 +36,16 @@ class RollbackServerGroupStageSpec extends Specification {
   @Shared
   def disableServerGroupStage = new DisableServerGroupStage()
 
+  @Shared
+  def resizeServerGroupStage = new ResizeServerGroupStage()
+
   def "should inject enable, resize and disable stages corresponding to the server group being restored and rollbacked"() {
     given:
     def autowireCapableBeanFactory = Stub(AutowireCapableBeanFactory) {
       autowireBean(_) >> { RollbackServerGroupStage.ExplicitRollback rollback ->
         rollback.enableServerGroupStage = enableServerGroupStage
         rollback.disableServerGroupStage = disableServerGroupStage
+        rollback.resizeServerGroupStage = resizeServerGroupStage
       }
     }
 
@@ -57,12 +63,13 @@ class RollbackServerGroupStageSpec extends Specification {
     ])
 
     when:
-    def steps = rollbackServerGroupStage.buildSteps(stage)
-    def beforeStages = stage.beforeStages
-    def afterStages = stage.afterStages
+    def tasks = rollbackServerGroupStage.buildTaskGraph(stage)
+    def allStages = rollbackServerGroupStage.aroundStages(stage)
+    def beforeStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
+    def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    steps == []
+    tasks.iterator().size() == 0
     beforeStages.isEmpty()
     afterStages.size() == 3
     afterStages[0].context == stage.context + [

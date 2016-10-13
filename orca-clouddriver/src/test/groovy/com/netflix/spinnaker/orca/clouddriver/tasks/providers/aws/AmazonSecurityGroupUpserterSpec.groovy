@@ -25,7 +25,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
 import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.filterForSecurityGroupIngress
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
@@ -42,7 +41,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
 
   def "should throw exception on missing region"() {
     given:
-      def stage = new PipelineStage(new Pipeline(), "upsertSecurityGroup", [:]).asImmutable()
+    def stage = new PipelineStage(new Pipeline(), "upsertSecurityGroup", [:])
 
     when:
       upserter.getOperationContext(stage)
@@ -54,7 +53,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
   @Unroll
   def "should return ops and extra outputs"() {
     given:
-      def stage = new PipelineStage(new Pipeline(), "upsertSecurityGroup", context).asImmutable()
+    def stage = new PipelineStage(new Pipeline(), "upsertSecurityGroup", context)
       upserter.mortService = Mock(MortService) {
         1 * getVPCs() >> allVPCs
       }

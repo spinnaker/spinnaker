@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
+import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -28,8 +29,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import java.util.concurrent.TimeUnit
 
 class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
   @Subject task = new WaitForAllNetflixAWSInstancesDownTask() {
@@ -79,7 +78,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ['us-west-1'],
       "account.name"                  : "test"
-    ]).asImmutable()
+    ])
 
     expect:
     task.execute(stage).status == ExecutionStatus.SUCCEEDED

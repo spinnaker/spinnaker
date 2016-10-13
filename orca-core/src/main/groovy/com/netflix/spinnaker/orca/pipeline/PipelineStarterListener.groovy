@@ -16,14 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.listeners.ExecutionListener
+import com.netflix.spinnaker.orca.listeners.Persister
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobExecutionListener
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import org.springframework.core.annotation.Order
 
 /**
@@ -32,7 +35,7 @@ import org.springframework.core.annotation.Order
 @Slf4j
 @Order(0)
 @CompileStatic
-class PipelineStarterListener implements JobExecutionListener {
+class PipelineStarterListener implements ExecutionListener {
 
   @Autowired
   ExecutionRepository executionRepository
@@ -41,20 +44,18 @@ class PipelineStarterListener implements JobExecutionListener {
   PipelineStartTracker startTracker
 
   @Autowired
-  PipelineStarter pipelineStarter
+  ApplicationContext applicationContext
 
   @Override
-  void beforeJob(JobExecution jobExecution) {
-    // do nothing when a job starts
-  }
-
-  @Override
-  void afterJob(JobExecution jobExecution) {
+  public void afterExecution(Persister persister,
+                             Execution execution,
+                             ExecutionStatus executionStatus,
+                             boolean wasSuccessful) {
     startTracker.getAllStartedExecutions().each { startedExecutionId ->
       try {
-        def execution = executionRepository.retrievePipeline(startedExecutionId)
-        if (execution.status.complete) {
-          processPipelines(execution)
+        def e = executionRepository.retrievePipeline(startedExecutionId)
+        if (e.status.complete) {
+          processPipelines(e)
         }
       } catch (ExecutionNotFoundException ignored) {
         log.warn("Unable to update pipeline status for missing execution (executionId: ${startedExecutionId})")
@@ -75,7 +76,7 @@ class PipelineStarterListener implements JobExecutionListener {
           if (id == nextPipelineId) {
             def queuedExecution = executionRepository.retrievePipeline(id)
             log.info("starting pipeline ${nextPipelineId} due to ${execution.id} ending")
-            pipelineStarter.startExecution(queuedExecution)
+            getPipelineStarter().startExecution(queuedExecution)
             startTracker.removeFromQueue(execution.pipelineConfigId, id)
           } else if (!execution.keepWaitingPipelines) {
             log.info("marking pipeline ${nextPipelineId} as canceled due to ${execution.id} ending")
@@ -86,5 +87,9 @@ class PipelineStarterListener implements JobExecutionListener {
         }
       }
     }
+  }
+
+  PipelineStarter getPipelineStarter() {
+    return applicationContext.getBean(PipelineStarter)
   }
 }

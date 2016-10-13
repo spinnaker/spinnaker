@@ -16,37 +16,40 @@
 
 package com.netflix.spinnaker.orca.config
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.batch.ExecutionPropagationListener
-import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
-import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import org.springframework.batch.core.StepExecution
-import org.springframework.batch.core.StepExecutionListener
-import org.springframework.batch.core.listener.CompositeStepExecutionListener
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.ApplicationContext
-
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.ThreadPoolExecutor
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.ValueFunction
-import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
+import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
+import com.netflix.spinnaker.orca.listeners.CompositeStageListener
+import com.netflix.spinnaker.orca.listeners.ExecutionPropagationListener
+import com.netflix.spinnaker.orca.listeners.StageStatusPropagationListener
+import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener
+import com.netflix.spinnaker.orca.listeners.ExecutionPropagationListener
+import com.netflix.spinnaker.orca.listeners.StageStatusPropagationListener
+import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener
 import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.explore.JobExplorer
@@ -55,7 +58,12 @@ import org.springframework.batch.core.launch.JobOperator
 import org.springframework.batch.core.launch.support.SimpleJobOperator
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.context.annotation.*
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.ApplicationContext
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Scope
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.core.task.TaskExecutor
@@ -67,10 +75,10 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 
 @Configuration
 @ComponentScan([
-"com.netflix.spinnaker.orca.pipeline",
-"com.netflix.spinnaker.orca.notifications.scheduling",
-"com.netflix.spinnaker.orca.restart",
-"com.netflix.spinnaker.orca.deprecation"
+  "com.netflix.spinnaker.orca.pipeline",
+  "com.netflix.spinnaker.orca.notifications.scheduling",
+  "com.netflix.spinnaker.orca.restart",
+  "com.netflix.spinnaker.orca.deprecation"
 ])
 @CompileStatic
 class OrcaConfiguration {
@@ -99,12 +107,14 @@ class OrcaConfiguration {
     return executor
   }
 
-  @Bean @ConditionalOnMissingBean(BatchConfigurer)
+  @Bean
+  @ConditionalOnMissingBean(BatchConfigurer)
   BatchConfigurer batchConfigurer(TaskExecutor taskExecutor) {
     new MultiThreadedBatchConfigurer(taskExecutor)
   }
 
-  @Bean @ConditionalOnMissingBean(JobOperator)
+  @Bean
+  @ConditionalOnMissingBean(JobOperator)
   JobOperator jobOperator(JobLauncher jobLauncher, JobRepository jobRepository, JobExplorer jobExplorer,
                           ListableJobLocator jobRegistry) {
     def jobOperator = new SimpleJobOperator()
@@ -121,21 +131,26 @@ class OrcaConfiguration {
     new OrcaObjectMapper()
   }
 
-  @Bean @ConditionalOnMissingBean(name = "pipelineStack")
+  @Bean
+  @ConditionalOnMissingBean(name = "pipelineStack")
   PipelineStack pipelineStack() {
     new InMemoryPipelineStack()
   }
 
-  @Bean OrchestrationStarter orchestrationStarter() {
+  @Bean
+  OrchestrationStarter orchestrationStarter() {
     new OrchestrationStarter()
   }
 
-  @Bean @Scope(SCOPE_PROTOTYPE) // Scope is really important here...
+  @Bean
+  @Scope(SCOPE_PROTOTYPE)
+  // Scope is really important here...
   SuspendedPipelinesNotificationHandler suspendedPipelinesNotificationHandler(Map<String, Object> input) {
     new SuspendedPipelinesNotificationHandler(input)
   }
 
-  @Bean @Order(Ordered.LOWEST_PRECEDENCE)
+  @Bean
+  @Order(Ordered.LOWEST_PRECEDENCE)
   DefaultExceptionHandler defaultExceptionHandler() {
     new DefaultExceptionHandler()
   }
@@ -145,67 +160,25 @@ class OrcaConfiguration {
                                         List<ExceptionHandler> exceptionHandlers,
                                         StageNavigator stageNavigator,
                                         Registry registry) {
-    new TaskTaskletAdapter(executionRepository, exceptionHandlers, stageNavigator, registry)
+    new TaskTaskletAdapterImpl(executionRepository, exceptionHandlers, stageNavigator, registry)
   }
 
   @Bean
-  CompositeStepExecutionListener compositeStepExecutionListener(ExecutionRepository executionRepository) {
-    /*
-     The CompositeStepExecutionListener runs in this order:
-     (1).beforeTask
-     (2).beforeTask
-     (2).afterTask
-     (1).afterTask
-
-     We really expect:
-     (1).beforeTask
-     (2).beforeTask
-     (1).afterTask
-     (2).afterTask
-
-     To achieve this we can overload listeners while providing no-op implementations to
-     ensure a consistent execution ordering.
-     */
-    def compositeStepExecutionListener = new CompositeStepExecutionListener()
-    compositeStepExecutionListener.setListeners([
-      new StageTaskPropagationListener(executionRepository) {
-        @Override
-        void afterTask(Stage stage, StepExecution stepExecution) {
-          // do nothing
-        }
-      },
-      new StageStatusPropagationListener(executionRepository)  {
-        @Override
-        void afterTask(Stage stage, StepExecution stepExecution) {
-          // do nothing
-        }
-      },
-      new StageStatusPropagationListener(executionRepository) {
-        @Override
-        void beforeTask(Stage stage, StepExecution stepExecution) {
-          // do nothing
-        }
-      },
-      new StageTaskPropagationListener(executionRepository)  {
-        @Override
-        void beforeTask(Stage stage, StepExecution stepExecution) {
-          // do nothing
-        }
-      }
-    ] as StepExecutionListener[])
-    return compositeStepExecutionListener
+  CompositeStageListener stageAndTaskStatusListeners() {
+    // TODO: could autowire the other listeners here and order according to Spring annotations
+    new CompositeStageListener(new StageTaskPropagationListener(), new StageStatusPropagationListener())
   }
 
   @Bean
-  ExecutionPropagationListener executionPropagationListenerBefore(ExecutionRepository executionRepository) {
+  ExecutionPropagationListener executionPropagationListenerBefore() {
     // need a dedicated beforeJob listener due to how spring boot ordered listeners
-    new ExecutionPropagationListener(executionRepository, true, false)
+    new ExecutionPropagationListener(true, false)
   }
 
   @Bean
-  ExecutionPropagationListener executionPropagationListenerAfter(ExecutionRepository executionRepository) {
+  ExecutionPropagationListener executionPropagationListenerAfter() {
     // need a dedicated afterJob listener due to how spring boot ordered listeners
-    new ExecutionPropagationListener(executionRepository, false, true)
+    new ExecutionPropagationListener(false, true)
   }
 
   @Bean
@@ -226,8 +199,8 @@ class OrcaConfiguration {
 
   @CompileDynamic
   public static ThreadPoolTaskExecutor applyThreadPoolMetrics(Registry registry,
-                                                          ThreadPoolTaskExecutor executor,
-                                                          String threadPoolName) {
+                                                              ThreadPoolTaskExecutor executor,
+                                                              String threadPoolName) {
     def createGuage = { String name, Closure valueCallback ->
       def id = registry
         .createId("threadpool.${name}" as String)

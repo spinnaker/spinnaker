@@ -61,7 +61,7 @@ class AbstractServerGroupTaskSpec extends Specification {
       }
 
     when:
-      task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
       operations.size() == 1
@@ -81,7 +81,7 @@ class AbstractServerGroupTaskSpec extends Specification {
       }
 
     when:
-      def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
       result.status == ExecutionStatus.SUCCEEDED
@@ -98,7 +98,7 @@ class AbstractServerGroupTaskSpec extends Specification {
       GroovyMock(TargetServerGroupResolver, global: true)
 
     when:
-      def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
       1 * TargetServerGroupResolver.fromPreviousStage(stage) >> new TargetServerGroup(

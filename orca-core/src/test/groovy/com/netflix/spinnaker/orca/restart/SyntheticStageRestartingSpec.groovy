@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.restart
 
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.SpringBatchConfiguration
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageBuilder
@@ -33,68 +35,41 @@ import com.netflix.spinnaker.orca.test.JobCompletionListener
 import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
-import groovy.transform.CompileStatic
+import org.spockframework.spring.xml.SpockMockFactoryBean
 import org.springframework.batch.core.Step
-import org.springframework.batch.core.configuration.JobRegistry
-import org.springframework.batch.core.explore.JobExplorer
+import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
-import spock.lang.AutoCleanup
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.context.annotation.Bean
+import org.springframework.stereotype.Component
+import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
-import static com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner.STAGE_AFTER
-import static com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner.STAGE_BEFORE
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import static java.lang.System.currentTimeMillis
 
+@ContextConfiguration(classes = [
+  EmbeddedRedisConfiguration, JesqueConfiguration, BatchTestConfiguration,
+  SpringBatchConfiguration, OrcaConfiguration, OrcaPersistenceConfiguration,
+  JobCompletionListener, TestConfiguration, TaskConfig, StageConfig
+])
 class SyntheticStageRestartingSpec extends Specification {
 
-  @AutoCleanup("destroy")
-  def applicationContext = new AnnotationConfigApplicationContext()
-  @Autowired ThreadPoolTaskExecutor taskExecutor
   @Autowired PipelineStarter pipelineStarter
   @Autowired ObjectMapper mapper
-  @Autowired JobRegistry jobRegistry
-  @Autowired JobExplorer jobExplorer
   @Autowired ExecutionRepository repository
   @Autowired JobCompletionListener jobCompletionListener
 
-  def beforeTask = Mock(Task)
-  def mainTask = Mock(Task)
-  def afterTask = Mock(Task)
-
-  def setup() {
-    def beforeStage = new StandaloneStageBuilder("before", beforeTask)
-    def afterStage = new StandaloneStageBuilder("after", afterTask)
-    def testStage = new SimpleSyntheticStage("test", beforeStage, mainTask, afterStage)
-    applicationContext.with {
-      register(EmbeddedRedisConfiguration, JesqueConfiguration,
-               BatchTestConfiguration, OrcaConfiguration, OrcaPersistenceConfiguration,
-               JobCompletionListener, TestConfiguration)
-      beanFactory.registerSingleton("testStage", testStage)
-      beanFactory.registerSingleton("beforeStage", beforeStage)
-      beanFactory.registerSingleton("afterStage", afterStage)
-      refresh()
-
-      [testStage, beforeStage, afterStage].each {
-        beanFactory.autowireBean(it)
-      }
-      beanFactory.autowireBean(this)
-    }
-    [testStage, beforeStage, afterStage].each {
-      it.applicationContext = applicationContext
-    }
-  }
-
-  def cleanup() {
-    applicationContext.destroy()
-  }
+  @Autowired BeforeTask beforeTask
+  @Autowired MainTask mainTask
+  @Autowired AfterTask afterTask
 
   def "a previously run pipeline can be restarted and completed tasks are skipped"() {
     given:
     def pipeline = pipelineStarter.create(mapper.readValue(pipelineConfigFor("test"), Map))
     pipeline.stages[0].tasks << new DefaultTask(id: 2, name: "main", status: RUNNING,
-                                                startTime: currentTimeMillis())
+      startTime: currentTimeMillis())
     pipeline.stages << new PipelineStage(pipeline, "before", "before", [:])
     pipeline.stages[1].id = pipeline.stages[0].id + "-1-before"
     pipeline.stages[1].syntheticStageOwner = STAGE_BEFORE
@@ -103,8 +78,8 @@ class SyntheticStageRestartingSpec extends Specification {
     pipeline.stages[1].startTime = currentTimeMillis()
     pipeline.stages[1].endTime = currentTimeMillis()
     pipeline.stages[1].tasks << new DefaultTask(id: 2, name: "before", status: SUCCEEDED,
-                                                startTime: currentTimeMillis(),
-                                                endTime: currentTimeMillis())
+      startTime: currentTimeMillis(),
+      endTime: currentTimeMillis())
     pipeline.stages << new PipelineStage(pipeline, "after", "after", [:])
     pipeline.stages[2].id = pipeline.stages[0].id + "-2-after"
     pipeline.stages[2].parentStageId = pipeline.stages[0].id
@@ -119,7 +94,7 @@ class SyntheticStageRestartingSpec extends Specification {
     then:
     repository.retrievePipeline(pipeline.id).status.toString() == SUCCEEDED.name()
 
-    then:
+    and:
     0 * beforeTask.execute(_)
     1 * mainTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
     1 * afterTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
@@ -167,6 +142,50 @@ class SyntheticStageRestartingSpec extends Specification {
     @Override
     public List<Step> buildSteps(Stage stage) {
       return [buildStep(stage, type, task)]
+    }
+  }
+
+  static interface BeforeTask extends Task {}
+
+  static interface AfterTask extends Task {}
+
+  static interface MainTask extends Task {}
+
+  @Component
+  @CompileStatic
+  static class TaskConfig {
+    @Bean
+    FactoryBean<BeforeTask> beforeTask() {
+      new SpockMockFactoryBean<>(BeforeTask)
+    }
+
+    @Bean
+    FactoryBean<AfterTask> afterTask() { new SpockMockFactoryBean<>(AfterTask) }
+
+    @Bean
+    FactoryBean<MainTask> mainTask() { new SpockMockFactoryBean<>(MainTask) }
+  }
+
+  @Component
+  @CompileStatic
+  static class StageConfig {
+    @Bean
+    @Qualifier("beforeStage")
+    StageBuilder beforeStage(BeforeTask beforeTask) {
+      new StandaloneStageBuilder("before", beforeTask)
+    }
+
+    @Bean
+    @Qualifier("afterStage")
+    StageBuilder afterStage(AfterTask afterTask) {
+      new StandaloneStageBuilder("after", afterTask)
+    }
+
+    @Bean
+    StageBuilder testStage(@Qualifier("beforeStage") StageBuilder beforeStage,
+                           @Qualifier("afterStage") StageBuilder afterStage,
+                           MainTask mainTask) {
+      new SimpleSyntheticStage("test", beforeStage, mainTask, afterStage)
     }
   }
 }

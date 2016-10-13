@@ -16,18 +16,15 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
-import org.springframework.security.access.prepost.PostAuthorize
-import org.springframework.security.access.prepost.PostFilter
-import org.springframework.security.access.prepost.PreAuthorize
-
 import java.time.Clock
-import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
+import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -37,8 +34,12 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PostAuthorize
+import org.springframework.security.access.prepost.PostFilter
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.V2_EXECUTION_ENGINE
 
 @RestController
 class TaskController {
@@ -55,7 +56,10 @@ class TaskController {
   PipelineStarter pipelineStarter
 
   @Autowired
-  Collection<StageBuilder> stageBuilders
+  ExecutionRunner executionRunner
+
+  @Autowired
+  Collection<StageDefinitionBuilder> stageBuilders
 
   @Value('${tasks.daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
@@ -194,9 +198,13 @@ class TaskController {
     def stage = pipeline.stages.find { it.id == stageId } as PipelineStage
     if (stage) {
       def stageBuilder = stageBuilders.find { it.type == stage.type }
-      stage = stageBuilder.prepareStageForRestart(executionRepository, stage)
+      stage = stageBuilder.prepareStageForRestart(executionRepository, stage, stageBuilders)
       executionRepository.storeStage(stage)
-      pipelineStarter.resume(pipeline)
+      if (pipeline.executionEngine == V2_EXECUTION_ENGINE) {
+        executionRunner.resume(pipeline)
+      } else {
+        pipelineStarter.resume(pipeline)
+      }
     }
     pipeline
   }

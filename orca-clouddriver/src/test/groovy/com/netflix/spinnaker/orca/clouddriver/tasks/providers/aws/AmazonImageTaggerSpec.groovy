@@ -57,7 +57,7 @@ class AmazonImageTaggerSpec extends Specification {
 
     stage1.refId = stage1.id
     stage2.requisiteStageRefIds = [stage1.refId]
-    stage2.stageNavigator = new StageNavigator(Mock(ApplicationContext))
+    stage2.stageNavigator = new StageNavigator(Stub(ApplicationContext))
 
     pipeline.stages = [stage1, stage2]
 

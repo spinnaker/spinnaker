@@ -16,28 +16,22 @@
 
 package com.netflix.spinnaker.orca.rush.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.rush.tasks.MonitorDockerTask
 import com.netflix.spinnaker.orca.rush.tasks.RunDockerTask
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class DockerStage extends LinearStage {
-
-  public static final String PIPELINE_CONFIG_TYPE = "docker"
-
-  DockerStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
+class DockerStage implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "runDocker", RunDockerTask)
-    def step2 = buildStep(stage, "monitorDocker", MonitorDockerTask)
-    [step1, step2]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("runDocker", RunDockerTask)
+      .withTask("monitorDocker", MonitorDockerTask)
   }
 }

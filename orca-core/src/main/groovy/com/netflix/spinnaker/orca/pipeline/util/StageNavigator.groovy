@@ -17,27 +17,33 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
-import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import java.util.function.BiFunction
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import org.springframework.stereotype.Component
 
+@Component
 @CompileStatic
 class StageNavigator {
   private final ApplicationContext applicationContext
 
+  @Autowired
   StageNavigator(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext
   }
 
-  List<Result> findAll(Stage startingStage, Closure<Boolean> matcher) {
+  public <T extends Execution<T>> List<Result> findAll(Stage startingStage, BiFunction<Stage<T>, StageDefinitionBuilder, Boolean> matcher) {
     def stageBuilders = stageBuilders()
 
     def ancestors = [startingStage] + ancestors(startingStage)
     def results = ancestors.findAll { Stage stage ->
       def stageBuilder = stageBuilders.find { it.type == stage.type }
-      return matcher.call(stage, stageBuilder)
+      return matcher.apply(stage, stageBuilder)
     }.collect { Stage stage ->
       new Result(stage, stageBuilders.find { it.type == stage.type })
     }
@@ -45,8 +51,8 @@ class StageNavigator {
     return results
   }
 
-  protected Collection<StageBuilder> stageBuilders() {
-    return applicationContext.getBeansOfType(StageBuilder)?.values() ?: []
+  protected Collection<StageDefinitionBuilder> stageBuilders() {
+    return applicationContext.getBeansOfType(StageDefinitionBuilder).values()
   }
 
   private List<Stage> ancestors(Stage startingStage) {
@@ -70,6 +76,6 @@ class StageNavigator {
   @Canonical
   static class Result {
     final Stage stage
-    final StageBuilder stageBuilder
+    final StageDefinitionBuilder stageBuilder
   }
 }

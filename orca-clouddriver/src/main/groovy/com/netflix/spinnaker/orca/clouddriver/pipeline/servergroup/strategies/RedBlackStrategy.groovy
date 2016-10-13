@@ -16,17 +16,22 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.orca.batch.StageBuilderProvider
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 
 @Component
-class RedBlackStrategy implements Strategy {
+class RedBlackStrategy implements Strategy, ApplicationContextAware {
 
   final String name = "redblack"
 
@@ -39,32 +44,50 @@ class RedBlackStrategy implements Strategy {
   @Autowired
   DisableClusterStage disableClusterStage
 
+  ApplicationContext applicationContext
+
   @Override
-  void composeFlow(Stage stage) {
+  <T extends Execution<T>> List<Stage<T>> composeFlow(Stage<T> stage) {
+    def stages = []
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
 
     Map baseContext = [
-        (cleanupConfig.location.singularType()): cleanupConfig.location.value,
-        cluster                                : cleanupConfig.cluster,
-        credentials                            : cleanupConfig.account,
-        cloudProvider                          : cleanupConfig.cloudProvider,
-        interestingHealthProviderNames         : stage.context.interestingHealthProviderNames
+      (cleanupConfig.location.singularType()): cleanupConfig.location.value,
+      cluster                                : cleanupConfig.cluster,
+      credentials                            : cleanupConfig.account,
+      cloudProvider                          : cleanupConfig.cloudProvider,
+      interestingHealthProviderNames         : stage.context.interestingHealthProviderNames
     ]
 
     if (stageData?.maxRemainingAsgs && (stageData?.maxRemainingAsgs > 0)) {
       Map shrinkContext = baseContext + [
-          shrinkToSize         : stageData.maxRemainingAsgs,
-          allowDeleteActive    : false,
-          retainLargerOverNewer: false
+        shrinkToSize         : stageData.maxRemainingAsgs,
+        allowDeleteActive    : false,
+        retainLargerOverNewer: false
       ]
-      LinearStage.injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
+      stages << newStage(
+        stage.execution,
+        shrinkClusterStage.type,
+        "shrinkCluster",
+        shrinkContext,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
     }
 
-    LinearStage.injectAfter(stage, "disableCluster", disableClusterStage, baseContext + [
-        remainingEnabledServerGroups: 1,
-        preferLargerOverNewer       : false
-    ])
+    def disableContext = baseContext + [
+      remainingEnabledServerGroups: 1,
+      preferLargerOverNewer       : false
+    ]
+    stages << newStage(
+      stage.execution,
+      disableClusterStage.type,
+      "disableCluster",
+      disableContext,
+      stage,
+      SyntheticStageOwner.STAGE_AFTER
+    )
 
     if (stageData.scaleDown) {
       def scaleDown = baseContext + [
@@ -72,7 +95,20 @@ class RedBlackStrategy implements Strategy {
         remainingFullSizeServerGroups: 1,
         preferLargerOverNewer        : false
       ]
-      LinearStage.injectAfter(stage, "scaleDown", scaleDownClusterStage, scaleDown)
+      stages << newStage(
+        stage.execution,
+        scaleDownClusterStage.type,
+        "scaleDown",
+        scaleDown,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
     }
+
+    return stages
+  }
+
+  StageBuilderProvider getStageBuilderProvider() {
+    return applicationContext.getBean(StageBuilderProvider)
   }
 }

@@ -20,32 +20,26 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.MigrateForceRefreshDependenciesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.MigrateServerGroupTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
-import com.netflix.spinnaker.orca.pipeline.LinearStage;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.batch.core.Step;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
-public class MigrateServerGroupStage extends LinearStage {
+public class MigrateServerGroupStage implements StageDefinitionBuilder {
 
   public static final String PIPELINE_CONFIG_TYPE = "migrateServerGroup";
 
-  MigrateServerGroupStage() {
-    super(PIPELINE_CONFIG_TYPE);
-  }
-
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    List<Step> steps = new ArrayList<>();
-    steps.add(buildStep(stage, "migrateServerGroup", MigrateServerGroupTask.class));
-    steps.add(buildStep(stage, "monitorMigration", MonitorKatoTask.class));
+  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("migrateServerGroup", MigrateServerGroupTask.class)
+      .withTask("monitorMigration", MonitorKatoTask.class);
     if (!(Boolean) stage.getContext().getOrDefault("dryRun", true)) {
-      steps.add(buildStep(stage, "refreshDependencies", MigrateForceRefreshDependenciesTask.class));
-      steps.add(buildStep(stage, "refreshServerGroup", ServerGroupCacheForceRefreshTask.class));
+      builder
+        .withTask("refreshDependencies", MigrateForceRefreshDependenciesTask.class)
+        .withTask("refreshServerGroup", ServerGroupCacheForceRefreshTask.class);
     }
-    return steps;
   }
 }

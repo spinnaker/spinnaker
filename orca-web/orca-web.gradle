@@ -44,6 +44,7 @@ dependencies {
   compile project(":orca-igor")
   compile project(":orca-eureka")
   compile project(":orca-tide")
+  compile project(":orca-spring-batch")
 
 //  Replace below with this line when fiat becomes stable.
 //  spinnaker.group "fiat"

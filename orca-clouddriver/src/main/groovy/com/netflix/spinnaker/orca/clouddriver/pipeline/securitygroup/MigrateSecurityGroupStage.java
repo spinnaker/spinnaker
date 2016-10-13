@@ -18,28 +18,21 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.securitygroup;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup.MigrateSecurityGroupTask;
-import com.netflix.spinnaker.orca.pipeline.LinearStage;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.batch.core.Step;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
-public class MigrateSecurityGroupStage extends LinearStage {
+public class MigrateSecurityGroupStage implements StageDefinitionBuilder {
 
   public static final String PIPELINE_CONFIG_TYPE = "migrateSecurityGroup";
 
-  MigrateSecurityGroupStage() {
-    super(PIPELINE_CONFIG_TYPE);
-  }
-
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    List<Step> steps = new ArrayList<>();
-    steps.add(buildStep(stage, "migrateSecurityGroup", MigrateSecurityGroupTask.class));
-    steps.add(buildStep(stage, "monitorMigration", MonitorKatoTask.class));
-    return steps;
+  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("migrateSecurityGroup", MigrateSecurityGroupTask.class)
+      .withTask("monitorMigration", MonitorKatoTask.class);
   }
 }

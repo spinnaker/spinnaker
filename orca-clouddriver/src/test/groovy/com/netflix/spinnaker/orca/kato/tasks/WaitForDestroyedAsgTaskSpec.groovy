@@ -28,7 +28,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
@@ -65,7 +64,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
       "asgName": asgName,
     ])
 
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     expect:
     result.status == taskStatus
@@ -107,7 +106,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
         "remainingInstances": ["i-123"]
     ])
 
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     expect:
     result.stageOutputs.remainingInstances == []
@@ -134,7 +133,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
         "remainingInstances": ['i-123', 'i-234', 'i-345']
     ])
 
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     expect:
     result.stageOutputs.remainingInstances == remainingInstances

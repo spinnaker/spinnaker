@@ -16,16 +16,18 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import java.util.concurrent.TimeUnit
+import groovy.transform.CompileStatic
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import static java.util.Calendar.*
 
 import java.util.concurrent.TimeUnit
 
@@ -41,16 +43,10 @@ import static java.util.Calendar.SECOND
  */
 @Component
 @CompileStatic
-class RestrictExecutionDuringTimeWindow extends LinearStage {
-  private static final String MAYO_CONFIG_NAME = "restrictExecutionDuringTimeWindow"
-
-  RestrictExecutionDuringTimeWindow() {
-    super(MAYO_CONFIG_NAME)
-  }
-
+class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    [buildStep(stage, "suspendExecutionDuringTimeWindow", SuspendExecutionDuringTimeWindowTask)]
+  def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder.withTask("suspendExecutionDuringTimeWindow", SuspendExecutionDuringTimeWindowTask)
   }
 
   @Component
@@ -93,7 +89,8 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
      * @return
      */
     @VisibleForTesting
-    private Date getTimeInWindow(Stage stage, Date scheduledTime) {  // Passing in the current date to allow unit testing
+    private Date getTimeInWindow(Stage stage, Date scheduledTime) {
+      // Passing in the current date to allow unit testing
       try {
         Map restrictedExecutionWindow = stage.context.restrictedExecutionWindow as Map
         List whitelist = restrictedExecutionWindow.whitelist as List<Map>
@@ -250,16 +247,16 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
 
       boolean before(HourMinute that) {
         return hour < that.hour ? true :
-               hour > that.hour ? false :
-               min < that.min ? true :
-               min > that.min ? false : false
+          hour > that.hour ? false :
+            min < that.min ? true :
+              min > that.min ? false : false
       }
 
       boolean after(HourMinute that) {
         return hour > that.hour ? true :
-               hour < that.hour ? false :
-               min > that.min ? true :
-               min < that.min ? false : false
+          hour < that.hour ? false :
+            min > that.min ? true :
+              min < that.min ? false : false
       }
 
       @Override
@@ -287,7 +284,7 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
       int indexOf(HourMinute current) {
         if (current.before(this.start)) {
           return -1
-        } else  if ((current.after(this.start) || current.equals(this.start)) && (current.before(this.end) || current.equals(this.end))) {
+        } else if ((current.after(this.start) || current.equals(this.start)) && (current.before(this.end) || current.equals(this.end))) {
           return 0
         } else {
           return 1

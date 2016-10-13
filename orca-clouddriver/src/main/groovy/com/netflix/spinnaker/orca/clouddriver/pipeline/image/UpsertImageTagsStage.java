@@ -20,29 +20,23 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.UpsertImageTagsTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.WaitForUpsertedImageTagsTask;
-import com.netflix.spinnaker.orca.pipeline.LinearStage;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.batch.core.Step;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.List;
-
 @Component
-public class UpsertImageTagsStage extends LinearStage {
+public class UpsertImageTagsStage implements StageDefinitionBuilder {
+
   public static final String PIPELINE_CONFIG_TYPE = "upsertImageTags";
 
-  UpsertImageTagsStage() {
-    super(PIPELINE_CONFIG_TYPE);
-  }
-
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    return Arrays.asList(
-      buildStep(stage, "upsertImageTags", UpsertImageTagsTask.class),
-      buildStep(stage, "monitorUpsert", MonitorKatoTask.class),
-      buildStep(stage, "forceCacheRefresh", ImageForceCacheRefreshTask.class),
-      buildStep(stage, "waitForTaggedImage", WaitForUpsertedImageTagsTask.class)
-    );
+  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("upsertImageTags", UpsertImageTagsTask.class)
+      .withTask("monitorUpsert", MonitorKatoTask.class)
+      .withTask("forceCacheRefresh", ImageForceCacheRefreshTask.class)
+      .withTask("waitForTaggedImage", WaitForUpsertedImageTagsTask.class);
   }
 }

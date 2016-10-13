@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import java.time.Clock
+import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
@@ -25,11 +26,8 @@ import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import java.time.Clock
-import java.util.concurrent.TimeUnit
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
 class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
@@ -57,7 +55,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     Map expectations = [:]
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     1 * task.oort.forceCacheUpdate(stage.context.cloudProvider, ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> {
@@ -78,7 +76,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     }
 
     expect:
-    task.execute(stage.asImmutable()).status == SUCCEEDED
+    task.execute(stage).status == SUCCEEDED
   }
 
   @Unroll

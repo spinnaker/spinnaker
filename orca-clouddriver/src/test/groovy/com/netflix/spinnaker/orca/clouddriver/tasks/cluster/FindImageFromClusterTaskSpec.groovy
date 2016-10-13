@@ -300,7 +300,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       Response response = new Response("http://oort", 404, "NOT_FOUND", [], new TypedString(oortResponse))
 
     when:
-      task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
       1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location.value,

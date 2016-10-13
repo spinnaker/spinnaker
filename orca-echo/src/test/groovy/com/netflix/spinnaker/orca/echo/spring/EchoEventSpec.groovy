@@ -16,9 +16,15 @@
 
 package com.netflix.spinnaker.orca.echo.spring
 
+import com.netflix.spinnaker.config.SpringBatchConfiguration
+import com.netflix.spinnaker.orca.batch.ExecutionListenerProvider
+import com.netflix.spinnaker.orca.batch.StageBuilderProvider
+import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.stages.LinearStageDefinitionBuilder
+import com.netflix.spinnaker.orca.batch.stages.SpringBatchStageBuilderProvider
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.echo.EchoService
@@ -44,7 +50,14 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
  * ensure that we're making the right assumptions about the statuses we'll get
  * from Batch at runtime, etc.
  */
-@ContextConfiguration(classes = [BatchTestConfiguration, EmbeddedRedisConfiguration, JesqueConfiguration, OrcaConfiguration, TestConfiguration])
+@ContextConfiguration(classes = [
+  BatchTestConfiguration,
+  SpringBatchConfiguration,
+  EmbeddedRedisConfiguration,
+  JesqueConfiguration,
+  OrcaConfiguration,
+  TestConfiguration
+])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class EchoEventSpec extends Specification {
 
@@ -61,10 +74,14 @@ class EchoEventSpec extends Specification {
   @Autowired
   PipelineJobBuilder pipelineJobBuilder
   @Autowired
+  ExecutionListenerProvider executionListenerProvider
+  @Autowired
   ExecutionRepository executionRepository
+  @Autowired
+  StageBuilderProvider stageBuilderProvider
 
-  def task1 = Mock(Task)
-  def task2 = Mock(Task)
+  def task1 = new Test1Task(delegate: Mock(Task))
+  def task2 = new Test2Task(delegate: Mock(Task))
 
   @Shared
     json
@@ -79,20 +96,28 @@ class EchoEventSpec extends Specification {
   }
 
   def setup() {
+    def stageBuilders = []
     applicationContext.beanFactory.with {
-      registerSingleton "echoPipelineListener", new EchoNotifyingPipelineExecutionListener(executionRepository, echoService)
-      registerSingleton "echoTaskListener", new EchoNotifyingStageExecutionListener(executionRepository, echoService)
-
       [task1, task2].eachWithIndex { task, i ->
         def name = "stage${i + 1}"
-        def stage = new SimpleStage(name, task)
+        def stage = new LinearStageDefinitionBuilder(new SimpleStage(name, task), stageBuilderProvider)
         autowireBean stage
-        registerSingleton name, stage
-        stage.applicationContext = applicationContext
+        stage.setApplicationContext(applicationContext)
+        stageBuilders << stage
       }
+
+      // distinct task classes per mock are necessary now that task implementations are looked up by class name
+      registerSingleton("task1", task1)
+      registerSingleton("task2", task2)
+
       // needs to pick up the listeners
       autowireBean pipelineJobBuilder
     }
+
+    ((SpringBatchExecutionListenerProvider) executionListenerProvider).executionListeners.add(0, new EchoNotifyingExecutionListener(echoService))
+    ((SpringBatchExecutionListenerProvider) executionListenerProvider).stageListeners.add(0, new EchoNotifyingStageListener(echoService))
+    ((SpringBatchStageBuilderProvider) stageBuilderProvider).stageBuilders.addAll(stageBuilders)
+
     // needs to pick up the tasks
     pipelineJobBuilder.initialize()
   }
@@ -102,8 +127,8 @@ class EchoEventSpec extends Specification {
     def events = collectEvents()
 
     and:
-    task1.execute(_) >> taskSuccess
-    task2.execute(_) >> taskSuccess
+    task1.delegate.execute(_) >> taskSuccess
+    task2.delegate.execute(_) >> taskSuccess
 
     when:
     pipelineStarter.start(json)
@@ -119,8 +144,8 @@ class EchoEventSpec extends Specification {
     def events = collectEvents()
 
     and:
-    task1.execute(_) >>> [taskMustRepeat, taskMustRepeat, taskMustRepeat, taskSuccess]
-    task2.execute(_) >> taskSuccess
+    task1.delegate.execute(_) >>> [taskMustRepeat, taskMustRepeat, taskMustRepeat, taskSuccess]
+    task2.delegate.execute(_) >> taskSuccess
 
     when:
     pipelineStarter.start(json)
@@ -137,13 +162,13 @@ class EchoEventSpec extends Specification {
     def events = collectEvents()
 
     and:
-    task1.execute(_) >> failure
+    task1.delegate.execute(_) >> failure
 
     when:
     pipelineStarter.start(json)
 
     then:
-    0 * task2.execute(_)
+    0 * task2.delegate.execute(_)
 
     and:
     events.details.type == ["orca:pipeline:starting",
@@ -170,5 +195,15 @@ class EchoEventSpec extends Specification {
       null // don't need to actually return anything from the echo call
     }
     return events
+  }
+
+  static class Test1Task implements Task {
+    @Delegate
+    Task delegate
+  }
+
+  static class Test2Task implements Task {
+    @Delegate
+    Task delegate
   }
 }

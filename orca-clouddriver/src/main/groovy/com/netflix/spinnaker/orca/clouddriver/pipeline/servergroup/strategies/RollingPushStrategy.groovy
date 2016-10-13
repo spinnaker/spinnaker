@@ -16,14 +16,16 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import groovy.transform.Immutable
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.Immutable
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 
 @Component
 @Deprecated
@@ -41,7 +43,8 @@ class RollingPushStrategy implements Strategy {
   SourceResolver sourceResolver
 
   @Override
-  void composeFlow(Stage stage) {
+  <T extends Execution<T>> List<Stage<T>> composeFlow(Stage<T> stage) {
+    def stages = []
     def source = sourceResolver.getSource(stage)
 
     def modifyCtx = stage.context + [
@@ -59,12 +62,28 @@ class RollingPushStrategy implements Strategy {
         ]
     ]
 
-    LinearStage.injectAfter(stage, "modifyLaunchConfiguration", modifyAsgLaunchConfigurationStage, modifyCtx)
-
     def terminationConfig = stage.mapTo("/termination", TerminationConfig)
     if (terminationConfig.relaunchAllInstances || terminationConfig.totalRelaunches > 0) {
-      LinearStage.injectAfter(stage, "rollingPush", rollingPushStage, modifyCtx)
+      stages << newStage(
+        stage.execution,
+        rollingPushStage.type,
+        "rollingPush",
+        modifyCtx,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
     }
+
+    stages << newStage(
+      stage.execution,
+      modifyAsgLaunchConfigurationStage.type,
+      "modifyLaunchConfiguration",
+      modifyCtx,
+      stage,
+      SyntheticStageOwner.STAGE_AFTER
+    )
+
+    return stages
   }
 
   @Override

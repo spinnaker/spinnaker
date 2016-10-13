@@ -16,28 +16,23 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster
 
-import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import java.beans.Introspector
+import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
 
-import java.beans.Introspector
-
-abstract class AbstractClusterWideClouddriverOperationStage extends LinearStage {
-
-  AbstractClusterWideClouddriverOperationStage(String name) {
-    super(name)
-  }
-
+abstract class AbstractClusterWideClouddriverOperationStage implements StageDefinitionBuilder {
   abstract Class<? extends AbstractClusterWideClouddriverTask> getClusterOperationTask()
 
   abstract Class<? extends AbstractWaitForClusterWideClouddriverTask> getWaitForTask()
 
-  protected String getStepName(String taskClassSimpleName) {
+  protected static String getStepName(String taskClassSimpleName) {
     if (taskClassSimpleName.endsWith("Task")) {
       return taskClassSimpleName.substring(0, taskClassSimpleName.length() - "Task".length())
     }
@@ -45,20 +40,20 @@ abstract class AbstractClusterWideClouddriverOperationStage extends LinearStage 
   }
 
   @Override
-  List<Step> buildSteps(Stage stage) {
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     stage.resolveStrategyParams()
     def operationTask = clusterOperationTask
     String name = getStepName(operationTask.simpleName)
     String opName = Introspector.decapitalize(name)
     def waitTask = waitForTask
     String waitName = Introspector.decapitalize(getStepName(waitTask.simpleName))
-    [
-      buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask),
-      buildStep(stage, opName, operationTask),
-      buildStep(stage, "monitor${name}", MonitorKatoTask),
-      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-      buildStep(stage, waitName, waitTask),
-      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-    ]
+
+    builder
+      .withTask("determineHealthProviders", DetermineHealthProvidersTask)
+      .withTask(opName, operationTask)
+      .withTask("monitor${name}", MonitorKatoTask)
+      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+      .withTask(waitName, waitTask)
+      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
   }
 }

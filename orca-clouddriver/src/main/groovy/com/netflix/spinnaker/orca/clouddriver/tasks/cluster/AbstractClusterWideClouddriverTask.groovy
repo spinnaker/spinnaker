@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
@@ -33,6 +32,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTa
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -207,7 +207,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     ]
     List<TargetServerGroup> deployedServerGroups = []
 
-    stage.ancestors({ Stage ancestorStage, StageBuilder stageBuilder ->
+    stage.ancestors({ Stage ancestorStage, StageDefinitionBuilder stageBuilder ->
       // Stage type is the context.type value when the stage is running as a child stage of a parallel deploy, or
       // the stage.type attribute when it is running directly as part of an Orchestration or Pipeline
       (deployStageTypes.contains(ancestorStage.type) || deployStageTypes.contains(ancestorStage.context.type)) && ancestorStage.context.'deploy.account.name' == account
