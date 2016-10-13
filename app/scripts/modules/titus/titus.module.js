@@ -37,6 +37,7 @@ module.exports = angular.module('spinnaker.titus', [
         cloneServerGroupController: 'titusCloneServerGroupCtrl',
         commandBuilder: 'titusServerGroupCommandBuilder',
         configurationService: 'titusServerGroupConfigurationService',
+        skipUpstreamStageCheck: true,
       },
       securityGroup: {
         reader: 'titusSecurityGroupReader',
