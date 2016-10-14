@@ -150,6 +150,7 @@ function extract_spinnaker_google_credentials() {
     else
        rm $json_path
     fi
+    write_default_value "SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH" "$json_path"
   else
     clear_instance_metadata "managed_project_credentials"
     json_path=""
@@ -319,8 +320,7 @@ process_args
 echo "Stopping spinnaker while we configure it."
 stop spinnaker || true
 
-# Update gcloud to chosen version, piping stdout to /dev/null since it's noisy
-echo y | gcloud components update --version $GCLOUD_VERSION > /dev/null 
+gcloud -q components update --version $GCLOUD_VERSION --no-user-output-enabled
 
 echo "$STATUS_PREFIX  Configuring Default Values"
 write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
@@ -329,6 +329,11 @@ write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" "$MY_ZONE"
 write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" "${MY_ZONE%-*}"
 write_default_value "SPINNAKER_DEFAULT_STORAGE_BUCKET" "spinnaker-${MY_PROJECT}"
 write_default_value "SPINNAKER_GOOGLE_CONSUL_ENABLED" "false"
+
+# Use local project for stackdriver credentials, not the managed one.
+write_default_value "SPINNAKER_STACKDRIVER_PROJECT_NAME" "${MY_PROJECT}"
+write_default_value "SPINNAKER_STACKDRIVER_CREDENTIALS_PATH" ""
+
 echo "$STATUS_PREFIX  Extracting Configuration Info"
 extract_spinnaker_local_yaml
 
