@@ -47,7 +47,6 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
 
     function updateServerGroupHealthCounts(container) {
       var instances = container.instances;
-      var serverGroups = container.serverGroups || [container];
       container.instanceCounts = {
         up: instances.filter(function (instance) {
           return instance.health[0].state === 'Up';
