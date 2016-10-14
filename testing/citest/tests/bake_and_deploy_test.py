@@ -363,6 +363,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       'refId': 'DESTROY',
       'requisiteStageRefIds': requisiteStages or [],
       'target': 'current_asg_dynamic',
+      'regions': [self.bindings['TEST_GCE_REGION']],
       'cluster': '{app}-{stack}'.format(
           app=self.TEST_APP, stack=self.bindings['TEST_STACK']),
       'type': 'destroyServerGroup'
