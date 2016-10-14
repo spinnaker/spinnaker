@@ -19,13 +19,6 @@ module.exports = angular
         delete command.source;
       }
       command.account = command.credentials;
-      if (command.securityGroups) {
-        var securityGroups = '' + command.securityGroups;
-        command.securityGroups = securityGroups.split(/\s*,\s*/);
-      }
-      if (command.securityGroups === '') {
-        delete command.securityGroups;
-      }
       if (command.resources.allocateIpAddress === true) {
         delete command.resources.ports;
       }
