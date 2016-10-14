@@ -21,12 +21,25 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- * Maps the entire contents of ~/.hal/config
+/**
+ * Maps the entire contents of ~/.hal/config.
  */
 @Data
 public class Halconfig {
+  /**
+   * Version of Halyard required to manage this deployment.
+   */
   private String halyardVersion;
+
+  /**
+   * Current deployment being managed.
+   *
+   * @see DeploymentConfiguration#getName()
+   */
   private String currentDeployment;
+
+  /**
+   * List of available deployments.
+   */
   private List<DeploymentConfiguration> deploymentConfigurations = new ArrayList<>();
 }

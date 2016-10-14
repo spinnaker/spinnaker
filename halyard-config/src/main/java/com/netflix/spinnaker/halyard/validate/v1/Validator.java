@@ -18,20 +18,37 @@ package com.netflix.spinnaker.halyard.validate.v1;
 
 import java.util.stream.Stream;
 
-/* Every instance implementing this class should be run at most once against a single Spinnaker deployment's configuration */
+/**
+ * A validator that can pass, fail, or be skipped. It is stored inside the Validate* annotations.
+ *
+ * @see ValidateField
+ *
+ * Every instance implementing this class should be run at most once against a single Spinnaker deployment's configuration.
+ */
 public abstract class Validator<T> {
   protected Validator(T subject) {
     this.subject = subject;
   }
 
+  /**
+   * The value being validated.
+   */
   protected final T subject;
 
-  /* Describe what this validator is doing, i.e. "Ensure that the Kubernetes account has a Docker Registry configured" */
+  /**
+   *  Describes what this validator is doing.
+   *
+   *  e.g. "Ensure that the Kubernetes account has a Docker Registry configured".
+   */
   protected String description;
 
-  /* This returns a list of human-readable error messages. If the stream is empty, it is assumed that the validator has passed */
+  /**
+   * A list of human-readable error messages. If the stream is empty, it is assumed that the validator has passed.
+   */
   abstract public Stream<String> validate();
 
-  /* When true, this validator won't be run */
+  /**
+   * When true, this validator won't be run.
+   */
   abstract public boolean skip();
 }

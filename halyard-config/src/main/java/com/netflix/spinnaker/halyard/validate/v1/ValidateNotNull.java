@@ -18,6 +18,9 @@ package com.netflix.spinnaker.halyard.validate.v1;
 
 import java.util.stream.Stream;
 
+/**
+ * Ensure given value is not null.
+ */
 public class ValidateNotNull extends Validator<Object> {
   protected ValidateNotNull(Object subject) {
     super(subject);

@@ -21,6 +21,9 @@ import com.netflix.spinnaker.halyard.validate.v1.Validator;
 import java.io.*;
 import java.util.stream.Stream;
 
+/**
+ * Ensure that the given file exists, and is readable.
+ */
 public class ValidateFileExists extends Validator<String> {
   protected ValidateFileExists(String subject) {
     super(subject);

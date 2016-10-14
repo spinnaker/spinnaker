@@ -30,18 +30,37 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-/*
+/**
+ * A parser for all Config read by Halyard at runtime.
+ *
+ * @see Halconfig
+ *
  * Since we aren't relying on SpringBoot to configure Halyard's ~/.hal/config, we instead use this class as a utility
  * method to read ~/.hal/config's contents.
  */
 @Component
 public class HalconfigParser {
+  /**
+   * Path to where the halconfig file is located.
+   *
+   * @param path Defaults to ~/.hal/config.
+   * @return The path with home (~) expanded.
+   */
   @Bean
   String halconfigPath(@Value("${halconfig.filesystem.halconfig:~/.hal/config}") String path) {
     path = path.replaceFirst("^~", System.getProperty("user.home"));
     return path;
   }
 
+  /**
+   * Version of halyard.
+   *
+   * This is useful for implementing breaking version changes in Spinnaker that need to be migrated by some tool
+   * (in this case Halyard).
+   *
+   * @param version The version (seems like the i.d. function for Spring Boot).
+   * @return The version.
+   */
   @Bean
   String halyardVersion(@Value("${Implementation-Version:unknown}") String version) {
     return version;
@@ -59,6 +78,14 @@ public class HalconfigParser {
   @Autowired
   Yaml yamlParser;
 
+  /**
+   * Parse Halyard's config.
+   *
+   * @see Halconfig
+   * @param is The input stream to read from.
+   * @return The fully parsed halconfig.
+   * @throws UnrecognizedPropertyException
+   */
   Halconfig parseConfig(InputStream is) throws UnrecognizedPropertyException {
     try {
       Object obj = yamlParser.load(is);
@@ -68,6 +95,14 @@ public class HalconfigParser {
     }
   }
 
+  /**
+   * Returns the current halconfig stored at the halconfigPath.
+   *
+   * @see HalconfigParser#halconfigPath(String)
+   * @see Halconfig
+   * @return The fully parsed halconfig.
+   * @throws UnrecognizedPropertyException
+   */
   public Halconfig getConfig() throws UnrecognizedPropertyException {
     Halconfig res = null;
     try {

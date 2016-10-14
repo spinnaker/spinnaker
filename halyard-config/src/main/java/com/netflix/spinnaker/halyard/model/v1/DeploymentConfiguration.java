@@ -17,17 +17,39 @@
 package com.netflix.spinnaker.halyard.model.v1;
 
 import com.netflix.spinnaker.halyard.model.v1.providers.Providers;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/*
- * A DeploymentConfiguration is an installation of Spinnaker
+/**
+ * A DeploymentConfiguration is an installation of Spinnaker, described in your Halconfig.
+ *
+ * @see Halconfig
  */
+@Data
 public class DeploymentConfiguration {
-  public String name;
-  public String version;
-  public Providers providers;
-  public List<Map> webhooks = new ArrayList<>();
+  /**
+   * Human-readable name for this deployment of Spinnaker.
+   */
+  String name;
+
+  /**
+   * Version of Spinnaker being deployed (not to be confused with the halyard version).
+   *
+   * @see Halconfig#halyardVersion
+   */
+  String version;
+
+  /**
+   * Providers, e.g. Kubernetes, GCE, AWS, ...
+   */
+  Providers providers;
+
+
+  /**
+   * Webhooks, e.g. Jenkins, TravisCI, ...
+   */
+  List<Map> webhooks = new ArrayList<>();
 }

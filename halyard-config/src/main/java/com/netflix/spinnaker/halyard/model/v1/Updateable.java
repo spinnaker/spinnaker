@@ -26,8 +26,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * This allows fields making use of validators to be validated.
+ *
+ * This is meant to be implemented by all halconfig contents meant to be updated. It reads the Validate* anotations, and
+ * runs the validators on the fields changed.
+ *
+ * @see Validator
+ */
 public interface Updateable {
-  /* Attempts to update field to value, but will be rejected if the validation based on `context fails */
+  /**
+   * Attempts to update field to value, but will be rejected if the validation fails.
+   *
+   * @param fieldName Name of the field to be updated.
+   * @param value The value to update the named field to.
+   * @param valueType The type of value being updated (can't be inferred when value is null).
+   * @return The list of errors when validation fails (or null/[] when there are no failures).
+   * @throws IllegalAccessException
+   * @throws NoSuchFieldException
+   */
   default public List<String> update(String fieldName, Object value, Class<?> valueType) throws NoSuchFieldException, IllegalAccessException {
     Field field = this.getClass().getDeclaredField(fieldName);
     field.setAccessible(true);
@@ -52,6 +69,15 @@ public interface Updateable {
     return errors;
   }
 
+  /**
+   * Validate a given field without updating it.
+   *
+   * @param fieldName Name of the field to be validated.
+   * @param valueType The type of value being validated (can't be inferred when value is null).
+   * @return The list of errors when validation fails (or null/[] when there are no failures).
+   * @throws IllegalAccessException
+   * @throws NoSuchFieldException
+   */
   default public List<String> validate(String fieldName, Class<?> valueType) throws IllegalAccessException, NoSuchFieldException {
     Field field = this.getClass().getDeclaredField(fieldName);
     field.setAccessible(true);

@@ -19,6 +19,9 @@ package com.netflix.spinnaker.halyard.validate.v1;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+/**
+ * Ensure the given value matches the input regex.
+ */
 public class ValidateFieldRegex extends Validator<String> {
   final String pattern;
   final String patternDescription;

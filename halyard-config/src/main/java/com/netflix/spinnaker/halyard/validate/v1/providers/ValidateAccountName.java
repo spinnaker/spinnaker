@@ -20,6 +20,9 @@ import com.netflix.spinnaker.halyard.validate.v1.ValidateFieldRegex;
 
 import java.util.stream.Stream;
 
+/**
+ * Ensure that an account name matches the Spinnaker restrictions on account names. Applies to all account names.
+ */
 public class ValidateAccountName extends ValidateFieldRegex {
   public ValidateAccountName(String subject) {
     super(subject, "^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$",
