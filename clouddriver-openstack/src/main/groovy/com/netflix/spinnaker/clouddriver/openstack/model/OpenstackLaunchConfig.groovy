@@ -25,4 +25,6 @@ class OpenstackLaunchConfig {
   String networkId
   String loadBalancerId
   List<String> securityGroups
+  boolean associatePublicIpAddress
+  String floatingNetworkId
 }

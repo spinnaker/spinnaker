@@ -304,6 +304,8 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
         .networkId(parameters.networkId)
         .loadBalancerId(parameters.loadBalancers?.join(","))
         .securityGroups(parameters.securityGroups)
+        .associatePublicIpAddress(parameters.floatingNetworkId != null)
+        .floatingNetworkId(parameters.floatingNetworkId)
         .build()
 
       result = ((Map<String, Object>)objectMapper.convertValue(launchConfig, ATTRIBUTES)).findAll { it.value }
