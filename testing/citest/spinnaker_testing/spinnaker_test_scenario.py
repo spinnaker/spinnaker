@@ -167,12 +167,6 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
          This is used to initialize the default commandline parameters.
     """
     parser.add_argument(
-        '--spinnaker_primary_account_name',
-        default=defaults.get('SPINNAKER_PRIMARY_ACCOUNT_NAME', None),
-        help='Spinnaker account name to use for test operations.'
-             ' Only used when managing jobs running on GCE.'
-             ' If left empty then use the configured primary account.')
-    parser.add_argument(
         '--spinnaker_google_account',
         default=defaults.get('SPINNAKER_GOOGLE_ACCOUNT', None),
         help='Spinnaker account name to use for test operations against GCE.'
@@ -429,7 +423,8 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
     if bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
       self.__gcp_observer = gcp.GcpComputeAgent.make_agent(
-          scopes=gcp.COMPUTE_READ_WRITE_SCOPE,
+          scopes=(gcp.COMPUTE_READ_WRITE_SCOPE
+                  if bindings['GCE_CREDENTIALS_PATH'] else None),
           credentials_path=bindings['GCE_CREDENTIALS_PATH'],
           default_variables={
               'project': bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
@@ -470,11 +465,6 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         except KeyError:
           pass
         self.bindings[key] = value
-
-    if not self.bindings['SPINNAKER_PRIMARY_ACCOUNT_NAME']:
-      self.bindings['SPINNAKER_PRIMARY_ACCOUNT_NAME'] = (
-          self.agent.deployed_config.get(
-              'services.default.primaryAccountName', None))
 
     if not self.bindings['SPINNAKER_GOOGLE_ACCOUNT']:
       self.bindings['SPINNAKER_GOOGLE_ACCOUNT'] = (

@@ -47,8 +47,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
       parser: argparse.ArgumentParser
     """
     parser.add_argument(
-        '--google_json_path', default='',
-        help='The path to the google service credentials JSON file.')
+        '--gcs_json_path', default='',
+        help='The path to the Google Cloud Storage service credentials JSON file.')
 
     super(GoogleFront50TestScenario, cls).initArgumentParser(
         parser, defaults=defaults)
@@ -67,8 +67,10 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     self.TEST_PIPELINE_NAME = 'My {app} Pipeline'.format(app=self.TEST_APP)
     self.TEST_PIPELINE_ID = '{app}-pipeline-id'.format(app=self.TEST_APP)
     self.gcs_observer = gcp.GcpStorageAgent.make_agent(
-        credentials_path=self.bindings['GCE_CREDENTIALS_PATH'],
-        scopes=gcp.gcp_storage_agent.STORAGE_FULL_SCOPE)
+        credentials_path=self.bindings['GCS_JSON_PATH'],
+        scopes=(gcp.gcp_storage_agent.STORAGE_FULL_SCOPE
+                if self.bindings['GCS_JSON_PATH'] else None)
+        )
 
     metadata = self.gcs_observer.inspect_bucket(context, self.BUCKET)
     self.versioning_enabled = (metadata.get('versioning', {})
