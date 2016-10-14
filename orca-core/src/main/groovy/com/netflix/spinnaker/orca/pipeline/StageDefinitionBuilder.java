@@ -192,7 +192,7 @@ public interface StageDefinitionBuilder {
       }
 
       if (parent != null) {
-        String stageName = Optional.of(stage.getName()).map(s -> s.replaceAll("[^A-Za-z0-9]", "")).orElse(null);
+        String stageName = Optional.ofNullable(stage.getName()).map(s -> s.replaceAll("[^A-Za-z0-9]", "")).orElse(null);
         ((AbstractStage) stage).setId(
           parent.getId() + "-" + ((AbstractStage) parent).getStageCounter().incrementAndGet() + "-" + stageName
         );
