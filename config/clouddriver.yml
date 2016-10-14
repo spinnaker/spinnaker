@@ -69,6 +69,29 @@ kubernetes:
       dockerRegistries:
         - accountName: ${providers.kubernetes.primaryCredentials.dockerRegistryAccount}
 
+openstack:
+  enabled: ${providers.openstack.enabled:false}
+  accounts:
+    - name: ${providers.openstack.primaryCredentials.name}
+      authUrl: ${providers.openstack.primaryCredentials.authUrl}
+      username: ${providers.openstack.primaryCredentials.username}
+      password: ${providers.openstack.primaryCredentials.password}
+      projectName: ${providers.openstack.primaryCredentials.projectName}
+      domainName: ${providers.openstack.primaryCredentials.domainName:Default}
+      regions: ${providers.openstack.primaryCredentials.regions}
+      insecure: ${providers.openstack.primaryCredentials.insecure:false}
+
+      # The Openstack API requires that the load balancer be in an ACTIVE
+      # state for it to create associated relationships (i.e. listeners,
+      # pools, monitors). Each modification will cause the load balancer to
+      # go into a PENDING state and back to ACTIVE once the change has been
+      # made. Depending on your implementation, the timeout and polling
+      # intervals would need to be adjusted, especially if testing out
+      # Spinnaker with Devstack or another resource constrained enviroment
+      lbaas:
+        pollTimeout: 60
+        pollInterval: 5
+
 dockerRegistry:
   enabled: ${providers.dockerRegistry.enabled:false}
   accounts:

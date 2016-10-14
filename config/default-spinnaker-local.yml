@@ -70,7 +70,7 @@ providers:
       # from the Google Developer's Console.
       project: ${SPINNAKER_GOOGLE_PROJECT_ID:}
       jsonPath: ${SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH:}
-      consul: 
+      consul:
         enabled: ${SPINNAKER_GOOGLE_CONSUL_ENABLED:false}
 
   cf:
@@ -120,6 +120,19 @@ providers:
       username: ${SPINNAKER_DOCKER_USERNAME}
       # A path to a plain text file containing the user's password
       passwordFile: ${SPINNAKER_DOCKER_PASSWORD_FILE}
+
+  openstack:
+    # For more information on configuring Openstack clusters, see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-openstack
+
+    enabled: ${SPINNAKER_OPENSTACK_ENABLED:false}
+    primaryCredentials:
+      name: my-openstack-account
+      authUrl: ${OS_AUTH_URL}
+      username: ${OS_USERNAME}
+      password: ${OS_PASSWORD}
+      projectName: ${OS_PROJECT_NAME}
+      regions: ${OS_REGION_NAME:RegionOne}
 
 services:
   default:

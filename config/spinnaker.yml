@@ -323,12 +323,28 @@ providers:
       address: https://index.docker.io/
       repository: library/nginx
 
+openstack:
+    # This default configuration uses the same environment variable names set in
+    # the OpenStack RC file. See
+    # http://docs.openstack.org/user-guide/common/cli-set-environment-variables-using-openstack-rc.html
+    # for details on the OpenStack RC file.
+    enabled: false
+    primaryCredentials:
+      name: my-openstack-account
+      authUrl: ${OS_AUTH_URL}
+      username: ${OS_USERNAME}
+      password: ${OS_PASSWORD}
+      projectName: ${OS_PROJECT_NAME}
+      domainName: ${OS_USER_DOMAIN_NAME:Default}
+      regions: ${OS_REGION_NAME:RegionOne}
+      insecure: false
+
 spectator:
   webEndpoint:
     enabled: false
     prototypeFilter:
       path:
- 
+
   stackdriver:
     projectName: ${providers.google.primaryCredentials.project}
     credentialsPath: ${providers.google.primaryCredentials.jsonPath}
