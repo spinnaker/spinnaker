@@ -46,6 +46,9 @@ task webpack(type: NodeTask) {
 task karma(type: NodeTask) {
   script = file('node_modules/karma/bin/karma')
   args = ["start", "--single-run", "--reporters", "progress,jenkins"]
+  if (project.hasProperty('skipTests')) {
+    karma.enabled = false
+  }
 }
 
 task generateVersionFile << {
