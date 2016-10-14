@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.model.v1;
 import com.netflix.spinnaker.halyard.validate.v1.ValidateField;
 import com.netflix.spinnaker.halyard.validate.v1.Validator;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
@@ -41,7 +40,7 @@ public interface Updateable {
    * @param fieldName Name of the field to be updated.
    * @param value The value to update the named field to.
    * @param valueType The type of value being updated (can't be inferred when value is null).
-   * @return The list of errors when validation fails (or null/[] when there are no failures).
+   * @return The list of errors when validation fails ([] when there are no failures and validation has passed).
    * @throws IllegalAccessException
    * @throws NoSuchFieldException
    */
@@ -74,7 +73,7 @@ public interface Updateable {
    *
    * @param fieldName Name of the field to be validated.
    * @param valueType The type of value being validated (can't be inferred when value is null).
-   * @return The list of errors when validation fails (or null/[] when there are no failures).
+   * @return The list of errors when validation fails ([] when there are no failures and validation has passed).
    * @throws IllegalAccessException
    * @throws NoSuchFieldException
    */
