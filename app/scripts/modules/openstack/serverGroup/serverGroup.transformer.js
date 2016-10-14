@@ -18,13 +18,6 @@ module.exports = angular
         });
       }
 
-      //TODO(jwest): remove this once the back-end supplies properly formatted UUIDs
-      if( serverGroup.launchConfig && serverGroup.launchConfig.securityGroups ) {
-        serverGroup.launchConfig.securityGroups = _.map(serverGroup.launchConfig.securityGroups, function(sg) {
-          return /^\[u\'/.test(sg) ? sg.split('\'')[1] : sg;
-        });
-      }
-
       return $q.when(serverGroup); // no-op
     }
 

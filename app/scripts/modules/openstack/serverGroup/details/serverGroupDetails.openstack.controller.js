@@ -27,9 +27,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   .controller('openstackServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, openstackServerGroupCommandBuilder, $uibModal,
                                                      confirmationModalService, serverGroupWriter, subnetReader,
-                                                     securityGroupReader, loadBalancerReader, runningExecutionsService,
-                                                     accountService, serverGroupWarningMessageService,
-                                                     openstackServerGroupTransformer, overrideRegistry) {
+                                                     networkReader, securityGroupReader, loadBalancerReader,
+                                                     runningExecutionsService, accountService,
+                                                     serverGroupWarningMessageService, openstackServerGroupTransformer,
+                                                     overrideRegistry) {
     var ctrl = this;
     this.state = {
       loading: true
@@ -92,6 +93,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
               this.serverGroup = details;
               this.applyAccountDetails(this.serverGroup);
               this.applySubnetDetails();
+              this.applyFloatingIpDetails();
               this.applySecurityGroupDetails(this.serverGroup);
               this.applyLoadBalancerDetails(this.serverGroup);
 
@@ -343,6 +345,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
     this.applySubnetDetails = () => {
       return subnetReader.getSubnetByIdAndProvider(this.serverGroup.subnetId, 'openstack').then((details) => {
         ctrl.subnetName = (details || {}).name;
+      });
+    };
+
+    this.applyFloatingIpDetails = () => {
+      return networkReader.listNetworksByProvider('openstack').then((networks) => {
+        ctrl.floatingNetworkName = (_.find(networks, (net) => {
+          return net.id === ctrl.serverGroup.launchConfig.floatingNetworkId;
+        }) || {}).name;
       });
     };
 

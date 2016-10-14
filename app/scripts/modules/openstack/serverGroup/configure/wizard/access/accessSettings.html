@@ -28,6 +28,36 @@
                                             required="true"
                                             model="command.securityGroups"></os-app-cache-backed-multi-select-field>
 
+    <div class="form-group">
+      <div class="col-md-5 sm-label-left">
+        <b>Associate Floating IP Address</b>
+        <help-field key="openstack.network.floatingip"></help-field>
+      </div>
+      <div class="col-md-2 radio">
+        <label>
+          <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="true"/>
+          Yes
+        </label>
+      </div>
+      <div class="col-md-2 radio">
+        <label>
+          <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="false"/>
+          No
+        </label>
+      </div>
+      <div class="col-md-2 radio">
+        <label>
+          <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="null"/>
+          Default
+        </label>
+      </div>
+    </div>
+
+    <div ng-if="command.associatePublicIpAddress === true" class="form-group">
+      <network-select-field label="Network"
+                            model="command.floatingNetworkId"
+                            help-key="openstack.network.floatpool"></network-select-field>
+    </div>
     </ng-form>
   </div>
 </div>
