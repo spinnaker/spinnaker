@@ -35,7 +35,8 @@ angular.module(AUTHENTICATION, [
                  settings: any) {
     if (settings.authEnabled) {
       // schedule deck to re-authenticate every 10 min.
-      schedulerFactory.createScheduler(settings.authTtl || 600000).subscribe(authenticationInitializer.reauthenticateUser);
+      schedulerFactory.createScheduler(settings.authTtl || 600000)
+        .subscribe(() => authenticationInitializer.reauthenticateUser());
       authenticationInitializer.authenticateUser();
     }
   });

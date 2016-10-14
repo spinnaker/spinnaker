@@ -71,23 +71,23 @@ export class AuthenticationInitializer {
   public authenticateUser() {
     this.$rootScope.authenticating = true;
     this.$http.get(this.settings.authEndpoint)
-      .success((data: IAuthResponse) => {
-        if (data.username) {
-          this.authenticationService.setAuthenticatedUser(data.username);
+      .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
+        if (response.data.username) {
+          this.authenticationService.setAuthenticatedUser(response.data.username);
           this.$rootScope.authenticating = false;
         } else {
           this.loginRedirect();
         }
       })
-      .error(() => this.loginRedirect());
+      .catch(() => this.loginRedirect());
   }
 
   public reauthenticateUser(): void {
     if (!this.userLoggedOut) {
       this.$http.get(this.settings.authEndpoint)
-        .then((data: IAuthResponse) => {
-          if (data.username) {
-            this.authenticationService.setAuthenticatedUser(data.username);
+        .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
+          if (response.data.username) {
+            this.authenticationService.setAuthenticatedUser(response.data.username);
             this.$rootScope.authenticating = false;
           } else {
             this.loginNotification();
