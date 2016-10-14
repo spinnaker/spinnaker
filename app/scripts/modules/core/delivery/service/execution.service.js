@@ -89,7 +89,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     function jsonReplacer(key, value) {
       var val = value;
 
-      if (key === 'instances' || key === 'asg' || key === 'commits' || key === 'history') {
+      if (key === 'instances' || key === 'asg' || key === 'commits' || key === 'history' || key === '$$hashKey') {
         val = undefined;
       }
 
@@ -242,12 +242,16 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
         // remove any that have dropped off, update any that have changed
         let toRemove = [];
         existingData.forEach((execution, idx) => {
-          let matches = executions.filter((test) => test.id === execution.id);
-          if (!matches.length) {
+          let match = executions.find((test) => test.id === execution.id);
+          if (!match) {
             toRemove.push(idx);
           } else {
-            if (execution.stringVal && matches[0].stringVal && execution.stringVal !== matches[0].stringVal) {
-              existingData[idx] = matches[0];
+            if (execution.stringVal && match.stringVal && execution.stringVal !== match.stringVal) {
+              if (execution.status !== match.status) {
+                application.executions.data[idx] = match;
+              } else {
+                synchronizeExecution(execution, match);
+              }
             }
           }
         });
@@ -266,15 +270,35 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       }
     }
 
-    function updateExecution(application, execution) {
+    function synchronizeExecution(current, updated) {
+      (updated.stageSummaries || []).forEach((updatedSummary, idx) => {
+        let currentSummary = current.stageSummaries[idx];
+        // if the stage was not already completed, update it in place if it has changed to save Angular
+        // from removing, then re-rendering every DOM node
+        if (!updatedSummary.isComplete || !current.isComplete) {
+          if (JSON.stringify(current, jsonReplacer) !== JSON.stringify(updatedSummary, jsonReplacer)) {
+            Object.assign(currentSummary, updatedSummary);
+          }
+        }
+        current.stringVal = updated.stringVal;
+      });
+    }
+
+    function updateExecution(application, updatedExecution) {
       if (application.executions.data && application.executions.data.length) {
-        application.executions.data.forEach((t, idx) => {
-          if (execution.id === t.id) {
-            execution.stringVal = JSON.stringify(execution, jsonReplacer);
-            if (t.stringVal !== execution.stringVal) {
-              transformExecution(application, execution);
-              application.executions.data[idx] = execution;
+        application.executions.data.forEach((currentExecution, idx) => {
+          if (updatedExecution.id === currentExecution.id) {
+            updatedExecution.stringVal = JSON.stringify(updatedExecution, jsonReplacer);
+            if (updatedExecution.status !== currentExecution.status) {
+              transformExecution(application, updatedExecution);
+              application.executions.data[idx] = updatedExecution;
               application.executions.dataUpdated();
+            } else {
+              if (currentExecution.stringVal !== updatedExecution.stringVal) {
+                transformExecution(application, updatedExecution);
+                synchronizeExecution(currentExecution, updatedExecution);
+                application.executions.dataUpdated();
+              }
             }
           }
         });

@@ -8,12 +8,10 @@
     <div class="stages" ng-class="{'show-durations': vm.sortFilter.showStageDuration}">
       <div ng-repeat="stage in ::vm.execution.stageSummaries"
            class="clickable stage stage-type-{{::stage.type.toLowerCase()}}
-                  execution-marker execution-marker-{{::stage.status.toLowerCase()}}
+                  execution-marker execution-marker-{{stage.status.toLowerCase()}}
                   {{vm.isActive($index) ? 'active' : ''}} {{stage.isRunning ? 'glowing' : ''}}"
            ng-style="::{width: 100/vm.execution.stageSummaries.length + '%', 'background-color': stage.color}"
            uib-tooltip-template="::stage.labelTemplateUrl"
-           ng-style="{width: 100/vm.execution.stageSummaries.length + '%', 'background-color': stage.color}"
-           uib-tooltip-template="stage.labelTemplateUrl"
            tooltip-title="(Click for details)"
            tooltip-placement="bottom"
            analytics-on="click"
