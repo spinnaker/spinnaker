@@ -281,15 +281,3 @@ services:
         enabled: false
         token: # the API token for the bot
         botName: # the username of the bot
-
-spectator:
-  applicationName: ${spring.application.name}
-  endpoint:
-    enabled: false
-    prototypeFilter:
-      path:
- 
-  stackdriver:
-    projectName: ${providers.google.primaryCredentials.project}
-    credentialsPath: ${providers.google.primaryCredentials.jsonPath}
-    enabled: false

@@ -231,9 +231,10 @@ providers:
     # For more information on configuring Amazon Web Services (aws), see
     # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-amazon-web-services-setup
 
-    enabled: false
+    enabled: ${SPINNAKER_AWS_ENABLED:false}
     simpleDBEnabled: false
-    defaultRegion: us-east-1
+    defaultRegion: ${SPINNAKER_AWS_DEFAULT_REGION:us-west-2}
+    defaultIAMRole: BaseIAMRole
     defaultSimpleDBDomain: CLOUD_APPLICATIONS
     primaryCredentials:
       name: default
@@ -251,18 +252,19 @@ providers:
     # For more information on configuring Google Cloud Platform (google), see
     # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-google-cloud-platform-setup
 
-    enabled: false
-    defaultRegion: us-central1
-    defaultZone: us-central1-f
+    enabled: ${SPINNAKER_GOOGLE_ENABLED:false}
+    defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION:us-central1}
+    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_ZONE:us-central1-f}
+
     primaryCredentials:
       name: my-account-name
       # The project is the Google Project ID for the project to manage with
       # Spinnaker. The jsonPath is a path to the JSON service credentials
       # downloaded from the Google Developer's Console.
-      project:
-      jsonPath:
+      project: ${SPINNAKER_GOOGLE_PROJECT_ID:}
+      jsonPath: ${SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH:}
       consul:
-        enabled: false
+        enabled: ${SPINNAKER_GOOGLE_CONSUL_ENABLED:false}
 
   cf:
     # For more information on configuring Cloud Foundry (cf) support, see
@@ -281,8 +283,8 @@ providers:
     # For more information on configuring Microsoft Azure (azure), see
     # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-azure-cloud-platform-setup
 
-    enabled: false
-    defaultRegion: westus
+    enabled: ${SPINNAKER_AZURE_ENABLED:false}
+    defaultRegion: ${SPINNAKER_AZURE_DEFAULT_REGION:westus}
     primaryCredentials:
       name: my-azure-account
 
@@ -307,7 +309,7 @@ providers:
     # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-kubernetes-cluster-setup
 
     # NOTE: enabling kubernetes also requires enabling dockerRegistry.
-    enabled: false
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
     primaryCredentials:
       name: my-kubernetes-account
       namespace: default
@@ -316,11 +318,15 @@ providers:
   dockerRegistry:
     # If you want to use a container based provider, you need to configure and
     # enable this provider to cache images.
-    enabled: false
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
+
     primaryCredentials:
       name: my-docker-registry-account
-      address: https://index.docker.io/
-      repository: library/nginx
+      address: ${SPINNAKER_DOCKER_REGISTRY:https://index.docker.io/}
+      repository: ${SPINNAKER_DOCKER_REPOSITORY:library/nginx}
+      username: ${SPINNAKER_DOCKER_USERNAME}
+      # A path to a plain text file containing the user's password
+      passwordFile: ${SPINNAKER_DOCKER_PASSWORD_FILE}
 
 openstack:
     # This default configuration uses the same environment variable names set in
@@ -339,13 +345,13 @@ openstack:
       insecure: false
 
 spectator:
+  applicationName: ${spring.application.name}
   webEndpoint:
     enabled: false
     prototypeFilter:
       path:
 
   stackdriver:
-    projectName: ${providers.google.primaryCredentials.project}
-    credentialsPath: ${providers.google.primaryCredentials.jsonPath}
-    defaultRegistry: false
-    enabled: false
+    enabled: ${SPINNAKER_STACKDRIVER_ENABLED:false}
+    projectName: ${SPINNAKER_STACKDRIVER_PROJECT_NAME:${providers.google.primaryCredentials.project}}
+    credentialsPath: ${SPINNAKER_STACKDRIVER_CREDENTIALS_PATH:${providers.google.primaryCredentials.jsonPath}}
