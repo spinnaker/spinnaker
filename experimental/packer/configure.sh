@@ -290,7 +290,6 @@ services:
     # directly under 'services'.
     protocol: http    # Assume all spinnaker subsystems are using http
     host: localhost   # Assume all spinnaker subsystems are on localhost
-    primaryAccountName: \${providers.google.primaryCredentials.name}
     igor_enabled: true
 
   redis:

@@ -125,7 +125,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     contract = jc.Contract()
     return st.OperationContract(
         self.agent.make_create_app_operation(
-            bindings=self.bindings, application=self.TEST_APP),
+            bindings=self.bindings, application=self.TEST_APP,
+            account_name=self.bindings['SPINNAKER_KUBE_ACCOUNT']),
         contract=contract)
 
   def delete_app(self):
@@ -133,7 +134,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     contract = jc.Contract()
     return st.OperationContract(
         self.agent.make_delete_app_operation(
-            bindings=self.bindings, application=self.TEST_APP),
+            application=self.TEST_APP,
+            account_name=self.bindings['SPINNAKER_KUBE_ACCOUNT']),
         contract=contract)
 
   def upsert_load_balancer(self):

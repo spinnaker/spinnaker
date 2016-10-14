@@ -20,7 +20,6 @@ services:
     # directly under 'services'.
     host: localhost
     protocol: http
-    primaryAccountName: service-default-primaryAccountName-not-defined
 
   clouddriver:
     host: ${services.default.host}

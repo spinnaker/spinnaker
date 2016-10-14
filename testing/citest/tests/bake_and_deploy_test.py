@@ -192,14 +192,16 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.agent.make_create_app_operation(
-            bindings=self.bindings, application=self.TEST_APP),
+            bindings=self.bindings, application=self.TEST_APP,
+            account_name=self.bindings['SPINNAKER_GOOGLE_ACCOUNT']),
         builder.build())
 
   def delete_app(self):
     contract = jc.Contract()
     return st.OperationContract(
         self.agent.make_delete_app_operation(
-            bindings=self.bindings, application=self.TEST_APP),
+            application=self.TEST_APP,
+            account_name=self.bindings['SPINNAKER_GOOGLE_ACCOUNT']),
         contract=contract)
 
   def create_load_balancer(self):

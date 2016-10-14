@@ -200,19 +200,19 @@ class GateAgent(sk.SpinnakerAgent):
   This class just adds convienence methods specific to Gate.
   """
 
-  def make_create_app_operation(self, bindings, application, description=None):
+  def make_create_app_operation(self, bindings, application, account_name,
+                                description=None):
     """Create a Gate operation that will create a new application.
 
     Args:
-      bindings: [dict] key/value pairs including SPINNAKER_GOOGLE_ACCOUNT
-          and optional TEST_EMAIL.
+      bindings: [dict] key/value pairs including optional TEST_EMAIL.
       application: [string] Name of application to create.
+      account_name: [string] Account name owning the application.
       description: [string] Text description field for the operation payload.
 
     Returns:
       AgentOperation.
     """
-    account_name = bindings['SPINNAKER_PRIMARY_ACCOUNT_NAME']
     email = bindings.get('TEST_EMAIL', 'testuser@testhost.org')
     payload = self.make_json_payload_from_kwargs(
         job=[{
@@ -231,18 +231,16 @@ class GateAgent(sk.SpinnakerAgent):
     return self.new_post_operation(
         title='create_app', data=payload, path='tasks')
 
-  def make_delete_app_operation(self, bindings, application):
+  def make_delete_app_operation(self, application, account_name):
     """Create a Gate operation that will delete an existing application.
 
     Args:
-      bindings: [dict] key/value pairs including SPINNAKER_PRIMARY_ACCOUNT_NAME
-          and optional TEST_EMAIL.
       application: [string] Name of application to create.
+      account_name: [string] Spinnaker account deleting the application.
 
     Returns:
       AgentOperation.
     """
-    account_name = bindings['SPINNAKER_PRIMARY_ACCOUNT_NAME']
     payload = self.make_json_payload_from_kwargs(
         job=[{
             'type': 'deleteApplication',
