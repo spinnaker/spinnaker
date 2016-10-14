@@ -33,7 +33,60 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
       ]
     };
 
+    function updateHealthCounts(container) {
+      var healths = container.healths;
+      container.instanceCounts = {
+        up: healths.filter(function (instance) {
+          return instance.lbHealthSummaries[0].healthState === 'InService';
+        }).length,
+        down: healths.filter(function (instance) {
+          return instance.lbHealthSummaries[0].healthState === 'OutOfService';
+        }).length
+      };
+    }
+
+    function updateServerGroupHealthCounts(container) {
+      var instances = container.instances;
+      var serverGroups = container.serverGroups || [container];
+      container.instanceCounts = {
+        up: instances.filter(function (instance) {
+          return instance.health[0].state === 'Up';
+        }).length,
+        down: instances.filter(function (instance) {
+          return instance.health[0].state === 'Down';
+        }).length
+      };
+    }
+
+    function transformInstance(instance, loadBalancer) {
+      instance.health = instance.health || {};
+      instance.provider = loadBalancer.type;
+      instance.account = loadBalancer.account;
+      instance.region = loadBalancer.region;
+      instance.health.type = 'LoadBalancer';
+      instance.healthState = instance.health.state ? instance.health.state === 'InService' ? 'Up' : 'Down' : 'OutOfService';
+      instance.health = [instance.health];
+      instance.loadBalancers = [loadBalancer.name];
+    }
+
     function normalizeLoadBalancer(loadBalancer) {
+      loadBalancer.serverGroups.forEach(function(serverGroup) {
+        serverGroup.account = loadBalancer.account;
+        if (serverGroup.detachedInstances) {
+          serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
+            return { id: instanceId };
+          });
+          serverGroup.instances = serverGroup.instances.concat(serverGroup.detachedInstances);
+        } else {
+          serverGroup.detachedInstances = [];
+        }
+
+        serverGroup.instances.forEach(function(instance) {
+          transformInstance(instance, loadBalancer);
+        });
+        updateServerGroupHealthCounts(serverGroup);
+      });
+
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = [];
 
@@ -47,6 +100,7 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
 
       loadBalancer.healthMonitor = _.defaults(healthMonitor, defaults.healthMonitor);
 
+      updateHealthCounts(loadBalancer);
       return loadBalancer;
     }
 
