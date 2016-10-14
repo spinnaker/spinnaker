@@ -486,14 +486,14 @@ function install_dependencies() {
   if ! $DOWNLOAD; then
     apt-get install -y --force-yes unzip
   else
-    mkdir /tmp/deppkgs && pushd /tmp/deppkgs
+    mkdir $TEMPDIR/deppkgs && pushd $TEMPDIR/deppkgs
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/autogen/libopts25_5.18-2ubuntu2_amd64.deb
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/n/ntp/ntp_4.2.6.p5+dfsg-3ubuntu2.14.04.5_amd64.deb
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/p/python-support/python-support_1.0.15_all.deb
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/u/unzip/unzip_6.0-9ubuntu1.5_amd64.deb
     dpkg -i *.deb
     popd
-    rm -rf /tmp/deppkgs
+    rm -rf $TEMPDIR/deppkgs
   fi
 }
 
@@ -506,13 +506,13 @@ function install_redis_server() {
 
   if $DOWNLOAD && [[ $apt_status -eq 100 ]]; then
     echo "Manually downloading and installing redis-server..."
-    mkdir /tmp/deppkgs && pushd /tmp/deppkgs
+    mkdir $TEMPDIR/deppkgs && pushd $TEMPDIR/deppkgs
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.6.0-2_amd64.deb
 
     curl -L -O https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server/+build/8914180/+files/redis-server_3.0.7-1chl1~trusty1_amd64.deb
     dpkg -i *.deb
     popd
-    rm -rf /tmp/deppkgs
+    rm -rf $TEMPDIR/deppkgs
   else
     echo "Error installing redis-server."
     echo "cannot continue installation; exiting."
@@ -532,7 +532,7 @@ function install_apache2() {
       apt-get -q -y --force-yes install apache2
     elif $DOWNLOAD && [[ $apt_status -eq 100 ]]; then
       echo "no valid apache2 package found in apt sources; attempting to download debs and install locally..."
-      mkdir /tmp/apache2 && pushd /tmp/apache2
+      mkdir $TEMPDIR/apache2 && pushd $TEMPDIR/apache2
       curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2_2.4.7-1ubuntu4.5_amd64.deb
       curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2-bin_2.4.7-1ubuntu4.5_amd64.deb
       curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2-data_2.4.7-1ubuntu4.5_all.deb
@@ -542,7 +542,7 @@ function install_apache2() {
       curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/apr-util/libaprutil1-ldap_1.5.3-1_amd64.deb
       curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/s/ssl-cert/ssl-cert_1.0.33_all.deb
       dpkg -i *.deb
-      popd && rm -rf /tmp/apache2
+      popd && rm -rf $TEMPDIR/apache2
     else
       echo "unknown error ($apt_status) occurred attempting to install apache2"
       echo "cannot continue installation; exiting"
@@ -586,14 +586,14 @@ EOF
   if [[ -z "$cassandra_packages" ]]; then
     if $DOWNLOAD; then
       echo "cassandra not found in apt-cache, downloading from $package_url..."
-      mkdir /tmp/casspkgs && pushd /tmp/casspkgs
+      mkdir $TEMPDIR/casspkgs && pushd $TEMPDIR/casspkgs
       for pkg in cassandra cassandra-tools;do
         curl -L -O $package_url/${pkg}_2.1.11_all.deb
       done
       dpkg -i *.deb
       apt-mark hold cassandra cassandra-tools
       popd
-      rm -rf /tmp/casspkgs
+      rm -rf $TEMPDIR/casspkgs
     else
       echo "Error installing cassandra."
       echo "cannot continue installation; exiting."
@@ -680,6 +680,8 @@ if ! $DOWNLOAD; then
   add_apt_repositories
 fi
 
+TEMPDIR=$(mktemp -d installspinnaker.XXXX)
+
 install_java
 install_apache2
 install_platform_dependencies
@@ -690,11 +692,13 @@ if [[ "$INSTALL_CASSANDRA" != "false" ]]; then
 fi
 
 ## Packer
-mkdir /tmp/packer && pushd /tmp/packer
+mkdir $TEMPDIR/packer && pushd $TEMPDIR/packer
 curl -s -L -O https://releases.hashicorp.com/packer/0.10.2/packer_0.10.2_linux_amd64.zip
 unzip -u -o -q packer_0.10.2_linux_amd64.zip -d /usr/bin
 popd
-rm -rf /tmp/packer
+rm -rf $TEMPDIR/packer
+
+rm -rf $TEMPDIR
 
 if $DEPENDENCIES_ONLY; then
   exit 0
