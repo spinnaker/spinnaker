@@ -116,7 +116,7 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
       }
       awsInstances.addAll(resp.reservations.collectMany { it.instances })
       if (resp.nextToken) {
-        request.withNextToken(request.nextToken)
+        request.withNextToken(resp.nextToken)
       } else {
         break
       }
