@@ -1,30 +1,5 @@
-apply plugin: 'spring-boot'
-apply plugin: 'spinnaker.package'
-
-ext {
-  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
-  repackage = System.getProperty('springBoot.repackage', "false")
-}
-
-tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
-  systemProperty('spring.config.location', project.springConfigLocation)
-}
-
-configurations.all {
-  exclude group: 'javax.servlet', module: 'servlet-api'
-  exclude group: "org.slf4j", module: "slf4j-log4j12"
-}
-
 dependencies {
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
 }
-
-test {
-  testLogging {
-    showStandardStreams = true
-  }
-}
-
-tasks.bootRepackage.enabled = project.repackage
