@@ -26,20 +26,8 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 @Slf4j
 @CompileStatic
 class ExecutionPropagationListener implements ExecutionListener {
-  private boolean isBeforeJobEnabled = false
-  private boolean isAfterJobEnabled = false
-
-  ExecutionPropagationListener(boolean isBeforeJobEnabled, boolean isAfterJobEnabled) {
-    this.isBeforeJobEnabled = isBeforeJobEnabled
-    this.isAfterJobEnabled = isAfterJobEnabled
-  }
-
   @Override
   void beforeExecution(Persister persister, Execution execution) {
-    if (!isBeforeJobEnabled) {
-      return
-    }
-
     persister.updateStatus(execution.id, RUNNING)
     log.info("Marked ${execution.id} as $RUNNING (beforeJob)");
   }
@@ -49,10 +37,6 @@ class ExecutionPropagationListener implements ExecutionListener {
                              Execution execution,
                              ExecutionStatus executionStatus,
                              boolean wasSuccessful) {
-    if (!isAfterJobEnabled) {
-      return
-    }
-
     if (persister.isCanceled(execution.id) && executionStatus != TERMINAL) {
       executionStatus = CANCELED
     }
@@ -67,18 +51,5 @@ class ExecutionPropagationListener implements ExecutionListener {
 
     persister.updateStatus(execution.id, executionStatus)
     log.info("Marked ${execution.id} as ${executionStatus} (afterJob)")
-  }
-
-  @Override
-  int getOrder() {
-    if (isBeforeJobEnabled) {
-      return HIGHEST_PRECEDENCE
-    }
-
-    if (isAfterJobEnabled) {
-      return LOWEST_PRECEDENCE
-    }
-
-    return 0
   }
 }
