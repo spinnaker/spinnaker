@@ -13,6 +13,8 @@ spinnaker:
     name: default
   redis:
     enabled: false
+    host: localhost
+    port: 6379
 
 swagger:
   enabled: true
