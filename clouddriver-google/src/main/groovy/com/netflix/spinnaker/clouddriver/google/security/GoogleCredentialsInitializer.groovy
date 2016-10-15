@@ -90,7 +90,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
 
         accountCredentialsRepository.save(managedAccount.name, googleAccount)
       } catch (e) {
-        log.info "Could not load account ${managedAccount.name} for Google.", e
+        log.error "Could not load account ${managedAccount.name} for Google.", e
       }
     }
 
