@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import PagerDutyFieldModule from '../pagerDuty/pagerDutySelectField.component';
 
 let angular = require('angular');
 
@@ -11,6 +12,7 @@ module.exports = angular
     require('core/application/service/applications.read.service.js'),
     require('core/account/account.service.js'),
     require('core/config/settings.js'),
+    PagerDutyFieldModule,
   ])
   .controller('netflixCreateApplicationModalCtrl', function($controller, $scope, $q, $log, $state, $uibModalInstance,
                                                             settings,

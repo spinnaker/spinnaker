@@ -53,15 +53,8 @@
         </div>
       </div>
 
-      <div class="form-group row">
-        <div class="col-sm-3 sm-label-right" id="pagerDutyApiKeyLabel">PagerDuty API Key</div>
-        <div class="col-sm-9">
-          <input type="text"
-                 class="form-control input-sm"
-                 ng-model="newAppModal.application.pdApiKey"
-                 placeholder="Enter your PagerDuty API key"/>
-        </div>
-      </div>
+      <pager-duty-select-field component="newAppModal.application"></pager-duty-select-field>
+
       <div class="form-group row">
         <div class="col-sm-3 sm-label-right">Repo Type</div>
         <div class="col-sm-9">
