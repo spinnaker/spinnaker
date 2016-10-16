@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
 ])
   .factory('executionsTransformer', function(orchestratedItemTransformer, pipelineConfig) {
 
-    var hiddenStageTypes = ['initialization', 'pipelineInitialization', 'waitForRequisiteCompletion'];
+    var hiddenStageTypes = ['initialization', 'pipelineInitialization', 'waitForRequisiteCompletion', 'determineTargetServerGroup'];
 
     function transformExecution(application, execution) {
 

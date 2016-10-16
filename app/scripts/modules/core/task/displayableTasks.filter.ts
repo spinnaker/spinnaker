@@ -4,7 +4,7 @@ import { TaskStep } from '../domain/taskStep';
 
 export function displayableTaskFilter() {
   let blacklist = [
-    'stageStart', 'stageEnd'
+    'stageStart', 'stageEnd', 'determineTargetServerGroup'
   ];
   return function (input: TaskStep[]): TaskStep[] {
     if (input) {
