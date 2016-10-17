@@ -219,7 +219,9 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
 
     def isDisabled = true
     // TODO: Extend this for future load balancers that calculate disabled state after caching.
-    def ilbAndHttpOnly = internalDisabledStates.size() + httpDisabledStates.size() == loadBalancers.size()
+    def ilbAndHttpOnly = (internalDisabledStates || httpDisabledStates) &&
+      internalDisabledStates.size() + httpDisabledStates.size() == loadBalancers.size()
+
     if (httpDisabledStates) {
       isDisabled &= httpDisabledStates.every { it }
     }
