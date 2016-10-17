@@ -28,40 +28,32 @@ class ExecutionPropagationListenerSpec extends Specification {
     _ * getId() >> { return "1" }
   }
 
-  @Unroll
   void "beforeExecution should mark as RUNNING"() {
     given:
-    def listener = new ExecutionPropagationListener(isBeforeJobEnabled, false)
+    def listener = new ExecutionPropagationListener()
 
     when:
     listener.beforeExecution(persister, execution)
 
     then:
-    invocations * persister.updateStatus("1", RUNNING)
-
-    where:
-    isBeforeJobEnabled || invocations
-    true               || 1
-    false              || 0
+    1 * persister.updateStatus("1", RUNNING)
   }
 
-  @Unroll
   void "afterExecution should update execution status"() {
     given:
-    def listener = new ExecutionPropagationListener(false, isAfterJobEnabled)
+    def listener = new ExecutionPropagationListener()
 
     when:
     listener.afterExecution(persister, execution, sourceExecutionStatus, true)
 
     then:
-    invocations * persister.updateStatus("1", expectedExecutionStatus)
+    1 * persister.updateStatus("1", expectedExecutionStatus)
 
     where:
-    isAfterJobEnabled | sourceExecutionStatus || invocations || expectedExecutionStatus
-    false             | null                  || 0           || null
-    true              | SUCCEEDED             || 1           || SUCCEEDED
-    true              | CANCELED              || 1           || CANCELED
-    true              | STOPPED               || 1           || SUCCEEDED // treat STOPPED as a non-failure
-    true              | null                  || 1           || TERMINAL  // if no source execution status can be derived, consider the execution TERMINAL
+    sourceExecutionStatus || expectedExecutionStatus
+    SUCCEEDED             || SUCCEEDED
+    CANCELED              || CANCELED
+    STOPPED               || SUCCEEDED // treat STOPPED as a non-failure
+    null                  || TERMINAL  // if no source execution status can be derived, consider the execution TERMINAL
   }
 }

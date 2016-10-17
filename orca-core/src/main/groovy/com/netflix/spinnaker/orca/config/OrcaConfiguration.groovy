@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.config
 
+import com.netflix.spinnaker.orca.listeners.CompositeExecutionListener
+import com.netflix.spinnaker.orca.listeners.ExecutionCleanupListener
+
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.ThreadPoolExecutor
@@ -162,15 +165,11 @@ class OrcaConfiguration {
   }
 
   @Bean
-  ExecutionPropagationListener executionPropagationListenerBefore() {
-    // need a dedicated beforeJob listener due to how spring boot ordered listeners
-    new ExecutionPropagationListener(true, false)
-  }
-
-  @Bean
-  ExecutionPropagationListener executionPropagationListenerAfter() {
-    // need a dedicated afterJob listener due to how spring boot ordered listeners
-    new ExecutionPropagationListener(false, true)
+  CompositeExecutionListener executionListeners() {
+    new CompositeExecutionListener(
+      new ExecutionCleanupListener(),
+      new ExecutionPropagationListener()
+    )
   }
 
   @Bean
