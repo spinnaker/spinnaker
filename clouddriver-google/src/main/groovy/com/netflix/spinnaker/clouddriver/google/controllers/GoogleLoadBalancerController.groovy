@@ -116,7 +116,27 @@ class GoogleLoadBalancerController {
       }
     }
 
-    def isHttp = view.loadBalancerType == GoogleLoadBalancerType.HTTP
+    String instancePort
+    String loadBalancerPort
+    switch (view.loadBalancerType) {
+      case GoogleLoadBalancerType.NETWORK:
+        instancePort = Utils.derivePortOrPortRange(view.portRange)
+        loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
+        break
+      case GoogleLoadBalancerType.HTTP:
+        instancePort = 'http'
+        loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
+        break
+      case GoogleLoadBalancerType.INTERNAL:
+        GoogleInternalLoadBalancer.View ilbView = view as GoogleInternalLoadBalancer.View
+        def portString = ilbView.ports.join(",")
+        instancePort = portString
+        loadBalancerPort = portString
+        break
+      default:
+        throw new IllegalStateException("Load balancer ${view.name} is an unknown load balancer type.")
+        break
+    }
     [new GoogleLoadBalancerDetails(loadBalancerName: view.name,
                                    loadBalancerType: view.loadBalancerType,
                                    createdTime: view.createdTime,
@@ -126,8 +146,8 @@ class GoogleLoadBalancerController {
                                    backendServiceHealthChecks: backendServiceHealthChecks ?: null,
                                    listenerDescriptions: [[
                                        listener: new ListenerDescription(
-                                         instancePort: isHttp ? 'http' : Utils.derivePortOrPortRange(view.portRange), // Https forwards traffic to a 'named' port.
-                                         loadBalancerPort: Utils.derivePortOrPortRange(view.portRange),
+                                         instancePort: instancePort,
+                                         loadBalancerPort: loadBalancerPort,
                                          instanceProtocol: view.ipProtocol,
                                          protocol: view.ipProtocol
                                        )

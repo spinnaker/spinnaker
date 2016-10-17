@@ -189,7 +189,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
             createdTime: Utils.getTimeFromTimestamp(forwardingRule.creationTimestamp),
             ipAddress: forwardingRule.IPAddress,
             ipProtocol: forwardingRule.IPProtocol,
-            portRange: forwardingRule.portRange,
+            ports: forwardingRule.ports,
             loadBalancingScheme: GoogleLoadBalancingScheme.valueOf(forwardingRule.getLoadBalancingScheme()),
             network: forwardingRule.getNetwork(),
             subnet: forwardingRule.getSubnetwork(),

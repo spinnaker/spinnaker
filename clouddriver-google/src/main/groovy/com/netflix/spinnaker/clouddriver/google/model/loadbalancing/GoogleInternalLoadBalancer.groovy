@@ -35,6 +35,7 @@ class GoogleInternalLoadBalancer {
   String portRange
   List<GoogleLoadBalancerHealth> healths
 
+  List<String> ports
   String network
   String subnet
   GoogleBackendService backendService
@@ -58,6 +59,7 @@ class GoogleInternalLoadBalancer {
 
     String network = GoogleInternalLoadBalancer.this.network
     String subnet = GoogleInternalLoadBalancer.this.subnet
+    List<String> ports = GoogleInternalLoadBalancer.this.ports
     GoogleBackendService backendService = GoogleInternalLoadBalancer.this.backendService
 
     Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
