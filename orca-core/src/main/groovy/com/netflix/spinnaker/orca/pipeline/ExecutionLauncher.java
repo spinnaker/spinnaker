@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipeline;
 
 import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.appinfo.InstanceInfo;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +50,12 @@ public abstract class ExecutionLauncher<T extends Execution> {
       log.info("Queueing {}", execution.getId());
     } else {
       runner.start(execution);
+      onExecutionStarted(execution);
     }
     return execution;
+  }
+
+  protected void onExecutionStarted(T execution) {
   }
 
   protected abstract T parse(String configJson) throws IOException;

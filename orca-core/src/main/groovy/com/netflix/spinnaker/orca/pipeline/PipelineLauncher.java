@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
@@ -32,22 +32,14 @@ import static java.lang.Boolean.parseBoolean;
 @Component
 public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
 
-  private final PipelineStartTracker startTracker;
+  private final Optional<PipelineStartTracker> startTracker;
 
-  @Autowired(required = false)
-  public PipelineLauncher(ObjectMapper objectMapper,
-                          String currentInstanceId,
-                          ExecutionRepository executionRepository,
-                          ExecutionRunner runner) {
-    this(objectMapper, currentInstanceId, executionRepository, runner, null);
-  }
-
-  @Autowired(required = false)
+  @Autowired
   public PipelineLauncher(ObjectMapper objectMapper,
                           String currentInstanceId,
                           ExecutionRepository executionRepository,
                           ExecutionRunner runner,
-                          PipelineStartTracker startTracker) {
+                          Optional<PipelineStartTracker> startTracker) {
     super(objectMapper, currentInstanceId, executionRepository, runner);
     this.startTracker = startTracker;
   }
@@ -88,9 +80,19 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
   }
 
   @Override protected boolean shouldQueue(Pipeline execution) {
-    return execution.getPipelineConfigId() != null &&
-      execution.getLimitConcurrent() &&
-      startTracker != null &&
-      startTracker.queueIfNotStarted(execution.getPipelineConfigId(), execution.getId());
+    if (execution.getPipelineConfigId() == null || !execution.getLimitConcurrent()) {
+      return false;
+    }
+    return startTracker
+      .map(tracker ->
+        tracker.queueIfNotStarted(execution.getPipelineConfigId(), execution.getId()))
+      .orElse(false);
+  }
+
+  @Override protected void onExecutionStarted(Pipeline execution) {
+    startTracker
+      .ifPresent(tracker -> {
+        tracker.addToStarted(execution.getPipelineConfigId(), execution.getId());
+      });
   }
 }
