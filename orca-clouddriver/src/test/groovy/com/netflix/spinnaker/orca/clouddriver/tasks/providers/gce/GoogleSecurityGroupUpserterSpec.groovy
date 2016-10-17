@@ -17,12 +17,14 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
 import com.netflix.spinnaker.orca.clouddriver.MortService
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class GoogleSecurityGroupUpserterSpec extends Specification {
 
@@ -61,28 +63,36 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
     given:
       MortService.SecurityGroup sg = new MortService.SecurityGroup(name: "test-security-group",
                                                                    region: "global",
-                                                                   accountName: "abc")
-      MortService mortService = Mock(MortService) {
-        1 * getSecurityGroup("abc", "gce", "test-security-group", "global") >> sg
-      }
+                                                                   accountName: "abc",
+                                                                   inboundRules: [])
+      MortService mortService = Mock(MortService)
 
+      def ctx = [
+        name        : "test-security-group",
+        region      : "global",
+        credentials : "abc",
+        sourceRanges: [],
+        ipIngress   : []
+      ]
+      def stage = new PipelineStage(new Pipeline(), "whatever", ctx)
       upserter = new GoogleSecurityGroupUpserter(mortService: mortService)
 
     when:
-      def result = upserter.isSecurityGroupUpserted(sg, null)
+      def result = upserter.isSecurityGroupUpserted(sg, stage)
 
     then:
+      1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> sg
       result
 
     when:
-      result = upserter.isSecurityGroupUpserted(sg, null)
+      result = upserter.isSecurityGroupUpserted(sg, stage)
 
     then:
       1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> null
       !result
 
     when:
-      result = upserter.isSecurityGroupUpserted(sg, null)
+      result = upserter.isSecurityGroupUpserted(sg, stage)
 
     then:
       1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> {
@@ -91,15 +101,64 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
     !result
 
     when:
-      result = upserter.isSecurityGroupUpserted(sg, null)
+      upserter.isSecurityGroupUpserted(sg, stage)
 
     then:
       1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> {
         throw RetrofitError.httpError("/", new Response("", 400, "", [], null), null, null)
       }
       thrown(RetrofitError)
+  }
 
+  @Unroll
+  def "should return the correct result if the source ranges and ip ingress rules match"() {
+    given:
+      MortService.SecurityGroup sg = new MortService.SecurityGroup(name: "test-security-group",
+        region: "global",
+        accountName: "abc",
+        inboundRules: [
+          [
+            portRanges: [[
+              startPort: 8080,
+              endPort: cachedEndPort
+            ]],
+            protocol: "tcp",
+            range: [
+              cidr: "/32",
+              ip: cachedSourceRangeIp
+            ]
+          ]
+        ])
+      MortService mortService = Mock(MortService)
 
+      def ctx = [
+        name        : "test-security-group",
+        region      : "global",
+        credentials : "abc",
+        sourceRanges: ["192.168.1.100/32"],
+        ipIngress   : [
+          [
+            startPort: 8080,
+            endPort: 8083,
+            type: "tcp"
+          ]
+        ]
+      ]
+      def stage = new PipelineStage(new Pipeline(), "whatever", ctx)
+      upserter = new GoogleSecurityGroupUpserter(mortService: mortService, objectMapper: new OrcaObjectMapper())
 
+    when:
+      def result = upserter.isSecurityGroupUpserted(sg, stage)
+
+    then:
+      1 * mortService.getSecurityGroup("abc", "gce", "test-security-group", "global") >> sg
+      result == matches
+
+    where:
+      cachedEndPort | cachedSourceRangeIp || matches
+      8083          | "192.168.1.100"     || true
+      8084          | "192.168.1.100"     || false
+      8083          | "192.168.1.101"     || false
+      8084          | "192.168.1.101"     || false
   }
 }

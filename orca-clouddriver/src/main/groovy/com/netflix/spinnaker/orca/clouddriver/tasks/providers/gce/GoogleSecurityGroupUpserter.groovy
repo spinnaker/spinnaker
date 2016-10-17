@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup.SecurityGroupUpserter
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
@@ -24,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.SecurityGroupIngress
+
 @Component
 class GoogleSecurityGroupUpserter implements SecurityGroupUpserter, CloudProviderAware {
 
@@ -31,6 +34,9 @@ class GoogleSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
 
   @Autowired
   MortService mortService
+
+  @Autowired
+  ObjectMapper objectMapper
 
   @Override
   SecurityGroupUpserter.OperationContext getOperationContext(Stage stage) {
@@ -44,18 +50,64 @@ class GoogleSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
     return new SecurityGroupUpserter.OperationContext(ops, [targets: targets])
   }
 
-  boolean isSecurityGroupUpserted(MortService.SecurityGroup upsertedSecurityGroup, Stage _) {
+  boolean isSecurityGroupUpserted(MortService.SecurityGroup upsertedSecurityGroup, Stage stage) {
     try {
-      // TODO: Verify port ranges, et al. specified actually match.
-      return mortService.getSecurityGroup(upsertedSecurityGroup.accountName,
-                                          cloudProvider,
-                                          upsertedSecurityGroup.name,
-                                          upsertedSecurityGroup.region)
+      MortService.SecurityGroup existingSecurityGroup = mortService.getSecurityGroup(upsertedSecurityGroup.accountName,
+                                                                                     cloudProvider,
+                                                                                     upsertedSecurityGroup.name,
+                                                                                     upsertedSecurityGroup.region)
+
+      // Short-circuit the comparison logic if we can't retrieve the cached security group.
+      if (!existingSecurityGroup) {
+        return false
+      }
+
+      // What was upserted?
+      Set<String> targetSecurityGroupSourceRanges = stage.context.sourceRanges as Set
+
+      // What is currently cached?
+      Set<String> existingSourceRanges = existingSecurityGroup.inboundRules.findResults { inboundRule ->
+        inboundRule.range ? inboundRule.range.ip + inboundRule.range.cidr : null
+      }.unique() as Set
+
+      boolean rangesMatch = existingSourceRanges == targetSecurityGroupSourceRanges
+
+      // Short-circuit the comparison logic if the ranges don't match.
+      if (!rangesMatch) {
+        return false
+      }
+
+      // What was upserted?
+      Set<SecurityGroupIngress> targetSecurityGroupIngress =
+        Arrays.asList(stage.mapTo("/ipIngress", MortService.SecurityGroup.SecurityGroupIngress[])) as Set
+
+      // What is currently cached?
+      def existingSecurityGroupIngressList = existingSecurityGroup.inboundRules.collect { inboundRule ->
+        // Some protocols don't support port ranges.
+        def portRanges = inboundRule.portRanges ?: [[startPort: null, endPort: null]]
+
+        portRanges.collect {
+          [
+            startPort: it.startPort,
+            endPort: it.endPort,
+            type: inboundRule.protocol
+          ]
+        }
+      }.flatten().unique()
+      Set<SecurityGroupIngress> existingSecurityGroupIngress =
+        existingSecurityGroupIngressList
+        ? objectMapper.convertValue(existingSecurityGroupIngressList, SecurityGroupIngress[]) as Set
+        : [] as Set
+
+      boolean ingressMatches = existingSecurityGroupIngress == targetSecurityGroupIngress
+
+      return ingressMatches
     } catch (RetrofitError e) {
       if (e.response?.status != 404) {
         throw e
       }
     }
+
     return false
   }
 }
