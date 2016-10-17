@@ -77,12 +77,12 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
     def pipeline = new Pipeline()
-    pipeline.appConfig.interestingHealthProviderNames = ["JustTrustMeBroItIsHealthy"]
     def stage = new PipelineStage(pipeline, "whatever", [
       "account.name"                  : "test",
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ["us-west-1"]
     ])
+    stage.context.interestingHealthProviderNames = ["JustTrustMeBroItIsHealthy"]
 
     when:
     task.execute(stage)

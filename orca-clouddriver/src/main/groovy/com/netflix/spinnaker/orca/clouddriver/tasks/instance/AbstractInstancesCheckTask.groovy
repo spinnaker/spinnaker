@@ -101,10 +101,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
         }
 
         seenServerGroup[name] = true
-        Collection<String> interestingHealthProviderNames = stage.execution.appConfig.interestingHealthProviderNames as Collection
-        if (interestingHealthProviderNames == null) {
-          interestingHealthProviderNames = stage.context?.appConfig?.interestingHealthProviderNames as Collection
-        }
+        Collection<String> interestingHealthProviderNames = stage.context.interestingHealthProviderNames as Collection
         def isComplete = hasSucceeded(stage, serverGroup, serverGroup.instances ?: [], interestingHealthProviderNames)
         if (!isComplete) {
           Map newContext = [:]
