@@ -37,6 +37,8 @@ class KubernetesLoadBalancerDescription extends KubernetesAtomicOperationDescrip
   String sessionAffinity
 
   String serviceType
+
+  Map<String, String> serviceAnnotations
 }
 
 @AutoClone

@@ -37,6 +37,8 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   List<KubernetesVolumeSource> volumeSources
   Capacity capacity
   KubernetesScalingPolicy scalingPolicy
+  Map<String, String> replicaSetAnnotations
+  Map<String, String> podAnnotations
 }
 
 @AutoClone

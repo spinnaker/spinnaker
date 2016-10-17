@@ -73,7 +73,9 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     def replicaSetName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
     task.updateStatus BASE_PHASE, "Replica set name chosen to be ${replicaSetName}."
 
-    def replicaSetBuilder = new ReplicaSetBuilder().withNewMetadata().withName(replicaSetName).endMetadata()
+    def replicaSetBuilder = new ReplicaSetBuilder().withNewMetadata().withName(replicaSetName)
+
+    replicaSetBuilder = replicaSetBuilder.withAnnotations(description.replicaSetAnnotations).endMetadata()
 
     replicaSetBuilder = replicaSetBuilder.withNewSpec().withNewSelector().withMatchLabels(
       [(KubernetesUtil.REPLICATION_CONTROLLER_LABEL): replicaSetName]).endSelector()
@@ -86,13 +88,15 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
         .withNewTemplate()
         .withNewMetadata()
 
-    task.updateStatus BASE_PHASE, "Setting replica set spec labels..."
+    task.updateStatus BASE_PHASE, "Setting replica set spec labels & annotations..."
 
     replicaSetBuilder = replicaSetBuilder.addToLabels(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicaSetName)
 
     for (def loadBalancer : description.loadBalancers) {
       replicaSetBuilder = replicaSetBuilder.addToLabels(KubernetesUtil.loadBalancerKey(loadBalancer), "true")
     }
+
+    replicaSetBuilder = replicaSetBuilder.withAnnotations(description.podAnnotations)
 
     replicaSetBuilder = replicaSetBuilder.endMetadata().withNewSpec()
 

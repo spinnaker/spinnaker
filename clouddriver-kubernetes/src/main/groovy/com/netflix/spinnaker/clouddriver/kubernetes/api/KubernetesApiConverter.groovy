@@ -229,9 +229,9 @@ class KubernetesApiConverter {
     def containerBuilder = new ContainerBuilder().withName(container.name).withImage(imageId)
 
     if (container.imagePullPolicy) {
-      containerBuilder.withImagePullPolicy(container.imagePullPolicy.toString())
+      containerBuilder = containerBuilder.withImagePullPolicy(container.imagePullPolicy.toString())
     } else {
-      containerBuilder.withImagePullPolicy("IfNotPresent")
+      containerBuilder = containerBuilder.withImagePullPolicy("IfNotPresent")
     }
 
     if (container.ports) {
@@ -546,6 +546,8 @@ class KubernetesApiConverter {
     deployDescription.namespace = replicaSet?.metadata?.namespace
     deployDescription.targetSize = replicaSet?.spec?.replicas
     deployDescription.securityGroups = []
+    deployDescription.replicaSetAnnotations = replicaSet?.metadata?.annotations
+    deployDescription.podAnnotations = replicaSet?.spec?.template?.metadata?.annotations
 
     deployDescription.volumeSources = replicaSet?.spec?.template?.spec?.volumes?.collect {
       fromVolume(it)
