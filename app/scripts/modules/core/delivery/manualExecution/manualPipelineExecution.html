@@ -66,8 +66,8 @@
       </div>
 
       <div class="form-group" ng-if="vm.showRebakeOption">
-        <label ng-if="vm.triggers.length" class="col-md-4 sm-label-right">Rebake</label>
-        <div class="checkbox" ng-class="vm.triggers.length ? 'col-md-6' : 'col-md-10 col-md-offset-1'">
+        <label class="col-md-4 sm-label-right">Rebake</label>
+        <div class="checkbox col-md-6">
           <label>
             <input type="checkbox" ng-model="vm.command.trigger.rebake"/>
             Force Rebake
