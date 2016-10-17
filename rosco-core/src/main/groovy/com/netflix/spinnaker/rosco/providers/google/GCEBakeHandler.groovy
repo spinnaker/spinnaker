@@ -94,6 +94,10 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       parameterMap.gce_use_internal_ip = gceBakeryDefaults.useInternalIp
     }
 
+    if (bakeRequest.build_info_url) {
+      parameterMap.build_info_url = bakeRequest.build_info_url
+    }
+
     if (appVersionStr) {
       parameterMap.appversion = appVersionStr
     }
