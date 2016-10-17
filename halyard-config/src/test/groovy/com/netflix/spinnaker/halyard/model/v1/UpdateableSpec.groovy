@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.model.v1
 
+import com.netflix.spinnaker.halyard.model.v1.providers.Account
+import com.netflix.spinnaker.halyard.validate.v1.ValidateAccount
 import com.netflix.spinnaker.halyard.validate.v1.ValidateField
 import com.netflix.spinnaker.halyard.validate.v1.Validator
 import lombok.Data
@@ -70,6 +72,50 @@ public class UpdateableSpec extends Specification{
     test.name == BAD_VALUE
   }
 
+  void "should fail to validate my account"() {
+    when:
+    def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: BAD_VALUE)
+    def res = test.validate()
+
+    then:
+    res[0].contains(ERROR_MESSAGE)
+    test.name == ORIGINAL_VALUE
+    test.duplicateName == BAD_VALUE
+  }
+
+  void "should succeed validating my account"() {
+    when:
+    def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: ORIGINAL_VALUE)
+    def res = test.validate()
+
+    then:
+    res == []
+    test.name == ORIGINAL_VALUE
+    test.duplicateName == ORIGINAL_VALUE
+  }
+
+  void "should update my account"() {
+    when:
+    def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: BAD_VALUE)
+    def res = test.update("duplicateName", ORIGINAL_VALUE, String.class)
+
+    then:
+    res == []
+    test.name == ORIGINAL_VALUE
+    test.duplicateName == ORIGINAL_VALUE
+  }
+
+  void "should fail to update my account"() {
+    when:
+    def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: ORIGINAL_VALUE)
+    def res = test.update("duplicateName", BAD_VALUE, String.class)
+
+    then:
+    res[0].contains(ERROR_MESSAGE)
+    test.name == ORIGINAL_VALUE
+    test.duplicateName == ORIGINAL_VALUE
+  }
+
   @Data
   public class Test implements Updateable {
     @ValidateField(validators = [TestValidator.class])
@@ -94,5 +140,31 @@ public class TestValidator extends Validator<String> {
   @Override
   public boolean skip() {
     return (subject == UpdateableSpec.SKIP_VALUE)
+  }
+}
+
+@ValidateAccount(validators = [AccountValidator.class])
+public class MyAccount extends Account {
+  String duplicateName
+}
+
+// Validates that MyAccount.duplicateName matches MyAccount.name
+public class AccountValidator extends Validator<MyAccount> {
+  public AccountValidator(MyAccount subject) {
+    super(subject)
+  }
+
+  @Override
+  Stream<String> validate() {
+    if (subject.name == subject.duplicateName) {
+      return null
+    } else {
+      return Stream.of(UpdateableSpec.ERROR_MESSAGE)
+    }
+  }
+
+  @Override
+  boolean skip() {
+    return false
   }
 }

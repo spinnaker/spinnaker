@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.halyard.model.v1;
 
+import com.netflix.spinnaker.halyard.model.v1.providers.Account;
+import com.netflix.spinnaker.halyard.validate.v1.ValidateAccount;
 import com.netflix.spinnaker.halyard.validate.v1.ValidateField;
 import com.netflix.spinnaker.halyard.validate.v1.Validator;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,30 +41,31 @@ public interface Updateable {
    * Attempts to update field to value, but will be rejected if the validation fails.
    *
    * @param fieldName Name of the field to be updated.
-   * @param value The value to update the named field to.
+   * @param value     The value to update the named field to.
    * @param valueType The type of value being updated (can't be inferred when value is null).
    * @return The list of errors when validation fails ([] when there are no failures and validation has passed).
    * @throws IllegalAccessException
    * @throws NoSuchFieldException
    */
   default public List<String> update(String fieldName, Object value, Class<?> valueType) throws NoSuchFieldException, IllegalAccessException {
-    Field field = this.getClass().getDeclaredField(fieldName);
-    field.setAccessible(true);
-    Object oldValue = field.get(this);
-    field.set(this, value);
-    field.setAccessible(false);
+    Field aField = this.getClass().getDeclaredField(fieldName);
+    aField.setAccessible(true);
+    Object oldValue = aField.get(this);
+    aField.set(this, value);
+    aField.setAccessible(false);
 
     List<String> errors = null;
     try {
       errors = this.validate(fieldName, valueType);
+      errors.addAll(this.validate());
     } catch (Exception e) {
       throw e;
     } finally {
       // Reset value after failure
       if (!errors.isEmpty()) {
-        field.setAccessible(true);
-        field.set(this, oldValue);
-        field.setAccessible(false);
+        aField.setAccessible(true);
+        aField.set(this, oldValue);
+        aField.setAccessible(false);
       }
     }
 
@@ -77,12 +81,13 @@ public interface Updateable {
    * @throws IllegalAccessException
    * @throws NoSuchFieldException
    */
-  default public List<String> validate(String fieldName, Class<?> valueType) throws IllegalAccessException, NoSuchFieldException {
-    Field field = this.getClass().getDeclaredField(fieldName);
-    field.setAccessible(true);
-    Object value = field.get(this);
-    field.setAccessible(false);
-    List<String> errors = Arrays.stream(field.getDeclaredAnnotations())
+  default public List<String> validate(String fieldName, Class<?> valueType)
+      throws IllegalAccessException, NoSuchFieldException {
+    Field aField = this.getClass().getDeclaredField(fieldName);
+    aField.setAccessible(true);
+    Object value = aField.get(this);
+    aField.setAccessible(false);
+    List<String> errors = Arrays.stream(aField.getDeclaredAnnotations())
         .filter(c -> c instanceof ValidateField)                               // Find all ValidateField annotations
         .map(v -> (ValidateField) v)
         .map(ValidateField::validators)                                        // Pick of the validators
@@ -100,4 +105,18 @@ public interface Updateable {
 
     return errors;
   }
+
+  /**
+   * Validate this entire class
+   *
+   * @return The list of errors when validation fails ([] when there are no failures and validation has passed).
+   * @throws IllegalAccessException
+   * @throws NoSuchFieldException
+   */
+  default public List<String> validate() throws IllegalAccessException, NoSuchFieldException {
+    List<String> errors = new ArrayList<>();
+
+    return errors;
+  }
 }
+
