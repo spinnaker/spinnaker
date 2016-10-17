@@ -581,6 +581,12 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
           if (buildHostTag && buildInfo.containsKey("jenkins")) {
             ((Map)buildInfo.jenkins).host = buildHostTag
           }
+
+          def buildInfoUrlTag = findTagValue(descriptionTokens, "build_info_url")
+
+          if (buildInfoUrlTag) {
+            buildInfo.buildInfoUrl = buildInfoUrlTag
+          }
         }
 
         if (buildInfo) {
