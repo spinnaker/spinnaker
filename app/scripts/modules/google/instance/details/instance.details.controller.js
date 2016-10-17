@@ -219,16 +219,16 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     this.canDeregisterFromLoadBalancer = function() {
       var instance = $scope.instance;
       // TODO(dpeach): remove when it's possible to degister from l7 load balancer.
-      var attachedToElSeven = _.chain(app.loadBalancers.data)
-        .filter(elSevenUtils.isElSeven)
+      var loadBalancerDoesNotSupportDeregister = _.chain(app.loadBalancers.data)
+        .filter((lb) => elSevenUtils.isElSeven(lb) || lb.loadBalancerType === 'INTERNAL')
         .map('name')
-        .intersection(instance.loadBalancers)
+        .intersection(instance.loadBalancers || [])
         .value()
         .length;
 
       if (!instance.loadBalancers ||
           !instance.loadBalancers.length ||
-          attachedToElSeven) {
+          loadBalancerDoesNotSupportDeregister) {
         return false;
       }
       var hasLoadBalancerHealth = instance.health.some(function(health) {

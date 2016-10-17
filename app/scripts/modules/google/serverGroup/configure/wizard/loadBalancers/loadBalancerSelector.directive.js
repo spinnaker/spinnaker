@@ -6,8 +6,9 @@ import _ from 'lodash';
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive', [
     require('core/cache/infrastructureCaches.js'),
-    require('../../serverGroupConfiguration.service.js'),
+    require('google/loadBalancer/elSevenUtils.service.js'),
     require('./elSevenOptions/elSevenOptionsGenerator.component.js'),
+    require('../../serverGroupConfiguration.service.js'),
   ])
   .directive('gceServerGroupLoadBalancerSelector', function () {
     return {
@@ -20,7 +21,9 @@ module.exports = angular
       controllerAs: 'vm',
       controller: 'gceServerGroupLoadBalancerSelectorCtrl',
     };
-  }).controller('gceServerGroupLoadBalancerSelectorCtrl', function (gceServerGroupConfigurationService, infrastructureCaches) {
+  }).controller('gceServerGroupLoadBalancerSelectorCtrl', function (elSevenUtils,
+                                                                    gceServerGroupConfigurationService,
+                                                                    infrastructureCaches) {
     this.getLoadBalancerRefreshTime = () => {
       return infrastructureCaches.loadBalancers.getStats().ageMax;
     };
@@ -40,4 +43,6 @@ module.exports = angular
         return angular.isDefined(selected) && _.some(selected, s => index[s].loadBalancerType === 'HTTP');
       }
     };
+
+    this.isElSeven = elSevenUtils.isElSeven;
   });

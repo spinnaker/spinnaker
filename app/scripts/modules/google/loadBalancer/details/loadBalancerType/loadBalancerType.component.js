@@ -12,16 +12,14 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.loadBalancerTyp
     },
     controller: function () {
       this.type = (function(lb) {
-        if (lb.loadBalancerType === 'NETWORK') {
-          return 'NETWORK';
-        }
-
         if (lb.loadBalancerType === 'HTTP') {
           if (_.isString(lb.certificate)) {
             return 'HTTPS';
           } else {
             return 'HTTP';
           }
+        } else {
+          return lb.loadBalancerType;
         }
       })(this.loadBalancer);
     }
