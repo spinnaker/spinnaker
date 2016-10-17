@@ -43,6 +43,9 @@ import java.util.Map;
   @NonNull String id;
 
   @JsonProperty
+  String executionEngine;
+
+  @JsonProperty
   boolean parallel;
 
   @JsonProperty
