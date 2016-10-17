@@ -126,7 +126,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.agent.make_create_app_operation(
             bindings=self.bindings, application=self.TEST_APP,
-            account_name=self.bindings['SPINNAKER_KUBE_ACCOUNT']),
+            account_name=self.bindings['SPINNAKER_KUBERNETES_ACCOUNT']),
         contract=contract)
 
   def delete_app(self):
@@ -135,7 +135,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.agent.make_delete_app_operation(
             application=self.TEST_APP,
-            account_name=self.bindings['SPINNAKER_KUBE_ACCOUNT']),
+            account_name=self.bindings['SPINNAKER_KUBERNETES_ACCOUNT']),
         contract=contract)
 
   def upsert_load_balancer(self):
