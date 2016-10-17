@@ -79,8 +79,29 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         services?.each { GoogleBackendService service ->
           if (!service.healthCheck) {
             errors.rejectValue("defaultService OR hostRules.pathMatcher.defaultService OR hostRules.pathMatcher.pathRules.backendService",
-              "createGoogleHttpLoadBalancerDescription.backendServices.healthCheckRequired")
+              "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
           }
+        }
+        break
+      case GoogleLoadBalancerType.INTERNAL:
+        helper.validateRegion(description.region, description.credentials)
+
+        // If the IP protocol is specified, it must be contained in the list of supported protocols.
+        if (description.ipProtocol && !SUPPORTED_IP_PROTOCOLS.contains(description.ipProtocol)) {
+          errors.rejectValue("ipProtocol",
+            "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported")
+        }
+
+        def bs = description.backendService
+        if (!bs) {
+          errors.rejectValue("backendService",
+            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+        }
+
+        def hc = bs.healthCheck
+        if (!hc) {
+          errors.rejectValue("backendService.healthCheck",
+            "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
         }
         break
       default:

@@ -67,7 +67,7 @@ class SafeRetry<T> {
         } catch (GoogleJsonResponseException jsonException) {
           if (jsonException.statusCode in successfulErrorCodes) {
             log.warn "Retry $action of $resource encountered ${jsonException.statusCode}, treating as success..."
-            return
+            return null
           } else if (jsonException.statusCode in retryCodes) {
             log.warn "Retry $action of $resource encountered ${jsonException.statusCode} with error message: ${jsonException.message}. Trying again..."
           } else {

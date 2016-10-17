@@ -33,6 +33,11 @@ class GoogleHealthCheck {
   int unhealthyThreshold
   int healthyThreshold
 
+  /**
+   * Name of the GCP certificate, if HTTPS.
+   */
+  String certificate
+
   @JsonIgnore
   View getView() {
     new View()
@@ -62,5 +67,6 @@ class GoogleHealthCheck {
     HTTPS,
     SSL,
     TCP,
+    UDP
   }
 }

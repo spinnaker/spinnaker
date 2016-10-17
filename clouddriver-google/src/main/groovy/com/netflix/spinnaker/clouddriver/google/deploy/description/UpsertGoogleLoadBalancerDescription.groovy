@@ -38,6 +38,12 @@ class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescr
   String certificate
   List<String> listenersToDelete
 
+  // ILB attributes.
+  String network
+  String subnet
+  GoogleBackendService backendService
+  List<String> ports
+
   GoogleLoadBalancerType loadBalancerType
 
   static class HealthCheck {

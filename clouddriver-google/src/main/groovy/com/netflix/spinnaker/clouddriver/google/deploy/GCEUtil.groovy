@@ -503,9 +503,22 @@ class GCEUtil {
     return GCE_API_PREFIX + "$projectName/global/httpHealthChecks/$healthCheckName"
   }
 
+  static String buildHttpsHealthCheckUrl(String projectName, String healthCheckName) {
+    return GCE_API_PREFIX + "$projectName/global/httpsHealthChecks/$healthCheckName"
+  }
+
+  static String buildHealthCheckUrl(String projectName, String region, String healthCheckName) {
+    return GCE_API_PREFIX + "$projectName/global/healthChecks/$healthCheckName"
+  }
+
   static String buildBackendServiceUrl(String projectName, String backendServiceName) {
     return GCE_API_PREFIX + "$projectName/global/backendServices/$backendServiceName"
   }
+
+  static String buildRegionBackendServiceUrl(String projectName, String region, String backendServiceName) {
+    return GCE_API_PREFIX + "$projectName/regions/$region/backendServices/$backendServiceName"
+  }
+
 
   static String buildRegionalServerGroupUrl(String projectName, String region, String serverGroupName) {
     return GCE_API_PREFIX + "$projectName/regions/$region/instanceGroups/$serverGroupName"
