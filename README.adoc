@@ -85,7 +85,8 @@ provider(s).
 ----
 cd $SPINNAKER_HOME
 mkdir -p $HOME/.spinnaker
-cp spinnaker/config/default-spinnaker-local.yml $HOME/.spinnaker/spinnaker-local.yml
+cp spinnaker/config/*.yml $HOME/.spinnaker/
+mv $HOME/.spinnaker/default-spinnaker-local.yml $HOME/.spinnaker/spinnaker-local.yml
 chmod 600 $HOME/.spinnaker/spinnaker-local.yml
 ----
 
