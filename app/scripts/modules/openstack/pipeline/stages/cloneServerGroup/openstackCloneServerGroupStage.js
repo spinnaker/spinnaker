@@ -44,7 +44,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.cloneSe
     stage.cloudProviderType = 'openstack';
 
     if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
-      stage.interestingHealthProviderNames = ['Amazon'];
+      stage.interestingHealthProviderNames = ['Openstack'];
     }
 
     if (!stage.credentials && $scope.application.defaultCredentials.openstack) {
