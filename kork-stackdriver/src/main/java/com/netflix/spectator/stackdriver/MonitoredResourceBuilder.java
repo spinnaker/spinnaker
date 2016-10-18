@@ -102,10 +102,10 @@ class MonitoredResourceBuilder {
       String id = getGoogleMetadataValue("instance/id");
       String zone = getGoogleMetadataValue("instance/zone");
       zone = zone.substring(zone.lastIndexOf('/') + 1);
-      String project = getGoogleMetadataValue("project/project-id");
       labels.put("instance_id", id);
       labels.put("zone", zone);
-      labels.put("project_id", project);
+      // project_id is only intended for reading since it is already a URL parameter.
+
       return true;
     } catch (IOException ioex) {
       return false;

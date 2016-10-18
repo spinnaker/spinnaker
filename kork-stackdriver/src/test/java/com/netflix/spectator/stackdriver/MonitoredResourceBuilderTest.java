@@ -77,7 +77,6 @@ public class MonitoredResourceBuilderTest {
     Map<String, String> labels = new HashMap<String, String>();
     labels.put("instance_id", instance);
     labels.put("zone", zone);
-    labels.put("project_id", project);
 
     MonitoredResource resource = builder.build();
     Assert.assertEquals("gce_instance", resource.getType());
