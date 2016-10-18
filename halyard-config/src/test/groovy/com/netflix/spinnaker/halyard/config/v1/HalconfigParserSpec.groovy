@@ -71,6 +71,6 @@ balyardVersion: $HALYARD_VERSION
 
     then:
     UnrecognizedPropertyException ex = thrown()
-    ex.unrecognizedPropertyName == "balyardVersion"
+    ex.message.contains("balyardVersion")
   }
 }
