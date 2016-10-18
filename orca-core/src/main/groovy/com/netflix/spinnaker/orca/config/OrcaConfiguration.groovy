@@ -16,17 +16,14 @@
 
 package com.netflix.spinnaker.orca.config
 
-import com.netflix.spinnaker.orca.listeners.CompositeExecutionListener
-import com.netflix.spinnaker.orca.listeners.ExecutionCleanupListener
-
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.ThreadPoolExecutor
+import java.util.function.ToDoubleFunction
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import java.util.function.ToDoubleFunction
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
@@ -34,12 +31,10 @@ import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
-import com.netflix.spinnaker.orca.listeners.CompositeStageListener
-import com.netflix.spinnaker.orca.listeners.ExecutionPropagationListener
-import com.netflix.spinnaker.orca.listeners.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener
+import com.netflix.spinnaker.orca.listeners.*
 import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
@@ -165,16 +160,14 @@ class OrcaConfiguration {
   }
 
   @Bean
-  CompositeExecutionListener executionListeners() {
+  CompositeExecutionListener executionListeners(ExecutionRepository executionRepository,
+                                                PipelineStartTracker startTracker,
+                                                ApplicationContext applicationContext) {
     new CompositeExecutionListener(
       new ExecutionCleanupListener(),
+      new PipelineStarterListener(executionRepository, startTracker, applicationContext),
       new ExecutionPropagationListener()
     )
-  }
-
-  @Bean
-  PipelineStarterListener pipelineStarterListener() {
-    new PipelineStarterListener()
   }
 
   @Bean
