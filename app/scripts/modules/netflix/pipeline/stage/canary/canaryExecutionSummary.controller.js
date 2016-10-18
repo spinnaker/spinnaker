@@ -7,8 +7,9 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.summary
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('./actions/generateScore.controller.js'),
   require('./actions/endCanary.controller.js'),
+  require('../../../../core/pipeline/config/pipelineConfigProvider.js')
 ])
-  .controller('CanaryExecutionSummaryCtrl', function ($scope, $http, settings, $uibModal) {
+  .controller('CanaryExecutionSummaryCtrl', function ($scope, $http, settings, $uibModal, pipelineConfig) {
 
     this.generateCanaryScore = function() {
       $uibModal.open({
@@ -28,6 +29,16 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.summary
           canaryId: function() { return $scope.stageSummary.masterStage.context.canary.id; },
         },
       });
+    };
+
+    this.isRestartable = function(stage) {
+      var stageConfig = pipelineConfig.getStageConfig(stage);
+      if (!stageConfig || stage.isRestarting === true) {
+        return false;
+      }
+
+      return stageConfig.restartable || false;
+
     };
 
   });

@@ -14,6 +14,26 @@
         <li><a href ng-click="canaryExecutionSummaryCtrl.endCanary()">End Canary</a></li>
       </ul>
     </div>
+
+    <div ng-if="(!stage.isRunning && !stage.isCompleted) && canaryExecutionSummaryCtrl.isRestartable(stage)" uib-dropdown class="btn-group pull-right">
+
+      <button type="button"
+              class="btn btn-default btn-sm dropdown-toggle"
+              analytics-on="click"
+              analytics-category="Pipeline"
+              analytics-event="Execution actions menu toggled"
+              aria-expanded="false" uib-dropdown-toggle>
+        Actions
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+        <li><a href ng-controller="RestartStageCtrl as restartCtrl"
+               analytics-on="click"
+               analytics-category="Pipeline"
+               analytics-event="Execution restart clicked"
+               ng-click="restartCtrl.restart()">Restart {{ stageSummary.name }}</a></li>
+      </ul>
+    </div>
   </h5>
   <h6 class="duration">Duration: {{stageSummary.runningTimeInMs | duration}}</h6>
   <table class="table canary-summary">
