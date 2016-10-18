@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.instance
 
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.CaptureInstanceUptimeTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.VerifyInstanceUptimeTask
+import com.netflix.spinnaker.orca.commands.InstanceUptimeCommand
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
@@ -26,18 +29,34 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
 class RebootInstancesStage implements StageDefinitionBuilder {
+  @Autowired(required = false)
+  InstanceUptimeCommand instanceUptimeCommand
+
   @Override
   <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
+
+    if (instanceUptimeCommand) {
+      builder.withTask("captureInstanceUptime", CaptureInstanceUptimeTask)
+    }
+
+    builder
       .withTask("rebootInstances", RebootInstancesTask)
       .withTask("monitorReboot", MonitorKatoTask)
       .withTask("waitForDownInstances", WaitForDownInstanceHealthTask)
+
+    if (instanceUptimeCommand) {
+      builder.withTask("verifyInstanceUptime", VerifyInstanceUptimeTask)
+    }
+
+    builder
       .withTask("waitForUpInstances", WaitForUpInstanceHealthTask)
   }
 }
