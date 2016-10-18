@@ -1,5 +1,6 @@
 # pylint: disable=missing-docstring
 
+from datetime import datetime
 import httplib2
 import logging
 
@@ -13,6 +14,10 @@ class StackdriverClient(object):
   """Helper class for interacting with Stackdriver."""
   WRITE_SCOPE = 'https://www.googleapis.com/auth/monitoring'
   CUSTOM_PREFIX = 'custom.googleapis.com/spinnaker/'
+
+  @staticmethod
+  def millis_to_time(millis):
+    return datetime.fromtimestamp(millis / 1000).isoformat('T') + 'Z'
 
   @property
   def service(self):

@@ -196,6 +196,13 @@ services:
       githubToken: # GitHub scopes currently required by Travis is required.
 
 
+  spectator:
+    webEndpoint:
+      enabled: false
+
+  stackdriver:
+    enabled: false
+
   clouddriver:
     aws:
       udf:

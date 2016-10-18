@@ -38,3 +38,21 @@ redis:
 tasks:
   executionWindow:
     timezone: ${services.orca.timezone}
+
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: ${services.spectator.webEndpoint.enabled:false}
+    prototypeFilter:
+      path: ${services.spectator.webEndpoint.prototypeFilter.path:}
+
+  stackdriver:
+    enabled: ${services.stackdriver.enabled}
+    projectName: ${services.stackdriver.projectName}
+    credentialsPath: ${services.stackdriver.credentialsPath}
+
+stackdriver:
+  hints:
+    - name: controller.invocations
+      labels:
+      - application
