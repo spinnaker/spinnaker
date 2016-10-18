@@ -9,6 +9,7 @@ dependencies {
   compile spinnaker.dependency('retrofit')
   compile spinnaker.dependency('guava')
 
+  compileOnly spinnaker.dependency('bootActuator')
 
   spinnaker.group('spockBase')
 }
