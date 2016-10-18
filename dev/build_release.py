@@ -45,7 +45,6 @@ Usage:
 import argparse
 import base64
 import collections
-import fnmatch
 import os
 import multiprocessing
 import multiprocessing.pool
@@ -222,13 +221,18 @@ class Builder(object):
       Returns:
         BackgroundProcess
       """
+      extra_args = []
+      if name == 'deck' and not 'CHROME_BIN' in os.environ:
+        extra_args.append('-PskipTests')
+
       # Currently spinnaker is in a separate location
       gradle_root = self.determine_gradle_root(name)
       print 'Building {name}...'.format(name=name)
       return BackgroundProcess.spawn(
           'Building {name}'.format(name=name),
-          'cd "{gradle_root}"; ./gradlew {target}'.format(
-              gradle_root=gradle_root, target=target))
+          'cd "{gradle_root}"; ./gradlew {target} {extra}'.format(
+              gradle_root=gradle_root, target=target,
+              extra=' '.join(extra_args)))
 
   def publish_to_bintray(self, source, package, version, path, debian_tags=''):
     bintray_key = os.environ['BINTRAY_KEY']
@@ -295,7 +299,6 @@ class Builder(object):
               except HTTPError as ex:
                 # Maybe it didn't exist. Try again anyway.
                 print 'Delete {url} got {ex}. Try again anyway.'.format(url=url, ex=ex)
-                pass
               print 'Retrying {url}'.format(url=url)
               result = urllib2.urlopen(put_request, data)
               print 'SUCCESS'
@@ -339,7 +342,6 @@ class Builder(object):
     print 'Wrote {source} to {url}'.format(source=source, url=url)
 
   def publish_install_script(self, source):
-    path = 'InstallSpinnaker.sh'
     gradle_root = self.determine_gradle_root('spinnaker')
     version = determine_package_version(gradle_root, '.')
 
@@ -592,10 +594,12 @@ if __name__ == '__main__':
 
       parser.add_argument(
         '--wipe_package_on_409', default=False, action='store_true',
-        help='Work around BinTray conflict errors by deleting the entire package and'
-             ' retrying. Removes all prior versions so only intended for dev repos.\n')
+        help='Work around BinTray conflict errors by deleting the entire package'
+             ' and retrying. Removes all prior versions so only intended for dev'
+             ' repos.\n')
       parser.add_argument(
-        '--nowipe_package_on_409', dest='wipe_package_on_409', action='store_false')
+        '--nowipe_package_on_409', dest='wipe_package_on_409',
+        action='store_false')
 
 
   def __verify_bintray(self):
