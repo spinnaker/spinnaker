@@ -38,11 +38,11 @@ abstract class ExecutionLauncherSpec<T extends Execution, L extends ExecutionLau
 
 class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLauncher> {
 
-  def startTracker = Stub(PipelineStartTracker)
+  def startTracker = Mock(PipelineStartTracker)
 
   @Override
   PipelineLauncher create() {
-    return new PipelineLauncher(objectMapper, "currentInstanceId", executionRepository, runner, startTracker)
+    return new PipelineLauncher(objectMapper, "currentInstanceId", executionRepository, runner, Optional.of(startTracker))
   }
 
   def "can autowire pipeline launcher with optional dependencies"() {
@@ -125,6 +125,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
 
     then:
     1 * runner.start(_)
+    1 * startTracker.addToStarted(config.id, _)
 
     where:
     config = [id: "whatever", stages: []]
