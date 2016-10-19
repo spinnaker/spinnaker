@@ -108,8 +108,7 @@ public class MetricDescriptorCache {
     /**
      * Constructs a hint, aliases labels list.
      */
-    public CustomDescriptorHint(String name,
-                                List<String> labels) {
+    public CustomDescriptorHint(String name, List<String> labels) {
       this(name, labels, null);
     }
 
@@ -624,17 +623,25 @@ public class MetricDescriptorCache {
     descriptor.setType(descriptorType);
     descriptor.setValueType("DOUBLE");
 
-    String untransformedDescriptorType;
+    // The original descriptor type may have been transformed into the
+    // current descriptorType before this function was called.
+    // The hints are in terms of the original type so we need to get
+    // back the original type to look it up. We'll call this the
+    // original type.
+    // Currently (20160818) the case here is timers that have "statistic"
+    // are transformed from a single type "T" into a pair
+    // "T__count" and "T__totalTime". This is called with each, and for each
+    // we want to infer that the original type was "T" for looking up hints.
+    String inferredOriginalDescriptorType = descriptorType;
     if (meterIsTimer(registry, meter)) {
       if (id.name().endsWith("__totalTime")) {
         descriptor.setUnit("ns");
       }
       descriptor.setMetricKind("CUMULATIVE");
       int suffixOffset = descriptorType.lastIndexOf("__");
-      untransformedDescriptorType = descriptorType.substring(0, suffixOffset);
+      inferredOriginalDescriptorType = descriptorType.substring(0, suffixOffset);
     } else {
       descriptor.setMetricKind(meterToKind(registry, meter));
-      untransformedDescriptorType = descriptorType;
     }
 
     List<LabelDescriptor> labels = new ArrayList<LabelDescriptor>();
@@ -652,7 +659,7 @@ public class MetricDescriptorCache {
        labels.add(labelDescriptor);
     }
 
-    maybeAddLabelHints(untransformedDescriptorType, labels);
+    maybeAddLabelHints(inferredOriginalDescriptorType, labels);
     if (labels.size() > 10) {
         log.error("{} has too many labels for stackdriver to handle: {}",
                   id.name(), labels);
