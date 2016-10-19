@@ -56,6 +56,20 @@ class MonitoredResourceBuilder {
   }
 
   /**
+   * This is the project that we have to store data under.
+   *
+   * If we are running on GCE, it has to be our project.
+   * Otherwise, it is the project we are given as the default.
+   */
+  public String determineProjectName(String defaultProjectName) {
+    try {
+      return getGoogleMetadataValue("project/project-id");
+    } catch (IOException ioex) {
+      return defaultProjectName;
+    }
+  }
+
+  /**
    * Helper function to read the result from a HTTP GET.
    */
   private String getConnectionValue(HttpURLConnection con) throws IOException {
@@ -85,7 +99,7 @@ class MonitoredResourceBuilder {
     URL url = new URL(String.format(
                 "http://169.254.169.254/computeMetadata/v1/%s", key));
     HttpURLConnection con = (HttpURLConnection) url.openConnection();
-    con.setConnectTimeout(250);
+    con.setConnectTimeout(1000);
     con.setInstanceFollowRedirects(true);
     con.setRequestMethod("GET");
     con.setRequestProperty("Metadata-Flavor", "Google");
@@ -152,7 +166,7 @@ class MonitoredResourceBuilder {
     URL url = new URL(
       "http://169.254.169.254/latest/dynamic/instance-identity/document");
     HttpURLConnection con = (HttpURLConnection) url.openConnection();
-    con.setConnectTimeout(250);
+    con.setConnectTimeout(1000);
     con.setRequestMethod("GET");
     return getConnectionValue(con);
   }

@@ -111,8 +111,10 @@ public class ConfigParams {
     public ConfigParams build() {
       ConfigParams result = new ConfigParams();
 
+      String actualProjectName = new MonitoredResourceBuilder().determineProjectName(projectName);
+
       result.projectName
-          = validateString(projectName, "stackdriver projectName");
+          = validateString(actualProjectName, "stackdriver projectName");
       result.applicationName
           = validateString(applicationName, "applicationName");
       result.customTypeNamespace
