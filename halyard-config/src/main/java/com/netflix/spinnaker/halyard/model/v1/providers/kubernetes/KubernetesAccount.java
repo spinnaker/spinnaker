@@ -39,4 +39,12 @@ public class KubernetesAccount extends Account implements Cloneable {
   List<String> namespaces = new ArrayList<>();
   @ValidateField(validators = {ValidateNotNull.class})
   List<DockerRegistryReference> dockerRegistries = new ArrayList<>();
+
+  public String getKubeconfigFile() {
+    if (kubeconfigFile == null || kubeconfigFile.isEmpty()) {
+      return System.getProperty("user.home") + "/.kube/config";
+    } else {
+      return kubeconfigFile;
+    }
+  }
 }

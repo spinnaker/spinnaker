@@ -37,4 +37,14 @@ public class ConfigController {
   Halconfig config() throws UnrecognizedPropertyException {
     return halyardConfig.getConfig();
   }
+
+  @RequestMapping(value = "/currentDeployment", method = RequestMethod.GET)
+  String currentDeployment() throws UnrecognizedPropertyException {
+    Halconfig halconfig = halyardConfig.getConfig();
+    if (halconfig != null) {
+      return halconfig.getCurrentDeployment();
+    } else {
+      return null;
+    }
+  }
 }
