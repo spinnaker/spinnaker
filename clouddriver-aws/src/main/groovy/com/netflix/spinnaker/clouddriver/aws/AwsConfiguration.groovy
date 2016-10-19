@@ -100,7 +100,7 @@ class AwsConfiguration {
   @Value('${aws.cleanup.alarms.daysToKeep:90}')
   int daysToKeepAlarms
 
-  @Value('${aws.migration.infrastructureApplications}')
+  @Value('${aws.migration.infrastructureApplications:[]}')
   List<String> infrastructureApplications
 
   @Value('${aws.client.useGzip:true}')
