@@ -63,7 +63,12 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
         osConfig: {
           adminUserName: 'spinnakeruser',
           adminPassword: '!Qnti**234',
+          customData: command.osConfig ? command.osConfig.customData : null,
         },
+        customScriptsSettings: {
+          fileUris: null,
+          commandToExecute: '',
+        }
       };
 
       if (typeof command.stack !== 'undefined') {
@@ -71,6 +76,11 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
       }
       if (typeof command.freeFormDetails !== 'undefined') {
         configuration.name = configuration.name + '-' + command.freeFormDetails;
+      }
+
+      if (typeof command.customScriptsSettings !== 'undefined') {
+        configuration.customScriptsSettings.commandToExecute = command.customScriptsSettings.commandToExecute;
+        configuration.customScriptsSettings.fileUris = [command.customScriptsSettings.fileUris];
       }
 
       // Default to an empty list of health provider names for now.

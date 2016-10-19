@@ -1,0 +1,34 @@
+<div class="form-horizontal">
+  <div class="form-group">
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">Number of Instances</div>
+      <div class="col-md-2"><input type="number" class="form-control input-sm" ng-model="adv.command.sku.capacity" min="0" max="100" required/></div>
+    </div>
+    <div></div>
+    <div class="form-group">
+      <div class="col-xs-4 sm-label-right">
+        <b>Custom Data</b>
+        <help-field key="azure.serverGroup.customData" />
+      </div>
+      <div class="col-md-7"><input type="text" class="form-control input-sm" ng-model="adv.command.osConfig.customData" /></div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        <b>Custom Script</b>
+        <help-field key="azure.serverGroup.scriptLocation" />
+      </div>
+      <div class="col-md-7">
+        <input type="text" class="form-control input-sm" ng-model="adv.command.customScriptsSettings.fileUris" />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        <b>Command To Execute</b>
+        <help-field key="azure.serverGroup.commandToExecute" />
+      </div>
+      <div class="col-md-7">
+        <input type="text" class="form-control input-sm" ng-model="adv.command.customScriptsSettings.commandToExecute" />
+      </div>
+    </div>
+  </div>
+</div>

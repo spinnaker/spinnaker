@@ -32,7 +32,7 @@ describe('azureServerGroupTransformer', function () {
         },
         viewState: {
           mode: 'create',
-        }
+        },
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(base);
@@ -109,6 +109,68 @@ describe('azureServerGroupTransformer', function () {
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
 
       expect(transformed.name).toBe('theApp-s1-d1');
+    });
+
+    it('it sets the Advanced Settings correctly when provided', function() {
+      var command = {
+        stack: 's1',
+        freeFormDetails: 'd1',
+        application: 'theApp',
+        sku:{
+          capacity: 1,
+        },
+        selectedImage:{
+          publisher: 'Microsoft',
+          offer: 'Windows',
+          sku: 'Server2016',
+          version: '12.0.0.1',
+        },
+        viewState: {
+          mode: 'create',
+        },
+        osConfig: {
+          customData: 'this is custom data',
+        },
+        customScriptsSettings:{
+          fileUris: 'file1',
+          commandToExecute: 'do_this',
+        }
+      };
+
+      var customScript = {
+        fileUris: ['file1'],
+        commandToExecute: 'do_this',
+      };
+
+      var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      expect(transformed.osConfig.customData).toBe('this is custom data');
+      expect(transformed.customScriptsSettings).toEqual(customScript);
+    });
+
+    it('it sets the Advanced Settings correctly when not provided', function() {
+      var command = {
+        stack: 's1',
+        freeFormDetails: 'd1',
+        application: 'theApp',
+        sku:{
+          capacity: 1,
+        },
+        selectedImage:{
+          publisher: 'Microsoft',
+          offer: 'Windows',
+          sku: 'Server2016',
+          version: '12.0.0.1',
+        },
+        viewState: {
+          mode: 'create',
+        }
+      };
+
+      var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+
+      expect(transformed.customScriptsSettings).toBeDefined();
+      expect(transformed.customScriptsSettings.fileUris).toBeNull();
+      expect(transformed.customScriptsSettings.commandToExecute).toBe('');
     });
 
   });
