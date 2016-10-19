@@ -61,7 +61,7 @@ module.exports = angular
           dockerImageReader.findImages({
             provider: 'dockerRegistry',
             account: this.command.trigger.account,
-            q: q,
+            q: ( this.command.trigger.organization ? this.command.trigger.organization + '/' : '' ) + q,
             count: 50 }));
     };
 
