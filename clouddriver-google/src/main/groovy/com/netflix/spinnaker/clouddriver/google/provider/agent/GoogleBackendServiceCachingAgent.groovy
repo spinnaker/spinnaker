@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.BackendService
+import com.google.api.services.compute.model.Region
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -53,7 +54,15 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   List<BackendService> loadBackendServices() {
-    compute.backendServices().list(project).execute().items as List
+    List<BackendService> ret = []
+    ret.addAll(compute.backendServices().list(project).execute().items as List)
+    compute.regions().list(project).execute().items.each { Region region ->
+      def regionBackendServices = compute.regionBackendServices().list(project, region.getName()).execute()?.items as List
+      if (regionBackendServices) {
+        ret.addAll(regionBackendServices)
+      }
+    }
+    ret
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<BackendService> backendServiceList) {
@@ -69,6 +78,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
         attributes.healthCheckLink = backendService.healthChecks[0]
         attributes.sessionAffinity = backendService.sessionAffinity
         attributes.affinityCookieTtlSec = backendService.affinityCookieTtlSec
+        attributes.region = backendService.region
       }
     }
 

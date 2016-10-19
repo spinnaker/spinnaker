@@ -26,6 +26,7 @@ class Keys {
     APPLICATIONS,
     BACKEND_SERVICES,
     CLUSTERS,
+    HEALTH_CHECKS,
     HTTP_HEALTH_CHECKS,
     IMAGES,
     INSTANCES,
@@ -85,10 +86,16 @@ class Keys {
             detail     : names.detail
         ]
         break
-      case Namespace.HTTP_HEALTH_CHECKS.ns:
+      case Namespace.HEALTH_CHECKS.ns:
         result << [
             account: parts[2],
             name   : parts[3],
+        ]
+        break
+      case Namespace.HTTP_HEALTH_CHECKS.ns:
+        result << [
+          account: parts[2],
+          name   : parts[3],
         ]
         break
       case Namespace.IMAGES.ns:
@@ -184,6 +191,11 @@ class Keys {
                               String application,
                               String clusterName) {
     "$GoogleCloudProvider.GCE:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
+  }
+
+  static String getHealthCheckKey(String account,
+                                  String healthCheckName) {
+    "$GoogleCloudProvider.GCE:${Namespace.HEALTH_CHECKS}:${account}:${healthCheckName}"
   }
 
   static String getHttpHealthCheckKey(String account,

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import groovy.json.JsonOutput
 
 import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
@@ -36,6 +37,7 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
       APPLICATIONS.ns,
       BACKEND_SERVICES.ns,
       CLUSTERS.ns,
+      HEALTH_CHECKS.ns,
       HTTP_HEALTH_CHECKS.ns,
       INSTANCES.ns,
       LOAD_BALANCERS.ns,
@@ -54,6 +56,7 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
 
   final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
     (new GoogleSearchableResource(BACKEND_SERVICES.ns)): new BackendServiceResultHydrator(),
+    (new GoogleSearchableResource(HEALTH_CHECKS.ns)): new HealthCheckResultHydrator(),
     (new GoogleSearchableResource(HTTP_HEALTH_CHECKS.ns)): new HttpHealthCheckResultHydrator(),
     (new GoogleSearchableResource(INSTANCES.ns)): new InstanceSearchResultHydrator()
   ]
@@ -71,18 +74,19 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
       return result + [
           healthCheckLink: backendService.attributes.healthCheckLink as String,
           sessionAffinity: backendService.attributes.sessionAffinity as String,
-          affinityCookieTtlSec: backendService.attributes.affinityCookieTtlSec as String
+          affinityCookieTtlSec: backendService.attributes?.affinityCookieTtlSec as String,
+          region: GCEUtil.getLocalName(backendService.attributes?.region as String)
       ]
     }
   }
 
-  private static class HttpHealthCheckResultHydrator implements SearchableProvider.SearchResultHydrator {
+  private static class HealthCheckResultHydrator implements SearchableProvider.SearchResultHydrator {
 
     @Override
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
-      CacheData healthCheckCacheData = cacheView.get(HTTP_HEALTH_CHECKS.ns, id)
+      CacheData healthCheckCacheData = cacheView.get(HEALTH_CHECKS.ns, id)
       return result + [
-        httpHealthCheck: JsonOutput.toJson(healthCheckCacheData.attributes.httpHealthCheck)
+        healthCheck: JsonOutput.toJson(healthCheckCacheData.attributes.healthCheck)
       ]
     }
   }
@@ -101,6 +105,17 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
           application: serverGroup.application as String,
           cluster: serverGroup.cluster as String,
           serverGroup: serverGroup.serverGroup as String
+      ]
+    }
+  }
+
+  private static class HttpHealthCheckResultHydrator implements SearchableProvider.SearchResultHydrator {
+
+    @Override
+    Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
+      CacheData healthCheckCacheData = cacheView.get(HTTP_HEALTH_CHECKS.ns, id)
+      return result + [
+        httpHealthCheck: JsonOutput.toJson(healthCheckCacheData.attributes.httpHealthCheck)
       ]
     }
   }
