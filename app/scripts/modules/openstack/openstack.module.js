@@ -40,7 +40,9 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./pipeline/stages/disableCluster/openstackDisableClusterStage.js'),
   require('./pipeline/stages/scaleDownCluster/openstackScaleDownClusterStage.js'),
   require('./pipeline/stages/shrinkCluster/openstackShrinkClusterStage.js'),
-  require('./pipeline/stages/cloneServerGroup/openstackCloneServerGroupStage.js')
+  require('./pipeline/stages/cloneServerGroup/openstackCloneServerGroupStage.js'),
+  require('core/subnet/subnet.module.js'),
+  require('./subnet/subnet.renderer.js')
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('openstack', {
@@ -78,6 +80,9 @@ module.exports = angular.module('spinnaker.openstack', [
         configurationService: 'openstackServerGroupConfigurationService',
         detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),
         detailsController: 'openstackServerGroupDetailsCtrl',
+      },
+      subnet: {
+        renderer: 'openstackSubnetRenderer',
       },
       loadBalancer: {
         transformer: 'openstackLoadBalancerTransformer',

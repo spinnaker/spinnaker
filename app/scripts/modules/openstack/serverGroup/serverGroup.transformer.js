@@ -35,7 +35,8 @@ module.exports = angular
         freeFormDetails: base.freeFormDetails,
         userDataType: base.userDataType,
         userData: base.userData,
-        serverGroupParameters: params
+        serverGroupParameters: params,
+        strategy: base.strategy
       };
 
       if (base.viewState.mode === 'clone' && base.source) {

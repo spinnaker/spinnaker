@@ -43,7 +43,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
       return applicationReader.getApplication(pipeline.application).then(function(application) {
         return buildNewServerGroupCommand(application).then(function(command) {
           command.viewState.requiresTemplateSelection = true;
-          command.viewState.disableStrategySelection = true;
+          command.viewState.disableStrategySelection = false;
           return command;
         });
       });

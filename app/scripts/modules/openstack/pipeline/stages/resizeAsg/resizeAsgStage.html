@@ -78,13 +78,13 @@
 
       <div class="col-md-9">
         <div class="col-md-2">
-          <input type="number" ng-model="stage.capacity.min" class="form-control input-sm"/>
+          <input type="number" min="0" max="{{stage.capacity.desired}}" ng-model="stage.capacity.min" class="form-control input-sm"/>
         </div>
         <div class="col-md-2">
-          <input type="number" ng-model="stage.capacity.max" class="form-control input-sm"/>
+          <input type="number" min="{{stage.capacity.desired}}" ng-model="stage.capacity.max" class="form-control input-sm"/>
         </div>
         <div class="col-md-2">
-          <input type="number" ng-model="stage.capacity.desired" class="form-control input-sm"/>
+          <input type="number" min="{{stage.capacity.min}}" max="{{stage.capacity.max}}" ng-model="stage.capacity.desired" class="form-control input-sm"/>
         </div>
       </div>
     </div>
