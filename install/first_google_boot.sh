@@ -44,7 +44,7 @@ SPINNAKER_SUBSYSTEMS="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinna
 
 # By default we'll tradeoff the utmost in security for less startup latency
 # (often several minutes worth if there are any OS updates at all).
-# Note that this is only the initial boot off the image in this script, which is 
+# Note that this is only the initial boot off the image in this script, which is
 # intended to configure spinnaker from metadata, which is typically an adhoc or trial
 # scenario. A production instance would probably be using a different means to configure
 # spinnaker, or might be baked in, or might have different security policies not requiring
@@ -148,7 +148,7 @@ function extract_spinnaker_google_credentials() {
       chown spinnaker $json_path
       echo "Extracted google credentials to $json_path"
     else
-       rm $json_path
+      rm $json_path
     fi
     write_default_value "SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH" "$json_path"
   else
@@ -198,40 +198,79 @@ function extract_spinnaker_aws_credentials() {
   fi
 }
 
-function extract_spinnaker_kube_credentials() {
+function attempt_write_kube_credentials() {
   local config_path="$KUBE_DIR/config"
   mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
 
   local kube_cluster=$(get_instance_metadata_attribute "kube_cluster")
-  local kube_project=$(get_instance_metadata_attribute "kube_project")
   local kube_zone=$(get_instance_metadata_attribute "kube_zone")
 
-  if [ -z "$kube_project" ]; then
-    kube_project=$MY_PROJECT
+  local kube_config=$(get_instance_metadata_attribute "kube_config")
+
+  if [ -n "$kube_cluster" ] && [ -n "$kube_config" ]; then
+    echo "WARNING: Both \"kube_cluster\" and \"kube_config\" were supplied as instance metadata, relying on \"kube_config\""
   fi
 
-  if [ -z "$kube_zone" ]; then
-    kube_zone=$MY_ZONE
+  if [ -n "$kube_config" ]; then
+    echo "Attempting to write kube_config to $config_path..."
+    if clear_metadata_to_file "kube_config" $config_path; then
+      # This is a workaround for difficulties using the Google Deployment Manager
+      # to express no value. We'll use the value "None". But we don't want
+      # to officially support this, so we'll just strip it out of this first
+      # time boot if we happen to see it, and assume the Google Deployment Manager
+      # got in the way.
+      sed -i s/^None$//g $config_path
+      if [[ -s $config_path ]]; then
+        chmod 400 $config_path
+        chown spinnaker $config_path
+        echo "Successfully wrote kube_config to $config_path"
+
+        return 1
+      else
+        echo "Failed to write kube_config to $config_path"
+        rm $config_path
+
+        return 0
+      fi
+    fi
   fi
 
   if [ -n "$kube_cluster" ]; then
-    echo "Downloading credentials for cluster $kube_cluster in project $kube_project in zone $kube_zone..."
+    echo "Downloading credentials for cluster $kube_cluster in zone $kube_zone..."
+
+    if [ -z "$kube_zone" ]; then
+      kube_zone=$MY_ZONE
+    fi
+
     export KUBECONFIG=$config_path
     gcloud config set container/use_client_certificate true
-    gcloud container clusters get-credentials $kube_cluster --zone $kube_zone --project $kube_project
+    gcloud container clusters get-credentials $kube_cluster --zone $kube_zone 
 
     if [[ -s $config_path ]]; then
-      echo "Kubernetes credentials successfully extracted to $config_path" 
+      echo "Kubernetes credentials successfully extracted to $config_path"
       chmod 400 $config_path
       chown spinnaker:spinnaker $config_path
+
+      return 1
     else
-      echo "Failed to extract kubernetes credentials to $config_path"  
+      echo "Failed to extract kubernetes credentials to $config_path"
       rm $config_path
+
+      return 0
     fi
+  fi
+
+  echo "No kubernetes credentials or cluster provided."
+  return 0
+}
+
+function extract_spinnaker_kube_credentials() {
+  if attempt_write_kube_credentials; then
     write_default_value "SPINNAKER_KUBERNETES_ENABLED" "true"
-  else
     clear_instance_metadata "kube_cluster"
+    clear_instance_metadata "kube_zone"
+    clear_instance_metadata "kube_config"
   fi
 }
 
@@ -257,7 +296,7 @@ function extract_spinnaker_gcr_credentials() {
 
     if [[ -s $config_path ]]; then
       echo "Extracted GCR credentials to $config_path"
-  
+
       chmod 400 $config_path
       chown spinnaker:spinnaker $config_path
 
@@ -266,7 +305,7 @@ function extract_spinnaker_gcr_credentials() {
       if [ -z "$gcr_location" ]; then
         gcr_location="https://gcr.io"
       fi
-  
+
       write_default_value "SPINNAKER_DOCKER_PASSWORD_FILE" $config_path
       write_default_value "SPINNAKER_DOCKER_USERNAME" "_json_key"
       write_default_value "SPINNAKER_DOCKER_REGISTRY" $gcr_location
