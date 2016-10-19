@@ -36,7 +36,11 @@ class ResolvedEnvironmentEndpoint extends AbstractEndpoint<Map<String, Object>> 
   Map<String, Object> invoke() {
     Environment environment = getEnvironment()
     return getPropertyKeys().collectEntries {
-      [(it): sanitizer.sanitize(it, environment.getProperty(it))]
+      try {
+        [(it): sanitizer.sanitize(it, environment.getProperty(it))]
+      } catch (Exception e) {
+        [(it): "Exception occurred: " + e.getMessage()]
+      }
     }
   }
 
