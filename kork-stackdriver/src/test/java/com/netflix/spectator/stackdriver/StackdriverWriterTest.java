@@ -99,9 +99,7 @@ public class StackdriverWriterTest {
 
   DefaultRegistry registry = new DefaultRegistry(clock);
 
-  String projectName = new MonitoredResourceBuilder().determineProjectName("test-project");
-  String projectResourceName = "projects/" + projectName;
-
+  String projectName = "test-project";
   String applicationName = "test-application";
 
   Id idInternalTimerCount
@@ -179,6 +177,7 @@ public class StackdriverWriterTest {
       when(projectsApi.timeSeries()).thenReturn(timeseriesApi);
 
       writerConfig = new ConfigParams.Builder()
+              .setDetermineProjectName(name -> name)
               .setStackdriverStub(monitoringApi)
               .setCustomTypeNamespace("TESTNAMESPACE")
               .setProjectName(projectName)
@@ -416,7 +415,7 @@ public class StackdriverWriterTest {
         .fetchDescriptorFromService(
             timerTimeDescriptor.getName(), timerTimeDescriptor.getType());
 
-    when(timeseriesApi.create(eq(projectResourceName),
+    when(timeseriesApi.create(eq("projects/test-project"),
                               any(CreateTimeSeriesRequest.class)))
         .thenReturn(mockCreateMethod);
     when(mockCreateMethod.execute())
@@ -427,7 +426,7 @@ public class StackdriverWriterTest {
 
     ArgumentCaptor<CreateTimeSeriesRequest> captor
           = ArgumentCaptor.forClass(CreateTimeSeriesRequest.class);
-    verify(timeseriesApi, times(1)).create(eq(projectResourceName),
+    verify(timeseriesApi, times(1)).create(eq("projects/test-project"),
                                            captor.capture());
       // A, B, timer count and totalTime.
     Assert.assertEquals(4, captor.getValue().getTimeSeries().size());
@@ -484,9 +483,9 @@ public class StackdriverWriterTest {
 
     MatchN match200 = new MatchN(200);
     MatchN match1 = new MatchN(1);
-    when(timeseriesApi.create(eq(projectResourceName), argThat(match200)))
+    when(timeseriesApi.create(eq("projects/test-project"), argThat(match200)))
         .thenReturn(mockCreateMethod);
-    when(timeseriesApi.create(eq(projectResourceName), argThat(match1)))
+    when(timeseriesApi.create(eq("projects/test-project"), argThat(match1)))
         .thenReturn(mockCreateMethod);
     when(mockCreateMethod.execute())
         .thenReturn(null);
@@ -536,7 +535,7 @@ public class StackdriverWriterTest {
 
     Monitoring.Projects.MetricDescriptors.Create countMockCreateMethod
           = Mockito.mock(Monitoring.Projects.MetricDescriptors.Create.class);
-    when(descriptorsApi.create(eq(projectResourceName),
+    when(descriptorsApi.create(eq("projects/test-project"),
                                eq(descriptorCount)))
         .thenReturn(countMockCreateMethod);
     doAnswer(new Answer<MetricDescriptor>() {
@@ -553,7 +552,7 @@ public class StackdriverWriterTest {
 
     Monitoring.Projects.MetricDescriptors.Create timeMockCreateMethod
           = Mockito.mock(Monitoring.Projects.MetricDescriptors.Create.class);
-    when(descriptorsApi.create(eq(projectResourceName),
+    when(descriptorsApi.create(eq("projects/test-project"),
                                eq(descriptorTime)))
         .thenReturn(timeMockCreateMethod);
     doAnswer(new Answer<MetricDescriptor>() {

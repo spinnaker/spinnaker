@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.Collections;
 import java.util.UUID;
@@ -68,6 +69,11 @@ public class ConfigParams {
   protected String instanceId;
 
   /**
+   * Overridable for testing only.
+   */
+  protected Function<String, String> determineProjectName = defaultName -> new MonitoredResourceBuilder().determineProjectName(defaultName);
+
+  /**
    * Optional.
    */
   protected Predicate<Measurement> measurementFilter;
@@ -81,7 +87,6 @@ public class ConfigParams {
    * Optional.
    */
   protected long counterStartTime;
-
 
   /**
    * Optional.
@@ -111,15 +116,11 @@ public class ConfigParams {
     public ConfigParams build() {
       ConfigParams result = new ConfigParams();
 
-      String actualProjectName = new MonitoredResourceBuilder().determineProjectName(projectName);
-
-      result.projectName
-          = validateString(actualProjectName, "stackdriver projectName");
-      result.applicationName
-          = validateString(applicationName, "applicationName");
+      String actualProjectName = determineProjectName.apply(projectName);
+      result.projectName = validateString(actualProjectName, "stackdriver projectName");
+      result.applicationName = validateString(applicationName, "applicationName");
       result.customTypeNamespace
-          = validateString(customTypeNamespace,
-                           "stackdriver customTypeNamespace");
+          = validateString(customTypeNamespace, "stackdriver customTypeNamespace");
 
       result.uniqueMetricsPerApplication = uniqueMetricsPerApplication;
       result.counterStartTime = counterStartTime;
@@ -159,6 +160,16 @@ public class ConfigParams {
         result.descriptorCache = new MetricDescriptorCache(result);
       }
       return result;
+    }
+
+    /**
+     * Overrides the function for determining the actual project name
+     *
+     * This is for testing purposes only.
+     */
+    public Builder setDetermineProjectName(Function<String, String> fn) {
+      determineProjectName = fn;
+      return this;
     }
 
     /**
