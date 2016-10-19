@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -25,6 +24,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SUBNETS
 
 import com.amazonaws.services.ec2.model.Subnet
+import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -42,7 +42,7 @@ class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
-  final ObjectMapper objectMapper
+  final AmazonObjectMapper objectMapper
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(SUBNETS.ns)
@@ -51,7 +51,7 @@ class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
   AmazonSubnetCachingAgent(AmazonClientProvider amazonClientProvider,
                            NetflixAmazonCredentials account,
                            String region,
-                           ObjectMapper objectMapper) {
+                           AmazonObjectMapper objectMapper) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region

@@ -20,7 +20,6 @@ import com.netflix.frigga.Names
 import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.AWS
 
 class Keys {
-
   static enum Namespace {
     SECURITY_GROUPS,
     SUBNETS,

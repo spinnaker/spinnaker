@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
@@ -32,7 +32,6 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonKeyPairCaching
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonSubnetCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonVpcCachingAgent
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -47,7 +46,7 @@ class AwsInfrastructureProviderConfig {
   @DependsOn('netflixAmazonCredentials')
   AwsInfrastructureProvider awsInfrastructureProvider(AmazonClientProvider amazonClientProvider,
                                                       AccountCredentialsRepository accountCredentialsRepository,
-                                                      @Qualifier("amazon") ObjectMapper amazonObjectMapper,
+                                                      AmazonObjectMapper amazonObjectMapper,
                                                       Registry registry) {
     def awsInfrastructureProvider =
       new AwsInfrastructureProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
@@ -80,7 +79,7 @@ class AwsInfrastructureProviderConfig {
   AwsInfrastructureProviderSynchronizer synchronizeAwsInfrastructureProvider(AwsInfrastructureProvider awsInfrastructureProvider,
                                                                              AmazonClientProvider amazonClientProvider,
                                                                              AccountCredentialsRepository accountCredentialsRepository,
-                                                                             @Qualifier("amazon") ObjectMapper amazonObjectMapper,
+                                                                             AmazonObjectMapper amazonObjectMapper,
                                                                              Registry registry) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)

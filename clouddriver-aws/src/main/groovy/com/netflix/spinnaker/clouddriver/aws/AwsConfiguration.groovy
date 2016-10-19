@@ -20,7 +20,7 @@ import com.amazonaws.metrics.AwsSdkMetrics
 import com.amazonaws.retry.RetryPolicy.BackoffStrategy
 import com.amazonaws.retry.RetryPolicy.RetryCondition
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
+import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spectator.aws.SpectatorMetricCollector
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
@@ -55,7 +55,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.kork.aws.AwsComponents
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -143,9 +142,8 @@ class AwsConfiguration {
   }
 
   @Bean
-  @Qualifier("amazon")
   ObjectMapper amazonObjectMapper() {
-    AmazonObjectMapperConfigurer.createConfigured()
+    new AmazonObjectMapper()
   }
 
   @Bean
