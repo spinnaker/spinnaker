@@ -28,17 +28,168 @@ import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
-  DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
-                                               String address, String username, String password, String passwordFile, String email,
-                                               int cacheThreads, long clientTimeoutMillis, int paginateSize, boolean trackDigests,
-                                               List<String> repositories, List<String> skip) {
-    this(accountName, environment, accountType, address, username, password, passwordFile, email, repositories, cacheThreads, clientTimeoutMillis, paginateSize, trackDigests, null, skip)
+  static class Builder {
+    String accountName
+    String environment
+    String accountType
+    String address
+    String username
+    String password
+    String passwordFile
+    String dockerconfigFile
+    String email
+    int cacheThreads
+    long clientTimeoutMillis
+    int paginateSize
+    boolean trackDigests
+    List<String> repositories
+    List<String> skip
+
+    Builder() {}
+
+    Builder accountName(String accountName) {
+      this.accountName = accountName
+      return this
+    }
+
+    Builder environment(String environment) {
+      this.environment = environment
+      return this
+    }
+
+    Builder accountType(String accountType) {
+      this.accountType = accountType
+      return this
+    }
+
+    Builder address(String address) {
+      this.address = address
+      return this
+    }
+
+    Builder username(String username) {
+      this.username = username
+      return this
+    }
+
+    Builder password(String address) {
+      this.password = address
+      return this
+    }
+
+    Builder passwordFile(String passwordFile) {
+      this.passwordFile = passwordFile
+      return this
+    }
+
+    Builder dockerconfigFile(String dockerconfigFile) {
+      this.dockerconfigFile = dockerconfigFile
+      return this
+    }
+
+    Builder email(String email) {
+      this.email = email
+      return this
+    }
+
+    Builder cacheThreads(int cacheThreads) {
+      this.cacheThreads = cacheThreads
+      return this
+    }
+
+    Builder clientTimeoutMillis(long clientTimeoutMillis) {
+      this.clientTimeoutMillis = clientTimeoutMillis
+      return this
+    }
+
+    Builder paginateSize(int paginateSize) {
+      this.paginateSize = paginateSize
+      return this
+    }
+
+    Builder trackDigests(boolean trackDigests) {
+      this.trackDigests = trackDigests
+      return this
+    }
+
+    Builder repositories(List<String> repositories) {
+      this.repositories = repositories
+      return this
+    }
+
+    Builder skip(List<String> skip) {
+      this.skip = skip
+      return this
+    }
+
+    DockerRegistryNamedAccountCredentials build() {
+      return new DockerRegistryNamedAccountCredentials(accountName,
+                                                       environment,
+                                                       accountType,
+                                                       address,
+                                                       username,
+                                                       password,
+                                                       passwordFile,
+                                                       dockerconfigFile,
+                                                       email,
+                                                       repositories,
+                                                       skip,
+                                                       cacheThreads,
+                                                       clientTimeoutMillis,
+                                                       paginateSize,
+                                                       trackDigests)
+    }
   }
 
-  DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
-                                               String address, String username, String password, String passwordFile, String email,
-                                               List<String> repositories, int cacheThreads, long clientTimeoutMillis,
-                                               int paginateSize, boolean trackDigests, List<String> requiredGroupMembership, List<String> skip) {
+  DockerRegistryNamedAccountCredentials(String accountName,
+                                        String environment,
+                                        String accountType,
+                                        String address,
+                                        String username,
+                                        String password,
+                                        String passwordFile,
+                                        String dockerconfigFile,
+                                        String email,
+                                        List<String> repositories,
+                                        List<String> skip,
+                                        int cacheThreads,
+                                        long clientTimeoutMillis,
+                                        int paginateSize,
+                                        boolean trackDigests) {
+    this(accountName,
+         environment,
+         accountType,
+         address,
+         username,
+         password,
+         passwordFile,
+         dockerconfigFile,
+         email,
+         repositories,
+         skip,
+         cacheThreads,
+         clientTimeoutMillis,
+         paginateSize,
+         trackDigests,
+         null)
+  }
+
+  DockerRegistryNamedAccountCredentials(String accountName,
+                                        String environment,
+                                        String accountType,
+                                        String address,
+                                        String username,
+                                        String password,
+                                        String passwordFile,
+                                        String dockerconfigFile,
+                                        String email,
+                                        List<String> repositories,
+                                        List<String> skip,
+                                        int cacheThreads,
+                                        long clientTimeoutMillis,
+                                        int paginateSize,
+                                        boolean trackDigests,
+                                        List<String> requiredGroupMembership) {
     if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
     }
@@ -94,6 +245,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     return accountName
   }
 
+  @JsonIgnore
   String getBasicAuth() {
     return this.credentials ?
       this.credentials.client ?
@@ -132,7 +284,9 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
   final String accountType
   final String address
   final String registry
+  @JsonIgnore
   final String username
+  @JsonIgnore
   final String password
   final String email
   final boolean trackDigests

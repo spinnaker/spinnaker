@@ -65,14 +65,23 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
 
     accountsToAdd.each { DockerRegistryConfigurationProperties.ManagedAccount managedAccount ->
       try {
-        def dockerRegistryAccount = new DockerRegistryNamedAccountCredentials(managedAccount.name,
-          managedAccount.environment ?: managedAccount.name,
-          managedAccount.accountType ?: managedAccount.name,
-          managedAccount.address, managedAccount.username,
-          managedAccount.password, managedAccount.passwordFile, managedAccount.email,
-          managedAccount.cacheThreads, managedAccount.clientTimeoutMillis,
-          managedAccount.paginateSize, managedAccount.trackDigests,
-          managedAccount.repositories, managedAccount.skip)
+        def dockerRegistryAccount = (new DockerRegistryNamedAccountCredentials.Builder())
+          .accountName(managedAccount.name)
+          .environment(managedAccount.environment ?: managedAccount.name)
+          .accountType(managedAccount.accountType ?: managedAccount.name)
+          .address(managedAccount.address)
+          .password(managedAccount.password)
+          .username(managedAccount.username)
+          .email(managedAccount.email)
+          .passwordFile(managedAccount.passwordFile)
+          .dockerconfigFile(managedAccount.dockerconfigFile)
+          .cacheThreads(managedAccount.cacheThreads)
+          .clientTimeoutMillis(managedAccount.clientTimeoutMillis)
+          .paginateSize(managedAccount.paginateSize)
+          .trackDigests(managedAccount.trackDigests)
+          .repositories(managedAccount.repositories)
+          .skip(managedAccount.skip)
+          .build()
 
         accountCredentialsRepository.save(managedAccount.name, dockerRegistryAccount)
       } catch (e) {
