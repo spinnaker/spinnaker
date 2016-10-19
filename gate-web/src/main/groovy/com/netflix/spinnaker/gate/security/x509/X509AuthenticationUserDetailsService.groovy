@@ -31,7 +31,7 @@ import java.security.cert.X509Certificate
 
 /**
  * This class is similar to a UserDetailService, but instead of passing in a username to loadUserDetails,
- * it passess in a token containing the x509 certificate. A user can control the principal through the
+ * it passes in a token containing the x509 certificate. A user can control the principal through the
  * `spring.x509.subjectPrincipalRegex` property.
  */
 @Component
@@ -48,6 +48,9 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
   @Autowired
   PermissionService permissionService
 
+  @Autowired(required = false)
+  X509RolesExtractor rolesExtractor
+
   @Override
   UserDetails loadUserDetails(PreAuthenticatedAuthenticationToken token) throws UsernameNotFoundException {
     if (!(token.credentials instanceof X509Certificate)) {
@@ -56,7 +59,11 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
     def x509 = (X509Certificate) token.credentials
     def email = emailFromSubjectAlternativeName(x509) ?: token.principal
+
     def roles = userRolesProvider.loadRoles(email as String)
+    if (rolesExtractor) {
+      roles += rolesExtractor.fromCertificate(x509)
+    }
 
     permissionService.login(email as String)
 
