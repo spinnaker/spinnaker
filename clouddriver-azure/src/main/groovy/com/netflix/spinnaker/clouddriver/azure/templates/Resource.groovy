@@ -75,3 +75,30 @@ class DnsSettings{
 
 }
 
+class StringParameter {
+  String type = "string"
+  Map<String, String> metadata
+  StringParameter() {
+    metadata = [:]
+  }
+
+  StringParameter(Map<String, String> metadata) {
+    this.metadata = metadata
+  }
+}
+
+class StringParameterWithDefault extends StringParameter {
+  String defaultValue
+  StringParameterWithDefault(Map<String, String> metadata, String defaultValue) {
+    super(metadata)
+    this.defaultValue = defaultValue
+  }
+}
+
+class SecureStringParameter extends StringParameter{
+  SecureStringParameter(Map<String, String> metadata) {
+    super(metadata)
+    type = "secureString"
+  }
+}
+

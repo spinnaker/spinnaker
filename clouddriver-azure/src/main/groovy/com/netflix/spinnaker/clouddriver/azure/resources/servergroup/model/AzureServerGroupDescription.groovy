@@ -20,7 +20,6 @@ import com.microsoft.azure.management.compute.models.VirtualMachineScaleSet
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
-import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroup
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -64,6 +63,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   String vnetResourceGroup
   Boolean hasNewSubnet = false
   Boolean createNewSubnet = false
+  AzureExtensionCustomScriptSettings customScriptSettings
 
   static class AzureScaleSetSku {
     String name
@@ -75,6 +75,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     String adminUserName
     String adminPassword
     String computerNamePrefix
+    String customData
   }
 
   static class AzureInboundPortConfig {
@@ -84,6 +85,11 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     int frontEndPortRangeEnd
     int backendPort
 
+  }
+
+  static class AzureExtensionCustomScriptSettings {
+    Collection<String> fileUris
+    String commandToExecute
   }
 
   Integer getStorageAccountCount() {
@@ -158,12 +164,12 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     // TODO: appGatewayBapId can be retrieved via scaleSet->networkProfile->networkInterfaceConfigurations->ipConfigurations->ApplicationGatewayBackendAddressPools
     azureSG.subnetId = scaleSet.tags?.subnetId
     azureSG.subnet = AzureUtilities.getNameFromResourceId(azureSG.subnetId)
-    azureSG.vnet = azureSG.subnetId? AzureUtilities.getNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnet
-    azureSG.vnetResourceGroup = azureSG.subnetId? AzureUtilities.getResourceGroupNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnetResourceGroup
+    azureSG.vnet = azureSG.subnetId ? AzureUtilities.getNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnet
+    azureSG.vnetResourceGroup = azureSG.subnetId ? AzureUtilities.getResourceGroupNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnetResourceGroup
     azureSG.hasNewSubnet = scaleSet.tags?.hasNewSubnet
 
     azureSG.createdTime = scaleSet.tags?.createdTime?.toLong()
-    azureSG.image = new AzureNamedImage( isCustom:  scaleSet.tags?.customImage, imageName: scaleSet.tags?.imageName)
+    azureSG.image = new AzureNamedImage(isCustom: scaleSet.tags?.customImage, imageName: scaleSet.tags?.imageName)
     if (!azureSG.image.isCustom) {
       // Azure server group which was created using Azure Market Store images will have a number of storage accounts
       //   that were created at the time the server group was created; these storage account should be in saved in the
@@ -193,9 +199,25 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
       osConfig.adminPassword = osProfile.adminPassword
       osConfig.adminUserName = osProfile.adminUsername
       osConfig.computerNamePrefix = osProfile.computerNamePrefix
+      osConfig.customData = osProfile.customData
 
     }
     azureSG.osConfig = osConfig
+
+    def customScriptSettings = new AzureExtensionCustomScriptSettings()
+    def extensionProfile = scaleSet?.virtualMachineProfile?.extensionProfile
+    if (extensionProfile) {
+      def customScriptExtensionSettings = extensionProfile.extensions.find({
+          it.type == AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_TYPE_LINUX ||
+          it.type == AzureUtilities.AZURE_CUSTOM_SCRIPT_EXT_TYPE_WINDOWS
+      })?.settings
+      //def customScriptExtensionSettings = extensionProfile.extensions.find({it.type=="CustomScript"}).settings
+      if (customScriptExtensionSettings) {
+        customScriptSettings = mapper.convertValue(customScriptExtensionSettings, AzureExtensionCustomScriptSettings)
+      }
+    }
+
+    azureSG.customScriptSettings = customScriptSettings
 
     def sku = new AzureScaleSetSku()
     def skuData = scaleSet.sku

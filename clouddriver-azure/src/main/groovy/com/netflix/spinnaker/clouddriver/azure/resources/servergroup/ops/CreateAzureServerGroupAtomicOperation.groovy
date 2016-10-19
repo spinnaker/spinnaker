@@ -182,7 +182,8 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
           "serverGroup",
           [
             subnetId: subnetId,
-            appGatewayAddressPoolID: appGatewayPoolID
+            appGatewayAddressPoolID: appGatewayPoolID,
+            customData: description.osConfig.customData ?: "nodata"
           ])
 
         errList.addAll(AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name))
