@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
-// TODO(jacobkiefer): Extend this when we include ILB support.
 enum GoogleSessionAffinity {
   NONE,
   CLIENT_IP,
+  CLIENT_IP_PORT_PROTO,
+  CLIENT_IP_PROTO,
   GENERATED_COOKIE,
 }
