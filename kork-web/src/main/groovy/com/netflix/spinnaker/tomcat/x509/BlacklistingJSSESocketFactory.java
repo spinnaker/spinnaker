@@ -23,9 +23,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.util.Optional;
 
-/**
- * TODO: Handle Tomcat 8.5 refactoring that removes low level JSSESocketFactory. See https://github.com/spring-projects/spring-boot/issues/6164 for more details.
- */
 public class BlacklistingJSSESocketFactory extends JSSESocketFactory {
   private static final String BLACKLIST_PREFIX = "blacklist:";
 

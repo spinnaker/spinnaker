@@ -55,7 +55,7 @@ public class SpectatorConfiguration {
 
   @Bean
   @Primary
-  @ConditionalOnMissingClass("org.springframework.messaging.MessageChannel")
+  @ConditionalOnMissingClass(name = "org.springframework.messaging.MessageChannel")
   @ConditionalOnMissingBean(name = "primaryMetricWriter")
   public MetricWriter primaryMetricWriter(List<MetricWriter> writers) {
     return new CompositeMetricWriter(writers);

@@ -15,6 +15,7 @@
  */
 
 buildscript {
+
   repositories {
     jcenter()
     maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
@@ -32,7 +33,7 @@ allprojects {
   group = 'com.netflix.spinnaker.kork'
 
   ext {
-    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.61.0'
+    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.63.0'
   }
 
   def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
@@ -58,18 +59,4 @@ allprojects {
   jacoco {
     toolVersion = '0.7.7.201606060606'
   }
-
-  configurations {
-    all {
-      resolutionStrategy {
-        eachDependency {
-          if (it.requested.group.startsWith('org.apache.tomcat')) {
-            it.useVersion spinnaker.version('tomcat')
-          }
-        }
-      }
-    }
-  }
-
-
 }
