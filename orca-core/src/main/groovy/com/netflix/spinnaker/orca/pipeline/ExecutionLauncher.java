@@ -46,6 +46,10 @@ public abstract class ExecutionLauncher<T extends Execution> {
 
     persistExecution(execution);
 
+    return start(execution);
+  }
+
+  public T start(T execution) throws Exception {
     if (shouldQueue(execution)) {
       log.info("Queueing {}", execution.getId());
     } else {
