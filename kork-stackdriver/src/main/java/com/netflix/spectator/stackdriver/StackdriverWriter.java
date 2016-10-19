@@ -454,7 +454,7 @@ public class StackdriverWriter {
   }
 
   /**
-   * Implementatio of writeRegistry wrapped for timing.
+   * Implementation of writeRegistry wrapped for timing.
    */
   private void writeRegistryHelper(Registry registry) {
     MonitoredResource resource = determineMonitoredResource();

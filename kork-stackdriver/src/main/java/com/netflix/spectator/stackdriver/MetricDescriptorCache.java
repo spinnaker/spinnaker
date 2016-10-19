@@ -623,13 +623,18 @@ public class MetricDescriptorCache {
     descriptor.setDisplayName(id.name());
     descriptor.setType(descriptorType);
     descriptor.setValueType("DOUBLE");
+
+    String untransformedDescriptorType;
     if (meterIsTimer(registry, meter)) {
-      if (id.name().endsWith("_totalTime")) {
+      if (id.name().endsWith("__totalTime")) {
         descriptor.setUnit("ns");
       }
       descriptor.setMetricKind("CUMULATIVE");
+      int suffixOffset = descriptorType.lastIndexOf("__");
+      untransformedDescriptorType = descriptorType.substring(0, suffixOffset);
     } else {
       descriptor.setMetricKind(meterToKind(registry, meter));
+      untransformedDescriptorType = descriptorType;
     }
 
     List<LabelDescriptor> labels = new ArrayList<LabelDescriptor>();
@@ -647,7 +652,7 @@ public class MetricDescriptorCache {
        labels.add(labelDescriptor);
     }
 
-    maybeAddLabelHints(descriptorType, labels);
+    maybeAddLabelHints(untransformedDescriptorType, labels);
     if (labels.size() > 10) {
         log.error("{} has too many labels for stackdriver to handle: {}",
                   id.name(), labels);

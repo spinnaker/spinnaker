@@ -111,7 +111,8 @@ public class MetricDescriptorCacheTest {
   DefaultRegistry registry = new DefaultRegistry(clock);
 
   TestableMetricDescriptorCache cache;
-  String projectName = "test-project";
+  String projectName = new MonitoredResourceBuilder().determineProjectName("test-project");
+  String projectResourceName = "projects/" + projectName;
   String applicationName = "test-application";
 
   Id idA = registry.createId("idA");
@@ -203,7 +204,7 @@ public class MetricDescriptorCacheTest {
   public void descriptorNamesAreCompliant() {
     // https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.metricDescriptors
     Assert.assertEquals(
-        "projects/test-project/metricDescriptors/" + cache.idToDescriptorType(idA),
+        projectResourceName + "/metricDescriptors/" + cache.idToDescriptorType(idA),
         cache.idToDescriptorName(idA));
   }
 
@@ -216,7 +217,7 @@ public class MetricDescriptorCacheTest {
         = Mockito.mock(Monitoring.Projects.MetricDescriptors.Create.class);
 
     when(descriptorsApi.create(
-            eq("projects/test-project"), any(MetricDescriptor.class)))
+            eq(projectResourceName), any(MetricDescriptor.class)))
             .thenAnswer(new ReturnExecuteDescriptorArg(mockCreateMethod));
     cache.createDescriptorInServer(idAXY, registry, counterA);
 
@@ -224,7 +225,7 @@ public class MetricDescriptorCacheTest {
 
     ArgumentCaptor<MetricDescriptor> captor
         = ArgumentCaptor.forClass(MetricDescriptor.class);
-    verify(descriptorsApi, times(1)).create(eq("projects/test-project"),
+    verify(descriptorsApi, times(1)).create(eq(projectResourceName),
                                                captor.capture());
     MetricDescriptor descriptor = captor.getValue();
 
@@ -258,13 +259,13 @@ public class MetricDescriptorCacheTest {
           = Mockito.mock(Monitoring.Projects.MetricDescriptors.Create.class);
 
     when(descriptorsApi.create(
-            eq("projects/test-project"), any(MetricDescriptor.class)))
+            eq(projectResourceName), any(MetricDescriptor.class)))
             .thenAnswer(new ReturnExecuteDescriptorArg(mockCreateMethod));
     cache.createDescriptorInServer(idAXY, registry, counterA);
 
     ArgumentCaptor<MetricDescriptor> captor
         = ArgumentCaptor.forClass(MetricDescriptor.class);
-    verify(descriptorsApi, times(1)).create(eq("projects/test-project"),
+    verify(descriptorsApi, times(1)).create(eq(projectResourceName),
                                                captor.capture());
     verify(mockCreateMethod, times(1)).execute();
 
@@ -280,13 +281,13 @@ public class MetricDescriptorCacheTest {
     reset(mockCreateMethod);
 
     when(descriptorsApi.create(
-            eq("projects/test-project"), any(MetricDescriptor.class)))
+            eq(projectResourceName), any(MetricDescriptor.class)))
             .thenAnswer(new ReturnExecuteDescriptorArg(mockCreateMethod));
     cache.createDescriptorInServer(idBXY, registry, counterB);
     verify(mockCreateMethod, times(1)).execute();
 
     captor = ArgumentCaptor.forClass(MetricDescriptor.class);
-    verify(descriptorsApi, times(1)).create(eq("projects/test-project"),
+    verify(descriptorsApi, times(1)).create(eq(projectResourceName),
                                                captor.capture());
     descriptor = captor.getValue();
 
@@ -312,13 +313,13 @@ public class MetricDescriptorCacheTest {
           = Mockito.mock(Monitoring.Projects.MetricDescriptors.Create.class);
 
     when(descriptorsApi.create(
-            eq("projects/test-project"), any(MetricDescriptor.class)))
+            eq(projectResourceName), any(MetricDescriptor.class)))
             .thenAnswer(new ReturnExecuteDescriptorArg(mockCreateMethod));
     cache.createDescriptorInServer(idAXY, registry, counterA);
 
     ArgumentCaptor<MetricDescriptor> captor
         = ArgumentCaptor.forClass(MetricDescriptor.class);
-    verify(descriptorsApi, times(1)).create(eq("projects/test-project"),
+    verify(descriptorsApi, times(1)).create(eq(projectResourceName),
                                                captor.capture());
     verify(mockCreateMethod, times(1)).execute();
 
@@ -354,7 +355,7 @@ public class MetricDescriptorCacheTest {
 
     cache.injectDescriptor(idB, new MetricDescriptor());
     when(descriptorsApi.create(
-            eq("projects/test-project"), any(MetricDescriptor.class)))
+            eq(projectResourceName), any(MetricDescriptor.class)))
             .thenAnswer(new ReturnExecuteDescriptorArg(mockCreateMethod));
 
     cache.createDescriptorInServer(idA, registry, counterA);
@@ -362,7 +363,7 @@ public class MetricDescriptorCacheTest {
 
     ArgumentCaptor<MetricDescriptor> captor
           = ArgumentCaptor.forClass(MetricDescriptor.class);
-    verify(descriptorsApi, times(1)).create(eq("projects/test-project"),
+    verify(descriptorsApi, times(1)).create(eq(projectResourceName),
                                                captor.capture());
     MetricDescriptor descriptor = captor.getValue();
     Assert.assertTrue(descriptor != null);
@@ -385,7 +386,7 @@ public class MetricDescriptorCacheTest {
         = new ListMetricDescriptorsResponse();
     response.setMetricDescriptors(Arrays.asList(descriptorA));
 
-    when(descriptorsApi.list("projects/test-project"))
+    when(descriptorsApi.list(projectResourceName))
          .thenReturn(mockListMethod);
     when(mockListMethod.execute()).thenReturn(response);
     MetricDescriptor found = cache.descriptorOrNull(
@@ -408,7 +409,7 @@ public class MetricDescriptorCacheTest {
         = Mockito.mock(Monitoring.Projects.MetricDescriptors.List.class);
     Meter counterA = registry.counter(idAXY);
 
-    when(descriptorsApi.list("projects/test-project"))
+    when(descriptorsApi.list(projectResourceName))
         .thenThrow(new IOException());
     Assert.assertTrue(
         null == cache.descriptorOrNull(
@@ -421,7 +422,7 @@ public class MetricDescriptorCacheTest {
         = new ListMetricDescriptorsResponse();
     response.setMetricDescriptors(Arrays.asList(descriptorA));
 
-    when(descriptorsApi.list("projects/test-project"))
+    when(descriptorsApi.list(projectResourceName))
         .thenReturn(mockListMethod);
     when(mockListMethod.execute())
         .thenReturn(response);

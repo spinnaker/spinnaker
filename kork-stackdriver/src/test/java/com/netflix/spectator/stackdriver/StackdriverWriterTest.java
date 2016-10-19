@@ -25,6 +25,7 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Meter;
 import com.netflix.spectator.api.Measurement;
 import com.netflix.spectator.api.Tag;
+import com.netflix.spectator.api.Timer;
 
 import com.google.api.services.monitoring.v3.Monitoring;
 
@@ -98,7 +99,9 @@ public class StackdriverWriterTest {
 
   DefaultRegistry registry = new DefaultRegistry(clock);
 
-  String projectName = "test-project";
+  String projectName = new MonitoredResourceBuilder().determineProjectName("test-project");
+  String projectResourceName = "projects/" + projectName;
+
   String applicationName = "test-application";
 
   Id idInternalTimerCount
@@ -135,20 +138,23 @@ public class StackdriverWriterTest {
 
   private MetricDescriptor makeDescriptor(Id id, List<String> tagNames) {
       MetricDescriptor descriptor = new MetricDescriptor();
+      descriptor.setDisplayName(id.name());
       descriptor.setName(descriptorRegistrySpy.idToDescriptorName(id));
       descriptor.setType(descriptorRegistrySpy.idToDescriptorType(id));
       descriptor.setValueType("DOUBLE");
       descriptor.setMetricKind("GAUGE");
 
       List<LabelDescriptor> labels = new ArrayList<LabelDescriptor>();
-      LabelDescriptor labelDescriptor = new LabelDescriptor();
-      labelDescriptor.setKey(MetricDescriptorCache.APPLICATION_LABEL);
-      labelDescriptor.setValueType("STRING");
-      labelDescriptor.setKey(MetricDescriptorCache.INSTANCE_LABEL);
-      labelDescriptor.setValueType("STRING");
-      labels.add(labelDescriptor);
+      for (String extra : descriptorRegistrySpy.getExtraTimeSeriesLabels().keySet()) {
+
+          LabelDescriptor labelDescriptor = new LabelDescriptor();
+          labelDescriptor.setKey(extra);
+          labelDescriptor.setValueType("STRING");
+          labels.add(labelDescriptor);
+      }
+
       for (String key : tagNames) {
-          labelDescriptor = new LabelDescriptor();
+          LabelDescriptor labelDescriptor = new LabelDescriptor();
           labelDescriptor.setKey(key);
           labelDescriptor.setValueType("STRING");
           labels.add(labelDescriptor);
@@ -187,6 +193,7 @@ public class StackdriverWriterTest {
 
       writer = new TestableStackdriverWriter(writerConfig.build());
       List<String> testTags = Arrays.asList("tagA", "tagB");
+
       descriptorA = makeDescriptor(idA, testTags);
       descriptorB = makeDescriptor(idB, testTags);
       timerCountDescriptor
@@ -409,7 +416,7 @@ public class StackdriverWriterTest {
         .fetchDescriptorFromService(
             timerTimeDescriptor.getName(), timerTimeDescriptor.getType());
 
-    when(timeseriesApi.create(eq("projects/test-project"),
+    when(timeseriesApi.create(eq(projectResourceName),
                               any(CreateTimeSeriesRequest.class)))
         .thenReturn(mockCreateMethod);
     when(mockCreateMethod.execute())
@@ -420,7 +427,7 @@ public class StackdriverWriterTest {
 
     ArgumentCaptor<CreateTimeSeriesRequest> captor
           = ArgumentCaptor.forClass(CreateTimeSeriesRequest.class);
-    verify(timeseriesApi, times(1)).create(eq("projects/test-project"),
+    verify(timeseriesApi, times(1)).create(eq(projectResourceName),
                                            captor.capture());
       // A, B, timer count and totalTime.
     Assert.assertEquals(4, captor.getValue().getTimeSeries().size());
@@ -477,9 +484,9 @@ public class StackdriverWriterTest {
 
     MatchN match200 = new MatchN(200);
     MatchN match1 = new MatchN(1);
-    when(timeseriesApi.create(eq("projects/test-project"), argThat(match200)))
+    when(timeseriesApi.create(eq(projectResourceName), argThat(match200)))
         .thenReturn(mockCreateMethod);
-    when(timeseriesApi.create(eq("projects/test-project"), argThat(match1)))
+    when(timeseriesApi.create(eq(projectResourceName), argThat(match1)))
         .thenReturn(mockCreateMethod);
     when(mockCreateMethod.execute())
         .thenReturn(null);
@@ -489,5 +496,76 @@ public class StackdriverWriterTest {
     verify(mockCreateMethod, times(2)).execute();
     Assert.assertEquals(1, match200.found);
     Assert.assertEquals(1, match1.found);
+  }
+
+  @Test
+  public void writeRegistryWithTimer() throws IOException {
+    descriptorRegistrySpy.addCustomDescriptorHints(
+        Arrays.asList(
+            new MetricDescriptorCache.CustomDescriptorHint(
+                    idAXY.name(), Arrays.asList("anotherTag"))));
+
+    DefaultRegistry testRegistry = new DefaultRegistry(clock);   
+    Timer timer = testRegistry.timer(idAXY);
+    timer.record(123, TimeUnit.MILLISECONDS);
+
+    Id countId = testRegistry.createId("idA__count");
+    Id countIdXY = countId.withTag("tagA", "X").withTag("tagB", "Y");
+    String countName = descriptorRegistrySpy.idToDescriptorName(countId);
+    String countType = descriptorRegistrySpy.idToDescriptorType(countId);
+
+    Id timeId = testRegistry.createId("idA__totalTime");
+    Id timeIdXY = timeId.withTag("tagA", "X").withTag("tagB", "Y");
+    String timeName = descriptorRegistrySpy.idToDescriptorName(timeId);
+    String timeType = descriptorRegistrySpy.idToDescriptorType(timeId);
+
+    List<String> testTags = Arrays.asList("tagA", "tagB", "anotherTag");
+    MetricDescriptor descriptorCount = makeDescriptor(countId, testTags);
+    MetricDescriptor descriptorTime = makeDescriptor(timeId, testTags);
+    descriptorCount.setMetricKind("CUMULATIVE");
+    descriptorTime.setMetricKind("CUMULATIVE");
+    descriptorTime.setUnit("ns");
+
+    doNothing().when(descriptorRegistrySpy)
+        .initKnownDescriptors();
+
+    doThrow(new IOException())
+        .doReturn(descriptorCount)
+        .when(descriptorRegistrySpy)
+        .fetchDescriptorFromService(countName, countType);
+
+    Monitoring.Projects.MetricDescriptors.Create countMockCreateMethod
+          = Mockito.mock(Monitoring.Projects.MetricDescriptors.Create.class);
+    when(descriptorsApi.create(eq(projectResourceName),
+                               eq(descriptorCount)))
+        .thenReturn(countMockCreateMethod);
+    doAnswer(new Answer<MetricDescriptor>() {
+            public MetricDescriptor answer(InvocationOnMock invocation) {
+                descriptorRegistrySpy
+                    .injectDescriptor(descriptorCount.getType(), descriptorCount);
+                return descriptorCount;
+            }}).when(countMockCreateMethod).execute();
+
+    doThrow(new IOException())
+        .doReturn(descriptorTime)
+        .when(descriptorRegistrySpy)
+        .fetchDescriptorFromService(timeName, timeType);
+
+    Monitoring.Projects.MetricDescriptors.Create timeMockCreateMethod
+          = Mockito.mock(Monitoring.Projects.MetricDescriptors.Create.class);
+    when(descriptorsApi.create(eq(projectResourceName),
+                               eq(descriptorTime)))
+        .thenReturn(timeMockCreateMethod);
+    doAnswer(new Answer<MetricDescriptor>() {
+            public MetricDescriptor answer(InvocationOnMock invocation) {
+                descriptorRegistrySpy
+                    .injectDescriptor(descriptorTime.getType(), descriptorTime);
+                return descriptorTime;
+            }}).when(timeMockCreateMethod).execute();
+
+    // If we get the expected result then we matched the expected descriptors,
+    // which means the transforms occurred as expected.
+    List<TimeSeries> tsList = writer.registryToTimeSeries(testRegistry);
+    Assert.assertEquals(2, tsList.size());
   }
 }
