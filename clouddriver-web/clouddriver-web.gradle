@@ -50,5 +50,5 @@ dependencies {
   runtime 'org.eclipse.jetty:jetty-servlets:9.2.11.v20150529'
 }
 
-tasks.bootRepackage.enabled = project.repackage
+tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
 
