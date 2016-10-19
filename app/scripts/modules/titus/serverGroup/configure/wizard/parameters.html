@@ -1,13 +1,17 @@
 <form name="form" class="container-fluid form-horizontal" ng-controller="titusServerGroupParametersCtrl as ctrl" novalidate>
   <div class="modal-body">
     <div class="form-group">
-      <div class="col-md-5 sm-label-right"><b>IAM Instance Profile (optional)</b></div>
+      <div class="col-md-4 sm-label-right"><b>IAM Instance Profile</b>
+        <help-field key="titus.deploy.iamProfile"></help-field>
+      </div>
       <div class="col-md-6"><input type="text"
                                    class="form-control input-sm no-spel"
                                    ng-model="command.iamProfile"/></div>
     </div>
     <div class="form-group">
-      <div class="col-md-5 sm-label-right"><b>Soft Constraints</b></div>
+      <div class="col-md-4 sm-label-right"><b>Soft Constraints</b>
+        <help-field key="titus.deploy.hardConstraints"></help-field>
+      </div>
       <div class="col-md-5">
         <ui-select multiple class="form-control input-sm"
                    ng-model="command.softConstraints"
@@ -20,7 +24,9 @@
       </div>
     </div>
     <div class="form-group">
-      <div class="col-md-5 sm-label-right"><b>Hard Constraints</b></div>
+      <div class="col-md-4 sm-label-right"><b>Hard Constraints</b>
+        <help-field key="titus.deploy.hardConstraints"></help-field>
+      </div>
       <div class="col-md-5">
         <ui-select multiple class="form-control input-sm"
                    ng-model="command.hardConstraints"
@@ -34,17 +40,17 @@
     </div>
     <hr/>
     <div class="form-group">
-      <div class="col-sm-12">
-        <b>Environment (optional)</b>
-      </div>
+      <h4 class="col-sm-12">
+        <b>Environment</b>
+      </h4>
       <div class="col-sm-12">
         <map-editor model="command.env" allow-empty="true"></map-editor>
       </div>
     </div>
     <div class="form-group">
-      <div class="col-sm-12">
-        <b>Labels (optional)</b>
-      </div>
+      <h4 class="col-sm-12">
+        <b>Labels</b>
+      </h4>
       <div class="col-sm-12">
         <map-editor model="command.labels" allow-empty="true"></map-editor>
       </div>

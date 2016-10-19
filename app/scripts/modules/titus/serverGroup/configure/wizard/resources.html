@@ -22,13 +22,14 @@
       </div>
     </div>
     <div class="form-group">
-      <div class="col-md-3 sm-label-right"><b>Network (Mbps)</b></div>
+      <div class="col-md-3 sm-label-right"><b>Network (Mbps)</b><help-field key="titus.deploy.network"></help-field></div>
       <div class="col-md-3">
         <input type="number" class="form-control input-sm" name="cpu" ng-model="command.resources.networkMbps" required/>
       </div>
     </div>
     <div class="form-group">
-      <div class="col-md-3 sm-label-right"><b>Allocate IP?</b></div>
+      <div class="col-md-3 sm-label-right"><b>Allocate IP?</b><help-field key="titus.deploy.allocateIP"></help-field>
+      </div>
       <div class="col-md-5">
         <input type="checkbox" name="allocateIpAddress" ng-model="command.resources.allocateIpAddress" />
       </div>
@@ -37,6 +38,41 @@
       <div class="col-md-3 sm-label-right"><b>Ports</b></div>
       <div class="col-md-5">
         <number-list model="command.resources.ports" label="Port" constraints="{min: 1, max: 65535}"></number-list>
+      </div>
+    </div>
+  </div>
+  <hr/>
+  <div class="form-group">
+    <h4 class="col-sm-12">
+      <b>Elastic File System Options<help-field key="titus.deploy.efs"></help-field></b>
+    </h4>
+    <div class="col-sm-12">
+      <div class="col-md-3 sm-label-right"><b>Mount Permission</b>
+        <help-field key="titus.deploy.mountPermissions"></help-field>
+      </div>
+      <div class="col-md-8">
+        <select class="form-control input-sm"
+                ng-model="command.efs.mountPerm"
+                ng-options="option.value as option.label for option in mountPermOptions">
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-12">
+      <div class="col-md-3 sm-label-right"><b>Mount Point</b>
+        <help-field key="titus.deploy.mountPoint"></help-field>
+      </div>
+      <div class="col-md-8">
+        <input type="text" class="form-control input-sm no-spel" name="mountPoint" ng-model="command.efs.mountPoint"/>
+      </div>
+    </div>
+    <div class="col-sm-12">
+      <div class="col-md-3 sm-label-right"><b>EFS ID</b>
+        <help-field key="titus.deploy.efsId"></help-field>
+      </div>
+      <div class="col-md-8">
+        <input type="text" class="form-control input-sm no-spel" name="efsId" ng-model="command.efs.efsId"/>
+      </div>
+      <div class="col-md-offset-3 col-md-8">
       </div>
     </div>
   </div>

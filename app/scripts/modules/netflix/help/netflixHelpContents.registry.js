@@ -39,7 +39,7 @@ module.exports = angular
       },
       {
         key: 'titus.deploy.securityGroups',
-        contents: 'AWS Security Groups to assign to this service'
+        contents: 'AWS Security Groups to assign to this service. Security groups are set only if <samp>Allocate IP?</samp> has been selected and are assigned to the Titus AWS Elastic Network Interface.'
       },
       {
         key: 'titus.job.securityGroups',
