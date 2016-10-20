@@ -29,14 +29,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import static java.util.Calendar.*
 
-import java.util.concurrent.TimeUnit
-
-import static java.util.Calendar.DAY_OF_MONTH
-import static java.util.Calendar.DAY_OF_WEEK
-import static java.util.Calendar.HOUR_OF_DAY
-import static java.util.Calendar.MINUTE
-import static java.util.Calendar.SECOND
-
 /**
  * A stage that suspends execution of pipeline if the current stage is restricted to run during a time window and
  * current time is within that window.
@@ -44,6 +36,9 @@ import static java.util.Calendar.SECOND
 @Component
 @CompileStatic
 class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
+
+  public static final String TYPE = "restrictExecutionDuringTimeWindow"
+
   @Override
   def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder.withTask("suspendExecutionDuringTimeWindow", SuspendExecutionDuringTimeWindowTask)

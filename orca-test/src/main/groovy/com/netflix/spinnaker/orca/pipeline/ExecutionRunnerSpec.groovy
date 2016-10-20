@@ -40,7 +40,6 @@ import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.REDIRECT
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.getType
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.FULL
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.TaskDefinition
@@ -52,7 +51,7 @@ import static spock.util.matcher.HamcrestSupport.expect
 
 @ContextConfiguration(classes = [
   StageNavigator, WaitForRequisiteCompletionTask, Config,
-  WaitForRequisiteCompletionStage
+  WaitForRequisiteCompletionStage, RestrictExecutionDuringTimeWindow
 ])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specification {
@@ -689,6 +688,37 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     where:
     stageType = "foo"
     execution = Pipeline.builder().withId("1").withStage(stageType).withParallel(true).build()
+  }
+
+  def "wires in a waitForExecutionWindow stage if necessary"() {
+    given:
+    execution.stages[0].requisiteStageRefIds = []
+    executionRepository.retrievePipeline(execution.id) >> execution
+
+    and:
+    def stageDefinitionBuilder = Stub(StageDefinitionBuilder) {
+      getType() >> stageType
+      buildTaskGraph(_) >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("test", TestTask)])
+    }
+    @Subject runner = create(stageDefinitionBuilder)
+
+    and:
+    testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+
+    when:
+    runner.start(execution)
+
+    then:
+    execution.stages.size() == old(execution.stages.size()) + 1
+    execution.stages.first().type == RestrictExecutionDuringTimeWindow.TYPE
+
+    where:
+    stageType = "foo"
+    execution = Pipeline
+      .builder()
+      .withId("1")
+      .withStage(stageType, stageType, [restrictExecutionDuringTimeWindow: true])
+      .withParallel(true).build()
   }
 
   static PipelineStage before(PipelineStage stage) {
