@@ -226,12 +226,12 @@ function attempt_write_kube_credentials() {
         chown spinnaker $config_path
         echo "Successfully wrote kube_config to $config_path"
 
-        return 1
+        return 0
       else
         echo "Failed to write kube_config to $config_path"
         rm $config_path
 
-        return 0
+        return 1
       fi
     fi
   fi
@@ -252,17 +252,17 @@ function attempt_write_kube_credentials() {
       chmod 400 $config_path
       chown spinnaker:spinnaker $config_path
 
-      return 1
+      return 0
     else
       echo "Failed to extract kubernetes credentials to $config_path"
       rm $config_path
 
-      return 0
+      return 1
     fi
   fi
 
   echo "No kubernetes credentials or cluster provided."
-  return 0
+  return 1
 }
 
 function extract_spinnaker_kube_credentials() {
