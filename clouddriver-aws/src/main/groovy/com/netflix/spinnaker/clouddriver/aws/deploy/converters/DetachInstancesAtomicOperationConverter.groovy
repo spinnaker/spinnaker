@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DetachInstancesDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.DetachInstancesAtomicOperation
 import org.springframework.stereotype.Component
 
+@AmazonOperation(AtomicOperations.DETACH_INSTANCES)
 @Component("detachInstancesDescription")
 class DetachInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
