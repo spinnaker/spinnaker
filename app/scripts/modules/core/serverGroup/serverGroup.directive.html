@@ -13,7 +13,7 @@
          sticky-if="headerIsSticky()">
       <div class="container-fluid no-padding">
         <div class="row">
-          <div class="col-md-8 col-sm-6 section-title">
+          <div class="col-md-{{ viewModel.images ? 9 : 8 }} col-sm-6 section-title">
             <input type="checkbox" ng-if="sortFilter.multiselect"
                    ng-checked="multiselectModel.serverGroupIsSelected(serverGroup)"/>
             <cloud-provider-logo provider="viewModel.serverGroup.type" height="16px" width="16px"></cloud-provider-logo>
@@ -30,7 +30,7 @@
               (No build info)
             </span>
           </div>
-          <div class="col-md-4 col-sm-6 text-right">
+          <div class="col-md-{{ viewModel.images ? 3 : 4 }} col-sm-6 text-right">
             <health-counts container="viewModel.serverGroup.instanceCounts"></health-counts>
             <running-tasks-tag
                 ng-if="viewModel.serverGroup.runningTasks.length || viewModel.serverGroup.executions.length"
