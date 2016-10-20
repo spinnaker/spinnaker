@@ -28,7 +28,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.transf
 
           stage.exceptions = _.uniq(stage.exceptions);
 
-          var status = stage.status === 'CANCELED' ? 'CANCELED' : 'UNKNOWN';
+          var status = stage.status;
 
           var canaryStatus = stage.context.canary.status;
           if (canaryStatus && status !== 'CANCELED') {
@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.transf
             }
             canaryStatus.status = status;
           } else {
-            stage.context.canary.status = { status: status };
+            stage.context.canary.status = { status: 'UNKNOWN' };
           }
           stage.status = status;
 
