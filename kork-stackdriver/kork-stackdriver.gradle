@@ -15,8 +15,6 @@
  */
 
 dependencies {
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootDataRest')
   compile spinnaker.dependency('rxJava')
 
   compile spinnaker.dependency('spectatorApi')
