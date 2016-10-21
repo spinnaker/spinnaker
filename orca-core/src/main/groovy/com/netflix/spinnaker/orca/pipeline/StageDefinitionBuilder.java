@@ -97,8 +97,8 @@ public interface StageDefinitionBuilder {
         .stream()
         .filter(it -> {
           Collection<String> requisiteStageRefIds = Optional.ofNullable(it.getRequisiteStageRefIds()).orElse(emptySet());
-          if (it.getContext().containsKey("requisiteIds")) {
-            requisiteStageRefIds.addAll((Collection<? extends String>) it.getContext().get("requisiteIds"));
+          if (it.getContext().get("requisiteIds") != null) {
+            requisiteStageRefIds.addAll((Collection<String>) it.getContext().get("requisiteIds"));
           }
 
           // only want to consider completed child stages
