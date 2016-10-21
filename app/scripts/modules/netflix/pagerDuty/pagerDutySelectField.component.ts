@@ -24,7 +24,7 @@ class PagerDutySelectFieldComponent implements ng.IComponentOptions {
   public controller: ng.IComponentController = PagerDutySelectFieldController;
   public template: string = `
   <div class="form-group row">
-    <div class="col-sm-3 sm-label-right">PagerDuty</div>
+    <div class="col-sm-3 sm-label-right">PagerDuty *</div>
     <div class="col-sm-9">
       <ui-select ng-if="$ctrl.servicesLoaded" ng-model="$ctrl.component.pdApiKey" class="form-control input-sm" required>
         <ui-select-match placeholder="Select a PagerDuty Service">{{$select.selected.name}}</ui-select-match>
