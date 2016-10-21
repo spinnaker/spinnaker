@@ -18,11 +18,12 @@ dependencies {
   compile spinnaker.dependency('rxJava')
 
   compile spinnaker.dependency('spectatorApi')
-  // TODO(ewiseblatt): need to update spinnaker-dependencies first
-  // compile spinnaker.dependency('spectatorWebSpring')
-  compile "com.netflix.spectator:spectator-web-spring:${spinnaker.version('spectator')}"
+  compile spinnaker.dependency('spectatorWebSpring')
 
   compile spinnaker.dependency('googleMonitoring')
+
+  // Force component bringing this in to already support spring boot configure.
+  compileOnly spinnaker.dependency('bootAutoConfigure')
 
   testCompile 'org.mockito:mockito-core:2.+'
   testCompile 'junit:junit:4.+'
