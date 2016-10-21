@@ -497,6 +497,12 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       serverGroup.autoscalingPolicy = autoscaler.getAutoscalingPolicy()
       serverGroup.asg.minSize = serverGroup.autoscalingPolicy.minNumReplicas
       serverGroup.asg.maxSize = serverGroup.autoscalingPolicy.maxNumReplicas
+
+      List<AutoscalerStatusDetails> statusDetails = autoscaler.statusDetails
+
+      if (statusDetails) {
+        serverGroup.autoscalingMessages = statusDetails.collect { it.message }
+      }
     }
   }
 
@@ -520,6 +526,12 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
               serverGroup.autoscalingPolicy = autoscaler.getAutoscalingPolicy()
               serverGroup.asg.minSize = serverGroup.autoscalingPolicy.minNumReplicas
               serverGroup.asg.maxSize = serverGroup.autoscalingPolicy.maxNumReplicas
+
+              List<AutoscalerStatusDetails> statusDetails = autoscaler.statusDetails
+
+              if (statusDetails) {
+                serverGroup.autoscalingMessages = statusDetails.collect { it.message }
+              }
             }
           }
         }

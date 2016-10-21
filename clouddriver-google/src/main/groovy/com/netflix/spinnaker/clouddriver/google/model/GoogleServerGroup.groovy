@@ -54,6 +54,8 @@ class GoogleServerGroup {
   @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
   AutoscalingPolicy autoscalingPolicy
 
+  List<String> autoscalingMessages
+
   @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
   InstanceGroupManagerAutoHealingPolicy autoHealingPolicy
 
@@ -93,6 +95,7 @@ class GoogleServerGroup {
     Boolean discovery = GoogleServerGroup.this.discovery
     InstanceGroupManagerActionsSummary currentActions = GoogleServerGroup.this.currentActions
     AutoscalingPolicy autoscalingPolicy = GoogleServerGroup.this.autoscalingPolicy
+    List<String> autoscalingMessages = GoogleServerGroup.this.autoscalingMessages
     InstanceGroupManagerAutoHealingPolicy autoHealingPolicy = GoogleServerGroup.this.autoHealingPolicy
 
     @Override

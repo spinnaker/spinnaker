@@ -622,6 +622,12 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       serverGroup.autoscalingPolicy = autoscaler.getAutoscalingPolicy()
       serverGroup.asg.minSize = serverGroup.autoscalingPolicy.minNumReplicas
       serverGroup.asg.maxSize = serverGroup.autoscalingPolicy.maxNumReplicas
+
+      List<AutoscalerStatusDetails> statusDetails = autoscaler.statusDetails
+
+      if (statusDetails) {
+        serverGroup.autoscalingMessages = statusDetails.collect { it.message }
+      }
     }
   }
 
@@ -646,6 +652,12 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
               serverGroup.autoscalingPolicy = autoscaler.getAutoscalingPolicy()
               serverGroup.asg.minSize = serverGroup.autoscalingPolicy.minNumReplicas
               serverGroup.asg.maxSize = serverGroup.autoscalingPolicy.maxNumReplicas
+
+              List<AutoscalerStatusDetails> statusDetails = autoscaler.statusDetails
+
+              if (statusDetails) {
+                serverGroup.autoscalingMessages = statusDetails.collect { it.message }
+              }
             }
           }
         }
