@@ -139,6 +139,13 @@
       </dl>
       <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
     </collapsible-section>
+    <collapsible-section heading="Current Actions" ng-if="ctrl.serverGroup.currentActionsSummary">
+      <dl class="dl-horizontal"
+          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dt ng-repeat-start="currentAction in ctrl.serverGroup.currentActionsSummary">{{currentAction.action}}</dt>
+        <dd ng-repeat-end>{{currentAction.count}}</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
       <dl class="dl-horizontal"
           ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"

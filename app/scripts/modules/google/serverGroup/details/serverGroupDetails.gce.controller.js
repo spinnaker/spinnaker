@@ -103,6 +103,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           prepareAvailabilityPolicies();
           prepareAutoHealingPolicy();
           prepareAuthScopes();
+          prepareCurrentActions();
           augmentTagsWithHelp();
         } else {
           autoClose();
@@ -192,6 +193,22 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           this.serverGroup.authScopes = _.map(serviceAccount.scopes, authScope => {
             return authScope.replace('https://www.googleapis.com/auth/', '');
           });
+        }
+      }
+    };
+
+    let prepareCurrentActions = () => {
+      if (this.serverGroup.currentActions) {
+        this.serverGroup.currentActionsSummary = [];
+
+        _.forOwn(this.serverGroup.currentActions, (value, key) => {
+          if (key !== 'none' && value) {
+            this.serverGroup.currentActionsSummary.push({action: _.startCase(key), count: value});
+          }
+        });
+
+        if (!this.serverGroup.currentActionsSummary.length) {
+          delete this.serverGroup.currentActionsSummary;
         }
       }
     };
