@@ -1,7 +1,7 @@
 'use strict';
 
 var HtmlWebpackPlugin = require('html-webpack-plugin');
-var CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
+var webpack = require('webpack');
 var HappyPack = require('happypack');
 var happyThreadPool = HappyPack.ThreadPool({size: 6});
 var path = require('path');
@@ -82,8 +82,14 @@ module.exports = {
     root: nodeModulePath
   },
   plugins: [
-    new CommonsChunkPlugin('vendor', 'vendor.bundle.js'),
-    new CommonsChunkPlugin('init.js'),
+    new webpack.optimize.UglifyJsPlugin({
+      mangle: false,
+      beautify: true,
+      comments: false,
+      sourceMap: false,
+    }),
+    new webpack.optimize.CommonsChunkPlugin('vendor', 'vendor.bundle.js'),
+    new webpack.optimize.CommonsChunkPlugin('init.js'),
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
       template: './app/index.html',
