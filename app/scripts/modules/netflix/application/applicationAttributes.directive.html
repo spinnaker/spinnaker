@@ -9,8 +9,10 @@
           <dd>{{vm.application.attributes.accounts}}</dd>
           <dt>Owner</dt>
           <dd>{{vm.application.attributes.email}}</dd>
-          <dt ng-if="vm.application.attributes.pdApiKey">Pager Duty API Key</dt>
-          <dd ng-if="vm.application.attributes.pdApiKey">{{vm.application.attributes.pdApiKey}}</dd>
+          <dt ng-if="vm.application.attributes.pdApiKey">Pager Duty</dt>
+          <dd ng-if="vm.application.attributes.pdApiKey">
+            <pager-duty-tag api-key="vm.application.attributes.pdApiKey"></pager-duty-tag>
+          </dd>
           <dt ng-if="vm.application.attributes.repoType">Source Repo Type</dt>
           <dd ng-if="vm.application.attributes.repoType">{{vm.application.attributes.repoType}}</dd>
           <dt ng-if="vm.application.attributes.repoProjectKey">Source Repo Project</dt>
