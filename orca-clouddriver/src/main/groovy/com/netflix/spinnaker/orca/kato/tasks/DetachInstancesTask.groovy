@@ -40,7 +40,7 @@ class DetachInstancesTask implements RetryableTask, CloudProviderAware {
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations(getCloudProvider(stage), [[detachInstancesDescription: stage.context]])
+    def taskId = kato.requestOperations(getCloudProvider(stage), [[detachInstances: stage.context]])
       .toBlocking()
       .first()
 
