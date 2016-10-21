@@ -18,20 +18,19 @@ package com.netflix.spinnaker.kork.archaius;
 
 import com.netflix.config.PollResult;
 import com.netflix.config.PolledConfigurationSource;
-import com.netflix.spinnaker.kork.internal.Precondition;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 
 public class SpringEnvironmentPolledConfigurationSource implements PolledConfigurationSource {
 
   private final ConfigurableEnvironment environment;
 
   public SpringEnvironmentPolledConfigurationSource(ConfigurableEnvironment environment) {
-    this.environment = Precondition.notNull(environment, "environment");
+    this.environment = Objects.requireNonNull(environment, "environment");
   }
 
   @Override

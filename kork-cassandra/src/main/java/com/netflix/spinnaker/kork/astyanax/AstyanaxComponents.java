@@ -33,7 +33,6 @@ import com.netflix.spectator.api.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -50,16 +49,13 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 @Configuration
-@EnableConfigurationProperties
+@EnableConfigurationProperties(CassandraConfigurationProperties.class)
 @ConditionalOnExpression("${cassandra.enabled:true}")
 public class AstyanaxComponents {
 
-    @Value("${cassandra.host:127.0.0.1}")
-    String seeds;
-
     @Bean
-    public ExecutorService cassandraAsyncExecutor(@Value("${cassandra.asyncExecutorPoolSize:5}") int asyncPoolSize) {
-      return Executors.newFixedThreadPool(asyncPoolSize,
+    public ExecutorService cassandraAsyncExecutor(CassandraConfigurationProperties cassandraConfigurationProperties) {
+      return Executors.newFixedThreadPool(cassandraConfigurationProperties.getAsyncExecutorPoolSize(),
         new ThreadFactoryBuilder().setDaemon(true)
           .setNameFormat("AstyanaxAsync-%d")
           .build());
@@ -109,8 +105,8 @@ public class AstyanaxComponents {
 
     @Bean
     @ConfigurationProperties("cassandra")
-    public ConnectionPoolConfiguration connectionPoolConfiguration() {
-        return new ConnectionPoolConfigurationImpl("cpConfig").setSeeds(seeds);
+    public ConnectionPoolConfiguration connectionPoolConfiguration(CassandraConfigurationProperties cassandraConfigurationProperties) {
+        return new ConnectionPoolConfigurationImpl("cpConfig").setSeeds(cassandraConfigurationProperties.getHost());
     }
 
     @Bean
@@ -126,10 +122,8 @@ public class AstyanaxComponents {
     @Bean
     @Primary
     @ConditionalOnBean(Keyspace.class)
-    public KeyspaceInitializer embeddedCassandra(@Value("${cassandra.port:9160}") int port,
-                                                 @Value("${cassandra.storagePort:7000}") int storagePort,
-                                                 @Value("${cassandra.host:127.0.0.1}") String host) {
-        return new EmbeddedCassandraRunner(port, storagePort, host);
+    public KeyspaceInitializer embeddedCassandra(CassandraConfigurationProperties cassandraConfigurationProperties) {
+        return new EmbeddedCassandraRunner(cassandraConfigurationProperties.getPort(), cassandraConfigurationProperties.getStoragePort(), cassandraConfigurationProperties.getHost());
     }
 
     @ConditionalOnMissingBean(KeyspaceInitializer.class)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.archaius;
+package com.netflix.spinnaker.kork.metrics;
 
-import java.util.Objects;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-public class DefaultClasspathPropertySource implements ClasspathPropertySource {
-  private final String baseName;
+/**
+ * SpectatorGcLoggingConfiguration.
+ */
+@ConfigurationProperties("spectator.gc")
+public class SpectatorGcLoggingConfiguration {
+  private boolean loggingEnabled = true;
 
-  public DefaultClasspathPropertySource(String baseName) {
-    this.baseName = Objects.requireNonNull(baseName, "baseName");
-  }
+  public boolean isLoggingEnabled() {
+      return loggingEnabled;
+    }
 
-  @Override
-  public String getBaseName() {
-    return baseName;
-  }
+  public void setLoggingEnabled(boolean loggingEnabled) {
+      this.loggingEnabled = loggingEnabled;
+    }
 }

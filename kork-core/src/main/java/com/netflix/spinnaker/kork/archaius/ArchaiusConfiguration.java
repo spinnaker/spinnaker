@@ -20,25 +20,15 @@ import com.netflix.config.AbstractPollingScheduler;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicConfiguration;
 import com.netflix.config.FixedDelayPollingScheduler;
-import com.netflix.spinnaker.kork.internal.Precondition;
-import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.Ordered;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePropertySource;
 
 import javax.annotation.PostConstruct;
@@ -49,12 +39,6 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class ArchaiusConfiguration {
-
-  @Autowired
-  ConfigurableApplicationContext applicationContext;
-
-  @Autowired(required = false)
-  List<ClasspathPropertySource> propertyBindings;
 
   /**
    * This is a BeanPostProcessor to ensure early initialization only.
@@ -67,9 +51,9 @@ public class ArchaiusConfiguration {
     private final DynamicConfiguration configurationInstance;
 
     public ArchaiusInitializingBeanPostProcessor(ConfigurableApplicationContext applicationContext, AbstractPollingScheduler pollingScheduler, SpringEnvironmentPolledConfigurationSource polledConfigurationSource, List<ClasspathPropertySource> propertyBindings) {
-      this.applicationContext = Precondition.notNull(applicationContext, "applicationContext");
-      this.pollingScheduler = Precondition.notNull(pollingScheduler, "pollingScheduler");
-      this.polledConfigurationSource = Precondition.notNull(polledConfigurationSource, "polledConfigurationSource");
+      this.applicationContext = Objects.requireNonNull(applicationContext, "applicationContext");
+      this.pollingScheduler = Objects.requireNonNull(pollingScheduler, "pollingScheduler");
+      this.polledConfigurationSource = Objects.requireNonNull(polledConfigurationSource, "polledConfigurationSource");
       this.propertyBindings = propertyBindings != null ? propertyBindings : Collections.emptyList();
       initPropertyBindings();
 
@@ -140,19 +124,20 @@ public class ArchaiusConfiguration {
   }
 
   @Bean
-  ArchaiusInitializingBeanPostProcessor archaiusInitializingBeanPostProcessor() {
-    return new ArchaiusInitializingBeanPostProcessor(applicationContext, pollingScheduler(), polledConfigurationSource(), propertyBindings);
-  }
-
-  @Bean
-  AbstractPollingScheduler pollingScheduler() {
+  static AbstractPollingScheduler pollingScheduler(ConfigurableApplicationContext applicationContext) {
     int initialDelayMillis = applicationContext.getEnvironment().getProperty(FixedDelayPollingScheduler.INITIAL_DELAY_PROPERTY, Integer.class, 0);
     int delayMillis = applicationContext.getEnvironment().getProperty(FixedDelayPollingScheduler.DELAY_PROPERTY, Integer.class, (int) TimeUnit.SECONDS.toMillis(15));
     return new FixedDelayPollingScheduler(initialDelayMillis, delayMillis, false);
   }
 
   @Bean
-  SpringEnvironmentPolledConfigurationSource polledConfigurationSource() {
+  static SpringEnvironmentPolledConfigurationSource polledConfigurationSource(ConfigurableApplicationContext applicationContext) {
     return new SpringEnvironmentPolledConfigurationSource(applicationContext.getEnvironment());
   }
+
+  @Bean
+  static ArchaiusInitializingBeanPostProcessor archaiusInitializingBeanPostProcessor(ConfigurableApplicationContext applicationContext, Optional<List<ClasspathPropertySource>> propertyBindings, AbstractPollingScheduler pollingScheduler, SpringEnvironmentPolledConfigurationSource polledConfigurationSource) {
+    return new ArchaiusInitializingBeanPostProcessor(applicationContext, pollingScheduler, polledConfigurationSource, propertyBindings.orElse(Collections.emptyList()));
+  }
+
 }

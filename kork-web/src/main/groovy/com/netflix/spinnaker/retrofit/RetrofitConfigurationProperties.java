@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.archaius;
+package com.netflix.spinnaker.retrofit;
 
-import java.util.Objects;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import retrofit.RestAdapter;
 
-public class DefaultClasspathPropertySource implements ClasspathPropertySource {
-  private final String baseName;
+@ConfigurationProperties("retrofit")
+public class RetrofitConfigurationProperties {
+  RestAdapter.LogLevel logLevel = RestAdapter.LogLevel.BASIC;
 
-  public DefaultClasspathPropertySource(String baseName) {
-    this.baseName = Objects.requireNonNull(baseName, "baseName");
+  public RestAdapter.LogLevel getLogLevel() {
+    return logLevel;
   }
 
-  @Override
-  public String getBaseName() {
-    return baseName;
+  public void setLogLevel(RestAdapter.LogLevel logLevel) {
+    this.logLevel = logLevel;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.internal;
+package com.netflix.spinnaker.tomcat.x509;
 
-public class Precondition {
-  public static <T> T notNull(T instance, String name) {
-    if (instance == null) {
-      throw new NullPointerException(name);
-    }
-    return instance;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties("server.ssl")
+public class SslExtensionConfigurationProperties {
+  private String crlFile = null;
+
+  public String getCrlFile() {
+    return crlFile;
+  }
+
+  public void setCrlFile(String crlFile) {
+    this.crlFile = crlFile;
   }
 }

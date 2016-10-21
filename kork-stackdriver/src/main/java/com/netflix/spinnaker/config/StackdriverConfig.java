@@ -22,72 +22,153 @@ import com.netflix.spectator.stackdriver.ConfigParams;
 import com.netflix.spectator.stackdriver.MetricDescriptorCache;
 import com.netflix.spectator.stackdriver.StackdriverWriter;
 
-import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Measurement;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.Spectator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+import org.springframework.core.env.Environment;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 
 @Configuration
-@EnableConfigurationProperties
-@Import({MetricsController.class})
-@ConditionalOnExpression("${spectator.stackdriver.enabled:false}")
-class StackdriverConfig {
+@EnableConfigurationProperties({StackdriverConfig.SpectatorStackdriverConfigurationProperties.class, StackdriverConfig.StackdriverConfigurationHints.class})
+@ConditionalOnProperty("spectator.stackdriver.enabled")
+public class StackdriverConfig {
 
-  @Value("${spectator.applicationName:${spring.application.name}}")
-  private String applicationName;
+  @Bean
+  @ConditionalOnProperty("spectator.webEndpoint.enabled")
+  MetricsController metricsController(Registry registry) {
+    return new MetricsController();
+  }
 
-  @Value("${spectator.stackdriver.credentialsPath:}")
-  private String credentialsPath;
+  @ConfigurationProperties("spectator")
+  public static class SpectatorStackdriverConfigurationProperties {
+    public static class StackdriverProperties {
+      private String credentialsPath = "";
+      private String projectName = "";
+      private boolean uniqueMetricsPerApplication = true;
+      private int period = 60;
 
-  @Value("${spectator.stackdriver.projectName:}")
-  private String projectName;
+      public String getCredentialsPath() {
+        return credentialsPath;
+      }
 
-  @Value("${spectator.stackdriver.uniqueMetricsPerApplication:true}")
-  private boolean uniqueMetricsPerApplication;
+      public void setCredentialsPath(String credentialsPath) {
+        this.credentialsPath = credentialsPath;
+      }
 
-  // If provided, takes precedence over the *Regex filters above.
-  @Value("${spectator.webEndpoint.prototypeFilter.path:}")
-  private String prototypeFilterPath;
+      public String getProjectName() {
+        return projectName;
+      }
 
-  @Value("${spectator.stackdriver.period:60}")
-  private int pushPeriodSecs;
+      public void setProjectName(String projectName) {
+        this.projectName = projectName;
+      }
+
+      public boolean isUniqueMetricsPerApplication() {
+        return uniqueMetricsPerApplication;
+      }
+
+      public void setUniqueMetricsPerApplication(boolean uniqueMetricsPerApplication) {
+        this.uniqueMetricsPerApplication = uniqueMetricsPerApplication;
+      }
+
+      public int getPeriod() {
+        return period;
+      }
+
+      public void setPeriod(int period) {
+        this.period = period;
+      }
+    }
+
+    public static class WebEndpointProperties {
+      public static class PrototypeFilterPath {
+        private String path = "";
+
+        public String getPath() {
+          return path;
+        }
+
+        public void setPath(String path) {
+          this.path = path;
+        }
+      }
+
+      @NestedConfigurationProperty
+      private PrototypeFilterPath prototypeFilter = new PrototypeFilterPath();
+
+      public PrototypeFilterPath getPrototypeFilter() {
+        return prototypeFilter;
+      }
+
+      public void setPrototypeFilter(PrototypeFilterPath prototypeFilter) {
+        this.prototypeFilter = prototypeFilter;
+      }
+    }
+
+    private String applicationName;
+
+    @NestedConfigurationProperty
+    private StackdriverProperties stackdriver = new StackdriverProperties();
+
+    @NestedConfigurationProperty
+    private WebEndpointProperties webEndpoint = new WebEndpointProperties();
+
+    public String getApplicationName(String defaultValue) {
+      if (applicationName == null || applicationName.isEmpty()) {
+        return defaultValue;
+      }
+      return applicationName;
+    }
+
+    public void setApplicationName(String applicationName) {
+      this.applicationName = applicationName;
+    }
+
+    public StackdriverProperties getStackdriver() {
+      return stackdriver;
+    }
+
+    public void setStackdriver(StackdriverProperties stackdriver) {
+      this.stackdriver = stackdriver;
+    }
+
+    public WebEndpointProperties getWebEndpoint() {
+      return webEndpoint;
+    }
+
+    public void setWebEndpoint(WebEndpointProperties webEndpoint) {
+      this.webEndpoint = webEndpoint;
+    }
+  }
 
   private StackdriverWriter stackdriver;
 
-  @Configuration
-  @ConfigurationProperties(prefix="stackdriver")
-  static public class StackdriverConfigurationHints {
+  @ConfigurationProperties("stackdriver")
+  public static class StackdriverConfigurationHints {
     /**
      * This class lets spring load from our YAML file into a Hint instance.
      */
-    static public class MutableHint extends MetricDescriptorCache.CustomDescriptorHint {
+    public static class MutableHint extends MetricDescriptorCache.CustomDescriptorHint {
         public void setLabels(List<String> labels) {
             this.labels = labels;
         }
@@ -104,19 +185,16 @@ class StackdriverConfig {
     public List<MutableHint> getHints() { return hints; }
   };
 
-  @Autowired
-  StackdriverConfigurationHints stackdriverHints;
-
-  @Autowired
-  Registry registry;
-
   /**
    * Schedule a thread to flush our registry into stackdriver periodically.
    *
    * This configures our StackdriverWriter as well.
    */
   @Bean
-  public StackdriverWriter defaultStackdriverWriter() throws IOException {
+  public StackdriverWriter defaultStackdriverWriter(Environment environment,
+                                                    Registry registry,
+                                                    StackdriverConfigurationHints stackdriverHints,
+                                                    SpectatorStackdriverConfigurationProperties spectatorStackdriverConfigurationProperties) throws IOException {
     Logger log = LoggerFactory.getLogger("StackdriverConfig");
     log.info("Creating StackdriverWriter.");
     Predicate<Measurement> filterNotSpring = new Predicate<Measurement>() {
@@ -132,6 +210,8 @@ class StackdriverConfig {
     };
     Predicate<Measurement> measurementFilter;
 
+    final String prototypeFilterPath = spectatorStackdriverConfigurationProperties.getWebEndpoint().getPrototypeFilter().getPath();
+
     if (!prototypeFilterPath.isEmpty()) {
       log.error("Ignoring prototypeFilterPath because it is not yet supported.");
       measurementFilter = null;
@@ -144,11 +224,11 @@ class StackdriverConfig {
 
     ConfigParams params = new ConfigParams.Builder()
         .setCounterStartTime(new Date().getTime())
-        .setUniqueMetricsPerApplication(uniqueMetricsPerApplication)
+        .setUniqueMetricsPerApplication(spectatorStackdriverConfigurationProperties.getStackdriver().isUniqueMetricsPerApplication())
         .setCustomTypeNamespace("spinnaker")
-        .setProjectName(projectName)
-        .setApplicationName(applicationName)
-        .setCredentialsPath(credentialsPath)
+        .setProjectName(spectatorStackdriverConfigurationProperties.getStackdriver().getProjectName())
+        .setApplicationName(spectatorStackdriverConfigurationProperties.getApplicationName(environment.getProperty("spring.application.name")))
+        .setCredentialsPath(spectatorStackdriverConfigurationProperties.getStackdriver().getCredentialsPath())
         .setMeasurementFilter(measurementFilter)
         .build();
 
@@ -164,7 +244,7 @@ class StackdriverConfig {
     }
     Scheduler scheduler = Schedulers.from(Executors.newFixedThreadPool(1));
 
-    Observable.timer(pushPeriodSecs, TimeUnit.SECONDS)
+    Observable.timer(spectatorStackdriverConfigurationProperties.getStackdriver().getPeriod(), TimeUnit.SECONDS)
         .repeat()
         .subscribe(interval -> { stackdriver.writeRegistry(registry); });
 

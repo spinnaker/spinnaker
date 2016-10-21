@@ -22,12 +22,12 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Spectator;
 import com.netflix.spectator.gc.GcLogger;
 import com.netflix.spectator.jvm.Jmx;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.metrics.writer.CompositeMetricWriter;
 import org.springframework.boot.actuate.metrics.writer.MetricWriter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -37,10 +37,8 @@ import java.util.List;
 
 @Configuration
 @ConditionalOnClass(Registry.class)
+@EnableConfigurationProperties(SpectatorGcLoggingConfiguration.class)
 public class SpectatorConfiguration {
-
-  @Value("${spectator.gc.loggingEnabled:true}")
-  boolean jmxLoggingEnabled = true;
 
   @Bean
   @ConditionalOnMissingBean(Registry.class)
@@ -62,8 +60,8 @@ public class SpectatorConfiguration {
   }
 
   @Bean
-  RegistryInitializer registryInitializer(Registry registry) {
-    return new RegistryInitializer(registry, jmxLoggingEnabled);
+  RegistryInitializer registryInitializer(Registry registry, SpectatorGcLoggingConfiguration spectatorConfigurationProperties) {
+    return new RegistryInitializer(registry, spectatorConfigurationProperties.isLoggingEnabled());
   }
 
   private static class RegistryInitializer {

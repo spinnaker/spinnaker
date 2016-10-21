@@ -25,10 +25,9 @@ import org.springframework.web.context.request.RequestAttributes
 @Configuration
 class ErrorConfiguration {
 
-  DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes()
-
   @Bean
   ErrorAttributes errorAttributes() {
+    final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes()
     return new ErrorAttributes() {
 
       @Override

@@ -68,9 +68,10 @@ public class DefaultAstyanaxKeyspaceFactoryTest {
     private static class TestDAKF extends DefaultAstyanaxKeyspaceFactory implements Closeable {
         public final AtomicInteger createCount = new AtomicInteger();
         public final AtomicInteger removeCount = new AtomicInteger();
+        public static final CassandraConfigurationProperties configurationProperties = new CassandraConfigurationProperties();
 
         public TestDAKF(AstyanaxComponents comp) {
-            super(comp.astyanaxConfiguration(comp.cassandraAsyncExecutor(5)), comp.connectionPoolConfiguration(), comp.countingConnectionPoolMonitor(), comp.clusterHostSupplierFactory(), comp.noopKeyspaceInitializer());
+            super(comp.astyanaxConfiguration(comp.cassandraAsyncExecutor(configurationProperties)), comp.connectionPoolConfiguration(configurationProperties), comp.countingConnectionPoolMonitor(), comp.clusterHostSupplierFactory(), comp.noopKeyspaceInitializer());
         }
 
         @Override

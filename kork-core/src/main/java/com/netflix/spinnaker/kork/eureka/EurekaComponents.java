@@ -26,36 +26,21 @@ import com.netflix.eventbus.impl.EventBusImpl;
 import com.netflix.eventbus.spi.EventBus;
 import com.netflix.eventbus.spi.InvalidSubscriberException;
 import com.netflix.eventbus.spi.Subscribe;
-import com.netflix.spinnaker.kork.internal.Precondition;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.HealthAggregator;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.*;
 
 import javax.annotation.PreDestroy;
 import java.util.Map;
+import java.util.Objects;
 
 @Configuration
 @ConditionalOnProperty("eureka.enabled")
+@EnableConfigurationProperties(EurekaConfigurationProperties.class)
 public class EurekaComponents {
-
-  @Autowired
-  HealthAggregator healthAggregator;
-
-  @Autowired
-  Map<String, HealthIndicator> healthIndicators;
-
-  @Autowired
-  ApplicationEventPublisher publisher;
-
-  @Value("${eureka.instance.namespace:netflix.appinfo.}")
-  String appInfoNamespace = "netflix.appinfo.";
-
-  @Value("${eureka.instance.namespace:netflix.discovery.}")
-  String clientConfigNamespace = "netflix.discovery.";
 
   @Bean
   public EventBus eventBus() {
@@ -75,7 +60,7 @@ public class EurekaComponents {
 
   @Bean
   public ApplicationInfoManager applicationInfoManager(EurekaInstanceConfig eurekaInstanceConfig) {
-    return new ApplicationInfoManager(eurekaInstanceConfig);
+    return new ApplicationInfoManager(eurekaInstanceConfig, (ApplicationInfoManager.OptionalArgs) null);
   }
 
   @Bean
@@ -85,14 +70,14 @@ public class EurekaComponents {
 
   @Bean
   @DependsOn("environmentBackedConfig")
-  EurekaInstanceConfig eurekaInstanceConfig() {
-    return new CloudInstanceConfig(fixNamespace(appInfoNamespace));
+  EurekaInstanceConfig eurekaInstanceConfig(EurekaConfigurationProperties eurekaConfigurationProperties) {
+    return new CloudInstanceConfig(eurekaConfigurationProperties.getInstance().getNamespace());
   }
 
   @Bean
   @DependsOn("environmentBackedConfig")
-  EurekaClientConfig eurekaClientConfig() {
-    return new DefaultEurekaClientConfig(fixNamespace(clientConfigNamespace));
+  EurekaClientConfig eurekaClientConfig(EurekaConfigurationProperties eurekaConfigurationProperties) {
+    return new DefaultEurekaClientConfig(eurekaConfigurationProperties.getClient().getNamespace());
   }
 
   @Bean
@@ -104,20 +89,20 @@ public class EurekaComponents {
   }
 
   @Bean
-  EurekaStatusSubscriber eurekaStatusSubscriber(EventBus eventBus, DiscoveryClient discoveryClient) {
+  EurekaStatusSubscriber eurekaStatusSubscriber(EventBus eventBus, DiscoveryClient discoveryClient, ApplicationEventPublisher publisher) {
     return new EurekaStatusSubscriber(publisher, eventBus, discoveryClient);
   }
 
   @Bean
-  HealthCheckHandler healthCheckHandler(ApplicationInfoManager applicationInfoManager) {
+  HealthCheckHandler healthCheckHandler(ApplicationInfoManager applicationInfoManager, HealthAggregator healthAggregator, Map<String, HealthIndicator> healthIndicators) {
     return new BootHealthCheckHandler(applicationInfoManager, healthAggregator, healthIndicators);
   }
 
-  private static class StaticProvider<T> implements com.google.inject.Provider<T> {
+  private static class StaticProvider<T> implements javax.inject.Provider<T> {
     private final T instance;
 
     public StaticProvider(T instance) {
-      this.instance = Precondition.notNull(instance, "instance");
+      this.instance = Objects.requireNonNull(instance, "instance");
     }
 
     @Override
@@ -131,8 +116,8 @@ public class EurekaComponents {
     private final EventBus eventBus;
 
     public EurekaStatusSubscriber(ApplicationEventPublisher publisher, EventBus eventBus, DiscoveryClient discoveryClient) {
-      this.publisher = Precondition.notNull(publisher, "publisher");
-      this.eventBus = Precondition.notNull(eventBus, "eventBus");
+      this.publisher = Objects.requireNonNull(publisher, "publisher");
+      this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
       publish(new StatusChangeEvent(
         InstanceInfo.InstanceStatus.UNKNOWN,
         discoveryClient.getInstanceRemoteStatus()));
@@ -158,7 +143,4 @@ public class EurekaComponents {
     }
   }
 
-  private static String fixNamespace(String namespace) {
-    return namespace.endsWith(".") ? namespace : namespace + ".";
-  }
 }
