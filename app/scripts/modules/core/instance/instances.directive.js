@@ -16,9 +16,14 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
       },
       link: function (scope, elem) {
         var $state = scope.$parent.$state;
-        let tooltipsApplied = false;
+        let tooltipTargets = [];
 
         var base = elem.parent().inheritedData('$uiView').state;
+
+        let removeTooltips = () => {
+          tooltipTargets.forEach(target => $(target).tooltip('destroy'));
+          tooltipTargets.length = 0;
+        };
 
         function renderInstances() {
           scope.activeInstance = null;
@@ -42,10 +47,7 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
             }).join('') + '</div>';
 
           if (innerHtml !== elem.get(0).innerHTML) {
-            if (tooltipsApplied) {
-              $('[data-toggle="tooltip"]', elem).tooltip('destroy');
-              tooltipsApplied = false;
-            }
+            removeTooltips();
             elem.get(0).innerHTML = innerHtml;
           }
         }
@@ -74,11 +76,9 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
         });
 
         elem.mouseover((event) => {
-          if (tooltipsApplied) {
-            $(event.target, elem).tooltip('show');
-          } else {
-            $(event.target, elem).tooltip({placement: 'top', container: 'body', animation: false, selector: '[data-toggle="tooltip"]'}).tooltip('show');
-            tooltipsApplied = true;
+          if (!tooltipTargets.includes(event.target) && event.target.hasAttribute('data-toggle')) {
+            $(event.target).tooltip({animation: false}).tooltip('show');
+            tooltipTargets.push(event.target);
           }
         });
 
@@ -92,10 +92,7 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
         scope.$on('$locationChangeSuccess', clearActiveState);
 
         scope.$on('$destroy', function() {
-          if (tooltipsApplied) {
-            $('[data-toggle="tooltip"]', elem).tooltip('destroy');
-            tooltipsApplied = false;
-          }
+          removeTooltips();
           elem.unbind('mouseover');
           elem.unbind('click');
         });

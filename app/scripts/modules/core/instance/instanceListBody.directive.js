@@ -20,10 +20,15 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         serverGroup: '=',
       },
       link: function (scope, elem) {
-        var tooltipEnabled = false,
+        var tooltipTargets = [],
             renderedMultiselectInstances = [],
             instanceGroup = MultiselectModel.getOrCreateInstanceGroup(scope.serverGroup),
             activeInstance = null;
+
+        let removeTooltips = () => {
+          tooltipTargets.forEach(target => $(target).tooltip('destroy'));
+          tooltipTargets.length = 0;
+        };
 
         function toggleSelection(instanceId) {
           MultiselectModel.toggleInstance(scope.serverGroup, instanceId);
@@ -69,7 +74,6 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
             var icon = (loadBalancer.healthState === 'Up' || loadBalancer.state === 'InService') ? 'Up' : 'Down';
 
             if (tooltip) {
-              tooltipEnabled = true;
               var tooltipAttrs = `data-toggle="tooltip" title="${tooltip}"`;
             }
 
@@ -191,13 +195,8 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
           }).join('');
 
           if (elem.get(0).innerHTML !== newHtml) {
-            if (tooltipEnabled) {
-              $('[data-toggle="tooltip"]', elem).tooltip('destroy');
-            }
+            removeTooltips();
             elem.get(0).innerHTML = newHtml;
-            if (tooltipEnabled) {
-              $('[data-toggle="tooltip"]', elem).tooltip({placement: 'left', container: 'body'});
-            }
           }
         }
 
@@ -231,6 +230,13 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
           });
         });
 
+        elem.mouseover((event) => {
+          if (!tooltipTargets.includes(event.target) && event.target.hasAttribute('data-toggle')) {
+            $(event.target).tooltip({animation: false, placement: 'left'}).tooltip('show');
+            tooltipTargets.push(event.target);
+          }
+        });
+
         function clearActiveState() {
           if (activeInstance && !$state.includes('**.instanceDetails', activeInstance)) {
             $('tr[data-instance-id="' + activeInstance.instanceId + '"]', elem).removeClass('active');
@@ -249,9 +255,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
 
         scope.$on('$destroy', function() {
           multiselectWatcher.unsubscribe();
-          if (tooltipEnabled) {
-            $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
-          }
+          removeTooltips();
           elem.unbind('click');
         });
 
