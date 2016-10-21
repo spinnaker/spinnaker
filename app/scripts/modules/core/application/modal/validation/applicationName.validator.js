@@ -9,7 +9,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.application.applicationName.validator', [
   require('../../../cloudProvider/cloudProvider.registry.js'),
 ])
-  .factory('applicationNameValidator', function(cloudProviderRegistry, $log) {
+  .factory('applicationNameValidator', function(cloudProviderRegistry) {
 
     const providers = Object.create(null);
 
@@ -24,8 +24,6 @@ module.exports = angular.module('spinnaker.core.application.applicationName.vali
           providers[cloudProvider] = [];
         }
         providers[cloudProvider].push(validator);
-      } else {
-        $log.warn('Tried to register an applicationNameValidator for a provider that does not exist: ' + cloudProvider);
       }
     };
 
