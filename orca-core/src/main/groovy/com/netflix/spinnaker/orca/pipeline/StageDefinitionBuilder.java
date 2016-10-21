@@ -24,7 +24,6 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.FULL;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 
 public interface StageDefinitionBuilder {
@@ -96,7 +95,10 @@ public interface StageDefinitionBuilder {
       List<Stage> childStages = stages
         .stream()
         .filter(it -> {
-          Collection<String> requisiteStageRefIds = Optional.ofNullable(it.getRequisiteStageRefIds()).orElse(emptySet());
+          Collection<String> requisiteStageRefIds = it.getRequisiteStageRefIds();
+          if (requisiteStageRefIds == null) {
+            requisiteStageRefIds = new ArrayList<>();
+          }
           if (it.getContext().get("requisiteIds") != null) {
             requisiteStageRefIds.addAll((Collection<String>) it.getContext().get("requisiteIds"));
           }
