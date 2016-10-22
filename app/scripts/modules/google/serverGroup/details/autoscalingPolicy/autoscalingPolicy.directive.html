@@ -21,6 +21,9 @@
     <help-field key="gce.serverGroup.autoscaling.cooldown"></help-field>
   </dt>
   <dd>{{$ctrl.policy.coolDownPeriodSec}} sec</dd>
+  <dt ng-if="$ctrl.serverGroup.autoscalingMessages">Messages</dt>
+  <dd ng-if="$ctrl.serverGroup.autoscalingMessages"
+      ng-repeat="message in $ctrl.serverGroup.autoscalingMessages">{{message}}</dd>
   <action-icons class="text-right"
                 edit="$ctrl.editPolicy()"
                 edit-info="Edit Policy"
