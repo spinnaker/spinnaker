@@ -16,29 +16,61 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import retrofit.http.Body;
 import retrofit.http.Header;
+import retrofit.http.GET;
 import retrofit.http.POST;
+import retrofit.http.Query;
 import rx.Observable;
+
+import java.util.Collection;
 
 public interface OrcaService {
   @POST("/orchestrate")
-  Observable<Response> trigger(@Body Pipeline pipeline);
+  Observable<TriggerResponse> trigger(@Body Pipeline pipeline);
 
   @POST("/orchestrate")
-  Observable<Response> trigger(@Body Pipeline pipeline, @Header(AuthenticatedRequest.SPINNAKER_USER) String runAsUser);
+  Observable<TriggerResponse> trigger(@Body Pipeline pipeline, @Header(AuthenticatedRequest.SPINNAKER_USER) String runAsUser);
 
-  class Response {
+  @GET("/pipelines")
+  Observable<Collection<PipelineResponse>> getLatestPipelineExecutions(@Query("pipelineConfigIds") Collection<String> pipelineIds);
+
+
+  class TriggerResponse {
     private String ref;
 
-    public Response() {
+    public TriggerResponse() {
       // do nothing
     }
 
     public String getRef() {
       return ref;
+    }
+  }
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  class PipelineResponse {
+    private String id;
+    private String pipelineConfigId;
+    private Long startTime;
+
+    public PipelineResponse() {
+      // do nothing
+    }
+
+    public String getId() {
+      return id;
+    }
+
+    public String getPipelineConfigId() {
+      return pipelineConfigId;
+    }
+
+    public Long getStartTime() {
+      return startTime;
     }
   }
 }
