@@ -46,6 +46,7 @@ final class AtomicOperations {
   public static final String ENABLE_INSTANCES_IN_DISCOVERY = "enableInstancesInDiscovery"
   public static final String DISABLE_INSTANCES_IN_DISCOVERY = "disableInstancesInDiscovery"
   public static final String UPDATE_INSTANCES = "updateInstances"
+  public static final String DETACH_INSTANCES = "detachInstances"
 
   // Load Balancer operations
   public static final String DELETE_LOAD_BALANCER = "deleteLoadBalancer"
