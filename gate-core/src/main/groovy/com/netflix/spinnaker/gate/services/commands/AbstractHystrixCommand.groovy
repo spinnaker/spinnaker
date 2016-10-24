@@ -69,9 +69,13 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
     def result = super.execute() as T
     if (result == null && isResponseFromFallback()) {
       def e = getFailedExecutionException()
-      def eMessage = e?.toString() ?: ""
-      log.error("Fallback encountered", e)
-      throw new ThrottledRequestException("No fallback available (group: '${groupKey}', command: '${commandKey}', exception: '${eMessage}')", e)
+      def errorMessage = "Fallback encountered"
+      if (e instanceof RetrofitError) {
+        def retrofitError = (RetrofitError) e
+        errorMessage += " (url: ${retrofitError.url}, type: ${retrofitError.kind}, status: ${retrofitError.response?.status})"
+      }
+      log.error(errorMessage, e)
+      throw new ThrottledRequestException("No fallback available (group: '${groupKey}', command: '${commandKey}', exception: '${e?.toString() ?: ""}')", e)
     }
 
     return result
