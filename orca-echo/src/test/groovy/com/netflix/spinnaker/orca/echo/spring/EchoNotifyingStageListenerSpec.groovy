@@ -17,7 +17,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
   def echoListener = new EchoNotifyingStageListener(echoService)
 
   @Shared
-  def pipelineStage = new PipelineStage(new Pipeline(), "test")
+  def pipelineStage = new PipelineStage(new Pipeline(), "test", "test", [:])
 
   @Shared
   def orchestrationStage = new OrchestrationStage(new Orchestration(), "test")
@@ -117,7 +117,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     message.details.type == "orca:${type}:$echoMessage"
     message.details.type instanceof String
     message.content.standalone == standalone
-    message.content.taskName == taskName
+    message.content.taskName == "${stage.name}.$taskName"
 
     where:
     stage              | taskName   | executionStatus | wasSuccessful || echoMessage || type    || standalone
