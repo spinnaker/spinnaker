@@ -21,7 +21,6 @@ import groovy.transform.Canonical
 
 @Canonical
 class GoogleHealthCheck {
-
   String name
   String requestPath
   int port
@@ -34,7 +33,22 @@ class GoogleHealthCheck {
   int healthyThreshold
 
   /**
-   * Name of the GCP certificate, if HTTPS.
+   * Specifies the GCP endpoint 'family' this health check originated from.
+   *
+   * There are currently three different sets of health check endpoints:
+   * 1. /{project}/httpHealthChecks/{healthCheckname}
+   * 2. /{project}/httpsHealthChecks/{healthCheckname}
+   * 3. /{project}/healthChecks/{healthCheckname}
+   *
+   * Endpoint (3) can return HTTP and HTTPS endpoints, similar to endpoints (1) and (2).
+   * Since we cache health checks from all three endpoints, we need to specify which
+   * endpoint we got the health check from so we don't have key collisions during caching.
+   * That's what this field does.
+   */
+  HealthCheckKind kind
+
+  /**
+   * Name of the GCP certificate, if HTTPS/SSL.
    */
   String certificate
 
@@ -53,6 +67,7 @@ class GoogleHealthCheck {
     int healthyThreshold = GoogleHealthCheck.this.healthyThreshold
     int port = GoogleHealthCheck.this.port
     String requestPath = GoogleHealthCheck.this.requestPath
+    String kind = GoogleHealthCheck.this.kind
 
     String getTarget() {
       GoogleHealthCheck.this.port ?
@@ -68,5 +83,13 @@ class GoogleHealthCheck {
     SSL,
     TCP,
     UDP
+  }
+
+  // Note: This enum has non-standard style constants because we use these constants as strings directly
+  // in the redis cache keys for health checks, where we want to avoid underscores and camelcase is the norm.
+  static enum HealthCheckKind {
+    healthCheck,
+    httpHealthCheck,
+    httpsHealthCheck
   }
 }

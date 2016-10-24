@@ -55,6 +55,16 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
     buildCacheResult(providerCache, httpHealthCheckList)
   }
 
+  /**
+   * There are currently three different sets/families of health check endpoints that we cache:
+   * 1. /{project}/httpHealthChecks/{healthCheckname}
+   * 2. /{project}/httpsHealthChecks/{healthCheckname}
+   * 3. /{project}/healthChecks/{healthCheckname}
+   *
+   * Endpoint (3) can return HTTP and HTTPS endpoints, similar to endpoints (1) and (2).
+   * Hence, we have to differentiate which health checks came from which families. We do that with
+   * 'kind', which denotes the health check family. Check the GoogleHealthCheck class for the actual values for 'kind'.
+   */
   List<GoogleHealthCheck> loadHealthChecks() {
     List<GoogleHealthCheck> ret = []
     def httpHealthChecks = compute.httpHealthChecks().list(project).execute().items as List
@@ -62,6 +72,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
       ret << new GoogleHealthCheck(
         name: hc.getName(),
         healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
+        kind: GoogleHealthCheck.HealthCheckKind.httpHealthCheck,
         port: hc.getPort(),
         requestPath: hc.getRequestPath(),
         checkIntervalSec: hc.getCheckIntervalSec(),
@@ -76,6 +87,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
       ret << new GoogleHealthCheck(
         name: hc.getName(),
         healthCheckType: GoogleHealthCheck.HealthCheckType.HTTPS,
+        kind: GoogleHealthCheck.HealthCheckKind.httpsHealthCheck,
         port: hc.getPort(),
         requestPath: hc.getRequestPath(),
         checkIntervalSec: hc.getCheckIntervalSec(),
@@ -89,20 +101,26 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
     healthChecks.each { HealthCheck hc ->
       def newHC = new GoogleHealthCheck(
         name: hc.getName(),
+        kind: GoogleHealthCheck.HealthCheckKind.healthCheck,
         checkIntervalSec: hc.getCheckIntervalSec(),
         timeoutSec: hc.getTimeoutSec(),
         healthyThreshold: hc.getHealthyThreshold(),
         unhealthyThreshold: hc.getUnhealthyThreshold()
       )
 
+      // Health checks of kind 'healthCheck' are all nested -- the actual health check is contained
+      // in a field inside a wrapper HealthCheck object. The wrapper object specifies the type of nested
+      // health check as a string, and the proper field is populated based on the type.
       switch(hc.getType()) {
         case 'HTTP':
           newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTP
           newHC.port = hc.getHttpHealthCheck().getPort()
+          newHC.requestPath = hc.getHttpHealthCheck().getRequestPath()
           break
         case 'HTTPS':
           newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.HTTPS
           newHC.port = hc.getHttpsHealthCheck().getPort()
+          newHC.requestPath = hc.getHttpsHealthCheck().getRequestPath()
           break
         case 'TCP':
           newHC.healthCheckType = GoogleHealthCheck.HealthCheckType.TCP
@@ -132,7 +150,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
     def cacheResultBuilder = new CacheResultBuilder()
 
     healthCheckList.each { GoogleHealthCheck healthCheck ->
-      def healthCheckKey = Keys.getHealthCheckKey(accountName, healthCheck.getName())
+      def healthCheckKey = Keys.getHealthCheckKey(accountName, healthCheck.kind as String, healthCheck.getName())
 
       cacheResultBuilder.namespace(HEALTH_CHECKS.ns).keep(healthCheckKey).with {
         attributes.healthCheck = healthCheck

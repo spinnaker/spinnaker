@@ -74,7 +74,7 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
       return result + [
           healthCheckLink: backendService.attributes.healthCheckLink as String,
           sessionAffinity: backendService.attributes.sessionAffinity as String,
-          affinityCookieTtlSec: backendService.attributes?.affinityCookieTtlSec as String,
+          affinityCookieTtlSec: backendService.attributes.affinityCookieTtlSec as String,
           region: GCEUtil.getLocalName(backendService.attributes?.region as String)
       ]
     }

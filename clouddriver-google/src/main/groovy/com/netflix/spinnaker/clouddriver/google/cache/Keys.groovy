@@ -89,7 +89,8 @@ class Keys {
       case Namespace.HEALTH_CHECKS.ns:
         result << [
             account: parts[2],
-            name   : parts[3],
+            kind   : parts[3],
+            name   : parts[4],
         ]
         break
       case Namespace.HTTP_HEALTH_CHECKS.ns:
@@ -194,8 +195,9 @@ class Keys {
   }
 
   static String getHealthCheckKey(String account,
+                                  String kind,
                                   String healthCheckName) {
-    "$GoogleCloudProvider.GCE:${Namespace.HEALTH_CHECKS}:${account}:${healthCheckName}"
+    "$GoogleCloudProvider.GCE:${Namespace.HEALTH_CHECKS}:${account}:${kind}:${healthCheckName}"
   }
 
   static String getHttpHealthCheckKey(String account,
