@@ -190,7 +190,8 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     @Override
     void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
       forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-        def newLoadBalancer = new GoogleHttpLoadBalancer(
+        if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != 'targetSslProxies') {
+          def newLoadBalancer = new GoogleHttpLoadBalancer(
             name: forwardingRule.name,
             account: accountName,
             region: 'global',
@@ -200,24 +201,23 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
             portRange: forwardingRule.portRange,
             healths: [],
             hostRules: [],
-        )
-        loadBalancers << newLoadBalancer
+          )
+          loadBalancers << newLoadBalancer
 
-        if (forwardingRule.target) {
           def targetProxyName = Utils.getLocalName(forwardingRule.target)
           def targetProxyCallback = new TargetProxyCallback(
-              googleLoadBalancer: newLoadBalancer,
-              urlMapRequest: urlMapRequest,
-              backendServiceRequest: backendServiceRequest,
-              httpHealthCheckRequest: httpHealthCheckRequest,
-              groupHealthRequest: groupHealthRequest,
+            googleLoadBalancer: newLoadBalancer,
+            urlMapRequest: urlMapRequest,
+            backendServiceRequest: backendServiceRequest,
+            httpHealthCheckRequest: httpHealthCheckRequest,
+            groupHealthRequest: groupHealthRequest,
           )
           def targetHttpsProxyCallback = new TargetHttpsProxyCallback(
-              googleLoadBalancer: newLoadBalancer,
-              urlMapRequest: urlMapRequest,
-              backendServiceRequest: backendServiceRequest,
-              httpHealthCheckRequest: httpHealthCheckRequest,
-              groupHealthRequest: groupHealthRequest,
+            googleLoadBalancer: newLoadBalancer,
+            urlMapRequest: urlMapRequest,
+            backendServiceRequest: backendServiceRequest,
+            httpHealthCheckRequest: httpHealthCheckRequest,
+            groupHealthRequest: groupHealthRequest,
           )
 
           String targetType = Utils.getTargetProxyType(forwardingRule.target)

@@ -20,4 +20,5 @@ enum GoogleLoadBalancerType {
   HTTP,
   INTERNAL,
   NETWORK,
+  SSL
 }

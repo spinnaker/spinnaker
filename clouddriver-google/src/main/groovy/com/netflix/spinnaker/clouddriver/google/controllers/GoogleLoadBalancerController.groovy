@@ -69,6 +69,9 @@ class GoogleLoadBalancerController {
             GoogleInternalLoadBalancer.View ilbView = view as GoogleInternalLoadBalancer.View
             backendServices << ilbView.backendService.name
             break
+          case (GoogleLoadBalancerType.SSL):
+            GoogleSslLoadBalancer.View sslView = view as GoogleSslLoadBalancer.View
+            backendServices << sslView.backendService.name
           default:
             // No backend services to add.
             break
@@ -132,6 +135,10 @@ class GoogleLoadBalancerController {
         def portString = ilbView.ports.join(",")
         instancePort = portString
         loadBalancerPort = portString
+        break
+      case GoogleLoadBalancerType.SSL:
+        instancePort = 'http' // NOTE: This is what occurs in Google Cloud Console, it's not documented and a bit non-sensical.
+        loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
         break
       default:
         throw new IllegalStateException("Load balancer ${view.name} is an unknown load balancer type.")

@@ -111,6 +111,10 @@ class GoogleInfrastructureProviderConfig {
         newlyAddedAgents << new GoogleHttpHealthCheckCachingAgent(googleConfiguration.googleApplicationName(),
                                                                   credentials,
                                                                   objectMapper)
+        newlyAddedAgents << new GoogleSslLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
+                                                                  credentials,
+                                                                  objectMapper,
+                                                                  registry)
         newlyAddedAgents << new GoogleSslCertificateCachingAgent(googleConfiguration.googleApplicationName(),
                                                                  credentials,
                                                                  objectMapper)

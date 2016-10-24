@@ -74,6 +74,9 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
       case GoogleLoadBalancerType.NETWORK:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer)
         break
+      case GoogleLoadBalancerType.SSL:
+        loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleSslLoadBalancer)
+        break
       default:
         loadBalancer = null
         break
