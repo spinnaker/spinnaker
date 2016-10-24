@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.front50.spring
 
+import groovy.transform.CompileDynamic
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -23,8 +25,6 @@ import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import groovy.transform.CompileDynamic
-import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileDynamic
@@ -76,4 +76,8 @@ class DependentPipelineExecutionListener implements ExecutionListener {
     }
   }
 
+  @Override
+  int getOrder() {
+    return HIGHEST_PRECEDENCE
+  }
 }
