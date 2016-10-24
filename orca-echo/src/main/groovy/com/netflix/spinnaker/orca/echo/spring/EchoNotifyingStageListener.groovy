@@ -107,7 +107,7 @@ class EchoNotifyingStageListener implements StageListener {
         ]
       ]
       maybeTask.ifPresent { Task task ->
-        event.content.taskName = task.name
+        event.content.taskName = "${stage.name}.${task.name}"
       }
       echoService.recordEvent(event)
     } catch (Exception e) {
