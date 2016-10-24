@@ -226,7 +226,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
             jp.STR_EQ(self._get_bs_link(pm['defaultService']['name'])),
         'pathRules':  jp.LIST_MATCHES(path_rules_spec)
         }
-      
+
       url_map_clause_builder.contains_match({
           'name': jp.STR_EQ(self.__lb_name),
           'defaultService':
@@ -564,6 +564,37 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
       self.new_post_operation(title='create security group',
+                              data=sec_group_payload, path='tasks'),
+      contract=builder.build()
+    )
+
+  def delete_security_group(self):
+    '''Deletes a security group.
+    '''
+    bindings = self.bindings
+    sec_group_payload = self.agent.make_json_payload_from_kwargs(
+      job=[
+        {
+          'cloudProvider': 'gce',
+          'credentials': bindings['SPINNAKER_GOOGLE_ACCOUNT'],
+          'regions': ['global'],
+          'securityGroupName': self.__lb_name + '-rule',
+          'type': 'deleteSecurityGroup',
+          'user': '[anonymous]'
+        }
+      ],
+      description='Delete a Security Group.',
+      application=self.TEST_APP
+    )
+
+    builder = gcp.GcpContractBuilder(self.gcp_observer)
+    (builder.new_clause_builder('Security Group Deleted',
+                                retryable_for_secs=30)
+     .list_resource('firewalls')
+     .excludes_path_value('name', self.__lb_name + '-rule'))
+
+    return st.OperationContract(
+      self.new_post_operation(title='delete security group',
                               data=sec_group_payload, path='tasks'),
       contract=builder.build()
     )
