@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 import java.util.stream.Stream
 
-public class UpdateableSpec extends Specification{
+public class UpdateableSpec extends Specification {
   static final String ORIGINAL_VALUE = "1"
   static final String GOOD_VALUE = "2"
   static final String SKIP_VALUE = "3"
@@ -35,7 +35,8 @@ public class UpdateableSpec extends Specification{
   void "should update my field name"() {
     when:
     def test = new Test(name: ORIGINAL_VALUE)
-    def res = test.update("name", GOOD_VALUE, String.class)
+    def fieldref = new FieldReference(fieldName: "name", value: GOOD_VALUE, valueType: String.class)
+    def res = test.update(null, fieldref)
 
     then:
     res == []
@@ -45,7 +46,8 @@ public class UpdateableSpec extends Specification{
   void "should not update my field name"() {
     when:
     def test = new Test(name: ORIGINAL_VALUE)
-    def res = test.update("name", BAD_VALUE, String.class)
+    def fieldref = new FieldReference(fieldName: "name", value: BAD_VALUE, valueType: String.class)
+    def res = test.update(null, fieldref)
 
     then:
     res[0].contains(ERROR_MESSAGE)
@@ -55,7 +57,8 @@ public class UpdateableSpec extends Specification{
   void "should update my field name due to skip"() {
     when:
     def test = new Test(name: ORIGINAL_VALUE)
-    def res = test.update("name", SKIP_VALUE, String.class)
+    def fieldref = new FieldReference(fieldName: "name", value: SKIP_VALUE, valueType: String.class)
+    def res = test.update(null, fieldref)
 
     then:
     res == []
@@ -65,7 +68,8 @@ public class UpdateableSpec extends Specification{
   void "should fail to validate my field "() {
     when:
     def test = new Test(name: BAD_VALUE)
-    def res = test.validate("name", String.class)
+    def fieldref = new FieldReference(fieldName: "name", valueType: String.class)
+    def res = test.validate(null, fieldref)
 
     then:
     res[0].contains(ERROR_MESSAGE)
@@ -75,10 +79,12 @@ public class UpdateableSpec extends Specification{
   void "should fail to validate my account"() {
     when:
     def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: BAD_VALUE)
-    def res = test.validate()
+    def halconfig = new Halconfig(halyardVersion: null)
+    def res = test.validate(halconfig)
 
     then:
     res[0].contains(ERROR_MESSAGE)
+    res[1].contains(ERROR_MESSAGE)
     test.name == ORIGINAL_VALUE
     test.duplicateName == BAD_VALUE
   }
@@ -86,7 +92,8 @@ public class UpdateableSpec extends Specification{
   void "should succeed validating my account"() {
     when:
     def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: ORIGINAL_VALUE)
-    def res = test.validate()
+    def halconfig = new Halconfig(halyardVersion: "1.0.0")
+    def res = test.validate(halconfig)
 
     then:
     res == []
@@ -97,7 +104,9 @@ public class UpdateableSpec extends Specification{
   void "should update my account"() {
     when:
     def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: BAD_VALUE)
-    def res = test.update("duplicateName", ORIGINAL_VALUE, String.class)
+    def halconfig = new Halconfig(halyardVersion: "1.0.0")
+    def fieldref = new FieldReference(fieldName: "duplicateName", value: ORIGINAL_VALUE, valueType: String.class)
+    def res = test.update(halconfig, fieldref)
 
     then:
     res == []
@@ -108,10 +117,13 @@ public class UpdateableSpec extends Specification{
   void "should fail to update my account"() {
     when:
     def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: ORIGINAL_VALUE)
-    def res = test.update("duplicateName", BAD_VALUE, String.class)
+    def halconfig = new Halconfig(halyardVersion: null)
+    def fieldref = new FieldReference(fieldName: "duplicateName", value: BAD_VALUE, valueType: String.class)
+    def res = test.update(halconfig, fieldref)
 
     then:
     res[0].contains(ERROR_MESSAGE)
+    res[1].contains(ERROR_MESSAGE)
     test.name == ORIGINAL_VALUE
     test.duplicateName == ORIGINAL_VALUE
   }
@@ -143,7 +155,7 @@ public class TestValidator extends Validator<String> {
   }
 }
 
-@ValidateAccount(validators = [AccountValidator.class])
+@ValidateAccount(validators = [AccountValidator.class, VersionValidator.class])
 public class MyAccount extends Account {
   String duplicateName
 }
@@ -160,6 +172,26 @@ public class AccountValidator extends Validator<MyAccount> {
       return null
     } else {
       return Stream.of(UpdateableSpec.ERROR_MESSAGE)
+    }
+  }
+
+  @Override
+  boolean skip() {
+    return false
+  }
+}
+
+public class VersionValidator extends Validator<MyAccount> {
+  public VersionValidator(Halconfig halconfig, MyAccount subject) {
+    super(halconfig, subject)
+  }
+
+  @Override
+  Stream<String> validate() {
+    if (context.halyardVersion == null) {
+      return Stream.of(UpdateableSpec.ERROR_MESSAGE)
+    } else {
+      return null
     }
   }
 

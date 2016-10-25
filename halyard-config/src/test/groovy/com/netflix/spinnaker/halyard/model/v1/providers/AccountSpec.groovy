@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.model.v1.providers;
+package com.netflix.spinnaker.halyard.model.v1.providers
 
+import com.netflix.spinnaker.halyard.model.v1.FieldReference;
 import spock.lang.Specification;
 
 public class AccountSpec extends Specification {
@@ -26,8 +27,9 @@ public class AccountSpec extends Specification {
 
   void "account name passes validation"() {
     when:
-    def account = new Account(name: ORIGINAL_NAME);
-    def errors = account.update("name", GOOD_NAME, String.class)
+    def account = new Account(name: ORIGINAL_NAME)
+    def fieldref = new FieldReference(fieldName: "name", value: GOOD_NAME, valueType: String.class)
+    def errors = account.update(null, fieldref)
 
     then:
     errors == []
@@ -36,8 +38,9 @@ public class AccountSpec extends Specification {
 
   void "account name fails validation when null"() {
     when:
-    def account = new Account(name: ORIGINAL_NAME);
-    def errors = account.update("name", null, String.class)
+    def account = new Account(name: ORIGINAL_NAME)
+    def fieldref = new FieldReference(fieldName: "name", value: null, valueType: String.class)
+    def errors = account.update(null, fieldref)
 
     then:
     errors[0].contains("null")
@@ -46,8 +49,9 @@ public class AccountSpec extends Specification {
 
   void "account name fails validation with space"() {
     when:
-    def account = new Account(name: ORIGINAL_NAME);
-    def errors = account.update("name", BAD_NAME_SPACE, String.class)
+    def account = new Account(name: ORIGINAL_NAME)
+    def fieldref = new FieldReference(fieldName: "name", value: BAD_NAME_SPACE, valueType: String.class)
+    def errors = account.update(null, fieldref)
 
     then:
     errors[0].contains("Must consist of")
@@ -56,8 +60,9 @@ public class AccountSpec extends Specification {
 
   void "account name fails validation with illegal character"() {
     when:
-    def account = new Account(name: ORIGINAL_NAME);
-    def errors = account.update("name", BAD_NAME_CHARACTER, String.class)
+    def account = new Account(name: ORIGINAL_NAME)
+    def fieldref = new FieldReference(fieldName: "name", value: BAD_NAME_CHARACTER, valueType: String.class)
+    def errors = account.update(null, fieldref)
 
     then:
     errors[0].contains("Must consist of")

@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.halyard.validate.v1;
 
+import com.netflix.spinnaker.halyard.model.v1.FieldReference;
+import com.netflix.spinnaker.halyard.model.v1.Halconfig;
+import com.netflix.spinnaker.halyard.model.v1.Reference;
+
+import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;
 
 /**
@@ -27,6 +32,12 @@ import java.util.stream.Stream;
  */
 public abstract class Validator<T> {
   protected Validator(T subject) {
+    this.context = null;
+    this.subject = subject;
+  }
+
+  protected Validator(Halconfig context, T subject) {
+    this.context = context;
     this.subject = subject;
   }
 
@@ -34,6 +45,12 @@ public abstract class Validator<T> {
    * The value being validated.
    */
   protected final T subject;
+
+  /**
+   * An optional halconfig to user when performing validation. If a validator needs a context to perform validation, it
+   * should implement the constructor that takes `context` as an argument.
+   */
+  protected final Halconfig context;
 
   /**
    *  Describes what this validator is doing.
@@ -51,4 +68,22 @@ public abstract class Validator<T> {
    * When true, this validator won't be run.
    */
   abstract public boolean skip();
+
+  public static Validator construct(Halconfig context, Class<? extends Validator> v, Reference<?> reference)
+      throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    // Attempt to create an instance of the validator providing the context. If such a constructor isn't declared,
+    // we retry using the non-context constructor.
+    try {
+      return v.getDeclaredConstructor(Halconfig.class, reference.getValueType()).newInstance(context, reference.getValue());
+    } catch (IllegalArgumentException e) {
+      return construct(v, reference);
+    } catch (NoSuchMethodException e) {
+      return construct(v, reference);
+    }
+  }
+
+  private static Validator construct(Class<? extends Validator> v, Reference<?> reference)
+      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    return v.getDeclaredConstructor(reference.getValueType()).newInstance(reference.getValue());
+  }
 }

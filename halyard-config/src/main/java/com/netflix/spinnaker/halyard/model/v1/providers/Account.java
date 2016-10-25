@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.halyard.model.v1.providers;
 
+import com.netflix.spinnaker.halyard.model.v1.FieldReference;
+import com.netflix.spinnaker.halyard.model.v1.Halconfig;
+import com.netflix.spinnaker.halyard.model.v1.Reference;
 import com.netflix.spinnaker.halyard.model.v1.Updateable;
 import com.netflix.spinnaker.halyard.validate.v1.ValidateAccount;
 import com.netflix.spinnaker.halyard.validate.v1.ValidateField;
@@ -36,27 +39,20 @@ public class Account implements Cloneable, Updateable {
   @ValidateField(validators = {ValidateAccountName.class})
   String name;
 
-  public List<String> validate() {
-    List<String> errors = new ArrayList<>();
-
+  public List<String> validate(Halconfig context) {
     Account account = this;
     Class aClass = this.getClass();
+    Reference<Account> reference = new Reference<>()
+        .setValue(account)
+        .setValueType(aClass);
 
-    errors.addAll(Arrays.stream(aClass.getDeclaredAnnotations())
+    List<String> errors = applyValidators(Arrays.stream(aClass.getDeclaredAnnotations())
         .filter(c -> c instanceof ValidateAccount)                             // Find all ValidateAccount annotations
         .map(v -> (ValidateAccount) v)
         .map(ValidateAccount::validators)                                      // Pick of the validators
-        .flatMap(Stream::of)                                                   // Flatten the stream of lists
-        .map(v -> {
-          try {
-            return v.getConstructor(this.getClass()).newInstance(this);        // Construct the validators
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }).filter(v -> !v.skip())                                              // Ignore skippable validators
-        .flatMap(Validator::validate)                                          // Run the validators & flatten results
-        .map(s -> String.format("Invalid account \"%s\": %s", account.getName(), s))
-        .collect(Collectors.toList()));
+        .flatMap(Stream::of), context, reference)                              // Flatten the stream of lists
+        .map(s -> String.format("Invalid field \"%s\": %s", account.getName(), s))
+        .collect(Collectors.toList());
 
     return errors;
   }

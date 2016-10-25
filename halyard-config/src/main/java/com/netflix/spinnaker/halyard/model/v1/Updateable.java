@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.halyard.model.v1;
 
-import com.netflix.spinnaker.halyard.model.v1.providers.Account;
-import com.netflix.spinnaker.halyard.validate.v1.ValidateAccount;
 import com.netflix.spinnaker.halyard.validate.v1.ValidateField;
 import com.netflix.spinnaker.halyard.validate.v1.Validator;
 
@@ -40,24 +38,22 @@ public interface Updateable {
   /**
    * Attempts to update field to value, but will be rejected if the validation fails.
    *
-   * @param fieldName Name of the field to be updated.
-   * @param value     The value to update the named field to.
-   * @param valueType The type of value being updated (can't be inferred when value is null).
+   * @param field The Field being updated.
    * @return The list of errors when validation fails ([] when there are no failures and validation has passed).
    * @throws IllegalAccessException
    * @throws NoSuchFieldException
    */
-  default public List<String> update(String fieldName, Object value, Class<?> valueType) throws NoSuchFieldException, IllegalAccessException {
-    Field aField = this.getClass().getDeclaredField(fieldName);
+  default public List<String> update(Halconfig context, FieldReference<?> field) throws NoSuchFieldException, IllegalAccessException {
+    Field aField = this.getClass().getDeclaredField(field.getFieldName());
     aField.setAccessible(true);
     Object oldValue = aField.get(this);
-    aField.set(this, value);
+    aField.set(this, field.getValue());
     aField.setAccessible(false);
 
     List<String> errors = null;
     try {
-      errors = this.validate(fieldName, valueType);
-      errors.addAll(this.validate());
+      errors = this.validate(context, field);
+      errors.addAll(this.validate(context));
     } catch (Exception e) {
       throw e;
     } finally {
@@ -75,35 +71,35 @@ public interface Updateable {
   /**
    * Validate a given field without updating it.
    *
-   * @param fieldName Name of the field to be validated.
-   * @param valueType The type of value being validated (can't be inferred when value is null).
+   * @param field The Field being validated.
    * @return The list of errors when validation fails ([] when there are no failures and validation has passed).
    * @throws IllegalAccessException
    * @throws NoSuchFieldException
    */
-  default public List<String> validate(String fieldName, Class<?> valueType)
+  default public List<String> validate(Halconfig context, FieldReference<?> field)
       throws IllegalAccessException, NoSuchFieldException {
-    Field aField = this.getClass().getDeclaredField(fieldName);
-    aField.setAccessible(true);
-    Object value = aField.get(this);
-    aField.setAccessible(false);
-    List<String> errors = Arrays.stream(aField.getDeclaredAnnotations())
+    Field aField = this.getClass().getDeclaredField(field.getFieldName());
+    List<String> errors = applyValidators(Arrays.stream(aField.getDeclaredAnnotations())
         .filter(c -> c instanceof ValidateField)                               // Find all ValidateField annotations
         .map(v -> (ValidateField) v)
         .map(ValidateField::validators)                                        // Pick of the validators
-        .flatMap(Stream::of)                                                   // Flatten the stream of lists
-        .map(v -> {
-          try {
-            return v.getConstructor(valueType).newInstance(value);             // Construct the validators
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }).filter(v -> !v.skip())                                              // Ignore skippable validators
-        .flatMap(Validator::validate)                                          // Run the validators & flatten results
-        .map(s -> String.format("Invalid field \"%s\": %s", fieldName, s))
+        .flatMap(Stream::of), context, field)                                  // Flatten the stream of lists
+        .map(s -> String.format("Invalid field \"%s\": %s", field.getFieldName(), s))
         .collect(Collectors.toList());
 
     return errors;
+  }
+
+  default Stream<String> applyValidators(Stream<Class<? extends Validator>> validators, Halconfig context, Reference reference) {
+    return validators.map(v -> {
+      try {
+        return Validator.construct(context, v, reference);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    })
+        .filter(v -> !v.skip())                                                // Ignore skippable validators
+        .flatMap(Validator::validate);                                         // Run the validators & flatten results
   }
 
   /**
@@ -113,7 +109,7 @@ public interface Updateable {
    * @throws IllegalAccessException
    * @throws NoSuchFieldException
    */
-  default public List<String> validate() throws IllegalAccessException, NoSuchFieldException {
+  default public List<String> validate(Halconfig context) throws IllegalAccessException, NoSuchFieldException {
     List<String> errors = new ArrayList<>();
 
     return errors;
