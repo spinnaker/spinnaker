@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import java.time.Clock
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
@@ -39,6 +38,9 @@ import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
+
+import java.time.Clock
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.V2_EXECUTION_ENGINE
 
 @RestController
@@ -120,6 +122,24 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTask(@PathVariable String id) {
     executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+  }
+
+  @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
+  List<Pipeline> listLatestPipelines(@RequestParam(value = "pipelineConfigIds") String pipelineConfigIds,
+                                     @RequestParam(value = "statuses", required = false) String statuses) {
+    statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
+    def executionCriteria = new ExecutionRepository.ExecutionCriteria(
+      limit: 1,
+      statuses: (statuses.split(",") as Collection)
+    )
+
+    def ids = pipelineConfigIds.split(',')
+
+    def allPipelines = rx.Observable.merge(ids.collect {
+      executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
+    }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+
+    return filterPipelinesByHistoryCutoff(allPipelines)
   }
 
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
@@ -240,11 +260,15 @@ class TaskController {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
 
+    return filterPipelinesByHistoryCutoff(allPipelines)
+  }
+
+  private List<Pipeline> filterPipelinesByHistoryCutoff(List<Pipeline> pipelines) {
     // TODO-AJ The eventual goal is to return `allPipelines` without the need to group + filter below (WIP)
     def cutoffTime = (new Date(clock.millis()) - daysOfExecutionHistory).time
 
     def pipelinesSatisfyingCutoff = []
-    allPipelines.groupBy { it.pipelineConfigId }.values().each { List<Pipeline> pipelinesGroup ->
+    pipelines.groupBy { it.pipelineConfigId }.values().each { List<Pipeline> pipelinesGroup ->
       def sortedPipelinesGroup = pipelinesGroup.sort(startTimeOrId).reverse()
       def recentPipelines = sortedPipelinesGroup.findAll { !it.startTime || it.startTime > cutoffTime }
       if (!recentPipelines && sortedPipelinesGroup) {

@@ -180,6 +180,42 @@ class TaskControllerSpec extends Specification {
     results.id == ['not-started', 'also-not-started', 'older2', 'older1', 'newer']
   }
 
+  void '/pipelines should only return the latest pipelines for the provided config ids, newest first'() {
+    given:
+    def pipelines = [
+      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minusMillis(1).toEpochMilli(), id: 'old-1'],
+      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plusMillis(1).toEpochMilli(), id: 'newer-1'],
+      [pipelineConfigId: "1", id: 'not-started-1'],
+      [pipelineConfigId: "2", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minusMillis(1).toEpochMilli(), id: 'old-2'],
+      [pipelineConfigId: "2", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plusMillis(1).toEpochMilli(), id: 'newer-2'],
+      [pipelineConfigId: "2", id: 'not-started-2'],
+      [pipelineConfigId: "3", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minusMillis(1).toEpochMilli(), id: 'old-3']
+    ]
+
+    executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
+      it.pipelineConfigId == "1"
+    }.collect {
+      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+    })
+    executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
+      it.pipelineConfigId == "2"
+    }.collect {
+      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+    })
+    executionRepository.retrievePipelinesForPipelineConfigId("3", _) >> rx.Observable.from(pipelines.findAll {
+      it.pipelineConfigId == "3"
+    }.collect {
+      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+    })
+
+    when:
+    def response = mockMvc.perform(get("/pipelines?pipelineConfigIds=1,2")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    results.id == ['not-started-2', 'not-started-1', 'newer-2', 'newer-1']
+  }
+
   void 'should update existing stage context'() {
     given:
     def pipelineStage = new PipelineStage(new Pipeline(), "", [value: "1"])
