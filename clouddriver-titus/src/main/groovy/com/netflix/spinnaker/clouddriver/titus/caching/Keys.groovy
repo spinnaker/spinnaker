@@ -98,11 +98,11 @@ class Keys {
   }
 
   static String getClusterKey(String clusterName, String application, String account) {
-    "${PROVIDER}:${Namespace.CLUSTERS}:${application.toLowerCase()}:${account}:${clusterName}"
+    "${PROVIDER}:${Namespace.CLUSTERS}:${application?.toLowerCase()}:${account}:${clusterName}"
   }
 
   static String getApplicationKey(String application) {
-    "${PROVIDER}:${Namespace.APPLICATIONS}:${application.toLowerCase()}"
+    "${PROVIDER}:${Namespace.APPLICATIONS}:${application?.toLowerCase()}"
   }
 
   static String getInstanceHealthKey(String id, String healthProvider) {
