@@ -118,6 +118,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     message.details.type instanceof String
     message.content.standalone == standalone
     message.content.taskName == "${stage.type}.$taskName"
+    message.content.taskName instanceof String
 
     where:
     stage              | taskName   | executionStatus | wasSuccessful || echoMessage || type    || standalone
