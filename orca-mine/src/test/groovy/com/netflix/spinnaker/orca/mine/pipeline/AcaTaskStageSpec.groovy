@@ -57,6 +57,7 @@ class AcaTaskStageSpec extends Specification {
     result.context.canary.canaryResult == null
     result.context.canary.status == null
     result.context.canary.health == null
+    result.status == ExecutionStatus.NOT_STARTED
 
     and: "reset the tasks"
     stage.tasks.each { task ->
@@ -99,6 +100,7 @@ class AcaTaskStageSpec extends Specification {
     result.context.canary.canaryResult == null
     result.context.canary.status == null
     result.context.canary.health == null
+    result.status == ExecutionStatus.NOT_STARTED
 
     and: "reset the tasks"
     stage.tasks.each { task ->

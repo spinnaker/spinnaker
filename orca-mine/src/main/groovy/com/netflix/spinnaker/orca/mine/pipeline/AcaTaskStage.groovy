@@ -65,6 +65,9 @@ class AcaTaskStage implements StageDefinitionBuilder, CancellableStage, Restarta
       stage.context.canary.remove("canaryResult")
       stage.context.canary.remove("status")
       stage.context.canary.remove("health")
+
+      //Canceling the canary marks the stage as CANCELED preventing it from restarting.
+      stage.setStatus(ExecutionStatus.NOT_STARTED)
     }
 
 
@@ -81,6 +84,7 @@ class AcaTaskStage implements StageDefinitionBuilder, CancellableStage, Restarta
   CancellableStage.Result cancel(Stage stage) {
     log.info("Cancelling stage (stageId: ${stage.id}, executionId: ${stage.execution.id}, context: ${stage.context as Map})")
     def cancelCanaryResults = cancelCanary(stage, "Pipeline execution (${stage.execution?.id}) canceled");
+    log.info("Canceled AcaTaskStage for pipeline: ${stage.execution?.id} with results: ${cancelCanaryResults}")
     return new CancellableStage.Result(stage, ["canary": cancelCanaryResults])
   }
 
