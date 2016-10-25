@@ -126,4 +126,9 @@ public class S3Config {
   public S3SnapshotDAO s3SnapshotDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
     return new S3SnapshotDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(5)), 10000, bucket, rootFolder);
   }
+
+  @Bean
+  public S3EntityTagsDAO s3EntityTagsDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
+    return new S3EntityTagsDAO(objectMapper, amazonS3, null, -1, bucket, rootFolder);
+  }
 }

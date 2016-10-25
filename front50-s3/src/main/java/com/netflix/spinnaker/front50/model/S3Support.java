@@ -69,7 +69,8 @@ public abstract class S3Support<T extends Timestamped> {
 
   @PostConstruct
   void startRefresh() {
-    Observable
+    if (refreshIntervalMs > 0) {
+      Observable
         .timer(refreshIntervalMs, TimeUnit.MILLISECONDS, scheduler)
         .repeat()
         .subscribe(interval -> {
@@ -81,6 +82,7 @@ public abstract class S3Support<T extends Timestamped> {
             log.error("Unable to refresh", e);
           }
         });
+    }
   }
 
   public Collection<T> all() {
@@ -301,7 +303,7 @@ public abstract class S3Support<T extends Timestamped> {
     return rootFolder + id.toLowerCase() + "/" + getMetadataFilename();
   }
 
-  private void writeLastModified() {
+  protected void writeLastModified() {
     try {
       byte[] bytes = objectMapper.writeValueAsBytes(Collections.singletonMap("lastModified", System.currentTimeMillis()));
 
@@ -332,7 +334,7 @@ public abstract class S3Support<T extends Timestamped> {
     }
   }
 
-  private T deserialize(S3Object s3Object) throws IOException {
+  protected T deserialize(S3Object s3Object) throws IOException {
     return objectMapper.readValue(s3Object.getObjectContent(), getSerializedClass());
   }
 
