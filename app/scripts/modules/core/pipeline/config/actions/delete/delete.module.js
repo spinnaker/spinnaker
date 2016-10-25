@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete',
   require('angular-ui-router')
 ])
   .controller('DeletePipelineModalCtrl', function($scope, $uibModalInstance, $log,
-                                                  dirtyPipelineTracker, pipelineConfigService,
+                                                  pipelineConfigService,
                                                   application, pipeline, $state) {
 
     this.cancel = $uibModalInstance.dismiss;
@@ -26,7 +26,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete',
               pipelineConfigService.savePipeline(pipeline);
             }
           });
-          dirtyPipelineTracker.remove(pipeline.name);
           application.pipelineConfigs.refresh();
           $state.go('^.executions', null, {location: 'replace'});
         },

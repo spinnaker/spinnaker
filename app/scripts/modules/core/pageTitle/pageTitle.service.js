@@ -8,8 +8,16 @@ module.exports = angular
   )
   .factory('pageTitleService', function($rootScope, $stateParams) {
 
+    let previousPageTitle = 'Spinnaker';
+
+    function handleRoutingCanceled() {
+      $rootScope.routing = false;
+      $rootScope.pageTitle = previousPageTitle;
+    }
+
     function handleRoutingStart() {
       $rootScope.routing = true;
+      previousPageTitle = $rootScope.pageTitle;
       $rootScope.pageTitle = 'Spinnaker: Loading...';
     }
 
@@ -84,7 +92,8 @@ module.exports = angular
     return {
       handleRoutingStart: handleRoutingStart,
       handleRoutingSuccess: handleRoutingSuccess,
-      handleRoutingError: handleRoutingError
+      handleRoutingError: handleRoutingError,
+      handleRoutingCanceled: handleRoutingCanceled,
     };
 
   })

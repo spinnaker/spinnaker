@@ -179,7 +179,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
 
     $scope.$on('pipeline-reverted', this.selectStage);
     $scope.$on('pipeline-json-edited', this.selectStage);
-    $scope.$on('pipeline-parallel-changed', this.selectStage);
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
   })

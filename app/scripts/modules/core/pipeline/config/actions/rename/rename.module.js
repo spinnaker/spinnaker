@@ -5,11 +5,10 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename', [
-  require('../../services/dirtyPipelineTracker.service.js'),
   require('../../services/pipelineConfigService.js'),
 ])
   .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, $uibModalInstance, $log,
-                                                  dirtyPipelineTracker, pipelineConfigService) {
+                                                  pipelineConfigService) {
 
     this.cancel = $uibModalInstance.dismiss;
 
@@ -29,10 +28,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
       return pipelineConfigService.renamePipeline(application.name, pipeline, currentName, $scope.command.newName).then(
         function() {
           $scope.pipeline.name = $scope.command.newName;
-          if (dirtyPipelineTracker.list().includes(currentName)) {
-            dirtyPipelineTracker.remove(currentName);
-            dirtyPipelineTracker.add(pipeline.name);
-          }
           application.pipelineConfigs.refresh();
           $uibModalInstance.close();
         },
