@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.util.logging.Slf4j
+
 import java.util.concurrent.TimeUnit
 import groovy.transform.CompileStatic
 import com.google.common.annotations.VisibleForTesting
@@ -35,6 +37,7 @@ import static java.util.Calendar.*
  */
 @Component
 @CompileStatic
+@Slf4j
 class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
 
   public static final String TYPE = "restrictExecutionDuringTimeWindow"
@@ -91,7 +94,7 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
         List whitelist = restrictedExecutionWindow.whitelist as List<Map>
         List whitelistWindows = [] as List<TimeWindow>
         List whitelistDays = (restrictedExecutionWindow.days ?: []) as List<Integer>
-
+        log.info("Calculating scheduled time for ${stage.id}; whitelist: ${whitelist}")
         for (Map timeWindow : whitelist) {
           HourMinute start = new HourMinute(timeWindow.startHour as Integer, timeWindow.startMin as Integer)
           HourMinute end = new HourMinute(timeWindow.endHour as Integer, timeWindow.endMin as Integer)
@@ -121,10 +124,11 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
       boolean todayIsValid = true
 
       if (!whitelistDays.empty) {
+        List<Integer> days = whitelistDays.collect { Integer.parseInt(it as String) }
         int daysIncremented = 0
         while (daysIncremented < 7) {
           boolean nextDayFound = false
-          if (whitelistDays.contains(calendar.get(DAY_OF_WEEK))) {
+          if (days.contains(calendar.get(DAY_OF_WEEK))) {
             nextDayFound = true
             todayIsValid = daysIncremented == 0
           }
