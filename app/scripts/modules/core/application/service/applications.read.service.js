@@ -43,19 +43,28 @@ module.exports = angular
     function setDisabledDataSources(application) {
       let allDataSources = application.dataSources;
       if (!application.attributes.dataSources) {
-        allDataSources.filter(ds => ds.optIn).forEach(ds => ds.disabled = true);
+        allDataSources
+          .filter(ds => ds.optIn)
+          .forEach(ds => disableDataSource(ds, allDataSources));
       } else {
         let appDataSources = application.attributes.dataSources;
         allDataSources.forEach(ds => {
           if (ds.optional) {
             if (ds.optIn && !appDataSources.enabled.includes(ds.key)) {
-              ds.disabled = true;
+              disableDataSource(ds, allDataSources);
             }
             if (!ds.optIn && ds.optional && appDataSources.disabled.includes(ds.key)) {
-              ds.disabled = true;
+              disableDataSource(ds, allDataSources);
             }
           }
         });
+      }
+    }
+
+    function disableDataSource(dataSource, allDataSources) {
+      dataSource.disabled = true;
+      if (dataSource.badge) {
+        allDataSources.find(test => test.key === dataSource.badge).disabled = true;
       }
     }
 

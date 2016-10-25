@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.netflix.ci.controller', [
   require('./build.read.service.js'),
   require('angular-ui-router'),
 ])
-  .controller('NetflixCiCtrl', function ($scope, authenticationService, app, buildService, $stateParams, $state) {
+  .controller('NetflixCiCtrl', function ($scope, authenticationService, app, buildService) {
     let attr = app.attributes;
 
     this.viewState = { searchFilter: '', hasAllConfig: [attr.repoType, attr.repoProjectKey, attr.repoSlug].every((attr) => _.trim(attr)) };
@@ -21,9 +21,6 @@ module.exports = angular.module('spinnaker.netflix.ci.controller', [
     this.getBuilds = () => {
       if (!this.viewState.hasAllConfig) { return; }
       buildService.getBuilds(attr.repoType, attr.repoProjectKey, attr.repoSlug, this.viewState.searchFilter).then((response) => {
-        if ($state.includes('**.ci')) {
-          $state.go('.detail.detailTab', { buildId: response[0].id, tab: 'output' }, { location: 'replace' });
-        }
         this.builds = response;
       });
     };

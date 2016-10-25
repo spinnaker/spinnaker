@@ -8,30 +8,22 @@
     <span class="commit-message">{{ ctrl.build.change.to.message }}</span>
   </div>
 </div>
-<div class="row">
-  <div class="col-md-7">
-    <table class="table build-summary">
-      <tbody>
-      <tr>
-        <th>Status</th>
-        <td>
-          <span class="build-status build-status-{{ ctrl.build.completionStatus | lowercase }}">{{ ctrl.build.completionStatus }}</span>
-        </td>
-        <th>Commit</th>
-        <td>{{ ctrl.build.change.to.displayId }}</td>
-        <th>Run</th>
-        <td>{{ ctrl.build.completedAt | relativeTime }}</td>
-      </tr>
-      <tr>
-        <th>Duration</th>
-        <td>{{ ctrl.build.runningTimeInMs | duration }}</td>
-        <th>Author</th>
-        <td>{{ ctrl.build.change.to.author.name }}</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+<dl class="row build-summary">
+  <dt class="col-md-1">Status</dt>
+  <dd class="col-md-2">
+    <span class="build-status build-status-{{ ctrl.build.completionStatus | lowercase }}">{{ ctrl.build.completionStatus }}</span>
+  </dd>
+  <dt class="col-md-1">Commit</dt>
+  <dd class="col-md-2">{{ ctrl.build.change.to.displayId }}</dd>
+  <dt class="col-md-1">Run</dt>
+  <dd class="col-md-2">{{ ctrl.build.completedAt | relativeTime }}</dd>
+</dl>
+<dl class="row build-summary">
+  <dt class="col-md-1">Duration</dt>
+  <dd class="col-md-2">{{ ctrl.build.runningTimeInMs | duration }}</dd>
+  <dt class="col-md-1">Author</dt>
+  <dd class="col-md-2">{{ ctrl.build.change.to.author.name }}</dd>
+</dl>
 
 <div class="row">
   <div class="col-md-12">

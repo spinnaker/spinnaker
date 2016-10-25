@@ -11,7 +11,7 @@
     </div>
   </div>
   <div class="row build-row" ng-class="{ active: $state.params.buildId === b.id }" ng-repeat="b in ctrl.builds">
-    <a ui-sref=".detail({ buildId: b.id })">
+    <a ui-sref=".detail.detailTab({ buildId: b.id, tab: 'output' })">
       <div class="col-md-4">
         <span class="build-status build-status-{{ b.completionStatus | lowercase }}">#{{ b.buildNumber }}</span>
       </div>

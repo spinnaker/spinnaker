@@ -25,6 +25,12 @@ module.exports = angular
       });
     }
 
+    function getRunningBuilds(repoType, projectKey, repoSlug) {
+      return builds().get({repoType: repoType, projectKey: projectKey, repoSlug: repoSlug, completionStatus: 'INCOMPLETE'}).then((response) => {
+        return response.data;
+      });
+    }
+
     function getBuildDetails(buildId) {
       return builds().one(buildId).get().then((response) => {
         transformBuild(response);
@@ -50,6 +56,7 @@ module.exports = angular
 
     return {
       getBuilds: getBuilds,
+      getRunningBuilds: getRunningBuilds,
       getBuildDetails: getBuildDetails,
       getBuildOutput: getBuildOutput,
       getBuildConfig: getBuildConfig,
