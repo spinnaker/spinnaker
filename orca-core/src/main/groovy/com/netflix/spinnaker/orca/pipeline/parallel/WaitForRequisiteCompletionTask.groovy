@@ -76,9 +76,9 @@ class WaitForRequisiteCompletionTask implements RetryableTask {
     }
 
     // we don't want to fail this join point on a STOPPED upstream until all upstreams are in a completed state.
-    //  STOPPED shouldn't fail execution of the pipeline, but is not a legitimate join state
+    //  STOPPED shouldn't fail execution of the pipeline
     if (allRequisiteStagesAreComplete && stoppedStageNames) {
-      throw new IllegalStateException("Requisite stages were stopped: ${stoppedStageNames.join(',')}")
+      return new DefaultTaskResult(STOPPED)
     }
 
     return new DefaultTaskResult(allRequisiteStagesAreComplete ? SUCCEEDED : RUNNING)

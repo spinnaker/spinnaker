@@ -101,29 +101,6 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
     TERMINAL     | TERMINAL        || ["parent", "synthetic"]
   }
 
-  def "should fail with an exception if all requisite stages completed but any were STOPPED"() {
-    given:
-    def pipeline = new Pipeline()
-    pipeline.stages << new PipelineStage(pipeline, "test", "parentA", ["refId": "1"])
-    pipeline.stages << new PipelineStage(pipeline, "test", "parentB", ["refId": "2"])
-
-    pipeline.stages[0].status = parentAStatus
-    pipeline.stages[1].status = parentBStatus
-      pipeline.stages[1].parentStageId = pipeline.stages[0].id
-
-    when:
-    task.execute(new PipelineStage(pipeline, null, [requisiteIds: ["1", "2"]]))
-
-    then:
-    def ex = thrown(IllegalStateException)
-    ex.message == "Requisite ${failureCondition}: ${expectedStageNames.join(",")}".toString()
-
-    where:
-    parentAStatus | parentBStatus | expectedStageNames | failureCondition
-    STOPPED       | SUCCEEDED     | ["parentA"]        | "stages were stopped"
-    TERMINAL      | STOPPED       | ["parentA"]        | "stage failures"
-  }
-
   def "should continue running if a requisite stage is STOPPED but not all stages are complete"() {
     given:
     def pipeline = new Pipeline()
@@ -139,5 +116,40 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
 
     then:
     result.status == RUNNING
+  }
+
+  def "should stop running if a requisite stage is STOPPED all stages are complete"() {
+    given:
+    def pipeline = new Pipeline()
+    pipeline.stages << new PipelineStage(pipeline, "test", "parentA", ["refId": "1"])
+    pipeline.stages << new PipelineStage(pipeline, "test", "parentB", ["refId": "2"])
+
+    pipeline.stages[0].status = STOPPED
+    pipeline.stages[1].status = SUCCEEDED
+    pipeline.stages[1].parentStageId = pipeline.stages[0].id
+
+    when:
+    def result = task.execute(new PipelineStage(pipeline, null, [requisiteIds: ["1", "2"]]))
+
+    then:
+    result.status == STOPPED
+    notThrown(IllegalStateException)
+  }
+
+  def "should fail if a requisite stage is STOPPED but any failed"() {
+    given:
+    def pipeline = new Pipeline()
+    pipeline.stages << new PipelineStage(pipeline, "test", "parentA", ["refId": "1"])
+    pipeline.stages << new PipelineStage(pipeline, "test", "parentB", ["refId": "2"])
+
+    pipeline.stages[0].status = STOPPED
+    pipeline.stages[1].status = TERMINAL
+    pipeline.stages[1].parentStageId = pipeline.stages[0].id
+
+    when:
+    task.execute(new PipelineStage(pipeline, null, [requisiteIds: ["1", "2"]]))
+
+    then:
+    thrown(IllegalStateException)
   }
 }
