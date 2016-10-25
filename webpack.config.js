@@ -82,12 +82,6 @@ module.exports = {
     root: nodeModulePath
   },
   plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      mangle: false,
-      beautify: true,
-      comments: false,
-      sourceMap: false,
-    }),
     new webpack.optimize.CommonsChunkPlugin('vendor', 'vendor.bundle.js'),
     new webpack.optimize.CommonsChunkPlugin('init.js'),
     new HtmlWebpackPlugin({

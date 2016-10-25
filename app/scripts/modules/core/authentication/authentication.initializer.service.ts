@@ -36,7 +36,7 @@ export class AuthenticationInitializer {
   }
 
   private checkForReauthentication(): void {
-    this.$http.get(this.settings.authEndPoint)
+    this.$http.get(this.settings.authEndpoint)
       .then((data: IAuthResponse) => {
         if (data.username) {
           this.authenticationService.setAuthenticatedUser(data.username);
