@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.orca.listeners
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @Slf4j
@@ -33,10 +32,10 @@ class ExecutionPropagationListener implements ExecutionListener {
   }
 
   @Override
-  public void afterExecution(Persister persister,
-                             Execution execution,
-                             ExecutionStatus executionStatus,
-                             boolean wasSuccessful) {
+  void afterExecution(Persister persister,
+                      Execution execution,
+                      ExecutionStatus executionStatus,
+                      boolean wasSuccessful) {
     if (persister.isCanceled(execution.id) && executionStatus != TERMINAL) {
       executionStatus = CANCELED
     }
