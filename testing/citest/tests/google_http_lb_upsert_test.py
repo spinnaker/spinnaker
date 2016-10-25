@@ -78,6 +78,7 @@ class GoogleHttpLoadBalancerTest(st.AgentTestCase):
     bindings = runner.bindings
     cls.FIRST_CERT = 'first-cert-%s' % (bindings['TEST_APP'])
     cls.SECOND_CERT = 'second-cert-%s'  % (bindings['TEST_APP'])
+    cls.UPDATED_HC = 'updated-%s' % (bindings['TEST_APP'])
     runner = citest.base.TestRunner.global_runner()
     bindings = runner.bindings
     scenario = runner.get_shared_data(GoogleHttpLoadBalancerTestScenario)
@@ -131,6 +132,12 @@ class GoogleHttpLoadBalancerTest(st.AgentTestCase):
                                   resource_type='sslCertificates',
                                   project=bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
                                   sslCertificate=cls.SECOND_CERT)
+    # Delete the orphaned, updated health check.
+    compute_agent.invoke_resource(context,
+                                  'delete',
+                                  resource_type='httpHealthChecks',
+                                  project=bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
+                                  httpHealthCheck=cls.UPDATED_HC)
 
 
   @property
@@ -176,6 +183,9 @@ class GoogleHttpLoadBalancerTest(st.AgentTestCase):
 
   def test_o_delete_lb(self):
     self.run_test_case(self.scenario.delete_http_load_balancer())
+
+  def test_p_delete_security_group(self):
+    self.run_test_case(self.scenario.delete_security_group())
 
 
 def main():
