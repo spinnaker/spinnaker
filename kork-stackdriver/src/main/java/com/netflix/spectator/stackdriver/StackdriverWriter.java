@@ -399,7 +399,7 @@ public class StackdriverWriter {
    * Produce a TimeSeries for each appropriate measurement in the registry.
    */
   public List<TimeSeries> registryToTimeSeries(Registry registry) {
-    log.info("Collecting metrics...");
+    log.debug("Collecting metrics...");
     ArrayList<TimeSeries> tsList = new ArrayList<TimeSeries>();
     Iterator<Meter> iterator = registry.iterator();
 
@@ -464,7 +464,7 @@ public class StackdriverWriter {
     }
     List<TimeSeries> tsList = registryToTimeSeries(registry);
     if (tsList.isEmpty()) {
-       log.info("No metric data points.");
+       log.debug("No metric data points.");
        return;
     }
 
@@ -473,7 +473,7 @@ public class StackdriverWriter {
     int failed = 0;
     List<TimeSeries> nextN;
 
-    log.info("Writing metrics...");
+    log.debug("Writing metrics...");
     while (offset < tsList.size()) {
       if (offset + MAX_TS_PER_REQUEST < tsList.size()) {
         nextN = tsList.subList(offset, offset + MAX_TS_PER_REQUEST);
@@ -484,7 +484,6 @@ public class StackdriverWriter {
       }
       tsRequest.setTimeSeries(nextN);
       try {
-        log.debug("Writing {} points.", nextN.size());
         service.projects().timeSeries().create(projectResourceName, tsRequest)
                .execute();
       } catch (HttpResponseException rex) {
@@ -495,6 +494,6 @@ public class StackdriverWriter {
         failed += nextN.size();
       }
     }
-    log.info("Wrote {} values", tsList.size() - failed);
+    log.debug("Wrote {} values", tsList.size() - failed);
   }
 }
