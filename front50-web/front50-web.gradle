@@ -66,6 +66,7 @@ dependencies {
   compile "org.springframework.security:spring-security-web:3.2.9.RELEASE"
 
   compile spinnaker.dependency("korkWeb")
+  compile spinnaker.dependency("korkStackdriver")
   compile spinnaker.dependency("korkSwagger")
   compile spinnaker.dependency("kork")
 
