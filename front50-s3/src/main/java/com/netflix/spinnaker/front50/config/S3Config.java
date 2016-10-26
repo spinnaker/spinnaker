@@ -9,9 +9,28 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.awsobjectmapper.AmazonObjectMapper;
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.front50.model.*;
+import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
+import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
+import com.netflix.spinnaker.front50.model.application.DefaultApplicationDAO;
+import com.netflix.spinnaker.front50.model.application.DefaultApplicationPermissionDAO;
+import com.netflix.spinnaker.front50.model.notification.DefaultNotificationDAO;
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO;
+import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO;
+import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineStrategyDAO;
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO;
+import com.netflix.spinnaker.front50.model.project.DefaultProjectDAO;
+import com.netflix.spinnaker.front50.model.project.ProjectDAO;
+import com.netflix.spinnaker.front50.model.serviceaccount.DefaultServiceAccountDAO;
+import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
+import com.netflix.spinnaker.front50.model.snapshot.DefaultSnapshotDAO;
+import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
+import com.netflix.spinnaker.front50.model.tag.DefaultEntityTagsDAO;
+import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -62,17 +81,17 @@ public class S3Config {
         clientConfiguration.setProtocol(Protocol.HTTP);
       }
       Optional.ofNullable(proxyHost)
-              .ifPresent(clientConfiguration::setProxyHost);
+        .ifPresent(clientConfiguration::setProxyHost);
       Optional.ofNullable(proxyPort)
-              .map(Integer::parseInt)
-              .ifPresent(clientConfiguration::setProxyPort);
+        .map(Integer::parseInt)
+        .ifPresent(clientConfiguration::setProxyPort);
     }
 
     AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
     Optional.ofNullable(s3Region)
-            .map(Regions::fromName)
-            .map(Region::getRegion)
-            .ifPresent(client::setRegion);
+      .map(Regions::fromName)
+      .map(Region::getRegion)
+      .ifPresent(client::setRegion);
     return client;
   }
 
@@ -83,52 +102,55 @@ public class S3Config {
   }
 
   @Bean
-  public ObjectMapper amazonObjectMapper() {
-    return new AmazonObjectMapper();
+  public S3StorageService s3StorageService(AmazonS3 amazonS3) {
+    ObjectMapper awsObjectMapper = new ObjectMapper();
+    AmazonObjectMapperConfigurer.configure(awsObjectMapper);
+
+    return new S3StorageService(awsObjectMapper, amazonS3, bucket, rootFolder);
   }
 
   @Bean
-  public S3ApplicationDAO s3ApplicationDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3ApplicationDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(20)), 15000, bucket, rootFolder);
+  public ApplicationDAO applicationDAO(StorageService storageService) {
+    return new DefaultApplicationDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 15000);
   }
 
   @Bean
-  public S3ApplicationPermissionDAO s3ApplicationPermissionDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3ApplicationPermissionDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(20)), 15000, bucket, rootFolder);
+  public ApplicationPermissionDAO applicationPermissionDAO(StorageService storageService) {
+    return new DefaultApplicationPermissionDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(1)), 45000);
   }
 
   @Bean
-  public S3ServiceAccountDAO s3ServiceAccountDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3ServiceAccountDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(5)), 30000, bucket, rootFolder);
+  public ServiceAccountDAO serviceAccountDAO(StorageService storageService) {
+    return new DefaultServiceAccountDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(1)), 30000);
   }
 
   @Bean
-  public S3ProjectDAO s3ProjectDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3ProjectDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(10)), 30000, bucket, rootFolder);
+  public ProjectDAO projectDAO(StorageService storageService) {
+    return new DefaultProjectDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(2)), 30000);
   }
 
   @Bean
-  public S3NotificationDAO s3NotificationDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3NotificationDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(5)), 30000, bucket, rootFolder);
+  public NotificationDAO notificationDAO(StorageService storageService) {
+    return new DefaultNotificationDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(5)), 30000);
   }
 
   @Bean
-  public S3PipelineStrategyDAO s3PipelineStrategyDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3PipelineStrategyDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(5)), 20000, bucket, rootFolder);
+  public PipelineStrategyDAO pipelineStrategyDAO(StorageService storageService) {
+    return new DefaultPipelineStrategyDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(5)), 20000);
   }
 
   @Bean
-  public S3PipelineDAO s3PipelineDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3PipelineDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(25)), 10000, bucket, rootFolder);
+  public PipelineDAO pipelineDAO(StorageService storageService) {
+    return new DefaultPipelineDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(25)), 10000);
   }
 
   @Bean
-  public S3SnapshotDAO s3SnapshotDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3SnapshotDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(5)), 10000, bucket, rootFolder);
+  public SnapshotDAO snapshotDAO(StorageService storageService) {
+    return new DefaultSnapshotDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(1)), 60000);
   }
 
   @Bean
-  public S3EntityTagsDAO s3EntityTagsDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3EntityTagsDAO(objectMapper, amazonS3, null, -1, bucket, rootFolder);
+  public EntityTagsDAO entityTagsDAO(StorageService storageService) {
+    return new DefaultEntityTagsDAO(storageService, null, -1);
   }
 }

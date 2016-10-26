@@ -20,7 +20,8 @@ package com.netflix.spinnaker.front50.controllers
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.front50.model.S3NotificationDAO
+import com.netflix.spinnaker.front50.model.S3StorageService
+import com.netflix.spinnaker.front50.model.notification.DefaultNotificationDAO
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
 import com.netflix.spinnaker.front50.model.notification.Notification
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO
@@ -188,7 +189,7 @@ class S3NotificationControllerTck extends NotificationControllerTck {
   def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
 
   @Shared
-  S3NotificationDAO s3NotificationDAO
+  NotificationDAO notificationDAO
 
   @Override
   NotificationDAO createNotificationDAO() {
@@ -196,7 +197,9 @@ class S3NotificationControllerTck extends NotificationControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    s3NotificationDAO = new S3NotificationDAO(new ObjectMapper(), amazonS3, scheduler, 0, "front50", "test")
-    return s3NotificationDAO
+    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test")
+    notificationDAO = new DefaultNotificationDAO(storageService, scheduler, 0)
+
+    return notificationDAO
   }
 }

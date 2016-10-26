@@ -19,12 +19,28 @@ package com.netflix.spinnaker.front50.config
 import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
+import com.netflix.spinnaker.front50.model.StorageService
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
+import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
+import com.netflix.spinnaker.front50.model.application.DefaultApplicationDAO
+import com.netflix.spinnaker.front50.model.application.DefaultApplicationPermissionDAO
+import com.netflix.spinnaker.front50.model.notification.DefaultNotificationDAO
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO
+import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
+import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineStrategyDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
+import com.netflix.spinnaker.front50.model.project.DefaultProjectDAO
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
+import com.netflix.spinnaker.front50.model.serviceaccount.DefaultServiceAccountDAO
+import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
+import com.netflix.spinnaker.front50.model.snapshot.DefaultSnapshotDAO
+import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO
+import com.netflix.spinnaker.front50.model.tag.DefaultEntityTagsDAO
+import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.context.embedded.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -38,6 +54,9 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
+import rx.schedulers.Schedulers
+
+import java.util.concurrent.Executors
 
 @Configuration
 @ComponentScan

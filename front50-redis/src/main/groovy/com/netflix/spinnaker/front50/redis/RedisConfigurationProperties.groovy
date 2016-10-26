@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":front50-cassandra")
-  compile project(":front50-s3")
 
-  compile spinnaker.dependency('groovy')
-  compile spinnaker.dependency('spock')
+package com.netflix.spinnaker.front50.redis
+
+import groovy.transform.Canonical
+import org.springframework.boot.context.properties.ConfigurationProperties
+
+@Canonical
+@ConfigurationProperties("spinnaker.redis")
+class RedisConfigurationProperties {
+  String host = "localhost"
+  int port = 6379
 }

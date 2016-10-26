@@ -21,10 +21,11 @@ import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.exception.NotFoundException
-import com.netflix.spinnaker.front50.model.S3ApplicationDAO
+import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.CassandraApplicationDAO
+import com.netflix.spinnaker.front50.model.application.DefaultApplicationDAO
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
@@ -385,7 +386,7 @@ class S3ApplicationsControllerTck extends ApplicationsControllerTck {
   def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
 
   @Shared
-  S3ApplicationDAO s3ApplicationDAO
+  DefaultApplicationDAO applicationDAO
 
   @Override
   ApplicationDAO createApplicationDAO() {
@@ -393,8 +394,9 @@ class S3ApplicationsControllerTck extends ApplicationsControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    s3ApplicationDAO = new S3ApplicationDAO(new ObjectMapper(), amazonS3, scheduler, 0, "front50", "test")
-    return s3ApplicationDAO
+    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test")
+    applicationDAO = new DefaultApplicationDAO(storageService, scheduler, 0)
+    return applicationDAO
   }
 }
 

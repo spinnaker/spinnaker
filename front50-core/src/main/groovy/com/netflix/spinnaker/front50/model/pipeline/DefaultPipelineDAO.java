@@ -14,38 +14,35 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.model;
+package com.netflix.spinnaker.front50.model.pipeline;
+
+import com.netflix.spinnaker.front50.exception.NotFoundException;
+import com.netflix.spinnaker.front50.model.ObjectType;
+import com.netflix.spinnaker.front50.model.StorageService;
+import com.netflix.spinnaker.front50.model.StorageServiceSupport;
+import org.springframework.util.Assert;
+import rx.Scheduler;
 
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import com.amazonaws.services.s3.AmazonS3;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.front50.exception.NotFoundException;
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
-import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
-import org.springframework.util.Assert;
-import rx.Scheduler;
 
-public class S3PipelineDAO extends S3Support<Pipeline> implements PipelineDAO {
-  public S3PipelineDAO(ObjectMapper objectMapper,
-                       AmazonS3 amazonS3,
-                       Scheduler scheduler,
-                       int refreshIntervalMs,
-                       String bucket,
-                       String rootFolder) {
-    super(objectMapper, amazonS3, scheduler, refreshIntervalMs, bucket, (rootFolder + "/pipelines/").replaceAll("//", "/"));
+public class DefaultPipelineDAO extends StorageServiceSupport<Pipeline> implements PipelineDAO {
+  public DefaultPipelineDAO(StorageService service,
+                            Scheduler scheduler,
+                            int refreshIntervalMs) {
+    super(ObjectType.PIPELINE, service, scheduler, refreshIntervalMs);
   }
 
   @Override
   public String getPipelineId(String application, String pipelineName) {
     Pipeline matched = getPipelinesByApplication(application)
-        .stream()
-        .filter(pipeline -> pipeline.getName().equalsIgnoreCase(pipelineName))
-        .findFirst()
-        .orElseThrow(() -> new NotFoundException(
-            String.format("No pipeline found with name '%s' in application '%s'", pipelineName, application)
-        ));
+      .stream()
+      .filter(pipeline -> pipeline.getName().equalsIgnoreCase(pipelineName))
+      .findFirst()
+      .orElseThrow(() -> new NotFoundException(
+        String.format("No pipeline found with name '%s' in application '%s'", pipelineName, application)
+      ));
 
     return matched.getId();
   }
@@ -53,9 +50,9 @@ public class S3PipelineDAO extends S3Support<Pipeline> implements PipelineDAO {
   @Override
   public Collection<Pipeline> getPipelinesByApplication(String application) {
     return all()
-        .stream()
-        .filter(pipeline -> pipeline.getApplication() != null && pipeline.getApplication().equalsIgnoreCase(application))
-        .collect(Collectors.toList());
+      .stream()
+      .filter(pipeline -> pipeline.getApplication() != null && pipeline.getApplication().equalsIgnoreCase(application))
+      .collect(Collectors.toList());
   }
 
   @Override
@@ -75,15 +72,5 @@ public class S3PipelineDAO extends S3Support<Pipeline> implements PipelineDAO {
 
     update(id, item);
     return findById(id);
-  }
-
-  @Override
-  public String getMetadataFilename() {
-    return "pipeline-metadata.json";
-  }
-
-  @Override
-  Class<Pipeline> getSerializedClass() {
-    return Pipeline.class;
   }
 }

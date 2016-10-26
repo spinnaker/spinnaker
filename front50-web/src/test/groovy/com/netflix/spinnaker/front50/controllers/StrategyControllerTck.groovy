@@ -20,7 +20,8 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
-import com.netflix.spinnaker.front50.model.S3PipelineStrategyDAO
+import com.netflix.spinnaker.front50.model.S3StorageService
+import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineStrategyDAO
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import com.netflix.spinnaker.front50.pipeline.StrategyRepository
@@ -215,7 +216,7 @@ class S3StrategyControllerTck extends StrategyControllerTck {
   def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
 
   @Shared
-  S3PipelineStrategyDAO s3PipelineStrategyDAO
+  PipelineStrategyDAO pipelineStrategyDAO
 
   @Override
   PipelineStrategyDAO createPipelineStrategyDAO() {
@@ -223,7 +224,9 @@ class S3StrategyControllerTck extends StrategyControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    s3PipelineStrategyDAO = new S3PipelineStrategyDAO(new ObjectMapper(), amazonS3, scheduler, 0, "front50", "test")
-    return s3PipelineStrategyDAO
+    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test")
+    pipelineStrategyDAO = new DefaultPipelineStrategyDAO(storageService, scheduler, 0)
+
+    return pipelineStrategyDAO
   }
 }
