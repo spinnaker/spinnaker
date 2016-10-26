@@ -1,6 +1,7 @@
 'use strict';
 
 let angular = require('angular');
+import {GCE_HEALTH_CHECK_READER} from '../healthCheck/healthCheck.read.service';
 
 module.exports = angular.module('spinnaker.gce.cache.initializer', [
   require('../backendService/backendService.reader.js'),
@@ -10,12 +11,13 @@ module.exports = angular.module('spinnaker.gce.cache.initializer', [
   require('core/network/network.read.service.js'),
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/subnet/subnet.read.service.js'),
+  GCE_HEALTH_CHECK_READER,
   require('../httpHealthCheck/httpHealthCheck.reader.js'),
 ])
   .factory('gceCacheConfigurer', function (accountService, gceBackendServiceReader,
-                                           gceCertificateReader, gceHttpHealthCheckReader,
-                                           instanceTypeService, loadBalancerReader,
-                                           networkReader, subnetReader) {
+                                           gceCertificateReader, gceHealthCheckReader,
+                                           gceHttpHealthCheckReader, instanceTypeService,
+                                           loadBalancerReader, networkReader, subnetReader) {
 
     let config = Object.create(null);
 
@@ -29,6 +31,10 @@ module.exports = angular.module('spinnaker.gce.cache.initializer', [
 
     config.credentials = {
       initializers: [ () => accountService.getCredentialsKeyedByAccount('gce') ],
+    };
+
+    config.healthChecks = {
+      initializers: [ () => gceHealthCheckReader.listHealthChecks() ],
     };
 
     config.httpHealthChecks = {

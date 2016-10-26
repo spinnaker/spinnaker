@@ -1,0 +1,32 @@
+<div class="container-fluid form-horizontal">
+  <ng-form name="listenerForm">
+    <div class="form-group">
+      <div class="col-md-12">
+        <table class="table table-condensed packed">
+          <thead>
+            <tr>
+              <th>Protocol</th>
+              <th>Subnet</th>
+              <th>Ports<help-field key="gce.internalLoadBalancer.ports"></help-field></th>
+            </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>
+              <select ng-disabled="!ctrl.isNew" class="form-control input-sm"
+                      ng-change="ctrl.onProtocolChange()"
+                      ng-model="ctrl.loadBalancer.ipProtocol"
+                      ng-options="protocol for protocol in ['TCP', 'UDP']"></select>
+            </td>
+
+            <td><input readonly class="form-control input-sm" ng-model="ctrl.loadBalancer.subnet" /></td>
+
+            <td><input class="form-control input-sm"
+                       required ng-model="ctrl.loadBalancer.ports"/></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-form>
+</div>

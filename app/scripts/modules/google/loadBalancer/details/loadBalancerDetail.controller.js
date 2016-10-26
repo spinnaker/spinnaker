@@ -137,8 +137,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     });
 
     this.editLoadBalancer = function editLoadBalancer() {
-      let lbType = elSevenUtils.isElSeven($scope.loadBalancer) ? 'HTTP(S)' : 'Network';
-      let wizard = loadBalancerTypeToWizardMap[lbType];
+      let wizard = loadBalancerTypeToWizardMap[$scope.loadBalancer.loadBalancerType];
 
       $uibModal.open({
         templateUrl: wizard.editTemplateUrl,

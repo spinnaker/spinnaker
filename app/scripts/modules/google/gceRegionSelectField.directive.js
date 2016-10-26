@@ -16,6 +16,7 @@ module.exports = angular.module('spinnaker.google.regionSelectField.directive', 
         onChange: '&',
         labelColumns: '@',
         readOnly: '=',
+        fieldColumns: '@',
       }
     };
 });

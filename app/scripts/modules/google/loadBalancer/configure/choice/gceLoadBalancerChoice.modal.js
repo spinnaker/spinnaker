@@ -1,6 +1,7 @@
 'use strict';
 
 let angular = require('angular');
+import _ from 'lodash';
 
 module.exports = angular.module('spinnaker.deck.gce.loadBalancerChoice.modal.controller', [
     require('./loadBalancerTypeToWizardMap.constant.js')
@@ -8,11 +9,11 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancerChoice.modal.con
   .controller('gceLoadBalancerChoiceCtrl', function ($uibModal, $uibModalInstance,
                                                      application, loadBalancerTypeToWizardMap) {
     this.app = application;
-    this.choices = Object.keys(loadBalancerTypeToWizardMap);
+    this.choices = _.map(loadBalancerTypeToWizardMap, (wizardConfig) => wizardConfig.label);
     this.choice = 'Network';
 
     this.choose = (choice) => {
-      let wizard = loadBalancerTypeToWizardMap[choice];
+      let wizard = _.find(loadBalancerTypeToWizardMap, (wizardConfig) => wizardConfig.label === choice);
       $uibModalInstance.dismiss();
       $uibModal.open({
         templateUrl: wizard.createTemplateUrl,

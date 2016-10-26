@@ -1,0 +1,14 @@
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-4 sm-label-right">Session Affinity</div>
+    <div class="col-md-4">
+      <select class="form-control input-sm"
+              ng-disabled="ctrl.loadBalancer.ipProtocol === 'UDP'"
+              ng-model="ctrl.viewState.sessionAffinity"
+              ng-change="ctrl.setSessionAffinity(ctrl.viewState)"
+              ng-options="protocol for protocol
+                          in ['None', 'Client IP', 'Client IP and protocol', 'Client IP, port and protocol']">
+      </select>
+    </div>
+  </div>
+</div>
