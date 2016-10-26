@@ -417,9 +417,10 @@ fi
 # This can take several minutes so we are performing it at the end after
 # spinnaker has already started and is available.
 
+export DEBIAN_FRONTEND=noninteractive
 apt-mark hold $SPINNAKER_SUBSYSTEMS
 apt-get -y update
-DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+apt-get -y dist-upgrade
 apt-mark unhold $SPINNAKER_SUBSYSTEMS
 
 if [[ -f /opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA ]]; then
