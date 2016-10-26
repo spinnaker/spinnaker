@@ -17,12 +17,11 @@
 package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.ClouddriverService
-import com.squareup.okhttp.ConnectionPool
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -30,47 +29,32 @@ import retrofit.Endpoints
 import retrofit.RestAdapter
 import retrofit.client.OkClient
 
-import javax.validation.Valid
 
 @Configuration
 @ConditionalOnProperty(['services.clouddriver.baseUrl', 'dockerRegistry.enabled'])
 @CompileStatic
 class DockerRegistryConfig {
-    @Autowired
-    OkHttpClientConfiguration okHttpClientConfig
-
-    @Value('${okHttpClient.connectionPool.maxIdleConnections:5}')
-    int maxIdleConnections
-
-    @Value('${okHttpClient.connectionPool.keepAliveDurationMs:300000}')
-    int keepAliveDurationMs
-
-    @Value('${okHttpClient.retryOnConnectionFailure:true}')
-    boolean retryOnConnectionFailure
-
     @Bean
     DockerRegistryAccounts dockerRegistryAccounts() {
         new DockerRegistryAccounts()
     }
 
     @Bean
-    @SuppressWarnings('GStringExpressionWithinString')
-    ClouddriverService dockerRegistryProxyService(@Value('${services.clouddriver.baseUrl}') String address) {
+    ClouddriverService dockerRegistryProxyService(OkHttpClientConfiguration okHttpClientConfig, IgorConfigurationProperties igorConfigurationProperties) {
+        def address = igorConfigurationProperties.services.clouddriver.baseUrl ?: 'none'
         if (address == 'none') {
             null
         }
 
         def cli = okHttpClientConfig.create()
-        cli.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs))
-        cli.setRetryOnConnectionFailure(retryOnConnectionFailure)
 
         new RestAdapter.Builder()
                 .setEndpoint(Endpoints.newFixedEndpoint(address))
                 .setClient(new OkClient(cli))
                 .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLog(new Slf4jRetrofitLogger(ClouddriverService))
                 .build()
                 .create(ClouddriverService)
-
     }
 }
 

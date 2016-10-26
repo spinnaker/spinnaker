@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.igor.config
 
-import org.springframework.beans.factory.annotation.Value
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.JedisPool
@@ -25,12 +25,11 @@ import redis.clients.jedis.JedisPool
  * Establish a connection to the Jedis instance
  */
 @Configuration
-@SuppressWarnings(['GStringExpressionWithinString'])
 class JedisConfig {
 
     @Bean
-    JedisPool jedis(@Value('${redis.connection:redis://localhost:6379}') String connection, @Value('${redis.timeout:2000}') int timeout) {
-        new JedisPool(new URI(connection), timeout)
+    JedisPool jedis(IgorConfigurationProperties igorConfigurationProperties) {
+        new JedisPool(new URI(igorConfigurationProperties.redis.connection), igorConfigurationProperties.redis.timeout)
     }
 
 }

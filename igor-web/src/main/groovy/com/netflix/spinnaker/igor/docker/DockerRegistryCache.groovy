@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.igor.docker
 
-import com.netflix.spinnaker.igor.docker.service.TaggedImage
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
@@ -34,59 +33,47 @@ class DockerRegistryCache {
     // docker-digest must conform to hash:hashvalue. The string "~" explicitly avoids this to act as an "empty" placeholder.
     String emptyDigest = '~'
 
-    @SuppressWarnings('GStringExpressionWithinString')
-    @Value('${spinnaker.jedis.prefix:igor}')
-    String prefix
+    @Autowired
+    IgorConfigurationProperties igorConfigurationProperties
 
     List<String> getImages(String account) {
-        Jedis resource = jedisPool.resource
-        def key = "${prefix}:${id}:${account}*"
+        jedisPool.resource.withCloseable { Jedis resource ->
+            def key = "${prefix}:${id}:${account}*"
 
-        List<String> res = resource.keys(key).findAll { it } as List
-
-        jedisPool.returnResource(resource)
-        return res
+            return resource.keys(key).findAll { it } as List
+        }
     }
 
     String getLastDigest(String account, String registry, String repository, String tag) {
-        Jedis resource = jedisPool.resource
-        def key = makeKey(account, registry, repository, tag)
-        def res = resource.hgetAll(key).digest
-
-        jedisPool.returnResource(resource)
-
-        if (res == emptyDigest) {
-            res = null
+        jedisPool.resource.withCloseable { Jedis resource ->
+            def key = makeKey(account, registry, repository, tag)
+            def res = resource.hgetAll(key).digest
+            if (res == emptyDigest) {
+                return null
+            }
+            return res
         }
-
-        return res
     }
 
     void setLastDigest(String account, String registry, String repository, String tag, String digest) {
-        Jedis resource = jedisPool.resource
-        String key = makeKey(account, registry, repository, tag)
-        digest = digest ?: emptyDigest
-        resource.hset(key, 'digest', digest)
-        jedisPool.returnResource(resource)
+        jedisPool.resource.withCloseable { Jedis resource ->
+            String key = makeKey(account, registry, repository, tag)
+            digest = digest ?: emptyDigest
+            resource.hset(key, 'digest', digest)
+        }
     }
 
     void remove(String imageId) {
-        Jedis resource = jedisPool.resource
-        resource.del(imageId)
-        jedisPool.returnResource(resource)
+        jedisPool.resource.withCloseable { Jedis resource ->
+            resource.del(imageId)
+        }
     }
 
     public String makeKey(String account, String registry, String repository, String tag) {
         "${prefix}:${id}:${account}:${registry}:${repository}:${tag}"
     }
 
-    public Map<String, String> parseKey(String key) {
-        def split = key?.split(":")
-
-        if (!split || split[0] != prefix || split[1] != id || split.length != 6) {
-            return null
-        }
-
-        [account: split[2], registry: split[3], repository: split[4], tag: split[5]]
+    private String getPrefix() {
+        return igorConfigurationProperties.spinnaker.jedis.prefix
     }
 }

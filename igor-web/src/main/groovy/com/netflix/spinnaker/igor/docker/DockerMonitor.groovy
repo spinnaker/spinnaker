@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.docker
 
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
@@ -25,11 +26,9 @@ import com.netflix.spinnaker.igor.history.model.DockerEvent
 import com.netflix.spinnaker.igor.polling.PollingMonitor
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Service
-import rx.Observable
 import rx.Scheduler
 import rx.functions.Action0
 import rx.schedulers.Schedulers
@@ -172,12 +171,11 @@ class DockerMonitor implements PollingMonitor {
         lastPoll
     }
 
-    @SuppressWarnings('GStringExpressionWithinString')
-    @Value('${spinnaker.build.pollInterval:60}')
-    int pollInterval
+    @Autowired
+    IgorConfigurationProperties igorConfigurationProperties
 
     @Override
     int getPollInterval() {
-        pollInterval
+        igorConfigurationProperties.spinnaker.build.pollInterval
     }
 }

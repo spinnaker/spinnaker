@@ -16,19 +16,18 @@
 
 package com.netflix.spinnaker.igor.config
 
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
-import com.squareup.okhttp.ConnectionPool
 import com.squareup.okhttp.Credentials
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.beans.factory.annotation.Value
 import retrofit.Endpoints
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
@@ -45,20 +44,15 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 @CompileStatic
 @ConditionalOnProperty("jenkins.enabled")
+@EnableConfigurationProperties(JenkinsProperties)
 class JenkinsConfig {
 
-    @Value('${client.timeout:30000}')
-    int clientTimeout
-
-    @Autowired(required = false)
-    BuildMasters buildMasters
-
     @Bean
-    Map<String, JenkinsService> jenkinsMasters(@Valid JenkinsProperties jenkinsProperties) {
+    Map<String, JenkinsService> jenkinsMasters(BuildMasters buildMasters, IgorConfigurationProperties igorConfigurationProperties, @Valid JenkinsProperties jenkinsProperties) {
         log.info "creating jenkinsMasters"
         Map<String, JenkinsService> jenkinsMasters = ( jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
-            [(host.name): jenkinsService(host.name, jenkinsClient(host.address, host.username, host.password, clientTimeout))]
+            [(host.name): jenkinsService(host.name, jenkinsClient(host.address, host.username, host.password, igorConfigurationProperties.client.timeout))]
         })
 
         buildMasters.map.putAll jenkinsMasters

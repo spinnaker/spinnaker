@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.igor.jenkins
 
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
@@ -30,53 +30,54 @@ class JenkinsCache {
     @Autowired
     JedisPool jedisPool
 
-    @SuppressWarnings('GStringExpressionWithinString')
-    @Value('${spinnaker.jedis.prefix:igor}')
-    String prefix
+    @Autowired
+    IgorConfigurationProperties igorConfigurationProperties
+
+    private String getPrefix() {
+        igorConfigurationProperties.spinnaker.jedis.prefix
+    }
 
     List<String> getJobNames(String master) {
-        Jedis resource = jedisPool.resource
-        List<String> jobs = resource.keys("${prefix}:${master}:*").collect { extractJobName(it) }.sort()
-        jedisPool.returnResource(resource)
-        jobs
+        jedisPool.resource.withCloseable { Jedis resource  ->
+            return resource.keys("${prefix}:${master}:*").collect { extractJobName(it) }.sort()
+
+        }
     }
 
     List<String> getTypeaheadResults(String search) {
-        Jedis resource = jedisPool.resource
-        List<String> results = resource.keys("${prefix}:*:*${search.toUpperCase()}*:*").collect {
-            extractTypeaheadResult(it)
-        }.sort()
-        jedisPool.returnResource(resource)
-        results
+        jedisPool.resource.withCloseable { Jedis resource ->
+            return resource.keys("${prefix}:*:*${search.toUpperCase()}*:*").collect {
+                extractTypeaheadResult(it)
+            }.sort()
+        }
     }
 
     Map getLastBuild(String master, String job) {
-        Jedis resource = jedisPool.resource
-        if (!resource.exists(makeKey(master, job))) {
-            jedisPool.returnResource(resource)
-            return [:]
+        jedisPool.resource.withCloseable { Jedis resource ->
+            if (!resource.exists(makeKey(master, job))) {
+                return [:]
+            }
+            Map result = resource.hgetAll(makeKey(master, job))
+            Map convertedResult = [
+                lastBuildLabel: Integer.parseInt(result.lastBuildLabel),
+                lastBuildBuilding: Boolean.parseBoolean(result.lastBuildBuilding)
+            ]
+            return convertedResult
         }
-        Map result = resource.hgetAll(makeKey(master, job))
-        Map convertedResult = [
-            lastBuildLabel: Integer.parseInt(result.lastBuildLabel),
-            lastBuildBuilding: Boolean.parseBoolean(result.lastBuildBuilding)
-        ]
-        jedisPool.returnResource(resource)
-        convertedResult
     }
 
     void setLastBuild(String master, String job, int lastBuild, boolean building) {
-        Jedis resource = jedisPool.resource
-        String key = makeKey(master, job)
-        resource.hset(key, 'lastBuildLabel', lastBuild as String)
-        resource.hset(key, 'lastBuildBuilding', building as String)
-        jedisPool.returnResource(resource)
+        jedisPool.resource.withCloseable { Jedis resource ->
+            String key = makeKey(master, job)
+            resource.hset(key, 'lastBuildLabel', lastBuild as String)
+            resource.hset(key, 'lastBuildBuilding', building as String)
+        }
     }
 
     void remove(String master, String job) {
-        Jedis resource = jedisPool.resource
-        resource.del(makeKey(master, job))
-        jedisPool.returnResource(resource)
+        jedisPool.resource.withCloseable { Jedis resource ->
+            resource.del(makeKey(master, job))
+        }
     }
 
     private String makeKey(String master, String job) {

@@ -15,14 +15,16 @@
  */
 
 package com.netflix.spinnaker.igor.jenkins
+
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.IgorConfig
 import com.netflix.spinnaker.igor.config.JedisConfig
 import com.netflix.spinnaker.igor.config.JenkinsConfig
-import com.netflix.spinnaker.igor.config.JenkinsProperties
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
@@ -148,8 +150,9 @@ class JenkinsCacheSpec extends Specification {
 
     void 'a cache with another prefix does not pollute the current cache'() {
         when:
-        JenkinsCache secondInstance = new JenkinsCache(jedisPool: jedisPool)
-        secondInstance.prefix = 'newPrefix'
+        def cfg = new IgorConfigurationProperties()
+        cfg.spinnaker.jedis.prefix = 'newPrefix'
+        JenkinsCache secondInstance = new JenkinsCache(jedisPool: jedisPool, igorConfigurationProperties: cfg)
         secondInstance.setLastBuild(master, 'job1', 1, false)
 
         then:
@@ -165,7 +168,8 @@ class JenkinsCacheSpec extends Specification {
 
     @Configuration
     @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
-    @Import([JenkinsCache, JenkinsConfig, JenkinsProperties, IgorConfig, JedisConfig])
+    @EnableConfigurationProperties(IgorConfigurationProperties)
+    @Import([JenkinsCache, JenkinsConfig, IgorConfig, JedisConfig])
     static class TestConfiguration {
 
     }

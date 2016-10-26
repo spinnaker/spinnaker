@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.jenkins
 
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.BuildContent
 import com.netflix.spinnaker.igor.history.model.BuildEvent
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.igor.polling.PollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.core.env.Environment
@@ -72,13 +72,12 @@ class JenkinsBuildMonitor implements PollingMonitor {
         lastPoll
     }
 
-    @SuppressWarnings('GStringExpressionWithinString')
-    @Value('${spinnaker.build.pollInterval:60}')
-    int pollInterval
+    @Autowired
+    IgorConfigurationProperties igorConfigurationProperties
 
     @Override
     int getPollInterval() {
-        pollInterval
+        igorConfigurationProperties.spinnaker.build.pollInterval
     }
 
     static final String BUILD_IN_PROGRESS = "BUILDING"

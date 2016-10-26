@@ -16,9 +16,9 @@
 package com.netflix.spinnaker.igor.travis
 
 import com.netflix.spinnaker.igor.build.BuildCache
+import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.service.BuildMasters
-import com.netflix.spinnaker.igor.travis.client.model.Commit
 import com.netflix.spinnaker.igor.travis.client.model.Repo
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
@@ -37,8 +37,8 @@ class TravisBuildMonitorSpec extends Specification {
     final int CACHED_JOB_TTL_DAYS = 2
 
     void setup() {
-        travisBuildMonitor = new TravisBuildMonitor(buildCache: buildCache, buildMasters: new BuildMasters(map: [MASTER : travisService]))
-        travisBuildMonitor.cachedJobTTLDays = CACHED_JOB_TTL_DAYS
+        def travisProperties = new TravisProperties(cachedJobTTLDays: CACHED_JOB_TTL_DAYS)
+        travisBuildMonitor = new TravisBuildMonitor(buildCache: buildCache, buildMasters: new BuildMasters(map: [MASTER : travisService]), travisProperties: travisProperties)
     }
 
     void 'flag a new build not found in the cache'() {
@@ -77,14 +77,14 @@ class TravisBuildMonitorSpec extends Specification {
     void 'ignore old build not found in the cache'() {
         Repo oldRepo = new Repo()
         Date now = new Date()
-        oldRepo.lastBuildStartedAt = new Date(now.getTime() - TimeUnit.DAYS.toMillis(travisBuildMonitor.cachedJobTTLDays))
+        oldRepo.lastBuildStartedAt = new Date(now.getTime() - TimeUnit.DAYS.toMillis(travisBuildMonitor.travisProperties.cachedJobTTLDays))
         Repo noLastBuildStartedAtRepo = new Repo()
         noLastBuildStartedAtRepo.lastBuildStartedAt = null
         Repo repo = new Repo()
         repo.slug = "test-org/test-repo"
         repo.lastBuildNumber = 4
         repo.lastBuildState = "passed"
-        repo.lastBuildStartedAt = new Date(now.getTime() - TimeUnit.DAYS.toMillis(travisBuildMonitor.cachedJobTTLDays-1))
+        repo.lastBuildStartedAt = new Date(now.getTime() - TimeUnit.DAYS.toMillis(travisBuildMonitor.travisProperties.cachedJobTTLDays-1))
         List<Repo> repos = [oldRepo, repo, noLastBuildStartedAtRepo]
         V3Build build = Mock(V3Build)
         V3Repository repository = Mock(V3Repository)

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.config
 
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.igor.travis.TravisCache
 import com.netflix.spinnaker.igor.travis.client.TravisClient
@@ -23,9 +24,8 @@ import com.netflix.spinnaker.igor.travis.service.TravisService
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
@@ -44,25 +44,17 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 @CompileStatic
 @ConditionalOnProperty("travis.enabled")
+@EnableConfigurationProperties(TravisProperties)
 class TravisConfig {
 
-    @Value('${client.timeout:30000}')
-    int clientTimeout
-
-    @Autowired(required = false)
-    BuildMasters buildMasters
-
-    @Autowired
-    TravisCache travisCache
-
     @Bean
-    Map<String, TravisService> travisMasters(@Valid TravisProperties travisProperties) {
+    Map<String, TravisService> travisMasters(BuildMasters buildMasters, TravisCache travisCache, IgorConfigurationProperties igorConfigurationProperties, @Valid TravisProperties travisProperties) {
         log.info "creating travisMasters"
         Map<String, TravisService> travisMasters = (travisProperties?.masters?.collectEntries { TravisProperties.TravisHost host ->
             String travisName = "travis-${host.name}"
             log.info "bootstrapping ${host.address} as ${travisName}"
 
-            [(travisName): travisService(travisName, host.baseUrl, host.githubToken, travisClient(host.address, clientTimeout), travisCache)]
+            [(travisName): travisService(travisName, host.baseUrl, host.githubToken, travisClient(host.address, igorConfigurationProperties.client.timeout), travisCache)]
         })
         buildMasters.map.putAll travisMasters
         travisMasters

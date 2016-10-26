@@ -18,9 +18,10 @@ package com.netflix.spinnaker.igor.travis
 
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.build.BuildCache
-import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.GenericProject
+import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.GenericBuildContent
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent
@@ -34,7 +35,6 @@ import com.netflix.spinnaker.igor.travis.service.TravisResultConverter
 import com.netflix.spinnaker.igor.travis.service.TravisService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Service
@@ -75,17 +75,11 @@ class TravisBuildMonitor implements PollingMonitor{
 
     static final long BUILD_STARTED_AT_THRESHOLD = TimeUnit.SECONDS.toMillis(30)
 
-    @SuppressWarnings('GStringExpressionWithinString')
-    @Value('${spinnaker.build.pollInterval:60}')
-    int pollInterval
+    @Autowired
+    IgorConfigurationProperties igorConfigurationProperties
 
-    @SuppressWarnings('GStringExpressionWithinString')
-    @Value('${travis.repositorySyncEnabled:false}')
-    Boolean repositorySyncEnabled
-
-    @SuppressWarnings('GStringExpressionWithinString')
-    @Value('${travis.cachedJobTTLDays:60}')
-    int cachedJobTTLDays
+    @Autowired
+    TravisProperties travisProperties
 
     @Override
     void onApplicationEvent(ContextRefreshedEvent event) {
@@ -129,7 +123,7 @@ class TravisBuildMonitor implements PollingMonitor{
 
     @Override
     int getPollInterval() {
-        return pollInterval
+        return igorConfigurationProperties.spinnaker.build.pollInterval
     }
 
     List<Map> changedBuilds(String master) {
@@ -179,7 +173,7 @@ class TravisBuildMonitor implements PollingMonitor{
         }
         )
         log.info("Last poll took ${System.currentTimeMillis() - lastPoll}ms (master: ${master})")
-        if (repositorySyncEnabled) {
+        if (travisProperties.repositorySyncEnabled) {
             startTime = System.currentTimeMillis()
             travisService.syncRepos()
             log.info("repositorySync: Took ${System.currentTimeMillis() - startTime}ms to sync repositories for ${master}")
@@ -227,7 +221,7 @@ class TravisBuildMonitor implements PollingMonitor{
     }
 
     private int buildCacheJobTTLSeconds() {
-        return TimeUnit.DAYS.toSeconds(cachedJobTTLDays)
+        return TimeUnit.DAYS.toSeconds(travisProperties.cachedJobTTLDays)
     }
 
     private List<Repo> filterOutOldBuilds(List<Repo> repos){
@@ -237,7 +231,7 @@ class TravisBuildMonitor implements PollingMonitor{
         grace threshold so that we don't resend the event to echo. The value of the threshold assumes that travis
         will set the lastBuildStartedAt within 30 seconds.
          */
-        Long threshold = new Date().getTime() - TimeUnit.DAYS.toMillis(cachedJobTTLDays) + BUILD_STARTED_AT_THRESHOLD
+        Long threshold = new Date().getTime() - TimeUnit.DAYS.toMillis(travisProperties.cachedJobTTLDays) + BUILD_STARTED_AT_THRESHOLD
         return repos.findAll({ repo ->
             repo.lastBuildStartedAt?.getTime() > threshold
         })

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
@@ -44,9 +45,10 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
         given:
         cache.getJobNames(MASTER) >> []
         BuildMasters buildMasters = Mock(BuildMasters)
-        monitor = new JenkinsBuildMonitor(cache: cache, buildMasters: buildMasters)
+        def cfg = new IgorConfigurationProperties()
+        cfg.spinnaker.build.pollInterval = 1
+        monitor = new JenkinsBuildMonitor(cache: cache, buildMasters: buildMasters, igorConfigurationProperties: cfg)
         monitor.worker = scheduler.createWorker()
-        monitor.pollInterval = 1
 
         when:
         monitor.onApplicationEvent(Mock(ContextRefreshedEvent))

@@ -20,14 +20,12 @@ import groovy.transform.CompileStatic
 import org.hibernate.validator.constraints.NotEmpty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
 
 import javax.validation.constraints.NotNull
 
 /**
  * Helper class to map masters in properties file into a validated property map
  */
-@Configuration
 @ConditionalOnProperty('github.baseUrl')
 @CompileStatic
 @ConfigurationProperties(prefix = 'github')

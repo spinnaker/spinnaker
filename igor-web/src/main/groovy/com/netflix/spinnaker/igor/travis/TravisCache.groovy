@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.igor.travis
 
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import redis.clients.jedis.Jedis
@@ -36,9 +36,12 @@ class TravisCache {
     @Autowired
     JedisPool jedisPool
 
-    @SuppressWarnings('GStringExpressionWithinString')
-    @Value('${spinnaker.jedis.prefix:igor}')
-    String prefix
+    @Autowired
+    IgorConfigurationProperties igorConfigurationProperties
+
+    private String getPrefix() {
+        return igorConfigurationProperties.spinnaker.jedis.prefix
+    }
 
     String id = 'travis:builds:queue'
 

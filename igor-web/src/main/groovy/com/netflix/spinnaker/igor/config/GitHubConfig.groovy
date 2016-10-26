@@ -21,6 +21,7 @@ import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
@@ -38,6 +39,7 @@ import javax.validation.Valid
 @ConditionalOnProperty('github.baseUrl')
 @Slf4j
 @CompileStatic
+@EnableConfigurationProperties(GitHubProperties)
 class GitHubConfig {
 
     @Bean

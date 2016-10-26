@@ -15,14 +15,16 @@
  */
 
 package com.netflix.spinnaker.igor.build
+
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.IgorConfig
 import com.netflix.spinnaker.igor.config.JedisConfig
 import com.netflix.spinnaker.igor.config.JenkinsConfig
-import com.netflix.spinnaker.igor.config.JenkinsProperties
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
@@ -57,9 +59,9 @@ class BuildCacheSpec extends Specification {
     }
 
     void cleanup() {
-        Jedis resource = jedisPool.resource
-        resource.flushDB()
-        jedisPool.returnResource(resource)
+        jedisPool.resource.withCloseable { Jedis resource ->
+            resource.flushDB()
+        }
     }
 
     void 'new build numbers get overridden'() {
@@ -149,7 +151,9 @@ class BuildCacheSpec extends Specification {
     void 'a cache with another prefix does not pollute the current cache'() {
         when:
         BuildCache secondInstance = new BuildCache(jedisPool: jedisPool)
-        secondInstance.prefix = 'newPrefix'
+        def altCfg = new IgorConfigurationProperties()
+        altCfg.spinnaker.jedis.prefix = 'newPrefix'
+        secondInstance.igorConfigurationProperties = altCfg
         secondInstance.setLastBuild(master, 'job1', 1, false)
 
         then:
@@ -165,7 +169,8 @@ class BuildCacheSpec extends Specification {
 
     @Configuration
     @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
-    @Import([BuildCache, JenkinsConfig, JenkinsProperties, IgorConfig, JedisConfig])
+    @EnableConfigurationProperties(IgorConfigurationProperties)
+    @Import([BuildCache, JenkinsConfig, IgorConfig, JedisConfig])
     static class TestConfiguration {
 
     }
