@@ -214,4 +214,14 @@ class Utils {
       .collect { GCEUtil.getLocalName(it.serverGroupUrl) }
     return loadBalancer.name in regionalLoadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
   }
+
+  static boolean determineSslLoadBalancerDisabledState(GoogleSslLoadBalancer loadBalancer,
+                                                       GoogleServerGroup serverGroup) {
+    def globalLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)
+    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer.backendService.backends
+    List<String> backendGroupNames = serviceBackends
+      .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
+      .collect { GCEUtil.getLocalName(it.serverGroupUrl) }
+    return loadBalancer.name in globalLoadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
+  }
 }

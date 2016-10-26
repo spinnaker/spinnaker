@@ -97,30 +97,30 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
 
       GoogleServerGroup serverGroup = objectMapper.convertValue(serverGroupCacheData.attributes, GoogleServerGroup)
 
-      // We have to calculate the L7 disabled state with respect to this server group since it's not
+      // We have to calculate the L7, ILB, or SSL disabled state with respect to this server group since it's not
       // set on the way to the cache.
-      def isDisabledFromHttp = false
-      Boolean isHttpLoadBalancer = loadBalancer.type == GoogleLoadBalancerType.HTTP
-      if (isHttpLoadBalancer) {
-        isDisabledFromHttp = Utils.determineHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
-      }
-
-      // We have to calculate the ILB disabled state for this server group since it's not set on the
-      // way to the cache. A server group shouldn't be internally and externally load balanced at the same time.
-      def isDisabledFromIlb = false
-      Boolean isIlb = loadBalancer.type == GoogleLoadBalancerType.INTERNAL
-      if (isIlb) {
-        isDisabledFromIlb = Utils.determineInternalLoadBalancerDisabledState(loadBalancer, serverGroup)
-      }
-
       Boolean isDisabled = false
-      if (isIlb) {
-        isDisabled = isDisabledFromIlb // A server group shouldn't be internally and externally (L4/L7) load balanced at the same time.
-      } else if (isHttpLoadBalancer) {
-        isDisabled = serverGroup.asg.get(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES) ? // We assume these are L4 load balancers, and the state has been calculated on the way to the cache.
-          isDisabledFromHttp && serverGroup.disabled : isDisabledFromHttp
-      } else {
-        isDisabled = serverGroup.disabled
+      switch (loadBalancer.type) {
+        case GoogleLoadBalancerType.HTTP:
+          def isDisabledFromHttp = Utils.determineHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
+          isDisabled = serverGroup.asg.get(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES) ? // We assume these are L4 load balancers, and the state has been calculated on the way to the cache.
+            isDisabledFromHttp && serverGroup.disabled : isDisabledFromHttp
+          break
+        case GoogleLoadBalancerType.INTERNAL:
+          // A server group shouldn't be internally and externally (L4/L7/SSL) load balanced at the same time.
+          isDisabled = Utils.determineInternalLoadBalancerDisabledState(loadBalancer, serverGroup)
+          break
+        case GoogleLoadBalancerType.NETWORK:
+          isDisabled = serverGroup.disabled
+          break
+        case GoogleLoadBalancerType.SSL:
+          def isDisabledFromSsl = Utils.determineSslLoadBalancerDisabledState(loadBalancer, serverGroup)
+          isDisabled = serverGroup.asg.get(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES) ? // We assume these are L4 load balancers, and the state has been calculated on the way to the cache.
+            isDisabledFromSsl && serverGroup.disabled : isDisabledFromSsl
+          break
+        default:
+          throw new IllegalStateException("Illegal type ${loadBalancer.type} for load balancer ${loadBalancer.name}")
+          break
       }
 
       def loadBalancerServerGroup = new LoadBalancerServerGroup(
