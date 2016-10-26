@@ -22,7 +22,7 @@ google/
 
    stackdriver_monitoring
                (Optional) Administrative support for Spinnaker Stackdriver
-               integration
+               integration.
 
    runtime     Scripts that are released as part of the spinnaker runtime
                These include management and administrative things.
