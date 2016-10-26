@@ -119,7 +119,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     if (existingBackendService) {
       Boolean differentHealthChecks = existingBackendService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [healthCheckName]
       Boolean differentSessionAffinity = GoogleSessionAffinity.valueOf(existingBackendService.getSessionAffinity()) != description.backendService.sessionAffinity
-      if (differentHealthChecks || differentSessionAffinity) {
+      if (differentHealthChecks || differentSessionAffinity || existingBackendService.protocol != description.ipProtocol) {
         needToUpdateBackendService = true
       }
     }
@@ -182,7 +182,8 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
         name: backendServiceName,
         healthChecks: [GCEUtil.buildHealthCheckUrl(project, region, healthCheckName)],
         sessionAffinity: description.backendService.sessionAffinity ?: 'NONE',
-        loadBalancingScheme: 'INTERNAL'
+        loadBalancingScheme: 'INTERNAL',
+        protocol: description.ipProtocol
       )
       backendServiceOp = bsRetry.doRetry(
         { compute.regionBackendServices().insert(project, region, bs).execute() },
@@ -198,6 +199,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       existingBackendService.healthChecks = [GCEUtil.buildHealthCheckUrl(project, region, healthCheckName)]
       existingBackendService.sessionAffinity = description.backendService.sessionAffinity ?: 'NONE'
       existingBackendService.loadBalancingScheme = 'INTERNAL'
+      existingBackendService.protocol = description.ipProtocol
       backendServiceOp = bsRetry.doRetry(
         { compute.regionBackendServices().update(project, region, existingBackendService.getName(), existingBackendService).execute() },
         'Update',
