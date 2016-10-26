@@ -48,8 +48,7 @@ class JobExecutorLocal implements JobExecutor {
   @Override
   String startJob(JobRequest jobRequest) {
     log.info("Starting job: $jobRequest.maskedTokenizedCommand...")
-
-    String jobId = UUID.randomUUID().toString()
+    String jobId = jobRequest.jobId
 
     scheduler.createWorker().schedule(
       new Action0() {

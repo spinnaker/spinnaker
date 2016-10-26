@@ -42,6 +42,7 @@ class BakeryControllerSpec extends Specification {
   private static final String BAKE_ID = "some-bake-id"
   private static final String PACKER_COMMAND = "packer build ..."
   private static final String LOGS_CONTENT = "Some logs content..."
+  private static final String SOME_UUID = "55c25239-4de5-4f7a-b664-6070a1389680"
 
   void 'create bake launches job and returns new status'() {
     setup:
@@ -52,7 +53,8 @@ class BakeryControllerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
-                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        request_id: SOME_UUID)
       def runningBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
@@ -69,7 +71,7 @@ class BakeryControllerSpec extends Specification {
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> runningBakeStatus
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, runningBakeStatus, PACKER_COMMAND) >> runningBakeStatus
       returnedBakeStatus == runningBakeStatus
@@ -84,7 +86,9 @@ class BakeryControllerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
-                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        request_id: SOME_UUID)
+
       def failedBakeStatus = new BakeStatus(id: JOB_ID,
                                             resource_id: JOB_ID,
                                             state: BakeStatus.State.CANCELED,
@@ -105,7 +109,7 @@ class BakeryControllerSpec extends Specification {
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> failedBakeStatus
       IllegalArgumentException e = thrown()
       e.message == "Some kind of failure..."
@@ -149,7 +153,9 @@ class BakeryControllerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
-                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        request_id: SOME_UUID)
+
       def runningBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
@@ -168,7 +174,7 @@ class BakeryControllerSpec extends Specification {
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       (10.._) * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> runningBakeStatus
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, runningBakeStatus, PACKER_COMMAND) >> runningBakeStatus
       returnedBakeStatus == new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
@@ -182,9 +188,11 @@ class BakeryControllerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
-                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        request_id: SOME_UUID)
 
-    @Subject
+
+      @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock)
 
@@ -209,7 +217,9 @@ class BakeryControllerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
-                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        request_id: SOME_UUID)
+
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock)
@@ -231,7 +241,9 @@ class BakeryControllerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
-                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        request_id: SOME_UUID)
+
       def runningBakeStatus = new BakeStatus(id: EXISTING_JOB_ID,
                                              resource_id: EXISTING_JOB_ID,
                                              state: BakeStatus.State.RUNNING)
@@ -259,7 +271,9 @@ class BakeryControllerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
-                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        request_id: SOME_UUID)
+
       def completedBakeStatus = new BakeStatus(id: EXISTING_JOB_ID,
                                                resource_id: EXISTING_JOB_ID,
                                                state: BakeStatus.State.COMPLETED,
@@ -289,7 +303,9 @@ class BakeryControllerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
-                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        request_id: SOME_UUID)
+
       def failedBakeStatus = new BakeStatus(id: EXISTING_JOB_ID,
                                             resource_id: EXISTING_JOB_ID,
                                             state: BakeStatus.State.CANCELED,
@@ -310,7 +326,7 @@ class BakeryControllerSpec extends Specification {
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> failedBakeStatus
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
       returnedBakeStatus == newBakeStatus
@@ -325,7 +341,9 @@ class BakeryControllerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
-                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        request_id: SOME_UUID)
+
       def canceledBakeStatus = new BakeStatus(id: EXISTING_JOB_ID,
                                               resource_id: EXISTING_JOB_ID,
                                               state: BakeStatus.State.CANCELED)
@@ -345,7 +363,7 @@ class BakeryControllerSpec extends Specification {
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> canceledBakeStatus
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
       returnedBakeStatus == newBakeStatus
@@ -360,7 +378,9 @@ class BakeryControllerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
-                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        request_id: SOME_UUID)
+
       def newBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
@@ -378,7 +398,7 @@ class BakeryControllerSpec extends Specification {
       1 * bakeStoreMock.deleteBakeByKeyPreserveDetails(BAKE_KEY) >> BAKE_ID
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND])) >> JOB_ID
+      1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
       returnedBakeStatus == newBakeStatus

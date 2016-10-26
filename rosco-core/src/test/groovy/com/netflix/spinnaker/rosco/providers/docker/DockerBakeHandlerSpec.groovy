@@ -149,13 +149,14 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
+                                        request_id: SOME_UUID,
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         docker_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         docker_target_image: targetImageName,
-        docker_target_image_tag: SOME_MILLISECONDS,
+        docker_target_image_tag: SOME_UUID,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
@@ -187,13 +188,14 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGES_NAME,
                                         base_os: "trusty",
+                                        request_id: SOME_UUID,
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
-        docker_target_image_tag: SOME_MILLISECONDS,
+        docker_target_image_tag: SOME_UUID,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
@@ -225,13 +227,14 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGES_NAME,
                                         base_os: "centos",
+                                        request_id: SOME_UUID,
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-centos"
       def osPackages = parseRpmOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         docker_source_image: SOURCE_CENTOS_HVM_IMAGE_NAME,
         docker_target_image: targetImageName,
-        docker_target_image_tag: SOME_MILLISECONDS,
+        docker_target_image_tag: SOME_UUID,
         docker_target_repository: TARGET_REPOSITORY,
         repository: YUM_REPOSITORY,
         package_type: RPM_PACKAGE_TYPE.packageType,
@@ -266,13 +269,14 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                         package_name: fullyQualifiedPackageName,
                                         base_os: "trusty",
                                         build_host: buildHost,
+                                        request_id: SOME_UUID,
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def osPackage = PackageNameConverter.parseDebPackageName(bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
-        docker_target_image_tag: SOME_MILLISECONDS,
+        docker_target_image_tag: SOME_UUID,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
@@ -309,6 +313,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
       def targetQualifiedImageName = "${targetOrganization}/${targetImageName}"
 
       def bakeRequest = new BakeRequest(
+        request_id: SOME_UUID,
         package_name: "trojan-banker_0.1-3_all",
         build_number: "12",
         commit_hash: "170cdbd",
@@ -321,7 +326,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
       def parameterMap = [
         docker_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         docker_target_image: targetQualifiedImageName,
-        docker_target_image_tag: targetImageTag,
+        docker_target_image_tag: SOME_UUID,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,

@@ -10,6 +10,7 @@ trait TestDefaults {
   static final BakeRequest.PackageType DEB_PACKAGE_TYPE = BakeRequest.PackageType.DEB
   static final BakeRequest.PackageType RPM_PACKAGE_TYPE = BakeRequest.PackageType.RPM
   static final String SOME_MILLISECONDS = "1470391070464"
+  static final String SOME_UUID = "55c25239-4de5-4f7a-b664-6070a1389680"
 
   def parseDebOsPackageNames(String packages) {
     PackageNameConverter.buildOsPackageNames(DEB_PACKAGE_TYPE, packages.tokenize(" "))

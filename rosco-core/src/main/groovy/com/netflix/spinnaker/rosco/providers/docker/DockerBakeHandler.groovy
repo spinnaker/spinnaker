@@ -71,7 +71,7 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
     return [
       docker_source_image     : dockerVirtualizationSettings.sourceImage,
       docker_target_image     : imageName,
-      docker_target_image_tag : appVersionStr,
+      docker_target_image_tag : bakeRequest.request_id,
       docker_target_repository: dockerBakeryDefaults.targetRepository
     ]
 

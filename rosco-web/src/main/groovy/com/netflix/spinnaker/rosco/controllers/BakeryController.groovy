@@ -161,7 +161,7 @@ class BakeryController {
       }
 
       def packerCommand = cloudProviderBakeHandler.producePackerCommand(region, bakeRequest)
-      def jobRequest = new JobRequest(tokenizedCommand: packerCommand, maskedPackerParameters: cloudProviderBakeHandler.maskedPackerParameters)
+      def jobRequest = new JobRequest(tokenizedCommand: packerCommand, maskedPackerParameters: cloudProviderBakeHandler.maskedPackerParameters, jobId: bakeRequest.request_id)
 
       if (bakeStore.acquireBakeLock(bakeKey)) {
         return runBake(bakeKey, region, bakeRequest, jobRequest)

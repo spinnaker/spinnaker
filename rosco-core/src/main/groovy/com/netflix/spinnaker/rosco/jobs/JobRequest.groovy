@@ -27,6 +27,7 @@ import groovy.transform.Immutable
 class JobRequest {
   List<String> tokenizedCommand
   List<String> maskedPackerParameters = []
+  String jobId
 
   List<String> getMaskedTokenizedCommand() {
     return tokenizedCommand.collect { String masked ->
