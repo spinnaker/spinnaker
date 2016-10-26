@@ -42,6 +42,7 @@ dependencies {
 
   runtime spinnaker.dependency('kork')
   compile spinnaker.dependency('korkWeb')
+  compile spinnaker.dependency('korkStackdriver')
   compile spinnaker.dependency('korkSwagger')
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootDataRest')
