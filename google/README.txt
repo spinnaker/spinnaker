@@ -66,7 +66,7 @@ To stop spinnaker in a development environment:
 
 
 To reconfigure spinnaker in a development environment:
-   (1) Edit the $HOME/.spinnaker/spinnaker_config.cfg file
+   (1) Edit the $HOME/.spinnaker/spinnaker-local.yml file
    (2) ../spinnaker/google/dev/stop_dev.sh
    (3) ../spinnaker/google/dev/run_dev.sh
       The environment is always reconfigured within run_dev.sh.
