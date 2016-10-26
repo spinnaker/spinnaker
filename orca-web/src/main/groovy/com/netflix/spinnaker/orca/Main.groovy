@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.FiatAuthenticationConfig
 import com.netflix.spinnaker.config.TomcatConfiguration
+import com.netflix.spinnaker.config.StackdriverConfig
 import com.netflix.spinnaker.kork.PlatformComponents
 import com.netflix.spinnaker.orca.applications.config.ApplicationConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
@@ -78,7 +79,8 @@ import org.springframework.scheduling.annotation.EnableAsync
   MaheConfiguration,
   TideConfiguration,
   ApplicationConfig,
-  FiatAuthenticationConfig
+  FiatAuthenticationConfig,
+  StackdriverConfig,
 ])
 @ComponentScan([
   "com.netflix.spinnaker.config"
