@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
@@ -150,6 +151,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def targetPools = []
     def internalLoadBalancers = []
+    def sslLoadBalancers = []
 
     // We need the full url for each referenced network load balancer, and also to check that the HTTP(S)
     // load balancers exist.
@@ -162,6 +164,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
       // Queue ILBs to update, but wait to update metadata until Https LBs are calculated.
       internalLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL }
+
+      // Queue SSL LBs to update.
+      sslLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.SSL }
 
       if (!description.disableTraffic) {
         def networkLoadBalancers = foundLoadBalancers.findAll { it.loadBalancerType == GoogleLoadBalancerType.NETWORK }
@@ -181,8 +186,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, subnet, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
 
-    def hasBackendServices = instanceMetadata &&
-      instanceMetadata.containsKey(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)
+    def hasBackendServices = (instanceMetadata &&
+      instanceMetadata.containsKey(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)) || sslLoadBalancers
 
     // Resolve and queue the backend service updates, but don't execute yet.
     // We need to resolve this information to set metadata in the template so enable can know about the
@@ -190,8 +195,13 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     // If we try to execute the update, GCP will fail since the MIG is not created yet.
     List<BackendService> backendServicesToUpdate = []
     if (hasBackendServices) {
-      List<String> backendServices = instanceMetadata[GoogleServerGroup.View.BACKEND_SERVICE_NAMES].split(",")
-      instanceMetadata[GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES] = GCEUtil.resolveHttpLoadBalancerNamesMetadata(backendServices, compute, project).join(",")
+      List<String> backendServices = instanceMetadata[GoogleServerGroup.View.BACKEND_SERVICE_NAMES]?.split(",") ?: []
+      backendServices.addAll(sslLoadBalancers.collect { it.backendService.name })
+
+      // Set the load balancer name metadata.
+      def globalLbNames = sslLoadBalancers.collect { it.name } + GCEUtil.resolveHttpLoadBalancerNamesMetadata(backendServices, compute, project)
+      instanceMetadata[GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES] = globalLbNames.join(",")
+
       String sourcePolicyJson = instanceMetadata[GoogleServerGroup.View.LOAD_BALANCING_POLICY]
       def loadBalancingPolicy = description.loadBalancingPolicy
 
@@ -407,7 +417,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
         retry.doRetry(
           updateBackendServices(compute, project, backendService.name, backendService),
           "update",
-          "Http load balancer backend service",
+          "Load balancer backend service",
           task,
           BASE_PHASE,
           [400, 412],
