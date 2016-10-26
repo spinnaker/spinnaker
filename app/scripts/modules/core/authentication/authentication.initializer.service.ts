@@ -37,9 +37,9 @@ export class AuthenticationInitializer {
 
   private checkForReauthentication(): void {
     this.$http.get(this.settings.authEndpoint)
-      .then((data: IAuthResponse) => {
-        if (data.username) {
-          this.authenticationService.setAuthenticatedUser(data.username);
+      .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
+        if (response.data.username) {
+          this.authenticationService.setAuthenticatedUser(response.data.username);
           this.$uibModalStack.dismissAll();
           this.visibilityWatch.unsubscribe();
         }
