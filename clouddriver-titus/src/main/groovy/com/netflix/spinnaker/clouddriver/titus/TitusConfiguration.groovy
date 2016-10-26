@@ -17,22 +17,21 @@
 package com.netflix.spinnaker.clouddriver.titus
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusDeployHandler
 import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
+import com.netflix.spinnaker.clouddriver.titus.health.TitusHealthIndicator
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.DependsOn
 
-import javax.annotation.PostConstruct
 import java.util.regex.Pattern
 
 @Configuration
@@ -42,36 +41,22 @@ import java.util.regex.Pattern
 @Slf4j
 class TitusConfiguration {
 
-  @PostConstruct
-  void init() {
-    log.info("TitusConfiguration is enabled")
-  }
-
-  @Bean
-  @DependsOn('netflixTitusCredentials')
-  TitusDeployHandler titusDeployHandler(TitusClientProvider titusClientProvider) {
-    new TitusDeployHandler(titusClientProvider)
-  }
-
   @Bean
   @ConfigurationProperties("titus")
   TitusCredentialsConfig titusCredentialsConfig() {
     new TitusCredentialsConfig()
   }
 
-  @Bean(name = "netflixTitusCredentials")
+  @Bean
   List<NetflixTitusCredentials> netflixTitusCredentials(TitusCredentialsConfig titusCredentialsConfig,
-                                                        AccountCredentialsRepository repository,
-                                                        @Value('${titus.defaultBastionHostTemplate}') String defaultBastionHostTemplate,
-                                                        @Value('${titus.awsVpc}') String awsVpc
-  ) {
+                                                        AccountCredentialsRepository repository) {
     List<NetflixTitusCredentials> accounts = new ArrayList<>()
     for (TitusCredentialsConfig.Account account in titusCredentialsConfig.accounts) {
       List<TitusRegion> regions = account.regions.collect { new TitusRegion(it.name, account.name, it.endpoint) }
-      if (!account.bastionHost && defaultBastionHostTemplate) {
-        account.bastionHost = defaultBastionHostTemplate.replaceAll(Pattern.quote('{{environment}}'), account.environment)
+      if (!account.bastionHost && titusCredentialsConfig.defaultBastionHostTemplate) {
+        account.bastionHost = titusCredentialsConfig.defaultBastionHostTemplate.replaceAll(Pattern.quote('{{environment}}'), account.environment)
       }
-      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost, account.registry, account.awsAccount, awsVpc, account.discoveryEnabled, account.discovery)
+      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost, account.registry, account.awsAccount, titusCredentialsConfig.awsVpc, account.discoveryEnabled, account.discovery)
       accounts.add(credentials)
       repository.save(account.name, credentials)
     }
@@ -79,21 +64,23 @@ class TitusConfiguration {
   }
 
   @Bean
-  @DependsOn("netflixTitusCredentials")
-  TitusClientProvider titusClientProvider(
-    @Value('#{netflixTitusCredentials}') List<NetflixTitusCredentials> netflixTitusCredentials, Registry registry) {
-    List<TitusClientProvider.TitusClientHolder> titusClientHolders = []
-    netflixTitusCredentials.each { credentials ->
-      credentials.regions.each { region ->
-        titusClientHolders << new TitusClientProvider.TitusClientHolder(
-          credentials.name, region.name, new RegionScopedTitusClient(region, registry)
-        )
-      }
-    }
-    new TitusClientProvider(titusClientHolders)
+  TitusClientProvider titusClientProvider(Registry registry) {
+    return new TitusClientProvider(registry)
+  }
+
+  @Bean
+  TitusDeployHandler titusDeployHandler(TitusClientProvider titusClientProvider) {
+    new TitusDeployHandler(titusClientProvider)
+  }
+
+  @Bean
+  TitusHealthIndicator titusHealthIndicator(AccountCredentialsProvider accountCredentialsProvider, TitusClientProvider titusClientProvider) {
+    new TitusHealthIndicator(accountCredentialsProvider, titusClientProvider)
   }
 
   static class TitusCredentialsConfig {
+    String defaultBastionHostTemplate
+    String awsVpc
     List<Account> accounts
     static class Account {
       String name

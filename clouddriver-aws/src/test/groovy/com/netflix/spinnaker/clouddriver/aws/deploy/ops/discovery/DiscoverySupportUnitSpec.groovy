@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
+import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaSupportConfigurationProperties
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
@@ -72,6 +73,7 @@ class DiscoverySupportUnitSpec extends Specification {
         }
       }
     }
+    discoverySupport.eurekaSupportConfigurationProperties = new EurekaSupportConfigurationProperties()
   }
 
   void "should fail if discovery is not enabled"() {
@@ -101,7 +103,7 @@ class DiscoverySupportUnitSpec extends Specification {
 
     then:
     thrown(AbstractEurekaSupport.RetryableException)
-    discoverySupport.discoveryRetry * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     0 * eureka.updateInstanceStatus(*_)
   }
 
@@ -162,7 +164,7 @@ class DiscoverySupportUnitSpec extends Specification {
     3 * task.updateStatus("PHASE", { it.startsWith("Attempting to mark") })
     1 * task.updateStatus("PHASE", { it.startsWith("Failed marking instances 'UP'")})
     0 * _
-    
+
     where:
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
@@ -221,8 +223,8 @@ class DiscoverySupportUnitSpec extends Specification {
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then: "should only retry a maximum of DISCOVERY_RETRY_MAX times on NOT_FOUND"
-    discoverySupport.discoveryRetry * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
-    discoverySupport.discoveryRetry * eureka.getInstanceInfo(_) >> {
+    discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    discoverySupport.eurekaSupportConfigurationProperties.retryMax * eureka.getInstanceInfo(_) >> {
       throw httpError(404)
     }
     0 * task.fail()

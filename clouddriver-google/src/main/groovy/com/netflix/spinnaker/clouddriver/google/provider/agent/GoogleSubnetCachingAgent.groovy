@@ -40,11 +40,11 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
 
   String agentType = "$accountName/$region/$GoogleSubnetCachingAgent.simpleName"
 
-  GoogleSubnetCachingAgent(String googleApplicationName,
+  GoogleSubnetCachingAgent(String clouddriverUserAgentApplicationName,
                            GoogleNamedAccountCredentials credentials,
                            ObjectMapper objectMapper,
                            String region) {
-    super(googleApplicationName,
+    super(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper)
     this.region = region

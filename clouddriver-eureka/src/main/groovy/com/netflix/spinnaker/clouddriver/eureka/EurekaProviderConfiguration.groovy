@@ -18,11 +18,11 @@ package com.netflix.spinnaker.clouddriver.eureka
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.eureka.api.EurekaApiFactory
+import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaSupportConfigurationProperties
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaCachingAgent
 import com.netflix.spinnaker.clouddriver.eureka.provider.EurekaCachingProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.config.EurekaAccountConfigurationProperties
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -30,13 +30,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.PropertySource
 import org.springframework.context.annotation.Scope
 
 import java.util.regex.Pattern
 
 @Configuration
-@EnableConfigurationProperties
+@EnableConfigurationProperties(EurekaSupportConfigurationProperties)
 @ConditionalOnProperty('eureka.provider.enabled')
 @ComponentScan(["com.netflix.spinnaker.clouddriver.eureka"])
 class EurekaProviderConfiguration {
@@ -47,14 +46,11 @@ class EurekaProviderConfiguration {
     new EurekaAccountConfigurationProperties()
   }
 
-  @Autowired
-  ObjectMapper objectMapper
-
-  @Autowired
-  EurekaApiFactory eurekaApiFactory
-
   @Bean
-  EurekaCachingProvider eurekaCachingProvider(EurekaAccountConfigurationProperties eurekaAccountConfigurationProperties, List<EurekaAwareProvider> eurekaAwareProviderList) {
+  EurekaCachingProvider eurekaCachingProvider(EurekaAccountConfigurationProperties eurekaAccountConfigurationProperties,
+                                              List<EurekaAwareProvider> eurekaAwareProviderList,
+                                              ObjectMapper objectMapper,
+                                              EurekaApiFactory eurekaApiFactory) {
     List<EurekaCachingAgent> agents = []
     eurekaAccountConfigurationProperties.accounts.each { EurekaAccountConfigurationProperties.EurekaAccount accountConfig ->
       accountConfig.regions.each { region ->

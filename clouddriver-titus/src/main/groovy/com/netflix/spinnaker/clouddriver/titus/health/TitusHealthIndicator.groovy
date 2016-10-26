@@ -16,31 +16,27 @@
 
 package com.netflix.spinnaker.clouddriver.titus.health
 
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.HealthStatus
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.actuate.health.Status
 import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
 
 import java.util.concurrent.atomic.AtomicReference
 
-@Component
 class TitusHealthIndicator implements HealthIndicator {
 
-  private final List<NetflixTitusCredentials> credentialsList
+  private final AccountCredentialsProvider accountCredentialsProvider
   private final TitusClientProvider titusClientProvider
   private AtomicReference<Health> health = new AtomicReference<>(new Health.Builder().up().build())
 
-  @Autowired
-  TitusHealthIndicator(@Value('#{netflixTitusCredentials}') List<NetflixTitusCredentials> credentialsList,
+  TitusHealthIndicator(AccountCredentialsProvider accountCredentialsProvider,
                        TitusClientProvider titusClientProvider) {
-    this.credentialsList = credentialsList
+    this.accountCredentialsProvider = accountCredentialsProvider
     this.titusClientProvider = titusClientProvider
   }
 
@@ -53,7 +49,7 @@ class TitusHealthIndicator implements HealthIndicator {
   void checkHealth() {
     Status status = Status.UP
     Map<String, Object> details = [:]
-    for (NetflixTitusCredentials account in credentialsList) {
+    for (NetflixTitusCredentials account : accountCredentialsProvider.all.findAll { it instanceof NetflixTitusCredentials }) {
       for (TitusRegion region in account.regions) {
         Status regionStatus
         Map regionDetails = [:]

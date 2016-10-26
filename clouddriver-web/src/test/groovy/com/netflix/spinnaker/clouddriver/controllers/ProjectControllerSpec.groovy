@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.netflix.spinnaker.clouddriver.configuration.ThreadPoolConfiguration
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
@@ -45,7 +46,7 @@ class ProjectControllerSpec extends Specification {
   Map projectConfig
 
   def setup() {
-    projectController = new ProjectController(1)
+    projectController = new ProjectController(new ThreadPoolConfiguration())
 
     front50Service = Mock(Front50Service)
     projectController.front50Service = front50Service

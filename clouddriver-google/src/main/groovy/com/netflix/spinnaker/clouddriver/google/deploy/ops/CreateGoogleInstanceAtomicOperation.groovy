@@ -50,7 +50,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
   GoogleSubnetProvider googleSubnetProvider
 
   @Autowired
-  String googleApplicationName
+  String clouddriverUserAgentApplicationName
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -92,7 +92,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
                                                compute,
                                                task,
                                                BASE_PHASE,
-                                               googleApplicationName,
+                                               clouddriverUserAgentApplicationName,
                                                googleConfigurationProperties.baseImageProjects)
 
     def network = GCEUtil.queryNetwork(accountName, description.network ?: DEFAULT_NETWORK_NAME, task, BASE_PHASE, googleNetworkProvider)

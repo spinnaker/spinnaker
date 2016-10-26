@@ -58,12 +58,12 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
   String onDemandAgentType = "${agentType}-OnDemand"
   final OnDemandMetricsSupport metricsSupport
 
-  GoogleLoadBalancerCachingAgent(String googleApplicationName,
+  GoogleLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                  GoogleNamedAccountCredentials credentials,
                                  ObjectMapper objectMapper,
                                  String region,
                                  Registry registry) {
-    super(googleApplicationName,
+    super(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper)
     this.region = region

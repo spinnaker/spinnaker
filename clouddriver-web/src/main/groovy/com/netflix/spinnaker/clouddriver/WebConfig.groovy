@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.clouddriver
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.configuration.CredentialsConfiguration
+import com.netflix.spinnaker.clouddriver.configuration.ThreadPoolConfiguration
 import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.embedded.FilterRegistrationBean
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -44,6 +47,7 @@ import javax.servlet.http.HttpServletResponse
   'com.netflix.spinnaker.clouddriver.listeners',
   'com.netflix.spinnaker.clouddriver.security',
 ])
+@EnableConfigurationProperties([CredentialsConfiguration, ThreadPoolConfiguration])
 public class WebConfig extends WebMvcConfigurerAdapter {
   @Autowired
   Registry registry
@@ -81,7 +85,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   }
 
   @ControllerAdvice
-  static class AccessDeniedExceptionHanlder {
+  static class AccessDeniedExceptionHandler {
     @ExceptionHandler(AccessDeniedException)
     public void handle(HttpServletResponse response, AccessDeniedException ex) {
       response.sendError(HttpServletResponse.SC_FORBIDDEN, ex.getMessage())

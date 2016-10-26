@@ -71,12 +71,12 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
   String onDemandAgentType = "${agentType}-OnDemand"
   final OnDemandMetricsSupport metricsSupport
 
-  GoogleZonalServerGroupCachingAgent(String googleApplicationName,
+  GoogleZonalServerGroupCachingAgent(String clouddriverUserAgentApplicationName,
                                      GoogleNamedAccountCredentials credentials,
                                      ObjectMapper objectMapper,
                                      String region,
                                      Registry registry) {
-    super(googleApplicationName,
+    super(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper)
     this.region = region

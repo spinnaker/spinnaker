@@ -22,8 +22,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.config.DockerRegistryCo
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import org.apache.log4j.Logger
-import org.springframework.beans.factory.annotation.Autowired
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -31,24 +30,17 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component
 @Configuration
 class DockerRegistryCredentialsInitializer implements CredentialsInitializerSynchronizable {
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
-
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository
-
-  @Autowired
-  ApplicationContext appContext;
-
-  @Autowired
-  List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
 
   @Bean
-  List<? extends DockerRegistryNamedAccountCredentials> dockerRegistryNamedAccountCredentials(
-    DockerRegistryConfigurationProperties dockerRegistryConfigurationProperties) {
-    synchronizeDockerRegistryAccounts(dockerRegistryConfigurationProperties, null)
+  List<? extends DockerRegistryNamedAccountCredentials> dockerRegistryNamedAccountCredentials(DockerRegistryConfigurationProperties dockerRegistryConfigurationProperties,
+                                                                                              AccountCredentialsRepository accountCredentialsRepository,
+                                                                                              ApplicationContext applicationContext,
+                                                                                              List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
+    synchronizeDockerRegistryAccounts(dockerRegistryConfigurationProperties, accountCredentialsRepository, null, applicationContext, providerSynchronizerTypeWrappers)
   }
 
   @Override
@@ -58,7 +50,11 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  List<?> synchronizeDockerRegistryAccounts(DockerRegistryConfigurationProperties dockerRegistryConfigurationProperties, CatsModule catsModule) {
+  List<? extends DockerRegistryNamedAccountCredentials> synchronizeDockerRegistryAccounts(DockerRegistryConfigurationProperties dockerRegistryConfigurationProperties,
+                                                                                          AccountCredentialsRepository accountCredentialsRepository,
+                                                                                          CatsModule catsModule,
+                                                                                          ApplicationContext applicationContext,
+                                                                                          List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
     def (ArrayList<DockerRegistryConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
     ProviderUtils.calculateAccountDeltas(accountCredentialsRepository, DockerRegistryNamedAccountCredentials,
       dockerRegistryConfigurationProperties.accounts)
@@ -92,11 +88,11 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
     ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
 
     if (accountsToAdd && catsModule) {
-      ProviderUtils.synchronizeAgentProviders(appContext, providerSynchronizerTypeWrappers)
+      ProviderUtils.synchronizeAgentProviders(applicationContext, providerSynchronizerTypeWrappers)
     }
 
     accountCredentialsRepository.all.findAll {
       it instanceof DockerRegistryNamedAccountCredentials
-    } as List
+    } as List<DockerRegistryNamedAccountCredentials>
   }
 }

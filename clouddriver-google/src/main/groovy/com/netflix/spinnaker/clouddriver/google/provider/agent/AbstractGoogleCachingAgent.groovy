@@ -34,17 +34,17 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware 
 
   final String providerName = GoogleInfrastructureProvider.name
 
-  String googleApplicationName // "Spinnaker/${version}" HTTP header string
+  String clouddriverUserAgentApplicationName // "Spinnaker/${version}" HTTP header string
   GoogleNamedAccountCredentials credentials
   ObjectMapper objectMapper
 
   @VisibleForTesting
   AbstractGoogleCachingAgent() {}
 
-  AbstractGoogleCachingAgent(String googleApplicationName,
+  AbstractGoogleCachingAgent(String clouddriverUserAgentApplicationName,
                              GoogleNamedAccountCredentials credentials,
                              ObjectMapper objectMapper) {
-    this.googleApplicationName = googleApplicationName
+    this.clouddriverUserAgentApplicationName = clouddriverUserAgentApplicationName
     this.credentials = credentials
     this.objectMapper = objectMapper
   }
@@ -72,7 +72,7 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware 
         new HttpRequestInitializer() {
           @Override
           void initialize(HttpRequest request) throws IOException {
-            request.headers.setUserAgent(googleApplicationName);
+            request.headers.setUserAgent(clouddriverUserAgentApplicationName);
           }
         }
     )

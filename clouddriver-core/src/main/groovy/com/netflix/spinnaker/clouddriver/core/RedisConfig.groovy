@@ -19,11 +19,11 @@ package com.netflix.spinnaker.clouddriver.core
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.jedis.JedisTaskRepository
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
@@ -32,6 +32,7 @@ import redis.clients.jedis.Protocol
 
 @Configuration
 @ConditionalOnProperty('redis.connection')
+@EnableConfigurationProperties(RedisConfigurationProperties)
 class RedisConfig {
   @Bean
   @ConfigurationProperties('redis')
@@ -45,10 +46,9 @@ class RedisConfig {
   }
 
   @Bean
-  JedisPool jedisPool(@Value('${redis.connection:redis://localhost:6379}') String connection,
-                      @Value('${redis.timeout:2000}') int timeout,
+  JedisPool jedisPool(RedisConfigurationProperties redisConfigurationProperties,
                       GenericObjectPoolConfig redisPoolConfig) {
-    return createPool(redisPoolConfig, connection, timeout)
+    return createPool(redisPoolConfig, redisConfigurationProperties.connection, redisConfigurationProperties.timeout)
   }
 
   private static JedisPool createPool(GenericObjectPoolConfig redisPoolConfig, String connection, int timeout) {
@@ -65,12 +65,11 @@ class RedisConfig {
   }
 
   @Bean
-  JedisPool jedisPoolPrevious(@Value('${redis.connection:redis://localhost:6379}') String mainConnection,
-                              @Value('${redis.connection.previous:#{null}}') String connection) {
-    if (mainConnection == connection || connection == null) {
+  JedisPool jedisPoolPrevious(RedisConfigurationProperties redisConfigurationProperties) {
+    if (redisConfigurationProperties.connection == redisConfigurationProperties.connectionPrevious || redisConfigurationProperties.connectionPrevious == null) {
       return null
     }
-    return createPool(null, connection, 1000)
+    return createPool(null, redisConfigurationProperties.connectionPrevious, 1000)
   }
 
   @Bean

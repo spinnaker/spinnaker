@@ -19,20 +19,19 @@ package com.netflix.spinnaker.clouddriver.azure.security
 import com.netflix.spinnaker.clouddriver.azure.config.AzureConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import groovy.transform.CompileStatic
-import org.apache.log4j.Logger
-import org.springframework.beans.factory.annotation.Autowired
+import groovy.util.logging.Slf4j
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
+@Slf4j
 @CompileStatic
+@Configuration
 class AzureCredentialsInitializer {
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
-
-  @Autowired
-  String azureApplicationName
 
   @Bean
   List<AzureNamedAccountCredentials> azureNamedAccountCredentials(AzureConfigurationProperties azureConfigurationProperties,
-                                                                  AccountCredentialsRepository accountCredentialsRepository) {
+                                                                  AccountCredentialsRepository accountCredentialsRepository,
+                                                                  String clouddriverUserAgentApplicationName) {
 
     def azureAccounts = []
     azureConfigurationProperties.accounts.each { AzureConfigurationProperties.ManagedAccount managedAccount ->
@@ -50,7 +49,7 @@ class AzureCredentialsInitializer {
           managedAccount.customImages,
           managedAccount.defaultResourceGroup,
           managedAccount.defaultKeyVault,
-          azureApplicationName
+          clouddriverUserAgentApplicationName
         )
 
         azureAccounts << (accountCredentialsRepository.save(managedAccount.name, azureAccount) as AzureNamedAccountCredentials)

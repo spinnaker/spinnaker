@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.configuration.ThreadPoolConfiguration
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
@@ -48,8 +48,8 @@ class ProjectController {
   private final Scheduler queryClusterScheduler
 
   @Autowired
-  ProjectController(@Value('${threadPool.queryCluster:25}') int threadPoolSize) {
-    this(Schedulers.from(newFixedThreadPool(threadPoolSize)))
+  ProjectController(ThreadPoolConfiguration threadPoolConfiguration) {
+    this(Schedulers.from(newFixedThreadPool(threadPoolConfiguration.queryCluster)))
   }
 
   ProjectController(Scheduler queryClusterScheduler) {

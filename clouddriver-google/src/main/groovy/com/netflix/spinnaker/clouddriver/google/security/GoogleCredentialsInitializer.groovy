@@ -23,36 +23,24 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import org.apache.log4j.Logger
-import org.springframework.beans.factory.annotation.Autowired
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
-import org.springframework.stereotype.Component
 
-@Component
+@Slf4j
 @Configuration
 class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizable {
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
-
-  @Autowired
-  String googleApplicationName
-
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository
-
-  @Autowired
-  ApplicationContext appContext
-
-  @Autowired
-  List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
 
   @Bean
-  List<? extends GoogleNamedAccountCredentials> googleNamedAccountCredentials(
-    GoogleConfigurationProperties googleConfigurationProperties) {
-    synchronizeGoogleAccounts(googleConfigurationProperties, null)
+  List<? extends GoogleNamedAccountCredentials> googleNamedAccountCredentials(String clouddriverUserAgentApplicationName,
+                                                                              GoogleConfigurationProperties googleConfigurationProperties,
+                                                                              ApplicationContext applicationContext,
+                                                                              AccountCredentialsRepository accountCredentialsRepository,
+                                                                              List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
+    synchronizeGoogleAccounts(clouddriverUserAgentApplicationName, googleConfigurationProperties, null, applicationContext, accountCredentialsRepository, providerSynchronizerTypeWrappers)
   }
 
   @Override
@@ -62,7 +50,12 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  List<?> synchronizeGoogleAccounts(GoogleConfigurationProperties googleConfigurationProperties, CatsModule catsModule) {
+  List<? extends GoogleNamedAccountCredentials> synchronizeGoogleAccounts(String clouddriverUserAgentApplicationName,
+                                                                          GoogleConfigurationProperties googleConfigurationProperties,
+                                                                          CatsModule catsModule,
+                                                                          ApplicationContext applicationContext,
+                                                                          AccountCredentialsRepository accountCredentialsRepository,
+                                                                          List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
     def (ArrayList<GoogleConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
       ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
                                            GoogleNamedAccountCredentials,
@@ -70,7 +63,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
 
     accountsToAdd.each { GoogleConfigurationProperties.ManagedAccount managedAccount ->
       try {
-        def jsonKey = GoogleCredentialsInitializer.getJsonKey(managedAccount)
+        def jsonKey = getJsonKey(managedAccount)
         def googleAccount = new GoogleNamedAccountCredentials.Builder()
             .name(managedAccount.name)
             .environment(managedAccount.environment ?: managedAccount.name)
@@ -80,7 +73,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
             .jsonKey(jsonKey)
             .imageProjects(managedAccount.imageProjects)
             .requiredGroupMembership(managedAccount.requiredGroupMembership)
-            .applicationName(googleApplicationName)
+            .applicationName(clouddriverUserAgentApplicationName)
             .consulConfig(managedAccount.consul)
             .build()
 
@@ -97,12 +90,12 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
     ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
 
     if (accountsToAdd && catsModule) {
-      ProviderUtils.synchronizeAgentProviders(appContext, providerSynchronizerTypeWrappers)
+      ProviderUtils.synchronizeAgentProviders(applicationContext, providerSynchronizerTypeWrappers)
     }
 
     accountCredentialsRepository.all.findAll {
       it instanceof GoogleNamedAccountCredentials
-    } as List
+    } as List<GoogleNamedAccountCredentials>
   }
 
   private static String getJsonKey(GoogleConfigurationProperties.ManagedAccount managedAccount) {

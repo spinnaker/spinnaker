@@ -23,7 +23,7 @@ buildscript {
     maven { url "http://spinnaker.bintray.com/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.9.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.10.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
@@ -34,7 +34,7 @@ allprojects {
   apply plugin: 'groovy'
 
   ext {
-    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.63.0'
+    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.65.0'
   }
 
   def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]

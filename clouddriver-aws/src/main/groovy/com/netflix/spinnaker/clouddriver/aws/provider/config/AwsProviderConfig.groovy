@@ -39,8 +39,8 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.LaunchConfigCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.LoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -53,6 +53,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
 @Configuration
+@EnableConfigurationProperties(ReservationReportConfigurationProperties)
 class AwsProviderConfig {
   @Bean
   @DependsOn('netflixAmazonCredentials')
@@ -81,8 +82,8 @@ class AwsProviderConfig {
   }
 
   @Bean
-  Scheduler reservationReportScheduler(@Value('${reports.reservation.threadPoolSize:5}') int reservationReportThreadPoolSize) {
-    return Schedulers.from(Executors.newFixedThreadPool(reservationReportThreadPoolSize))
+  Scheduler reservationReportScheduler(ReservationReportConfigurationProperties reservationReportConfigurationProperties) {
+    return Schedulers.from(Executors.newFixedThreadPool(reservationReportConfigurationProperties.threadPoolSize))
   }
 
   @Bean

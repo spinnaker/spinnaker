@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import org.apache.log4j.Logger
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -36,19 +35,12 @@ import org.springframework.stereotype.Component
 class OpenstackCredentialsInitializer implements CredentialsInitializerSynchronizable {
   private static final Logger LOG = Logger.getLogger(this.class.simpleName)
 
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository
-
-  @Autowired
-  ApplicationContext appContext
-
-  @Autowired
-  List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
-
   @Bean
-  List<? extends OpenstackNamedAccountCredentials> openstackNamedAccountCredentials(
-    OpenstackConfigurationProperties openstackConfigurationProperties) {
-    synchronizeOpenstackAccounts(openstackConfigurationProperties, null)
+  List<? extends OpenstackNamedAccountCredentials> openstackNamedAccountCredentials(OpenstackConfigurationProperties openstackConfigurationProperties,
+                                                                                    AccountCredentialsRepository accountCredentialsRepository,
+                                                                                    ApplicationContext applicationContext,
+                                                                                    List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
+    synchronizeOpenstackAccounts(openstackConfigurationProperties, accountCredentialsRepository, null, applicationContext, providerSynchronizerTypeWrappers)
   }
 
   @Override
@@ -58,7 +50,11 @@ class OpenstackCredentialsInitializer implements CredentialsInitializerSynchroni
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  List<?> synchronizeOpenstackAccounts(OpenstackConfigurationProperties openstackConfigurationProperties, CatsModule catsModule) {
+  List<? extends OpenstackNamedAccountCredentials> synchronizeOpenstackAccounts(OpenstackConfigurationProperties openstackConfigurationProperties,
+                                       AccountCredentialsRepository accountCredentialsRepository,
+                                       CatsModule catsModule,
+                                       ApplicationContext applicationContext,
+                                       List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
     def (ArrayList<OpenstackConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
       ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
                                           OpenstackNamedAccountCredentials,
@@ -91,11 +87,11 @@ class OpenstackCredentialsInitializer implements CredentialsInitializerSynchroni
     ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
 
     if ((namesOfDeletedAccounts || accountsToAdd) && catsModule) {
-      ProviderUtils.synchronizeAgentProviders(appContext, providerSynchronizerTypeWrappers)
+      ProviderUtils.synchronizeAgentProviders(applicationContext, providerSynchronizerTypeWrappers)
     }
 
     accountCredentialsRepository.all.findAll {
       it instanceof OpenstackNamedAccountCredentials
-    } as List
+    } as List<OpenstackNamedAccountCredentials>
   }
 }

@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.configuration.CredentialsConfiguration
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
@@ -35,11 +35,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/credentials")
 class CredentialsController {
 
-  @Value('${credentials.primaryAccountTypes:default}')
-  List<String> primaryAccountTypes = []
-
-  @Value('${credentials.challengeDestructiveActionsEnvironments:default}')
-  List<String> challengeDestructiveActionsEnvironments = []
+  @Autowired
+  CredentialsConfiguration credentialsConfiguration
 
   @Autowired
   ObjectMapper objectMapper
@@ -83,8 +80,8 @@ class CredentialsController {
     }
 
     cred.type = accountCredentials.cloudProvider
-    cred.challengeDestructiveActions = challengeDestructiveActionsEnvironments.contains(accountCredentials.environment)
-    cred.primaryAccount = primaryAccountTypes.contains(accountCredentials.accountType)
+    cred.challengeDestructiveActions = credentialsConfiguration.challengeDestructiveActionsEnvironments.contains(accountCredentials.environment)
+    cred.primaryAccount = credentialsConfiguration.primaryAccountTypes.contains(accountCredentials.accountType)
 
     return cred
   }

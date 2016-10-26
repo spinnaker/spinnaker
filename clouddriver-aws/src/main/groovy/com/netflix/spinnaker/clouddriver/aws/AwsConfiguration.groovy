@@ -16,12 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.aws
 
-import com.amazonaws.metrics.AwsSdkMetrics
 import com.amazonaws.retry.RetryPolicy.BackoffStrategy
 import com.amazonaws.retry.RetryPolicy.RetryCondition
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapper
-import com.netflix.spectator.aws.SpectatorMetricCollector
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupAlarmsAgent
@@ -54,8 +52,6 @@ import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactor
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.kork.aws.AwsComponents
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -68,52 +64,18 @@ import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
 
-import javax.annotation.PostConstruct
 import java.util.concurrent.ConcurrentHashMap
 
 @Configuration
 @ConditionalOnProperty('aws.enabled')
 @ComponentScan(["com.netflix.spinnaker.clouddriver.aws"])
-@EnableConfigurationProperties
+@EnableConfigurationProperties(AwsConfigurationProperties)
 @Import([
   BastionConfig,
   AmazonCredentialsInitializer,
   AwsComponents
 ])
 class AwsConfiguration {
-  @Value('${aws.metrics.enabled:false}')
-  boolean metricsEnabled
-
-  @Value('${aws.client.maxErrorRetry:3}')
-  int maxErrorRetry
-
-  @Value('${aws.client.maxConnections:200}')
-  int maxConnections
-
-  @Value('${aws.client.maxConnectionsPerRoute:20}')
-  int maxConnectionsPerRoute
-
-  @Value('${aws.cleanup.alarms.enabled:false}')
-  boolean alarmCleanupEnabled
-
-  @Value('${aws.cleanup.alarms.daysToKeep:90}')
-  int daysToKeepAlarms
-
-  @Value('${aws.migration.infrastructureApplications:[]}')
-  List<String> infrastructureApplications
-
-  @Value('${aws.client.useGzip:true}')
-  boolean awsClientUseGzip
-
-  @Autowired
-  SpectatorMetricCollector spectatorMetricCollector
-
-  @PostConstruct
-  void checkMetricsEnabled() {
-    if (!metricsEnabled) {
-      AwsSdkMetrics.setMetricCollector(null)
-    }
-  }
 
   @Bean
   @ConfigurationProperties('aws.edda')
@@ -127,17 +89,17 @@ class AwsConfiguration {
   }
 
   @Bean
-  AmazonClientProvider amazonClientProvider(RetryCondition instrumentedRetryCondition, BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, EddaTimeoutConfig eddaTimeoutConfig) {
+  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, RetryCondition instrumentedRetryCondition, BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, EddaTimeoutConfig eddaTimeoutConfig) {
     new AmazonClientProvider.Builder()
       .backoffStrategy(instrumentedBackoffStrategy)
       .retryCondition(instrumentedRetryCondition)
       .objectMapper(amazonObjectMapper())
-      .maxErrorRetry(maxErrorRetry)
-      .maxConnections(maxConnections)
-      .maxConnectionsPerRoute(maxConnectionsPerRoute)
+      .maxErrorRetry(awsConfigurationProperties.client.maxErrorRetry)
+      .maxConnections(awsConfigurationProperties.client.maxConnections)
+      .maxConnectionsPerRoute(awsConfigurationProperties.client.maxConnectionsPerRoute)
       .proxy(proxy)
       .eddaTimeoutConfig(eddaTimeoutConfig)
-      .useGzip(awsClientUseGzip)
+      .useGzip(awsConfigurationProperties.client.useGzip)
       .build()
   }
 
@@ -161,8 +123,8 @@ class AwsConfiguration {
   @Bean
   @ConditionalOnMissingBean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  MigrateSecurityGroupStrategy migrateSecurityGroupStrategy(AmazonClientProvider amazonClientProvider) {
-    new DefaultMigrateSecurityGroupStrategy(amazonClientProvider, infrastructureApplications)
+  MigrateSecurityGroupStrategy migrateSecurityGroupStrategy(AwsConfigurationProperties awsConfigurationProperties, AmazonClientProvider amazonClientProvider) {
+    new DefaultMigrateSecurityGroupStrategy(amazonClientProvider, awsConfigurationProperties.migration.infrastructureApplications)
   }
 
   @Bean
@@ -238,12 +200,13 @@ class AwsConfiguration {
 
   @Bean
   @DependsOn('netflixAmazonCredentials')
-  AwsCleanupProvider awsOperationProvider(AmazonClientProvider amazonClientProvider,
+  AwsCleanupProvider awsOperationProvider(AwsConfigurationProperties awsConfigurationProperties,
+                                          AmazonClientProvider amazonClientProvider,
                                           AccountCredentialsRepository accountCredentialsRepository,
                                           DeployDefaults deployDefaults) {
     def awsCleanupProvider = new AwsCleanupProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
-    synchronizeAwsCleanupProvider(awsCleanupProvider, amazonClientProvider, accountCredentialsRepository, deployDefaults)
+    synchronizeAwsCleanupProvider(awsConfigurationProperties, awsCleanupProvider, amazonClientProvider, accountCredentialsRepository, deployDefaults)
 
     awsCleanupProvider
   }
@@ -271,7 +234,8 @@ class AwsConfiguration {
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  AwsCleanupProviderSynchronizer synchronizeAwsCleanupProvider(AwsCleanupProvider awsCleanupProvider,
+  AwsCleanupProviderSynchronizer synchronizeAwsCleanupProvider(AwsConfigurationProperties awsConfigurationProperties,
+                                                               AwsCleanupProvider awsCleanupProvider,
                                                                AmazonClientProvider amazonClientProvider,
                                                                AccountCredentialsRepository accountCredentialsRepository,
                                                                DeployDefaults deployDefaults) {
@@ -289,8 +253,8 @@ class AwsConfiguration {
     }
 
     if (!awsCleanupProvider.agentScheduler) {
-      if (alarmCleanupEnabled) {
-        awsCleanupProvider.agents.add(new CleanupAlarmsAgent(amazonClientProvider, accountCredentialsRepository, daysToKeepAlarms))
+      if (awsConfigurationProperties.cleanup.alarms.enabled) {
+        awsCleanupProvider.agents.add(new CleanupAlarmsAgent(amazonClientProvider, accountCredentialsRepository, awsConfigurationProperties.cleanup.alarms.daysToKeep))
       }
       awsCleanupProvider.agents.add(new CleanupDetachedInstancesAgent(amazonClientProvider, accountCredentialsRepository))
     }

@@ -71,7 +71,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
   GoogleSubnetProvider googleSubnetProvider
 
   @Autowired
-  String googleApplicationName
+  String clouddriverUserAgentApplicationName
 
   ModifyGoogleServerGroupInstanceTemplateAtomicOperation(ModifyGoogleServerGroupInstanceTemplateDescription description) {
     this.description = description
@@ -157,7 +157,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
                                                    compute,
                                                    task,
                                                    BASE_PHASE,
-                                                   googleApplicationName,
+                                                   clouddriverUserAgentApplicationName,
                                                    googleConfigurationProperties.baseImageProjects)
         def attachedDisks = GCEUtil.buildAttachedDisks(project,
                                                        null,

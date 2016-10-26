@@ -79,7 +79,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   GoogleSubnetProvider googleSubnetProvider
 
   @Autowired
-  String googleApplicationName
+  String clouddriverUserAgentApplicationName
 
   @Autowired
   Cache cacheView
@@ -141,7 +141,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                compute,
                                                task,
                                                BASE_PHASE,
-                                               googleApplicationName,
+                                               clouddriverUserAgentApplicationName,
                                                googleConfigurationProperties.baseImageProjects)
 
     def network = GCEUtil.queryNetwork(accountName, description.network ?: DEFAULT_NETWORK_NAME, task, BASE_PHASE, googleNetworkProvider)

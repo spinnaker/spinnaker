@@ -38,10 +38,10 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
 
   String agentType = "$accountName/$GoogleSslCertificateCachingAgent.simpleName"
 
-  GoogleSslCertificateCachingAgent(String googleApplicationName,
+  GoogleSslCertificateCachingAgent(String clouddriverUserAgentApplicationName,
                                    GoogleNamedAccountCredentials credentials,
                                    ObjectMapper objectMapper) {
-    super(googleApplicationName,
+    super(clouddriverUserAgentApplicationName,
       credentials,
       objectMapper)
   }

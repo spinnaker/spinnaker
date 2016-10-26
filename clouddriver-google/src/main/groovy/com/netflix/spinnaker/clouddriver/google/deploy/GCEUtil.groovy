@@ -75,7 +75,7 @@ class GCEUtil {
                                 Compute compute,
                                 Task task,
                                 String phase,
-                                String googleApplicationName,
+                                String clouddriverUserAgentApplicationName,
                                 List<String> baseImageProjects) {
     task.updateStatus phase, "Looking up source image $description.image..."
 
@@ -83,7 +83,7 @@ class GCEUtil {
     def sourceImageName = description.image
     def sourceImage = null
 
-    def imageListBatch = buildBatchRequest(compute, googleApplicationName)
+    def imageListBatch = buildBatchRequest(compute, clouddriverUserAgentApplicationName)
     def imageListCallback = new JsonBatchCallback<ImageList>() {
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
@@ -116,12 +116,12 @@ class GCEUtil {
     }
   }
 
-  private static BatchRequest buildBatchRequest(def compute, def googleApplicationName) {
+  private static BatchRequest buildBatchRequest(def compute, String clouddriverUserAgentApplicationName) {
     return compute.batch(
       new HttpRequestInitializer() {
         @Override
         void initialize(HttpRequest request) throws IOException {
-          request.headers.setUserAgent(googleApplicationName);
+          request.headers.setUserAgent(clouddriverUserAgentApplicationName);
         }
       }
     )

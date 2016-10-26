@@ -11,3 +11,4 @@ application.yml
 *.hprof
 README.html
 *~
+es-tmp/

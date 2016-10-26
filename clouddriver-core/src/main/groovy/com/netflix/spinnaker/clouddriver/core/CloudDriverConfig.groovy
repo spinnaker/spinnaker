@@ -63,8 +63,8 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.core.convert.ConversionService
-import org.springframework.core.convert.support.DefaultConversionService
+import org.springframework.context.annotation.PropertySource
+import org.springframework.core.env.Environment
 import org.springframework.web.client.RestTemplate
 
 @Configuration
@@ -72,7 +72,14 @@ import org.springframework.web.client.RestTemplate
   RedisConfig,
   CacheConfig
 ])
+@PropertySource(value = "classpath:META-INF/clouddriver-core.properties", ignoreResourceNotFound = true)
 class CloudDriverConfig {
+
+  @Bean
+  String clouddriverUserAgentApplicationName(Environment environment) {
+    return "Spinnaker/${environment.getProperty("Implementation-Version", "Unknown")}"
+  }
+
   @Bean
   @ConditionalOnMissingBean(AccountCredentialsRepository)
   AccountCredentialsRepository accountCredentialsRepository() {
@@ -203,11 +210,5 @@ class CloudDriverConfig {
     return new CoreProvider([
       new CleanupPendingOnDemandCachesAgent(jedisSource, applicationContext)
     ])
-  }
-
-  // Allows @Value annotation to tokenize a list of strings.
-  @Bean
-  ConversionService conversionService() {
-    new DefaultConversionService()
   }
 }

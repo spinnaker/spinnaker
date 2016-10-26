@@ -44,11 +44,11 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
   String onDemandAgentType = "${agentType}-OnDemand"
   final OnDemandMetricsSupport metricsSupport
 
-  GoogleSecurityGroupCachingAgent(String googleApplicationName,
+  GoogleSecurityGroupCachingAgent(String clouddriverUserAgentApplicationName,
                                   GoogleNamedAccountCredentials credentials,
                                   ObjectMapper objectMapper,
                                   Registry registry) {
-    super(googleApplicationName,
+    super(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper)
     this.metricsSupport = new OnDemandMetricsSupport(

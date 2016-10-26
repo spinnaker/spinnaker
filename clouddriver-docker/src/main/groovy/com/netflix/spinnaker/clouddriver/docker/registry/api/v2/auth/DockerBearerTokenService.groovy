@@ -35,7 +35,7 @@ class DockerBearerTokenService {
   File passwordFile
 
   @Autowired
-  String dockerApplicationName
+  String clouddriverUserAgentApplicationName
 
   DockerBearerTokenService() {
     realmToService = new HashMap<String, TokenService>()
@@ -214,10 +214,10 @@ class DockerBearerTokenService {
     def tokenService = getTokenService(authenticateDetails.realm)
     def token
     if (basicAuthHeader) {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthHeader, dockerApplicationName)
+      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthHeader, clouddriverUserAgentApplicationName)
     }
     else {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, dockerApplicationName)
+      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, clouddriverUserAgentApplicationName)
     }
 
     cachedTokens[repository] = token

@@ -16,30 +16,33 @@
 
 package com.netflix.spinnaker.clouddriver.titus
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusClient
+import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
-import groovy.transform.Canonical
+import groovy.transform.Immutable
+
+import java.util.concurrent.ConcurrentHashMap
 
 class TitusClientProvider {
 
-  private final List<TitusClientHolder> titusClientHolders
+  private final Map<TitusClientKey, TitusClient> titusClients = new ConcurrentHashMap<>()
+  private final Registry registry
 
-  TitusClientProvider(List<TitusClientHolder> titusClientHolders) {
-    this.titusClientHolders = titusClientHolders
+  TitusClientProvider(Registry registry) {
+    this.registry = registry
   }
 
   TitusClient getTitusClient(NetflixTitusCredentials account, String region) {
-    TitusClientHolder titusClientHolder = titusClientHolders.find { it.account == account.name && it.region == region }
-    if (!titusClientHolder) {
-      throw new IllegalArgumentException("No titus client registered for account ${account.name} and region ${region}")
-    }
-    titusClientHolder.titusClient
+    final TitusRegion titusRegion = Objects.requireNonNull(account.regions.find { it.name == region }, "region")
+    final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)
+    return titusClients.computeIfAbsent(key, { k -> new RegionScopedTitusClient(k.region, registry) })
   }
 
-  @Canonical
-  static class TitusClientHolder {
+  @Immutable(knownImmutableClasses = [TitusRegion])
+  static class TitusClientKey {
     final String account
-    final String region
-    final TitusClient titusClient
+    final TitusRegion region
   }
 }

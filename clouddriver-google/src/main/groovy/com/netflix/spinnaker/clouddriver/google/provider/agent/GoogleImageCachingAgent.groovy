@@ -49,12 +49,12 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
   @VisibleForTesting
   GoogleImageCachingAgent() {}
 
-  GoogleImageCachingAgent(String googleApplicationName,
+  GoogleImageCachingAgent(String clouddriverUserAgentApplicationName,
                           GoogleNamedAccountCredentials credentials,
                           ObjectMapper objectMapper,
                           List<String> imageProjects,
                           List<String> baseImageProjects) {
-    super(googleApplicationName,
+    super(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper)
     this.imageProjects = imageProjects

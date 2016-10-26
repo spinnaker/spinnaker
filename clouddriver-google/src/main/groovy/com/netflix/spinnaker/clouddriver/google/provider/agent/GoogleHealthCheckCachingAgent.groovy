@@ -41,10 +41,10 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
 
   String agentType = "$accountName/$GoogleHealthCheckCachingAgent.simpleName"
 
-  GoogleHealthCheckCachingAgent(String googleApplicationName,
+  GoogleHealthCheckCachingAgent(String clouddriverUserAgentApplicationName,
                                 GoogleNamedAccountCredentials credentials,
                                 ObjectMapper objectMapper) {
-    super(googleApplicationName,
+    super(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper)
   }

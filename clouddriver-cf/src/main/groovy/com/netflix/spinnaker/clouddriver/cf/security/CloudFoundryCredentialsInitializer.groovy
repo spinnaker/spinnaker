@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfigurationProp
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -32,17 +31,12 @@ import org.springframework.context.annotation.Scope
 @Configuration
 class CloudFoundryCredentialsInitializer implements CredentialsInitializerSynchronizable  {
 
-  @Autowired
-  ApplicationContext appContext;
-
-  @Autowired
-  List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
-
   @Bean
-  List<? extends CloudFoundryAccountCredentials> cloudFoundryAccountCredentials(
-      CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties,
-      AccountCredentialsRepository accountCredentialsRepository) {
-    synchronizeCloudFoundryAccounts(cloudFoundryConfigurationProperties, accountCredentialsRepository, null)
+  List<? extends CloudFoundryAccountCredentials> cloudFoundryAccountCredentials(CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties,
+                                                                                AccountCredentialsRepository accountCredentialsRepository,
+                                                                                ApplicationContext applicationContext,
+                                                                                List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
+    synchronizeCloudFoundryAccounts(cloudFoundryConfigurationProperties, accountCredentialsRepository, null, applicationContext, providerSynchronizerTypeWrappers)
   }
 
   @Override
@@ -52,9 +46,11 @@ class CloudFoundryCredentialsInitializer implements CredentialsInitializerSynchr
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  List<?> synchronizeCloudFoundryAccounts(CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties,
-                                          AccountCredentialsRepository accountCredentialsRepository,
-                                          CatsModule catsModule) {
+  List<? extends CloudFoundryAccountCredentials> synchronizeCloudFoundryAccounts(CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties,
+                                                                                 AccountCredentialsRepository accountCredentialsRepository,
+                                                                                 CatsModule catsModule,
+                                                                                 ApplicationContext applicationContext,
+                                                                                 List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
     def (ArrayList<CloudFoundryAccountCredentials> accountsToAdd, List<String> namesOfDeletedAccounts) =
       ProviderUtils.calculateAccountDeltas(accountCredentialsRepository, CloudFoundryAccountCredentials,
           cloudFoundryConfigurationProperties.accounts)
@@ -66,12 +62,12 @@ class CloudFoundryCredentialsInitializer implements CredentialsInitializerSynchr
     ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
 
     if (accountsToAdd && catsModule) {
-      ProviderUtils.synchronizeAgentProviders(appContext, providerSynchronizerTypeWrappers)
+      ProviderUtils.synchronizeAgentProviders(applicationContext, providerSynchronizerTypeWrappers)
     }
 
     accountCredentialsRepository.all.findAll {
       it instanceof CloudFoundryAccountCredentials
-    } as List
+    } as List<CloudFoundryAccountCredentials>
   }
 
 }

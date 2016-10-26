@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaSupportConfigurationProperties
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -87,6 +88,7 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
       }
     }
     op.discoverySupport.regionScopedProviderFactory = regionScopedProviderFactory
+    op.discoverySupport.eurekaSupportConfigurationProperties = new EurekaSupportConfigurationProperties()
     op.regionScopedProviderFactory = regionScopedProviderFactory
   }
 }

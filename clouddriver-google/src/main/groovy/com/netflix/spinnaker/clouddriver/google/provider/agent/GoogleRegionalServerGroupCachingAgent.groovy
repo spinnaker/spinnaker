@@ -64,12 +64,12 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
   String onDemandAgentType = "${agentType}-OnDemand"
   final OnDemandMetricsSupport metricsSupport
 
-  GoogleRegionalServerGroupCachingAgent(String googleApplicationName,
+  GoogleRegionalServerGroupCachingAgent(String clouddriverUserAgentApplicationName,
                                         GoogleNamedAccountCredentials credentials,
                                         ObjectMapper objectMapper,
                                         String region,
                                         Registry registry) {
-    super(googleApplicationName,
+    super(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper)
     this.region = region

@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.google.provider.agent.*
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -38,9 +39,6 @@ import java.util.concurrent.ConcurrentHashMap
 @Import(GoogleConfiguration)
 @EnableConfigurationProperties
 class GoogleInfrastructureProviderConfig {
-
-  @Autowired
-  GoogleConfiguration googleConfiguration
 
   @Bean
   @DependsOn('googleNamedAccountCredentials')
@@ -75,6 +73,8 @@ class GoogleInfrastructureProviderConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   GoogleInfrastructureProviderSynchronizer synchronizeGoogleInfrastructureProvider(
+      String clouddriverUserAgentApplicationName,
+      GoogleConfigurationProperties googleConfigurationProperties,
       GoogleInfrastructureProvider googleInfrastructureProvider,
       AccountCredentialsRepository accountCredentialsRepository,
       ObjectMapper objectMapper,
@@ -90,66 +90,66 @@ class GoogleInfrastructureProviderConfig {
         def newlyAddedAgents = []
         def regions = credentials.regions.collect { it.name }
 
-        newlyAddedAgents << new GoogleSecurityGroupCachingAgent(googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleSecurityGroupCachingAgent(clouddriverUserAgentApplicationName,
                                                                 credentials,
                                                                 objectMapper,
                                                                 registry)
-        newlyAddedAgents << new GoogleNetworkCachingAgent(googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleNetworkCachingAgent(clouddriverUserAgentApplicationName,
                                                           credentials,
                                                           objectMapper)
 
         regions.each { String region ->
-          newlyAddedAgents << new GoogleSubnetCachingAgent(googleConfiguration.googleApplicationName(),
+          newlyAddedAgents << new GoogleSubnetCachingAgent(clouddriverUserAgentApplicationName,
                                                            credentials,
                                                            objectMapper,
                                                            region)
         }
 
-        newlyAddedAgents << new GoogleHealthCheckCachingAgent(googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleHealthCheckCachingAgent(clouddriverUserAgentApplicationName,
                                                               credentials,
                                                               objectMapper)
-        newlyAddedAgents << new GoogleHttpHealthCheckCachingAgent(googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleHttpHealthCheckCachingAgent(clouddriverUserAgentApplicationName,
                                                                   credentials,
                                                                   objectMapper)
-        newlyAddedAgents << new GoogleSslLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleSslLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
                                                                   credentials,
                                                                   objectMapper,
                                                                   registry)
-        newlyAddedAgents << new GoogleSslCertificateCachingAgent(googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleSslCertificateCachingAgent(clouddriverUserAgentApplicationName,
                                                                  credentials,
                                                                  objectMapper)
-        newlyAddedAgents << new GoogleBackendServiceCachingAgent(googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleBackendServiceCachingAgent(clouddriverUserAgentApplicationName,
                                                                  credentials,
                                                                  objectMapper)
-        newlyAddedAgents << new GoogleInstanceCachingAgent(googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleInstanceCachingAgent(clouddriverUserAgentApplicationName,
                                                            credentials,
                                                            objectMapper)
-        newlyAddedAgents << new GoogleImageCachingAgent(googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleImageCachingAgent(clouddriverUserAgentApplicationName,
                                                         credentials,
                                                         objectMapper,
                                                         credentials.imageProjects,
-                                                        googleConfiguration.googleConfigurationProperties().baseImageProjects)
-        newlyAddedAgents << new GoogleHttpLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
+                                                        googleConfigurationProperties.baseImageProjects)
+        newlyAddedAgents << new GoogleHttpLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
                                                                    credentials,
                                                                    objectMapper,
                                                                    registry)
         regions.each { String region ->
-          newlyAddedAgents << new GoogleInternalLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
+          newlyAddedAgents << new GoogleInternalLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
                                                                          credentials,
                                                                          objectMapper,
                                                                          region,
                                                                          registry)
-          newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
+          newlyAddedAgents << new GoogleLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
                                                                  credentials,
                                                                  objectMapper,
                                                                  region,
                                                                  registry)
-          newlyAddedAgents << new GoogleRegionalServerGroupCachingAgent(googleConfiguration.googleApplicationName(),
+          newlyAddedAgents << new GoogleRegionalServerGroupCachingAgent(clouddriverUserAgentApplicationName,
                                                                         credentials,
                                                                         objectMapper,
                                                                         region,
                                                                         registry)
-          newlyAddedAgents << new GoogleZonalServerGroupCachingAgent(googleConfiguration.googleApplicationName(),
+          newlyAddedAgents << new GoogleZonalServerGroupCachingAgent(clouddriverUserAgentApplicationName,
                                                                      credentials,
                                                                      objectMapper,
                                                                      region,

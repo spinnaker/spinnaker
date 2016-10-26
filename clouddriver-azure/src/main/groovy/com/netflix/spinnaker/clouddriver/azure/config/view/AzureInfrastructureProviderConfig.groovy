@@ -22,13 +22,10 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.cache.AzureAppGatewayCachingAgent
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.cache.AzureLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.network.cache.AzureNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.cache.AzureSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.cache.AzureServerGroupCachingAgent
-import com.netflix.spinnaker.clouddriver.azure.resources.subnet.cache.AzureSubnetCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.cache.AzureCustomImageCachingAgent
-import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.cache.AzureVMImageCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider.AzureInfrastructureProvider

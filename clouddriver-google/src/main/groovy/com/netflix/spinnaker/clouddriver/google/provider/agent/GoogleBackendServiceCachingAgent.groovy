@@ -40,10 +40,10 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
 
   String agentType = "$accountName/$GoogleBackendServiceCachingAgent.simpleName"
 
-  GoogleBackendServiceCachingAgent(String googleApplicationName,
+  GoogleBackendServiceCachingAgent(String clouddriverUserAgentApplicationName,
                                    GoogleNamedAccountCredentials credentials,
                                    ObjectMapper objectMapper) {
-    super(googleApplicationName,
+    super(clouddriverUserAgentApplicationName,
       credentials,
       objectMapper)
   }

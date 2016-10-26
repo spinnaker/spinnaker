@@ -23,37 +23,27 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurati
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import org.apache.log4j.Logger
-import org.springframework.beans.factory.annotation.Autowired
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Scope
-import org.springframework.stereotype.Component
 
-@Component
+@Slf4j
 @Configuration
 class KubernetesCredentialsInitializer implements CredentialsInitializerSynchronizable {
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
-
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository
-
-  @Autowired
-  ApplicationContext appContext;
-
-  @Autowired
-  KubernetesConfiguration configuration
-
-  @Autowired
-  List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
 
   @Bean
   List<? extends KubernetesNamedAccountCredentials> kubernetesNamedAccountCredentials(
-    KubernetesConfigurationProperties kubernetesConfigurationProperties) {
-    synchronizeKubernetesAccounts(kubernetesConfigurationProperties, null)
+    String clouddriverUserAgentApplicationName,
+    KubernetesConfigurationProperties kubernetesConfigurationProperties,
+    ApplicationContext applicationContext,
+    AccountCredentialsRepository accountCredentialsRepository,
+    List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
+  ) {
+    synchronizeKubernetesAccounts(clouddriverUserAgentApplicationName, kubernetesConfigurationProperties, null, applicationContext, accountCredentialsRepository, providerSynchronizerTypeWrappers)
   }
 
   @Override
@@ -64,7 +54,13 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   @DependsOn("dockerRegistryNamedAccountCredentials")
-  List<?> synchronizeKubernetesAccounts(KubernetesConfigurationProperties kubernetesConfigurationProperties, CatsModule catsModule) {
+  List<? extends KubernetesNamedAccountCredentials> synchronizeKubernetesAccounts(
+    String clouddriverUserAgentApplicationName,
+    KubernetesConfigurationProperties kubernetesConfigurationProperties,
+    CatsModule catsModule,
+    ApplicationContext applicationContext,
+    AccountCredentialsRepository accountCredentialsRepository,
+    List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
     def (ArrayList<KubernetesConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
     ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
                                          KubernetesNamedAccountCredentials,
@@ -75,7 +71,7 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
       try {
         def kubernetesAccount = new KubernetesNamedAccountCredentials.Builder()
           .accountCredentialsRepository(accountCredentialsRepository)
-          .userAgent(configuration.kubernetesApplicationName())
+          .userAgent(clouddriverUserAgentApplicationName)
           .name(managedAccount.name)
           .environment(managedAccount.environment ?: managedAccount.name)
           .accountType(managedAccount.accountType ?: managedAccount.name)
@@ -97,11 +93,11 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
     ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
 
     if (accountsToAdd && catsModule) {
-      ProviderUtils.synchronizeAgentProviders(appContext, providerSynchronizerTypeWrappers)
+      ProviderUtils.synchronizeAgentProviders(applicationContext, providerSynchronizerTypeWrappers)
     }
 
     accountCredentialsRepository.all.findAll {
       it instanceof KubernetesNamedAccountCredentials
-    } as List
+    } as List<KubernetesNamedAccountCredentials>
   }
 }
