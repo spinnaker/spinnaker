@@ -3,7 +3,13 @@
 # configuration parameters to be changed.
 #
 # In order for Spinnaker to discover it, it must be copied to a file named
-# "spinnaker-local.yml" and placed in the $HOME/.spinnaker directory.
+# "spinnaker-local.yml" and placed in /opt/spinnaker/config
+# (or when running from source code, in the $HOME/.spinnaker directory.)
+#
+# A better practice could be to create the spinnaker-local.yml file by
+# hand with only the particular attributes that you want to override
+# and use the spinnaker.yml file as your guide since it is spinnaker.yml
+# that we are overriding here in the first place.
 
 global:
   spinnaker:
