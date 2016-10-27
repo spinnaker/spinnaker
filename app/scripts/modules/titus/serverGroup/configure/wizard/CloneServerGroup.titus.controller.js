@@ -75,6 +75,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
 
     function configureCommand() {
       titusServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function () {
+        serverGroupCommand.registry =
+          serverGroupCommand.backingData.credentialsKeyedByAccount[serverGroupCommand.credentials].registry;
         $scope.state.loaded = true;
         serverGroupCommand.viewState.groupsRemovedStream.subscribe(securityGroupsRemoved);
       });
@@ -85,6 +87,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
         ($scope.command.credentials !== null) &&
         ($scope.command.region !== null) &&
         ($scope.command.capacity.desired !== null) &&
+        $scope.command.imageId &&
         v2modalWizardService.isComplete();
     };
 

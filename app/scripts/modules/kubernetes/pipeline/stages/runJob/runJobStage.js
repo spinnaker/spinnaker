@@ -4,8 +4,10 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
+import {DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT_MODULE} from 'docker/image/dockerImageAndTagSelector.component';
+
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.runJobStage', [
-  require('docker/image/dockerImageAndTagSelector.component.js'),
+  DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT_MODULE,
   require('kubernetes/container/commands.component.js'),
   require('kubernetes/container/arguments.component.js'),
   require('kubernetes/container/environmentVariables.component.js'),
@@ -46,4 +48,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.runJob
     if (!this.stage.credentials && $scope.application.defaultCredentials.kubernetes) {
       this.stage.credentials = $scope.application.defaultCredentials.kubernetes;
     }
+
+    this.onChange = (changes) => {
+      this.stage.container.imageDescription.registry = changes.registry;
+    };
   });
