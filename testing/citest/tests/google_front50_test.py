@@ -155,16 +155,16 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     # We already verified the data was stored on GCS, but while we
     # are here we will verify that it is also being returned when queried.
     (f50_builder.new_clause_builder('Lists Application')
-     .get_url_path('/default/applications')
+     .get_url_path('/v2/applications')
      .contains_path_value('name', self.TEST_APP.upper()))
     (f50_builder.new_clause_builder('Returns Application')
-     .get_url_path('/'.join(['/default/applications/name', self.TEST_APP]))
+     .get_url_path('/v2/applications')
      .contains_match({key: jp.EQUIVALENT(value)
                       for key, value in self.app_history[0].items()}))
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 
-    path = '/'.join(['/default/applications/name', self.TEST_APP])
+    path = '/v2/applications'
     return st.OperationContract(
         self.new_post_operation(
             title='create_app', data=payload, path=path),
@@ -221,7 +221,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
 
     f50_builder = st.http_observer.HttpContractBuilder(self.agent)
     (f50_builder.new_clause_builder('History Records Changes')
-     .get_url_path('/default/applications/{app}/history'
+     .get_url_path('/v2/applications/{app}/history'
                    .format(app=self.TEST_APP))
      .contains_path_match(
           '[0]', {key: jp.EQUIVALENT(value)
@@ -236,26 +236,25 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     # TODO(ewiseblatt): 20160524
     # Add a mechanism here to check the previous version
     # so that we can verify version recovery as well.
-    path = '/default/applications'
+    path = '/'.join(['/v2/applications', self.TEST_APP])
     return st.OperationContract(
-        self.new_put_operation(
+        self.new_patch_operation(
             title='update_app', data=payload, path=path),
         contract=contract)
 
   def delete_app(self):
     contract = jc.Contract()
 
-    app_url_path = '/'.join(['/default/applications/name', self.TEST_APP])
-
+    app_url_path = '/'.join(['/v2/applications', self.TEST_APP])
     f50_builder = st.http_observer.HttpContractBuilder(self.agent)
     (f50_builder.new_clause_builder('Unlists Application')
-     .get_url_path('/default/applications')
+     .get_url_path('/v2/applications')
      .excludes_path_value('name', self.TEST_APP.upper()))
     (f50_builder.new_clause_builder('Deletes Application')
      .get_url_path(app_url_path, allow_http_error_status=404))
     (f50_builder.new_clause_builder('History Retains Application',
                                     retryable_for_secs=5)
-     .get_url_path('/default/applications/{app}/history'
+     .get_url_path('/v2/applications/{app}/history'
                    .format(app=self.TEST_APP))
      .contains_path_match(
           '[0]', {key: jp.EQUIVALENT(value)
@@ -270,7 +269,7 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
     (gcs_builder.new_clause_builder('Deleted File', retryable_for_secs=5)
      .list_bucket(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
-     .excludes_path_value('name', self.TEST_APP.upper()))
+     .excludes_path_value('name', self.TEST_APP))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
 
