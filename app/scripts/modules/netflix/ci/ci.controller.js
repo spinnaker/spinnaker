@@ -1,7 +1,6 @@
 'use strict';
 
 import _ from 'lodash';
-import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
 import {CI_FILTER_MODEL} from './ci.filter.model';
 
 let angular = require('angular');
@@ -9,13 +8,10 @@ let angular = require('angular');
 require('./ci.less');
 
 module.exports = angular.module('spinnaker.netflix.ci.controller', [
-  AUTHENTICATION_SERVICE,
   CI_FILTER_MODEL,
-  require('core/application/service/applications.read.service'),
-  require('./build.read.service.js'),
   require('angular-ui-router'),
 ])
-  .controller('NetflixCiCtrl', function ($scope, authenticationService, app, buildService, CiFilterModel) {
+  .controller('NetflixCiCtrl', function ($scope, $state, app, CiFilterModel) {
     const dataSource = app.getDataSource('ci');
     let attr = app.attributes;
 
@@ -25,7 +21,12 @@ module.exports = angular.module('spinnaker.netflix.ci.controller', [
 
     this.refreshBuilds = () => dataSource.refresh();
 
-    this.getBuilds = () => this.builds = dataSource.data;
+    this.getBuilds = () => {
+      this.builds = dataSource.data;
+      if ($state.includes('**.ci') && this.builds.length) {
+        $state.go('.detail.detailTab', { buildId: this.builds[0].id, tab: 'output' }, { location: 'replace' });
+      }
+    };
 
     dataSource.ready().then(this.getBuilds);
     dataSource.onRefresh($scope, this.getBuilds);
