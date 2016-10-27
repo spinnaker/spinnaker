@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import gceLoadBalancerDeleteModal from './deleteModal/deleteModal.controller';
+import gceBackendServiceDetailsComponent from './backendService/backendService.component';
 
 let angular = require('angular');
 
@@ -20,6 +21,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('./healthCheck/healthCheck.component.js'),
   require('core/help/helpField.directive.js'),
   require('../configure/choice/loadBalancerTypeToWizardMap.constant.js'),
+  gceBackendServiceDetailsComponent,
   gceLoadBalancerDeleteModal,
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,

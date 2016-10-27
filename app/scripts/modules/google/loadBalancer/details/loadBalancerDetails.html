@@ -121,29 +121,33 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Backend Services" ng-if="ctrl.isElSeven(loadBalancer)">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <div ng-repeat="service in loadBalancer.elb.backendServices">
+    <collapsible-section heading="Backend Services" ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.backendService">
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+          ng-switch on="loadBalancer.loadBalancerType">
+        <div ng-repeat="service in loadBalancer.elb.backendServices" ng-switch-when="HTTP">
           <hr ng-if="$index > 0">
-          <dt>Name</dt>
-          <dd>{{service.name}}</dd>
-          <dt>Health Check</dt>
-          <dd>{{service.healthCheck.name}}</dd>
-          <dt>Session Affinity</dt>
-          <dd>{{service.sessionAffinity}}</dd>
-          <dt ng-if="service.sessionAffinity === 'GENERATED_COOKIE'">Affinity Cookie TTL</dt>
-          <dd ng-if="service.sessionAffinity === 'GENERATED_COOKIE'">{{service.affinityCookieTtlSec}}</dd>
+          <gce-backend-service-details backend-service="service"></gce-backend-service-details>
         </div>
+
+        <gce-backend-service-details backend-service="loadBalancer.backendService"
+                                     ng-switch-when="INTERNAL"></gce-backend-service-details>
       </dl>
     </collapsible-section>
-    <collapsible-section ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.healthCheck" heading="Health Checks">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <gce-health-check ng-if="!ctrl.isElSeven(loadBalancer)"
-                          health-check="loadBalancer.healthCheck"></gce-health-check>
-        <div ng-if="ctrl.isElSeven(loadBalancer)" ng-repeat="healthCheck in loadBalancer.elb.healthChecks">
+    <collapsible-section ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.healthCheck || loadBalancer.backendService.healthCheck"
+                         heading="Health Checks">
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+          ng-switch on="loadBalancer.loadBalancerType">
+
+        <gce-health-check ng-switch-when="NETWORK" health-check="loadBalancer.healthCheck"></gce-health-check>
+
+        <div ng-switch-when="HTTP" ng-repeat="healthCheck in loadBalancer.elb.healthChecks">
           <hr ng-if="$index > 0">
           <gce-health-check health-check="healthCheck"></gce-health-check>
         </div>
+
+        <gce-health-check ng-switch-when="INTERNAL"
+                          health-check="loadBalancer.backendService.healthCheck"></gce-health-check>
+
       </dl>
     </collapsible-section>
     <collapsible-section heading="Logs">

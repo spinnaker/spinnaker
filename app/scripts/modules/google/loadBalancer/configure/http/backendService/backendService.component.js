@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 import {BackendServiceTemplate} from '../templates';
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backendService.component', [])
-  .component('gceBackendService', {
+  .component('gceHttpLoadBalancerBackendServiceSelector', {
     bindings: {
       deleteService: '&',
       backendService: '=',

@@ -1,7 +1,9 @@
 <dt>Name</dt>
 <dd>{{$ctrl.healthCheck.name}}</dd>
-<dt>Target</dt>
-<dd>{{$ctrl.healthCheck.target}}</dd>
+<dt ng-if="$ctrl.healthCheck.healthCheckType">Type</dt>
+<dd ng-if="$ctrl.healthCheck.healthCheckType">{{$ctrl.healthCheck.healthCheckType}}</dd>
+<dt ng-if="$ctrl.healthCheck.target">Target</dt>
+<dd ng-if="$ctrl.healthCheck.target">{{$ctrl.healthCheck.target}}</dd>
 <dt>Timeout</dt>
 <dd>{{$ctrl.healthCheck.timeout}} seconds</dd>
 <dt>Interval</dt>

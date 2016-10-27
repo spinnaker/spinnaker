@@ -22,11 +22,12 @@
       </p>
     </div>
   </div>
-  <gce-backend-service ng-repeat="backendService in ctrl.command.loadBalancer.backendServices"
-                       backend-service="backendService"
-                       index="$index"
-                       command="ctrl.command"
-                       delete-service="ctrl.remove('backendServices', $index)"></gce-backend-service>
+  <gce-http-load-balancer-backend-service-selector ng-repeat="backendService in ctrl.command.loadBalancer.backendServices"
+                                                   backend-service="backendService"
+                                                   index="$index"
+                                                   command="ctrl.command"
+                                                   delete-service="ctrl.remove('backendServices', $index)">
+  </gce-http-load-balancer-backend-service-selector>
   <div class="row">
     <div class="col-md-12">
       <button class="add-new btn btn-block"

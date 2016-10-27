@@ -124,7 +124,11 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
 
     function getHealthChecks () {
       return gceHttpHealthCheckReader.listHttpHealthChecks()
-        .then(([response]) => response.results.map((hc) => JSON.parse(hc.httpHealthCheck)));
+        .then(([response]) => response.results.map((hc) => {
+          let parsed = JSON.parse(hc.httpHealthCheck);
+          parsed.kind = parsed.kind.split('#').pop();
+          return parsed;
+        }));
     }
 
     function getBackendServices () {
