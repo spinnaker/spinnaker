@@ -58,3 +58,11 @@ stackdriver:
     - name: controller.invocations
       labels:
       - application
+    - name: aws.request.httpRequestTime
+      labels:
+      - status
+      - exception
+      - AWSErrorCode
+    - name: aws.request.requestSigningTime
+      labels:
+      - exception
