@@ -1,5 +1,7 @@
 'use strict';
+
 import anyFieldFilter from './anyFieldFilter/anyField.filter';
+import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
 
 let angular = require('angular');
 
@@ -9,7 +11,7 @@ require('./navPopover.less');
 
 module.exports = angular.module('spinnaker.core.presentation', [
   anyFieldFilter,
-  require('./autoScroll/autoScroll.directive.js'),
+  AUTO_SCROLL_DIRECTIVE,
   require('./collapsibleSection/collapsibleSection.directive.js'),
   require('./gist/gist.directive.js'),
   require('./isVisible/isVisible.directive.js'),

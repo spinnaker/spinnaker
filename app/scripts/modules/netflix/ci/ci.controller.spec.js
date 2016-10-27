@@ -1,4 +1,5 @@
-import modelBuilderModule from 'core/application/applicationModel.builder';
+import MODEL_BUILDER from 'core/application/applicationModel.builder';
+import DATA_SOURCE_REGISTRY from 'core/application/service/applicationDataSource.registry';
 
 describe('Controller: NetflixCiCtrl', function () {
 
@@ -7,14 +8,16 @@ describe('Controller: NetflixCiCtrl', function () {
   beforeEach(
     window.module(
       require('./ci.controller.js'),
-      modelBuilderModule
+      MODEL_BUILDER,
+      DATA_SOURCE_REGISTRY
     )
   );
 
   let buildControllerWithAppAttributes = (attributes) => {
-    window.inject(function ($rootScope, $controller, applicationModelBuilder) {
+    window.inject(function ($rootScope, $controller, applicationModelBuilder, applicationDataSourceRegistry) {
       let scope = $rootScope.$new();
-      let app = applicationModelBuilder.createApplication({});
+      applicationDataSourceRegistry.registerDataSource({key: 'ci'});
+      let app = applicationModelBuilder.createApplication(applicationDataSourceRegistry.getDataSources());
       app.attributes = attributes;
       controller = $controller('NetflixCiCtrl', {
         $scope: scope,

@@ -8,7 +8,8 @@ module.exports = angular
     require('../build.read.service.js'),
     require('core/scheduler/scheduler.factory'),
   ])
-  .controller('CiDetailCtrl', function ($scope, $state, $stateParams, buildService, schedulerFactory) {
+  .controller('CiDetailCtrl', function ($scope, $state, $stateParams, buildService, schedulerFactory, app) {
+    const dataSource = app.getDataSource('ci');
     this.viewState = {
       isDownloadable: () => $state.params.tab === 'output',
       isRunning: false
@@ -20,7 +21,12 @@ module.exports = angular
           $state.go('.detailTab', {buildId: $stateParams.buildId, tab: 'output'}, {location: 'replace'});
         }
         this.build = response;
-        this.viewState.isRunning = response.completionStatus === 'INCOMPLETE';
+        this.viewState.isRunning = response.isRunning;
+        let existingIndex = dataSource.data.findIndex(b => b.id === $stateParams.buildId);
+        if (existingIndex > -1) {
+          dataSource.data[existingIndex] = response;
+          dataSource.dataUpdated();
+        }
       });
     };
 

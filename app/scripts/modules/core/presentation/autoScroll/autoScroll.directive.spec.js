@@ -1,44 +1,29 @@
-/*
- * Copyright 2014 Netflix, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-'use strict';
+import {Subject} from 'rxjs';
+import {AUTO_SCROLL_DIRECTIVE} from './autoScroll.directive';
 
 describe('Directives: auto-scroll', function () {
 
   beforeEach(window.module(
-    require('./autoScroll.directive.js')
+    AUTO_SCROLL_DIRECTIVE
   ));
 
 
   function buildContainer(height) {
-    return '<div style="overflow:auto; height: ' + height + 'px"></div>';
+    return `<div style="overflow:auto; height: ${height}px"></div>`;
   }
-  function buildAutoScroller(watchers) {
-    return '<div auto-scroll="' + watchers + '"></div>';
+  function buildAutoScroller(watchers, attrs = '') {
+    return `<div auto-scroll="${watchers}" ${attrs}></div>`;
   }
   function buildChild(height) {
-    return '<div style="height: ' + height + 'px"></div>';
+    return `<div style="height: ${height}px"></div>`;
   }
 
-  function buildWatchableContainer(watch, context) {
+  function buildWatchableContainer(watch, context, attrs = '') {
     var compile = context.compile,
         scope = context.scope;
 
     var container = angular.element(buildContainer(15)),
-      autoScroller = angular.element(buildAutoScroller(watch)),
+      autoScroller = angular.element(buildAutoScroller(watch, attrs)),
       child = angular.element(buildChild(50));
 
     autoScroller.append(child);
@@ -147,6 +132,51 @@ describe('Directives: auto-scroll', function () {
     container.height(170);
     scope.a = 1;
     scope.$digest();
+    this.timeout.flush();
+    expect(container.scrollTop()).toBe(0);
+  });
+
+  it ('should not scroll when autoscroll is disabled', function () {
+    const scope = this.scope;
+    scope.isEnabled = true;
+    scope.a = 0;
+
+    const container = buildWatchableContainer('[a]', this, 'auto-scroll-enabled="isEnabled"');
+
+    scope.a = 1;
+    scope.$digest();
+    this.timeout.flush();
+
+    expect(container.scrollTop()).toBe(35);
+
+    container.scrollTop(10);
+    scope.isEnabled = false;
+    scope.$digest();
+    this.timeout.verifyNoPendingTasks();
+
+    expect(container.scrollTop()).toBe(10);
+
+    scope.isEnabled = true;
+    scope.$digest();
+    this.timeout.flush();
+
+    expect(container.scrollTop()).toBe(35);
+  });
+
+  it ('should scroll to top when triggered', function () {
+    const scrollToTop = new Subject(),
+          scope = this.scope;
+    scope.scrollToTop = scrollToTop;
+    scope.a = 0;
+
+    const container = buildWatchableContainer('[a]', this, 'scroll-to-top="scrollToTop"');
+    scope.a = 1;
+    scope.$digest(0);
+    this.timeout.flush();
+    expect(container.scrollTop()).toBe(35);
+
+    scrollToTop.next(true);
+
     this.timeout.flush();
     expect(container.scrollTop()).toBe(0);
   });

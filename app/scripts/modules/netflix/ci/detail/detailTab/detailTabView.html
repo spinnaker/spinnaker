@@ -1,8 +1,46 @@
+<div class="text-right auto-scroll-header header-sticky"
+     ng-style="ctrl.viewState.headerStyles"
+     is-visible="ctrl.viewState.tab === 'output' && ctrl.viewState.stickyHeaderEnabled && !ctrl.viewState.loading">
+  <a href>
+    <span class="glyphicon glyphicon-circle-arrow-down"
+          uib-tooltip="Scroll to bottom"
+          ng-class="ctrl.viewState.autoScrollEnabled ? 'enabled' : 'disabled'"
+          ng-click="ctrl.toggleAutoScroll()"></span>
+  </a>
+</div>
 <div class="row">
-  <div class="col-md-12">
-    <pre class="small build-details-output" ng-if="ctrl.viewState.loading">
+  <div class="col-md-12 build-details-output">
+    <pre class="small" ng-if="ctrl.viewState.loading">
       <h3 us-spinner="{radius:12, width:4, length: 8}"></h3>
     </pre>
-    <pre class="small build-details-output" ng-if="!ctrl.viewState.loading">{{ ctrl.content }}</pre>
+    <div class="text-right auto-scroll-header"
+         sticky-header
+         notify-only="true"
+         is-visible="!ctrl.viewState.stickyHeaderEnabled"
+         ng-if="ctrl.viewState.tab === 'output' && !ctrl.viewState.loading">
+      <a href>
+          <span class="glyphicon glyphicon-circle-arrow-down"
+                uib-tooltip="Scroll to bottom"
+                ng-class="ctrl.viewState.autoScrollEnabled ? 'enabled' : 'disabled'"
+                ng-click="ctrl.toggleAutoScroll()"></span>
+      </a>
+    </div>
+    <div ng-if="!ctrl.viewState.loading"
+         auto-scroll="ctrl.content"
+         scroll-to-top="ctrl.scrollToTopSubject"
+         on-scroll="ctrl.handleScroll"
+         auto-scroll-enabled="ctrl.viewState.autoScrollEnabled"
+         auto-scroll-parent=".build-detail">
+      <pre class="small"><p ng-repeat="row in ctrl.content track by $index"><span></span>{{::row}}</p></pre>
+      <div class="links">
+        <a href ng-click="ctrl.getOutput()" ng-if="ctrl.viewState.showLoadMore">
+          Get more results
+        </a>
+        <span is-visible="ctrl.viewState.loadingMore && !ctrl.viewState.isRunning">
+          <span class="small glyphicon glyphicon-asterisk glyphicon-spinning"></span> Retrieving more...
+        </span>
+        <a is-visible="ctrl.content.length > 50" href ng-click="ctrl.scrollToTop()" class="pull-right">Back to top</a>
+      </div>
+    </div>
   </div>
 </div>

@@ -1,13 +1,14 @@
 'use strict';
 
 import modalCloseModule from '../../modal/buttons/modalClose.component';
+import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
 
 let angular = require('angular');
 
 require('./taskMonitor.directive.less');
 
 module.exports = angular.module('spinnaker.tasks.monitor.directive', [
-  require('../../presentation/autoScroll/autoScroll.directive.js'),
+  AUTO_SCROLL_DIRECTIVE,
   require('../../modal/modalOverlay.directive.js'),
   modalCloseModule,
   require('./taskMonitorError.component'),

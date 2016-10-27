@@ -22,14 +22,17 @@ module.exports = angular.module('spinnaker.core.utils.stickyHeader', [
             $section = $heading.parent(),
             $scrollableContainer = $heading.closest('[sticky-headers]'),
             id = parseInt(Math.random() * new Date().getTime()),
-            isSticky = false;
+            isSticky = false,
+            notifyOnly = attrs.notifyOnly === 'true';
 
           if (!$scrollableContainer.length) {
             $log.warn('No parent container with attribute "sticky-header"; headers will not stick.');
             return;
           }
 
-          $scrollableContainer.css({position: 'relative'});
+          if (!notifyOnly) {
+            $scrollableContainer.css({position: 'relative'});
+          }
 
           var addedOffsetHeight = attrs.addedOffsetHeight ? parseInt(attrs.addedOffsetHeight) : 0;
           var positionHeader = _.throttle(function () {
@@ -57,24 +60,29 @@ module.exports = angular.module('spinnaker.core.utils.stickyHeader', [
                 topBase = bottom - headingHeight + addedOffsetHeight;
                 zIndex = 2;
               }
-              $section.css({
-                paddingTop: headingHeight,
-              });
-              $heading.addClass('heading-sticky').css({
+              let newHeaderStyle = {
                 top: topBase,
                 width: headingWidth,
                 zIndex: zIndex
-              });
+              };
+              if (notifyOnly) {
+                scope.$emit('sticky-header-enabled', newHeaderStyle);
+              } else {
+                $section.css({
+                  paddingTop: headingHeight,
+                });
+                $heading.addClass('heading-sticky').css(newHeaderStyle);
+              }
               isSticky = true;
             } else {
               clearStickiness($section);
             }
 
-          }, 50);
+          }, 100);
 
           function resetHeaderWidth() {
             if ($heading.get(0).className.includes('heading-sticky')) {
-              $heading.removeClass('heading-sticky').addClass('not-sticky').css({width: '' });
+              $heading.removeClass('heading-sticky').addClass('not-sticky').css({width: '', top: '' });
             }
           }
 
@@ -92,10 +100,14 @@ module.exports = angular.module('spinnaker.core.utils.stickyHeader', [
 
           function clearStickiness($section) {
             if (isSticky) {
-              $section.css({
-                paddingTop: 0,
-              });
-              resetHeaderWidth();
+              if (notifyOnly) {
+                scope.$emit('sticky-header-disabled');
+              } else {
+                $section.css({
+                  paddingTop: 0,
+                });
+                resetHeaderWidth();
+              }
             }
             isSticky = false;
           }

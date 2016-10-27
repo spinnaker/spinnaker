@@ -5,9 +5,9 @@
     </div>
     <div class="col-md-8">
       <input type="text" class="form-control input-sm" placeholder="branch..."
-             ng-model="ctrl.viewState.searchFilter"
+             ng-model="ctrl.filterModel.searchFilter"
              ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
-             ng-change="ctrl.getBuilds()">
+             ng-change="ctrl.refreshBuilds()">
     </div>
   </div>
   <div class="row build-row" ng-class="{ active: $state.params.buildId === b.id }" ng-repeat="b in ctrl.builds">
@@ -37,5 +37,5 @@
     <h4>Repository Configuration Missing</h4>
   </div>
 </div>
-<div class="build-detail" ui-view="detail">
+<div class="build-detail" sticky-headers ui-view="detail">
 </div>

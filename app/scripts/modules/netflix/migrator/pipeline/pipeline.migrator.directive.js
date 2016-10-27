@@ -1,5 +1,7 @@
 'use strict';
 
+import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
+
 require('../migrator.less');
 
 import _ from 'lodash';
@@ -13,7 +15,7 @@ module.exports = angular
     require('core/config/settings.js'),
     require('core/subnet/subnet.read.service'),
     require('../migrator.service.js'),
-    require('core/presentation/autoScroll/autoScroll.directive.js'),
+    AUTO_SCROLL_DIRECTIVE,
     require('core/pipeline/config/services/pipelineConfigService.js'),
     require('core/utils/scrollTo/scrollTo.service.js'),
     require('core/cache/cacheInitializer.js'),

@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
+import {CI_FILTER_MODEL} from './ci.filter.model';
 
 let angular = require('angular');
 
@@ -9,23 +10,26 @@ require('./ci.less');
 
 module.exports = angular.module('spinnaker.netflix.ci.controller', [
   AUTHENTICATION_SERVICE,
+  CI_FILTER_MODEL,
   require('core/application/service/applications.read.service'),
   require('./build.read.service.js'),
   require('angular-ui-router'),
 ])
-  .controller('NetflixCiCtrl', function ($scope, authenticationService, app, buildService) {
+  .controller('NetflixCiCtrl', function ($scope, authenticationService, app, buildService, CiFilterModel) {
+    const dataSource = app.getDataSource('ci');
     let attr = app.attributes;
 
-    this.viewState = { searchFilter: '', hasAllConfig: [attr.repoType, attr.repoProjectKey, attr.repoSlug].every((attr) => _.trim(attr)) };
+    this.filterModel = CiFilterModel;
 
-    this.getBuilds = () => {
-      if (!this.viewState.hasAllConfig) { return; }
-      buildService.getBuilds(attr.repoType, attr.repoProjectKey, attr.repoSlug, this.viewState.searchFilter).then((response) => {
-        this.builds = response;
-      });
-    };
+    this.viewState = { hasAllConfig: [attr.repoType, attr.repoProjectKey, attr.repoSlug].every((attr) => _.trim(attr)) };
 
-    this.getBuilds();
-    app.onRefresh($scope, this.getBuilds);
+    this.refreshBuilds = () => dataSource.refresh();
+
+    this.getBuilds = () => this.builds = dataSource.data;
+
+    dataSource.ready().then(this.getBuilds);
+    dataSource.onRefresh($scope, this.getBuilds);
+
+    $scope.$on('$destroy', () => CiFilterModel.searchFilter = '');
   });
 
