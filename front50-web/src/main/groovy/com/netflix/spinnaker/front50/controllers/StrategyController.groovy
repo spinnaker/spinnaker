@@ -60,7 +60,7 @@ class StrategyController {
     @RequestMapping(value = '{id:.+}/history', method = RequestMethod.GET)
     Collection<Pipeline> getHistory(@PathVariable String id,
                                     @RequestParam(value = "limit", defaultValue = "20") int limit) {
-        return pipelineStrategyDAO.getPipelineHistory(id, limit)
+        return pipelineStrategyDAO.history(id, limit)
     }
 
     @PreAuthorize("hasPermission(#strategy.application, 'APPLICATION', 'WRITE')")

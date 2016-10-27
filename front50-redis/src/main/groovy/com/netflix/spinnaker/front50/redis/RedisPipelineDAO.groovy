@@ -58,6 +58,11 @@ class RedisPipelineDAO implements PipelineDAO {
   }
 
   @Override
+  Collection<Pipeline> history(String id, int maxResults) {
+    return [findById(id)]
+  }
+
+  @Override
   Pipeline create(String id, Pipeline item) {
 
     Assert.notNull(item.application, "application field must NOT be null!")
@@ -95,10 +100,4 @@ class RedisPipelineDAO implements PipelineDAO {
       return false
     }
   }
-
-  @Override
-  Collection<Pipeline> getPipelineHistory(String id, int limit) {
-    return [findById(id)]
-  }
-
 }

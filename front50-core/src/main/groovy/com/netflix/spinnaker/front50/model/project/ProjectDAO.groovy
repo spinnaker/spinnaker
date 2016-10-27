@@ -23,5 +23,4 @@ import com.netflix.spinnaker.front50.model.ItemDAO
 interface ProjectDAO extends ItemDAO<Project> {
   Project findByName(String name) throws NotFoundException
   Collection<Project> all()
-  void truncate()
 }

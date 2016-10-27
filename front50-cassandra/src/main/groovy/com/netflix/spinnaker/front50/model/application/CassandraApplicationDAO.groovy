@@ -118,6 +118,11 @@ class CassandraApplicationDAO implements ApplicationDAO {
   }
 
   @Override
+  Collection<Application> history(String id, int maxResults) {
+    return [findById(id)]
+  }
+
+  @Override
   Application create(String id, Application application) {
     if (!application.createTs) {
       // support the migration use-case where we don't want to arbitrarily reset an applications createTs.
@@ -155,11 +160,6 @@ class CassandraApplicationDAO implements ApplicationDAO {
   @Override
   Set<Application> search(Map<String, String> attributes) {
     return ApplicationDAO.Searcher.search(all(), attributes);
-  }
-
-  @Override
-  Collection<Application> getApplicationHistory(String name, int limit) {
-    return [findByName(name)]
   }
 
   @Override

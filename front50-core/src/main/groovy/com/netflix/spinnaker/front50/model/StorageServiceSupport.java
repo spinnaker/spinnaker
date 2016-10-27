@@ -93,6 +93,10 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     return service.loadObjectsWithPrefix(objectType, prefix, maxResults);
   }
 
+  public Collection<T> history(String id, int maxResults) {
+    return service.listObjectVersions(objectType, id, maxResults);
+  }
+
   /**
    * @return Healthy if refreshed in the past HEALTH_MILLIS
    */
@@ -112,10 +116,6 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
             .orElseThrow(() -> new NotFoundException(
                 String.format("No item found in cache with id of %s", id.toLowerCase()))))
     ).execute();
-  }
-
-  public Collection<T> allVersionsOf(String id, int limit) throws NotFoundException {
-    return service.listObjectVersions(objectType, buildObjectKey(id), limit);
   }
 
   public void update(String id, T item) {

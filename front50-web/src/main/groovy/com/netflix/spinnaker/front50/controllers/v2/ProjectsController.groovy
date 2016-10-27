@@ -132,12 +132,6 @@ public class ProjectsController {
     response.setStatus(HttpStatus.ACCEPTED.value())
   }
 
-  @RequestMapping(method = RequestMethod.DELETE)
-  void truncate(HttpServletResponse response) {
-    projectDAO.truncate()
-    response.setStatus(HttpStatus.ACCEPTED.value())
-  }
-
   @InheritConstructors
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Project already exists")
   class ProjectAlreadyExistsException extends RuntimeException {}

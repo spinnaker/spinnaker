@@ -50,7 +50,4 @@ public class DefaultProjectDAO extends StorageServiceSupport<Project> implements
     update(id, item);
     return findById(id);
   }
-
-  @Override
-  public void truncate() {}
 }

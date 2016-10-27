@@ -32,11 +32,6 @@ public class DefaultSnapshotDAO extends StorageServiceSupport<Snapshot> implemen
   }
 
   @Override
-  public Collection<Snapshot> getHistory(String id, int maxResults) {
-    return allVersionsOf(id, maxResults);
-  }
-
-  @Override
   public Snapshot create(String id, Snapshot item) {
     Assert.notNull(item.getApplication(), "application field must NOT be null!");
     Assert.notNull(item.getAccount(), "account field must NOT be null!");

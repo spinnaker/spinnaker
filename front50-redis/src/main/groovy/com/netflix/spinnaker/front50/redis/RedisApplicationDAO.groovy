@@ -63,6 +63,11 @@ class RedisApplicationDAO implements ApplicationDAO {
   }
 
   @Override
+  Collection<Application> history(String id, int maxResults) {
+    return [findById(id)]
+  }
+
+  @Override
   Application create(String id, Application application) {
     if (!application.createTs) {
       application.createTs = System.currentTimeMillis() as String
@@ -101,10 +106,4 @@ class RedisApplicationDAO implements ApplicationDAO {
       return false
     }
   }
-
-  @Override
-  Collection<Application> getApplicationHistory(String name, int limit) {
-    return [findByName(name)]
-  }
-
 }

@@ -57,9 +57,4 @@ public class DefaultApplicationDAO extends StorageServiceSupport<Application> im
   public Collection<Application> search(Map<String, String> attributes) {
     return Searcher.search(all(), attributes);
   }
-
-  @Override
-  public Collection<Application> getApplicationHistory(String name, int maxResults) {
-    return allVersionsOf(name, maxResults);
-  }
 }

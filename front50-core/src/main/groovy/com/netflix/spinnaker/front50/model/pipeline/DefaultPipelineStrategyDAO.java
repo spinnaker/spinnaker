@@ -55,11 +55,6 @@ public class DefaultPipelineStrategyDAO extends StorageServiceSupport<Pipeline> 
   }
 
   @Override
-  public Collection<Pipeline> getPipelineHistory(String id, int limit) {
-    return allVersionsOf(id, limit);
-  }
-
-  @Override
   public Pipeline create(String id, Pipeline item) {
     if (id == null) {
       id = UUID.randomUUID().toString();

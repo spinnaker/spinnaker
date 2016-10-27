@@ -108,6 +108,11 @@ class CassandraProjectDAO implements ProjectDAO {
     return unmarshallResults(runQuery('SELECT * FROM project;'))
   }
 
+  @Override
+  Collection<Project> history(String id, int maxResults) {
+    return [findById(id)]
+  }
+
   Project create(String id, Project project) {
     runQuery(buildInsertQuery(objectMapper, project))
     return findBy("name", project.name)

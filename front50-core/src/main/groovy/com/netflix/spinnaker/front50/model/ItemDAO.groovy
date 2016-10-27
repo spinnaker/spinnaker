@@ -22,10 +22,12 @@ import com.netflix.spinnaker.front50.exception.NotFoundException
 interface ItemDAO<T> {
   T findById(String id) throws NotFoundException
   Collection<T> all()
+  Collection<T> history(String id, int maxResults)
 
   T create(String id, T item)
   void update(String id, T item)
   void delete(String id)
+
 
   void bulkImport(Collection<T> items)
 
