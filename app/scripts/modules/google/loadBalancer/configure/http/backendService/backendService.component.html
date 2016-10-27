@@ -100,14 +100,14 @@
             {{$select.selected}}
           </ui-select-match>
           <ui-select-choices
-            repeat="sessionAffinity in ['NONE', 'CLIENT_IP', 'GENERATED_COOKIE'] | filter: $select.search">
+            repeat="sessionAffinity in ['None', 'Client IP', 'Generated Cookie'] | filter: $select.search">
             <div ng-bind-html="sessionAffinity | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
       </div>
     </div>
 
-    <div class="form-group" ng-if="$ctrl.backendService.sessionAffinity === 'GENERATED_COOKIE'">
+    <div class="form-group" ng-if="$ctrl.backendService.sessionAffinity === 'Generated Cookie'">
       <div class="col-md-4 sm-label-right">
         <b>Affinity Cookie TTL Seconds</b>
       </div>

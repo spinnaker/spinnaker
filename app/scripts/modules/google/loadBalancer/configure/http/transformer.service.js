@@ -1,6 +1,7 @@
 'use strict';
 
 import * as _ from 'lodash';
+import {sessionAffinityViewToModelMap, sessionAffinityModelToViewMap} from '../common/sessionAffinityNameMaps';
 
 let angular = require('angular');
 
@@ -8,7 +9,6 @@ module.exports = angular.module('spinnaker.gce.deck.httpLoadBalancer.transformer
     require('core/naming/naming.service.js'),
   ])
   .factory('gceHttpLoadBalancerTransformer', function (namingService) {
-
     // SERIALIZE
 
     const keysToOmit = ['backendServices', 'healthChecks', 'listeners', 'stack', 'detail'];
@@ -48,6 +48,8 @@ module.exports = angular.module('spinnaker.gce.deck.httpLoadBalancer.transformer
 
       _.forEach(unifiedBackendServicesKeyedByName, (service) => {
         service.healthCheck = unifiedHealthChecksKeyedByName[service.healthCheck];
+        // Map human readable text back to session affinity code.
+        service.sessionAffinity = sessionAffinityViewToModelMap[service.sessionAffinity] || service.sessionAffinity;
       });
 
       loadBalancer.defaultService = unifiedBackendServicesKeyedByName[loadBalancer.defaultService];
@@ -113,8 +115,12 @@ module.exports = angular.module('spinnaker.gce.deck.httpLoadBalancer.transformer
       let healthChecks = _.chain(backendServices).map('healthCheck').uniqBy('name').cloneDeep().value();
       backendServices = _.uniqBy(backendServices, 'name');
 
-      // Map health check to health check name so we don't have to deal with object references
-      backendServices.forEach((service) => service.healthCheck = service.healthCheck.name);
+      backendServices.forEach((service) => {
+        // Map health check to health check name so we don't have to deal with object references
+        service.healthCheck = service.healthCheck.name;
+        // Map session affinity code to more human readable text.
+        service.sessionAffinity = sessionAffinityModelToViewMap[service.sessionAffinity] || service.sessionAffinity;
+      });
 
       return { backendServices, healthChecks, defaultService };
     }

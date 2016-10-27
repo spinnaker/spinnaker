@@ -3,6 +3,7 @@
 import _ from 'lodash';
 import gceLoadBalancerDeleteModal from './deleteModal/deleteModal.controller';
 import gceBackendServiceDetailsComponent from './backendService/backendService.component';
+import gceSessionAffinityFilter from './backendService/sessionAffinity.filter';
 
 let angular = require('angular');
 
@@ -23,6 +24,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../configure/choice/loadBalancerTypeToWizardMap.constant.js'),
   gceBackendServiceDetailsComponent,
   gceLoadBalancerDeleteModal,
+  gceSessionAffinityFilter,
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                       confirmationModalService, accountService, elSevenUtils,

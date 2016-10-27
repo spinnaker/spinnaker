@@ -1,7 +1,8 @@
 'use strict';
 
-import {HttpLoadBalancerTemplate, ListenerTemplate} from './templates';
 import * as _ from 'lodash';
+import {HttpLoadBalancerTemplate, ListenerTemplate} from './templates';
+import {sessionAffinityModelToViewMap} from '../common/sessionAffinityNameMaps';
 
 let angular = require('angular');
 
@@ -140,6 +141,8 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
 
             let ttlIsDefined = typeof service.affinityCookieTtlSec === 'string';
             service.affinityCookieTtlSec = ttlIsDefined ? Number(service.affinityCookieTtlSec) : null;
+
+            service.sessionAffinity = sessionAffinityModelToViewMap[service.sessionAffinity] || service.sessionAffinity;
           });
 
           return backendServices;

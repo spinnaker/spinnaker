@@ -10,7 +10,7 @@ class GceBackendServiceDetailsComponent implements ng.IComponentOptions {
     <dt>Health Check</dt>
     <dd>{{$ctrl.backendService.healthCheck.name}}</dd>
     <dt ng-if="$ctrl.backendService.sessionAffinity">Session Affinity</dt>
-    <dd ng-if="$ctrl.backendService.sessionAffinity">{{$ctrl.backendService.sessionAffinity}}</dd>
+    <dd ng-if="$ctrl.backendService.sessionAffinity">{{$ctrl.backendService.sessionAffinity | gceSessionAffinityFilter}}</dd>
     <dt ng-if="$ctrl.backendService.sessionAffinity === 'GENERATED_COOKIE'">Affinity Cookie TTL</dt>
     <dd ng-if="$ctrl.backendService.sessionAffinity === 'GENERATED_COOKIE'">{{$ctrl.backendService.affinityCookieTtlSec}}</dd>`;
 }
