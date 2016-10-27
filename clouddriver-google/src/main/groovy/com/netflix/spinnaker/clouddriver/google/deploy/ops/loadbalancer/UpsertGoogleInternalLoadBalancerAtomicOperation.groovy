@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -103,7 +104,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
         ((description.ipAddress && description.ipAddress != existingForwardingRule.IPAddress)
           || description.ipProtocol != existingForwardingRule.IPProtocol
           || differentPorts
-          || backendServiceName != existingForwardingRule.backendService)
+          || backendServiceName != existingForwardingRule.backendService
+          || description.network != Utils.getLocalName(existingForwardingRule.network)
+          || description.subnet != Utils.getLocalName(existingForwardingRule.subnetwork)
+        )
     }
 
     SafeRetry<BackendService> serviceRetry = new SafeRetry<BackendService>()
@@ -224,6 +228,8 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
         backendService: GCEUtil.buildRegionBackendServiceUrl(project, region, description.backendService.name),
         IPProtocol: description.ipProtocol,
         IPAddress: description.ipAddress,
+        network: GCEUtil.buildNetworkUrl(project, description.network),
+        subnetwork: GCEUtil.buildSubnetworkUrl(project, region, description.subnet),
         ports: description.ports
       )
       ruleRetry.doRetry(
@@ -243,6 +249,8 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
         backendService: GCEUtil.buildRegionBackendServiceUrl(project, region, description.backendService.name),
         IPProtocol: description.ipProtocol,
         IPAddress: description.ipAddress,
+        network: GCEUtil.buildNetworkUrl(project, description.network),
+        subnetwork: GCEUtil.buildSubnetworkUrl(project, region, description.subnet),
         ports: description.ports
       )
       def deleteFrOp = ruleRetry.doRetry(

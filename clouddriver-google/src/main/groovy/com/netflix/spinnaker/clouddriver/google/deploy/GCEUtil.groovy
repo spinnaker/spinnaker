@@ -519,6 +519,13 @@ class GCEUtil {
     return GCE_API_PREFIX + "$projectName/regions/$region/backendServices/$backendServiceName"
   }
 
+  static String buildNetworkUrl(String projectName, String networkName) {
+    return GCE_API_PREFIX + "$projectName/global/networks/${networkName}"
+  }
+
+  static String buildSubnetworkUrl(String projectName, String region, String subnetName) {
+    return GCE_API_PREFIX + "$projectName/regions/${region}/subnetworks/${subnetName}"
+  }
 
   static String buildRegionalServerGroupUrl(String projectName, String region, String serverGroupName) {
     return GCE_API_PREFIX + "$projectName/regions/$region/instanceGroups/$serverGroupName"

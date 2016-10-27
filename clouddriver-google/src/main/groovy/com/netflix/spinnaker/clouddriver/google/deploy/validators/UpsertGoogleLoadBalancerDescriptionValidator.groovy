@@ -103,6 +103,11 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
           errors.rejectValue("backendService.healthCheck",
             "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
         }
+
+        if (!description.network || !description.subnet) {
+          errors.rejectValue("network OR subnet",
+            "upsertGoogleLoadBalancerDescription.networkOrSubnet.networkAndSubnetRequired")
+        }
         break
       default:
         // TODO(jacobkiefer): Fail here once frontend calls are modified.
