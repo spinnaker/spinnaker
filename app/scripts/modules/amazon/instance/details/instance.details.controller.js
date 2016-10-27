@@ -139,7 +139,12 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
             $scope.instance.region = region;
             $scope.instance.vpcId = vpcId;
             $scope.instance.loadBalancers = loadBalancers;
-
+            if($scope.instance.networkInterfaces) {
+              var permanentNetworkInterfaces = $scope.instance.networkInterfaces.filter(f => f.attachment.deleteOnTermination === false);
+              if (permanentNetworkInterfaces.length) {
+                $scope.instance.permanentIps = permanentNetworkInterfaces.map(f => f.privateIpAddress);
+              }
+            }
             $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
             if (overrides.instanceDetailsLoaded) {
               overrides.instanceDetailsLoaded();
