@@ -6,15 +6,14 @@ import {
   ServerGroup,
   InstanceCounts,
   LoadBalancer
-} from "../domain/index";
+} from '../domain';
 
 describe ('Application Model', function () {
 
-  var application:Application;
-  var securityGroupReader: any,
+  let application: Application;
+  let securityGroupReader: any,
       loadBalancerReader: any,
       clusterService: any,
-      securityGroupReader: any,
       $q: ng.IQService,
       $scope: ng.IScope,
       applicationModelBuilder: ApplicationModelBuilder,
@@ -156,7 +155,7 @@ describe ('Application Model', function () {
     });
 
     it('sets default credentials and region from security group', function () {
-      var serverGroups: any[] = [],
+      let serverGroups: any[] = [],
         loadBalancers: LoadBalancer[] = [],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'cf', accountName: 'test', region: 'us-south-7'}];
 
@@ -166,7 +165,7 @@ describe ('Application Model', function () {
     });
 
     it('does not set defaults when multiple values found for the same provider', function () {
-      var serverGroups: ServerGroup[] = [],
+      let serverGroups: ServerGroup[] = [],
         loadBalancers: LoadBalancer[] = [ new LoadBalancer('deck-frontend', 'aws', 'vpcId', 'us-west-1', 'prod', []) ],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1'}];
 
@@ -176,7 +175,7 @@ describe ('Application Model', function () {
     });
 
     it('sets default region or default credentials if possible', function () {
-      var serverGroups: ServerGroup[] = [],
+      let serverGroups: ServerGroup[] = [],
         loadBalancers: LoadBalancer[] = [new LoadBalancer('deck-frontend', 'aws', 'vpcId', 'us-east-1', 'prod', [])],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1'}];
 
@@ -186,7 +185,7 @@ describe ('Application Model', function () {
     });
 
     it('sets default credentials, even if region cannot be set', function () {
-      var serverGroups: ServerGroup[] = [],
+      let serverGroups: ServerGroup[] = [],
         loadBalancers: LoadBalancer[] = [new LoadBalancer('deck-frontend', 'aws', 'vpc0', 'us-east-1', 'test', [])],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-1'}];
 
@@ -196,7 +195,7 @@ describe ('Application Model', function () {
     });
 
     it('should set defaults for multiple providers', function () {
-      var serverGroups: any[] = [
+      let serverGroups: any[] = [
           {
             name: 'deck-test-v001',
             account: 'test',

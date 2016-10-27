@@ -4,13 +4,13 @@ import editorModule, {DataSourceEditorController} from './applicationDataSourceE
 
 describe('Component: Application Data Source Editor', () => {
 
-  var applicationWriter: any;
-  var applicationModelBuilder: ApplicationModelBuilder;
-  var application: Application;
-  var $componentController: ng.IComponentControllerService;
-  var ctrl: DataSourceEditorController;
-  var $q: ng.IQService;
-  var $scope: ng.IScope;
+  let applicationWriter: any,
+      applicationModelBuilder: ApplicationModelBuilder,
+      application: Application,
+      $componentController: ng.IComponentControllerService,
+      ctrl: DataSourceEditorController,
+      $q: ng.IQService,
+      $scope: ng.IScope;
 
   let initialize = () => {
     ctrl = <DataSourceEditorController> $componentController(

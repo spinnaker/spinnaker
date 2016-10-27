@@ -2,7 +2,7 @@ import helpRegistryModule, {HelpContentsRegistry} from './helpContents.registry'
 
 describe('Help contents registry', () => {
 
-  var registry: HelpContentsRegistry;
+  let registry: HelpContentsRegistry;
 
   beforeEach(angular.mock.module(helpRegistryModule));
 

@@ -5,13 +5,13 @@ import {InstanceCounts} from '../domain/instanceCounts';
 
 describe('Component: loadBalancersTag', () => {
 
-  var applicationModelBuilder: ApplicationModelBuilder;
-  var $componentController: ng.IComponentControllerService;
-  var ctrl: LoadBalancersTagController;
-  var serverGroup: any;
-  var application: Application;
-  var $q: ng.IQService;
-  var $scope: ng.IScope;
+  let applicationModelBuilder: ApplicationModelBuilder,
+      $componentController: ng.IComponentControllerService,
+      ctrl: LoadBalancersTagController,
+      serverGroup: any,
+      application: Application,
+      $q: ng.IQService,
+      $scope: ng.IScope;
 
   let initialize = () => {
     application = applicationModelBuilder.createApplication({

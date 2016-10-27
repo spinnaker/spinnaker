@@ -3,7 +3,7 @@ import {NumberListConstraints} from './numberList.component';
 
 describe('Component: numberList', () => {
 
-  var $compile: ng.ICompileService,
+  let $compile: ng.ICompileService,
       model: number[],
       stringModel: string,
       $scope: ng.IScope,
@@ -85,7 +85,7 @@ describe('Component: numberList', () => {
     });
 
     it('calls onChange event if present', () => {
-      let onChangeCalled: boolean = false;
+      let onChangeCalled = false;
       onChange = () => { onChangeCalled = true; };
       initialize([1]);
       elem.find('input[type="number"]').val('2').change();

@@ -2,7 +2,7 @@ import exceptionsModule, {ChaosMonkeyExceptionsController} from './chaosMonkeyEx
 
 describe('Controller: ChaosMonkeyExceptions', () => {
 
-  var $componentController: ng.IComponentControllerService,
+  let $componentController: ng.IComponentControllerService,
       accountService: any,
       $ctrl: ChaosMonkeyExceptionsController,
       $scope: ng.IScope,
@@ -13,7 +13,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
       'chaosMonkeyExceptions',
       { $scope: null, accountService: accountService, $q: $q },
       data
-    )
+    );
   };
 
   beforeEach(angular.mock.module(exceptionsModule));

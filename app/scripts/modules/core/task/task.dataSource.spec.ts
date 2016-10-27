@@ -4,12 +4,12 @@ import dataSourceRegistryModule from '../application/service/applicationDataSour
 
 describe('Task Data Source', function () {
 
-  var application: Application,
-    taskReader: any,
-    $scope: any,
-    applicationModelBuilder: any,
-    applicationDataSourceRegistry: any,
-    $q: ng.IQService;
+  let application: Application,
+      taskReader: any,
+      $scope: any,
+      applicationModelBuilder: any,
+      applicationDataSourceRegistry: any,
+      $q: ng.IQService;
 
   beforeEach(
     angular.mock.module(
@@ -20,7 +20,7 @@ describe('Task Data Source', function () {
     ));
 
   beforeEach(
-    angular.mock.inject(function (_taskReader_:any, _$q_: any, $rootScope: any,
+    angular.mock.inject(function (_taskReader_: any, _$q_: any, $rootScope: any,
                             _applicationModelBuilder_: any, _applicationDataSourceRegistry_: any) {
       $q = _$q_;
       $scope = $rootScope.$new();
@@ -67,7 +67,7 @@ describe('Task Data Source', function () {
     });
 
     it('reloads tasks and sets appropriate flags', function () {
-      var nextCalls = 0;
+      let nextCalls = 0;
       spyOn(taskReader, 'getTasks').and.returnValue($q.when([]));
       configureApplication();
       application.getDataSource('tasks').onRefresh($scope, () => nextCalls++);
@@ -88,7 +88,7 @@ describe('Task Data Source', function () {
 
     it('sets appropriate flags when task reload fails; subscriber is responsible for error checking', function () {
       spyOn(taskReader, 'getTasks').and.returnValue($q.reject(null));
-      var errorsHandled = 0,
+      let errorsHandled = 0,
           successesHandled = 0;
       configureApplication();
       application.getDataSource('tasks').onRefresh($scope, () => successesHandled++, () => errorsHandled++);

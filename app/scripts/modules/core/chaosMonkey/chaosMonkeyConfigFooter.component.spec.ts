@@ -2,7 +2,7 @@ import footerModule, {ChaosMonkeyConfigFooterController} from './chaosMonkeyConf
 
 describe('Component: ChaosMonkeyConfigFooter', () => {
 
-  var $componentController: ng.IComponentControllerService,
+  let $componentController: ng.IComponentControllerService,
       applicationWriter: any,
       $ctrl: ChaosMonkeyConfigFooterController,
       $q: ng.IQService,
@@ -13,7 +13,7 @@ describe('Component: ChaosMonkeyConfigFooter', () => {
       'chaosMonkeyConfigFooter',
       { $scope: null, applicationWriter: applicationWriter },
       data
-    )
+    );
   };
 
   beforeEach(angular.mock.module(footerModule));
@@ -32,7 +32,7 @@ describe('Component: ChaosMonkeyConfigFooter', () => {
   describe('revert', () => {
 
     it('replaces contents of config with original config', () => {
-      var data = {
+      let data = {
         viewState: {
           originalConfig: { exceptions: ([] as any), enabled: false }
         },
@@ -71,7 +71,7 @@ describe('Component: ChaosMonkeyConfigFooter', () => {
       };
     });
     it ('sets state to saving, saves, then sets flags appropriately', () => {
-      var viewState = this.data.viewState;
+      let viewState = this.data.viewState;
       spyOn(applicationWriter, 'updateApplication').and.returnValue($q.when(null));
       initializeController(this.data);
       $ctrl.save();
@@ -88,7 +88,7 @@ describe('Component: ChaosMonkeyConfigFooter', () => {
     });
 
     it('sets appropriate flags when save fails', () => {
-      var viewState = this.data.viewState;
+      let viewState = this.data.viewState;
       spyOn(applicationWriter, 'updateApplication').and.returnValue($q.reject(null));
       initializeController(this.data);
       $ctrl.save();

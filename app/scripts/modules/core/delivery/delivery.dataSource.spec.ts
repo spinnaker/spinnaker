@@ -4,7 +4,7 @@ import dataSourceRegistryModule from '../application/service/applicationDataSour
 
 describe('Delivery Data Source', function () {
 
-  var application: Application,
+  let application: Application,
       executionService: any,
       pipelineConfigService: any,
       $scope: any,
@@ -96,7 +96,7 @@ describe('Delivery Data Source', function () {
 
     it('sets appropriate flags when executions reload fails; subscriber is responsible for error checking', function () {
       spyOn(executionService, 'getExecutions').and.returnValue($q.reject(null));
-      var errorsHandled = 0,
+      let errorsHandled = 0,
           successesHandled = 0;
       configureApplication();
       application.getDataSource('executions').activate();
@@ -140,7 +140,7 @@ describe('Delivery Data Source', function () {
     it('sets appropriate flags when pipeline config reload fails; subscriber is responsible for error checking', function () {
       spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
       spyOn(pipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.reject([]));
-      var errorsHandled = 0,
+      let errorsHandled = 0,
           successesHandled = 0;
       configureApplication();
       application.getDataSource('pipelineConfigs').activate();
