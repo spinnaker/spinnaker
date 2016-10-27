@@ -143,6 +143,15 @@
               tool-tip="Copy to clipboard">
           </copy-to-clipboard>
         </dd>
+        <dt ng-if="instance.permanentIps">Permanent IP Address</dt>
+        <dd ng-if="instance.permanentIps" ng-repeat="ip in instance.permanentIps">
+          <a href="http://{{ip}}:{{state.instancePort}}" target="_blank">{{ip}}</a>
+          <copy-to-clipboard
+            class="copy-to-clipboard copy-to-clipboard-sm"
+            text="{{ip}}"
+            tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
         <dt ng-if="instance.publicIpAddress">Public IP Address</dt>
         <dd ng-if="instance.publicIpAddress">
           <a href="http://{{instance.publicIpAddress}}:{{state.instancePort}}" target="_blank">{{instance.publicIpAddress}}</a>
