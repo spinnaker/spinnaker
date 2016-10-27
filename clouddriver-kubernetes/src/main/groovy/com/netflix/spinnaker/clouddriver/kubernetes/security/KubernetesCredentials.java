@@ -35,7 +35,7 @@ public class KubernetesCredentials {
   private final KubernetesApiAdaptor apiAdaptor;
   private final List<String> namespaces;
   private final List<LinkedDockerRegistryConfiguration> dockerRegistries;
-  private final HashMap<String, List<String>> imagePullSecrets;
+  private final HashMap<String, Set<String>> imagePullSecrets;
   private final Logger LOG;
   private final AccountCredentialsRepository repository;
   private final HashSet<String> dynamicRegistries;
@@ -144,8 +144,8 @@ public class KubernetesCredentials {
                                           cve);
         }
 
-        List<String> existingSecrets = imagePullSecrets.get(namespace);
-        existingSecrets = existingSecrets != null ? existingSecrets : new ArrayList<>();
+        Set<String> existingSecrets = imagePullSecrets.get(namespace);
+        existingSecrets = existingSecrets != null ? existingSecrets : new HashSet<>();
         existingSecrets.add(secretName);
         imagePullSecrets.put(namespace, existingSecrets);
       }
@@ -160,7 +160,7 @@ public class KubernetesCredentials {
     return dockerRegistries;
   }
 
-  public Map<String, List<String>> getImagePullSecrets() {
+  public Map<String, Set<String>> getImagePullSecrets() {
     return imagePullSecrets;
   }
 
@@ -169,7 +169,7 @@ public class KubernetesCredentials {
   }
 
   public Boolean isRegisteredImagePullSecret(String secret, String namespace) {
-    List<String> secrets = imagePullSecrets.get(namespace);
+    Set<String> secrets = imagePullSecrets.get(namespace);
     if (secrets == null) {
       return false;
     }
