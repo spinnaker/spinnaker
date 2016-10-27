@@ -40,3 +40,5 @@ stackdriver:
     - name: EurekaOkClient_Request
       labels:
       - cause
+      - reason
+      - status

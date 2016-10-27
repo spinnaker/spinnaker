@@ -19,7 +19,7 @@ travis:
       githubToken: ${services.travis.defaultMaster.githubToken}
 
 dockerRegistry:
-  enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
+  enabled: ${providers.dockerRegistry.enabled:false}
 
 redis:
   connection: ${services.redis.connection:redis://localhost:6379}
