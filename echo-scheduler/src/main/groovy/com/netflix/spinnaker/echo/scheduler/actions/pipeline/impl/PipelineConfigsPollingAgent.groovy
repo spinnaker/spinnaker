@@ -122,7 +122,8 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
       }
 
       actionInstances.each { actionInstance ->
-        Trigger trigger = triggers.find { it.id == actionInstance.id }
+        // InMemoryActionInstanceDao builds composite action instance ids that end with the trigger id.
+        Trigger trigger = triggers.find { it.id == actionInstance.id || actionInstance.id.endsWith(":$it.id") }
         try {
           if (trigger) {
             Pipeline pipeline = pipelines.find { it.triggers.contains(trigger) }
@@ -134,6 +135,11 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
                 log.info("Trigger '${trigger}' has been updated and enabled. Recreating the scheduled action...")
                 ActionInstance updatedActionInstance = PipelineTriggerConverter.toScheduledAction(pipeline,
                   trigger, timeZoneId)
+
+                if (updatedActionInstance.id != actionInstance.id) {
+                  updatedActionInstance.id = actionInstance.id
+                }
+
                 actionsOperator.updateActionInstance(updatedActionInstance)
 
                 log.info("Successfully updated scheduled action '${actionInstance.id}' as the corresponding " +
@@ -176,7 +182,7 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
        */
       List<Pipeline> pipelinesWithNewTriggers = pipelines.findAll {
         def cronTriggers = it.triggers.findAll { it.type == Trigger.Type.CRON.toString() }
-        cronTriggers.any { !actionIds.contains(it.id) }
+        cronTriggers.any { !actionIds.contains(it.id) && !actionIds.find { actionId -> actionId.endsWith(":$it.id") } }
       }
       pipelinesWithNewTriggers.each { pipeline ->
         /**
