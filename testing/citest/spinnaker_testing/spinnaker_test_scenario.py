@@ -75,6 +75,23 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
                                        status_class=status_class)
 
   @classmethod
+  def new_patch_operation(cls, title, data, path, status_class=None):
+    """Creates an operation that patches data to the given path when executed.
+
+    The base_url will come from the agent that the operation is eventually
+    executed on.
+
+    Args:
+      title: [string] The name of the operation for reporting purposes.
+      data: [string] The payload to send in the HTTP PATCH.
+      path: [string] The path relative to the base url provided later.
+      status_class: [class AgentOperationStatus] If provided, a specialization
+         of the AgentOperationStatus to use for tracking the execution.
+    """
+    return http_agent.HttpPatchOperation(title=title, data=data, path=path,
+                                         status_class=status_class)
+
+  @classmethod
   def new_delete_operation(cls, title, data, path, status_class=None):
     """Creates an operation that deletes from the given path when executed.
 
