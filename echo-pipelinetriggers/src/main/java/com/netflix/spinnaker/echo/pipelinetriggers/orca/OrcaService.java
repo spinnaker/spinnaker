@@ -17,13 +17,18 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 
 import com.netflix.spinnaker.echo.model.Pipeline;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import retrofit.http.Body;
+import retrofit.http.Header;
 import retrofit.http.POST;
 import rx.Observable;
 
 public interface OrcaService {
   @POST("/orchestrate")
   Observable<Response> trigger(@Body Pipeline pipeline);
+
+  @POST("/orchestrate")
+  Observable<Response> trigger(@Body Pipeline pipeline, @Header(AuthenticatedRequest.SPINNAKER_USER) String runAsUser);
 
   class Response {
     private String ref;
