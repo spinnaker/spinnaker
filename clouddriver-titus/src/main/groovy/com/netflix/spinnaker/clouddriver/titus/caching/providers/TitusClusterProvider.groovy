@@ -156,7 +156,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     serverGroup.placement.account = account
     serverGroup.placement.region = region
     serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
-    resolveAwsDetails(serverGroup)
+    resolveAwsDetails([:], serverGroup)
     serverGroup
   }
 
@@ -211,12 +211,14 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
   private Map<String, TitusServerGroup> translateServerGroups(Collection<CacheData> serverGroupData) {
     Collection<CacheData> allInstances = resolveRelationshipDataForCollection(serverGroupData, INSTANCES.ns, RelationshipCacheFilter.none())
     Map<String, TitusInstance> instances = translateInstances(allInstances)
+
+    def titusSecurityGroupCache = [:]
     Map<String, TitusServerGroup> serverGroups = serverGroupData.collectEntries { serverGroupEntry ->
       String json = objectMapper.writeValueAsString(serverGroupEntry.attributes.job)
       Job job = objectMapper.readValue(json, Job)
       TitusServerGroup serverGroup = new TitusServerGroup(job, serverGroupEntry.attributes.account, serverGroupEntry.attributes.region)
       serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) } as Set
-      resolveAwsDetails(serverGroup)
+      resolveAwsDetails(titusSecurityGroupCache, serverGroup)
       [(serverGroupEntry.id): serverGroup]
     }
     serverGroups
@@ -270,9 +272,12 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     filteredRelationships ? cacheView.getAll(relationship, filteredRelationships) : []
   }
 
-  private void resolveAwsDetails(TitusServerGroup serverGroup){
-    Set<TitusSecurityGroup> securityGroups = awsLookupUtil.lookupSecurityGroupNames(serverGroup.placement.account, serverGroup.placement.region, serverGroup.securityGroups)
-    serverGroup.instances.each{
+  private void resolveAwsDetails(Map<String, TitusSecurityGroup> titusSecurityGroupCache,
+                                 TitusServerGroup serverGroup) {
+    Set<TitusSecurityGroup> securityGroups = awsLookupUtil.lookupSecurityGroupNames(
+      titusSecurityGroupCache, serverGroup.placement.account, serverGroup.placement.region, serverGroup.securityGroups
+    )
+    serverGroup.instances.each {
       it.securityGroups = securityGroups
     }
     serverGroup.securityGroupDetails = securityGroups

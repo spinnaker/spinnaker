@@ -66,7 +66,7 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
     if (instanceEntry.attributes[HEALTH.ns]) {
       instance.health.addAll(instanceEntry.attributes[HEALTH.ns])
     }
-    instance.securityGroups = awsLookupUtil.lookupSecurityGroupNames(account, region, job.securityGroups as LinkedHashSet)
+    instance.securityGroups = awsLookupUtil.lookupSecurityGroupNames([:], account, region, job.securityGroups as LinkedHashSet)
     externalHealthProviders.each { externalHealthProvider ->
       def healthKeys = []
       externalHealthProvider.agents.each { externalHealthAgent ->
