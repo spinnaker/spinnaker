@@ -64,7 +64,7 @@ class CommitControllerSpec extends Specification {
 
     void 'get 404 from client and return one commit'() {
         when:
-        1 * client.getCompareCommits(projectKey, repositorySlug, queryParams.from, queryParams.to) >> {throw new RetrofitError(null, null, new Response("http://foo.com", 404, "test reason", [], null), null, null, null, null)}
+        1 * client.getCompareCommits(projectKey, repositorySlug, queryParams.to, queryParams.from) >> {throw new RetrofitError(null, null, new Response("http://foo.com", 404, "test reason", [], null), null, null, null, null)}
         def result = controller.compareCommits(projectKey, repositorySlug, queryParams)
 
         then:
@@ -80,7 +80,7 @@ class CommitControllerSpec extends Specification {
 
     void 'compare commits'() {
         given:
-        1 * client.getCompareCommits(projectKey, repositorySlug, fromCommit, toCommit) >>
+        1 * client.getCompareCommits(projectKey, repositorySlug, toCommit, fromCommit) >>
             new CompareCommitsResponse(url: "", html_url: "", commits:
             [new Commit(html_url: "https://github.com/${projectKey}/${repositorySlug}/1234512345123451234512345", sha: "1234512345123451234512345", commitInfo: new CommitInfo(author : new Author(email: 'joecoder@project.com', date: new Date(1433192015000), name: "Joe Coder"), message: "my commit")),
             new Commit(html_url: "https://github.com/${projectKey}/${repositorySlug}/67890678906789067890", sha: "67890678906789067890", commitInfo: new CommitInfo(author : new Author(email: 'janecoder@project.com', date: new Date(1432078663000), name: "Jane Coder"), message: "bug fix"))])

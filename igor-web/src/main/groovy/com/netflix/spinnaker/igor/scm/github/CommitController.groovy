@@ -47,7 +47,7 @@ class CommitController extends AbstractCommitController {
         List result = []
 
         try {
-            commitsResponse = master.gitHubClient.getCompareCommits(projectKey, repositorySlug, requestParams.from, requestParams.to)
+            commitsResponse = master.gitHubClient.getCompareCommits(projectKey, repositorySlug, requestParams.to, requestParams.from)
         } catch (RetrofitError e) {
             if(e.getKind() == RetrofitError.Kind.NETWORK) {
                 throw new RuntimeException("Could not find the server ${master.baseUrl}")
