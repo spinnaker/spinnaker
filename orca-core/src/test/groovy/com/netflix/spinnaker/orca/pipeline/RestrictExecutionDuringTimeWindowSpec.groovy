@@ -145,7 +145,6 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
     date("02/25 21:45:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))] | [3]             || date("03/04 06:00:00")
     date("02/25 21:45:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))] | [3,4,5]         || date("02/26 06:00:00")
     date("02/25 21:45:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))] | [3,5]           || date("02/27 06:00:00")
-    date("02/25 21:45:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))] | ['3','5']       || date("02/27 06:00:00")
   }
 
   void 'stage should be scheduled at #expectedTime when triggered at #scheduledTime with time windows #stage in stage context'() {

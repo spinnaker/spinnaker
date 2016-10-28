@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.TimeUnit
@@ -80,6 +81,35 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
       }
     }
 
+    @Canonical
+    static class RestrictedExecutionWindowConfig {
+      ExecutionWindowConfig restrictedExecutionWindow
+    }
+
+    @Canonical
+    static class ExecutionWindowConfig {
+      List<TimeWindowConfig> whitelist
+      List<Integer> days = []
+
+      @Override
+      String toString() {
+        "[ whitelist: ${whitelist}, days: ${days} ]".toString()
+      }
+    }
+
+    @Canonical
+    static class TimeWindowConfig {
+      int startHour
+      int startMin
+      int endHour
+      int endMin
+
+      @Override
+      String toString() {
+        "[ start: ${startHour}:${startMin}, end: ${endHour}:${endMin} ]".toString()
+      }
+    }
+
     /**
      * Calculates a time which is within the whitelist of time windows allowed for execution
      * @param stage
@@ -90,18 +120,16 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
     private Date getTimeInWindow(Stage stage, Date scheduledTime) {
       // Passing in the current date to allow unit testing
       try {
-        Map restrictedExecutionWindow = stage.context.restrictedExecutionWindow as Map
-        List whitelist = restrictedExecutionWindow.whitelist as List<Map>
+        RestrictedExecutionWindowConfig config = stage.mapTo(RestrictedExecutionWindowConfig)
         List whitelistWindows = [] as List<TimeWindow>
-        List whitelistDays = (restrictedExecutionWindow.days ?: []) as List<Integer>
-        log.info("Calculating scheduled time for ${stage.id}; whitelist: ${whitelist}")
-        for (Map timeWindow : whitelist) {
-          HourMinute start = new HourMinute(timeWindow.startHour as Integer, timeWindow.startMin as Integer)
-          HourMinute end = new HourMinute(timeWindow.endHour as Integer, timeWindow.endMin as Integer)
+        log.info("Calculating scheduled time for ${stage.id}; ${config.restrictedExecutionWindow}")
+        for (TimeWindowConfig timeWindow : config.restrictedExecutionWindow.whitelist) {
+          HourMinute start = new HourMinute(timeWindow.startHour, timeWindow.startMin)
+          HourMinute end = new HourMinute(timeWindow.endHour, timeWindow.endMin)
 
           whitelistWindows.add(new TimeWindow(start, end))
         }
-        return calculateScheduledTime(scheduledTime, whitelistWindows, whitelistDays)
+        return calculateScheduledTime(scheduledTime, whitelistWindows, config.restrictedExecutionWindow.days)
 
       } catch (IncorrectTimeWindowsException ite) {
         throw new RuntimeException("Incorrect time windows specified", ite)
@@ -123,12 +151,11 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
       calendar.setTime(scheduledTime)
       boolean todayIsValid = true
 
-      if (!whitelistDays.empty) {
-        List<Integer> days = whitelistDays.collect { Integer.parseInt(it as String) }
+      if (whitelistDays && !whitelistDays.empty) {
         int daysIncremented = 0
         while (daysIncremented < 7) {
           boolean nextDayFound = false
-          if (days.contains(calendar.get(DAY_OF_WEEK))) {
+          if (whitelistDays.contains(calendar.get(DAY_OF_WEEK))) {
             nextDayFound = true
             todayIsValid = daysIncremented == 0
           }
