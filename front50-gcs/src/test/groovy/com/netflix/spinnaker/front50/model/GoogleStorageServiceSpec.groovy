@@ -23,14 +23,10 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.*;
-import com.google.api.client.http.HttpResponseException;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-
+import com.google.api.client.http.HttpResponseException
 import com.fasterxml.jackson.databind.ObjectMapper;
 import spock.lang.Shared
 import spock.lang.Specification
-import java.io.ByteArrayOutputStream;
-
 
 class GoogleStorageServiceSpec extends Specification {
 
@@ -42,7 +38,7 @@ class GoogleStorageServiceSpec extends Specification {
 
   @Shared
   String BASE_PATH = "/A/B/C"
-  
+
   @Shared
   String PROJECT_NAME = "TestProject"
 
@@ -159,8 +155,7 @@ class GoogleStorageServiceSpec extends Specification {
      1 * mockStorage.objects() >> mockObjectApi
 
      when:
-      Application app = gcs.loadCurrentObject("testKey", "applications",
-                                               Application.class)
+      Application app = gcs.loadObject(ObjectType.APPLICATION, "testKey")
      then:
       1 * mockObjectApi.get(BUCKET_NAME, jsonPath) >> mockGetFile
       1 * mockGetFile.execute() >> storageObject
@@ -175,7 +170,7 @@ class GoogleStorageServiceSpec extends Specification {
       then:
         app.getName() == "TESTAPPLICATION"
         app.getLastModified() == storageObject.getUpdated().getValue()
-        
+
   }
 
   def "storeObject"() {
@@ -205,7 +200,7 @@ class GoogleStorageServiceSpec extends Specification {
      1 * mockStorage.objects() >> mockObjectApi
 
     when:
-      gcs.storeObject("testkey", "applications", app)
+      gcs.storeObject(ObjectType.APPLICATION, "testkey", app)
 
     then:
       1 * mockObjectApi.insert(

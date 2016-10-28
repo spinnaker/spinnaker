@@ -21,8 +21,9 @@ import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.exception.NotFoundException
-import com.netflix.spinnaker.front50.model.S3ProjectDAO
+import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.project.CassandraProjectDAO
+import com.netflix.spinnaker.front50.model.project.DefaultProjectDAO
 import com.netflix.spinnaker.front50.model.project.Project
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.front50.utils.CassandraTestHelper
@@ -221,7 +222,7 @@ class S3ProjectsControllerTck extends ProjectsControllerTck {
   def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
 
   @Shared
-  S3ProjectDAO s3ProjectDAO
+  ProjectDAO projectDAO
 
   @Override
   ProjectDAO createProjectDAO() {
@@ -229,7 +230,9 @@ class S3ProjectsControllerTck extends ProjectsControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    s3ProjectDAO = new S3ProjectDAO(new ObjectMapper(), amazonS3, scheduler, 0, "front50", "test")
-    return s3ProjectDAO
+    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test")
+    projectDAO = new DefaultProjectDAO(storageService, scheduler, 0)
+
+    return projectDAO
   }
 }

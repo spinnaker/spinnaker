@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.model;
+package com.netflix.spinnaker.front50.model.serviceaccount;
 
-import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
-import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
+import com.netflix.spinnaker.front50.model.ObjectType;
+import com.netflix.spinnaker.front50.model.StorageService;
+import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import rx.Scheduler;
 
-public class ServiceAccountBucketDAO extends BucketDAO<ServiceAccount> implements ServiceAccountDAO {
-
-  public ServiceAccountBucketDAO(String basePath,
-                                 StorageService service,
-                                 Scheduler scheduler,
-                                 int refreshIntervalMs) {
-    super(ServiceAccount.class, "serviceAccounts", basePath, service, scheduler, refreshIntervalMs);
+public class DefaultServiceAccountDAO extends StorageServiceSupport<ServiceAccount> implements ServiceAccountDAO {
+  public DefaultServiceAccountDAO(StorageService service,
+                                Scheduler scheduler,
+                                int refreshIntervalMs) {
+    super(ObjectType.SERVICE_ACCOUNT, service, scheduler, refreshIntervalMs);
   }
 
   @Override

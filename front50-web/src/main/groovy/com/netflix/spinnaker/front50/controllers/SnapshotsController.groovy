@@ -49,7 +49,7 @@ class SnapshotsController {
     @RequestMapping(value = "/{id:.+}/history", method = RequestMethod.GET)
     Collection<Snapshot> getHistory(@PathVariable String id,
                                     @RequestParam(value = "limit", defaultValue = "20") int limit) {
-        return snapshotDAO.getHistory(id, limit)
+        return snapshotDAO.history(id, limit)
     }
 
     @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
@@ -64,7 +64,7 @@ class SnapshotsController {
                                    @PathVariable String timestamp,
                                    @RequestParam(value = "limit", defaultValue = "20") int limit) {
         def creationTime = timestamp.toLong()
-        snapshotDAO.getHistory(id, limit).find { Snapshot snapshot ->
+        snapshotDAO.history(id, limit).find { Snapshot snapshot ->
             snapshot.timestamp == creationTime
         }
     }

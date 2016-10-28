@@ -93,7 +93,12 @@ class StrategyRepository implements PipelineStrategyDAO {
         resolvePipelines(result)
     }
 
-    @Override
+  @Override
+  Collection<Pipeline> history(String id, int maxResults) {
+    return []
+  }
+
+  @Override
     Pipeline create(String id, Pipeline item) {
         update(id, item)
         return findById(getPipelineId(item.getApplication(), item.getName()))
@@ -153,11 +158,6 @@ class StrategyRepository implements PipelineStrategyDAO {
             true
         )
         resolvePipelines(result)
-    }
-
-    @Override
-    Collection<Pipeline> getPipelineHistory(String id, int limit) {
-        return [findById(id)]
     }
 
     String getPipelineId(String application, String name) {

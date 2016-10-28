@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.model;
+package com.netflix.spinnaker.front50.model.notification;
 
-import com.google.api.services.storage.Storage;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
-import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel;
-import com.netflix.spinnaker.front50.model.notification.Notification;
-import com.netflix.spinnaker.front50.model.notification.NotificationDAO;
+import com.netflix.spinnaker.front50.model.ObjectType;
+import com.netflix.spinnaker.front50.model.StorageService;
+import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import rx.Scheduler;
 
-public class NotificationBucketDAO extends BucketDAO<Notification> implements NotificationDAO {
-  public NotificationBucketDAO(String basePath,
-                               StorageService service,
-                               Scheduler scheduler,
-                               int refreshIntervalMs) {
-      super(Notification.class, "notifications",
-            basePath, service, scheduler, refreshIntervalMs);
+public class DefaultNotificationDAO extends StorageServiceSupport<Notification> implements NotificationDAO {
+  public DefaultNotificationDAO(StorageService service,
+                                Scheduler scheduler,
+                                int refreshIntervalMs) {
+    super(ObjectType.NOTIFICATION, service, scheduler, refreshIntervalMs);
   }
 
   @Override

@@ -26,8 +26,6 @@ public interface ApplicationDAO extends ItemDAO<Application> {
 
   Collection<Application> search(Map<String, String> attributes)
 
-  Collection<Application> getApplicationHistory(String name, int limit)
-
   static class Searcher {
     static Collection<Application> search(Collection<Application> searchableApplications,
                                           Map<String, String> attributes) {

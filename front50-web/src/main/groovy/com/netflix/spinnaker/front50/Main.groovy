@@ -30,7 +30,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @Configuration
 @EnableScheduling
 @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
-@EnableHypermediaSupport(type = EnableHypermediaSupport.HypermediaType.HAL)
 @ComponentScan(["com.netflix.spinnaker.front50", "com.netflix.spinnaker.config"])
 public class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [

@@ -17,7 +17,22 @@
 package com.netflix.spinnaker.front50.config;
 
 import com.netflix.spinnaker.front50.model.*;
+import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
+import com.netflix.spinnaker.front50.model.application.DefaultApplicationDAO;
+import com.netflix.spinnaker.front50.model.application.DefaultApplicationPermissionDAO;
+import com.netflix.spinnaker.front50.model.notification.DefaultNotificationDAO;
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO;
+import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO;
+import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineStrategyDAO;
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO;
+import com.netflix.spinnaker.front50.model.project.DefaultProjectDAO;
+import com.netflix.spinnaker.front50.model.project.ProjectDAO;
+import com.netflix.spinnaker.front50.model.serviceaccount.DefaultServiceAccountDAO;
+import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
+import com.netflix.spinnaker.front50.model.snapshot.DefaultSnapshotDAO;
+import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,12 +56,12 @@ public class GcsConfig {
   // Actual queries always check to see if the cache is out of date anyway. So this is mostly for the benefit of
   // keeping other replicas up to date so that last-minute updates have fewer changes in them.
   private final Logger log = LoggerFactory.getLogger(getClass());
-  private static int APPLICATION_REFRESH_MS = (int)TimeUnit.MINUTES.toMillis(1);
-  private static int PROJECT_REFRESH_MS = (int)TimeUnit.MINUTES.toMillis(1);
-  private static int NOTIFICATION_REFRESH_MS = (int)TimeUnit.MINUTES.toMillis(1);
-  private static int PIPELINE_REFRESH_MS = (int)TimeUnit.MINUTES.toMillis(1);
-  private static int PIPELINE_STRATEGY_REFRESH_MS = (int)TimeUnit.MINUTES.toMillis(1);
-  private static int SERVICE_ACCOUNT_REFRESH_MS = (int)TimeUnit.MINUTES.toMillis(1);
+  private static int APPLICATION_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
+  private static int PROJECT_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
+  private static int NOTIFICATION_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
+  private static int PIPELINE_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
+  private static int PIPELINE_STRATEGY_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
+  private static int SERVICE_ACCOUNT_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
 
   @Value("${spinnaker.gcs.bucket}")
   private String bucket;
@@ -80,9 +95,9 @@ public class GcsConfig {
     }
     service.ensureBucketExists();
     log.info("Using Google Cloud Storage bucket={} in project={}",
-             bucket, project);
+      bucket, project);
     log.info("Bucket versioning is {}.",
-             service.supportsVersioning() ? "enabled" : "DISABLED");
+      service.supportsVersioning() ? "enabled" : "DISABLED");
     return service;
   }
 
@@ -93,67 +108,43 @@ public class GcsConfig {
   }
 
   @Bean
-  public ApplicationBucketDAO applicationDAO(GcsStorageService service) {
-    return new ApplicationBucketDAO(rootFolder,
-                                    service,
-                                    Schedulers.from(Executors.newFixedThreadPool(5)),
-                                    APPLICATION_REFRESH_MS);
+  public ApplicationDAO applicationDAO(GcsStorageService service) {
+    return new DefaultApplicationDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), APPLICATION_REFRESH_MS);
   }
 
   @Bean
-  public ApplicationPermissionBucketDAO applicationPermissionDAO() {
+  public ApplicationPermissionDAO applicationPermissionDAO() {
     GcsStorageService service = googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME);
-    return new ApplicationPermissionBucketDAO(rootFolder,
-                                              service,
-                                              Schedulers.from(Executors.newFixedThreadPool(5)),
-                                              APPLICATION_REFRESH_MS);
+    return new DefaultApplicationPermissionDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), APPLICATION_REFRESH_MS);
   }
 
   @Bean
-  public ServiceAccountBucketDAO serviceAccountBucketDAO(GcsStorageService service) {
-    return new ServiceAccountBucketDAO(rootFolder,
-                                       service,
-                                       Schedulers.from(Executors.newFixedThreadPool(5)),
-                                       SERVICE_ACCOUNT_REFRESH_MS);
+  public ServiceAccountDAO serviceAccountDAO(GcsStorageService service) {
+    return new DefaultServiceAccountDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), SERVICE_ACCOUNT_REFRESH_MS);
   }
 
   @Bean
-  public ProjectBucketDAO projectDAO(GcsStorageService service) {
-    return new ProjectBucketDAO(rootFolder,
-                                service,
-                                Schedulers.from(Executors.newFixedThreadPool(5)),
-                                PROJECT_REFRESH_MS);
+  public ProjectDAO projectDAO(GcsStorageService service) {
+    return new DefaultProjectDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), PROJECT_REFRESH_MS);
   }
 
   @Bean
-  public NotificationBucketDAO notificationDAO(GcsStorageService service) {
-    return new NotificationBucketDAO(rootFolder,
-                                     service,
-                                     Schedulers.from(Executors.newFixedThreadPool(5)),
-                                     NOTIFICATION_REFRESH_MS);
+  public NotificationDAO notificationDAO(GcsStorageService service) {
+    return new DefaultNotificationDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), NOTIFICATION_REFRESH_MS);
   }
 
   @Bean
-  public PipelineStrategyBucketDAO pipelineStrategyDAO(GcsStorageService service) {
-    return new PipelineStrategyBucketDAO(rootFolder,
-                                         service,
-                                         Schedulers.from(Executors.newFixedThreadPool(5)),
-                                         PIPELINE_STRATEGY_REFRESH_MS);
+  public PipelineStrategyDAO pipelineStrategyDAO(GcsStorageService service) {
+    return new DefaultPipelineStrategyDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), PIPELINE_STRATEGY_REFRESH_MS);
   }
 
   @Bean
-  public PipelineBucketDAO pipelineDAO(GcsStorageService service) {
-    return new PipelineBucketDAO(rootFolder,
-                                 service,
-                                 Schedulers.from(Executors.newFixedThreadPool(5)),
-                                 PIPELINE_REFRESH_MS);
+  public PipelineDAO pipelineDAO(GcsStorageService service) {
+    return new DefaultPipelineDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), PIPELINE_REFRESH_MS);
   }
 
   @Bean
-  public SnapshotBucketDAO snapshotBucketDAO(GcsStorageService service) {
-    return new SnapshotBucketDAO(rootFolder,
-                                                 service,
-                                                 Schedulers.from(Executors.newFixedThreadPool(5)),
-                                                 PIPELINE_REFRESH_MS);
+  public SnapshotDAO snapshotDAO(GcsStorageService service) {
+    return new DefaultSnapshotDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), PIPELINE_REFRESH_MS);
   }
 }

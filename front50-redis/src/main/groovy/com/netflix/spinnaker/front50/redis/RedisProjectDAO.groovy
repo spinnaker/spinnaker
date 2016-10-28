@@ -38,10 +38,6 @@ class RedisProjectDAO implements ProjectDAO {
   }
 
   @Override
-  void truncate() {
-  }
-
-  @Override
   Project findById(String id) throws NotFoundException {
     def results = redisTemplate.opsForHash().get(BOOK_KEEPING_KEY, id)
     if (!results) {
@@ -54,6 +50,11 @@ class RedisProjectDAO implements ProjectDAO {
   Collection<Project> all() {
     redisTemplate.opsForHash().scan(BOOK_KEEPING_KEY, ScanOptions.scanOptions().match('*').build())
         .collect { it.value }
+  }
+
+  @Override
+  Collection<Project> history(String id, int maxResults) {
+    return [findById(id)]
   }
 
   @Override

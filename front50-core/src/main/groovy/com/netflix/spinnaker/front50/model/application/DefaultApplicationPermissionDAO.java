@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.model;
+package com.netflix.spinnaker.front50.model.application;
 
-import com.netflix.spinnaker.front50.model.application.Application;
-import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
+import com.netflix.spinnaker.front50.model.ObjectType;
+import com.netflix.spinnaker.front50.model.StorageService;
+import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import rx.Scheduler;
 
-public class ApplicationPermissionBucketDAO extends BucketDAO<Application.Permission> implements ApplicationPermissionDAO {
-
-  public ApplicationPermissionBucketDAO(String basePath,
-                                        StorageService service,
-                                        Scheduler scheduler,
-                                        int refreshIntervalMs) {
-    // Using "applications" daoTypeName here in order to keep the permission.json file under the
-    // applications directory.
-    super(Application.Permission.class, "applications", basePath, service, scheduler, refreshIntervalMs);
+public class DefaultApplicationPermissionDAO extends StorageServiceSupport<Application.Permission> implements ApplicationPermissionDAO {
+  public DefaultApplicationPermissionDAO(StorageService service,
+                                         Scheduler scheduler,
+                                         int refreshIntervalMs) {
+    super(ObjectType.APPLICATION_PERMISSION, service, scheduler, refreshIntervalMs);
   }
 
   @Override

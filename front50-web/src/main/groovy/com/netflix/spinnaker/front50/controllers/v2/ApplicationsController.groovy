@@ -119,7 +119,7 @@ public class ApplicationsController {
   @RequestMapping(value = '{applicationName:.+}/history', method = RequestMethod.GET)
   Collection<Application> getHistory(@PathVariable String applicationName,
                                      @RequestParam(value = "limit", defaultValue = "20") int limit) {
-    return applicationDAO.getApplicationHistory(applicationName, limit)
+    return applicationDAO.history(applicationName, limit)
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")

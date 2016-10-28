@@ -24,5 +24,5 @@ interface EntityTagsDAO extends ItemDAO<EntityTags> {
    * @param prefix TaggedEntity.id prefix (application/front50, etc.)
    * @return All tagged entities with an id beginning with {@code prefix}
    */
-  Set<EntityTags> all(String prefix)
+  Collection<EntityTags> all(String prefix, int maxResults)
 }

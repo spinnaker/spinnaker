@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.model;
+package com.netflix.spinnaker.front50.model.pipeline;
 
-import com.google.api.services.storage.Storage;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
-import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
-import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
+import com.netflix.spinnaker.front50.model.ObjectType;
+import com.netflix.spinnaker.front50.model.StorageService;
+import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import org.springframework.util.Assert;
 import rx.Scheduler;
 
@@ -28,29 +27,22 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class PipelineBucketDAO extends BucketDAO<Pipeline> implements PipelineDAO {
-  public PipelineBucketDAO(String basePath,
-                           StorageService service,
-                           Scheduler scheduler,
-                           int refreshIntervalMs) {
-      super(Pipeline.class, "pipelines",
-            basePath, service, scheduler, refreshIntervalMs);
-  }
-
-  @Override
-  public Collection<Pipeline> getPipelineHistory(String name, int maxResults) {
-    return allVersionsOf(name, maxResults);
+public class DefaultPipelineDAO extends StorageServiceSupport<Pipeline> implements PipelineDAO {
+  public DefaultPipelineDAO(StorageService service,
+                            Scheduler scheduler,
+                            int refreshIntervalMs) {
+    super(ObjectType.PIPELINE, service, scheduler, refreshIntervalMs);
   }
 
   @Override
   public String getPipelineId(String application, String pipelineName) {
     Pipeline matched = getPipelinesByApplication(application)
-        .stream()
-        .filter(pipeline -> pipeline.getName().equalsIgnoreCase(pipelineName))
-        .findFirst()
-        .orElseThrow(() -> new NotFoundException(
-            String.format("No pipeline found with name '%s' in application '%s'", pipelineName, application)
-        ));
+      .stream()
+      .filter(pipeline -> pipeline.getName().equalsIgnoreCase(pipelineName))
+      .findFirst()
+      .orElseThrow(() -> new NotFoundException(
+        String.format("No pipeline found with name '%s' in application '%s'", pipelineName, application)
+      ));
 
     return matched.getId();
   }
@@ -58,9 +50,9 @@ public class PipelineBucketDAO extends BucketDAO<Pipeline> implements PipelineDA
   @Override
   public Collection<Pipeline> getPipelinesByApplication(String application) {
     return all()
-        .stream()
-        .filter(pipeline -> pipeline.getApplication().equalsIgnoreCase(application))
-        .collect(Collectors.toList());
+      .stream()
+      .filter(pipeline -> pipeline.getApplication() != null && pipeline.getApplication().equalsIgnoreCase(application))
+      .collect(Collectors.toList());
   }
 
   @Override

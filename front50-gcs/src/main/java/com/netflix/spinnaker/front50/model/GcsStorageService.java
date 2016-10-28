@@ -187,6 +187,7 @@ public class GcsStorageService implements StorageService {
   /**
    * Returns true if the storage service supports versioning.
    */
+  @Override
   public boolean supportsVersioning() {
     try {
       Bucket bucket = storage.buckets().get(bucketName).execute();
@@ -197,19 +198,25 @@ public class GcsStorageService implements StorageService {
     }
   }
 
+  @Override
+  public <T extends Timestamped> Collection<T> loadObjectsWithPrefix(ObjectType objectType, String prefix, int maxResults) {
+    throw new UnsupportedOperationException("loadObjectsWithPrefix is not yet supported!");
+  }
+
+  @Override
   public <T extends Timestamped> T
-         loadCurrentObject(String objectKey, String daoTypeName, Class<T> clas)
+  loadObject(ObjectType objectType, String objectKey)
          throws NotFoundException {
-    String path = keyToPath(objectKey, daoTypeName);
+    String path = keyToPath(objectKey, objectType.group);
     try {
       StorageObject storageObject = obj_api.get(bucketName, path).execute();
-      T item = deserialize(storageObject, clas, true);
+      T item = deserialize(storageObject, (Class<T>) objectType.clazz, true);
       item.setLastModified(storageObject.getUpdated().getValue());
       log.debug("Loaded bucket={} path={}", bucketName, path);
       return item;
     } catch (HttpResponseException e) {
       log.error("Failed to load {} {}: {} {}",
-                daoTypeName, objectKey, e.getStatusCode(), e.getStatusMessage());
+                objectType.group, objectKey, e.getStatusCode(), e.getStatusMessage());
       if (e.getStatusCode() == 404) {
           throw new NotFoundException(String.format("No file at path=%s", path));
       }
@@ -220,17 +227,17 @@ public class GcsStorageService implements StorageService {
     }
   }
 
-  public <T extends Timestamped> T
-         loadObjectVersion(String objectKey, String daoTypeName, Class<T> clas,
-                           String versionId) throws NotFoundException {
+  @Override
+  public <T extends Timestamped> T loadObjectVersion(ObjectType objectType, String objectKey, String versionId) throws NotFoundException {
       return null;
   }
 
-  public void deleteObject(String objectKey, String daoTypeName) {
-    String path = keyToPath(objectKey, daoTypeName);
+  @Override
+  public void deleteObject(ObjectType objectType, String objectKey) {
+    String path = keyToPath(objectKey, objectType.group);
     try {
       obj_api.delete(bucketName, path).execute();
-      writeLastModified(daoTypeName);
+      writeLastModified(objectType.group);
     } catch (HttpResponseException e) {
       if (e.getStatusCode() == 404) {
           return;
@@ -242,30 +249,31 @@ public class GcsStorageService implements StorageService {
     }
   }
 
-  public <T extends Timestamped>
-         void storeObject(String objectKey, String daoTypeName, T obj) {
+  @Override
+  public <T extends Timestamped> void storeObject(ObjectType objectType, String objectKey, T obj) {
     obj.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
 
-    String path = keyToPath(objectKey, daoTypeName);
+    String path = keyToPath(objectKey, objectType.group);
     try {
       byte[] bytes = objectMapper.writeValueAsBytes(obj);
       StorageObject object = new StorageObject().setBucket(bucketName).setName(path);
       ByteArrayContent content = new ByteArrayContent("application/json", bytes);
       obj_api.insert(bucketName, object, content).execute();
-      writeLastModified(daoTypeName);
+      writeLastModified(objectType.group);
     } catch (IOException e) {
       log.error("Update failed on path={}: {}", path, e);
       throw new IllegalStateException(e);
     }
   }
 
-  public Map<String, Long> listObjectKeys(String daoTypeName) {
-    String rootFolder = daoRoot(daoTypeName);
+  @Override
+  public Map<String, Long> listObjectKeys(ObjectType objectType) {
+    String rootFolder = daoRoot(objectType.group);
     int skipToOffset = rootFolder.length() + 1;  // + Trailing slash
     int skipFromEnd = dataFilename.length() + 1;  // + Leading slash
 
     Map<String, Long> result = new HashMap<String, Long>();
-    log.debug("Listing {}", daoTypeName);
+    log.debug("Listing {}", objectType.group);
     try {
       Storage.Objects.List listObjects = obj_api.list(bucketName);
       listObjects.setPrefix(rootFolder);
@@ -293,10 +301,9 @@ public class GcsStorageService implements StorageService {
     return result;
   }
 
-  public <T extends Timestamped> Collection<T>
-         listObjectVersions(String objectKey, String daoTypeName, Class<T> clas,
-                            int maxResults) throws NotFoundException {
-    String path = keyToPath(objectKey, daoTypeName);
+  @Override
+  public <T extends Timestamped> Collection<T> listObjectVersions(ObjectType objectType, String objectKey, int maxResults) throws NotFoundException {
+    String path = keyToPath(objectKey, objectType.group);
     ArrayList<T> result = new ArrayList<T>();
     try {
       // NOTE: gcs only returns things in forward chronological order
@@ -311,7 +318,7 @@ public class GcsStorageService implements StorageService {
         List<StorageObject> items = objects.getItems();
         if (items != null) {
           for (StorageObject item : items) {
-              T have = deserialize(item, clas, false);
+              T have = deserialize(item, (Class<T>) objectType.clazz, false);
               if (have != null) {
                 have.setLastModified(item.getUpdated().getValue());
                 result.add(have);
@@ -433,14 +440,15 @@ public class GcsStorageService implements StorageService {
       }
   }
 
-  public long getLastModified(String daoTypeName) {
-      String path = daoRoot(daoTypeName) + '/' + LAST_MODIFIED_FILENAME;
+  @Override
+  public long getLastModified(ObjectType objectType) {
+      String path = daoRoot(objectType.group) + '/' + LAST_MODIFIED_FILENAME;
       try {
           return obj_api.get(bucketName, path).execute().getUpdated().getValue();
       } catch (HttpResponseException e) {
           if (e.getStatusCode() == 404) {
               log.error("No timestamp file at {}. Creating a new one.", path);
-              writeLastModified(daoTypeName);
+              writeLastModified(objectType.group);
               return 0L;
           }
           log.error("Error writing timestamp file {}", e.toString());

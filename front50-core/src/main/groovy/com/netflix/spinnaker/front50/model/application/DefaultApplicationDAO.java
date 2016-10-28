@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.front50.model.application;
 
-package com.netflix.spinnaker.front50.model;
-
-import com.amazonaws.services.s3.AmazonS3;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
-import com.netflix.spinnaker.front50.model.application.Application;
-import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
+import com.netflix.spinnaker.front50.model.ObjectType;
+import com.netflix.spinnaker.front50.model.StorageService;
+import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import rx.Scheduler;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 
-public class S3ApplicationDAO extends S3Support<Application> implements ApplicationDAO {
-  public S3ApplicationDAO(ObjectMapper objectMapper,
-                          AmazonS3 amazonS3,
-                          Scheduler scheduler,
-                          int refreshIntervalMs,
-                          String bucket,
-                          String rootFolder) {
-    super(objectMapper, amazonS3, scheduler, refreshIntervalMs, bucket, (rootFolder + "/applications/").replaceAll("//", "/"));
+public class DefaultApplicationDAO extends StorageServiceSupport<Application> implements ApplicationDAO {
+  public DefaultApplicationDAO(StorageService service,
+                               Scheduler scheduler,
+                               int refreshIntervalMs) {
+    super(ObjectType.APPLICATION, service, scheduler, refreshIntervalMs);
   }
 
   @Override
@@ -59,21 +55,6 @@ public class S3ApplicationDAO extends S3Support<Application> implements Applicat
 
   @Override
   public Collection<Application> search(Map<String, String> attributes) {
-    return Searcher.search(all(false), attributes);
-  }
-
-  @Override
-  public Collection<Application> getApplicationHistory(String name, int limit) {
-    return allVersionsOf(name, limit);
-  }
-
-  @Override
-  Class<Application> getSerializedClass() {
-    return Application.class;
-  }
-
-  @Override
-  String getMetadataFilename() {
-    return "application-metadata.json";
+    return Searcher.search(all(), attributes);
   }
 }

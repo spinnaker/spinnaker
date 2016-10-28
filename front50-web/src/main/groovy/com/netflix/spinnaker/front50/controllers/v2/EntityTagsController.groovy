@@ -19,12 +19,15 @@ package com.netflix.spinnaker.front50.controllers.v2
 
 import com.netflix.spinnaker.front50.exception.BadRequestException
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.tag.EntityTags
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.util.AntPathMatcher
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -33,17 +36,18 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 @Slf4j
 @RestController
 @RequestMapping(value = "/v2/tags", produces = MediaType.APPLICATION_JSON_VALUE)
-class TagController {
+class EntityTagsController {
   @Autowired(required = false)
   EntityTagsDAO taggedEntityDAO
 
   @RequestMapping(method = RequestMethod.GET)
   Set<EntityTags> tags(@RequestParam(value = "prefix", required = true) String prefix) {
-    return taggedEntityDAO?.all(prefix) ?: []
+    return taggedEntityDAO?.all(prefix, 100) ?: []
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.GET)
@@ -65,5 +69,14 @@ class TagController {
     }
 
     return taggedEntityDAO.create(tag.id, tag)
+  }
+
+  @RequestMapping(method = RequestMethod.DELETE, value = "/**")
+  void delete(HttpServletRequest request, HttpServletResponse response) {
+    String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+    String tagId = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
+
+    taggedEntityDAO.delete(tagId)
+    response.setStatus(HttpStatus.NO_CONTENT.value())
   }
 }

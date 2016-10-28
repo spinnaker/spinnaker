@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.front50.model.S3StorageService
+import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
+
 import java.util.concurrent.Executors
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.front50.model.S3PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.pipeline.PipelineRepository
@@ -226,7 +228,7 @@ class S3PipelineControllerTck extends PipelineControllerTck {
   def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
 
   @Shared
-  S3PipelineDAO s3PipelineDAO
+  PipelineDAO pipelineDAO
 
   @Override
   PipelineDAO createPipelineDAO() {
@@ -234,7 +236,9 @@ class S3PipelineControllerTck extends PipelineControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    s3PipelineDAO = new S3PipelineDAO(new ObjectMapper(), amazonS3, scheduler, 0, "front50", "test")
-    return s3PipelineDAO
+    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test")
+    pipelineDAO = new DefaultPipelineDAO(storageService, scheduler, 0)
+
+    return pipelineDAO
   }
 }
