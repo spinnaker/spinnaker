@@ -18,8 +18,11 @@ package com.netflix.spinnaker.clouddriver.cf.utils
 import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import org.cloudfoundry.client.lib.CloudFoundryException
 import org.springframework.http.HttpStatus
+import spock.lang.Ignore
 import spock.lang.Specification
 
+// TODO(jacobkiefer): Re-enable this test once TravisCI DNS issues are solved.
+@Ignore
 class DefaultCloudFoundryClientFactorySpec extends Specification {
 
   void "fails to connect to PWS with fake credentials"() {
