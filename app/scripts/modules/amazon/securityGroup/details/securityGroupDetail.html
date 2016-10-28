@@ -1,4 +1,8 @@
-<div class="details-panel">
+<div class="text-center" ng-if="state.notFound">
+  <h3>Could not find security group {{group}}.</h3>
+  <a ui-sref="home.infrastructure">Back to search results</a>
+</div>
+<div class="details-panel" ng-if="!state.notFound">
   <div class="header">
     <div class="close-button" ng-if="!state.standalone">
       <a class="btn btn-link"

@@ -1,3 +1,7 @@
+<div class="text-center" ng-if="state.notFound">
+  <h3>Could not find instance {{instanceId}}.</h3>
+  <a ui-sref="home.infrastructure">Back to search results</a>
+</div>
 <div class="details-panel">
   <div class="header" ng-if="state.loading">
     <div class="close-button" ng-if="!state.standalone">
@@ -11,7 +15,7 @@
     </h4>
   </div>
 
-  <div class="header" ng-if="!state.loading">
+  <div class="header" ng-if="!state.loading && !state.notFound">
     <div class="close-button" ng-if="!state.standalone">
       <a class="btn btn-link"
          ui-sref="^">

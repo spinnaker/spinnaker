@@ -163,8 +163,15 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
       if ($scope.$$destroyed) {
         return;
       }
-      $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      if (app.isStandalone) {
+        $scope.instanceId = instance.instanceId;
+        $scope.state.loading = false;
+        $scope.state.notFound = true;
+        recentHistoryService.removeLastItem('instances');
+      } else {
+        $state.params.allowModalToStayOpen = true;
+        $state.go('^', null, {location: 'replace'});
+      }
     }
 
     this.canDeregisterFromLoadBalancer = function() {

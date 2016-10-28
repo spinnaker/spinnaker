@@ -13,10 +13,11 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
   require('../clone/cloneSecurityGroup.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   require('core/cloudProvider/cloudProvider.registry.js'),
+  require('core/history/recentHistory.service'),
 ])
   .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $uibModal, cloudProviderRegistry) {
+                                                    recentHistoryService, $uibModal, cloudProviderRegistry) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;
@@ -87,8 +88,15 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
       if ($scope.$$destroyed) {
         return;
       }
-      $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      if (app.isStandalone) {
+        $scope.group = securityGroup.name;
+        $scope.state.notFound = true;
+        $scope.state.loading = false;
+        recentHistoryService.removeLastItem('securityGroups');
+      } else {
+        $state.params.allowModalToStayOpen = true;
+        $state.go('^', null, {location: 'replace'});
+      }
     }
 
     extractSecurityGroup().then(() => {
