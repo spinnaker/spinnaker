@@ -47,19 +47,28 @@ class AwsLookupUtil {
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
 
-  Set<TitusSecurityGroup> lookupSecurityGroupNames(String account, String region, LinkedHashSet<String> securityGroups) {
+  Set<TitusSecurityGroup> lookupSecurityGroupNames(Map<String, TitusSecurityGroup> titusSecurityGroupLookupCache,
+                                                   String account,
+                                                   String region,
+                                                   LinkedHashSet<String> securityGroups) {
     Set<TitusSecurityGroup> expandedGroups = new LinkedHashSet<TitusSecurityGroup>()
     securityGroups.each { securityGroupId ->
+      def titusSecurityGroupLookupCacheId = "${account}-${region}-${securityGroupId}".toString()
+      TitusSecurityGroup titusSecurityGroup = titusSecurityGroupLookupCache.get(titusSecurityGroupLookupCacheId)
+
       try {
-        TitusSecurityGroup sg = new TitusSecurityGroup(groupId: securityGroupId)
-        Map details = getSecurityGroupDetails(account, region, securityGroupId)
-        if (details) {
-          sg.groupName = details.name
-          sg.awsAccount = details.awsAccount
-          sg.awsVpcId = details.vpcId
+        if (!titusSecurityGroup) {
+          titusSecurityGroup = new TitusSecurityGroup(groupId: securityGroupId)
+          Map details = getSecurityGroupDetails(account, region, securityGroupId)
+          if (details) {
+            titusSecurityGroup.groupName = details.name
+            titusSecurityGroup.awsAccount = details.awsAccount
+            titusSecurityGroup.awsVpcId = details.vpcId
+          }
+          titusSecurityGroupLookupCache.put(titusSecurityGroupLookupCacheId, titusSecurityGroup)
         }
-        expandedGroups << sg
-      } catch (Exception e) {
+        expandedGroups << titusSecurityGroup
+      } catch (Exception ignored) {
       }
     }
     expandedGroups
