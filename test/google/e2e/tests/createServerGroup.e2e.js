@@ -45,6 +45,7 @@ describe('Create Server Group', function () {
         The behavior inside the test does not match the behavior inside the protractor REPL.
       */
       browser.actions().mouseDown(modal.imageSelector).perform();
+      browser.sleep(1000);
       modal.firstImage.click();
 
       // Scrolls down modal to instanceTypeSelector.

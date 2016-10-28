@@ -6,6 +6,9 @@
   "scripts": {
     "test": "sh ./google_int.sh"
   },
+  "engines": {
+    "node": "6.5.0"
+  },
   "author": "",
   "license": "ISC",
   "devDependencies": {

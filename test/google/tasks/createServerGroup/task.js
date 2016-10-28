@@ -1,3 +1,5 @@
+'use strict';
+
 let job = require('./job.js'),
   findImages = require('../utils/findImages'),
   { account, cloudProvider, region, zone } = require('../../config.json');
