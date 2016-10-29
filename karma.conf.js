@@ -1,10 +1,8 @@
 'use strict';
 
-var HappyPack = require('happypack');
-var happyThreadPool = HappyPack.ThreadPool({ size: 3 });
-
-var path = require('path');
-var nodeModulePath = path.join(__dirname, 'node_modules');
+const path = require('path');
+const webpackCommon = require('./webpack.common');
+const webpackConfig = webpackCommon(true);
 
 module.exports = function(config) {
   config.set({
@@ -32,82 +30,7 @@ module.exports = function(config) {
       'test/**/*.js': ['webpack'],
     },
 
-    webpack: {
-      resolve: {
-        extensions: ['', '.js', '.ts'],
-        root: [
-          nodeModulePath,
-          path.join(__dirname, 'app', 'scripts', 'modules'),
-        ]
-      },
-      module: {
-        preLoaders: [
-          {
-            test: /\.spec.ts$/,
-            loader: "tslint"
-          }
-        ],
-        loaders: [
-          {
-            test: /jquery\.js$/,
-            loader: 'expose?jQuery',
-          },
-          {
-            test: /\.ts$/,
-            loader: 'ts',
-            query: {
-              ignoreDiagnostics: [
-                2300 // 2300 -> Duplicate identifier, needed or it'll barf on typings files
-              ]
-            },
-            exclude: /node_modules/
-          },
-          {
-            test: /\.css$/,
-            loader: 'style!css',
-          },
-          {
-            test: /\.js$/,
-            loader: 'happypack/loader?id=jstest',
-            exclude: /node_modules(?!\/clipboard)/,
-          },
-          {
-            test: /\.less$/,
-            loader: 'style!css!less',
-          },
-          {
-            test: /\.(woff|otf|ttf|eot|svg|png|gif)(.*)?$/,
-            loader: 'file',
-          },
-          {
-            test: /\.html$/,
-            loader: 'ngtemplate?relativeTo=' + __dirname + '/!html'
-          },
-          {
-            test: /\.json$/,
-            loader: 'json-loader'
-          },
-        ],
-        postLoaders: [
-          {
-            test: /\.js$/,
-            exclude: /(test|node_modules|bower_components)\//,
-            loader: 'istanbul-instrumenter'
-          }
-        ]
-      },
-      plugins: [
-        new HappyPack({
-          id: 'jstest',
-          loaders: [ 'ng-annotate!angular!babel!envify!eslint' ],
-          threadPool: happyThreadPool,
-          cacheContext: {
-            env: process.env,
-          },
-        }),
-      ],
-      watch: true,
-    },
+    webpack: webpackConfig,
 
     webpackMiddleware: {
       noInfo: true,
