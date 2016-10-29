@@ -1,22 +1,22 @@
-import footerModule, {ChaosMonkeyConfigFooterController} from './chaosMonkeyConfigFooter.component';
+import {CONFIG_SECTION_FOOTER, ConfigSectionFooterController} from './configSectionFooter.component';
 
-describe('Component: ChaosMonkeyConfigFooter', () => {
+describe('Component: ConfigSectionFooter', () => {
 
   let $componentController: ng.IComponentControllerService,
       applicationWriter: any,
-      $ctrl: ChaosMonkeyConfigFooterController,
+      $ctrl: ConfigSectionFooterController,
       $q: ng.IQService,
       $scope: ng.IScope;
 
   let initializeController = (data: any) => {
-    $ctrl = <ChaosMonkeyConfigFooterController> $componentController(
-      'chaosMonkeyConfigFooter',
+    $ctrl = <ConfigSectionFooterController> $componentController(
+      'configSectionFooter',
       { $scope: null, applicationWriter: applicationWriter },
       data
     );
   };
 
-  beforeEach(angular.mock.module(footerModule));
+  beforeEach(angular.mock.module(CONFIG_SECTION_FOOTER));
 
   beforeEach(angular.mock.inject((
     _$componentController_: ng.IComponentControllerService,

@@ -18,6 +18,13 @@ v2-modal-wizard {
     }
     .wizard-navigation {
       border: 1px solid @mid_light_grey;
+      a {
+        padding-left: 10px;
+        &::before {
+          width: 0;
+          height: 0;
+        }
+      }
     }
   }
   .modal-header {

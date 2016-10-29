@@ -1,5 +1,7 @@
 'use strict';
 
+import {TITUS_MIGRATION_CONFIG_COMPONENT} from './migration/titusMigrationConfig.component';
+
 let angular = require('angular');
 
 require('./logo/titus.logo.less');
@@ -22,6 +24,7 @@ module.exports = angular.module('spinnaker.titus', [
   require('./validation/applicationName.validator.js'),
   require('./pipeline/stages/findAmi/titusFindAmiStage.js'),
   require('./pipeline/stages/runJob/titusRunJobStage.js'),
+  TITUS_MIGRATION_CONFIG_COMPONENT,
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('titus', {

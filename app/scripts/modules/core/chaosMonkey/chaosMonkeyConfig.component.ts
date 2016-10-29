@@ -3,19 +3,10 @@ import {module, toJson} from 'angular';
 
 import helpContents from './chaosMonkey.help';
 import exceptionsModule from './chaosMonkeyExceptions.component';
-import footerModule from './chaosMonkeyConfigFooter.component';
-
+import {CONFIG_SECTION_FOOTER, IViewState} from '../application/config/footer/configSectionFooter.component';
 import {Application} from '../application/application.model';
 
 import './chaosMonkeyConfig.component.less';
-
-export class ViewState {
-  public originalConfig: ChaosMonkeyConfig;
-  public originalStringVal: string;
-  public saving: boolean = false;
-  public saveError: boolean = false;
-  public isDirty: boolean = false;
-}
 
 class GroupingOption {
   public key: string;
@@ -41,7 +32,13 @@ export class ChaosMonkeyConfigController implements ng.IComponentController {
   public config: ChaosMonkeyConfig;
   public chaosEnabled: boolean = false;
   public groupingOptions: GroupingOption[] = [];
-  public viewState: ViewState = new ViewState();
+  public viewState: IViewState = {
+    originalConfig: null,
+    originalStringVal: null,
+    saving: false,
+    saveError: false,
+    isDirty: false,
+  };
 
   public constructor(private settings: any) {}
 
@@ -79,7 +76,7 @@ module(moduleName, [
   require('../config/settings'),
   exceptionsModule,
   helpContents,
-  footerModule,
+  CONFIG_SECTION_FOOTER,
 ])
 .component('chaosMonkeyConfig', new ChaosMonkeyConfigComponent());
 

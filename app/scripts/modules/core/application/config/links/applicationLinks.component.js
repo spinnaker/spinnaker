@@ -1,5 +1,7 @@
 'use strict';
 
+import {CONFIG_SECTION_FOOTER} from '../footer/configSectionFooter.component';
+
 require('./applicationLinks.component.less');
 
 import _ from 'lodash';
@@ -8,17 +10,17 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.applicationLinks.component', [
-    require('../../service/applications.write.service'),
     require('./editLinks.modal.controller'),
     require('core/config/settings'),
     require('angular-ui-bootstrap'),
+    CONFIG_SECTION_FOOTER,
   ])
   .component('applicationLinks', {
     bindings: {
       application: '=',
     },
     templateUrl: require('./applicationLinks.component.html'),
-    controller: function($uibModal, applicationWriter, settings) {
+    controller: function($uibModal, settings) {
 
       let initialize = () => {
         if (this.application.notFound) {
@@ -48,24 +50,6 @@ module.exports = angular
       this.useDefaultLinks = () => {
         this.sections = _.cloneDeep(settings.defaultInstanceLinks);
         this.configChanged();
-      };
-
-      this.save = () => {
-        this.viewState.saving = true;
-        this.viewState.saveError = false;
-        applicationWriter.updateApplication({
-          name: this.application.name,
-          accounts: this.application.attributes.accounts,
-          instanceLinks: angular.copy(this.sections),
-        })
-          .then(() => {
-            let sections = _.cloneDeep(angular.copy(this.sections));
-            this.application.attributes.instanceLinks = sections;
-            initialize();
-          }, () => {
-            this.viewState.saving = false;
-            this.viewState.saveError = true;
-          });
       };
 
       this.addLink = (section) => {

@@ -15,6 +15,9 @@
     <v2-wizard-page key="cache" label="Cache Management" done="true">
       <application-cache-management application="config.application"></application-cache-management>
     </v2-wizard-page>
+    <v2-wizard-page key="titus" label="Titus Container Migration" done="true" render="config.application.attributes.cloudProviders.includes('titus')">
+      <titus-migration-config application="config.application"></titus-migration-config>
+    </v2-wizard-page>
     <v2-wizard-page key="chaos" label="Chaos Monkey" done="true">
       <chaos-monkey-config application="config.application"></chaos-monkey-config>
     </v2-wizard-page>
