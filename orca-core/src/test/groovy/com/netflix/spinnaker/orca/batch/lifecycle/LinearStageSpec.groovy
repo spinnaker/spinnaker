@@ -24,13 +24,12 @@ import com.netflix.spinnaker.orca.batch.ExecutionListenerProvider
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
-import com.netflix.spinnaker.orca.batch.listeners.SpringBatchStageListener
-import com.netflix.spinnaker.orca.listeners.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.*
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -45,10 +44,6 @@ import static java.util.Optional.empty
 class LinearStageSpec extends AbstractBatchLifecycleSpec {
   @Shared
   def stageNavigator = new StageNavigator(Stub(ApplicationContext))
-
-  List<StepExecutionListener> listeners = [
-    new SpringBatchStageListener(executionRepository, new StageStatusPropagationListener())
-  ]
 
   Map<String, Object> ctx1 = [a: 1]
   Map<String, Object> ctx2 = [b: 2]
@@ -177,7 +172,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     }
 
     @Override
-    public List<Step> buildSteps(Stage stage) {
+    List<Step> buildSteps(Stage stage) {
       return [buildStep(stage, "step", task)]
     }
 
@@ -188,7 +183,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
 
     @Override
     ExecutionListenerProvider getExecutionListenerProvider() {
-      return new SpringBatchExecutionListenerProvider(null, empty(), empty())
+      return new SpringBatchExecutionListenerProvider(executionRepository, empty(), empty())
     }
   }
 
@@ -235,7 +230,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
 
     @Override
     ExecutionListenerProvider getExecutionListenerProvider() {
-      return new SpringBatchExecutionListenerProvider(null, empty(), empty())
+      return new SpringBatchExecutionListenerProvider((ExecutionRepository) executionRepository, empty(), empty())
     }
   }
 }

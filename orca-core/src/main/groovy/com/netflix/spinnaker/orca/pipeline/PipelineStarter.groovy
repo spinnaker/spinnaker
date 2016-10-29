@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 @Slf4j
+@Deprecated
 class PipelineStarter extends ExecutionStarter<Pipeline> {
 
   @Autowired ExecutionRepository executionRepository

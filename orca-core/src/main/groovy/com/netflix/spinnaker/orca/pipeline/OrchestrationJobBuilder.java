@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
+import java.util.ArrayList;
+import java.util.List;
 import com.netflix.spinnaker.orca.batch.ExecutionListenerProvider;
 import com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet;
-import com.netflix.spinnaker.orca.listeners.CompositeExecutionListener;
-import groovy.transform.CompileStatic;
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import groovy.transform.CompileStatic;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -29,28 +30,22 @@ import org.springframework.batch.core.job.builder.JobFlowBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 @CompileStatic
 public class OrchestrationJobBuilder extends ExecutionJobBuilder<Orchestration> {
 
   private final ExecutionListenerProvider executionListenerProvider;
-  private final CompositeExecutionListener compositeExecutionListener;
 
   @Autowired
-  public OrchestrationJobBuilder(ExecutionListenerProvider executionListenerProvider,
-                                 CompositeExecutionListener compositeExecutionListener) {
+  public OrchestrationJobBuilder(ExecutionListenerProvider executionListenerProvider) {
     this.executionListenerProvider = executionListenerProvider;
-    this.compositeExecutionListener = compositeExecutionListener;
   }
 
   @Override
   public Job build(Orchestration orchestration) {
     String name = jobNameFor(orchestration);
     JobBuilder jobBuilder = jobs.get(name);
-    jobBuilder = jobBuilder.listener(executionListenerProvider.wrap(compositeExecutionListener));
+    executionListenerProvider.allJobExecutionListeners().forEach(jobBuilder::listener);
 
     Step tasklet = new OrchestrationInitializerTasklet(orchestration).createTasklet(steps);
     JobFlowBuilder jobFlowBuilder = jobBuilder.flow(tasklet);

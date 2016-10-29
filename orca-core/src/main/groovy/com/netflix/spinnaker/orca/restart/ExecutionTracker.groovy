@@ -16,20 +16,18 @@
 
 package com.netflix.spinnaker.orca.restart
 
-import com.netflix.spinnaker.orca.listeners.ExecutionListener
-import com.netflix.spinnaker.orca.listeners.Persister
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import com.netflix.spinnaker.orca.listeners.ExecutionListener
+import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Slf4j
-@Order(0)
 @Component
 @CompileStatic
 class ExecutionTracker implements ExecutionListener {
