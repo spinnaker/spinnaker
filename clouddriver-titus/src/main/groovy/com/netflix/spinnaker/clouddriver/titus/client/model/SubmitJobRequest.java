@@ -52,6 +52,7 @@ public class SubmitJobRequest {
         }
     }
 
+    private String credentials;
     private String jobType;
     private String application;
     private String jobName;
@@ -209,6 +210,10 @@ public class SubmitJobRequest {
       return this;
     }
 
+    public SubmitJobRequest withCredentials(String credentials) {
+      this.credentials = credentials;
+      return this;
+    }
 
   // Getters
 
@@ -306,5 +311,7 @@ public class SubmitJobRequest {
     }
 
     public Efs getEfs() { return efs; }
+
+    public String getCredentials() { return credentials; }
 
 }
