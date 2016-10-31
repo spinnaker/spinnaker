@@ -3,7 +3,7 @@
 let job = require('./job.js'),
   { cloudProvider, account, email } = require('../../config.json');
 
-function createAppJob (appName) {
+function createAppTask (appName) {
   let task = {
     application: appName,
     description: `Create Application: ${appName}`,
@@ -18,4 +18,4 @@ function createAppJob (appName) {
   return task;
 }
 
-module.exports = createAppJob;
+module.exports = createAppTask;

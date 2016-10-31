@@ -1,6 +1,6 @@
 'use strict';
 
-let { createApp, createServerGroup, deleteApp } = require('../../tasks'),
+let { createApp, takeSnapshot, restoreSnapshot, createServerGroup, deleteApp } = require('../../tasks'),
   orchestrator = require('../../tasks/orchestrator'),
   ClusterPage = require('../pages/cluster.page.js'),
   ServerGroupWizard = require('../pages/serverGroupWizard.page');
@@ -12,7 +12,7 @@ describe('Clone Server Group', function () {
     modal = new ServerGroupWizard();
 
   beforeAll(function (done) {
-    let tasks = [createApp, createServerGroup];
+    let tasks = [createApp, takeSnapshot, createServerGroup];
 
     orchestrator({ appName, tasks })
       .then(() => done(), done);
@@ -25,6 +25,12 @@ describe('Clone Server Group', function () {
     browser.driver.manage().window().maximize();
   });
 
+  afterAll(function (done) {
+    let tasks = [restoreSnapshot, deleteApp];
+
+    orchestrator({appName, tasks})
+      .then(() => done(), done);
+  });
 
   describe('Clone server group modal', function () {
     it('should allow the user to clone a server group with no configuration', function () {

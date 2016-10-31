@@ -3,7 +3,7 @@
 let job = require('./job.js'),
   { account } = require('../../config.json');
 
-function deleteAppJob (appName) {
+function deleteAppTask (appName) {
   let task = {
     application: appName,
     description: `Deleting Application: ${appName}`,
@@ -13,4 +13,4 @@ function deleteAppJob (appName) {
   return task;
 }
 
-module.exports = deleteAppJob;
+module.exports = deleteAppTask;

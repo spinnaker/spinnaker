@@ -7,7 +7,7 @@ let statusMap = {
   'RUNNING': (appName, taskId, taskName, responseTransform) => timeout(1000)
     .then(() => waitForTaskCompletion({ appName, taskId, taskName, responseTransform })),
   'SUCCEEDED': (appName, taskId) => ({ appName, taskId }),
-  'TERMINAL': (appName, taskId) => { throw new Error(`Task ${taskId} failed`) },
+  'TERMINAL': (appName, taskId, taskName) => { throw new Error(`Task ${taskName}:${taskId} failed`) },
   'NOT_STARTED': (appName, taskId, taskName, responseTransform) => timeout(1000)
     .then(() => waitForTaskCompletion({ appName, taskId, taskName, responseTransform }))
 };

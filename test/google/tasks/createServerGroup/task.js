@@ -1,11 +1,11 @@
 'use strict';
 
 let job = require('./job.js'),
-  findImages = require('../utils/findImages'),
+  getImages = require('../utils/getImages'),
   { account, cloudProvider, region, zone } = require('../../config.json');
 
-function createServerGroupJob (appName) {
-  return findImages()
+function createServerGroupTask (appName) {
+  return getImages()
     .then((images) => {
       let image = images[0],
         task = {
@@ -18,4 +18,4 @@ function createServerGroupJob (appName) {
     });
 }
 
-module.exports = createServerGroupJob;
+module.exports = createServerGroupTask;
