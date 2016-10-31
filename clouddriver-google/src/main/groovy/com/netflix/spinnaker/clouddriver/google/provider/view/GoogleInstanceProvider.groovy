@@ -57,7 +57,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
   GoogleInstance.View getInstance(String account, String region, String id) {
     Set<GoogleSecurityGroup> securityGroups = securityGroupProvider.getAll(false)
     def key = Keys.getInstanceKey(account, region, id)
-    getInstanceCacheDatas([key])?.findResult { CacheData cacheData ->
+    getInstanceCacheData([key])?.findResult { CacheData cacheData ->
       instanceFromCacheData(cacheData, account, securityGroups)?.view
     }
   }
@@ -66,12 +66,12 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
    * Non-interface method for efficient building of GoogleInstance models during cluster or server group requests.
    */
   List<GoogleInstance> getInstances(String account, List<String> instanceKeys, Set<GoogleSecurityGroup> securityGroups) {
-    getInstanceCacheDatas(instanceKeys)?.collect {
+    getInstanceCacheData(instanceKeys)?.collect {
       instanceFromCacheData(it, account, securityGroups)
     }
   }
 
-  Collection<CacheData> getInstanceCacheDatas(List<String> keys) {
+  Collection<CacheData> getInstanceCacheData(List<String> keys) {
     cacheView.getAll(INSTANCES.ns,
                      keys,
                      RelationshipCacheFilter.include(LOAD_BALANCERS.ns,

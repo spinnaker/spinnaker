@@ -127,7 +127,10 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     }
 
     if (cacheData) {
-      return serverGroupFromCacheData(cacheData, account)?.view
+      def securityGroups = securityGroupProvider.getAllByAccount(false, account)
+      def instances = instanceProvider.getInstances(account, cacheData.relationships[INSTANCES.ns] as List, securityGroups)
+      def loadBalancers = loadBalancersFromKeys(cacheData.relationships[LOAD_BALANCERS.ns] as List)
+      return serverGroupFromCacheData(cacheData, account, instances, securityGroups, loadBalancers)?.view
     }
   }
 
@@ -144,10 +147,23 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       def filter = includeInstanceDetails ?
           RelationshipCacheFilter.include(LOAD_BALANCERS.ns, INSTANCES.ns) :
           RelationshipCacheFilter.include(LOAD_BALANCERS.ns)
-      cacheView.getAll(SERVER_GROUPS.ns,
-                       serverGroupKeys,
-                       filter).each { CacheData serverGroupCacheData ->
-        GoogleServerGroup serverGroup = serverGroupFromCacheData(serverGroupCacheData, clusterView.accountName)
+
+      def serverGroupData = cacheView.getAll(SERVER_GROUPS.ns, serverGroupKeys, filter)
+
+      def securityGroups = securityGroupProvider.getAllByAccount(false, clusterView.accountName)
+
+      def instanceKeys = serverGroupData.collect { serverGroup ->
+        serverGroup.relationships[INSTANCES.ns] as List<String>
+      }.flatten()
+      def instances = instanceProvider.getInstances(clusterView.accountName, instanceKeys, securityGroups)
+
+      def loadBalancerKeys = serverGroupData.collect { serverGroup ->
+        serverGroup.relationships[LOAD_BALANCERS.ns] as List<String>
+      }.flatten()
+      def loadBalancers = loadBalancersFromKeys(loadBalancerKeys as List)
+
+      serverGroupData.each { CacheData serverGroupCacheData ->
+        GoogleServerGroup serverGroup = serverGroupFromCacheData(serverGroupCacheData, clusterView.accountName, instances, securityGroups, loadBalancers)
         clusterView.serverGroups << serverGroup.view
         clusterView.loadBalancers.addAll(serverGroup.loadBalancers*.view)
       }
@@ -156,11 +172,8 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     clusterView
   }
 
-  GoogleServerGroup serverGroupFromCacheData(CacheData cacheData, String account) {
-    GoogleServerGroup serverGroup = objectMapper.convertValue(cacheData.attributes, GoogleServerGroup)
-
-    def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
-    def loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).collect {
+  Set<GoogleLoadBalancer> loadBalancersFromKeys(List<String> loadBalancerKeys) {
+    return cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).collect {
       def loadBalancer = null
       switch (GoogleLoadBalancerType.valueOf(it.attributes?.type as String)) {
         case GoogleLoadBalancerType.INTERNAL:
@@ -179,22 +192,37 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
           loadBalancer = null
           break
       }
-      serverGroup.loadBalancers << loadBalancer.view
       loadBalancer
-    }
+    } as Set
+  }
 
-    Set<GoogleSecurityGroup> securityGroups = securityGroupProvider.getAll(false)
+  GoogleServerGroup serverGroupFromCacheData(CacheData cacheData,
+                                             String account,
+                                             List<GoogleInstance> instances,
+                                             Set<GoogleSecurityGroup> securityGroups,
+                                             Set<GoogleLoadBalancer> loadBalancers) {
+    GoogleServerGroup serverGroup = objectMapper.convertValue(cacheData.attributes, GoogleServerGroup)
+
+    def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
+    loadBalancers = loadBalancers.findAll { loadBalancer ->
+      def loadBalancerKey = Keys.getLoadBalancerKey(loadBalancer.region, loadBalancer.account, loadBalancer.name)
+      return cacheData.relationships[LOAD_BALANCERS.ns].contains(loadBalancerKey) ? loadBalancer : null
+    }
+    serverGroup.loadBalancers = loadBalancers*.view
+
     serverGroup.securityGroups = GoogleSecurityGroupProvider.getMatchingServerGroupNames(
         account,
         securityGroups,
         serverGroup.instanceTemplateTags,
         serverGroup.networkName)
 
-    def instanceKeys = cacheData.relationships[INSTANCES.ns]
-    if (instanceKeys) {
-      serverGroup.instances = instanceProvider.getInstances(account, instanceKeys as List, securityGroups) as Set
+    if (instances) {
+      serverGroup.instances = instances.findAll { GoogleInstance instance ->
+        instance.serverGroup == serverGroup.name && instance.region == serverGroup.region
+      }
+
       serverGroup.instances.each { GoogleInstance instance ->
-        def foundHealths = getLoadBalancerHealths(instance.name, loadBalancers)
+        def foundHealths = getLoadBalancerHealths(instance.name, loadBalancers as List)
         if (foundHealths) {
           instance.loadBalancerHealths = foundHealths
         }
