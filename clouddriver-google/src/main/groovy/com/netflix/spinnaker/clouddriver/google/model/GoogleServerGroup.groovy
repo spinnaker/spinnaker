@@ -187,4 +187,9 @@ class GoogleServerGroup {
       instances.findAll { Instance it -> it.getHealthState() == healthState }
     }
   }
+
+  static enum ServerGroupType {
+    REGIONAL,
+    ZONAL
+  }
 }

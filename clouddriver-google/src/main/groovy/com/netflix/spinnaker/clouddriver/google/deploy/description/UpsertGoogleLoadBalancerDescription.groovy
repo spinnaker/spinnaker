@@ -37,6 +37,12 @@ class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescr
   List<GoogleHostRule> hostRules
   String certificate
   List<String> listenersToDelete
+  /**
+   * If we update an L7 and change the backend services, this field is the difference between the old and new.
+   * We need this to update the instance metadata for the server groups that are no longer associated with
+   * this L7.
+   */
+  List<GoogleBackendService> backendServiceDiff
 
   // ILB attributes.
   String network

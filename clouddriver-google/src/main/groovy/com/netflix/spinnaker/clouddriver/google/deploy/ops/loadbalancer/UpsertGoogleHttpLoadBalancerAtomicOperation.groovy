@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -25,8 +26,13 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
+import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -44,6 +50,12 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
   @Autowired
   private GoogleOperationPoller googleOperationPoller
 
+  @Autowired
+  AtomicOperationsRegistry atomicOperationsRegistry
+
+  @Autowired
+  OrchestrationProcessor orchestrationProcessor
+
   private final UpsertGoogleLoadBalancerDescription description
 
   UpsertGoogleHttpLoadBalancerAtomicOperation(UpsertGoogleLoadBalancerDescription description) {
@@ -52,10 +64,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
 
   /**
    * minimal command:
-   * curl -v -X POST -H "Content-Type: application/json" -d '[{ "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType": "HTTP", "loadBalancerName": "http-create", "portRange": "80", "defaultService": {"name": "default-backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [] }}]' localhost:7002/gce/ops
+   * curl -v -X POST -H "Content-Type: application/json" -d '[{ "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType": "HTTP", "loadBalancerName": "http-create", "portRange": "80", "backendServiceDiff": [], "defaultService": {"name": "default-backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [] }}]' localhost:7002/gce/ops
    *
    * full command:
-   * curl -v -X POST -H "Content-Type: application/json" -d '[{ "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType": "HTTP", "loadBalancerName": "http-create", "portRange": "80", "defaultService": {"name": "default-backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [{"hostPatterns": ["host1.com", "host2.com"], "pathMatcher": {"pathRules": [{"paths": ["/path", "/path2/more"], "backendService": {"name": "backend-service", "backends": [], "healthCheck": {"name": "health-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}}], "defaultService": {"name": "pm-backend-service", "backends": [], "healthCheck": {"name": "derp-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}}}]}}]' localhost:7002/gce/ops
+   * curl -v -X POST -H "Content-Type: application/json" -d '[{ "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType": "HTTP", "loadBalancerName": "http-create", "portRange": "80", "backendServiceDiff": [], "defaultService": {"name": "default-backend-service", "backends": [], "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [{"hostPatterns": ["host1.com", "host2.com"], "pathMatcher": {"pathRules": [{"paths": ["/path", "/path2/more"], "backendService": {"name": "backend-service", "backends": [], "healthCheck": {"name": "health-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}}], "defaultService": {"name": "pm-backend-service", "backends": [], "healthCheck": {"name": "derp-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}}}]}}]' localhost:7002/gce/ops
    *
    * @param description
    * @param priorOutputs
@@ -271,20 +283,28 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         def insertBackendServiceOperation = compute.backendServices().insert(project, bs).execute()
         googleOperationPoller.waitForGlobalOperation(compute, project, insertBackendServiceOperation.getName(),
           null, task, "backend service " + backendServiceName, BASE_PHASE)
-      } else if (serviceExistsSet.contains(backendService.name) &&
-                 serviceNeedsUpdatedSet.contains(backendService.name)) {
-        task.updateStatus BASE_PHASE, "Updating backend service $backendServiceName..."
-        def bsToUpdate = existingServices.find { it.name == backendServiceName }
-        def hcName = backendService.healthCheck.name
-        bsToUpdate.portName = GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME
-        bsToUpdate.healthChecks = [GCEUtil.buildHttpHealthCheckUrl(project, hcName)]
-        bsToUpdate.sessionAffinity = sessionAffinity
-        bsToUpdate.affinityCookieTtlSec = backendService.affinityCookieTtlSec
+      } else if (serviceExistsSet.contains(backendService.name)) {
+        // Update the actual backend service if necessary.
+        if (serviceNeedsUpdatedSet.contains(backendService.name)) {
+          task.updateStatus BASE_PHASE, "Updating backend service $backendServiceName..."
+          def bsToUpdate = existingServices.find { it.name == backendServiceName }
+          def hcName = backendService.healthCheck.name
+          bsToUpdate.portName = GoogleHttpLoadBalancingPolicy.HTTP_PORT_NAME
+          bsToUpdate.healthChecks = [GCEUtil.buildHttpHealthCheckUrl(project, hcName)]
+          bsToUpdate.sessionAffinity = sessionAffinity
+          bsToUpdate.affinityCookieTtlSec = backendService.affinityCookieTtlSec
 
-        def updateServiceOperation = compute.backendServices().update(project, backendServiceName, bsToUpdate).execute()
-        googleOperationPoller.waitForGlobalOperation(compute, project, updateServiceOperation.getName(),
-          null, task, "backend service  $backendServiceName", BASE_PHASE)
+          def updateServiceOperation = compute.backendServices().update(project, backendServiceName, bsToUpdate).execute()
+          googleOperationPoller.waitForGlobalOperation(compute, project, updateServiceOperation.getName(),
+            null, task, "backend service  $backendServiceName", BASE_PHASE)
+        }
+
+        fixBackendMetadata(compute, description.credentials, project, atomicOperationsRegistry, orchestrationProcessor, description.loadBalancerName, backendService)
       }
+    }
+
+    description?.backendServiceDiff?.each { GoogleBackendService backendService ->
+      fixBackendMetadata(compute, description.credentials, project, atomicOperationsRegistry, orchestrationProcessor, description.loadBalancerName, backendService)
     }
 
     // UrlMap
@@ -450,5 +470,81 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
 
     task.updateStatus BASE_PHASE, "Done upserting HTTP load balancer $httpLoadBalancerName"
     [loadBalancers: [("global"): [name: httpLoadBalancerName]]]
+  }
+
+  /**
+   * Update each instance template on all the server groups in the backend service to reflect being added to the new load balancer.
+   * @param compute
+   * @param credentials
+   * @param project
+   * @param loadBalancerName
+   * @param backendService
+   */
+  private static void fixBackendMetadata(Compute compute,
+                                         GoogleNamedAccountCredentials credentials,
+                                         String project,
+                                         AtomicOperationsRegistry atomicOperationsRegistry,
+                                         OrchestrationProcessor orchestrationProcessor,
+                                         String loadBalancerName,
+                                         GoogleBackendService backendService) {
+    backendService.backends.each { GoogleLoadBalancedBackend backend ->
+      def groupName = Utils.getLocalName(backend.serverGroupUrl)
+      def groupRegion = Utils.getRegionFromGroupUrl(backend.serverGroupUrl)
+
+      String templateUrl = null
+      switch (Utils.determineServerGroupType(backend.serverGroupUrl)) {
+        case GoogleServerGroup.ServerGroupType.REGIONAL:
+          templateUrl = compute.regionInstanceGroupManagers().get(project, groupRegion, groupName).execute().getInstanceTemplate()
+          break
+        case GoogleServerGroup.ServerGroupType.ZONAL:
+          def groupZone = Utils.getZoneFromGroupUrl(backend.serverGroupUrl)
+          templateUrl = compute.instanceGroupManagers().get(project, groupZone, groupName).execute().getInstanceTemplate()
+          break
+        default:
+          throw new IllegalStateException("Server group referenced by ${backend.serverGroupUrl} has illegal type.")
+          break
+      }
+
+      InstanceTemplate template = compute.instanceTemplates().get(project, Utils.getLocalName(templateUrl)).execute()
+      def instanceDescription = GCEUtil.buildInstanceDescriptionFromTemplate(template)
+
+      def templateOpMap = [
+        image: instanceDescription.image,
+        instanceType: instanceDescription.instanceType,
+        credentials: credentials.getName(),
+        disks: instanceDescription.disks,
+        instanceMetadata: instanceDescription.instanceMetadata,
+        tags: instanceDescription.tags,
+        network: instanceDescription.network,
+        subnet: instanceDescription.subnet,
+        serviceAccountEmail: instanceDescription.serviceAccountEmail,
+        authScopes: instanceDescription.authScopes,
+        preemptible: instanceDescription.preemptible,
+        automaticRestart: instanceDescription.automaticRestart,
+        onHostMaintenance: instanceDescription.onHostMaintenance,
+        region: groupRegion,
+        serverGroupName: groupName
+      ]
+
+      def instanceMetadata = templateOpMap?.instanceMetadata
+      if (instanceMetadata) {
+        List<String> globalLbs = instanceMetadata.(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)?.split(',') ?: []
+        globalLbs = globalLbs  ? globalLbs + loadBalancerName : [loadBalancerName]
+        instanceMetadata.(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES) = globalLbs.unique().join(',')
+
+        List<String> bsNames = instanceMetadata.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(',') ?: []
+        bsNames = bsNames ? bsNames + backendService.name : [backendService.name]
+        instanceMetadata.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES) = bsNames.unique().join(',')
+      } else {
+        templateOpMap.instanceMetadata = [
+          (GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES): loadBalancerName,
+          (GoogleServerGroup.View.BACKEND_SERVICE_NAMES)     : backendService.name,
+        ]
+      }
+
+      def converter = atomicOperationsRegistry.getAtomicOperationConverter('modifyGoogleServerGroupInstanceTemplateDescription', 'gce')
+      AtomicOperation templateOp = converter.convertOperation(templateOpMap)
+      orchestrationProcessor.process([templateOp], UUID.randomUUID().toString())
+    }
   }
 }

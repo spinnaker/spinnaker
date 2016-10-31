@@ -132,7 +132,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     def newDescriptionProperties = [:] + originalDescription.properties + overriddenProperties
 
     // Remove the properties we don't want to compare or override.
-    newDescriptionProperties.keySet().removeAll(["class"])
+    newDescriptionProperties.keySet().removeAll(["class", "accountName", "credentials", "account"])
 
     // Resolve the auth scopes since the scopes returned on the existing instance template will be fully-resolved.
     newDescriptionProperties.authScopes = GCEUtil.resolveAuthScopes(newDescriptionProperties.authScopes)
