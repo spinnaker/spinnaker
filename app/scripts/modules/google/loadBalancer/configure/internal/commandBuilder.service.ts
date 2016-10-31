@@ -24,7 +24,8 @@ export class GceInternalLoadBalancerCommandBuilder {
               private settings: any,
               private accountService: any,
               private subnetReader: any,
-              private gceHealthCheckReader: GceHealthCheckReader) {}
+              private gceHealthCheckReader: GceHealthCheckReader,
+              private networkReader: any) {}
 
   buildCommand (loadBalancer: InternalLoadBalancer, isNew: boolean): ng.IPromise<any> {
     if (isNew) {
@@ -38,6 +39,7 @@ export class GceInternalLoadBalancerCommandBuilder {
 
     return this.$q.all({
       accounts: this.accountService.listAccounts('gce'),
+      networks: this.networkReader.listNetworksByProvider('gce'),
       subnets: this.subnetReader.listSubnetsByProvider('gce'),
       loadBalancerNames: loadBalancerNamePromise,
       healthCheckMap: healthCheckMapPromise,

@@ -36,14 +36,14 @@
                                account="ctrl.loadBalancer.credentials"
                                on-change="ctrl.regionUpdated()"
                                regions="ctrl.regions"></gce-region-select-field>
-      <div class="form-group">
-        <div class="col-md-2 sm-label-right">
-          Network
-        </div>
-        <div class="col-md-8">
-          <input class="form-control input-sm" readonly value="default"/>
-        </div>
-      </div>
+
+      <gce-network-select-field networks="ctrl.networkOptions"
+                                component="ctrl.loadBalancer"
+                                on-change="ctrl.networkUpdated()"
+                                field="network"
+                                account="ctrl.loadBalancer.credentials"
+                                field-columns="8"
+                                label-columns="2"></gce-network-select-field>
 
       <div class="form-group">
         <div class="col-md-2 sm-label-right">Stack <help-field key="aws.loadBalancer.stack"></help-field></div>

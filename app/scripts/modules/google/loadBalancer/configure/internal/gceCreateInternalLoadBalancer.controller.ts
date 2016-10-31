@@ -2,7 +2,7 @@ import {module} from 'angular';
 import * as _ from 'lodash';
 import {ICredentials} from 'core/domain/ICredentials';
 import {Application} from 'core/application/application.model';
-import {IGceSubnet, IGceHealthCheck} from 'google/domain/index';
+import {IGceSubnet, IGceNetwork, IGceHealthCheck} from 'google/domain/index';
 import gceHealthCheckCreate from '../common/healthCheck.component';
 import {IStateService} from 'angular-ui-router';
 import {InternalLoadBalancer,
@@ -41,7 +41,10 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
   accounts: ICredentials[];
   modelToViewMap: any = _.invert(this.viewToModelMap);
   regions: string[];
+  networks: IGceNetwork[];
+  networkOptions: string[];
   subnets: IGceSubnet[];
+  subnetOptions: string[];
   existingHealthCheckMap: IHealthCheckMap;
   existingHealthCheckNamesMap: { [account: string]: string[] };
   existingHealthCheckNames: string[];
@@ -67,11 +70,13 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
     this.gceInternalLoadBalancerCommandBuilder
       .buildCommand(this.loadBalancer, this.isNew)
       .then(({ accounts,
+               networks,
                subnets,
                loadBalancer,
                loadBalancerNames,
                healthCheckMap,
                healthCheckNamesMap, }: { accounts: ICredentials[],
+                                         networks: IGceNetwork[],
                                          subnets: IGceSubnet[],
                                          loadBalancer: InternalLoadBalancer,
                                          loadBalancerNames: IKeyedByAccount,
@@ -92,6 +97,7 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
         }
 
         this.accounts = accounts;
+        this.networks = networks;
         this.subnets = subnets;
         this.existingHealthCheckMap = healthCheckMap;
         this.existingHealthCheckNamesMap = healthCheckNamesMap;
@@ -161,7 +167,20 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
     });
   }
 
-  onProtocolChange (): void {
+  networkUpdated (): void {
+    this.subnetOptions = this.subnets
+      .filter((subnet) => {
+        return subnet.region === this.loadBalancer.region &&
+               (subnet.account === this.loadBalancer.credentials || subnet.account === this.loadBalancer.account) &&
+               subnet.network === this.loadBalancer.network;
+      }).map((subnet) => subnet.name);
+
+    if (!this.subnetOptions.includes(this.loadBalancer.subnet)) {
+      this.loadBalancer.subnet = this.subnetOptions[0];
+    }
+  }
+
+  protocolUpdated (): void {
     if (this.loadBalancer.ipProtocol === 'UDP') {
       this.viewState = new ViewState('None');
       this.loadBalancer.backendService.sessionAffinity = 'NONE';
@@ -177,21 +196,19 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
       _.get<any, string[]>(this, ['loadBalancerNameMap', this.loadBalancer.credentials]);
     this.existingLoadBalancerNames = existingLoadBalancerNames || [];
 
+    this.networkOptions = this.networks
+      .filter((network) => network.account === this.loadBalancer.credentials)
+      .map((network) => network.name);
+
     this.accountService.getRegionsForAccount(this.loadBalancer.credentials)
       .then((regions: { name: string }[]) => {
         this.regions = regions.map((r) => r.name);
-        this.regionUpdated();
+        this.networkUpdated();
       });
   }
 
   regionUpdated (): void {
-    let subnet: IGceSubnet = this.subnets
-      .find((s) => {
-        return s.region === this.loadBalancer.region &&
-          (s.account === this.loadBalancer.credentials || s.account === this.loadBalancer.account) &&
-          s.network === this.loadBalancer.network;
-      });
-    this.loadBalancer.subnet = subnet ? subnet.name : null;
+    this.networkUpdated();
   }
 
   getName (): string {
