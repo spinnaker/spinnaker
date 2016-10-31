@@ -46,14 +46,25 @@ class Resource {
   Map<String, String> tags
 }
 
+class IdRef{
+  String id
+
+  IdRef() {}
+
+  public IdRef(String refID)
+  {
+    id = refID
+  }
+}
+
 class PublicIpResource extends Resource{
   PublicIPProperties properties = new PublicIPProperties()
 
   PublicIpResource() {
-    apiVersion = '''[variables('apiVersion')]'''
-    name = '''[variables('publicIPAddressName')]'''
-    type = '''Microsoft.Network/publicIPAddresses'''
-    location = '''[parameters('location')]'''
+    apiVersion = "[variables('apiVersion')]"
+    name = "[variables('publicIPAddressName')]"
+    type = "Microsoft.Network/publicIPAddresses"
+    location = "[parameters('location')]"
   }
 }
 

@@ -35,6 +35,8 @@ class DestroyAzureServerGroupAtomicOperationSpec extends Specification {
   private static final ACCOUNT_TENANTID = "azuretenantid1"
   private static final ACCOUNT_APPKEY = "azureappkey1"
   private static final SUBSCRIPTION_ID = "azuresubscriptionid1"
+  private static final DEFAULT_KEY_VAULT = "azuredefaultkeyvault"
+  private static final DEFAULT_RESOURCE_GROUP = "azuredefaultresourcegroup"
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()
@@ -53,7 +55,7 @@ class DestroyAzureServerGroupAtomicOperationSpec extends Specification {
 
   def setupSpec() {
     converter = new DestroyAzureServerGroupAtomicOperationConverter(objectMapper: mapper)
-    azureCredentials = new AzureCredentials(ACCOUNT_CLIENTID, ACCOUNT_TENANTID, ACCOUNT_APPKEY, SUBSCRIPTION_ID)
+    azureCredentials = new AzureCredentials(ACCOUNT_CLIENTID, ACCOUNT_TENANTID, ACCOUNT_APPKEY, SUBSCRIPTION_ID, DEFAULT_KEY_VAULT, DEFAULT_RESOURCE_GROUP)
 
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     credentials = Mock(AzureNamedAccountCredentials)

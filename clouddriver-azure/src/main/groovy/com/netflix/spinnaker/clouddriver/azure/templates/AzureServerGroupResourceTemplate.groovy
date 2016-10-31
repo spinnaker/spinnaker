@@ -93,7 +93,7 @@ class AzureServerGroupResourceTemplate {
         resources.add(new StorageAccount(description))
       }
 
-      resources.add(new PublicIpResource())
+      resources.add(new PublicIpResource(properties: new PublicIPPropertiesWithDns()))
       resources.add(new LoadBalancer(description))
       resources.add(new VirtualMachineScaleSet(description))
     }
@@ -103,9 +103,10 @@ class AzureServerGroupResourceTemplate {
   interface TemplateVariables {}
 
   static class CoreServerGroupTemplateVariables implements TemplateVariables {
-    String publicIpAddressName
-    String publicIpAddressID
-    String publicIpAddressType
+    final String apiVersion = "2015-06-15"
+    String publicIPAddressName
+    String publicIPAddressID
+    String publicIPAddressType
     String dnsNameForLBIP
     String loadBalancerBackend
     String loadBalancerFrontEnd
@@ -117,9 +118,9 @@ class AzureServerGroupResourceTemplate {
     CoreServerGroupTemplateVariables() {}
 
     CoreServerGroupTemplateVariables(AzureServerGroupDescription description) {
-      publicIpAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.name
-      publicIpAddressID = "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))]"
-      publicIpAddressType = "Dynamic"
+      publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.name
+      publicIPAddressID = "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]"
+      publicIPAddressType = "Dynamic"
       dnsNameForLBIP = AzureUtilities.DNS_NAME_PREFIX + description.name.toLowerCase()
       frontEndIPConfigID = "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations/', variables('loadBalancerName'), variables('loadBalancerFrontEnd'))]"
       loadBalancerFrontEnd = AzureUtilities.LBFRONTEND_NAME_PREFIX + description.name
@@ -175,31 +176,53 @@ class AzureServerGroupResourceTemplate {
     LocationParameter location = new LocationParameter(["description": "Location to deploy"])
     SubnetParameter subnetId = new SubnetParameter(["description": "Subnet Resource ID"])
     AppGatewayAddressPoolParameter appGatewayAddressPoolId = new AppGatewayAddressPoolParameter(["description": "App Gateway backend address pool resource ID"])
+    VMUserNameParameter vmuserName = new VMUserNameParameter(["description": "default VM account name"])
+    VMPasswordParameter vmPassword = new VMPasswordParameter(["description": "default VM account password"])
     CustomDataParameter customData = new CustomDataParameter(["description":"custom data to pass down to the virtual machine(s)"], "")
   }
 
   /* Server Group Parameters */
+  static String subnetParameterName = "subnetId"
   static class SubnetParameter extends StringParameter {
     SubnetParameter(Map<String, String> metadata) {
       super(metadata)
     }
   }
+
+  static String locationParameterName = "location"
   static class LocationParameter extends StringParameter {
     LocationParameter(Map<String, String> metadata) {
       super(metadata)
     }
   }
+
+  static String appGatewayAddressPoolParameterName = "appGatewayAddressPoolId"
   static class AppGatewayAddressPoolParameter extends StringParameter {
     AppGatewayAddressPoolParameter(Map<String, String> metadata) {
       super(metadata)
     }
   }
+
+  static String customDataParameterName = "customData"
   static class CustomDataParameter extends StringParameterWithDefault {
     CustomDataParameter(Map<String, String> metadata, String defValue) {
       super(metadata, defValue)
     }
   }
 
+  static String vmUserNameParameterName = "vmUsername"
+  static class VMUserNameParameter extends StringParameter {
+    VMUserNameParameter(Map<String, String> metadata) {
+      super(metadata)
+    }
+  }
+
+  static String vmPasswordParameterName = "vmPassword"
+  static class VMPasswordParameter extends SecureStringParameter {
+    VMPasswordParameter(Map<String, String> metadata) {
+      super(metadata)
+    }
+  }
 
   /**
    *
@@ -234,10 +257,10 @@ class AzureServerGroupResourceTemplate {
      * @param description
      */
     StorageAccount(AzureServerGroupDescription description) {
-      apiVersion = "2015-06-15"
+      apiVersion = "[variables('apiVersion')]"
       name = String.format("[concat(variables('%s')[copyIndex()])]", ExtendedServerGroupTemplateVariables.uniqueStorageNamesArrayVar)
       type = "Microsoft.Storage/storageAccounts"
-      location = "[parameters('location')]"
+      location = "[parameters('${locationParameterName}')]"
       def currentTime = System.currentTimeMillis()
 
       copy = new CopyOperation("storageLoop", description.getStorageAccountCount())
@@ -295,15 +318,11 @@ class AzureServerGroupResourceTemplate {
     ScaleSetSkuProperty sku
     VirtualMachineScaleSetProperty properties
 
-    /**
-     *
-     * @param description
-     */
     VirtualMachineScaleSet(AzureServerGroupDescription description) {
-      apiVersion = "2015-06-15"
+      apiVersion = "[variables('apiVersion')]"
       name = description.name
       type = "Microsoft.Compute/virtualMachineScaleSets"
-      location = "[parameters('location')]"
+      location = "[parameters('${locationParameterName}')]"
       def currentTime = System.currentTimeMillis()
       tags = [:]
       tags.appName = description.application
@@ -392,11 +411,12 @@ class AzureServerGroupResourceTemplate {
       //Max length of 10 characters to allow for an aditional postfix within a max length of 15 characters
       computerNamePrefix = description.getIdentifier().substring(0, 10)
       log.info("computerNamePrefix will be truncated to 10 characters to maintain Azure restrictions")
-      adminUsername = description.osConfig.adminUserName
-      adminPassword = description.osConfig.adminPassword
+      adminUsername = "[parameters('${vmUserNameParameterName}')]"
+      adminPassword = "[parameters('${vmPasswordParameterName}')]"
       customData = "[base64(parameters('customData'))]"
     }
   }
+
 
   // ***Network Profile
   /**
@@ -461,7 +481,7 @@ class AzureServerGroupResourceTemplate {
      */
     NetworkInterfaceIPConfiguration(AzureServerGroupDescription description) {
       name = AzureUtilities.IPCONFIG_NAME_PREFIX + description.getIdentifier()
-      properties = new NetworkInterfaceIPConfigurationsProperty(description)
+      properties = new NetworkInterfaceIPConfigurationsProperty()
     }
   }
 
@@ -478,11 +498,11 @@ class AzureServerGroupResourceTemplate {
      *
      * @param description
      */
-    NetworkInterfaceIPConfigurationsProperty(AzureServerGroupDescription description) {
+    NetworkInterfaceIPConfigurationsProperty() {
       subnet = new NetworkInterfaceIPConfigurationSubnet()
       loadBalancerBackendAddressPools.add(new LoadBalancerBackendAddressPool())
       ApplicationGatewayBackendAddressPools.add(new AppGatewayBackendAddressPool())
-      loadBalancerInboundNatPools.add(new LoadBalancerInboundNatPoolId(description))
+      loadBalancerInboundNatPools.add(new LoadBalancerInboundNatPoolId())
     }
   }
 
@@ -493,7 +513,7 @@ class AzureServerGroupResourceTemplate {
     String id
 
     NetworkInterfaceIPConfigurationSubnet() {
-      id = "[parameters('subnetId')]"
+      id = "[parameters('${subnetParameterName}')]"
     }
   }
 
@@ -507,7 +527,7 @@ class AzureServerGroupResourceTemplate {
 
   static class LoadBalancerInboundNatPoolId extends IdRef {
 
-    LoadBalancerInboundNatPoolId(AzureServerGroupDescription description) {
+    LoadBalancerInboundNatPoolId() {
       id = "[resourceId('Microsoft.Network/loadBalancers/inboundNatPools', variables('loadBalancerName'), variables('inboundNatPoolName'))]"
     }
   }
@@ -516,7 +536,7 @@ class AzureServerGroupResourceTemplate {
     String id
 
     AppGatewayBackendAddressPool() {
-      id = "[parameters('appGatewayAddressPoolId')]"
+      id = "[parameters('${appGatewayAddressPoolParameterName}')]"
     }
   }
 
@@ -678,10 +698,10 @@ class AzureServerGroupResourceTemplate {
     LoadBalancerProperties properties
 
     LoadBalancer(AzureServerGroupDescription description) {
-      apiVersion = "2015-06-15"
+      apiVersion = "[variables('apiVersion')]"
       name = "[variables('loadBalancerName')]"
       type = "Microsoft.Network/loadBalancers"
-      location = "[parameters('location')]"
+      location = "[parameters('${locationParameterName}')]"
       def currentTime = System.currentTimeMillis()
       tags = [:]
       tags.appName = description.application
@@ -692,7 +712,7 @@ class AzureServerGroupResourceTemplate {
       if (description.name) tags.serverGroup = description.name
       if (description.securityGroupName) tags.securityGroupName = description.securityGroupName
 
-      this.dependsOn.add("[concat('Microsoft.Network/publicIPAddresses/', variables('publicIpAddressName'))]")
+      this.dependsOn.add("[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]")
 
       properties = new LoadBalancerProperties(description)
     }
@@ -718,7 +738,7 @@ class AzureServerGroupResourceTemplate {
 
     FrontEndIpConfiguration() {
       name = "[variables('loadBalancerFrontEnd')]"
-      properties = new FrontEndIpProperties("[variables('publicIpAddressID')]")
+      properties = new FrontEndIpProperties("[variables('publicIPAddressID')]")
     }
   }
 
@@ -764,27 +784,16 @@ class AzureServerGroupResourceTemplate {
       backendPort = inboundPortConfig.backendPort
     }
   }
-
-  static class IdRef{
-    String id
-
-    IdRef() {}
-
-    public IdRef(String refID)
-    {
-      id = refID
-    }
-  }
-
+/*
   static class PublicIpResource extends Resource {
 
     PublicIpResource() {
       apiVersion = '2015-06-15'
       name = '''[variables('publicIpAddressName')]'''
       type = '''Microsoft.Network/publicIPAddresses'''
-      location = '''[parameters('location')]'''
+      location = "[parameters('${locationParameterName}')]"
     }
-    PublicIPProperties properties = new PublicIPProperties()
+    PublicIPPropertiesWithDns properties = new PublicIPPropertiesWithDns()
   }
 
   static class PublicIPProperties {
@@ -795,4 +804,5 @@ class AzureServerGroupResourceTemplate {
   static class DnsSettings {
     String domainNameLabel = '''[variables('dnsNameForLBIP')]'''
   }
+*/
 }

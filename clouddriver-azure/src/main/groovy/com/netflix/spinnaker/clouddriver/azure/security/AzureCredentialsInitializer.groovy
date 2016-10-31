@@ -48,6 +48,8 @@ class AzureCredentialsInitializer {
           managedAccount.regions,
           managedAccount.vmImages,
           managedAccount.customImages,
+          managedAccount.defaultResourceGroup,
+          managedAccount.defaultKeyVault,
           azureApplicationName
         )
 

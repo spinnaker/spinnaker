@@ -34,6 +34,8 @@ class AzureConfigurationProperties {
     List<String> regions
     List<AzureVMImage> vmImages
     List<AzureCustomImageStorage> customImages
+    String defaultResourceGroup
+    String defaultKeyVault
   }
 
   List<ManagedAccount> accounts = []

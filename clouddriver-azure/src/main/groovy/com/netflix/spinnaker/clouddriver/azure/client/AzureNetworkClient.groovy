@@ -308,7 +308,9 @@ class AzureNetworkClient extends AzureBaseClient {
 
       // the application gateway must have an backend address pool list (even if it might be empty)
       if (!appGateway.backendAddressPools.find {it.name == serverGroupName}) {
+        log.info("Adding backend address pool to ${appGateway.name} for server group ${serverGroupName}")
         appGateway.backendAddressPools.add(new ApplicationGatewayBackendAddressPool(name: serverGroupName))
+        log.info("Backend address pool added")
         if (agDescription.serverGroups) {
           agDescription.serverGroups << serverGroupName
         } else {

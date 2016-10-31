@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
 import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.network.view.AzureNetworkProvider
+import com.netflix.spinnaker.clouddriver.azure.resources.common.model.KeyVaultSecret
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureServerGroupResourceTemplate
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -171,6 +172,20 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       def backendPort = description.image.ostype.toLowerCase() == "linux" ? 22 : 3389
       description.addInboundPortConfig(AzureUtilities.INBOUND_NATPOOL_PREFIX + description.name, 50000, 50099, "tcp", backendPort)
 
+      Map<String, Object> templateParameters = [:]
+
+      templateParameters[AzureServerGroupResourceTemplate.subnetParameterName] = subnetId
+      templateParameters[AzureServerGroupResourceTemplate.appGatewayAddressPoolParameterName] = appGatewayPoolID
+      templateParameters[AzureServerGroupResourceTemplate.vmUserNameParameterName] = new KeyVaultSecret("VMUsername",
+        description.credentials.subscriptionId,
+        description.credentials.defaultResourceGroup,
+        description.credentials.defaultKeyVault)
+      templateParameters[AzureServerGroupResourceTemplate.vmPasswordParameterName] = new KeyVaultSecret("VMPassword",
+        description.credentials.subscriptionId,
+        description.credentials.defaultResourceGroup,
+        description.credentials.defaultKeyVault)
+      templateParameters[AzureServerGroupResourceTemplate.customDataParameterName] = description.osConfig.customData ?: "nodata"
+
       if (errList.isEmpty()) {
         description.subnetId = subnetId
         task.updateStatus(BASE_PHASE, "Deploying server group")
@@ -180,11 +195,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
           description.region,
           description.name,
           "serverGroup",
-          [
-            subnetId: subnetId,
-            appGatewayAddressPoolID: appGatewayPoolID,
-            customData: description.osConfig.customData ?: "nodata"
-          ])
+          templateParameters)
 
         errList.addAll(AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name))
         serverGroupName = errList.isEmpty() ? description.name : null

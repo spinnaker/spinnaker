@@ -29,18 +29,22 @@ class AzureCredentials {
   final String appKey
   final String project
   final String subscriptionId
+  final String defaultKeyVault
+  final String defaultResourceGroup
 
   final AzureResourceManagerClient resourceManagerClient
   final AzureNetworkClient networkClient
   final AzureComputeClient computeClient
   final AzureStorageClient storageClient
 
-  AzureCredentials(String tenantId, String clientId, String appKey, String subscriptionId) {
+  AzureCredentials(String tenantId, String clientId, String appKey, String subscriptionId, String defaultKeyVault, String defaultResourceGroup) {
     this.tenantId = tenantId
     this.clientId = clientId
     this.appKey = appKey
     this.subscriptionId = subscriptionId
     this.project = "AzureProject"
+    this.defaultKeyVault = defaultKeyVault
+    this.defaultResourceGroup = defaultResourceGroup
 
     def token = AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey)
 

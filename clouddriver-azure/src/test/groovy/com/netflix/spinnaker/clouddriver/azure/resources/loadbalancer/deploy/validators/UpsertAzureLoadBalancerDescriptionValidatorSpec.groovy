@@ -37,6 +37,8 @@ class UpsertAzureLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final ACCOUNT_TENANTID = "azuretenantid1"
   private static final ACCOUNT_APPKEY = "azureappkey1"
   private static final SUBSCRIPTION_ID = "azuresubscriptionid1"
+  private static final DEFAULT_KEY_VAULT = "azuredefaultkeyvault"
+  private static final DEFAULT_RESOURCE_GROUP = "azuredefaultresourcegroup"
   private static final APP_NAME = "azureapp1"
   private static final STACK = "st1"
   private static final DETAIL = "d1"
@@ -79,7 +81,7 @@ class UpsertAzureLoadBalancerDescriptionValidatorSpec extends Specification {
   UpsertAzureLoadBalancerDescriptionValidator validator
 
   void setupSpec() {
-    azureCredentials = new AzureCredentials(ACCOUNT_CLIENTID, ACCOUNT_TENANTID, ACCOUNT_APPKEY, SUBSCRIPTION_ID)
+    azureCredentials = new AzureCredentials(ACCOUNT_CLIENTID, ACCOUNT_TENANTID, ACCOUNT_APPKEY, SUBSCRIPTION_ID, DEFAULT_KEY_VAULT, DEFAULT_RESOURCE_GROUP)
 
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentials = Mock(AzureNamedAccountCredentials)

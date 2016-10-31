@@ -37,6 +37,8 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
   final String applicationName
   final List<String> requiredGroupMembership
   final AzureCredentials credentials
+  final String defaultKeyVault
+  final String defaultResourceGroup
 
 
   AzureNamedAccountCredentials(String accountName,
@@ -49,6 +51,8 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
                                List<String> regions,
                                List<AzureVMImage> vmImages,
                                List<AzureCustomImageStorage> vmCustomImages,
+                               String defaultResourceGroup,
+                               String defaultKeyVault,
                                String applicationName,
                                List<String> requiredGroupMembership = null) {
     this.accountName = accountName
@@ -62,6 +66,8 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
     this.vmImages = buildPreferredVMImageList(vmImages)
     this.vmCustomImages = buildCustomImageStorages(vmCustomImages)
     this.applicationName = applicationName
+    this.defaultKeyVault = defaultKeyVault
+    this.defaultResourceGroup = defaultResourceGroup
     this.requiredGroupMembership = requiredGroupMembership ?: [] as List<String>
     this.credentials = appKey.isEmpty() ? null : buildCredentials()
   }
@@ -77,7 +83,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
   }
 
   private AzureCredentials buildCredentials() {
-    new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId)
+    new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId, this.defaultKeyVault, this.defaultResourceGroup)
   }
 
   private static List<AzureVMImage> buildPreferredVMImageList(List<AzureVMImage> vmImages) {
