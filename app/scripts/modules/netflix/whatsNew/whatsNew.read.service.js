@@ -1,6 +1,5 @@
 'use strict';
 
-/*jshint camelcase: false */
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.whatsNew.read.service', [

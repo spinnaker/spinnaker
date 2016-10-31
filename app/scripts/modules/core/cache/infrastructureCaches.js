@@ -2,7 +2,6 @@
 
 let angular = require('angular');
 
-/* jshint newcap: false */
 module.exports = angular.module('spinnaker.core.cache.infrastructure', [
   require('./deckCacheFactory.js')
 ])

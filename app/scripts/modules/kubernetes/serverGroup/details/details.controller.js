@@ -1,5 +1,4 @@
 'use strict';
-/* jshint camelcase:false */
 
 import _ from 'lodash';
 

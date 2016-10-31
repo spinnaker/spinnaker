@@ -1,5 +1,4 @@
 'use strict';
-/* jshint camelcase:false */
 
 require('../configure/serverGroup.configure.gce.module.js');
 
