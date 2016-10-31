@@ -55,14 +55,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             $scope.loadBalancer.elb = filtered[0];
             $scope.loadBalancer.account = loadBalancer.accountId;
 
-            accountService.getCredentialsKeyedByAccount('gce').then(function(credentialsKeyedByAccount) {
+            accountService.getCredentialsKeyedByAccount('gce').then(function() {
               if (elSevenUtils.isElSeven($scope.loadBalancer)) {
-                $scope.loadBalancer.elb.availabilityZones = ['All zones'];
                 $scope.loadBalancer.elb.backendServices = getBackendServices($scope.loadBalancer);
                 $scope.loadBalancer.elb.healthChecks = getUniqueHealthChecks($scope.loadBalancer.elb.backendServiceHealthChecks);
-
-              } else {
-                $scope.loadBalancer.elb.availabilityZones = _.find(credentialsKeyedByAccount[loadBalancer.accountId].regions, { name: loadBalancer.region }).zones.sort();
               }
             });
           }

@@ -48,16 +48,12 @@
         <dt>Created</dt>
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
         <dt>In</dt>
-        <dd><account-tag account="loadBalancer.account" pad="right"></account-tag> {{loadBalancer.region}}</dd>
+        <dd><account-tag account="loadBalancer.account" pad="right"></account-tag></dd>
+        <dt>Region</dt>
+        <dd>{{loadBalancer.region}}</dd>
         <dt>Type</dt>
         <dd>
           <gce-load-balancer-type load-balancer="loadBalancer"></gce-load-balancer-type>
-        </dd>
-        <dt>Zones</dt>
-        <dd>
-          <ul>
-            <li ng-repeat="availabilityZone in loadBalancer.elb.availabilityZones">{{availabilityZone}}</li>
-          </ul>
         </dd>
         <dt ng-if="loadBalancer.serverGroups.length">Server Groups</dt>
         <dd ng-if="loadBalancer.serverGroups.length">
