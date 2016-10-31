@@ -1,7 +1,6 @@
 'use strict';
 
-import _ from 'lodash';
-import {Subject} from 'rxjs';
+import {Subject} from 'rxjs/Subject';
 
 let angular = require('angular');
 
@@ -23,7 +22,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.configura
         credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),
         images: [],
       }).then((backingData) => {
-        backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
+        backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {};
         backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
         command.backingData = backingData;
@@ -71,6 +70,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.configura
       configureCommand: configureCommand,
       configureZones: configureZones,
     };
-
-
   });

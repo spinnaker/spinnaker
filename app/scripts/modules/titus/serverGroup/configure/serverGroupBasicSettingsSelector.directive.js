@@ -3,8 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSettingsSelector', [
+  require('core/account/account.service')
 ])
-  .directive('titusServerGroupBasicSettingsSelector', function() {
+  .directive('titusServerGroupBasicSettingsSelector', function () {
     return {
       restrict: 'E',
       scope: {
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSett
       controller: 'titusServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('titusServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, namingService, $uibModalStack, $state) {
+  .controller('titusServerGroupBasicSettingsSelectorCtrl', function ($scope, $controller, namingService, $uibModalStack, $state) {
     angular.extend(this, $controller('BasicSettingsMixin', {
       $scope: $scope,
       namingService: namingService,
@@ -25,10 +26,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSett
     }));
 
     this.detailPattern = {
-      test: function(detail) {
+      test: function (detail) {
         var pattern = $scope.command.viewState.templatingEnabled ?
-        /^([a-zA-Z_0-9._$-{}\\\^]*(\${.+})*)*$/ :
-        /^[a-zA-Z_0-9._$-{}\\\^]*$/;
+          /^([a-zA-Z_0-9._$-{}\\\^]*(\${.+})*)*$/ :
+          /^[a-zA-Z_0-9._$-{}\\\^]*$/;
 
         return isNotExpressionLanguage(detail) ? pattern.test(detail) : true;
       }
@@ -38,4 +39,31 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSett
       return field && !field.includes('${');
     };
 
+    function updateImageId() {
+      if ($scope.command.repository && $scope.command.tag) {
+        $scope.command.imageId = `${$scope.command.repository}:${$scope.command.tag}`;
+      }
+      else {
+        delete $scope.command.imageId;
+      }
+    }
+
+    if ($scope.command.imageId) {
+      const image = $scope.command.imageId;
+      $scope.command.organization = '';
+      const parts = image.split('/');
+      if (parts.length > 1) {
+        $scope.command.organization = parts.shift();
+      }
+
+      const rest = parts.shift().split(':');
+      if ($scope.command.organization) {
+        $scope.command.repository = `${$scope.command.organization}/${rest.shift()}`;
+      } else {
+        $scope.command.repository = rest.shift();
+      }
+      $scope.command.tag = rest.shift();
+    }
+
+    $scope.$watchGroup(['command.repository', 'command.tag'], updateImageId);
   });

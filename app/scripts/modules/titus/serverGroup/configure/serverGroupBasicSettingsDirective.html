@@ -14,8 +14,6 @@
                        regions="command.backingData.filtered.regions"
                        on-change="command.regionChanged()"
                        provider="'titus'"></region-select-field>
-  <!--<titus-zone-select-field label-columns="2" component="command" field="zone" account="command.credentials" zones="command.backingData.filtered.zones"></titus-zone-select-field>-->
-  <!--<titus-network-select-field label-columns="2" component="command" field="network" account="command.credentials" networks="command.backingData.filtered.networks"></titus-network-select-field>-->
   <div class="form-group">
     <div class="col-md-2 sm-label-right">
       <b>Stack</b>
@@ -47,11 +45,18 @@
           <span>Only dot(.), underscore(_), caret (^), and dash(-) special characters are allowed in the Detail field.</span>
       </div>
   </div>
-  <div class="form-group" ng-if="!command.viewState.disableImageSelection">
-    <div class="col-md-2 sm-label-right"><b>Image</b></div>
-    <div class="col-md-7">
-      <input type="text" class="form-control input-sm no-spel" name="image" ng-model="command.imageId" required/>
-    </div>
+  <div ng-if="!command.viewState.disableImageSelection">
+    <!-- old image model: ng-model="command.imageId" -->
+    <docker-image-and-tag-selector
+      specify-tag-by-regex="false"
+      account="command.credentials"
+      organization="command.organization"
+      registry="command.registry"
+      repository="command.repository"
+      tag="command.tag"
+      show-registry="false"
+      label-class="col-md-2"
+      field-class="col-md-7"></docker-image-and-tag-selector>
   </div>
   <div class="form-group">
     <div class="col-md-2 sm-label-right"><b>Command</b></div>
