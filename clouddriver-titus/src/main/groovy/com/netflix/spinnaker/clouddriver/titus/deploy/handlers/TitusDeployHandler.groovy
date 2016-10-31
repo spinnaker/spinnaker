@@ -98,6 +98,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withIamProfile(description.iamProfile)
         .withLabels(description.labels)
         .withInService(description.inService)
+        .withCredentials(description.credentials.name)
 
       Set<String> securityGroups = []
       description.securityGroups?.each { providedSecurityGroup ->
