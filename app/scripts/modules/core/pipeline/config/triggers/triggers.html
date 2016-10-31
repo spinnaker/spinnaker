@@ -1,6 +1,6 @@
 <div class="form-horizontal">
 
-  <h4 ng-if="!pipeline.strategy" style="margin-top: 0">Concurrent Executions</h4>
+  <h4 ng-if="!pipeline.strategy">Concurrent Executions</h4>
   <div class="form-group" ng-if="!pipeline.strategy">
     <div class="col-md-11 col-md-offset-1">
       <div class="checkbox">
@@ -36,7 +36,7 @@
   </div>
   </div>
 
-  <h4 ng-style="{'margin-top': pipeline.strategy ? '0' : '25px'}">Parameters</h4>
+  <h4>Parameters</h4>
   <parameters pipeline="pipeline"></parameters>
 
   <h4 ng-if="!pipeline.strategy">Notifications</h4>

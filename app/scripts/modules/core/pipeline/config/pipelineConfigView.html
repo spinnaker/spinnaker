@@ -1,5 +1,16 @@
 <div class="row">
     <div class="col-md-12">
+
+        <div class="form-horizontal pipeline-configurer" ng-if="viewState.section === 'triggers'">
+            <h4>Description</h4>
+
+            <div class="col-md-12 no-padding">
+                <textarea class="form-control" ng-model="pipeline.description" rows="3"
+                          placeholder="(Optional) anything that might be helpful to explain the purpose of this pipeline"></textarea>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+
         <triggers ng-if="viewState.section === 'triggers'"
                   application="application"
                   pipeline="pipeline">

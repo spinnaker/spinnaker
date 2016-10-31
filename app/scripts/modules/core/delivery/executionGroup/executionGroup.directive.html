@@ -21,6 +21,7 @@
                 {{vm.group.runningExecutions.length}}
               </span>
             </span>
+            <span ng-if="vm.pipelineConfig.description" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ vm.pipelineConfig.description }}"></span>
           </h4>
         </div>
         <div class="col-md-7 col-sm-7 text-right execution-group-actions" ng-if="vm.viewState.canConfigure">
