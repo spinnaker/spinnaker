@@ -17,9 +17,15 @@ v2-modal-wizard {
       }
     }
     .wizard-navigation {
-      border: 1px solid @mid_light_grey;
+      background-color: transparent;
+      li.current, li:hover {
+        a {
+          color: @dark_blue_background;
+        }
+      }
       a {
         padding-left: 10px;
+        color: @spinnaker-link-color;
         &::before {
           width: 0;
           height: 0;
