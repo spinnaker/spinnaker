@@ -72,6 +72,9 @@ class BakeRequest {
   @ApiModelProperty("The name of a json file containing key/value pairs to add to the packer command (must be in the same location as the template file)")
   String var_file_name
 
+  @ApiModelProperty("The name of a configured account to use when baking the image")
+  String account_name
+
   static enum CloudProviderType {
     aws, azure, docker, gce, openstack
   }

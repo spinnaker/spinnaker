@@ -53,6 +53,11 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
+  String produceProviderSpecificBakeKeyComponent(String region, BakeRequest bakeRequest) {
+    return resolveAccount(bakeRequest).name
+  }
+
+  @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     def virtualizationSettings = gceBakeryDefaults?.baseImages.find {
       it.baseImage.id == bakeRequest.base_os
@@ -72,11 +77,7 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   @Override
   Map buildParameterMap(String region, def gceVirtualizationSettings, String imageName, BakeRequest bakeRequest, String appVersionStr) {
-    RoscoGoogleConfiguration.ManagedGoogleAccount managedGoogleAccount = googleConfigurationProperties?.accounts?.getAt(0)
-
-    if (!managedGoogleAccount) {
-      throw new IllegalArgumentException("No Google account specified for bakery.")
-    }
+    RoscoGoogleConfiguration.ManagedGoogleAccount managedGoogleAccount = resolveAccount(bakeRequest)
 
     def parameterMap = [
       gce_project_id  : managedGoogleAccount.project,
@@ -128,6 +129,19 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
     }
 
     return new Bake(id: bakeId, image_name: imageName)
+  }
+
+  private RoscoGoogleConfiguration.ManagedGoogleAccount resolveAccount(BakeRequest bakeRequest) {
+    RoscoGoogleConfiguration.ManagedGoogleAccount managedGoogleAccount =
+      bakeRequest.account_name
+      ? googleConfigurationProperties?.accounts?.find { it.name == bakeRequest.account_name }
+      : googleConfigurationProperties?.accounts?.getAt(0)
+
+    if (!managedGoogleAccount) {
+      throw new IllegalArgumentException("Could not resolve Google account: (account_name=$bakeRequest.account_name).")
+    }
+
+    return managedGoogleAccount
   }
 
 }

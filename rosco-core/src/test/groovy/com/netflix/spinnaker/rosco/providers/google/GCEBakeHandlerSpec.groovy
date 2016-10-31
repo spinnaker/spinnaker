@@ -83,6 +83,11 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         [
           name: "my-google-account",
           project: "some-gcp-project"
+        ],
+        [
+          name: "my-other-google-account",
+          project: "some-other-gcp-project",
+          jsonPath: "some-json-path.json"
         ]
       ]
     ]
@@ -484,6 +489,48 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
+  void 'produces packer command with all required parameters for trusty and reflects specified account_name'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGES_NAME,
+                                        base_os: "trusty",
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        account_name: 'my-other-google-account')
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
+      def targetImageName = "kato-x8664-timestamp-trusty"
+      def parameterMap = [
+        gce_project_id: googleConfigurationProperties.accounts.get(1).project,
+        gce_account_file: googleConfigurationProperties.accounts.get(1).jsonPath,
+        gce_zone: gceBakeryDefaults.zone,
+        gce_network: gceBakeryDefaults.network,
+        gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
+        gce_target_image: targetImageName,
+        repository: DEBIAN_REPOSITORY,
+        package_type: DEB_PACKAGE_TYPE.packageType,
+        packages: PACKAGES_NAME,
+        configDir: configDir
+      ]
+
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(configDir: configDir,
+                                                         gceBakeryDefaults: gceBakeryDefaults,
+                                                         googleConfigurationProperties: googleConfigurationProperties,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
+
+    when:
+      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
+  }
+
   void 'throws exception when virtualization settings are not found for specified operating system'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)
@@ -532,7 +579,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
 
       IllegalArgumentException e = thrown()
-      e.message == "No Google account specified for bakery."
+      e.message == "Could not resolve Google account: (account_name=null)."
   }
 
   void 'produce a default GCE bakeKey without base image'() {
@@ -543,13 +590,13 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
 
       @Subject
-      GCEBakeHandler gceBakeHandler = new GCEBakeHandler()
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(googleConfigurationProperties: googleConfigurationProperties)
 
     when:
       String bakeKey = gceBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:gce:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb"
+      bakeKey == "bake:gce:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:my-google-account"
   }
 
   @Unroll
@@ -561,13 +608,13 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
 
       @Subject
-      GCEBakeHandler gceBakeHandler = new GCEBakeHandler()
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(googleConfigurationProperties: googleConfigurationProperties)
 
     when:
       String bakeKey = gceBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:gce:centos:"
+      bakeKey == "bake:gce:centos::my-google-account"
 
     where:
       packageName << [null, ""]
@@ -582,12 +629,30 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                         base_ami: "my-base-image")
 
       @Subject
-      GCEBakeHandler gceBakeHandler = new GCEBakeHandler()
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(googleConfigurationProperties: googleConfigurationProperties)
 
     when:
       String bakeKey = gceBakeHandler.produceBakeKey(REGION, bakeRequest)
 
     then:
-      bakeKey == "bake:gce:centos:my-base-image:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb"
+      bakeKey == "bake:gce:centos:my-base-image:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:my-google-account"
+  }
+
+  void 'account selection is reflected in bake key'() {
+    setup:
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGES_NAME,
+                                        base_os: "centos",
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        account_name: 'my-other-google-account')
+
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(googleConfigurationProperties: googleConfigurationProperties)
+
+    when:
+      String bakeKey = gceBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+      bakeKey == "bake:gce:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:my-other-google-account"
   }
 }
