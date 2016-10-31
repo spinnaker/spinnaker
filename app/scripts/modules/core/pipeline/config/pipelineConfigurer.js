@@ -276,11 +276,22 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
             markDirty();
             $scope.viewState.saving = false;
           },
-          function() {
+          function(err) {
             $scope.viewState.saveError = true;
             $scope.viewState.saving = false;
+            $scope.viewState.saveErrorMessage = ctrl.getErrorMessage(err.data.message);
           }
         );
+    };
+
+    this.getErrorMessage = function(errorMsg) {
+      var msg = 'There was an error saving your pipeline';
+      if (_.isString(errorMsg)) {
+        msg += ': ' + errorMsg;
+      }
+      msg += '.';
+
+      return msg;
     };
 
     this.revertPipelineChanges = function() {

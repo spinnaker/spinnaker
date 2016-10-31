@@ -99,12 +99,12 @@
       </div>
       <div class="col-md-9 text-right">
         <span ng-if="viewState.saveError" class="alert alert-danger">
-          There was an error saving your pipeline.
+          {{viewState.saveErrorMessage}}
           <a class="alert-dismiss" href
              analytics-on="click"
              analytics-category="Pipeline Config"
              analytics-event="Error saving changes dismissed"
-             ng-click="viewState.saveError = false">[dismiss]</a>
+             ng-click="viewState.saveError = false; viewState.saveErrorMessage = null">[dismiss]</a>
         </span>
 
         <button ng-if="!pipeline.locked && viewState.isDirty" ng-disabled="!pipelineConfigurerCtrl.isValid()" class="btn btn-primary"
