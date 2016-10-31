@@ -16,12 +16,13 @@
                   ng-class="{'glyphicon-chevron-right': !vm.viewState.open, 'glyphicon-chevron-down': vm.viewState.open}">
             </span>
             <span class="execution-group-title">
-              {{ vm.group.heading }} <span ng-if="vm.pipelineConfig.disabled">(disabled)</span>
+              {{ vm.group.heading }}
+              <span ng-if="vm.pipelineConfig.description" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ vm.pipelineConfig.description }}"></span>
+              <span ng-if="vm.pipelineConfig.disabled">(disabled)</span>
               <span ng-if="vm.group.runningExecutions.length" class="badge">
                 {{vm.group.runningExecutions.length}}
               </span>
             </span>
-            <span ng-if="vm.pipelineConfig.description" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ vm.pipelineConfig.description }}"></span>
           </h4>
         </div>
         <div class="col-md-7 col-sm-7 text-right execution-group-actions" ng-if="vm.viewState.canConfigure">
