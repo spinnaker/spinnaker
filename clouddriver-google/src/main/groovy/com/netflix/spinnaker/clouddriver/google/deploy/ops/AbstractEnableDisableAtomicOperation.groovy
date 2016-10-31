@@ -125,6 +125,18 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         SUCCESSFUL_ERROR_CODES
       )
 
+      task.updateStatus phaseName, "Deregistering server group from ssl load balancers..."
+
+      voidRetry.doRetry(
+        destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
+        "destroy",
+        "Ssl load balancer backends",
+        task,
+        phaseName,
+        RETRY_ERROR_CODES,
+        SUCCESSFUL_ERROR_CODES
+      )
+
       task.updateStatus phaseName, "Deregistering server group from network load balancers..."
 
       currentTargetPoolUrls.each { targetPoolUrl ->
@@ -180,6 +192,18 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
         "add",
         "Internal load balancer backends",
+        task,
+        phaseName,
+        RETRY_ERROR_CODES,
+        []
+      )
+
+      task.updateStatus phaseName, "Registering server group with Ssl load balancers..."
+
+      voidRetry.doRetry(
+        addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
+        "add",
+        "Ssl load balancer backends",
         task,
         phaseName,
         RETRY_ERROR_CODES,
@@ -308,9 +332,23 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     }
   }
 
+  Closure destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
+    return {
+      GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      null
+    }
+  }
+
   Closure addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
       GCEUtil.addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      null
+    }
+  }
+
+  Closure addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
+    return {
+      GCEUtil.addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
       null
     }
   }

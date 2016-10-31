@@ -781,6 +781,50 @@ class GCEUtil {
     }
   }
 
+  static void addSslLoadBalancerBackends(Compute compute,
+                                         ObjectMapper objectMapper,
+                                         String project,
+                                         GoogleServerGroup.View serverGroup,
+                                         GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                         Task task,
+                                         String phase) {
+    String serverGroupName = serverGroup.name
+    Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
+    Map metadataMap = buildMapFromMetadata(instanceMetadata)
+    def globalLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    def regionalLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+
+    def allFoundLoadBalancers = (globalLoadBalancersInMetadata + regionalLoadBalancersInMetadata) as List<String>
+    def sslLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)
+      .findAll { it.loadBalancerType == GoogleLoadBalancerType.SSL }
+
+    if (sslLoadBalancersToAddTo) {
+      String policyJson = metadataMap?.(GoogleServerGroup.View.LOAD_BALANCING_POLICY)
+      if (!policyJson) {
+        updateStatusAndThrowNotFoundException("Load Balancing Policy not found for server group ${serverGroupName}", task, phase)
+      }
+      GoogleHttpLoadBalancingPolicy policy = objectMapper.readValue(policyJson, GoogleHttpLoadBalancingPolicy)
+
+      sslLoadBalancersToAddTo.each { GoogleLoadBalancerView loadBalancerView ->
+        def sslView = loadBalancerView as GoogleSslLoadBalancer.View
+        String backendServiceName = sslView.backendService.name
+        BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+        Backend backendToAdd = backendFromLoadBalancingPolicy(policy)
+        if (serverGroup.regional) {
+          backendToAdd.setGroup(buildRegionalServerGroupUrl(project, serverGroup.region, serverGroupName))
+        } else {
+          backendToAdd.setGroup(buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName))
+        }
+        if (backendService.backends == null) {
+          backendService.backends = []
+        }
+        backendService.backends << backendToAdd
+        compute.backendServices().update(project, backendServiceName, backendService).execute()
+        task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in ssl load balancer backend service ${backendServiceName}."
+      }
+    }
+  }
+
   /**
    * Build a backend from a load balancing policy. Note that this does not set the group URL, which is mandatory.
    *
@@ -810,6 +854,34 @@ class GCEUtil {
         backend.maxUtilization : null,
       capacityScaler: backend.capacityScaler,
     )
+  }
+
+  static void destroySslLoadBalancerBackends(Compute compute,
+                                             String project,
+                                             GoogleServerGroup.View serverGroup,
+                                             GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                             Task task,
+                                             String phase) {
+    def serverGroupName = serverGroup.name
+    def region = serverGroup.region
+    def foundSslLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
+      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.SSL
+    }
+    log.debug("Attempting to delete backends for ${serverGroup.name} from the following global load balancers: ${foundSslLoadBalancers.collect { it.name }}")
+
+    if (foundSslLoadBalancers) {
+      foundSslLoadBalancers.each { GoogleLoadBalancerView loadBalancerView ->
+        def sslView = loadBalancerView as GoogleSslLoadBalancer.View
+        String backendServiceName = sslView.backendService.name
+        BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+        backendService?.backends?.removeAll { Backend backend ->
+          (getLocalName(backend.group) == serverGroupName) &&
+            (Utils.getRegionFromGroupUrl(backend.group) == region)
+        }
+        compute.backendServices().update(project, backendServiceName, backendService).execute()
+        task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from ssl load balancer backend service ${backendServiceName}."
+      }
+    }
   }
 
   static void destroyInternalLoadBalancerBackends(Compute compute,

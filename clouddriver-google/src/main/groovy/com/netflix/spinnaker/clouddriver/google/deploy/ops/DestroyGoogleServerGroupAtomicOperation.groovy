@@ -94,6 +94,10 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
 
     destroy(destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Internal load balancer backends")
 
+    task.updateStatus BASE_PHASE, "Checking for associated Ssl load balancer backend services..."
+
+    destroy(destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Ssl load balancer backends")
+
     destroy(destroyInstanceGroup(compute, serverGroupName, project, region, zone, isRegional), "instance group")
 
     task.updateStatus BASE_PHASE, "Deleted instance group."
@@ -159,6 +163,16 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
                                                      GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
       GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE)
+      null
+    }
+  }
+
+  static Closure destroySslLoadBalancerBackends(Compute compute,
+                                                String project,
+                                                GoogleServerGroup.View serverGroup,
+                                                GoogleLoadBalancerProvider googleLoadBalancerProvider) {
+    return {
+      GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE)
       null
     }
   }
