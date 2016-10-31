@@ -5,13 +5,10 @@
     <help-field key="gce.instance.customInstance.cores"></help-field>
   </div>
   <div class="col-md-3">
-    <ui-select ng-model="command.viewState.customInstance.vCpuCount"
-               class="form-control input-sm">
-      <ui-select-match placeholder="Select...">{{ $select.selected }}</ui-select-match>
-      <ui-select-choices repeat="vCpuCount in command.backingData.customInstanceTypes.vCpuList | filter: $select.search">
-        <span ng-bind-html="vCpuCount | highlight: $select.search"></span>
-      </ui-select-choices>
-    </ui-select>
+    <select class="form-control input-sm"
+            ng-options="vCpuCount for vCpuCount in command.backingData.customInstanceTypes.vCpuList"
+            ng-model="command.viewState.customInstance.vCpuCount">
+    </select>
   </div>
 </div>
 <div class="form-group">
@@ -20,12 +17,9 @@
     <help-field key="gce.instance.customInstance.memory"></help-field>
   </div>
   <div class="col-md-3">
-    <ui-select ng-model="command.viewState.customInstance.memory"
-               class="form-control input-sm">
-      <ui-select-match placeholder="Select...">{{ $select.selected }}</ui-select-match>
-      <ui-select-choices repeat="memory in command.backingData.customInstanceTypes.memoryList | filter: $select.search">
-        <span ng-bind-html="memory | highlight: $select.search"></span>
-      </ui-select-choices>
-    </ui-select>
+    <select class="form-control input-sm"
+            ng-options="memory for memory in command.backingData.customInstanceTypes.memoryList"
+            ng-model="command.viewState.customInstance.memory">
+    </select>
   </div>
 </div>
