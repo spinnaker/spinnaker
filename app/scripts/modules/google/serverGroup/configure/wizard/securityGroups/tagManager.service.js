@@ -15,13 +15,15 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [])
     this.register = (command) => {
       this.command = command;
       let { credentials, backingData } = command;
-      this.securityGroupObjects = _.cloneDeep(backingData.securityGroups[credentials].gce.global);
+      if (backingData.securityGroups[credentials] !== undefined) {
+        this.securityGroupObjects = _.cloneDeep(backingData.securityGroups[credentials].gce.global);
 
-      initializeSecurityGroupObjects(this.securityGroupObjects, command.tags);
+        initializeSecurityGroupObjects(this.securityGroupObjects, command.tags);
 
-      let { byTag, bySecurityGroupId } = groupSecurityGroupObjects(this.securityGroupObjects);
-      this.securityGroupObjectsKeyedByTag = byTag;
-      this.securityGroupObjectsKeyedById = bySecurityGroupId;
+        let { byTag, bySecurityGroupId } = groupSecurityGroupObjects(this.securityGroupObjects);
+        this.securityGroupObjectsKeyedByTag = byTag;
+        this.securityGroupObjectsKeyedById = bySecurityGroupId;
+      }
 
       if (!command.securityGroups) {
         command.securityGroups = this.inferSecurityGroupIdsFromTags(command.tags);
