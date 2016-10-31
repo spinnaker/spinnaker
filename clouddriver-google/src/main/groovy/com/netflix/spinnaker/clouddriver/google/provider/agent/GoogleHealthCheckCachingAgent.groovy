@@ -57,9 +57,9 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
 
   /**
    * There are currently three different sets/families of health check endpoints that we cache:
-   * 1. /{project}/httpHealthChecks/{healthCheckname}
-   * 2. /{project}/httpsHealthChecks/{healthCheckname}
-   * 3. /{project}/healthChecks/{healthCheckname}
+   * 1. /{project}/global/httpHealthChecks/{healthCheckname}
+   * 2. /{project}/global/httpsHealthChecks/{healthCheckname}
+   * 3. /{project}/global/healthChecks/{healthCheckname}
    *
    * Endpoint (3) can return HTTP and HTTPS endpoints, similar to endpoints (1) and (2).
    * Hence, we have to differentiate which health checks came from which families. We do that with

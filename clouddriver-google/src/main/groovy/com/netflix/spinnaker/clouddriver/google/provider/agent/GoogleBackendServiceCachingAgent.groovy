@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -49,36 +50,37 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<BackendService> backendServiceList = loadBackendServices()
+    List<GoogleBackendService> backendServiceList = loadBackendServices()
     buildCacheResult(providerCache, backendServiceList)
   }
 
-  List<BackendService> loadBackendServices() {
-    List<BackendService> ret = []
+  List<GoogleBackendService> loadBackendServices() {
+    List<GoogleBackendService> ret = []
     def globalBackendServices = compute.backendServices().list(project).execute().items as List
     if (globalBackendServices) {
-      ret.addAll(globalBackendServices)
+      ret.addAll(globalBackendServices.collect { toGoogleBackendService(it, GoogleBackendService.BackendServiceKind.globalBackendService) })
     }
     compute.regions().list(project).execute().items.each { Region region ->
       def regionBackendServices = compute.regionBackendServices().list(project, region.getName()).execute()?.items as List
       if (regionBackendServices) {
-        ret.addAll(regionBackendServices)
+        ret.addAll(regionBackendServices.collect { toGoogleBackendService(it, GoogleBackendService.BackendServiceKind.regionBackendService) })
       }
     }
     ret
   }
 
-  private CacheResult buildCacheResult(ProviderCache _, List<BackendService> backendServiceList) {
+  private CacheResult buildCacheResult(ProviderCache _, List<GoogleBackendService> backendServiceList) {
     log.info("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
 
-    backendServiceList.each { BackendService backendService ->
-      def backendServiceKey = Keys.getBackendServiceKey(accountName, backendService.getName())
+    backendServiceList.each { GoogleBackendService backendService ->
+      def backendServiceKey = Keys.getBackendServiceKey(accountName, backendService.kind as String, backendService.getName())
 
       cacheResultBuilder.namespace(BACKEND_SERVICES.ns).keep(backendServiceKey).with {
         attributes.name = backendService.name
-        attributes.healthCheckLink = backendService.healthChecks[0]
+        attributes.kind = backendService.kind
+        attributes.healthCheckLink = backendService.healthCheckLink
         attributes.sessionAffinity = backendService.sessionAffinity
         attributes.affinityCookieTtlSec = backendService.affinityCookieTtlSec
         attributes.region = backendService.region
@@ -88,5 +90,16 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
     log.info("Caching ${cacheResultBuilder.namespace(BACKEND_SERVICES.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
+  }
+
+  private static GoogleBackendService toGoogleBackendService(BackendService bs, GoogleBackendService.BackendServiceKind kind) {
+    new GoogleBackendService(
+      name: bs.name,
+      kind: kind,
+      healthCheckLink: bs.healthChecks[0],
+      sessionAffinity: bs.sessionAffinity,
+      affinityCookieTtlSec: bs.affinityCookieTtlSec,
+      region: bs.region ?: 'global'
+    )
   }
 }

@@ -23,9 +23,30 @@ import groovy.transform.EqualsAndHashCode
 @EqualsAndHashCode(excludes="backends")
 class GoogleBackendService {
   String name
+  String region
+
+  /**
+   * Specifies the GCP endpoint 'family' this backend service originated from.
+   *
+   * There are currently two different sets of backend service endpoints:
+   * 1. /{project}/global/backendServices/{backendServiceName}
+   * 2. /{project}/regions/{region}/backendServices/{backendServiceName}
+   *
+   * Since we cache BackendService objects from both endpoints, we need to distinguish
+   * between the two 'kinds'. That's what this field does.
+   */
+  BackendServiceKind kind
+  String healthCheckLink
   GoogleHealthCheck healthCheck
   List<GoogleLoadBalancedBackend> backends
   GoogleSessionAffinity sessionAffinity
   Integer affinityCookieTtlSec
   GoogleLoadBalancingScheme loadBalancingScheme
+
+  // Note: This enum has non-standard style constants because we use these constants as strings directly
+  // in the redis cache keys for backend services, where we want to avoid underscores and camelcase is the norm.
+  static enum BackendServiceKind {
+    globalBackendService,
+    regionBackendService
+  }
 }

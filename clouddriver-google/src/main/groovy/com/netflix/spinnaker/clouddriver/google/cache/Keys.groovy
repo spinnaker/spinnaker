@@ -72,7 +72,8 @@ class Keys {
       case Namespace.BACKEND_SERVICES.ns:
         result << [
           account: parts[2],
-          name   : parts[3],
+          kind   : parts[3],
+          name   : parts[4],
         ]
         break
       case Namespace.CLUSTERS.ns:
@@ -184,8 +185,9 @@ class Keys {
   }
 
   static String getBackendServiceKey(String account,
+                                     String kind,
                                      String backendServiceName) {
-    "$GoogleCloudProvider.GCE:${Namespace.BACKEND_SERVICES}:${account}:${backendServiceName}"
+    "$GoogleCloudProvider.GCE:${Namespace.BACKEND_SERVICES}:${account}:${kind}:${backendServiceName}"
   }
 
   static String getClusterKey(String account,
