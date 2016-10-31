@@ -22,9 +22,6 @@ import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistr
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import retrofit.RetrofitError
 
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
@@ -35,8 +32,8 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     String address
     String username
     String password
-    String passwordFile
-    String dockerconfigFile
+    File passwordFile
+    File dockerconfigFile
     String email
     int cacheThreads
     long clientTimeoutMillis
@@ -78,12 +75,22 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     }
 
     Builder passwordFile(String passwordFile) {
-      this.passwordFile = passwordFile
+      if (passwordFile) {
+        this.passwordFile = new File(passwordFile)
+      } else {
+        this.passwordFile = null
+      }
+
       return this
     }
 
     Builder dockerconfigFile(String dockerconfigFile) {
-      this.dockerconfigFile = dockerconfigFile
+      if (dockerconfigFile) {
+        this.dockerconfigFile = new File(dockerconfigFile)
+      } else {
+        this.dockerconfigFile = null
+      }
+
       return this
     }
 
@@ -147,8 +154,8 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         String address,
                                         String username,
                                         String password,
-                                        String passwordFile,
-                                        String dockerconfigFile,
+                                        File passwordFile,
+                                        File dockerconfigFile,
                                         String email,
                                         List<String> repositories,
                                         List<String> skip,
@@ -180,8 +187,8 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         String address,
                                         String username,
                                         String password,
-                                        String passwordFile,
-                                        String dockerconfigFile,
+                                        File passwordFile,
+                                        File dockerconfigFile,
                                         String email,
                                         List<String> repositories,
                                         List<String> skip,
@@ -196,6 +203,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     this.accountName = accountName
     this.environment = environment
     this.accountType = accountType
+    this.passwordFile = passwordFile
     this.cacheThreads = cacheThreads ?: 1
     this.paginateSize = paginateSize ?: 100
     this.clientTimeoutMillis = clientTimeoutMillis ?: TimeUnit.MINUTES.toMillis(1)
@@ -223,10 +231,6 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
       this.registry = address
     }
     this.username = username
-    if (!password && passwordFile) {
-      byte[] contents = Files.readAllBytes(Paths.get(passwordFile))
-      password = new String(contents, StandardCharsets.UTF_8)
-    }
     this.password = password
     this.email = email
     this.trackDigests = trackDigests
@@ -247,13 +251,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
 
   @JsonIgnore
   String getBasicAuth() {
-    return this.credentials ?
-      this.credentials.client ?
-        this.credentials.client.basicAuth ?
-          this.credentials.client.basicAuth :
-          "" :
-        "" :
-      ""
+    return this.credentials?.client?.basicAuth ?: ""
   }
 
   String getV2Endpoint() {
@@ -267,7 +265,16 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
 
   private DockerRegistryCredentials buildCredentials(List<String> repositories) {
     try {
-      DockerRegistryClient client = new DockerRegistryClient(address, email, username, password, clientTimeoutMillis, paginateSize)
+      DockerRegistryClient client = (new DockerRegistryClient.Builder())
+        .address(address)
+        .email(email)
+        .username(username)
+        .password(password)
+        .passwordFile(passwordFile)
+        .clientTimeoutMillis(clientTimeoutMillis)
+        .paginateSize(paginateSize)
+        .build()
+
       return new DockerRegistryCredentials(client, repositories, trackDigests, skip)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
@@ -288,6 +295,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
   final String username
   @JsonIgnore
   final String password
+  final File passwordFile
   final String email
   final boolean trackDigests
   final int cacheThreads

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
+import sun.misc.BASE64Decoder
 
 class DockerBearerTokenServiceSpec extends Specification {
   private static final REALM1 = "https://auth.docker.io"
@@ -33,10 +34,10 @@ class DockerBearerTokenServiceSpec extends Specification {
   DockerBearerTokenService tokenService
 
   def setupSpec() {
-    tokenService = new DockerBearerTokenService(null, null)
+    tokenService = new DockerBearerTokenService()
   }
 
-  void "DockerBearerTokenService should parse Www-Authenticate header with full privileges and path."() {
+  void "should parse Www-Authenticate header with full privileges and path."() {
     setup:
       def input = "Bearer realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE1}\""
     when:
@@ -49,7 +50,7 @@ class DockerBearerTokenServiceSpec extends Specification {
       result.scope == SCOPE1
   }
 
-  void "DockerBearerTokenService should parse Www-Authenticate header with some privileges and path."() {
+  void "should parse Www-Authenticate header with some privileges and path."() {
     setup:
       def input = "Bearer realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE2}\""
     when:
@@ -62,7 +63,7 @@ class DockerBearerTokenServiceSpec extends Specification {
       result.scope == SCOPE2
   }
 
-  void "DockerBearerTokenService should parse Www-Authenticate header with some privileges and no path."() {
+  void "should parse Www-Authenticate header with some privileges and no path."() {
     setup:
       def input = "Bearer realm=\"${REALM1}\",service=\"${SERVICE1}\",scope=\"${SCOPE2}\""
     when:
@@ -75,7 +76,7 @@ class DockerBearerTokenServiceSpec extends Specification {
       result.scope == SCOPE2
   }
 
-  void "DockerBearerTokenService should parse unquoted Www-Authenticate header with some privileges and path."() {
+  void "should parse unquoted Www-Authenticate header with some privileges and path."() {
     setup:
       def input = "Bearer realm=${REALM1}/${PATH1},service=${SERVICE1},scope=${SCOPE2}"
     when:
@@ -88,7 +89,7 @@ class DockerBearerTokenServiceSpec extends Specification {
       result.scope == SCOPE2
   }
 
-  void "DockerBearerTokenService should request a real token from Dockerhub's token registry."() {
+  void "should request a real token from Dockerhub's token registry."() {
     setup:
       def header = [:]
       header.value = "Bearer realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE1}\""
@@ -101,7 +102,7 @@ class DockerBearerTokenServiceSpec extends Specification {
       token.token.length() > 0
   }
 
-  void "DockerBearerTokenService should request a real token from Dockerhub's token registry, and supply a cached one."() {
+  void "should request a real token from Dockerhub's token registry, and supply a cached one."() {
     setup:
       def header = [:]
       header.value = "Bearer realm=\"${REALM1}/${PATH1}\",service=\"${SERVICE1}\",scope=\"${SCOPE1}\""
@@ -113,5 +114,18 @@ class DockerBearerTokenServiceSpec extends Specification {
 
     then:
       token.token.length() > 0
+  }
+
+  void "should read a password from a file, and correctely prepare the basic auth string."() {
+    setup:
+      def passwordFile = new File("src/test/resources/password.txt")
+      def username = "username"
+      def passwordContents = new BufferedReader(new FileReader(passwordFile)).getText()
+    when:
+      def fileTokenService = new DockerBearerTokenService(username, passwordFile)
+
+    then:
+      new String(Base64.decoder.decode(fileTokenService.getBasicAuth().bytes)) == "$username:$passwordContents"
+
   }
 }

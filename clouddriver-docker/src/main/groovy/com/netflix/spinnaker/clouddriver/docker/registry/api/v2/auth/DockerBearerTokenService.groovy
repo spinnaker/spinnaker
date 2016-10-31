@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
 
-import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryAuthenticationException
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RestAdapter
@@ -27,24 +26,53 @@ import retrofit.http.Path
 import retrofit.http.Query
 
 class DockerBearerTokenService {
-  private Map<String, TokenService> realmToService
-  private Map<String, DockerBearerToken> cachedTokens
-  public String basicAuth
-  public String basicAuthHeader
+  Map<String, TokenService> realmToService
+  Map<String, DockerBearerToken> cachedTokens
+  String username
+  String password
+  File passwordFile
 
   @Autowired
   String dockerApplicationName
 
-  DockerBearerTokenService(String username, String password) {
+  DockerBearerTokenService() {
     realmToService = new HashMap<String, TokenService>()
     cachedTokens = new HashMap<String, DockerBearerToken>()
-    if (username || password) {
-      basicAuth = new String(Base64.encoder.encode(("${username}:${password}").bytes))
-      basicAuthHeader = "Basic $basicAuth"
-    } else {
-      basicAuth = null
-      basicAuthHeader = null
+  }
+
+  DockerBearerTokenService(String username, String password) {
+    this()
+    this.username = username
+    this.password = password
+  }
+
+  DockerBearerTokenService(String username, File passwordFile) {
+    this()
+    this.username = username
+    this.passwordFile = passwordFile
+  }
+
+  String getBasicAuth() {
+    if (!(username || password || passwordFile)) {
+      return null
     }
+
+    def resolvedPassword = null
+
+    if (password) {
+      resolvedPassword = password
+    } else if (passwordFile) {
+      resolvedPassword = new BufferedReader(new FileReader(passwordFile)).getText()
+    } else {
+      resolvedPassword = "" // I'm assuming it's ok to have an empty password if the username is specified
+    }
+
+    def basicAuth = new String(Base64.encoder.encode(("${username}:${resolvedPassword}").bytes))
+  }
+
+  String getBasicAuthHeader() {
+    def basicAuth = this.getBasicAuth()
+    return basicAuth ? "Basic $basicAuth" : null
   }
 
   /*
@@ -172,7 +200,7 @@ class DockerBearerTokenService {
 
     def tokenService = getTokenService(authenticateDetails.realm)
     def token
-    if (basicAuth) {
+    if (basicAuthHeader) {
       token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthHeader, dockerApplicationName)
     }
     else {

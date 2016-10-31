@@ -45,7 +45,6 @@ class KubernetesCredentialsSpec extends Specification {
     DockerRegistryNamedAccountCredentials registryAccountMock = Mock(DockerRegistryNamedAccountCredentials)
     registryAccountMock.getAccountName() >> ACCOUNT1
     registryAccountMock.getAddress() >> ADDRESS
-    registryAccountMock.getBasicAuth() >> BASIC_AUTH
     registryAccountMock.getEmail() >> EMAIL
 
     return registryAccountMock

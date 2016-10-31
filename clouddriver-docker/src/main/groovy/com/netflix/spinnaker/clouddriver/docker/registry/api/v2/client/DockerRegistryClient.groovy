@@ -37,28 +37,92 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 class DockerRegistryClient {
 
+  static class Builder {
+    String address
+    String email
+    String username
+    String password
+    File passwordFile
+    File dockerconfigFile
+    long clientTimeoutMillis
+    int paginateSize
+
+    Builder address(String address) {
+      this.address = address
+      return this
+    }
+
+    Builder email(String email) {
+      this.email = email
+      return this
+    }
+
+    Builder username(String username) {
+      this.username = username
+      return this
+    }
+
+    Builder password(String password) {
+      this.password = password
+      return this
+    }
+
+    Builder passwordFile(File passwordFile) {
+      this.passwordFile = passwordFile
+      return this
+    }
+
+    Builder dockerconfigFile(File dockerconfigFile) {
+      this.dockerconfigFile = dockerconfigFile
+      return this
+    }
+
+    Builder clientTimeoutMillis(long clientTimeoutMillis) {
+      this.clientTimeoutMillis = clientTimeoutMillis
+      return this
+    }
+
+    Builder paginateSize(int paginateSize) {
+      this.paginateSize = paginateSize
+      return this
+    }
+
+    DockerRegistryClient build() {
+      if (password && passwordFile) {
+        throw new IllegalArgumentException('Error, at most one of "password", "passwordFile", or "dockerconfigFile" can be specified')
+      }
+      if (password) {
+        return new DockerRegistryClient(address, email, username, password, clientTimeoutMillis, paginateSize)
+      } else if (passwordFile) {
+        return new DockerRegistryClient(address, email, username, passwordFile, clientTimeoutMillis, paginateSize)
+      } else {
+        return new DockerRegistryClient(address, clientTimeoutMillis, paginateSize)
+      }
+    }
+
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(DockerRegistryClient)
 
-  private DockerBearerTokenService tokenService
+  DockerBearerTokenService tokenService
 
-  public String address
-  private DockerRegistryService registryService
-  private GsonConverter converter
-  private String basicAuth
+  String address
+  String email
+  DockerRegistryService registryService
+  GsonConverter converter
+
+  String getBasicAuth() {
+    return tokenService?.basicAuth
+  }
 
   @Autowired
   String dockerApplicationName
 
   final int paginateSize
 
-  public getBasicAuth() {
-    return basicAuth
-  }
-
-  DockerRegistryClient(String address, String email, String username, String password, long clientTimeoutMillis, int paginateSize) {
+  DockerRegistryClient(String address, long clientTimeoutMillis, int paginateSize) {
     this.paginateSize = paginateSize
-    this.tokenService = new DockerBearerTokenService(username, password)
-    this.basicAuth = this.tokenService.basicAuth
+    this.tokenService = new DockerBearerTokenService()
     OkHttpClient client = new OkHttpClient()
     client.setReadTimeout(clientTimeoutMillis, TimeUnit.MILLISECONDS)
     this.registryService = new RestAdapter.Builder()
@@ -69,6 +133,18 @@ class DockerRegistryClient {
       .create(DockerRegistryService)
     this.converter = new GsonConverter(new GsonBuilder().create())
     this.address = address
+  }
+
+  DockerRegistryClient(String address, String email, String username, String password, long clientTimeoutMillis, int paginateSize) {
+    this(address, clientTimeoutMillis, paginateSize)
+    this.tokenService = new DockerBearerTokenService(username, password)
+    this.email = email
+  }
+
+  DockerRegistryClient(String address, String email, String username, File passwordFile, long clientTimeoutMillis, int paginateSize) {
+    this(address, clientTimeoutMillis, paginateSize)
+    this.tokenService = new DockerBearerTokenService(username, passwordFile)
+    this.email = email
   }
 
   interface DockerRegistryService {
