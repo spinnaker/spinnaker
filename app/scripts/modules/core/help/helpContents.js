@@ -238,6 +238,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.bake.templateFileName': '<p>(Optional) The explicit packer template to use, instead of resolving one from rosco\'s configuration.</p>',
     'pipeline.config.bake.varFileName': '<p>(Optional) The name of a json file containing key/value pairs to add to the packer command.</p>',
     'pipeline.config.bake.extendedAttributes': '<p>(Optional) Any additional attributes that you want to pass onto rosco, which will be injected into your packer runtime variables.</p>',
+    'pipeline.config.gce.bake.accountName': '<p>(Optional) The name of a Google account configured within Rosco. If left blank, the first configured account will be used.</p>',
     'pipeline.config.gce.bake.baseImage': '<p>(Optional) A GCE image name. For example: ubuntu-1204-precise-v20150910.</p>',
     'pipeline.config.manualJudgment.instructions': '<p>(Optional) Instructions are shown to the user when making a manual judgment.</p><p>May contain HTML.</p>',
     'pipeline.config.manualJudgment.failPipeline': '' +

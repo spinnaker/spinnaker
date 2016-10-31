@@ -96,6 +96,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
       return $scope.viewState.roscoMode || $scope.stage.templateFileName;
     };
 
+    this.showAccountName = function() {
+      return $scope.viewState.roscoMode || $scope.stage.accountName;
+    };
+
     this.showExtendedAttributes = function() {
       return $scope.viewState.roscoMode || ($scope.stage.extendedAttributes && _.size($scope.stage.extendedAttributes) > 0);
     };

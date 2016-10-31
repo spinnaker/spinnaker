@@ -48,6 +48,11 @@
       <input type="text" class="form-control input-sm"
              ng-model="stage.templateFileName"/>
     </stage-config-field>
+    <stage-config-field label="Account Name" help-key="pipeline.config.gce.bake.accountName"
+                        ng-if="bakeStageCtrl.showAccountName()">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.accountName"/>
+    </stage-config-field>
     <stage-config-field label="Extended Attributes" help-key="pipeline.config.bake.extendedAttributes"
                         ng-if="bakeStageCtrl.showExtendedAttributes()">
       <table class="table table-condensed packed">
