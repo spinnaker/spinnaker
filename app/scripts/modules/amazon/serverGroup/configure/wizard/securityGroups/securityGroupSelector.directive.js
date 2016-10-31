@@ -28,6 +28,10 @@ module.exports = angular
       return infrastructureCaches.securityGroups.getStats().ageMax;
     };
 
+    this.currentItems = 100;
+
+    this.addItems = () => this.currentItems += 100;
+
     this.refreshSecurityGroups = () => {
       this.refreshing = true;
       if (this.refresh) {

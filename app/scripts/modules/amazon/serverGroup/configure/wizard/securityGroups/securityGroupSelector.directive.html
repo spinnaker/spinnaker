@@ -6,7 +6,9 @@
   <div class="col-md-9">
     <ui-select multiple ng-model="vm.groupsToEdit" class="form-control input-sm">
       <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
-      <ui-select-choices repeat="securityGroup.id as securityGroup in vm.availableGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
+      <ui-select-choices repeat="securityGroup.id as securityGroup in vm.availableGroups | filter: $select.search | limitTo: vm.currentItems"
+                         infinite-scroll="vm.addItems()"
+                         infinite-scroll-distance="4">
         <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
         (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
       </ui-select-choices>
