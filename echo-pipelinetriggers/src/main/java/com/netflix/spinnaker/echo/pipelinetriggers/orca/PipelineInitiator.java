@@ -1,9 +1,7 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 
-import javax.annotation.PostConstruct;
 import com.netflix.spinnaker.echo.model.Pipeline;
-import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
-import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.Response;
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.TriggerResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +9,8 @@ import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Triggers a {@link Pipeline} by invoking _Orca_.
@@ -50,7 +50,7 @@ public class PipelineInitiator implements Action1<Pipeline> {
         runAsUser = pipeline.getTrigger().getRunAsUser();
       }
 
-      Observable<OrcaService.Response> response;
+      Observable<OrcaService.TriggerResponse> response;
       if (runAsUser != null && !runAsUser.isEmpty()) {
         response = orca.trigger(pipeline, pipeline.getTrigger().getRunAsUser());
       } else {
@@ -62,7 +62,7 @@ public class PipelineInitiator implements Action1<Pipeline> {
     }
   }
 
-  private void onOrcaResponse(Response response) {
+  private void onOrcaResponse(TriggerResponse response) {
     log.info("Triggered pipeline {}", response.getRef());
   }
 
