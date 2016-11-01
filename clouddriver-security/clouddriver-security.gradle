@@ -5,7 +5,7 @@ dependencies {
   compile spinnaker.dependency('slf4j')
   compile project(':cats:cats-core')
 
-  compile "com.netflix.spinnaker.fiat:fiat-api:0.11.0"
+  compile "com.netflix.spinnaker.fiat:fiat-api:0.17.0"
   compile spinnaker.dependency('frigga')
 
   testCompile project(':clouddriver-aws')
