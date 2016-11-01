@@ -57,7 +57,7 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
       loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
-      if (_.has(loadBalancer, 'backendService.healthCheck')) {
+      if (_.get(loadBalancer, 'backendService.healthCheck')) {
         loadBalancer.backendService.healthCheck.timeout = loadBalancer.backendService.healthCheck.timeoutSec;
         loadBalancer.backendService.healthCheck.interval = loadBalancer.backendService.healthCheck.checkIntervalSec;
       }
