@@ -17,10 +17,17 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.config.FiatClientConfigurationProperties
+import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.shared.FiatService
+import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
+import com.netflix.spinnaker.gate.security.SpinnakerUser
+import com.netflix.spinnaker.security.User
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
+@Slf4j
 @Component
 class PermissionService {
 
@@ -51,6 +58,27 @@ class PermissionService {
   void sync() {
     if (fiatConfig.enabled) {
       fiatService.sync()
+    }
+  }
+
+  List<String> getServiceAccounts(@SpinnakerUser User user) {
+
+    if (!user) {
+      log.debug("getServiceAccounts: Spinnaker user is null.")
+      return []
+    }
+
+    if (!fiatConfig.enabled) {
+      log.debug("getServiceAccounts: Fiat disabled.")
+      return []
+    }
+
+    // TODO(ttomsu): Use Hystrix for this?
+    try {
+      UserPermission.View view = fiatService.getUserPermission(user.username)
+      return view.getServiceAccounts().collect { it.name }
+    } catch (RetrofitError re) {
+      throw UpstreamBadRequest.classifyError(re)
     }
   }
 }

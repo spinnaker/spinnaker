@@ -64,6 +64,11 @@ class AuthController {
     user
   }
 
+  @RequestMapping("/user/serviceAccounts")
+  List<String> getServiceAccounts(@SpinnakerUser User user) {
+    permissionService.getServiceAccounts(user)
+  }
+
   @RequestMapping("/loggedOut")
   String loggedOut() {
     return LOGOUT_MESSAGES[r.nextInt(LOGOUT_MESSAGES.size()+1)]
