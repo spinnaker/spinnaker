@@ -142,6 +142,6 @@ class AWSServerGroupNameResolverSpec extends Specification {
   }
 
   static ServerGroup sG(String name, Long createdTime, String region) {
-    return new ServerGroup.SimpleServerGroup(name: name, createdTime: createdTime, region: region)
+    return new SimpleServerGroup(name: name, createdTime: createdTime, region: region)
   }
 }
