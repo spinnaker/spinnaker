@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
-import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -25,6 +24,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -62,7 +62,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
     if (version && packageName && remainingInstances) {
       // trigger patch on target server
       remainingInstances.each { String instanceId, Map instance ->
-        String instanceHostName = instance.hostName
+        String instanceHostName = instance.privateIpAddress ?: instance.hostName
         def instanceService = createInstanceService("http://${instanceHostName}:5050")
         if (stage.context.skipUpToDate &&
           // optionally check the installed package version and skip if == target version

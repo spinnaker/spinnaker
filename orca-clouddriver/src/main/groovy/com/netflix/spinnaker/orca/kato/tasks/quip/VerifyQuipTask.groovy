@@ -65,7 +65,7 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
     // verify that /tasks endpoint responds
     boolean allInstancesHaveQuip = true
     instances.each { String key, Map valueMap ->
-      String hostName = valueMap.hostName
+      String hostName = valueMap.privateIpAddress ?: valueMap.hostName
       def instanceService = createInstanceService("http://${hostName}:5050")
       try {
         instanceService.listTasks()
