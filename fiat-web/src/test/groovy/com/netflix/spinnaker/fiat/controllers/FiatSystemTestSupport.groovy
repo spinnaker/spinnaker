@@ -54,4 +54,8 @@ class FiatSystemTestSupport {
                                                       .setRoles([roleA, roleB] as Set)
                                                       .setAccounts([restrictedAccount] as Set)
                                                       .setApplications([restrictedApp] as Set)
+
+  UserPermission roleServiceAccountUser = new UserPermission().setId("roleServiceAccountUser")
+                                                              .setRoles([roleServiceAccount] as Set)
+                                                              .setServiceAccounts([serviceAccount] as Set)
 }

@@ -190,4 +190,26 @@ class AuthorizeControllerSpec extends Specification {
     1 * repository.get("foo") >> Optional.of(foo)
     result == bar.view
   }
+
+  def "should get service accounts from repo"() {
+    setup:
+    permissionsRepository.put(unrestrictedUser)
+    permissionsRepository.put(roleServiceAccountUser)
+
+    when:
+    def expected = objectMapper.writeValueAsString([serviceAccount.view])
+
+    then:
+    mockMvc.perform(get("/authorize/roleServiceAccountUser/serviceAccounts"))
+           .andExpect(status().isOk())
+           .andExpect(content().json(expected))
+
+    when:
+    expected = objectMapper.writeValueAsString(serviceAccount.view)
+
+    then:
+    mockMvc.perform(get("/authorize/roleServiceAccountUser/serviceAccounts/svcAcct%40group.com"))
+           .andExpect(status().isOk())
+           .andExpect(content().json(expected))
+  }
 }

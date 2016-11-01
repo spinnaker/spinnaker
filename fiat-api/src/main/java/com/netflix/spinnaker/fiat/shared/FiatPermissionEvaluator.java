@@ -76,7 +76,11 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
 
     String username = getUsername(authentication);
     ResourceType r = ResourceType.parse(resourceType);
-    Authorization a = Authorization.valueOf(authorization.toString());
+    Authorization a = null;
+    // Service accounts don't have read/write authorizations.
+    if (r != ResourceType.SERVICE_ACCOUNT) {
+      a = Authorization.valueOf(authorization.toString());
+    }
 
     if (r == ResourceType.APPLICATION) {
       val parsedName = Names.parseName(resourceName.toString()).getApp();
@@ -184,6 +188,10 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
         return containsAuth.apply(permission.getAccounts());
       case APPLICATION:
         return containsAuth.apply(permission.getApplications());
+      case SERVICE_ACCOUNT:
+        return permission.getServiceAccounts()
+                         .stream()
+                         .anyMatch(view -> view.getName().equalsIgnoreCase(resourceName));
       default:
         return false;
     }

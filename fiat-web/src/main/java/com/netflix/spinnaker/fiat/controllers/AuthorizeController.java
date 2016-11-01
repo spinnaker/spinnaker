@@ -22,6 +22,7 @@ import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,6 +93,53 @@ public class AuthorizeController {
                                 .orElseThrow(NotFoundException::new);
   }
 
+  @RequestMapping(value = "/{userId:.+}/applications", method = RequestMethod.GET)
+  public Set<Application.View> getUserApplications(@PathVariable String userId) {
+    return permissionsRepository.get(ControllerSupport.convert(userId))
+                                .orElseThrow(NotFoundException::new)
+                                .getApplications()
+                                .stream()
+                                .map(Application::getView)
+                                .collect(Collectors.toSet());
+  }
+
+  @RequestMapping(value = "/{userId:.+}/applications/{applicationName:.+}", method = RequestMethod.GET)
+  public Application.View getUserApplication(@PathVariable String userId, @PathVariable String applicationName) {
+    return permissionsRepository.get(ControllerSupport.convert(userId))
+                                .orElseThrow(NotFoundException::new)
+                                .getApplications()
+                                .stream()
+                                .filter(application -> applicationName.equalsIgnoreCase(application.getName()))
+                                .findFirst()
+                                .map(Application::getView)
+                                .orElseThrow(NotFoundException::new);
+  }
+
+  @RequestMapping(value = "/{userId:.+}/serviceAccounts", method = RequestMethod.GET)
+  public Set<ServiceAccount.View> getServiceAccounts(@PathVariable String userId) {
+    return permissionsRepository.get(ControllerSupport.convert(userId))
+                                .orElseThrow(NotFoundException::new)
+                                .getServiceAccounts()
+                                .stream()
+                                .map(ServiceAccount::getView)
+                                .collect(Collectors.toSet());
+  }
+
+  @RequestMapping(value = "/{userId:.+}/serviceAccounts/{serviceAccountName:.+}", method = RequestMethod.GET)
+  public ServiceAccount.View getServiceAccount(@PathVariable String userId,
+                                               @PathVariable String serviceAccountName) {
+    return permissionsRepository.get(ControllerSupport.convert(userId))
+                                .orElseThrow(NotFoundException::new)
+                                .getServiceAccounts()
+                                .stream()
+                                .filter(serviceAccount ->
+                                            serviceAccount.getName()
+                                                          .equalsIgnoreCase(ControllerSupport.convert(serviceAccountName)))
+                                .findFirst()
+                                .orElseThrow(NotFoundException::new)
+                                .getView();
+  }
+
   @RequestMapping(value = "/{userId:.+}/{resourceType:.+}/{resourceName:.+}/{authorization:.+}", method = RequestMethod.GET)
   public void getUserAuthorization(@PathVariable String userId,
                                    @PathVariable String resourceType,
@@ -125,27 +173,5 @@ public class AuthorizeController {
     }
 
     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-  }
-
-  @RequestMapping(value = "/{userId:.+}/applications", method = RequestMethod.GET)
-  public Set<Application.View> getUserApplications(@PathVariable String userId) {
-    return permissionsRepository.get(ControllerSupport.convert(userId))
-                                .orElseThrow(NotFoundException::new)
-                                .getApplications()
-                                .stream()
-                                .map(Application::getView)
-                                .collect(Collectors.toSet());
-  }
-
-  @RequestMapping(value = "/{userId:.+}/applications/{applicationName:.+}", method = RequestMethod.GET)
-  public Application.View getUserApplication(@PathVariable String userId, @PathVariable String applicationName) {
-    return permissionsRepository.get(ControllerSupport.convert(userId))
-                                .orElseThrow(NotFoundException::new)
-                                .getApplications()
-                                .stream()
-                                .filter(application -> applicationName.equalsIgnoreCase(application.getName()))
-                                .findFirst()
-                                .map(Application::getView)
-                                .orElseThrow(NotFoundException::new);
   }
 }
