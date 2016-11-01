@@ -23,7 +23,7 @@
           <ui-select-match placeholder="Select...">
             {{$select.selected.name}}
           </ui-select-match>
-          <ui-select-choices repeat="healthCheck in $ctrl.backingData.healthChecks | filter: {name: $select.search}">
+          <ui-select-choices repeat="healthCheck in $ctrl.backingData.healthChecks | filter: {name: $select.search, account: $ctrl.loadBalancer.credentials}">
             <div ng-bind-html="healthCheck.name | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
@@ -36,7 +36,7 @@
                name="healthCheckName"
                max="63"
                required
-               validate-unique="$ctrl.allHealthCheckNames"
+               validate-unique="$ctrl.getAllHealthCheckNames()"
                ng-model-options="{ debounce: 250 }"
                ng-model="$ctrl.healthCheck.name"/>
       </div>
@@ -45,12 +45,6 @@
         <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteHealthCheck()">
           <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
           <span>Delete</span>
-        </button>
-      </div>
-      <div class="col-md-2" ng-if="$ctrl.modified()">
-        <button class="btn btn-sm btn-default" ng-click="$ctrl.revert()">
-          <span class="glyphicon glyphicon-flash visible-lg-inline"></span>
-          <span>Revert</span>
         </button>
       </div>
     </div>

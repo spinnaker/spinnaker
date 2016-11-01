@@ -19,35 +19,17 @@ module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.com
     controller: function () {
       this.max = Number.MAX_SAFE_INTEGER;
       this.backingData = this.command.backingData;
-      this.allHealthCheckNames = this.command.backingData.healthChecks.map((hc) => hc.name);
-      let loadBalancer = this.command.loadBalancer;
+      this.loadBalancer = this.command.loadBalancer;
       let healthChecksByName = this.backingData.healthChecksKeyedByName;
-      let healthChecksByNameCopy = this.backingData.healthChecksKeyedByNameCopy;
 
       this.onHealthCheckSelect = (selectedHealthCheck) => {
         assign(selectedHealthCheck);
       };
 
-      let getPlain = (healthCheck) => {
-        return {
-          checkIntervalSec: healthCheck.checkIntervalSec,
-          healthyThreshold: healthCheck.healthyThreshold,
-          port: healthCheck.port,
-          name: healthCheck.name,
-          requestPath: healthCheck.requestPath,
-          unhealthyThreshold: healthCheck.unhealthyThreshold,
-          timeoutSec: healthCheck.timeoutSec,
-        };
-      };
-
-      this.modified = () => {
-        let originalHealthCheck = healthChecksByNameCopy[getHealthCheckName()];
-        return originalHealthCheck && !_.isEqual(getPlain(this.healthCheck), getPlain(originalHealthCheck));
-      };
-
-      this.revert = () => {
-        let originalHealthCheck = _.cloneDeep(healthChecksByNameCopy[getHealthCheckName()]);
-        assign(originalHealthCheck);
+      this.getAllHealthCheckNames = () => {
+        return this.command.backingData.healthChecks
+          .filter((hc) => hc.account === this.loadBalancer.credentials)
+          .map((hc) => hc.name);
       };
 
       this.toggleEditExisting = () => {
@@ -60,7 +42,7 @@ module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.com
       };
 
       let assign = (toAssign) => {
-        loadBalancer.healthChecks[this.index] = this.healthCheck = toAssign;
+        this.loadBalancer.healthChecks[this.index] = this.healthCheck = toAssign;
       };
 
       let getHealthCheckName = () => {

@@ -23,7 +23,7 @@
           <ui-select-match placeholder="Select...">
             {{$select.selected.name}}
           </ui-select-match>
-          <ui-select-choices repeat="backendService in $ctrl.backingData.backendServices | filter: {name: $select.search}">
+          <ui-select-choices repeat="backendService in $ctrl.backingData.backendServices | filter: {name: $select.search, account: $ctrl.loadBalancer.credentials}">
             <div ng-bind-html="backendService.name | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
@@ -36,7 +36,7 @@
                name="serviceName"
                ng-pattern="/^[a-z]([-a-z0-9]*[a-z0-9])?$/"
                max="63"
-               validate-unique="$ctrl.allServiceNames"
+               validate-unique="$ctrl.getAllServiceNames()"
                ng-model-options="{ debounce: 250 }"
                ng-model="$ctrl.backendService.name"/>
       </div>
@@ -45,12 +45,6 @@
         <button class="btn btn-sm btn-default" ng-click="$ctrl.deleteService()">
           <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
           <span>Delete</span>
-        </button>
-      </div>
-      <div class="col-md-2" ng-if="$ctrl.modified()">
-        <button class="btn btn-sm btn-default" ng-click="$ctrl.revert()">
-          <span class="glyphicon glyphicon-flash visible-lg-inline"></span>
-          <span>Revert</span>
         </button>
       </div>
     </div>

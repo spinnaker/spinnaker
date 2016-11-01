@@ -75,7 +75,7 @@
                        class="form-control input-sm">
               <ui-select-match allow-clear placeholder="Select...">{{$select.selected}}</ui-select-match>
               <ui-select-choices
-                repeat="certificate in $ctrl.certificates | filter: $select.search">
+                repeat="certificate in $ctrl.getCertificates() | filter: $select.search">
                 <span ng-bind-html="certificate | highlight: $select.search"></span>
               </ui-select-choices>
             </ui-select>

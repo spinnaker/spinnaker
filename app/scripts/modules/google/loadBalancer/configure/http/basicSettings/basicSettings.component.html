@@ -27,7 +27,7 @@
                                 field="credentials"
                                 accounts="$ctrl.accounts"
                                 provider="'gce'"
-                                on-change="$ctrl.updateExistingLoadBalancerNames($ctrl.loadBalancer.credentials)">
+                                on-change="$ctrl.accountChanged($ctrl.loadBalancer.credentials)">
           </account-select-field>
         </div>
       </div>

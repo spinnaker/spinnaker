@@ -96,6 +96,7 @@ module.exports = angular.module('spinnaker.gce.deck.httpLoadBalancer.transformer
         hostRules,
         listeners,
         urlMapName: loadBalancer.urlMapName,
+        credentials: loadBalancer.credentials || loadBalancer.account,
       };
     }
 

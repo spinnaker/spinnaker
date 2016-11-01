@@ -35,6 +35,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
             getAllBackendServices,
             isNew,
             loadBalancer,
+            onAccountChange,
             onBackendServiceRefresh,
             onBackendServiceSelected,
             onCertificateRefresh,
@@ -107,10 +108,12 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
       let accountNames = backingData.accounts.map(account => account.name);
 
       accountNames.forEach((accountName) => {
-        backingData.loadBalancerMap[accountName].listeners =
-          _.without(
-            backingData.loadBalancerMap[accountName].listeners,
-            ...existingListeners.map(listener => listener.name));
+        if (_.has(backingData, ['loadBalancerMap', accountName, 'listeners'])) {
+          backingData.loadBalancerMap[accountName].listeners =
+            _.without(
+              backingData.loadBalancerMap[accountName].listeners,
+              ...existingListeners.map(listener => listener.name));
+        }
       });
     }
 
@@ -128,6 +131,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
         .then(([response]) => response.results.map((hc) => {
           let parsed = JSON.parse(hc.httpHealthCheck);
           parsed.kind = parsed.kind.split('#').pop();
+          parsed.account = hc.account;
           return parsed;
         }));
     }
@@ -150,7 +154,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
 
     function getCertificates () {
       return gceCertificateReader.listCertificates()
-        .then(([response]) => response.results.map(c => c.name));
+        .then(([response]) => response.results);
     }
 
     function getAccounts () {
@@ -255,6 +259,10 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
     function getAllBackendServices (command) {
       let allBackendServices = command.loadBalancer.backendServices.concat(command.backingData.backendServices);
       return _.chain(allBackendServices)
+        .filter((service) => {
+          return service.account === command.loadBalancer.credentials ||
+                 service.account === command.loadBalancer.account;
+        })
         .map('name')
         .compact()
         .uniq()
@@ -302,6 +310,14 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
       let unusedHealthChecks = getUnusedHealthChecks(command);
       command.loadBalancer.healthChecks = command.loadBalancer.healthChecks
         .filter((healthCheck) => !unusedHealthChecks.includes(healthCheck.name));
+    }
+
+    function onAccountChange (command) {
+      command.loadBalancer.backendServices = [];
+      command.loadBalancer.healthChecks = [];
+      command.loadBalancer.hostRules = [];
+      command.loadBalancer.listeners = [new ListenerTemplate()];
+      command.loadBalancer.defaultService = null;
     }
 
     return { buildCommand };

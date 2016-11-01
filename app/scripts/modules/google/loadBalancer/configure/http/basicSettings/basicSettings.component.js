@@ -26,14 +26,15 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.basicSettin
         lb.urlMapName = this.getName(lb, appName);
       };
 
-      this.updateExistingLoadBalancerNames = (account) => {
-        this.existingLoadBalancerNames = loadBalancerMap[account].urlMapNames;
+      this.accountChanged = (account) => {
+        this.existingLoadBalancerNames = _.get(loadBalancerMap, [account, 'urlMapNames']) || [];
+        c.onAccountChange(c);
       };
 
       if (!this.loadBalancer.name) {
         this.updateName(this.loadBalancer, this.application.name);
       }
 
-      this.updateExistingLoadBalancerNames(this.loadBalancer.credentials);
+      this.existingLoadBalancerNames = _.get(loadBalancerMap, [this.loadBalancer.credentials, 'urlMapNames']) || [];
     }
   });

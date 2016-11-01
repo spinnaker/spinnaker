@@ -29,6 +29,12 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.listener.co
         return _.trimEnd(listenerName, '-');
       };
 
+      this.getCertificates = () => {
+        return this.command.backingData.certificates
+          .filter((certificate) => certificate.account === this.command.loadBalancer.credentials)
+          .map((certificate) => certificate.name);
+      };
+
       this.updateName = (listener, appName) => {
         listener.name = this.getName(listener, appName);
       };
@@ -38,7 +44,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.listener.co
       };
 
       this.existingListenerNames = () => {
-        return loadBalancerMap[this.command.loadBalancer.credentials].listeners;
+        return _.get(loadBalancerMap, [this.command.loadBalancer.credentials, 'listeners']);
       };
 
       this.isHttps = (port) => port === 443 || port === '443';
