@@ -64,6 +64,12 @@ class BakeryController {
   @Value('${defaultCloudProviderType:aws}')
   BakeRequest.CloudProviderType defaultCloudProviderType
 
+  @Value('${rosco.polling.waitForJobStartTimeoutMillis:5000}')
+  long waitForJobStartTimeoutMillis
+
+  @Value('${rosco.polling.waitForJobStartPollingIntervalMillis:500}')
+  long waitForJobStartPollingIntervalMillis
+
   @RequestMapping(value = '/bakeOptions', method = RequestMethod.GET)
   List<BakeOptions> bakeOptions() {
     cloudProviderBakeHandlerRegistry.list().collect { it.getBakeOptions() }
@@ -99,11 +105,28 @@ class BakeryController {
     String jobId = jobExecutor.startJob(jobRequest)
 
     // Give the job jobExecutor some time to kick off the job.
+    // Poll for bake status by job id every 1/2 second for 5 seconds.
     // The goal here is to fail fast. If it takes too much time, no point in waiting here.
-    sleep(1000)
+    def startTime = System.currentTimeMillis()
+
+    while (System.currentTimeMillis() - startTime < waitForJobStartTimeoutMillis) {
+      def bakeStatus = jobExecutor.jobExists(jobId)
+
+      if (bakeStatus) {
+        break
+      } else {
+        sleep(waitForJobStartPollingIntervalMillis)
+      }
+    }
 
     // Update the status right away so we can fail fast if necessary.
     BakeStatus newBakeStatus = jobExecutor.updateJob(jobId)
+
+    if (!newBakeStatus) {
+      throw new IllegalArgumentException("Unable to locate bake with id '$jobId'. Currently " +
+        "'$waitForJobStartTimeoutMillis'ms is the configured timeout for the job to start. If it is a persistent issue," +
+        " You could increase 'rosco.polling.waitForJobStartTimeoutMillis' to wait for more time for the job to start")
+    }
 
     if (newBakeStatus.result == BakeStatus.Result.FAILURE && newBakeStatus.logsContent) {
       throw new IllegalArgumentException(newBakeStatus.logsContent)

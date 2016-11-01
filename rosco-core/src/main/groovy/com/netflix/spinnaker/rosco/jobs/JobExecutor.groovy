@@ -20,6 +20,7 @@ import com.netflix.spinnaker.rosco.api.BakeStatus
 
 interface JobExecutor {
   String startJob(JobRequest jobRequest)
+  boolean jobExists(String jobId)
   BakeStatus updateJob(String jobId)
   void cancelJob(String jobId)
 }

@@ -110,6 +110,11 @@ class JobExecutorLocal implements JobExecutor {
   }
 
   @Override
+  boolean jobExists(String jobId) {
+    return jobIdToHandlerMap.containsKey(jobId)
+  }
+
+  @Override
   BakeStatus updateJob(String jobId) {
     try {
       log.info("Polling state for $jobId...")
