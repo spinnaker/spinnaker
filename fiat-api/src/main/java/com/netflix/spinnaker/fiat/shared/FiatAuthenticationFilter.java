@@ -42,8 +42,8 @@ public class FiatAuthenticationFilter implements Filter {
                                                                                   null,
                                                                                   new ArrayList<>()))
         .orElseGet(() -> new AnonymousAuthenticationToken(
-            "ignored1", // These values are never used. See FiatPermissionEvaluator.
-            "ignored2",
+            "anonymous",
+            "anonymous",
             AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")
         ));
 
