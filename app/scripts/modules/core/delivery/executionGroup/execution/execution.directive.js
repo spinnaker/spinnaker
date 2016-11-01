@@ -145,10 +145,10 @@ module.exports = angular
           refreshing = false;
         });
       });
+      $scope.$on('$destroy', () => activeRefresher.unsubscribe());
     }
 
     $scope.$on('$destroy', () => {
-      activeRefresher.unsubscribe();
       if (this.isActive()) {
         this.hideDetails();
       }
