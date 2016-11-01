@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.stereotype.Component;
+import rx.Observable;
 import rx.functions.Action1;
 
 /**
@@ -43,7 +44,19 @@ public class PipelineInitiator implements Action1<Pipeline> {
     if (enabled) {
       log.warn("Triggering {} due to {}", pipeline, pipeline.getTrigger());
       counter.increment("orca.requests");
-      orca.trigger(pipeline).subscribe(this::onOrcaResponse, this::onOrcaError);
+
+      String runAsUser = null;
+      if (pipeline.getTrigger() != null) {
+        runAsUser = pipeline.getTrigger().getRunAsUser();
+      }
+
+      Observable<OrcaService.Response> response;
+      if (runAsUser != null && !runAsUser.isEmpty()) {
+        response = orca.trigger(pipeline, pipeline.getTrigger().getRunAsUser());
+      } else {
+        response = orca.trigger(pipeline);
+      }
+      response.subscribe(this::onOrcaResponse, this::onOrcaError);
     } else {
       log.info("Would trigger {} due to {} but triggering is disabled", pipeline, pipeline.getTrigger());
     }
