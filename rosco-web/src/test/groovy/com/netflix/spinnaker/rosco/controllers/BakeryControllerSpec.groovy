@@ -128,7 +128,9 @@ class BakeryControllerSpec extends Specification {
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  bakeStore: bakeStoreMock)
+                                                  bakeStore: bakeStoreMock,
+                                                  waitForJobStartTimeoutMillis: 1000,
+                                                  waitForJobStartPollingIntervalMillis: 100)
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
@@ -161,7 +163,9 @@ class BakeryControllerSpec extends Specification {
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
-                                                  jobExecutor: jobExecutorMock)
+                                                  jobExecutor: jobExecutorMock,
+                                                  waitForJobStartTimeoutMillis: 1000,
+                                                  waitForJobStartPollingIntervalMillis: 100)
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
@@ -194,7 +198,9 @@ class BakeryControllerSpec extends Specification {
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
-                                                  bakeStore: bakeStoreMock)
+                                                  bakeStore: bakeStoreMock,
+                                                  waitForJobStartTimeoutMillis: 1000,
+                                                  waitForJobStartPollingIntervalMillis: 100)
 
     when:
       bakeryController.createBake(REGION, bakeRequest, null)

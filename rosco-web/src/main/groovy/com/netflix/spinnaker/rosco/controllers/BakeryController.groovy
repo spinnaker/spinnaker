@@ -123,9 +123,9 @@ class BakeryController {
     BakeStatus newBakeStatus = jobExecutor.updateJob(jobId)
 
     if (!newBakeStatus) {
-      throw new IllegalArgumentException("Unable to locate bake with id '$jobId'. Currently " +
-        "'$waitForJobStartTimeoutMillis'ms is the configured timeout for the job to start. If it is a persistent issue," +
-        " You could increase 'rosco.polling.waitForJobStartTimeoutMillis' to wait for more time for the job to start")
+      throw new IllegalArgumentException("Unable to locate bake with id '$jobId'. Currently, " +
+        "${waitForJobStartTimeoutMillis}ms is the configured timeout for the job to start. If it is a persistent issue, " +
+        "you could increase 'rosco.polling.waitForJobStartTimeoutMillis' to give the job more time to start.")
     }
 
     if (newBakeStatus.result == BakeStatus.Result.FAILURE && newBakeStatus.logsContent) {
@@ -192,13 +192,13 @@ class BakeryController {
         def startTime = System.currentTimeMillis()
 
         // Poll for bake status by bake key every 1/2 second for 5 seconds.
-        while (System.currentTimeMillis() - startTime < 5000) {
+        while (System.currentTimeMillis() - startTime < waitForJobStartTimeoutMillis) {
           def bakeStatus = bakeStore.retrieveBakeStatusByKey(bakeKey)
 
           if (bakeStatus) {
             return bakeStatus
           } else {
-            Thread.sleep(500)
+            sleep(waitForJobStartPollingIntervalMillis)
           }
         }
 
