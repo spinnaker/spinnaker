@@ -35,10 +35,20 @@ allprojects {
   apply plugin: 'groovy'
 
   ext {
-    spinnakerDependenciesVersion = "0.64.0"
+    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.64.0'
   }
 
-  if (spinnakerDependenciesVersion.indexOf('-dev') != -1) {
+  def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
+  if (ext.has('versions')) {
+    def extVers = ext.get('versions')
+    if (extVers instanceof Map) {
+      checkLocalVersions.putAll(extVers)
+    }
+  }
+
+  def localVersions = checkLocalVersions.findAll { it.value.endsWith('-SNAPSHOT') }
+  if (localVersions) {
+    logger.info("Enabling mavenLocal repo for $localVersions")
     repositories {
       mavenLocal()
     }
@@ -47,6 +57,7 @@ allprojects {
   spinnaker {
     dependenciesVersion = spinnakerDependenciesVersion
   }
+
   test {
     testLogging {
       exceptionFormat = 'full'
