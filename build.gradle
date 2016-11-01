@@ -16,7 +16,7 @@
 
 buildscript {
   ext {
-    springBootVersion = "1.4.1.RELEASE"
+    springBootVersion = "1.2.8.RELEASE"
   }
   repositories {
     jcenter()
@@ -35,7 +35,7 @@ allprojects {
   apply plugin: 'groovy'
 
   ext {
-    spinnakerDependenciesVersion = "0.62.0"
+    spinnakerDependenciesVersion = "0.64.0"
   }
 
   if (spinnakerDependenciesVersion.indexOf('-dev') != -1) {
