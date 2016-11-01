@@ -39,10 +39,16 @@ set -e
 # specifically around keeping defaults for files that were modified.
 export DEBIAN_FRONTEND=noninteractive
 
+# we don't want to update these. see github.com/spinnaker/spinnaker/issues/1279
+# for context.
+SPINNAKER_SUBSYSTEMS="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-fiat spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker"
+
+apt-mark hold $SPINNAKER_SUBSYSTEMS
 # update apt
 apt-get update
 # temporary workaround for where DEBIAN_FRONTEND=noninteractive isn't enough
 apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y upgrade
+apt-mark unhold $SPINNAKER_SUBSYSTEMS
 
 # acquire and configure jenkins
 apt-get install -y git
