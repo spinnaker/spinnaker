@@ -99,12 +99,12 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 'http://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
         targetSize    : 2,
-        envs          : [[name: 'CUSTOM_ENV', value: 'test value']],
+        envs          : ['CUSTOM_ENV': 'test value'],
         buildpackUrl  : 'https://my-custom-buildpack/',
         credentials   : TestCredential.named('test')
     )
@@ -140,7 +140,6 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     results.messages.containsAll([
         'INIT : Creating task test',
         'DEPLOY : Initializing handler...',
-        'DEPLOY : Found next sequence 000.',
         "DEPLOY : Creating application ${serverGroupName}".toString(),
         'DEPLOY : Memory set to 1024',
         'DEPLOY : Disk limit set to 1024',
@@ -167,7 +166,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 'http://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         username      : 'my-username',
@@ -212,7 +211,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller       : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -247,7 +246,6 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     results.messages.containsAll([
         'INIT : Creating task test',
         'DEPLOY : Initializing handler...',
-        'DEPLOY : Found next sequence 000.',
         "DEPLOY : Creating application ${serverGroupName}".toString(),
         'DEPLOY : Memory set to 1024',
         'DEPLOY : Disk limit set to 1024',
@@ -271,7 +269,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller       : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         username      : 'my-username',
@@ -313,7 +311,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller       : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 'ftp://ftp.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -346,11 +344,11 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     handler = new CloudFoundryDeployHandler(
         clientFactory         : new TestCloudFoundryClientFactory(stubClient: client),
         restTemplateFactory   : restTemplateFactory,
-        s3ServiceFactory: s3ServiceFactory,
+        s3ServiceFactory      : s3ServiceFactory,
         operationPoller       : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 'http://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -366,7 +364,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     0 * restTemplate._
 
     1 * client.getApplications() >> {
-      [new CloudApplication(null, description.application + '-v000'), new CloudApplication(null, description.application + '-v002')]
+      [new CloudApplication(null, description.application + '-v002'), new CloudApplication(null, description.application + '-v002')]
     }
     1 * client.getApplication(serverGroupName) >> { null }
     1 * client.getDefaultDomain() >> { new CloudDomain(null, 'example.com', null) }
@@ -398,7 +396,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller       : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 'http://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -449,7 +447,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller: Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 'http://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -472,7 +470,6 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     results.messages.containsAll([
         'INIT : Creating task test',
         'DEPLOY : Initializing handler...',
-        'DEPLOY : Found next sequence 000.',
         "DEPLOY : Creating application ${serverGroupName}".toString(),
         'DEPLOY : Memory set to 1024',
         'DEPLOY : Disk limit set to 1024',
@@ -494,7 +491,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller       : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -535,7 +532,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller: Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 'http://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -594,7 +591,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -630,7 +627,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -661,7 +658,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -702,7 +699,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -736,7 +733,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -779,7 +776,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -822,7 +819,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -865,7 +862,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -904,7 +901,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -950,7 +947,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : Mock(OperationPoller)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -998,7 +995,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : new OperationPoller(1, 3)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',
@@ -1047,7 +1044,7 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         operationPoller     : new OperationPoller(1, 3)
     )
     def description = new CloudFoundryDeployDescription(
-        application   : 'cool-app',
+        application   : 'coolapp',
         repository    : 's3://repo.example.com/releases',
         artifact      : 'cool-app-0.1.0.jar',
         loadBalancers : 'cool-test-app',

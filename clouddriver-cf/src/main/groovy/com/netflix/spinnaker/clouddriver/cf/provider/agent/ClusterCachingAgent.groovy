@@ -411,7 +411,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
   private void cacheServerGroup(CloudFoundryData data, Map<String, CacheData> serverGroups, CloudSpace currentSpace, Map<String, Set<CloudService>> services) {
     serverGroups[data.serverGroupKey].with {
       attributes.name = data.application.name
-      attributes.logsLink = "${account.console}/organizations/${data.application.space.organization.meta.guid}/spaces/${data.application.space.meta.guid}/applications/${data.application.meta.guid}/tailing_logs".toString()
+      attributes.logsLink = "${account.console}/organizations/${data.application.space.organization.meta.guid}/spaces/${data.application.space.meta.guid}/applications/${data.application.meta.guid}/logs".toString()
       attributes.consoleLink = "${account.console}/organizations/${data.application.space.organization.meta.guid}/spaces/${data.application.space.meta.guid}/applications/${data.application.meta.guid}".toString()
       attributes.nativeApplication = data.application
       attributes.services = services[currentSpace.meta.guid].findAll { data.application.services.contains(it.name) }.collect {

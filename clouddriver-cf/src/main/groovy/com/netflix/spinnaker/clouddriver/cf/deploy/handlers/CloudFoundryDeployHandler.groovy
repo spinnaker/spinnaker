@@ -15,9 +15,9 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.handlers
-import com.netflix.frigga.NameBuilder
-import com.netflix.frigga.Names
+
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
+import com.netflix.spinnaker.clouddriver.cf.deploy.CloudFoundryServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
 import com.netflix.spinnaker.clouddriver.cf.utils.RestTemplateFactory
@@ -70,18 +70,9 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
     task.updateStatus BASE_PHASE, "Initializing handler..."
 
-    def nameBuilder = new NameBuilder() {
-      @Override
-      public String combineAppStackDetail(String appName, String stack, String detail) {
-        return super.combineAppStackDetail(appName, stack, detail)
-      }
-    }
-
-    def clusterName = nameBuilder.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
-    def nextSequence = getNextSequence(clusterName, client)
-    task.updateStatus BASE_PHASE, "Found next sequence ${nextSequence}."
-
-    description.serverGroupName = "${clusterName}-v${nextSequence}".toString()
+    def serverGroupNameResolver = new CloudFoundryServerGroupNameResolver(description.credentials, clientFactory)
+    def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
+    description.serverGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
 
     try {
       task.updateStatus BASE_PHASE, "Creating application ${description.serverGroupName}"
@@ -155,14 +146,16 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
         def loadBalancers = description.loadBalancers?.split(',').collect { it + domain }
         loadBalancers += description.serverGroupName + domain
 
-        task.updateStatus BASE_PHASE, "Memory set to ${description.memory}"
-        task.updateStatus BASE_PHASE, "Disk limit set to ${description.disk}"
+        def memory = description.memory ?: 1024
+        def disk = description.disk ?: 1024
+
+        task.updateStatus BASE_PHASE, "Memory set to ${memory}"
+        task.updateStatus BASE_PHASE, "Disk limit set to ${ disk}"
         if (description?.buildpackUrl) {
           task.updateStatus BASE_PHASE, "Custom buildpack ${description.buildpackUrl}"
         }
-        client.createApplication(description.serverGroupName, staging, description.disk, description.memory, loadBalancers,
+        client.createApplication(description.serverGroupName, staging, disk, memory, loadBalancers,
             description?.services)
-        // TODO Add support for updating application disk quotas
       }
     } catch (CloudFoundryException e) {
       def message = "Error while creating application '${description.serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
@@ -204,7 +197,7 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     def env = [:]
 
     if (description?.envs && !description.envs.isEmpty()) {
-      env += description.envs.collectEntries { [it.name, it.value] }
+      env += description.envs
     }
 
     if (isJenkinsTrigger(description)) {
@@ -310,29 +303,6 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
   @Override
   boolean handles(DeployDescription description) {
     return description instanceof CloudFoundryDeployDescription
-  }
-
-  /**
-   * Scan through all the apps in this space, and find the maximum one with a matching cluster name
-   *
-   * @param clusterName
-   * @param project
-   * @param region
-   * @param client
-   * @return
-   */
-  private def getNextSequence(String clusterName, CloudFoundryClient client) {
-    def maxSeqNumber = -1
-
-    client.applications.each { app ->
-      def names = Names.parseName(app.name)
-
-      if (names.cluster == clusterName) {
-        maxSeqNumber = Math.max(maxSeqNumber, names.sequence)
-      }
-    }
-
-    String.format("%03d", (++maxSeqNumber) % 1000)
   }
 
 }

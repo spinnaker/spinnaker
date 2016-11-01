@@ -15,13 +15,13 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.provider.agent
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
-import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.TestCredential
 import com.netflix.spinnaker.clouddriver.cf.cache.Keys
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
@@ -92,7 +92,7 @@ class ClusterCachingAgentSpec extends Specification {
     results.cacheResults.serverGroups[0].id == Keys.getServerGroupKey('testapp-production-v001', 'test', 'spinnaker')
     results.cacheResults.serverGroups[0].ttlSeconds == -1
     results.cacheResults.serverGroups[0].attributes.name == 'testapp-production-v001'
-    results.cacheResults.serverGroups[0].attributes.logsLink == "http://console.cf.example.com/organizations/${uuid2}/spaces/${uuid1}/applications/${uuid2}/tailing_logs"
+    results.cacheResults.serverGroups[0].attributes.logsLink == "http://console.cf.example.com/organizations/${uuid2}/spaces/${uuid1}/applications/${uuid2}/logs"
     results.cacheResults.serverGroups[0].attributes.consoleLink == "http://console.cf.example.com/organizations/${uuid2}/spaces/${uuid1}/applications/${uuid2}"
     results.cacheResults.serverGroups[0].attributes.services.size() == 1
     results.cacheResults.serverGroups[0].attributes.services[0].id == uuid3

@@ -17,22 +17,33 @@
 package com.netflix.spinnaker.clouddriver.cf.utils
 
 import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
+import groovy.util.logging.Slf4j
 import org.cloudfoundry.client.lib.CloudFoundryClient
 import org.cloudfoundry.client.lib.CloudFoundryOperations
+
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A factory for creating {@link CloudFoundryClient} objects. This allows delaying the creation until ALL
  * the details are gathered (some come via {@link com.netflix.spinnaker.clouddriver.cf.deploy.description.CloudFoundryDeployDescription}
  */
+@Slf4j
 class DefaultCloudFoundryClientFactory implements CloudFoundryClientFactory {
 
+  private Map<String, CloudFoundryOperations> operations = new ConcurrentHashMap<>(8, 0.9f, 1)
+
   CloudFoundryOperations createCloudFoundryClient(CloudFoundryAccountCredentials credentials, boolean trustSelfSignedCerts) {
-    new CloudFoundryClient(
-        credentials.credentials,
-        credentials.api.toURL(),
-        credentials.org,
-        credentials.space,
-        trustSelfSignedCerts)
+
+    operations.withDefault {
+      log.info "Creating CloudFoundryOperations for ${credentials.name}"
+
+      new CloudFoundryClient(
+              credentials.credentials,
+              credentials.api.toURL(),
+              credentials.org,
+              credentials.space,
+              trustSelfSignedCerts)
+    }[credentials.name]
   }
 
 }

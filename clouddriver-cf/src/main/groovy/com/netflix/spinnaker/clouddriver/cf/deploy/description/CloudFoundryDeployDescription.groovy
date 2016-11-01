@@ -47,11 +47,11 @@ class CloudFoundryDeployDescription extends AbstractCloudFoundryDescription impl
 
   List<String> services
 
-  List<Map<String, String>> envs
+  Map<String, String> envs
 
-  Integer memory = 1024
+  Integer memory
 
-  Integer disk = 1024
+  Integer disk
 
   String buildpackUrl = ''
 
@@ -80,5 +80,9 @@ class CloudFoundryDeployDescription extends AbstractCloudFoundryDescription impl
   String artifact
   String username
   String password
+
+  // Only for cloning
+
+  Map<String, Object> source
 
 }
