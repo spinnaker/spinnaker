@@ -19,14 +19,9 @@ package com.netflix.spinnaker.orca.batch
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
-import com.netflix.spinnaker.orca.batch.listeners.SpringBatchStageListener
-import com.netflix.spinnaker.orca.listeners.StageListener
-import com.netflix.spinnaker.orca.listeners.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunnerSpec
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.spockframework.spring.xml.SpockMockFactoryBean
@@ -67,15 +62,5 @@ class SpringBatchExecutionRunnerSpec extends ExecutionRunnerSpec {
 
     @Bean
     FactoryBean<Sleeper> sleeper() { new SpockMockFactoryBean(Sleeper) }
-
-    @Bean
-    StageListener stageStatusPropagationListener(ExecutionRepository executionRepository) {
-      new SpringBatchStageListener(executionRepository, new StageStatusPropagationListener())
-    }
-
-    @Bean
-    StageListener stageTaskPropagationListener(ExecutionRepository executionRepository) {
-      new SpringBatchStageListener(executionRepository, new StageTaskPropagationListener())
-    }
   }
 }

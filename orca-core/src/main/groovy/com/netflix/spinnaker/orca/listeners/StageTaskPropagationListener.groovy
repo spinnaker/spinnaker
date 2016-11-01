@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.listeners
 
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
-import groovy.util.logging.Slf4j
 
 @Slf4j
 class StageTaskPropagationListener implements StageListener {
@@ -40,11 +40,5 @@ class StageTaskPropagationListener implements StageListener {
     task.endTime = task.endTime ?: System.currentTimeMillis()
     log.info("Setting task status to ${task.status} (stageId: ${stage.id}, taskId: ${task.id}, taskName: ${task.getName()}) [afterTask]")
     persister.save(stage)
-  }
-
-  @Override
-  int getOrder() {
-    // a lower priority than EchoNotifyingStageExecutionListener
-    return -1;
   }
 }

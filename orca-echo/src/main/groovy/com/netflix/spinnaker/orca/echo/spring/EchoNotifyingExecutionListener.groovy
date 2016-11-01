@@ -1,16 +1,14 @@
 package com.netflix.spinnaker.orca.echo.spring
 
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
-import org.springframework.core.annotation.Order
 
 @Slf4j
-@Order(0)
 @CompileStatic
 class EchoNotifyingExecutionListener implements ExecutionListener {
 
@@ -42,10 +40,10 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
   }
 
   @Override
-  public void afterExecution(Persister persister,
-                             Execution execution,
-                             ExecutionStatus executionStatus,
-                             boolean wasSuccessful) {
+  void afterExecution(Persister persister,
+                      Execution execution,
+                      ExecutionStatus executionStatus,
+                      boolean wasSuccessful) {
     try {
       if (execution.status != ExecutionStatus.SUSPENDED) {
         echoService.recordEvent(

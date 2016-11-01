@@ -111,6 +111,8 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
   public <T extends Execution<T>> void start(T execution) throws JobExecutionException {
     Job job = createJob(execution);
 
+    execution.setExecutionEngine("v2"); // force this here because we ARE running v2
+
     // TODO-AJ This is hokiepokie
     if (execution instanceof Pipeline) {
       executionRepository.store((Pipeline) execution);

@@ -40,7 +40,7 @@ class ExecutionPropagationListener implements ExecutionListener {
       executionStatus = CANCELED
     }
 
-    if (executionStatus == STOPPED) {
+    if (executionStatus in [STOPPED, SKIPPED, FAILED_CONTINUE]) {
       executionStatus = SUCCEEDED
     }
 

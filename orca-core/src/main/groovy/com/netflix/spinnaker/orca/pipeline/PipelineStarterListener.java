@@ -28,13 +28,11 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.Order;
 
 /**
  * Reacts to pipelines finishing and schedules the next job waiting
  */
 @Slf4j
-@Order(0)
 public class PipelineStarterListener implements ExecutionListener {
 
   private final ExecutionRepository executionRepository;

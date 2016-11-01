@@ -20,30 +20,43 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import com.netflix.spinnaker.orca.batch.ExecutionListenerProvider;
-import com.netflix.spinnaker.orca.listeners.ExecutionListener;
-import com.netflix.spinnaker.orca.listeners.StageListener;
+import com.netflix.spinnaker.orca.listeners.*;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import static java.util.stream.Collectors.toList;
 
 @Component
 public class SpringBatchExecutionListenerProvider implements ExecutionListenerProvider {
+
   private final ExecutionRepository executionRepository;
   private final List<StageListener> stageListeners = new ArrayList<>();
   private final List<ExecutionListener> executionListeners = new ArrayList<>();
 
   @Autowired
-  public SpringBatchExecutionListenerProvider(ExecutionRepository executionRepository,
-                                              // TODO: this is just because Spring refuses to autowire empty collections
-                                              Optional<Collection<StageListener>> stageListeners,
-                                              Optional<Collection<ExecutionListener>> executionListeners) {
+  public SpringBatchExecutionListenerProvider(
+    ExecutionRepository executionRepository,
+    // Spring refuses to autowire empty collections
+    Optional<Collection<StageListener>> stageListeners,
+    Optional<Collection<ExecutionListener>> executionListeners) {
+
     this.executionRepository = executionRepository;
+
     stageListeners.ifPresent(this.stageListeners::addAll);
+    // Because Spring Batch wires listeners in an "onion skin" order we need to
+    // apply them in this specific order - "other" listeners should run first
+    // before steps as some may want to use NOT_STARTED status as an indication
+    // that the stage isn't just repeating. After steps the propagation
+    // listeners should always run first so that other listeners get the updated
+    // status on the task/stage.
+    this.stageListeners.add(new StageStatusPropagationListener());
+    this.stageListeners.add(new StageTaskPropagationListener());
+
     executionListeners.ifPresent(this.executionListeners::addAll);
+    this.executionListeners.add(new ExecutionPropagationListener());
   }
 
   @Override
@@ -60,17 +73,15 @@ public class SpringBatchExecutionListenerProvider implements ExecutionListenerPr
   public Collection<StepExecutionListener> allStepExecutionListeners() {
     return stageListeners
       .stream()
-      .sorted()
-      .map(stageListener -> new SpringBatchStageListener(executionRepository, stageListener))
-      .collect(Collectors.toList());
+      .map(this::wrap)
+      .collect(toList());
   }
 
   @Override
   public Collection<JobExecutionListener> allJobExecutionListeners() {
     return executionListeners
       .stream()
-      .sorted()
-      .map(executionListener -> new SpringBatchExecutionListener(executionRepository, executionListener))
-      .collect(Collectors.toList());
+      .map(this::wrap)
+      .collect(toList());
   }
 }

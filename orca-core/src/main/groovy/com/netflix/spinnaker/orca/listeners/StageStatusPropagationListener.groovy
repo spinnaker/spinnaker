@@ -73,9 +73,4 @@ class StageStatusPropagationListener implements StageListener {
 
     persister.save(stage)
   }
-
-  @Override
-  int getOrder() {
-    return -1
-  }
 }

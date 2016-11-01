@@ -22,11 +22,9 @@ import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component
-@Order(0)
 class FastPropertyCleanupListener implements ExecutionListener {
 
   private final MaheService mahe
@@ -37,10 +35,10 @@ class FastPropertyCleanupListener implements ExecutionListener {
   }
 
   @Override
-  public void afterExecution(Persister persister,
-                             Execution execution,
-                             ExecutionStatus executionStatus,
-                             boolean wasSuccessful) {
+  void afterExecution(Persister persister,
+                      Execution execution,
+                      ExecutionStatus executionStatus,
+                      boolean wasSuccessful) {
     execution.with {
       context.propertyIdList.each {
         if (it.previous) {

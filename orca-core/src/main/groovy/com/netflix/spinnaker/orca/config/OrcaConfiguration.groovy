@@ -31,7 +31,7 @@ import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
-import com.netflix.spinnaker.orca.listeners.*
+import com.netflix.spinnaker.orca.listeners.ExecutionCleanupListener
 import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
@@ -154,20 +154,16 @@ class OrcaConfiguration {
   }
 
   @Bean
-  CompositeStageListener stageAndTaskStatusListeners() {
-    // TODO: could autowire the other listeners here and order according to Spring annotations
-    new CompositeStageListener(new StageTaskPropagationListener(), new StageStatusPropagationListener())
+  ExecutionCleanupListener executionCleanupListener() {
+    new ExecutionCleanupListener()
   }
 
   @Bean
-  CompositeExecutionListener executionListeners(ExecutionRepository executionRepository,
-                                                PipelineStartTracker startTracker,
-                                                ApplicationContext applicationContext) {
-    new CompositeExecutionListener(
-      new ExecutionCleanupListener(),
-      new PipelineStarterListener(executionRepository, startTracker, applicationContext),
-      new ExecutionPropagationListener()
-    )
+  PipelineStarterListener pipelineStarterListener(
+    ExecutionRepository executionRepository,
+    PipelineStartTracker startTracker,
+    ApplicationContext applicationContext) {
+    new PipelineStarterListener(executionRepository, startTracker, applicationContext)
   }
 
   @Bean
@@ -182,9 +178,9 @@ class OrcaConfiguration {
   }
 
   @CompileDynamic
-  public static ThreadPoolTaskExecutor applyThreadPoolMetrics(Registry registry,
-                                                              ThreadPoolTaskExecutor executor,
-                                                              String threadPoolName) {
+  static ThreadPoolTaskExecutor applyThreadPoolMetrics(Registry registry,
+                                                       ThreadPoolTaskExecutor executor,
+                                                       String threadPoolName) {
     def createGuage = { String name, Closure valueCallback ->
       def id = registry
         .createId("threadpool.${name}" as String)
