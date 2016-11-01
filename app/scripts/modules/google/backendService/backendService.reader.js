@@ -10,11 +10,18 @@ module.exports = angular.module('spinnaker.deck.gce.backendService.reader.servic
   ])
   .factory('gceBackendServiceReader', function (API, infrastructureCaches) {
 
-    function listBackendServices () {
-      return API
-        .all('search')
-        .useCache(infrastructureCaches.backendServices)
-        .getList({q:'', type: 'backendServices'});
+    function listBackendServices (kind) {
+      if (kind) {
+        return listBackendServices()
+          .then(([services]) => {
+            return services.results.filter((service) => service.kind === kind);
+          });
+      } else {
+        return API
+          .all('search')
+          .useCache(infrastructureCaches.backendServices)
+          .getList({q:'', type: 'backendServices'});
+      }
     }
 
     return { listBackendServices };

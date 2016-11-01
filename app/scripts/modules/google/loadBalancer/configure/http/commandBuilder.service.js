@@ -133,9 +133,8 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
     }
 
     function getBackendServices () {
-      return gceBackendServiceReader.listBackendServices()
-        .then(([response]) => {
-          let backendServices = response.results;
+      return gceBackendServiceReader.listBackendServices('globalBackendService')
+        .then((backendServices) => {
           backendServices.forEach((service) => {
             service.healthCheck = service.healthCheckLink.split('/').pop();
 
