@@ -286,12 +286,24 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     void onSuccess(HealthCheck healthCheck, HttpHeaders responseHeaders) throws IOException {
       def port = null
       def hcType = null
+      def requestPath = null
       if (healthCheck.tcpHealthCheck) {
         port = healthCheck.tcpHealthCheck.port
         hcType = GoogleHealthCheck.HealthCheckType.TCP
       } else if (healthCheck.sslHealthCheck) {
         port = healthCheck.sslHealthCheck.port
         hcType = GoogleHealthCheck.HealthCheckType.SSL
+      } else if (healthCheck.httpHealthCheck) {
+        port = healthCheck.httpHealthCheck.port
+        requestPath = healthCheck.httpHealthCheck.requestPath
+        hcType = GoogleHealthCheck.HealthCheckType.HTTP
+      } else if (healthCheck.httpsHealthCheck) {
+        port = healthCheck.httpsHealthCheck.port
+        requestPath = healthCheck.httpsHealthCheck.requestPath
+        hcType = GoogleHealthCheck.HealthCheckType.HTTPS
+      } else if (healthCheck.udpHealthCheck) {
+        port = healthCheck.udpHealthCheck.port
+        hcType = GoogleHealthCheck.HealthCheckType.UDP
       }
 
       if (port && hcType) {
@@ -299,6 +311,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
           name: healthCheck.name,
           healthCheckType: hcType,
           port: port,
+          requestPath: requestPath ?: "",
           checkIntervalSec: healthCheck.checkIntervalSec,
           timeoutSec: healthCheck.timeoutSec,
           unhealthyThreshold: healthCheck.unhealthyThreshold,
