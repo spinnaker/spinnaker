@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
@@ -232,6 +234,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
             metadata['global-load-balancer-names'] =
               metadata['global-load-balancer-names']
                 .concat(loadBalancerDetails.listeners.map(listener => listener.name));
+          } else if (loadBalancerDetails.loadBalancerType === 'SSL') {
+            metadata['global-load-balancer-names'].push(name);
           } else {
             metadata['load-balancer-names'].push(name);
           }
@@ -257,6 +261,24 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       return metadata;
     }
 
+    function collectLoadBalancerNamesForCommand (loadBalancerIndex, loadBalancerMetadata) {
+      var loadBalancerNames = [];
+      if (loadBalancerMetadata['load-balancer-names']) {
+        loadBalancerNames = loadBalancerNames.concat(loadBalancerMetadata['load-balancer-names'].split(','));
+      }
+
+      var selectedSslLoadBalancerNames = _.chain(loadBalancerIndex)
+        .filter({loadBalancerType: 'SSL'})
+        .map('name')
+        .intersection(
+          loadBalancerMetadata['global-load-balancer-names']
+            ? loadBalancerMetadata['global-load-balancer-names'].split(',')
+            : [])
+        .value();
+
+      return loadBalancerNames.concat(selectedSslLoadBalancerNames);
+    }
+
     this.submit = function () {
       generateDiskDescriptors();
 
@@ -267,9 +289,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
         $scope.command.backendServices);
 
       var origLoadBalancers = $scope.command.loadBalancers;
-      $scope.command.loadBalancers = loadBalancerMetadata['load-balancer-names']
-        ? loadBalancerMetadata['load-balancer-names'].split(',')
-        : [];
+      $scope.command.loadBalancers = collectLoadBalancerNamesForCommand(
+        $scope.command.backingData.filtered.loadBalancerIndex,
+        loadBalancerMetadata);
 
       angular.extend($scope.command.instanceMetadata, loadBalancerMetadata);
 

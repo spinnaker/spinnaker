@@ -332,7 +332,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function isRelevantLoadBalancer(command, loadBalancer) {
-      return elSevenUtils.isElSeven(loadBalancer) || loadBalancer.region === command.region;
+      return loadBalancer.region === command.region || loadBalancer.region === 'global';
     }
 
     function mapListenerNameToUrlMapName (loadBalancerNames, newLoadBalancerObjects) {
