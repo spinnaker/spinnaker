@@ -313,7 +313,15 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
           result.dirty.securityGroups = removed;
         }
       }
-      command.backingData.filtered.securityGroups = newRegionalSecurityGroups;
+      command.backingData.filtered.securityGroups = newRegionalSecurityGroups.sort((a, b) => {
+        if (command.securityGroups.includes(a.id)) {
+          return -1;
+        }
+        if (command.securityGroups.includes(b.id)) {
+          return 1;
+        }
+        return a.name.localeCompare(b.name);
+      });
       return result;
     }
 

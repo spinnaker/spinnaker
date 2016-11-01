@@ -111,7 +111,15 @@ class SecurityGroupPickerController implements ng.IComponentController {
         this.groupsRemoved.next(removed);
       }
     }
-    this.availableGroups = newRegionalSecurityGroups;
+    this.availableGroups = newRegionalSecurityGroups.sort((a, b) => {
+      if (this.groupsToEdit.includes(a.id)) {
+        return -1;
+      }
+      if (this.groupsToEdit.includes(b.id)) {
+        return 1;
+      }
+      return a.name.localeCompare(b.name);
+    });
     this.loaded = true;
   }
 
