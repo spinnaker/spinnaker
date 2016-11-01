@@ -151,7 +151,7 @@ EOF
 # Start script
 
 # Install node
-NODE_VERSION=0.12
+NODE_VERSION=4.4.1
 . /etc/profile.d/nvm.sh
 nvm install $NODE_VERSION
 nvm alias default $NODE_VERSION
