@@ -158,6 +158,11 @@ class TitusServerGroup implements ServerGroup, Serializable {
   }
 
   @Override
+  Map<String, Object> getTags() {
+    labels
+  }
+
+  @Override
   ServerGroup.ImageSummary getImageSummary() {
     imagesSummary?.summaries?.get(0)
   }

@@ -18,11 +18,11 @@ package com.netflix.spinnaker.clouddriver.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.aws.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.clouddriver.aws.model.edda.InstanceLoadBalancers
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
@@ -66,20 +66,20 @@ class ServerGroupController {
 
   List<Map> expandedList(String application, String cloudProvider) {
     return clusterProviders
-      .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true}
+      .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true }
       .findResults { ClusterProvider cp -> cp.getClusterDetails(application)?.values() }
       .collectNested { Cluster c ->
-        c.serverGroups?.collect {
-          Map sg = objectMapper.convertValue(it, Map)
-          sg.accountName = c.accountName
-          def name = Names.parseName(c.name)
-          sg.cluster = name.cluster
-          sg.application = name.app
-          sg.stack = name.stack
-          sg.freeFormDetail = name.detail
-          return sg
-        } ?: []
-      }.flatten()
+      c.serverGroups?.collect {
+        Map sg = objectMapper.convertValue(it, Map)
+        sg.accountName = c.accountName
+        def name = Names.parseName(c.name)
+        sg.cluster = name.cluster
+        sg.application = name.app
+        sg.stack = name.stack
+        sg.freeFormDetail = name.detail
+        return sg
+      } ?: []
+    }.flatten()
   }
 
   List<ServerGroupViewModel> summaryList(String application, String cloudProvider) {
@@ -89,8 +89,8 @@ class ServerGroupController {
     def clusters = (Set<Cluster>) clusterProviders
       .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true }
       .findResults {
-        it.getClusterDetails(application)?.values()
-      }.flatten()
+      it.getClusterDetails(application)?.values()
+    }.flatten()
     clusters.each { Cluster cluster ->
       cluster.serverGroups.each { ServerGroup serverGroup ->
         serverGroupViews << new ServerGroupViewModel(serverGroup, cluster)
@@ -139,6 +139,7 @@ class ServerGroupController {
     Set<String> loadBalancers
     Set<String> securityGroups
     ServerGroup.InstanceCounts instanceCounts
+    Map<String, Object> tags
 
     ServerGroupViewModel(ServerGroup serverGroup, Cluster cluster) {
       this.cluster = cluster.name
@@ -153,8 +154,14 @@ class ServerGroupController {
       securityGroups = serverGroup.getSecurityGroups()
       loadBalancers = serverGroup.getLoadBalancers()
       if (serverGroup.launchConfig) {
-        instanceType = serverGroup.launchConfig.instanceType
+        if (serverGroup.launchConfig.instanceType) {
+          instanceType = serverGroup.launchConfig.instanceType
+        }
       }
+      if (serverGroup.tags) {
+        tags = serverGroup.tags
+      }
+
       if (serverGroup.hasProperty("buildInfo")) {
         buildInfo = serverGroup.buildInfo
       }
