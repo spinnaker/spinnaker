@@ -261,9 +261,9 @@ services:
   echo:
     # Persistence mechanism to use
     cassandra:
-      enabled: true
-    inMemory:
       enabled: false
+    inMemory:
+      enabled: true
 
     cron:
       # Allow pipeline triggers to run periodically via cron expressions.
