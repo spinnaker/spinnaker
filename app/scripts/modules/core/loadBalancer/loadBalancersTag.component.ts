@@ -21,7 +21,7 @@ export class LoadBalancersTagController implements ng.IComponentController {
           .find((lb: LoadBalancer): boolean => {
             return lb.name === lbName
               && lb.account === serverGroup.account
-              && lb.region === serverGroup.region;
+              && (lb.region === serverGroup.region || lb.region === 'global');
           });
 
         return this.buildLoadBalancer(match);

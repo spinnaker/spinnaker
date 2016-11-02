@@ -112,7 +112,8 @@
     <collapsible-section heading="Listeners">
       <dl>
         <dt>Load Balancer &rarr; Instance
-          <help-field ng-if="ctrl.isElSeven(loadBalancer)" key="gce.httpLoadBalancer.namedPort"></help-field>
+          <help-field ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.loadBalancerType === 'SSL'"
+                      key="gce.httpLoadBalancer.namedPort"></help-field>
         </dt>
         <dd ng-repeat="listener in loadBalancer.elb.listenerDescriptions">
           {{listener.listener.protocol}}:{{listener.listener.loadBalancerPort}}
@@ -130,7 +131,7 @@
         </div>
 
         <gce-backend-service-details backend-service="loadBalancer.backendService"
-                                     ng-switch-when="INTERNAL"></gce-backend-service-details>
+                                     ng-switch-default></gce-backend-service-details>
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.healthCheck || loadBalancer.backendService.healthCheck"
@@ -145,7 +146,7 @@
           <gce-health-check health-check="healthCheck"></gce-health-check>
         </div>
 
-        <gce-health-check ng-switch-when="INTERNAL"
+        <gce-health-check ng-switch-default
                           health-check="loadBalancer.backendService.healthCheck"></gce-health-check>
 
       </dl>
