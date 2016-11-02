@@ -147,7 +147,7 @@ public interface ServerGroup {
   ImageSummary getImageSummary();
 
   static class InstanceCounts {
-    Integer getTotal() {
+    public Integer getTotal() {
       return total;
     }
 
@@ -222,7 +222,7 @@ public interface ServerGroup {
   }
 
   public static class Capacity {
-    Integer getMin() {
+    public Integer getMin() {
       return min;
     }
 
