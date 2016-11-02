@@ -266,7 +266,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
 
         startTime = System.currentTimeMillis()
         def describeInstancesRequest = new DescribeInstancesRequest().withMaxResults(500)
-        def allowedStates = ["pending", "running", "shutting-down", "stopping", "stopped"] as Set<String>
+        def allowedStates = ["pending", "running"] as Set<String>
         while (true) {
           def result = amazonEC2.describeInstances(describeInstancesRequest)
           result.reservations.each {
