@@ -1,0 +1,6 @@
+dependencies {
+  compile project(":clouddriver-core")
+
+  compile 'org.elasticsearch:elasticsearch:2.3.3'
+  compile 'io.searchbox:jest:2.0.3'
+}

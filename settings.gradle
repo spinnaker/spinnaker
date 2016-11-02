@@ -16,7 +16,7 @@
 
 rootProject.name="clouddriver"
 
-include 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titus', 'clouddriver-google', 'clouddriver-cf', 'clouddriver-azure', 'clouddriver-kubernetes', 'clouddriver-docker', 'clouddriver-eureka', 'clouddriver-consul','clouddriver-openstack', 'cats:cats-core', 'cats:cats-redis', 'cats:cats-test'
+include 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titus', 'clouddriver-google', 'clouddriver-cf', 'clouddriver-azure', 'clouddriver-kubernetes', 'clouddriver-docker', 'clouddriver-eureka', 'clouddriver-consul','clouddriver-openstack', 'clouddriver-elasticsearch', 'cats:cats-core', 'cats:cats-redis', 'cats:cats-test'
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
