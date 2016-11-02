@@ -62,7 +62,7 @@ class DockerMonitor implements PollingMonitor {
                 {
                     if (isInService()) {
                         dockerRegistryAccounts.updateAccounts()
-                        dockerRegistryAccounts.accounts.parallelStream().forEach({ account ->
+                        dockerRegistryAccounts.accounts.forEach({ account ->
                             changedTags(account)
                         })
                     } else {
