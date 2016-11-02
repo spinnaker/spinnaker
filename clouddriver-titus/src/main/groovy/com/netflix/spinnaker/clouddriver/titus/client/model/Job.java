@@ -169,6 +169,7 @@ public class Job {
     private String version;
     private String entryPoint;
     private String iamProfile;
+    private String capacityGroup;
     private Boolean inService;
     private int instances;
     private int instancesMin;
@@ -359,6 +360,10 @@ public class Job {
     public String getIamProfile() { return iamProfile; }
 
     public void setIamProfile(String iamProfile) { this.iamProfile = iamProfile; }
+
+    public String getCapacityGroup() { return capacityGroup; }
+
+    public void setCapacityGroup(String capacityGroup) { this.capacityGroup = capacityGroup; }
 
     public Boolean isInService() { return inService; }
 

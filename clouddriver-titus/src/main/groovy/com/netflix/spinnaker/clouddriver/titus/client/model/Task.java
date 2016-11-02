@@ -33,6 +33,7 @@ public class Task {
     private String version;
     private String entryPoint;
     private String iamProfile;
+    private String capacityGroup;
     private String host;
     private Date submittedAt;
     private Date launchedAt;
@@ -131,13 +132,13 @@ public class Task {
         this.entryPoint = entryPoint;
     }
 
-    public String getIamProfile() {
-      return iamProfile;
-    }
+    public String getIamProfile() { return iamProfile; }
 
-    public void setIamProfile(String entryPoint) {
-      this.iamProfile = iamProfile;
-    }
+    public void setIamProfile(String iamProfile) { this.iamProfile = iamProfile; }
+
+    public String getCapacityGroup() { return capacityGroup; }
+
+    public void setCapacityGroup(String capacityGroup) { this.capacityGroup = capacityGroup; }
 
     public String getHost() {
         return host;
