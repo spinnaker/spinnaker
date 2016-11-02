@@ -1,17 +1,17 @@
 'use strict';
 
 import _ from 'lodash';
+import d3 from 'd3';
 
 let angular = require('angular');
 
 require('./pipelineGraph.less');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive', [
-  require('core/utils/d3.js'),
   require('core/utils/jQuery.js'),
   require('./pipelineGraph.service.js'),
 ])
-  .directive('pipelineGraph', function ($window, d3Service, $, pipelineGraphService) {
+  .directive('pipelineGraph', function ($window, $, pipelineGraphService) {
     return {
       restrict: 'E',
       scope: {
@@ -44,7 +44,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
         /**
          * Used to draw inverse bezier curve between stages
          */
-        var diagonal = d3Service.svg.diagonal()
+        var diagonal = d3.svg.diagonal()
           .source(function(d) { return {'x': d.source.y, 'y': d.source.x + scope.nodeRadius}; })
           .target(function(d) { return {'x': d.target.y, 'y': d.target.x - scope.nodeRadius}; })
           .projection(function (d) {
