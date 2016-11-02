@@ -146,7 +146,7 @@ class GetCommitsTask implements DiffTask {
         clusterPair?.canary?.availabilityZones?.findResult { key, value -> key == region }
       }?.canary?.amiName
     } else if (context.deploymentDetails) { // deploy asg stage
-      return context.deploymentDetails.find { it.region == region }?.ami
+      return context.deploymentDetails.find { it.region == region }?.amiId
     } else if (context.amiName) { // copyLastAsg stage
       return context.amiName
     } else {

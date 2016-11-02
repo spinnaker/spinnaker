@@ -90,7 +90,7 @@ class GetCommitsTaskSpec extends Specification {
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]
+                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[amiId: "ami-foo", ami: "amiFooName", region: "us-east-1"], [amiId: targetImage, ami: targetImageName, region: region]], "kato.tasks" : katoMap]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup)
 
     when:
@@ -105,6 +105,7 @@ class GetCommitsTaskSpec extends Specification {
     region = "us-west-1"
     sourceImage = "ami-source"
     targetImage = "ami-target"
+    targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
 
     cluster | serverGroup | targetServerGroup
@@ -122,8 +123,8 @@ class GetCommitsTaskSpec extends Specification {
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], amiName : targetImage, "kato.tasks" : katoMap]
-    def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup)
+                      source     : [asgName: serverGroup, region: region, account: account], amiId: targetImage, amiName : targetImageName, "kato.tasks" : katoMap]
+    def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImageName, region, cluster, serverGroup)
 
     when:
     def result = task.execute(stage)
@@ -137,6 +138,7 @@ class GetCommitsTaskSpec extends Specification {
     region = "us-west-1"
     sourceImage = "ami-source"
     targetImage = "ami-target"
+    targetImageName = "amiTargetName"
     cluster = "app-cluster"
     serverGroup = "app-cluster-v001"
     targetServerGroup = "app-cluster-v002"
@@ -148,9 +150,9 @@ class GetCommitsTaskSpec extends Specification {
     def contextMap = [application: app, account: account,
                       source     : [asgName: serverGroup, region: region, account: account],
                       clusterPairs :
-                          [[ baseline : [amiName: sourceImage, availabilityZones: [(region) : ["${region}-1c"]]], canary : [amiName: targetImage, availabilityZones: [(region) : ["${region}-1c"]]]]]
+                          [[ baseline : [amiName: sourceImage, availabilityZones: [(region) : ["${region}-1c"]]], canary : [amiId: targetImage, amiName: targetImageName, availabilityZones: [(region) : ["${region}-1c"]]]]]
                       ]
-    def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0)
+    def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImageName, region, cluster, serverGroup, 0)
 
     when:
     def result = task.execute(stage)
@@ -164,6 +166,7 @@ class GetCommitsTaskSpec extends Specification {
     region = "us-west-1"
     sourceImage = "ami-source"
     targetImage = "ami-target"
+    targetImageName = "amiTargetName"
     cluster = "app-cluster"
     serverGroup = "app-cluster-v001"
     targetServerGroup = "app-cluster-v002"
@@ -194,6 +197,7 @@ class GetCommitsTaskSpec extends Specification {
     region = "us-west-1"
     sourceImage = "ami-source"
     targetImage = "ami-target"
+    targetImageName = "amiTargetName"
     cluster = "app-cluster"
     serverGroup = "app-cluster-v001"
     targetServerGroup = "app-cluster-v002"
@@ -250,7 +254,7 @@ class GetCommitsTaskSpec extends Specification {
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
     def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks": katoMap])
+                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [amiId: targetImage, ami: targetImageName, region: region]], "kato.tasks": katoMap])
 
     and:
     task.front50Service = front50Service
@@ -287,6 +291,7 @@ class GetCommitsTaskSpec extends Specification {
     region = "us-west-1"
     sourceImage = "ami-source"
     targetImage = "ami-target"
+    targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
     taskStatus = ExecutionStatus.RUNNING
 
@@ -297,7 +302,7 @@ class GetCommitsTaskSpec extends Specification {
   @Unroll
   def "returns success if there are no repo details provided"() {
     given:
-    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]]])
+    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [amiId: targetImage, ami: targetImageName, region: region]]])
 
     and:
     task.buildService = buildService
@@ -318,6 +323,7 @@ class GetCommitsTaskSpec extends Specification {
     serverGroup = "myapp-stack"
     targetServerGroup = "myapp-stack-v000"
     targetImage = "ami-target"
+    targetImageName = "amiTargetName"
   }
 
   def "returns success if commit info is missing"() {
@@ -328,7 +334,7 @@ class GetCommitsTaskSpec extends Specification {
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
     def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks": katoMap])
+                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, amiId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
     task.buildService = Stub(BuildService) {
@@ -361,6 +367,7 @@ class GetCommitsTaskSpec extends Specification {
     region = "us-west-1"
     sourceImage = "ami-source"
     targetImage = "ami-target"
+    targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
     taskStatus = ExecutionStatus.SUCCEEDED
 
@@ -378,7 +385,7 @@ class GetCommitsTaskSpec extends Specification {
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
     def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks": katoMap])
+                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, amiId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
     task.buildService = Stub(BuildService) {
@@ -430,6 +437,7 @@ class GetCommitsTaskSpec extends Specification {
     region = "us-west-1"
     sourceImage = "ami-source"
     targetImage = "ami-target"
+    targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
     taskStatus = ExecutionStatus.SUCCEEDED
 
@@ -446,7 +454,7 @@ class GetCommitsTaskSpec extends Specification {
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
     def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks": katoMap])
+                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, amiId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
     task.buildService = Stub(BuildService) {
@@ -483,6 +491,7 @@ class GetCommitsTaskSpec extends Specification {
     region = "us-west-1"
     sourceImage = "ami-source"
     targetImage = "ami-target"
+    targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
     taskStatus = ExecutionStatus.SUCCEEDED
 
@@ -508,7 +517,7 @@ class GetCommitsTaskSpec extends Specification {
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]
+                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, amiId: targetImage ,region: region]], "kato.tasks" : katoMap]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0, 0)
 
     when:
@@ -524,6 +533,7 @@ class GetCommitsTaskSpec extends Specification {
     region = "us-west-1"
     sourceImage = "ami-source"
     targetImage = "ami-target"
+    targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
 
     cluster | serverGroup | targetServerGroup
