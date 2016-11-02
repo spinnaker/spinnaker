@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
+import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.Image
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -33,6 +34,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
+import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -41,7 +44,9 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.NAMED_IMAGES
 
-class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric {
+import java.util.concurrent.TimeUnit
+
+class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, CustomScheduledAgent {
   final Logger log = LoggerFactory.getLogger(getClass())
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
@@ -56,6 +61,7 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric {
   final ObjectMapper objectMapper
   final Registry registry
   final boolean includePublicImages
+  final long pollIntervalMillis
 
   ImageCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, Registry registry, boolean includePublicImages) {
     this.amazonClientProvider = amazonClientProvider
@@ -64,6 +70,21 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric {
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
     this.includePublicImages = includePublicImages
+    if (includePublicImages) {
+      this.pollIntervalMillis = TimeUnit.MINUTES.toMillis(60)
+    } else {
+      this.pollIntervalMillis = -1
+    }
+  }
+
+  @Override
+  long getPollIntervalMillis() {
+    return pollIntervalMillis
+  }
+
+  @Override
+  long getTimeoutMillis() {
+    return -1
   }
 
   @Override
@@ -73,7 +94,11 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric {
 
   @Override
   String getAgentType() {
-    return "${account.name}/${region}/${ImageCachingAgent.simpleName}"
+    def scope = "public"
+    if (!includePublicImages) {
+      scope = "private"
+    }
+    return "${account.name}/${region}/${ImageCachingAgent.simpleName}/${scope}"
   }
 
   @Override
@@ -90,28 +115,38 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric {
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
+    def request = new DescribeImagesRequest()
+    if (includePublicImages) {
+      request.withExecutableUsers('all')
+    } else {
+      request.withExecutableUsers(account.getAccountId())
+    }
 
-    List<Image> images = amazonEC2.describeImages().images
+    List<Image> images = amazonEC2.describeImages(request).images
     Long start = null
     if (account.eddaEnabled) {
       start = amazonClientProvider.lastModified ?: 0
+      // Edda does not respect filter parameters. Filter here manually instead.
+      if (includePublicImages) {
+        images = images.findAll { it.isPublic() }
+      } else {
+        images = images.findAll { !it.isPublic() }
+      }
     }
 
     Collection<CacheData> imageCacheData = new ArrayList<>(images.size())
     Collection<CacheData> namedImageCacheData = new ArrayList<>(images.size())
 
     for (Image image : images) {
-      if (includePublicImages || !image.public) {
-        Map<String, Object> attributes = objectMapper.convertValue(image, ATTRIBUTES)
-        def imageId = Keys.getImageKey(image.imageId, account.name, region)
-        def namedImageId = Keys.getNamedImageKey(account.name, image.name)
-        imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns): [namedImageId]]))
-        namedImageCacheData.add(new DefaultCacheData(namedImageId, [
-          name              : image.name,
-          virtualizationType: image.virtualizationType,
-          creationDate      : image.creationDate
-        ], [(IMAGES.ns): [imageId]]))
-      }
+      Map<String, Object> attributes = objectMapper.convertValue(image, ATTRIBUTES)
+      def imageId = Keys.getImageKey(image.imageId, account.name, region)
+      def namedImageId = Keys.getNamedImageKey(account.name, image.name)
+      imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns): [namedImageId]]))
+      namedImageCacheData.add(new DefaultCacheData(namedImageId, [
+        name              : image.name,
+        virtualizationType: image.virtualizationType,
+        creationDate      : image.creationDate
+      ], [(IMAGES.ns): [imageId]]))
     }
 
     recordDrift(start)

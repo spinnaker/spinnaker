@@ -148,7 +148,7 @@ public class CredentialsConfig {
             this.defaultSecurityGroups = defaultSecurityGroups;
         }
 
-      public List<String> getRequiredGroupMembership() {
+        public List<String> getRequiredGroupMembership() {
             return requiredGroupMembership;
         }
 
