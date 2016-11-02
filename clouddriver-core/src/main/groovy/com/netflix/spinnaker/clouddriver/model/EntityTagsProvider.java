@@ -22,7 +22,7 @@ import java.util.Optional;
 
 public interface EntityTagsProvider {
   /**
-   * Fetch EntityTags by any combination of {@code cloudProvider}/{@code type/{@code idPrefix}/{@code tags}
+   * Fetch EntityTags by any combination of {@code cloudProvider}/{@code type}/{@code idPrefix}/{@code tags}
    */
   Collection<EntityTags> getAll(String cloudProvider,
                                 String entityType,
