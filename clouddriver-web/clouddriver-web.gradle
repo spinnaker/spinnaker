@@ -30,6 +30,7 @@ dependencies {
   compile project(':clouddriver-openstack')
   compile project(':clouddriver-docker')
   compile project(':clouddriver-eureka')
+  compile project(':clouddriver-elasticsearch')
 
 //  Replace below with this line when fiat becomes stable.
 //  spinnaker.group "fiat"

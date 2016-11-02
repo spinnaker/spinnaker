@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.core.services
 
+import com.netflix.spinnaker.clouddriver.model.EntityTags
 import retrofit.client.Response
 import retrofit.http.*
 
@@ -41,4 +42,9 @@ interface Front50Service {
   @GET('/snapshots/{id}/{timestamp}')
   Map getSnapshotVersion(@Path('id') String id, @Path('timestamp') String timestamp)
 
+  @POST('/v2/tags')
+  EntityTags saveEntityTags(@Body EntityTags entityTags)
+
+  @GET('/v2/tags/{id}')
+  EntityTags getEntityTags(@Path('id') String id)
 }
