@@ -85,8 +85,17 @@ module.exports = angular
       if (filter.includes('tag:')) {
         let match = false;
         let [, tag] = filter.split('tag:');
+        let tagKey = null;
+        let tagValue = null;
+        if (tag.includes('=')) {
+          [tagKey, tagValue] = tag.split('=');
+        }
         _.each(serverGroup.tags || {}, function (val, key) {
-          if (val.toLowerCase().includes(tag.toLowerCase())) {
+          if (tagKey) {
+            if (tagKey.toLowerCase() === key.toLowerCase() && val.toLowerCase().includes(tagValue.toLowerCase())) {
+              match = true;
+            }
+          } else if (val.toLowerCase().includes(tag.toLowerCase())) {
             match = true;
           }
         });
