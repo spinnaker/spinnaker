@@ -273,3 +273,4 @@ swagger:
   patterns:
     - /api/v1.*
     - /bakeOptions.*
+    - /status.*
