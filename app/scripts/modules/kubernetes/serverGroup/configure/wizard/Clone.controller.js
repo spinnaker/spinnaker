@@ -24,6 +24,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
       loadBalancers: require('./loadBalancers.html'),
       replicas: require('./replicas.html'),
       volumes: require('./volumes.html'),
+      advancedSettings: require('./advancedSettings.html'),
     };
 
     $scope.title = title;

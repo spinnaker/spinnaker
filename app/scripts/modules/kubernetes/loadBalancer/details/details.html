@@ -154,5 +154,11 @@
         </div>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Service Annotations" ng-if="loadBalancer.description.serviceAnnotations">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <kubernetes-annotation-details annotations="loadBalancer.description.serviceAnnotations">
+        </kubernetes-annotation-details>
+      </dl>
+    </collapsible-section>
   </div>
 </div>

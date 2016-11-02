@@ -1,0 +1,27 @@
+<div class="col-md-12">
+  <div class="sm-label-left">
+    <b>{{$ctrl.label}}</b>
+  </div>
+  <table class="table table-condensed packed tags">
+    <tbody>
+    <tr ng-repeat="view in $ctrl.annotationViews track by $index">
+      <td class="table-label"><b>Key</b></td>
+      <td>
+        <input class="form-control input-sm" type="text" ng-model="view.key" ng-change="$ctrl.onKeyOrValueChange()">
+      </td>
+      <td class="table-label"><b>Value</b></td>
+      <td>
+        <input class="form-control input-sm" type="text" ng-model="view.value" ng-change="$ctrl.onKeyOrValueChange()">
+      </td>
+      <td class="table-remove-button">
+        <a class="btn btn-link sm-label" ng-click="$ctrl.remove($index)">
+          <span class="glyphicon glyphicon-trash"></span>
+        </a>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <button class="add-new col-md-12" ng-click="$ctrl.add()">
+    <span class="glyphicon glyphicon-plus-sign"></span> Add annotation
+  </button>
+</div>

@@ -231,5 +231,17 @@
         No events.
       </div>
     </collapsible-section>
+    <collapsible-section heading="Replica Set Annotations" ng-if="serverGroup.deployDescription.replicaSetAnnotations">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <kubernetes-annotation-details annotations="serverGroup.deployDescription.replicaSetAnnotations">
+        </kubernetes-annotation-details>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Pod Annotations" ng-if="serverGroup.deployDescription.podAnnotations">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <kubernetes-annotation-details annotations="serverGroup.deployDescription.podAnnotations">
+        </kubernetes-annotation-details>
+      </dl>
+    </collapsible-section>
   </div>
 </div>
