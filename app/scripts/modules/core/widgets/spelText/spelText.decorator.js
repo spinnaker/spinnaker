@@ -38,8 +38,11 @@ let decorateFn = function ($delegate, jsonListBuilder, spelAutocomplete) {
           if (hasLink.length < 1) {
             // Add the link to the docs under the input/textarea
             el.parent().after('<a class="spelLink" href="http://www.spinnaker.io/docs/pipeline-expressions-guide" target="_blank">Expression Docs</a>');
+
+            el.addClass('monospace');
           }
         } else {
+          el.removeClass('monospace');
           hasLink.fadeOut(500, function () {
             this.remove();
           });
