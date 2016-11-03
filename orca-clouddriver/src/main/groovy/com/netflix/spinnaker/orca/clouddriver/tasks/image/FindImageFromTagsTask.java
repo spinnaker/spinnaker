@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import groovy.util.logging.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,11 +48,18 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
 
     StageData stageData = (StageData) stage.mapTo(StageData.class);
     Collection<ImageFinder.ImageDetails> imageDetails = imageFinder.byTags(stage, stageData.packageName, stageData.tags);
+
+    if (imageDetails == null || imageDetails.isEmpty()) {
+      throw new IllegalStateException("Could not find tagged image for package: " + stageData.packageName + " and tags: " + stageData.tags);
+    }
+
     return new DefaultTaskResult(
       ExecutionStatus.SUCCEEDED,
       Collections.singletonMap("amiDetails", imageDetails),
       Collections.singletonMap("deploymentDetails", imageDetails)
     );
+
+
   }
 
   @Override
