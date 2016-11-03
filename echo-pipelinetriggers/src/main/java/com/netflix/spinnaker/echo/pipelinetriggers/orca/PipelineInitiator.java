@@ -22,14 +22,17 @@ public class PipelineInitiator implements Action1<Pipeline> {
   private final CounterService counter;
   private final OrcaService orca;
   private final boolean enabled;
+  private final boolean fiatEnabled;
 
   @Autowired
   public PipelineInitiator(CounterService counter,
                            OrcaService orca,
-                           @Value("${orca.enabled:true}") boolean enabled) {
+                           @Value("${orca.enabled:true}") boolean enabled,
+                           @Value("${services.fiat.enabled:false}") boolean fiatEnabled) {
     this.counter = counter;
     this.orca = orca;
     this.enabled = enabled;
+    this.fiatEnabled = fiatEnabled;
   }
 
   @PostConstruct
@@ -51,7 +54,7 @@ public class PipelineInitiator implements Action1<Pipeline> {
       }
 
       Observable<OrcaService.TriggerResponse> response;
-      if (runAsUser != null && !runAsUser.isEmpty()) {
+      if (fiatEnabled && runAsUser != null && !runAsUser.isEmpty()) {
         response = orca.trigger(pipeline, pipeline.getTrigger().getRunAsUser());
       } else {
         response = orca.trigger(pipeline);
