@@ -52,6 +52,7 @@ public class JobDescription {
 
     private String entryPoint;
     private String iamProfile;
+    private String capacityGroup;
     private Efs efs;
 
     //Soft/Hard constraints
@@ -88,6 +89,7 @@ public class JobDescription {
         labels = request.getLabels() != null ? request.getLabels() : new HashMap<>();
         entryPoint = request.getEntryPoint();
         iamProfile = request.getIamProfile();
+        capacityGroup = request.getCapacityGroup();
         securityGroups = request.getSecurityGroups();
         inService = request.getInService();
         efs = request.getEfs();
@@ -289,6 +291,10 @@ public class JobDescription {
     public String getIamProfile() { return iamProfile; }
 
     public void setIamProfile(String iamProfile) { this.iamProfile = iamProfile; }
+
+    public String getCapacityGroup() { return capacityGroup; }
+
+    public void setCapacityGroup(String capacityGroup) { this.capacityGroup = capacityGroup; }
 
     public Boolean getInService() { return inService; }
 

@@ -52,6 +52,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   TitusServerGroupPlacement placement = new TitusServerGroupPlacement()
   boolean disabled
   Efs efs
+  String capacityGroup
 
   TitusServerGroup() {}
 
@@ -68,6 +69,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     resources.networkMbps = job.networkMbps
     resources.ports = job.ports ? job.ports.toList() : []
     resources.allocateIpAddress = job.allocateIpAddress
+    capacityGroup = job.capacityGroup
     env = job.environment
     labels = job.labels
     submittedAt = job.submittedAt ? job.submittedAt.time : null

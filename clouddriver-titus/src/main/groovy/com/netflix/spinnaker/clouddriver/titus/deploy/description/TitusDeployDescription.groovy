@@ -37,6 +37,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   Map labels
   String entryPoint
   String iamProfile
+  String capacityGroup
   String user
   Boolean inService
   String jobType

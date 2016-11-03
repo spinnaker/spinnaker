@@ -63,6 +63,7 @@ public class SubmitJobRequest {
     private String user;
     private String entryPoint;
     private String iamProfile;
+    private String capacityGroup;
     private Boolean inService = true;
     private int instancesMin;
     private int instancesMax;
@@ -184,6 +185,11 @@ public class SubmitJobRequest {
       return this;
     }
 
+    public SubmitJobRequest withCapacityGroup(String capacityGroup) {
+      this.capacityGroup = capacityGroup;
+      return this;
+    }
+
     public SubmitJobRequest withConstraint(Constraint constraint) {
         this.constraints.add(constraint);
         return this;
@@ -301,6 +307,8 @@ public class SubmitJobRequest {
     public String getIamProfile() { return iamProfile; }
 
     public Boolean getInService() { return inService; }
+
+    public String getCapacityGroup() { return capacityGroup; }
 
     public Map<String, String> getLabels() {
         return labels;
