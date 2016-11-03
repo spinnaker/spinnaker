@@ -54,7 +54,7 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
     }
 
     stage.context?.instances.each {String key, Map valueMap ->
-      String hostName = valueMap.hostName
+      String hostName = valueMap.privateIpAddress ?: valueMap.hostName
       def taskId = stage.context.taskIds.get(hostName)
       def instanceService = createInstanceService("http://${hostName}:5050")
       try {
