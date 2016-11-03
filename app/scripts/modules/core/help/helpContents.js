@@ -241,9 +241,6 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.gce.bake.accountName': '<p>(Optional) The name of a Google account configured within Rosco. If left blank, the first configured account will be used.</p>',
     'pipeline.config.gce.bake.baseImage': '<p>(Optional) A GCE image name. For example: ubuntu-1204-precise-v20150910.</p>',
     'pipeline.config.manualJudgment.instructions': '<p>(Optional) Instructions are shown to the user when making a manual judgment.</p><p>May contain HTML.</p>',
-    'pipeline.config.manualJudgment.failPipeline': '' +
-      '<p><strong>Checked</strong> - the overall pipeline will fail whenever the manual judgment is negative.</p>' +
-      '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
     'pipeline.config.manualJudgment.propagateAuthentication': '' +
     '<p><strong>Checked</strong> - the pipeline will continue with the permissions of the approver.</p>' +
     '<p><strong>Unchecked</strong> - the pipeline will continue with it\'s current permissions.</p>',
@@ -264,9 +261,6 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.jenkins.markUnstableAsSuccessful.false': 'If Jenkins reports the build status as UNSTABLE, ' +
       'Spinnaker will mark the stage as FAILED; subsequent execution will be determined based on the configuration of the ' +
       '<b>If build fails</b> option for this stage.',
-    'pipeline.config.failPipeline': '' +
-    '<p><strong>Checked</strong> - the overall pipeline will fail whenever the stage fails.</p>' +
-    '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
     'pipeline.config.canary.clusterPairs': '' +
       '<p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +
       '<p>The version currently deployed in the baseline cluster will be used to create a new baseline server group, while the version created in the previous bake or Find AMI stage will be deployed into the canary.</p>',
