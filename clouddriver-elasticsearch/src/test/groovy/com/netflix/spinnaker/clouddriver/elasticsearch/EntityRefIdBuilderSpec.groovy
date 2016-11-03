@@ -27,6 +27,9 @@ class EntityRefIdBuilderSpec extends Specification {
     EntityRefIdBuilder.buildId("aws", "cluster", "front50-main", "prod", "us-west-1").id == "aws:cluster:front50-main:prod:us-west-1"
     EntityRefIdBuilder.buildId("aws", "cluster", "front50-main", null, "us-west-1").id == "aws:cluster:front50-main:*:us-west-1"
     EntityRefIdBuilder.buildId("aws", "cluster", "front50-main", null, null).id == "aws:cluster:front50-main:*:*"
+
+    // generated identifiers should _always_ be lowercase
+    EntityRefIdBuilder.buildId("AWS", "Cluster", "front50-MAIN", "PROD", "US-west-1").id == "aws:cluster:front50-main:prod:us-west-1"
   }
 
   @Unroll
