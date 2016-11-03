@@ -218,6 +218,7 @@ public class CredentialsLoader<T extends AmazonCredentials> {
 
             account.setRegions(initRegions(defaultRegions, account.getRegions()));
             account.setDefaultSecurityGroups(account.getDefaultSecurityGroups() != null ? account.getDefaultSecurityGroups() : config.getDefaultSecurityGroups());
+            account.setLifecycleHooks(account.getLifecycleHooks() != null ? account.getLifecycleHooks() : config.getDefaultLifecycleHooks());
 
             Map<String, String> templateContext = new HashMap<>(templateValues);
             templateContext.put("name", account.getName());
@@ -232,6 +233,14 @@ public class CredentialsLoader<T extends AmazonCredentials> {
             account.setAssumeRole(templateFirstNonNull(templateContext, account.getAssumeRole(), config.getDefaultAssumeRole()));
             account.setSessionName(templateFirstNonNull(templateContext, account.getSessionName(), config.getDefaultSessionName()));
             account.setBastionHost(templateFirstNonNull(templateContext, account.getBastionHost(), config.getDefaultBastionHostTemplate()));
+
+            if (account.getLifecycleHooks() != null) {
+                for (CredentialsConfig.LifecycleHook lifecycleHook : account.getLifecycleHooks()) {
+                  lifecycleHook.setRoleARN(templateFirstNonNull(templateContext, lifecycleHook.getRoleARN(), config.getDefaultLifecycleHookRoleARNTemplate()));
+                  lifecycleHook.setNotificationTargetARN(templateFirstNonNull(templateContext, lifecycleHook.getNotificationTargetARN(), config.getDefaultLifecycleHookNotificationTargetARNTemplate()));
+                }
+            }
+
             initializedAccounts.add(credentialTranslator.translate(credentialsProvider, account));
         }
         return initializedAccounts;

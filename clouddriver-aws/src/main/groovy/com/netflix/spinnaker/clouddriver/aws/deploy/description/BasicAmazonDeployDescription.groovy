@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
@@ -63,11 +64,13 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
 
   boolean ignoreSequence
   boolean startDisabled
+  boolean includeAccountLifecycleHooks = true
 
   List<AmazonBlockDevice> blockDevices
   Boolean useAmiBlockDeviceMappings
   List<String> loadBalancers
   List<String> securityGroups
+  List<AmazonAsgLifecycleHook> lifecycleHooks = []
   Map<String, List<String>> availabilityZones = [:]
   Capacity capacity = new Capacity()
   Source source = new Source()

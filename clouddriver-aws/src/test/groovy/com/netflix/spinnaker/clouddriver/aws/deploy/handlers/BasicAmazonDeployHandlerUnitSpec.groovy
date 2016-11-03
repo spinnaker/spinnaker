@@ -41,26 +41,28 @@ import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundE
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory.RegionScopedProvider
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig.*
+import static com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig.blockDevicesByInstanceType
 
 class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
@@ -491,6 +493,29 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     sourceAsgName | targetRegion | targetAsgName
     "sourceAsg"   | "us-west-1"  | "targetAsg"
 
+  }
+
+  @Unroll
+  void 'should create #numHooksExpected lifecycle hooks'() {
+    given:
+    def credentials = TestCredential.named('test', [lifecycleHooks: accountLifecycleHooks])
+
+    def description = new BasicAmazonDeployDescription(lifecycleHooks: lifecycleHooks, includeAccountLifecycleHooks: includeAccount)
+
+    when:
+    def result = BasicAmazonDeployHandler.getLifecycleHooks(credentials, description)
+
+    then:
+    result.size() == numHooksExpected
+
+    where:
+    accountLifecycleHooks                                                                                                  | lifecycleHooks                                                                          | includeAccount || numHooksExpected
+    []                                                                                                                     | []                                                                                      | true           || 0
+    [new AmazonCredentials.LifecycleHook('role-arn', 'target-arn', 'autoscaling:EC2_INSTANCE_LAUNCHING', 3600, 'ABANDON')] | []                                                                                      | true           || 1
+    []                                                                                                                     | [new AmazonAsgLifecycleHook(roleARN: 'role-arn', notificationTargetARN: 'target-arn')]  | true           || 1
+    [new AmazonCredentials.LifecycleHook('role-arn', 'target-arn', 'autoscaling:EC2_INSTANCE_LAUNCHING', 3600, 'ABANDON')] | [new AmazonAsgLifecycleHook(roleARN: 'role-arn2', notificationTargetARN: 'target-arn')] | true           || 2
+    [new AmazonCredentials.LifecycleHook('role-arn', 'target-arn', 'autoscaling:EC2_INSTANCE_LAUNCHING', 3600, 'ABANDON')] | [new AmazonAsgLifecycleHook(roleARN: 'role-arn2', notificationTargetARN: 'target-arn')] | false          || 1
+    [new AmazonCredentials.LifecycleHook('role-arn', 'target-arn', 'autoscaling:EC2_INSTANCE_LAUNCHING', 3600, 'ABANDON')] | []                                                                                      | false          || 0
   }
 
   @Unroll

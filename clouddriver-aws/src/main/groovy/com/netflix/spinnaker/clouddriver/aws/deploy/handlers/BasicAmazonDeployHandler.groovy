@@ -24,22 +24,23 @@ import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
+import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
+import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
+import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
-import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
-import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
-import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import groovy.transform.PackageScope
 
 import java.util.regex.Pattern
@@ -267,6 +268,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
           task, sourceRegionScopedProvider, description.credentials, description.source.asgName, region, asgName
         )
       }
+
+      createLifecycleHooks(task, regionScopedProvider, account, description, asgName)
     }
 
     return deploymentResult
@@ -336,6 +339,38 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     def asgReferenceCopier = sourceRegionScopedProvider.getAsgReferenceCopier(targetCredentials, targetRegion)
     asgReferenceCopier.copyScalingPoliciesWithAlarms(task, sourceAsgName, targetAsgName)
     asgReferenceCopier.copyScheduledActionsForAsg(task, sourceAsgName, targetAsgName)
+  }
+
+  @VisibleForTesting
+  @PackageScope
+  void createLifecycleHooks(Task task,
+                            RegionScopedProviderFactory.RegionScopedProvider targetRegionScopedProvider,
+                            NetflixAmazonCredentials targetCredentials,
+                            BasicAmazonDeployDescription description,
+                            String targetAsgName) {
+
+    List<AmazonAsgLifecycleHook> lifecycleHooks = getLifecycleHooks(targetCredentials, description)
+    if (lifecycleHooks.size() > 0) {
+      targetRegionScopedProvider.asgLifecycleHookWorker.attach(task, lifecycleHooks, targetAsgName)
+    }
+  }
+
+  @VisibleForTesting
+  @PackageScope
+  static List<AmazonAsgLifecycleHook> getLifecycleHooks(NetflixAmazonCredentials credentials, BasicAmazonDeployDescription description) {
+    List<AmazonAsgLifecycleHook> lifecycleHooks = description.lifecycleHooks ?: []
+    if (description.includeAccountLifecycleHooks && credentials.lifecycleHooks?.size() > 0) {
+      lifecycleHooks.addAll(credentials.lifecycleHooks.collect {
+        new AmazonAsgLifecycleHook(
+          roleARN: it.roleARN,
+          notificationTargetARN: it.notificationTargetARN,
+          lifecycleTransition: AmazonAsgLifecycleHook.LifecycleTransition.valueOfName(it.lifecycleTransition),
+          heartbeatTimeout: it.heartbeatTimeout,
+          defaultResult: AmazonAsgLifecycleHook.DefaultResult.valueOf(it.defaultResult)
+        )
+      })
+    }
+    return lifecycleHooks
   }
 
   @VisibleForTesting

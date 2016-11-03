@@ -48,6 +48,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     private final List<String> requiredGroupMembership;
     private final List<AWSRegion> regions;
     private final List<String> defaultSecurityGroups;
+    private final List<LifecycleHook> lifecycleHooks;
     private final AWSCredentialsProvider credentialsProvider;
 
     public static AmazonCredentials fromAWSCredentials(String name, String environment, String accountType, AWSCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider) {
@@ -58,7 +59,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         AWSAccountInfoLookup lookup = new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider);
         final String accountId = lookup.findAccountId();
         final List<AWSRegion> regions = lookup.listRegions();
-        return new AmazonCredentials(name, environment, accountType, accountId, defaultKeyPair, regions, null, null, credentialsProvider);
+        return new AmazonCredentials(name, environment, accountType, accountId, defaultKeyPair, regions, null, null, null, credentialsProvider);
     }
 
     public AmazonCredentials(@JsonProperty("name") String name,
@@ -68,8 +69,9 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
                              @JsonProperty("defaultKeyPair") String defaultKeyPair,
                              @JsonProperty("regions") List<AWSRegion> regions,
                              @JsonProperty("defaultSecurityGroups") List<String> defaultSecurityGroups,
-                             @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership) {
-        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, null);
+                             @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
+                             @JsonProperty("lifecycleHooks") List<LifecycleHook> lifecycleHooks) {
+        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, null);
     }
 
     public AmazonCredentials(AmazonCredentials source, AWSCredentialsProvider credentialsProvider) {
@@ -82,6 +84,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
             source.getRegions(),
             source.getDefaultSecurityGroups(),
             source.getRequiredGroupMembership(),
+            source.getLifecycleHooks(),
             credentialsProvider
         );
     }
@@ -94,6 +97,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
                       List<AWSRegion> regions,
                       List<String> defaultSecurityGroups,
                       List<String> requiredGroupMembership,
+                      List<LifecycleHook> lifecycleHooks,
                       AWSCredentialsProvider credentialsProvider) {
         this.name = requireNonNull(name, "name");
         this.environment = requireNonNull(environment, "environment");
@@ -103,6 +107,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         this.regions = regions == null ? Collections.<AWSRegion>emptyList() : Collections.unmodifiableList(regions);
         this.defaultSecurityGroups = defaultSecurityGroups == null ? null : Collections.unmodifiableList(defaultSecurityGroups);
         this.requiredGroupMembership = requiredGroupMembership == null ? Collections.<String>emptyList() : Collections.unmodifiableList(requiredGroupMembership);
+        this.lifecycleHooks = lifecycleHooks == null ? Collections.<LifecycleHook>emptyList() : Collections.unmodifiableList(lifecycleHooks);
         this.credentialsProvider = credentialsProvider;
     }
 
@@ -136,6 +141,31 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
 
     public List<String> getDefaultSecurityGroups() {
       return defaultSecurityGroups;
+    }
+
+    public List<LifecycleHook> getLifecycleHooks() {
+      return lifecycleHooks;
+    }
+
+    @JsonIgnore
+    public AWSCredentialsProvider getCredentialsProvider() {
+      return credentialsProvider;
+    }
+
+    @Override
+    @JsonIgnore
+    public AWSCredentials getCredentials() {
+      return credentialsProvider.getCredentials();
+    }
+
+    @Override
+    public String getCloudProvider() {
+      return CLOUD_PROVIDER;
+    }
+
+    @Override
+    public List<String> getRequiredGroupMembership() {
+      return requiredGroupMembership;
     }
 
     public static class AWSRegion {
@@ -204,24 +234,44 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         }
     }
 
-    @JsonIgnore
-    public AWSCredentialsProvider getCredentialsProvider() {
-        return credentialsProvider;
-    }
+    public static class LifecycleHook {
 
-    @Override
-    @JsonIgnore
-    public AWSCredentials getCredentials() {
-        return credentialsProvider.getCredentials();
-    }
+      private final String roleARN;
+      private final String notificationTargetARN;
+      private final String lifecycleTransition;
+      private final Integer heartbeatTimeout;
+      private final String defaultResult;
 
-    @Override
-    public String getCloudProvider() {
-       return CLOUD_PROVIDER;
-    }
+      public LifecycleHook(@JsonProperty("roleARN") String roleARN,
+                           @JsonProperty("notificationTargetARN") String notificationTargetARN,
+                           @JsonProperty("lifecycleTransition") String lifecycleTransition,
+                           @JsonProperty("heartbeatTimeout") Integer heartbeatTimeout,
+                           @JsonProperty("defaultResult") String defaultResult) {
+        this.roleARN = roleARN;
+        this.notificationTargetARN = notificationTargetARN;
+        this.lifecycleTransition = lifecycleTransition;
+        this.heartbeatTimeout = heartbeatTimeout;
+        this.defaultResult = defaultResult;
+      }
 
-    @Override
-    public List<String> getRequiredGroupMembership() {
-        return requiredGroupMembership;
+      public String getRoleARN() {
+        return roleARN;
+      }
+
+      public String getNotificationTargetARN() {
+        return notificationTargetARN;
+      }
+
+      public String getLifecycleTransition() {
+        return lifecycleTransition;
+      }
+
+      public Integer getHeartbeatTimeout() {
+        return heartbeatTimeout;
+      }
+
+      public String getDefaultResult() {
+        return defaultResult;
+      }
     }
 }
