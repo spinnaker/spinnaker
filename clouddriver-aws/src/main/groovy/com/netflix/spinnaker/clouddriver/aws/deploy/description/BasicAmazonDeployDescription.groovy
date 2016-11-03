@@ -46,6 +46,11 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String base64UserData
   Boolean legacyUdf
 
+  /**
+   * If false, the newly created server group will not pick up scaling policies and actions from an ancestor group
+   */
+  boolean copySourceScalingPoliciesAndActions = true
+
   String classicLinkVpcId
   List<String> classicLinkVpcSecurityGroups
 

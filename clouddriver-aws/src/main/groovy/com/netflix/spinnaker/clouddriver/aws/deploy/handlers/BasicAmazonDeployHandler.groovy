@@ -262,9 +262,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       deploymentResult.serverGroupNames << "${region}:${asgName}".toString()
       deploymentResult.serverGroupNameByRegion[region] = asgName
 
-      copyScalingPoliciesAndScheduledActions(
-        task, sourceRegionScopedProvider, description.credentials, description.source.asgName, region, asgName
-      )
+      if (description.copySourceScalingPoliciesAndActions) {
+        copyScalingPoliciesAndScheduledActions(
+          task, sourceRegionScopedProvider, description.credentials, description.source.asgName, region, asgName
+        )
+      }
     }
 
     return deploymentResult
