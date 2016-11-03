@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,9 +30,9 @@ public class EntityTagsController {
 
   @Autowired(required = false)
   public EntityTagsController(MessageSource messageSource,
-                              EntityTagsProvider tagProvider) {
+                              Optional<EntityTagsProvider> tagProvider) {
     this.messageSource = messageSource;
-    this.tagProvider = tagProvider;
+    this.tagProvider = tagProvider.orElse(null);
   }
 
   @RequestMapping(method = RequestMethod.GET)
