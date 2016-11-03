@@ -70,7 +70,7 @@ SA_EMAIL=$(gcloud iam service-accounts list \
 PROJECT=$(gcloud info --format='value(config.project)')
 
 gcloud projects add-iam-policy-binding $PROJECT \
-    --role roles/compute.storageAdmin --member serviceAccount:$SA_EMAIL
+    --role roles/storage.admin --member serviceAccount:$SA_EMAIL
 ```
 
 Download the key:
