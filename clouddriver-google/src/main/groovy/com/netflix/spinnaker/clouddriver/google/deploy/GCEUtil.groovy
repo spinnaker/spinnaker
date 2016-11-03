@@ -1023,6 +1023,9 @@ class GCEUtil {
       case "targetHttpsProxies":
         proxyGet = { compute.targetHttpsProxies().get(project, targetProxyName).execute() }
         break
+      case "targetSslProxies":
+        proxyGet = { compute.targetSslProxies().get(project, targetProxyName).execute() }
+        break
       default:
         log.warn("Unexpected target proxy type for $targetProxyName.")
         return null
@@ -1076,6 +1079,11 @@ class GCEUtil {
             compute.targetHttpsProxies().delete(project, targetProxyName).execute()
           }
           break
+        case "targetSslProxies":
+          deleteProxyClosure = {
+            compute.targetSslProxies().delete(project, targetProxyName).execute()
+          }
+          break
         default:
           log.warn("Unexpected target proxy type for $targetProxyName.")
           break
@@ -1084,7 +1092,7 @@ class GCEUtil {
       Operation result = proxyDeleteRetry.doRetry(
         deleteProxyClosure,
         'delete',
-        "target http proxy ${targetProxyName}",
+        "target proxy ${targetProxyName}",
         null,
         null,
         [400, 412],

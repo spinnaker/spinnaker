@@ -105,7 +105,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
     List<String> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
       def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule)
-      if (GCEUtil.getLocalName(proxy?.getUrlMap()) == urlMapName) {
+      if (GCEUtil.getLocalName(proxy?.urlMap) == urlMapName) {
         listenersToDelete << rule.getName()
       }
     }

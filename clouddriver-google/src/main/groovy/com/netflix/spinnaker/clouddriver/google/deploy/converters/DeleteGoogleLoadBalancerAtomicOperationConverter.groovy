@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleL
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleInternalLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleSslLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -42,6 +43,9 @@ class DeleteGoogleLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
         break
       case GoogleLoadBalancerType.INTERNAL:
         return new DeleteGoogleInternalLoadBalancerAtomicOperation(description)
+        break
+      case GoogleLoadBalancerType.SSL:
+        return new DeleteGoogleSslLoadBalancerAtomicOperation(description)
         break
       default:
         // TODO(jacobkiefer): This is for backwards compatibility for L4 deletion.
