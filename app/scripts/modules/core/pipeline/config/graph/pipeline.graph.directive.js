@@ -136,12 +136,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
             } else {
               node.parentIds.forEach(function(parentId) {
                 var parent = _.find(nodes, { id: parentId });
-                if (parent.phase === undefined) {
-                  phaseResolvable = false;
-                } else {
+                if (parent && parent.phase !== undefined) {
                   phase = Math.max(phase, parent.phase);
                   parent.children.push(node);
                   node.parents.push(parent);
+                } else {
+                  phaseResolvable = false;
                 }
               });
               if (phaseResolvable) {

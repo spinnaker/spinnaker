@@ -22,7 +22,9 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryD
       $scope.detailsSection = $stateParams.details;
 
       if ($scope.stage.context && $scope.stage.context.commits && $scope.stage.context.commits.length > 0) {
-        $scope.configSections.push('codeChanges');
+        if(!$scope.configSections.includes('codeChanges')) {
+          $scope.configSections.push('codeChanges');
+        }
       }
 
       $scope.deployment = $scope.stage.context;

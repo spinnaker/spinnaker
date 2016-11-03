@@ -27,8 +27,11 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       let statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
       return API.one('applications', applicationName).all('pipelines').getList({ limit: limit, statuses: statusString})
         .then(data => {
-          data.forEach(cleanExecutionForDiffing);
-          return data;
+          if (data) {
+            data.forEach(cleanExecutionForDiffing);
+            return data;
+          }
+          return [];
         });
     }
 
