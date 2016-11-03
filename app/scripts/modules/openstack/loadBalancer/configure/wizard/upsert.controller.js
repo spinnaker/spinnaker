@@ -145,6 +145,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
 
     this.accountUpdated = function() {
       ctrl.updateName();
+      $scope.subnetFilter = {type: 'openstack', account: $scope.loadBalancer.account, region: $scope.loadBalancer.region};
       updateLoadBalancerNames();
     };
 
