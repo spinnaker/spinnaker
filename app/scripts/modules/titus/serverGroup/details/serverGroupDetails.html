@@ -127,6 +127,8 @@
         <dd>{{serverGroup.capacity.max}}</dd>
         <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
+        <dt ng-if="serverGroup.capacityGroup">Capacity Group</dt>
+        <dd ng-if="serverGroup.capacityGroup">{{serverGroup.capacityGroup}}</dd>
       </dl>
       <div>
         <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
