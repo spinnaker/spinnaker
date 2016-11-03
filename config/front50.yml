@@ -58,6 +58,7 @@ stackdriver:
     - name: controller.invocations
       labels:
       - application
+      - cause
     - name: aws.request.httpRequestTime
       labels:
       - status
