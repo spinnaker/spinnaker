@@ -32,7 +32,7 @@ public class EntityRefIdBuilder {
       .map(s -> Optional.ofNullable(s).orElse("*"))
       .collect(Collectors.joining(":"));
 
-    return new EntityRefId(id, "{{cloudProvider}}:{{entityType}}:{{entityId}}:{{account}}:{{region}}");
+    return new EntityRefId(id.toLowerCase(), "{{cloudProvider}}:{{entityType}}:{{entityId}}:{{account}}:{{region}}");
   }
 
   public static class EntityRefId {

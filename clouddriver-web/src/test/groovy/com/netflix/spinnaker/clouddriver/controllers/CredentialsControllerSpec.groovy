@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -36,10 +37,12 @@ class CredentialsControllerSpec extends Specification {
 
   void "named credential names are listed"() {
     setup:
+
+    def objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
     credsRepo.save("test", new TestNamedAccountCredentials())
-    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountCredentialsProvider: credsProvider, objectMapper: new ObjectMapper())).build()
+    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountCredentialsProvider: credsProvider, objectMapper: objectMapper)).build()
 
     when:
     def result = mvc.perform(MockMvcRequestBuilders.get("/credentials").accept(MediaType.APPLICATION_JSON)).andReturn()

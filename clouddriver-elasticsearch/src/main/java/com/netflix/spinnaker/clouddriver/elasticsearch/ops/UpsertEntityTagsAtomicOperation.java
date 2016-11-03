@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.ops;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -25,9 +24,11 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.UpsertEntity
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import io.searchbox.client.JestClient;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.format;
 
@@ -35,25 +36,39 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "ENTITY_TAGS";
 
   private final Front50Service front50Service;
+  private final AccountCredentialsProvider accountCredentialsProvider;
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
   private final UpsertEntityTagsDescription entityTagsDescription;
 
   public UpsertEntityTagsAtomicOperation(Front50Service front50Service,
+                                         AccountCredentialsProvider accountCredentialsProvider,
                                          ElasticSearchEntityTagsProvider entityTagsProvider,
                                          UpsertEntityTagsDescription tagEntityDescription) {
     this.front50Service = front50Service;
+    this.accountCredentialsProvider = accountCredentialsProvider;
     this.entityTagsProvider = entityTagsProvider;
     this.entityTagsDescription = tagEntityDescription;
   }
 
   public Void operate(List priorOutputs) {
+    EntityTags.EntityRef entityRef = entityTagsDescription.getEntityRef();
+    String entityRefAccount = (String) entityRef.attributes().get("account");
+    String entityRefAccountId = (String) entityRef.attributes().get("accountId");
+    if (entityRefAccount != null && entityRefAccountId == null) {
+      // add `accountId` if available (and not already specified)
+      AccountCredentials accountCredentials = accountCredentialsProvider.getCredentials(entityRefAccount);
+      if (accountCredentials != null) {
+        entityRefAccountId = accountCredentials.getAccountId();
+        entityRef.attributes().put("accountId", entityRefAccountId);
+      }
+    }
+
     if (entityTagsDescription.getId() == null) {
-      EntityTags.EntityRef entityRef = entityTagsDescription.getEntityRef();
       EntityRefIdBuilder.EntityRefId entityRefId = EntityRefIdBuilder.buildId(
         entityRef.getCloudProvider(),
         entityRef.getEntityType(),
         entityRef.getEntityId(),
-        (String) entityRef.attributes().get("account"),
+        Optional.ofNullable(entityRefAccountId).orElse(entityRefAccount),
         (String) entityRef.attributes().get("region")
       );
       entityTagsDescription.setId(entityRefId.id);

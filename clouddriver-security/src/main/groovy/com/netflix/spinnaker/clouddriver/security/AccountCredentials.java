@@ -62,6 +62,13 @@ public interface AccountCredentials<T> {
      */
     String getAccountType();
 
+  /**
+   * @return the id for the account (may be null if not supported by underlying cloud provider)
+   */
+  default String getAccountId() {
+      return null;
+    }
+
     /**
      * Returns an associated credentials object, which may be lazily initialized based off of some detail encapsulated
      * within the implementation (like environment or keys, etc)

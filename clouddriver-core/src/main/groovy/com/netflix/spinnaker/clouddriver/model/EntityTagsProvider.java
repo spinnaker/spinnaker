@@ -49,4 +49,9 @@ public interface EntityTagsProvider {
    * Verify that EntityTags has been indexed and can be retrieved via a search
    */
   void verifyIndex(EntityTags entityTags);
+
+  /**
+   * Delete EntityTags by {@code id}
+   */
+  void delete(String id);
 }

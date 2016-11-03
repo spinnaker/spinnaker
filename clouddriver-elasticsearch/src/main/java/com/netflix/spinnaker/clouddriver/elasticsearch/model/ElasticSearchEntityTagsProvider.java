@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider;
 import com.netflix.spinnaker.config.ElasticSearchConfigProperties;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
+import io.searchbox.core.Delete;
 import io.searchbox.core.Index;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -114,6 +116,33 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
   }
 
   @Override
+  public void delete(String id) {
+    try {
+      EntityTags entityTags = get(id).orElse(null);
+      if (entityTags == null) {
+        // EntityTags w/ id = :id does not actually exist
+        return;
+      }
+
+      Delete action = new Delete.Builder(id)
+        .index(activeElasticSearchIndex)
+        .type(entityTags.getEntityRef().getEntityType())
+        .build();
+
+      JestResult jestResult = jestClient.execute(action);
+      if (!jestResult.isSucceeded()) {
+        throw new ElasticSearchException(
+          format("Failed to delete %s, reason: '%s'", id, jestResult.getErrorMessage())
+        );
+      }
+    } catch (IOException e) {
+      throw new ElasticSearchException(
+        format("Failed to delete %s, reason: '%s'", id, e.getMessage())
+      );
+    }
+  }
+
+  @Override
   public void verifyIndex(EntityTags entityTags) {
     OperationPoller.retryWithBackoff(o -> {
         // verify that the indexed document can be retrieved (accounts for index lag)
@@ -123,7 +152,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
         return true;
       },
       1000,
-      5
+      3
     );
   }
 
@@ -132,7 +161,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       return queryBuilder;
     }
 
-    for (Map.Entry<String, Object> entry : tags.entrySet()) {
+    for (Map.Entry<String, Object> entry : flatten(new HashMap<>(), null, tags).entrySet()) {
       // restrict to specific tags (optional)
       if (entry.getValue().equals("*")) {
         queryBuilder = queryBuilder.must(QueryBuilders.existsQuery("tags." + entry.getKey()));
@@ -142,6 +171,22 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     }
 
     return queryBuilder;
+  }
+
+  /**
+   * Elasticsearch requires that all search criteria be flattened (vs. nested)
+   */
+  private Map<String,Object> flatten(Map<String, Object> accumulator, String rootKey, Map<String, Object> criteria) {
+    criteria.forEach((k, v) -> {
+        if (v instanceof Map) {
+          flatten(accumulator, (rootKey == null) ? "" + k : rootKey + "." + k, (Map) v);
+        } else {
+          accumulator.put((rootKey == null) ? "" + k : rootKey + "." + k, v);
+        }
+      }
+    );
+
+    return accumulator;
   }
 
   private List<EntityTags> search(String type, QueryBuilder queryBuilder, int maxResults) {

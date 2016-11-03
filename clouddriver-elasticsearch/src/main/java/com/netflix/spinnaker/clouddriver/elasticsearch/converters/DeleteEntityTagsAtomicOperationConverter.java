@@ -20,45 +20,41 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
-import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.UpsertEntityTagsDescription;
+import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
-import com.netflix.spinnaker.clouddriver.elasticsearch.ops.UpsertEntityTagsAtomicOperation;
+import com.netflix.spinnaker.clouddriver.elasticsearch.ops.DeleteEntityTagsAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-@Component("upsertEntityTags")
-public class UpsertEntityTagsAtomicOperationConverter implements AtomicOperationConverter {
+@Component("deleteEntityTags")
+public class DeleteEntityTagsAtomicOperationConverter implements AtomicOperationConverter {
   private final ObjectMapper objectMapper;
   private final Front50Service front50Service;
-  private final AccountCredentialsProvider accountCredentialsProvider;
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
 
   @Autowired
-  public UpsertEntityTagsAtomicOperationConverter(ObjectMapper objectMapper,
+  public DeleteEntityTagsAtomicOperationConverter(ObjectMapper objectMapper,
                                                   Front50Service front50Service,
-                                                  AccountCredentialsProvider accountCredentialsProvider,
                                                   ElasticSearchEntityTagsProvider entityTagsProvider) {
     this.objectMapper = objectMapper
       .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     this.front50Service = front50Service;
-    this.accountCredentialsProvider = accountCredentialsProvider;
     this.entityTagsProvider = entityTagsProvider;
   }
 
   public AtomicOperation convertOperation(Map input) {
-    return new UpsertEntityTagsAtomicOperation(
-      front50Service, accountCredentialsProvider, entityTagsProvider, this.convertDescription(input)
+    return new DeleteEntityTagsAtomicOperation(
+      front50Service, entityTagsProvider, this.convertDescription(input)
     );
   }
 
-  public UpsertEntityTagsDescription convertDescription(Map input) {
-    return objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
+  public DeleteEntityTagsDescription convertDescription(Map input) {
+    return objectMapper.convertValue(input, DeleteEntityTagsDescription.class);
   }
 }

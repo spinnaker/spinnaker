@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.elasticsearch.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.model.EntityTags
-import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider
 import com.netflix.spinnaker.config.ElasticSearchConfig
 import com.netflix.spinnaker.config.ElasticSearchConfigProperties
 import io.searchbox.client.JestClient
@@ -29,6 +28,7 @@ import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.node.Node
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder
 
@@ -46,7 +46,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
   ElasticSearchConfigProperties elasticSearchConfigProperties
 
   @Shared
-  EntityTagsProvider entityTagsProvider
+  ElasticSearchEntityTagsProvider entityTagsProvider
 
   def setupSpec() {
     def elasticSearchSettings = Settings.settingsBuilder()
@@ -128,7 +128,20 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     entityTagsProvider.getAll("aws", "cluster", null, null, 0).isEmpty()
   }
 
-  EntityTags buildEntityTags(String id, Map<String, String> tags) {
+  @Unroll
+  def "should flatten a nested map"() {
+    expect:
+    entityTagsProvider.flatten([:], null, source) == flattened
+
+    where:
+    source                               || flattened
+    ["a": "b"]                           || ["a": "b"]
+    ["a": ["b": ["c"]]]                  || ["a.b": ["c"]]
+    ["a": ["b": ["c": ["d"]]]]           || ["a.b.c": ["d"]]
+    ["a": ["b": ["c": ["d"]]], "e": "f"] || ["a.b.c": ["d"], "e": "f"]
+  }
+
+  private static EntityTags buildEntityTags(String id, Map<String, String> tags) {
     return new EntityTags(
       id: id,
       tags: tags,
