@@ -3,7 +3,7 @@
 import {AUTHENTICATION} from 'core/authentication/authentication.module';
 import {API_SERVICE} from 'core/api/api.service';
 
-global.Spinner = require('spin.js');
+import Spinner from 'spin.js';
 
 let angular = require('angular');
 
@@ -137,6 +137,7 @@ module.exports = angular
     require('./validation/validation.module.js'),
   ])
   .run(function($rootScope, $log, $state, settings) {
+    window.Spinner = Spinner;
 
     $rootScope.feature = settings.feature;
 
