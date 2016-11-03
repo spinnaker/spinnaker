@@ -39,7 +39,10 @@ class ScriptStage implements StageDefinitionBuilder, RestartableStage {
     builder
       .withTask("startScript", StartScriptTask)
       .withTask("waitForScriptStart", MonitorQueuedJenkinsJobTask)
-      .withTask("monitorScript", MonitorJenkinsJobTask)
+
+    if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().equalsIgnoreCase("false")) {
+      builder.withTask("monitorScript", MonitorJenkinsJobTask)
+    }
   }
 
   @Override

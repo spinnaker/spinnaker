@@ -34,6 +34,9 @@ class RunJobStage implements StageDefinitionBuilder {
     builder
       .withTask("runJob", RunJobTask)
       .withTask("monitorDeploy", MonitorKatoTask)
-      .withTask("waitOnJobCompletion", WaitOnJobCompletion)
+
+    if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().equalsIgnoreCase("false")) {
+      builder.withTask("waitOnJobCompletion", WaitOnJobCompletion)
+    }
   }
 }

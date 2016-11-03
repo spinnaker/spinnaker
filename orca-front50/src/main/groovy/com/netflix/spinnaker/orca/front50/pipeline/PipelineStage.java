@@ -31,8 +31,11 @@ public class PipelineStage implements StageDefinitionBuilder, RestartableStage, 
   @Override
   public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder
-      .withTask("startPipeline", StartPipelineTask.class)
-      .withTask("monitorPipeline", MonitorPipelineTask.class);
+      .withTask("startPipeline", StartPipelineTask.class);
+
+    if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().toLowerCase().equals("false")) {
+      builder.withTask("monitorPipeline", MonitorPipelineTask.class);
+    }
   }
 
   @Override

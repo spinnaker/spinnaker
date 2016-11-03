@@ -45,7 +45,10 @@ class JenkinsStage implements StageDefinitionBuilder, RestartableStage, Cancella
     builder
       .withTask("startJenkinsJob", StartJenkinsJobTask.class)
       .withTask("waitForJenkinsJobStart", MonitorQueuedJenkinsJobTask.class)
-      .withTask("monitorJenkinsJob", MonitorJenkinsJobTask.class)
+
+    if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().equalsIgnoreCase("false")) {
+      builder.withTask("monitorJenkinsJob", MonitorJenkinsJobTask.class);
+    }
   }
 
   @Override
