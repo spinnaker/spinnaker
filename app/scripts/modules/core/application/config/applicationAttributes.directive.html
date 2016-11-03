@@ -4,10 +4,6 @@
       <div class="panel-body">
         <div class="row">
           <dl class="dl-horizontal">
-            <dt>Description</dt>
-            <dd>{{vm.application.attributes.description}}</dd>
-            <dt>Account(s)</dt>
-            <dd>{{vm.application.attributes.accounts}}</dd>
             <dt>Owner</dt>
             <dd>{{vm.application.attributes.email}}</dd>
             <dt ng-if="vm.application.attributes.repoType">Source Repo Type</dt>
@@ -16,11 +12,26 @@
             <dd ng-if="vm.application.attributes.repoProjectKey">{{vm.application.attributes.repoProjectKey}}</dd>
             <dt ng-if="vm.application.attributes.repoSlug">Source Repo</dt>
             <dd ng-if="vm.application.attributes.repoSlug">{{vm.application.attributes.repoSlug}}</dd>
+            <dt>Description</dt>
+            <dd>{{vm.application.attributes.description}}</dd>
+            <dt>Account(s)</dt>
+            <dd>{{vm.application.attributes.accounts}}</dd>
             <dt ng-if="vm.application.attributes.cloudProviders">Cloud Provider(s)</dt>
             <dd ng-if="vm.application.attributes.cloudProviders">{{vm.application.attributes.cloudProviders}}</dd>
+            <dt ng-if="vm.application.attributes.platformHealthOnly || vm.application.attributes.platformHealthOnlyShowOverride">
+              Instance health
+            </dt>
+            <dd ng-if="vm.application.attributes.platformHealthOnly || vm.application.attributes.platformHealthOnlyShowOverride">
+              {{vm.healthMessage}}
+            </dd>
+            <dt>Instance Port</dt>
+            <dd>{{vm.application.attributes.instancePort}}</dd>
+            <dt ng-if="vm.application.attributes.legacyUdf">User Data Format</dt>
+            <dd ng-if="vm.application.attributes.legacyUdf">This application requires legacy user data format.</dd>
             <dt ng-if="vm.application.attributes.requiredGroupMembership.length">Group Membership</dt>
             <dd ng-if="vm.application.attributes.requiredGroupMembership.length">
-              {{ vm.application.attributes.requiredGroupMembership.join(', ')}}</dd>
+              {{ vm.application.attributes.requiredGroupMembership.join(', ')}}
+            </dd>
           </dl>
           <button class="btn btn-link" ng-click="vm.editApplication()"><span class="glyphicon glyphicon-cog"></span>
             Edit Application Attributes

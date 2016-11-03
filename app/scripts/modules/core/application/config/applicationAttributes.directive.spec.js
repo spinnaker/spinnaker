@@ -46,7 +46,4 @@ describe('Controller: Config', function () {
       expect(application.attributes).toBe(newAttributes);
     });
   });
-
-
-
 });
