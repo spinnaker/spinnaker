@@ -353,7 +353,7 @@ class GoogleSmokeTest(st.AgentTestCase):
   def setUpClass():
     runner = citest.base.TestRunner.global_runner()
     scenario = runner.get_shared_data(GoogleSmokeTestScenario)
-    managed_region = runner.bindings['TEST_GCE_REGION']
+    managed_region = scenario.bindings['TEST_GCE_REGION']
     title = 'Check Quota for {0}'.format(scenario.__class__.__name__)
 
     verify_results = gcp.verify_quota(

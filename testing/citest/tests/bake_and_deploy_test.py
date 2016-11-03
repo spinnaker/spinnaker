@@ -535,7 +535,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
   def delete_baked_image(self, execution_context):
     status = execution_context.get('OperationStatus', None)
     if status is None:
-      self.log.info(
+      self.logger.info(
           'Operation could not be performed so there is no image to delete.')
       return;
 
@@ -567,7 +567,7 @@ class BakeAndDeployTest(st.AgentTestCase):
     if not scenario.test_google:
       return
 
-    managed_region = runner.bindings['TEST_GCE_REGION']
+    managed_region = scenario.bindings['TEST_GCE_REGION']
     title = 'Check Quota for {0}'.format(scenario.__class__.__name__)
 
     verify_results = gcp.verify_quota(

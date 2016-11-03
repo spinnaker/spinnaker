@@ -75,14 +75,12 @@ class GoogleHttpLoadBalancerTest(st.AgentTestCase):
   @classmethod
   def setUpClass(cls):
     runner = citest.base.TestRunner.global_runner()
-    bindings = runner.bindings
+    scenario = runner.get_shared_data(GoogleHttpLoadBalancerTestScenario)
+    bindings = scenario.bindings
     cls.FIRST_CERT = 'first-cert-%s' % (bindings['TEST_APP'])
     cls.SECOND_CERT = 'second-cert-%s'  % (bindings['TEST_APP'])
     cls.UPDATED_HC = 'updated-%s' % (bindings['TEST_APP'])
-    runner = citest.base.TestRunner.global_runner()
-    bindings = runner.bindings
-    scenario = runner.get_shared_data(GoogleHttpLoadBalancerTestScenario)
-    managed_region = runner.bindings['TEST_GCE_REGION']
+    managed_region = bindings['TEST_GCE_REGION']
     title = 'Check Quota for {0}'.format(scenario.__class__.__name__)
 
     verify_results = gcp.verify_quota(
@@ -116,7 +114,8 @@ class GoogleHttpLoadBalancerTest(st.AgentTestCase):
   @classmethod
   def tearDownClass(cls):
     runner = citest.base.TestRunner.global_runner()
-    bindings = runner.bindings
+    scenario = runner.get_shared_data(GoogleHttpLoadBalancerTestScenario)
+    bindings = scenario.bindings
     context = ExecutionContext()
     compute_agent = (
       gcp.GcpComputeAgent
