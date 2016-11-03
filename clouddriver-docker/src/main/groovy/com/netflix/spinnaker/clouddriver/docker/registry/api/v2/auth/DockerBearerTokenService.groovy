@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
 
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryAuthenticationException
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RestAdapter
 import retrofit.client.Header
@@ -25,6 +26,7 @@ import retrofit.http.Headers
 import retrofit.http.Path
 import retrofit.http.Query
 
+@Slf4j
 class DockerBearerTokenService {
   Map<String, TokenService> realmToService
   Map<String, DockerBearerToken> cachedTokens
@@ -65,6 +67,17 @@ class DockerBearerTokenService {
       resolvedPassword = new BufferedReader(new FileReader(passwordFile)).getText()
     } else {
       resolvedPassword = "" // I'm assuming it's ok to have an empty password if the username is specified
+    }
+
+    if (resolvedPassword?.length() > 0) {
+      def message = "Your registry password has %s whitespace, if this is unintentional authentication will fail."
+      if (resolvedPassword.charAt(0).isWhitespace()) {
+        log.warn sprintf(message, ["leading"])
+      }
+
+      if (resolvedPassword.charAt(resolvedPassword.length() - 1).isWhitespace()) {
+        log.warn sprintf(message, ["trailing"])
+      }
     }
 
     def basicAuth = new String(Base64.encoder.encode(("${username}:${resolvedPassword}").bytes))
