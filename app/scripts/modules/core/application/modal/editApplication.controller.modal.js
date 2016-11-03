@@ -10,10 +10,9 @@ module.exports = angular
     require('../../account/account.service.js'),
     require('../../task/task.read.service.js'),
     require('./applicationProviderFields.component.js'),
-    require('../../config/settings'),
   ])
   .controller('EditApplicationController', function ($window, $state, $uibModalInstance, application, applicationWriter,
-                                                     accountService, taskReader, settings) {
+                                                     accountService, taskReader) {
     var vm = this;
     this.data = {};
     this.state = {
