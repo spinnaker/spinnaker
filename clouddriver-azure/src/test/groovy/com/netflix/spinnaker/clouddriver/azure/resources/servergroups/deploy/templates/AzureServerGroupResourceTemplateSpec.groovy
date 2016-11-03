@@ -125,7 +125,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     AzureServerGroupDescription.AzureExtensionCustomScriptSettings extension = new AzureServerGroupDescription.AzureExtensionCustomScriptSettings()
     extension.commandToExecute = "mkdir mydir"
     extension.fileUris = ["storage1", "file2"]
-    description.customScriptSettings = extension
+    description.customScriptsSettings = extension
 
     //Set the OS type and backend port accordingly
     description.image.ostype = targetWindows ? "Windows" : "Linux"

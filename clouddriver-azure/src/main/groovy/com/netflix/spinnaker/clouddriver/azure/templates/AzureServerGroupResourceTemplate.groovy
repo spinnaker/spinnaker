@@ -368,7 +368,7 @@ class AzureServerGroupResourceTemplate {
 
     VirtualMachineScaleSetProperty(AzureServerGroupDescription description) {
       upgradePolicy["mode"] = description.upgradePolicy.toString()
-      virtualMachineProfile = description.customScriptSettings?.fileUris ?
+      virtualMachineProfile = description.customScriptsSettings?.fileUris ?
         new ScaleSetVMProfilePropertyWithExtension(description) :
         new ScaleSetVMProfileProperty(description)
 
@@ -687,8 +687,8 @@ class AzureServerGroupResourceTemplate {
     String commandToExecute
 
     CustomScriptExtensionSettings(AzureServerGroupDescription description) {
-      commandToExecute = description.customScriptSettings.commandToExecute
-      fileUris = description.customScriptSettings.fileUris
+      commandToExecute = description.customScriptsSettings.commandToExecute
+      fileUris = description.customScriptsSettings.fileUris
     }
   }
 

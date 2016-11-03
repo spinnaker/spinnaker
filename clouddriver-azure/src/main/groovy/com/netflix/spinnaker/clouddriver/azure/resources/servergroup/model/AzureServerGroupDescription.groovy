@@ -63,7 +63,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   String vnetResourceGroup
   Boolean hasNewSubnet = false
   Boolean createNewSubnet = false
-  AzureExtensionCustomScriptSettings customScriptSettings
+  AzureExtensionCustomScriptSettings customScriptsSettings
 
   static class AzureScaleSetSku {
     String name
@@ -217,7 +217,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
       }
     }
 
-    azureSG.customScriptSettings = customScriptSettings
+    azureSG.customScriptsSettings = customScriptSettings
 
     def sku = new AzureScaleSetSku()
     def skuData = scaleSet.sku
