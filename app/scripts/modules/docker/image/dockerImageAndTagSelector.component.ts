@@ -45,6 +45,7 @@ class DockerImageAndTagSelectorController implements ng.IComponentController {
   public tags: string[];
   public tag: string;
   public onChange: Function;
+  public deferInitialization: boolean;
 
   static get $inject() {
     return ['accountService', 'dockerImageReader'];
@@ -216,7 +217,7 @@ class DockerImageAndTagSelectorController implements ng.IComponentController {
   public $onInit(): void {
     this.labelClass = this.labelClass || 'col-md-3';
     this.fieldClass = this.fieldClass || 'col-md-8';
-    if (this.registry || this.isNew()) {
+    if (!this.deferInitialization && (this.registry || this.isNew())) {
       this.initializeAccounts();
     }
     this.initCalled = true;
@@ -228,6 +229,8 @@ class DockerImageAndTagSelectorController implements ng.IComponentController {
       ((this.showRegistry && this.account) || (!this.showRegistry && this.registry)) &&
       changes.registry &&
       changes.registry.currentValue) {
+      this.initializeAccounts();
+    } else if (!changes.registry.previousValue && changes.registry.currentValue) {
       this.initializeAccounts();
     }
   }
@@ -244,7 +247,8 @@ class DockerImageAndTagSelectorComponent implements ng.IComponentOptions {
     showRegistry: '<?',
     labelClass: '@?',
     fieldClass: '@?',
-    onChange: '=?'
+    onChange: '=?',
+    deferInitialization: '=?'
   };
   public controller: ng.IComponentController = DockerImageAndTagSelectorController;
   public templateUrl: string = require('./dockerImageAndTagSelector.component.html');

@@ -17,9 +17,18 @@
     </div>
   </div>
 
-  <stage-config-field label="Image">
-    <input type="text" class="form-control input-sm" name="image" ng-model="stage.cluster.imageId" required/>
-  </stage-config-field>
+  <docker-image-and-tag-selector
+    specify-tag-by-regex="false"
+    account="stage.credentials"
+    organization="stage.organization"
+    registry="stage.registry"
+    repository="stage.repository"
+    tag="stage.tag"
+    show-registry="false"
+    on-change="ctrl.onChange"
+    defer-initialization="true"
+    label-class="col-md-2 col-md-offset-1 sm-label-right"
+    field-class="col-md-6"></docker-image-and-tag-selector>
 
   <stage-config-field label="CPU(s)">
     <input type="number" class="form-control input-sm" name="cpu" ng-model="stage.cluster.resources.cpu" required/>

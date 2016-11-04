@@ -64,7 +64,7 @@
     <input type="text"
            class="form-control input-sm"
            ng-model="$ctrl.tag"
-           ng-disabled="$ctrl.viewState.imagesRefreshing"
+           ng-disabled="$ctrl.viewState.imagesRefreshing || !$ctrl.repository"
            ng-change="$ctrl.updateTag()"
            required/>
   </div>
@@ -75,7 +75,7 @@
   </div>
   <div ng-class="$ctrl.fieldClass">
     <ui-select ng-model="$ctrl.tag"
-               ng-disabled="$ctrl.viewState.imagesRefreshing"
+               ng-disabled="$ctrl.viewState.imagesRefreshing || !$ctrl.repository"
                ng-change="$ctrl.updateTag()"
                class="form-control input-sm"
                required>
