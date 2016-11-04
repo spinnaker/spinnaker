@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvide
 import com.netflix.spinnaker.clouddriver.openstack.deploy.OpenstackServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.MemberData
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.UserDataType
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.StackPoolMemberAware
@@ -163,31 +164,19 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
       Subnet subnet = provider.getSubnet(description.region, subnetId)
       task.updateStatus BASE_PHASE, "Found network id $subnet.networkId from subnet $subnetId."
 
-      String userData = ""
-      if (description.userDataType && description.userData) {
-        if (UserDataType.fromString(description.userDataType) == UserDataType.URL) {
-          task.updateStatus BASE_PHASE, "Resolving user data from url $description.userData..."
-          userData = description.userData.toURL()?.text
-        } else if (UserDataType.fromString(description.userDataType) == UserDataType.SWIFT) {
-          String[] parts = description.userData.split(":")
-          if (parts?.length == 2) {
-            userData = provider.readSwiftObject(description.region, parts[0], parts[1])
-          }
-        } else {
-          userData = description.userData
-        }
-        task.updateStatus BASE_PHASE, "Resolved user data."
-      }
+      String userData = getUserData(provider, stackName)
 
       task.updateStatus BASE_PHASE, "Creating heat stack $stackName..."
-      provider.deploy(description.region, stackName, template, subtemplates, description.serverGroupParameters.identity {
+      ServerGroupParameters params = description.serverGroupParameters.identity {
         it.networkId = subnet.networkId
         it.rawUserData = userData
         it.sourceUserDataType = description.userDataType
         it.sourceUserData = description.userData
         it.resourceFilename = resourceFilename
         it
-      }, description.disableRollback, description.timeoutMins, description.serverGroupParameters.loadBalancers)
+      }
+      provider.deploy(description.region, stackName, template, subtemplates, params,
+        description.disableRollback, description.timeoutMins, description.serverGroupParameters.loadBalancers)
       task.updateStatus BASE_PHASE, "Finished creating heat stack $stackName."
 
       task.updateStatus BASE_PHASE, "Successfully created server group."
@@ -198,6 +187,27 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
       throw new OpenstackOperationException(AtomicOperations.CREATE_SERVER_GROUP, e)
     }
     deploymentResult
+  }
+
+  String getUserData(OpenstackClientProvider provider, String serverGroupName) {
+    String customUserData = ''
+    if (description.userDataType && description.userData) {
+      if (UserDataType.fromString(description.userDataType) == UserDataType.URL) {
+        task.updateStatus BASE_PHASE, "Resolving user data from url $description.userData..."
+        customUserData = description.userData.toURL()?.text
+      } else if (UserDataType.fromString(description.userDataType) == UserDataType.SWIFT) {
+        String[] parts = description.userData.split(":")
+        if (parts?.length == 2) {
+          customUserData = provider.readSwiftObject(description.region, parts[0], parts[1])
+        }
+      } else {
+        customUserData = description.userData
+      }
+    }
+
+    String userData = description.credentials.userDataProvider.getUserData(serverGroupName, description.region, customUserData)
+    task.updateStatus BASE_PHASE, "Resolved user data."
+    userData
   }
 
   /**
@@ -218,5 +228,4 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
       template ?: ""
     }
   }
-
 }

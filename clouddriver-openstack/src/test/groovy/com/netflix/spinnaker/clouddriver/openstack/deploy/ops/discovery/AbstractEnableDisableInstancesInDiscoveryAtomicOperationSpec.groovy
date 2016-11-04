@@ -55,7 +55,7 @@ class AbstractEnableDisableInstancesInDiscoveryAtomicOperationSpec extends Speci
       getEnabled() >> consulEnabled
       applyDefaults() >> {}
     }
-    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5), consulConfig)
+    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5), consulConfig, null)
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
     description = new OpenstackInstancesDescription(credentials: credentials, region: region, instanceIds: INSTANCE_IDS, account: ACCOUNT_NAME)

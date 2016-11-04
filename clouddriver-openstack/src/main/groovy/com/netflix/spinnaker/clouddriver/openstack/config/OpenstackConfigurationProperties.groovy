@@ -37,6 +37,7 @@ class OpenstackConfigurationProperties {
     String heatTemplatePath
     LbaasConfig lbaas
     ConsulConfig consul
+    String userDataFile
   }
 
   static class LbaasConfig {

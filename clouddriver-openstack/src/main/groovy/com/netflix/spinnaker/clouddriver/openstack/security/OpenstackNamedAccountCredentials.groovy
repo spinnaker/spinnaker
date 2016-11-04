@@ -41,6 +41,8 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
   final String heatTemplateLocation
   final LbaasConfig lbaasConfig
   final ConsulConfig consulConfig
+  final String userDataFile
+
 
   OpenstackNamedAccountCredentials(String accountName,
                                    String environment,
@@ -54,8 +56,9 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
                                    Boolean insecure,
                                    String heatTemplateLocation,
                                    LbaasConfig lbaasConfig,
-                                   ConsulConfig consulConfig) {
-    this(accountName, environment, accountType, username, password, null, projectName, domainName, authUrl, regions, insecure, heatTemplateLocation, lbaasConfig, consulConfig)
+                                   ConsulConfig consulConfig,
+                                   String userDataFile) {
+    this(accountName, environment, accountType, username, password, null, projectName, domainName, authUrl, regions, insecure, heatTemplateLocation, lbaasConfig, consulConfig, userDataFile)
   }
 
   OpenstackNamedAccountCredentials(String accountName,
@@ -71,7 +74,8 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
                                    Boolean insecure,
                                    String heatTemplateLocation,
                                    LbaasConfig lbaasConfig,
-                                   ConsulConfig consulConfig) {
+                                   ConsulConfig consulConfig,
+                                   String userDataFile) {
     this.name = accountName
     this.environment = environment
     this.accountType = accountType
@@ -86,6 +90,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
     this.heatTemplateLocation = heatTemplateLocation
     this.lbaasConfig = lbaasConfig
     this.consulConfig = consulConfig
+    this.userDataFile = userDataFile
     if (this.consulConfig?.enabled) {
       this.consulConfig.applyDefaults()
     }

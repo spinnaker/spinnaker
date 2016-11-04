@@ -49,7 +49,7 @@ class OpenstackIdentityV3ProviderSpec extends Specification {
     Boolean insecure = true
     LbaasConfig config = new LbaasConfig(pollInterval: 5, pollTimeout: 60)
     ConsulConfig consulConfig = new ConsulConfig()
-    credentials = new OpenstackNamedAccountCredentials(accountName, environment, accountType, username, password, projectName, domainName, authUrl, [], insecure, "", config, consulConfig)
+    credentials = new OpenstackNamedAccountCredentials(accountName, environment, accountType, username, password, projectName, domainName, authUrl, [], insecure, "", config, consulConfig, null)
     mockClient = Mock(OSClient.OSClientV3) {
       getToken() >> { Mock(Token) }
     }
