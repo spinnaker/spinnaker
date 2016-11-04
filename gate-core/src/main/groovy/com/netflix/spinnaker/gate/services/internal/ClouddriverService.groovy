@@ -243,4 +243,10 @@ interface ClouddriverService {
                                @Query("startTime") Long startTime,
                                @Query("endTime") Long endTime,
                                @QueryMap Map<String, String> filters)
+
+  @GET('/tags')
+  List<Map> listEntityTags(@QueryMap Map allParameters)
+
+  @GET('/tags/{id}')
+  Map getEntityTags(@Path('id') String id)
 }
