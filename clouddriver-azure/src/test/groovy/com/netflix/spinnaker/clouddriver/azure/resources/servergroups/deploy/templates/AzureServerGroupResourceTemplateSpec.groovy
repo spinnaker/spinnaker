@@ -157,7 +157,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       }
     },
     "vmuserName" : {
-      "type" : "string",
+      "type" : "secureString",
       "metadata" : {
         "description" : "default VM account name"
       }
@@ -364,7 +364,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       }
     },
     "vmuserName" : {
-      "type" : "string",
+      "type" : "secureString",
       "metadata" : {
         "description" : "default VM account name"
       }
@@ -543,7 +543,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       }
     },
     "vmuserName" : {
-      "type" : "string",
+      "type" : "secureString",
       "metadata" : {
         "description" : "default VM account name"
       }
@@ -765,7 +765,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       }
     },
     "vmuserName" : {
-      "type" : "string",
+      "type" : "secureString",
       "metadata" : {
         "description" : "default VM account name"
       }

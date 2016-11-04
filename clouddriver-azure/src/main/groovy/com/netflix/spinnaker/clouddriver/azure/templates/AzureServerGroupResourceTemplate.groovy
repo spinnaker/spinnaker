@@ -211,7 +211,7 @@ class AzureServerGroupResourceTemplate {
   }
 
   static String vmUserNameParameterName = "vmUsername"
-  static class VMUserNameParameter extends StringParameter {
+  static class VMUserNameParameter extends SecureStringParameter {
     VMUserNameParameter(Map<String, String> metadata) {
       super(metadata)
     }
