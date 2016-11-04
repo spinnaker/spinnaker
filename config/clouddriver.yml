@@ -80,6 +80,7 @@ openstack:
       domainName: ${providers.openstack.primaryCredentials.domainName:Default}
       regions: ${providers.openstack.primaryCredentials.regions}
       insecure: ${providers.openstack.primaryCredentials.insecure:false}
+      userDataFile: ${providers.openstack.primaryCredentials.userDataFile:}
 
       # The Openstack API requires that the load balancer be in an ACTIVE
       # state for it to create associated relationships (i.e. listeners,
