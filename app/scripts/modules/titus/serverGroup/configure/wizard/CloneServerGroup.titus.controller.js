@@ -83,11 +83,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
     }
 
     this.isValid = function () {
-      return $scope.command && ($scope.command.viewState.disableImageSelection || $scope.command.image !== null) &&
+      return $scope.command && ($scope.command.viewState.disableImageSelection || $scope.command.imageId) &&
         ($scope.command.credentials !== null) &&
         ($scope.command.region !== null) &&
         ($scope.command.capacity.desired !== null) &&
-        $scope.command.imageId &&
         v2modalWizardService.isComplete();
     };
 

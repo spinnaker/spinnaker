@@ -49,7 +49,8 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
           useSimpleCapacity: true,
           usePreferredZones: true,
           mode: defaults.mode || 'create',
-        }
+        },
+        securityGroups: [],
       };
 
       return $q.when(command);
