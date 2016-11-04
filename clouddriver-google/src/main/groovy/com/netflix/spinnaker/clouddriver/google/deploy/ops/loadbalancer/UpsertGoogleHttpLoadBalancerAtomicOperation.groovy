@@ -153,15 +153,14 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     // TargetProxy
     def existingProxy = null
     if (forwardingRuleExists) {
-      String targetProxyType = Utils.getTargetProxyType(existingRule.getTarget())
       String targetProxyName = GCEUtil.getLocalName(existingRule.getTarget())
-      switch (targetProxyType) {
-        case "targetHttpProxies":
+      switch (Utils.getTargetProxyType(existingRule.getTarget())) {
+        case GoogleTargetProxyType.HTTP:
           existingProxy = compute.targetHttpProxies().get(project, targetProxyName).execute()
           targetProxyNeedsUpdated = httpLoadBalancer.certificate as Boolean
           forwardingRuleNeedsUpdated = forwardingRuleNeedsUpdated || targetProxyNeedsUpdated // We need to change the target of the forwarding rule if we change proxy from Http -> Https.
           break
-        case "targetHttpsProxies":
+        case GoogleTargetProxyType.HTTPS:
           existingProxy = compute.targetHttpsProxies().get(project, targetProxyName).execute()
           if (!httpLoadBalancer.certificate) {
             throw new IllegalArgumentException("${httpLoadBalancerName} is an Https load balancer, but the upsert description does not contain a certificate.")
@@ -391,9 +390,9 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         null, task, "target proxy $targetProxyName", BASE_PHASE)
       targetProxyUrl = insertTargetProxyOperation.getTargetLink()
     } else if (targetProxyExists && targetProxyNeedsUpdated) {
-      String proxyType = Utils.getTargetProxyType(existingProxy?.getSelfLink())
+      GoogleTargetProxyType proxyType = Utils.getTargetProxyType(existingProxy?.getSelfLink())
       switch (proxyType) {
-        case "targetHttpProxies":
+        case GoogleTargetProxyType.HTTP:
           // We are "updating" a Http proxy to an Https proxy, since the only thing we check
           // for differences is the certificate.
           targetProxyName = "$httpLoadBalancerName-$TARGET_HTTPS_PROXY_NAME_PREFIX"
@@ -409,7 +408,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           // We should also delete the old Http proxy.
           deleteExistingProxy = true
           break
-        case "targetHttpsProxies":
+        case GoogleTargetProxyType.HTTPS:
           targetProxyName = "$httpLoadBalancerName-$TARGET_HTTPS_PROXY_NAME_PREFIX"
           task.updateStatus BASE_PHASE, "Updating target proxy $targetProxyName..."
           TargetHttpsProxiesSetSslCertificatesRequest setSslReq = new TargetHttpsProxiesSetSslCertificatesRequest(
@@ -421,7 +420,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           targetProxyUrl = setUrlMapOp.getTargetLink()
           break
         default:
-          throw new GoogleHostRule("Updating Http load balancer $httpLoadBalancerName failed. " +
+          throw new IllegalStateException("Updating Http load balancer $httpLoadBalancerName failed. " +
             "Could not update target proxy $targetProxyName; Illegal target proxy type $proxyType.")
           break
       }

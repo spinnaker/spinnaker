@@ -92,7 +92,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     googleClusterProviderMock = Mock(GoogleClusterProvider)
     googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
     objectMapperMock = Mock(ObjectMapper)
-    serverGroup = new GoogleServerGroup(zone: ZONE).view
+    serverGroup = new GoogleServerGroup(zone: ZONE, region: REGION).view
     computeMock = Mock(Compute)
     credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
 
@@ -131,6 +131,8 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   void "should add instances and attach load balancers"() {
     setup:
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
       @Subject def operation = new EnableGoogleServerGroupAtomicOperation(description)
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
@@ -154,9 +156,9 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * instanceTemplatesMock.get(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
       1 * instanceTemplatesGetMock.execute() >> instanceTemplate
 
-      1 * computeMock.forwardingRules() >> forwardingRulesMock
-      1 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> forwardingRulesListMock
-      1 * forwardingRulesListMock.execute() >> forwardingRulesList
+      2 * computeMock.forwardingRules() >> forwardingRulesMock
+      2 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> forwardingRulesListMock
+      2 * forwardingRulesListMock.execute() >> forwardingRulesList
 
       [TARGET_POOL_NAME_1, TARGET_POOL_NAME_2].each { targetPoolLocalName ->
         1 * computeMock.targetPools() >> targetPoolsMock
@@ -168,10 +170,16 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * instanceGroupManagersMock.setTargetPools(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, _) >>
               instanceGroupManagersSetTargetPoolsMock
       1 * instanceGroupManagersSetTargetPoolsMock.execute()
+
+      2 * computeMock.globalForwardingRules() >> globalForwardingRules
+      2 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      2 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
   }
 
   void "should fail if load balancers cannot be resolved"() {
     setup:
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
       def forwardingRules2 = [new ForwardingRule(name: "${FORWARDING_RULE_1}_WRONG", target: TARGET_POOL_URL_1),
                               new ForwardingRule(name: "${FORWARDING_RULE_2}_WRONG", target: TARGET_POOL_URL_2)]
       def forwardingRulesList2 = new ForwardingRuleList(items: forwardingRules2)
@@ -199,9 +207,13 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * instanceTemplatesMock.get(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
       1 * instanceTemplatesGetMock.execute() >> instanceTemplate
 
-      1 * computeMock.forwardingRules() >> forwardingRulesMock
-      1 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> forwardingRulesListMock
-      1 * forwardingRulesListMock.execute() >> forwardingRulesList2
+      2 * computeMock.forwardingRules() >> forwardingRulesMock
+      2 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> forwardingRulesListMock
+      2 * forwardingRulesListMock.execute() >> forwardingRulesList2
+
+      2 * computeMock.globalForwardingRules() >> globalForwardingRules
+      2 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      2 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
       def exc = thrown GoogleResourceNotFoundException
       exc.message == "Regional load balancers [$FORWARDING_RULE_1, $FORWARDING_RULE_2] not found."

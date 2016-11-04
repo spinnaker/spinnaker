@@ -80,6 +80,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
       def googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
+
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+
       googleLoadBalancerProviderMock.getApplicationLoadBalancers(APPLICATION_NAME) >> []
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
@@ -110,6 +116,14 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.delete(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesDeleteMock
       1 * instanceTemplatesDeleteMock.execute()
+
+      2 * computeMock.globalForwardingRules() >> globalForwardingRules
+      2 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      2 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+
+      1 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
   }
 
   @Unroll
@@ -141,6 +155,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def autoscalersMock = Mock(Compute.Autoscalers)
       def autoscalersDeleteMock = Mock(Compute.Autoscalers.Delete)
       def autoscalersDeleteOp = new Operation(name: AUTOSCALERS_OP_NAME, status: DONE)
+
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                 region: REGION,
@@ -160,6 +180,14 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
+
+      2 * computeMock.globalForwardingRules() >> globalForwardingRules
+      2 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      2 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+
+      1 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
       if (isRegional) {
         1 * computeMock.regionAutoscalers() >> regionAutoscalersMock
@@ -242,6 +270,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def backendServicesMock = Mock(Compute.BackendServices)
       def backendSvcGetMock = Mock(Compute.BackendServices.Get)
       def backendUpdateMock = Mock(Compute.BackendServices.Update)
+
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+
       def googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
       googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
@@ -271,6 +305,14 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       _ * backendSvcGetMock.execute() >> bs
       _ * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
       _ * backendUpdateMock.execute()
+
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      _ * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      _ * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+
+      _ * computeMock.forwardingRules() >> forwardingRules
+      _ * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
+      _ * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
       bs.backends.size == 0
 
     where:
@@ -313,6 +355,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     def backendSvcGetMock = Mock(Compute.RegionBackendServices.Get)
     def backendUpdateMock = Mock(Compute.RegionBackendServices.Update)
     def googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
+
+    def forwardingRules = Mock(Compute.ForwardingRules)
+    def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+    def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+    def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+
     googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
     def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
     def bs = isRegional ?
@@ -340,6 +388,14 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     _ * backendSvcGetMock.execute() >> bs
     _ * backendServicesMock.update(PROJECT_NAME, REGION, 'backend-service', bs) >> backendUpdateMock
     _ * backendUpdateMock.execute()
+
+    _ * computeMock.globalForwardingRules() >> globalForwardingRules
+    _ * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+    _ * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+
+    _ * computeMock.forwardingRules() >> forwardingRules
+    _ * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
+    _ * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
     bs.backends.size == 0
 
     where:

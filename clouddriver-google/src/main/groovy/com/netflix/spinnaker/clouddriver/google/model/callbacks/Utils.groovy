@@ -64,7 +64,7 @@ class Utils {
     return lastIndex != -1 ? fullUrl.substring(lastIndex + 1) : fullUrl
   }
 
-  static String getTargetProxyType(String fullUrl) {
+  static GoogleTargetProxyType getTargetProxyType(String fullUrl) {
     if (!fullUrl) {
       throw new IllegalFormatException("Target proxy url ${fullUrl} malformed.")
     }
@@ -74,7 +74,20 @@ class Utils {
       throw new IllegalFormatException("Target proxy url ${fullUrl} malformed.")
     }
     String withoutName = fullUrl.substring(0, lastIndex)
-    return getLocalName(withoutName)
+    switch (getLocalName(withoutName)) {
+      case 'targetHttpProxies':
+        return GoogleTargetProxyType.HTTP
+        break
+      case 'targetHttpsProxies':
+        return GoogleTargetProxyType.HTTPS
+        break
+      case 'targetSslProxies':
+        return GoogleTargetProxyType.SSL
+        break
+      default:
+        throw new IllegalFormatException("Target proxy url ${fullUrl} has unknown type.")
+        break
+    }
   }
 
   static String getZoneFromInstanceUrl(String fullUrl) {

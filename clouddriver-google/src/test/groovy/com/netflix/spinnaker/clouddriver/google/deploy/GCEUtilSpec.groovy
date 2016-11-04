@@ -489,6 +489,12 @@ class GCEUtilSpec extends Specification {
       def backendSvcGetMock = Mock(Compute.BackendServices.Get)
       def backendUpdateMock = Mock(Compute.BackendServices.Update)
       def googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
+
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+
       googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
       def task = Mock(Task)
       def bs = new BackendService(backends: [])
@@ -511,6 +517,14 @@ class GCEUtilSpec extends Specification {
       _ * backendSvcGetMock.execute() >> bs
       _ * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
       _ * backendUpdateMock.execute()
+
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      _ * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      _ * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+
+      _ * computeMock.forwardingRules() >> forwardingRules
+      _ * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
+      _ * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
       bs.backends.size == lbNames.size
 
     where:

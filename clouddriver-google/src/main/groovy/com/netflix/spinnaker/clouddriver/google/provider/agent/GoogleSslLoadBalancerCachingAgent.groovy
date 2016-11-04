@@ -37,10 +37,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingScheme
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -179,7 +176,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     @Override
     void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
       forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-        if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == 'targetSslProxies') {
+        if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == GoogleTargetProxyType.SSL) {
           def newLoadBalancer = new GoogleSslLoadBalancer(
             name: forwardingRule.name,
             account: accountName,

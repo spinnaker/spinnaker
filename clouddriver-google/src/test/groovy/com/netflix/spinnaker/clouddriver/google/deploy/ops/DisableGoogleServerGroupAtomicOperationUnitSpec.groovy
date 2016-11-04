@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.ForwardingRuleList
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest
 import com.google.api.services.compute.model.TargetPool
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
@@ -95,6 +97,10 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   void "should remove instances and detach load balancers"() {
     setup:
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
       @Subject def operation = new DisableGoogleServerGroupAtomicOperation(description)
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
@@ -128,5 +134,13 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           SERVER_GROUP_NAME,
           new InstanceGroupManagersSetTargetPoolsRequest(targetPools: [])) >> instanceGroupManagersSetTargetPoolsMock
       1 * instanceGroupManagersSetTargetPoolsMock.execute()
+
+      2 * computeMock.globalForwardingRules() >> globalForwardingRules
+      2 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      2 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+
+      1 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
   }
 }

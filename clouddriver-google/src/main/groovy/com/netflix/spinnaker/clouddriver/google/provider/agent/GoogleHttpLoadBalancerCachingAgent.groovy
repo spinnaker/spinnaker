@@ -190,7 +190,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     @Override
     void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
       forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-        if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != 'targetSslProxies') {
+        if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != GoogleTargetProxyType.SSL) {
           def newLoadBalancer = new GoogleHttpLoadBalancer(
             name: forwardingRule.name,
             account: accountName,
@@ -220,12 +220,11 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
             groupHealthRequest: groupHealthRequest,
           )
 
-          String targetType = Utils.getTargetProxyType(forwardingRule.target)
-          switch (targetType) {
-            case "targetHttpProxies":
+          switch (Utils.getTargetProxyType(forwardingRule.target)) {
+            case GoogleTargetProxyType.HTTP:
               compute.targetHttpProxies().get(project, targetProxyName).queue(targetProxyRequest, targetProxyCallback)
               break
-            case "targetHttpsProxies":
+            case GoogleTargetProxyType.HTTPS:
               compute.targetHttpsProxies().get(project, targetProxyName).queue(targetProxyRequest, targetHttpsProxyCallback)
               break
             default:

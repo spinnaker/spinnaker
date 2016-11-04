@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.callbacks
 
-
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -78,10 +78,12 @@ class UtilsSpec extends Specification {
 
     where:
       input                                                                                                  | expected
-      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy" | "targetHttpsProxies"
-      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"   | "targetHttpProxies"
-      "projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy"                                       | "targetHttpsProxies"
-      "projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"                                         | "targetHttpProxies"
+      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy" | GoogleTargetProxyType.HTTPS
+      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"   | GoogleTargetProxyType.HTTP
+      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"     | GoogleTargetProxyType.SSL
+      "projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy"                                       | GoogleTargetProxyType.HTTPS
+      "projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"                                         | GoogleTargetProxyType.HTTP
+      "projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"                                           | GoogleTargetProxyType.SSL
   }
 
   def "should get region from a full group Url"() {
