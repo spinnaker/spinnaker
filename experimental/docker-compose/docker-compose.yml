@@ -49,6 +49,7 @@ gate:
     - SERVICES_FRONT50_HOST=front50
     - SERVICES_IGOR_HOST=igor
     - SERVICES_ORCA_HOST=orca
+    - SERVICES_ROSCO_HOST=rosco
   image: quay.io/spinnaker/gate:master
   links:
     - redis
@@ -57,6 +58,7 @@ gate:
     - front50
     - igor
     - orca
+    - rosco
   ports:
     - "8084:8084"
 igor:
@@ -80,6 +82,7 @@ orca:
     - SERVICES_ECHO_HOST=echo
     - SERVICES_FRONT50_HOST=front50
     - SERVICES_IGOR_HOST=igor
+    - SERVICES_ROSCO_HOST=rosco
   image: quay.io/spinnaker/orca:master
   links:
     - redis
@@ -87,6 +90,7 @@ orca:
     - echo
     - front50
     - igor
+    - rosco
   ports:
     - "8083:8083"
 redis:
