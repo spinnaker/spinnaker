@@ -47,10 +47,12 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
-    CloneKubernetesAtomicOperationDescription newDescription = cloneAndOverrideDescription()
+    description.source.namespace = description.source.namespace ?: description.source.region
 
     task.updateStatus BASE_PHASE, "Initializing copy of server group for " +
       "${description.source.serverGroupName}..."
+
+    CloneKubernetesAtomicOperationDescription newDescription = cloneAndOverrideDescription()
 
     DeployKubernetesAtomicOperation deployer = new DeployKubernetesAtomicOperation(newDescription)
     DeploymentResult deploymentResult = deployer.operate(priorOutputs)
