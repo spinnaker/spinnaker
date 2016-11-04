@@ -244,8 +244,8 @@ openstack:
     securityGroups: default
     projectName: ${OS_PROJECT_NAME:''}
     insecure: ${OS_INSECURE:false}
-    username: ${OS_USERNAME}
-    password: ${OS_PASSWORD}
+    username: ${OS_USERNAME:}
+    password: ${OS_PASSWORD:}
     templateFile: openstack.json
     baseImages:
     # sourceImageId is the unique UUID of an openstack image in a region, and can be found via horizon or the image api.
