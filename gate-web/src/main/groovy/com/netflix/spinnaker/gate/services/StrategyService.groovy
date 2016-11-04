@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
@@ -30,6 +31,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @Component
 @Slf4j
 class StrategyService {
+  private static final String GROUP = "strategies"
+
   @Autowired(required = false)
   Front50Service front50Service
 
@@ -42,6 +45,12 @@ class StrategyService {
 
   void save(Map strategy) {
     front50Service.saveStrategyConfig(strategy)
+  }
+
+  Map update(String strategyId, Map strategy) {
+    HystrixFactory.newMapCommand(GROUP, "updateStrategy") {
+      front50Service.updateStrategy(strategyId, strategy)
+    } execute()
   }
 
   void move(Map moveCommand) {

@@ -51,10 +51,13 @@ interface Front50Service {
   Response savePipelineConfig(@Body Map pipelineConfig)
 
   @POST('/pipelines/move')
-  Response movePipelineConfig(@Body Map moveCommand)
+  Response movePipelineConfig(@Body Map moveCommand) //TODO: remove this when deck & front50 are updated
 
   @GET('/pipelines/{pipelineConfigId}/history')
   List<Map> getPipelineConfigHistory(@Path("pipelineConfigId") pipelineConfigId, @Query("limit") int limit)
+
+  @PUT("/pipelines/{pipelineId}")
+  Map updatePipeline(@Path("pipelineId") String pipelineId, @Body Map pipeline)
 
   //
   // Pipeline Strategy-related
@@ -77,6 +80,9 @@ interface Front50Service {
   @GET('/strategies/{strategyConfigId}/history')
   List<Map> getStrategyConfigHistory(@Path("strategyConfigId") strategyConfigId,
                                      @Query("limit") int limit)
+
+  @PUT("/strategies/{strategyId}")
+  Map updateStrategy(@Path("strategyId") String strategyId, @Body Map strategy)
 
   //
   // Notification-related
