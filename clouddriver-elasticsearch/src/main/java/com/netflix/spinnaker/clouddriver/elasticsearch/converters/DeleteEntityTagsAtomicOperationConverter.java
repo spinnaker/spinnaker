@@ -24,14 +24,14 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntity
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
 import com.netflix.spinnaker.clouddriver.elasticsearch.ops.DeleteEntityTagsAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter;
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @Component("deleteEntityTags")
-public class DeleteEntityTagsAtomicOperationConverter implements AtomicOperationConverter {
+public class DeleteEntityTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   private final ObjectMapper objectMapper;
   private final Front50Service front50Service;
   private final ElasticSearchEntityTagsProvider entityTagsProvider;
@@ -55,6 +55,8 @@ public class DeleteEntityTagsAtomicOperationConverter implements AtomicOperation
   }
 
   public DeleteEntityTagsDescription convertDescription(Map input) {
-    return objectMapper.convertValue(input, DeleteEntityTagsDescription.class);
+    DeleteEntityTagsDescription description = objectMapper.convertValue(input, DeleteEntityTagsDescription.class);
+    description.setCredentials(getCredentialsObject(description.getAccount()));
+    return description;
   }
 }

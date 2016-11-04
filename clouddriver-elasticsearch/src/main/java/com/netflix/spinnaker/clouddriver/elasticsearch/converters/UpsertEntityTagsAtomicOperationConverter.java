@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.UpsertEntity
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
 import com.netflix.spinnaker.clouddriver.elasticsearch.ops.UpsertEntityTagsAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter;
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component("upsertEntityTags")
-public class UpsertEntityTagsAtomicOperationConverter implements AtomicOperationConverter {
+public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   private final ObjectMapper objectMapper;
   private final Front50Service front50Service;
   private final AccountCredentialsProvider accountCredentialsProvider;
@@ -59,6 +59,8 @@ public class UpsertEntityTagsAtomicOperationConverter implements AtomicOperation
   }
 
   public UpsertEntityTagsDescription convertDescription(Map input) {
-    return objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
+    UpsertEntityTagsDescription description = objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
+    description.setCredentials(getCredentialsObject((String) description.getEntityRef().attributes().get("account")));
+    return description;
   }
 }
