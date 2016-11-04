@@ -1,4 +1,4 @@
-FROM node:4.4.1
+FROM node:7.0.0
 
 COPY . deck/
 

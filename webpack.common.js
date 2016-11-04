@@ -129,7 +129,7 @@ function configure(IS_TEST) {
       new webpack.optimize.CommonsChunkPlugin('init.js'),
       new HtmlWebpackPlugin({
         title: 'Spinnaker',
-        template: './app/index.html',
+        template: './app/index.deck',
         favicon: 'app/favicon.ico',
         inject: true,
       }),

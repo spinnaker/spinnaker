@@ -28,8 +28,8 @@ jar {
 
 node {
     // Version of node to use.
-    version = '4.4.1'
-    npmVersion = '2.14.20'
+    version = '7.0.0'
+    npmVersion = '3.10.8'
 
     // Enabled the automatic download. False is the default (for now).
     download = true
@@ -45,7 +45,7 @@ task webpack(type: NodeTask) {
 
 task karma(type: NodeTask) {
   script = file('node_modules/karma/bin/karma')
-  args = ["start", "--single-run", "--reporters", "progress,jenkins"]
+  args = ["start", "--single-run", "--reporters", "progress,mocha"]
   if (project.hasProperty('skipTests')) {
     karma.enabled = false
   }

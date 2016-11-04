@@ -49,7 +49,6 @@ module.exports = function(config) {
       require('karma-chrome-launcher'),
       require('karma-junit-reporter'),
       require('karma-mocha-reporter'),
-      require('karma-jenkins-reporter'),
       require('karma-coverage'),
     ],
 
@@ -84,12 +83,6 @@ module.exports = function(config) {
     coverageReporter: {
       type : 'html',
       dir : 'coverage/'
-    },
-
-    jenkinsReporter: {
-      outputFile: 'test-results.xml',
-      suite: 'com.netflix.spinnaker.deck',
-      classnameSuffix: 'ui-test'
     },
 
     client: {
