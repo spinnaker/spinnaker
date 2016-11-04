@@ -55,3 +55,10 @@
       <input type="text" class="form-control input-sm" ng-model="trigger.propertyFile"/>
     </div>
   </div>
+
+  <div class="form-group" ng-if="jenkinsTriggerCtrl.fiatEnabled">
+    <run-as-user-selector service-accounts="jenkinsTriggerCtrl.serviceAccounts"
+                          component="trigger"
+                          field="runAsUser">
+    </run-as-user-selector>
+  </div>

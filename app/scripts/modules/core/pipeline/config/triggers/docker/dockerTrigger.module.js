@@ -7,6 +7,7 @@ import {DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT_MODULE} from 'docker/image/docke
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
     require('core/config/settings.js'),
+    require('core/serviceAccount/serviceAccount.service.js'),
     DOCKER_IMAGE_READER_SERVICE,
     require('./dockerTriggerOptions.directive.js'),
     DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT_MODULE
@@ -39,8 +40,13 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       selectorTemplate: require('./selectorTemplate.html'),
     };
   })
-  .controller('DockerTriggerCtrl', function (trigger) {
+  .controller('DockerTriggerCtrl', function (trigger, settings, serviceAccountService) {
     this.trigger = trigger;
+    this.fiatEnabled = settings.feature.fiatEnabled;
+
+    serviceAccountService.getServiceAccounts().then(accounts => {
+      this.serviceAccounts = accounts || [];
+    });
 
     this.onChange = (changes) => {
       this.trigger.registry = changes.registry;

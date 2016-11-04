@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
     require('../trigger.directive.js'),
+    require('core/serviceAccount/serviceAccount.service.js'),
     require('core/utils/uuid.service.js'),
     require('./cron.validator.directive.js'),
   ])
@@ -18,9 +19,14 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
       popoverLabelUrl: require('./cronPopoverLabel.html'),
     });
   })
-  .controller('CronTriggerCtrl', function(trigger, uuidService) {
+  .controller('CronTriggerCtrl', function(trigger, uuidService, settings, serviceAccountService) {
 
     this.trigger = trigger;
+    this.fiatEnabled = settings.feature.fiatEnabled;
+
+    serviceAccountService.getServiceAccounts().then(accounts => {
+      this.serviceAccounts = accounts || [];
+    });
 
     this.validationMessages = {};
 

@@ -6,6 +6,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
     require('core/config/settings.js'),
+    require('core/serviceAccount/serviceAccount.service.js'),
   ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
@@ -18,9 +19,13 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
       popoverLabelUrl: require('./gitPopoverLabel.html'),
     });
   })
-  .controller('GitTriggerCtrl', function (trigger, $scope, settings) {
+  .controller('GitTriggerCtrl', function (trigger, $scope, settings, serviceAccountService) {
     this.trigger = trigger;
+    this.fiatEnabled = settings.feature.fiatEnabled;
 
+    serviceAccountService.getServiceAccounts().then(accounts => {
+      this.serviceAccounts = accounts || [];
+    });
     $scope.gitTriggerTypes = ['stash', 'github'];
 
     if (settings && settings.gitSources) {

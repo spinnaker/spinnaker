@@ -8,4 +8,11 @@
     tag="trigger.tag"
     show-registry="true"
     on-change="ctrl.onChange"></docker-image-and-tag-selector>
+
+  <div class="form-group" ng-if="vm.fiatEnabled">
+    <run-as-user-selector service-accounts="vm.serviceAccounts"
+                          component="vm.trigger"
+                          field="runAsUser">
+    </run-as-user-selector>
+  </div>
 </ng-form>

@@ -6,6 +6,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
   require('./jenkinsTriggerOptions.directive.js'),
   require('../trigger.directive.js'),
   require('core/ci/jenkins/igor.service.js'),
+  require('core/serviceAccount/serviceAccount.service.js'),
   require('../../pipelineConfigProvider.js'),
 ])
   .config(function(pipelineConfigProvider) {
@@ -39,9 +40,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
       selectorTemplate: require('./selectorTemplate.html'),
     };
   })
-  .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService) {
+  .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService, settings, serviceAccountService) {
 
     $scope.trigger = trigger;
+    this.fiatEnabled = settings.feature.fiatEnabled;
+    serviceAccountService.getServiceAccounts().then(accounts => {
+      this.serviceAccounts = accounts || [];
+    });
 
     $scope.viewState = {
       mastersLoaded: false,
