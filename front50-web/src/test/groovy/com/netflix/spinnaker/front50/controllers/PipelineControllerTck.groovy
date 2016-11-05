@@ -35,6 +35,7 @@ import rx.schedulers.Schedulers
 import spock.lang.*
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 
 abstract class PipelineControllerTck extends Specification {
 
@@ -92,6 +93,48 @@ abstract class PipelineControllerTck extends Specification {
     then:
     response.status == OK
     pipelineDAO.findById(pipeline.getId()).getName() == "new-pipeline-name"
+  }
+
+  void 'should update a pipeline'() {
+    given:
+    def pipeline = pipelineDAO.create(null, new Pipeline([name: "test pipeline", application: "test_application"]))
+
+    when:
+    pipeline.name = "Updated Name"
+    def response = mockMvc.perform(put("/pipelines/${pipeline.id}").contentType(MediaType.APPLICATION_JSON)
+        .content(new ObjectMapper().writeValueAsString(pipeline))).andReturn().response
+
+    then:
+    response.status == OK
+    pipelineDAO.findById(pipeline.getId()).getName() == "Updated Name"
+
+  }
+
+  void 'should fail update on duplicate pipeline or invalid request'() {
+    given:
+    def (pipeline1, pipeline2) = [
+      pipelineDAO.create(null, new Pipeline([name: "test pipeline 1", application: "test_application"])),
+      pipelineDAO.create(null, new Pipeline([name: "test pipeline 2", application: "test_application"]))
+    ]
+
+    and:
+    pipeline1.name = pipeline2.name
+
+    when:
+    def response = mockMvc.perform(put("/pipelines/${pipeline1.id}").contentType(MediaType.APPLICATION_JSON)
+      .content(new ObjectMapper().writeValueAsString(pipeline1))).andReturn().response
+
+    then:
+    response.status == BAD_REQUEST
+    response.contentAsString == '{"error":"A pipeline with name '+ pipeline2.name +' already exists in application '+ pipeline2.application +'","status":"BAD_REQUEST"}'
+
+    when:
+    response = mockMvc.perform(put("/pipelines/${pipeline2.id}").contentType(MediaType.APPLICATION_JSON)
+      .content(new ObjectMapper().writeValueAsString(pipeline1))).andReturn().response
+
+    then:
+    response.status == BAD_REQUEST
+    response.contentAsString == '{"error":"The provided id '+ pipeline2.id +' doesn\'t match the pipeline id '+ pipeline1.id +'","status":400}'
   }
 
   @Unroll
@@ -180,7 +223,7 @@ abstract class PipelineControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A pipeline with that name already exists in that application","status":"BAD_REQUEST"}'
+    response.contentAsString == '{"error":"A pipeline with name pipeline1 already exists in application test","status":"BAD_REQUEST"}'
   }
 
   void 'should enforce unique names on rename operations'() {
@@ -200,7 +243,7 @@ abstract class PipelineControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A pipeline with that name already exists in that application","status":"BAD_REQUEST"}'
+    response.contentAsString == '{"error":"A pipeline with name pipeline1 already exists in application test","status":"BAD_REQUEST"}'
   }
 }
 

@@ -71,7 +71,7 @@ class PipelineController {
   @RequestMapping(value = '', method = RequestMethod.POST)
   void save(@RequestBody Pipeline pipeline) {
     if (!pipeline.application || !pipeline.name) {
-      throw new InvalidPipelineDefinition()
+      throw new InvalidPipelineDefinition("A pipeline requires name and application fields")
     }
 
     if (!pipeline.id) {
@@ -115,6 +115,23 @@ class PipelineController {
     pipelineDAO.update(pipelineId, pipeline)
   }
 
+  @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+  Pipeline update(@PathVariable String id, @RequestBody Pipeline pipeline) {
+    Pipeline existingPipeline = pipelineDAO.findById(id)
+    if (pipeline.id != existingPipeline.id) {
+      throw new InvalidPipelineRequestException("The provided id ${id} doesn't match the pipeline id ${pipeline.id}")
+    }
+
+    if (pipelineDAO.getPipelinesByApplication(pipeline.getApplication()).any {
+      it.getName().equalsIgnoreCase(pipeline.getName()) && it.getId() != id }) {
+      throw new DuplicatePipelineNameException("A pipeline with name ${pipeline.getName()} already exists in application ${pipeline.application}")
+    }
+
+    pipeline.updateTs = System.currentTimeMillis()
+    pipelineDAO.update(id, pipeline)
+    return pipeline
+  }
+
   static class RenameCommand {
     String application
     String from
@@ -125,20 +142,20 @@ class PipelineController {
     if (pipelineDAO.getPipelinesByApplication(application).any {
       it.getName().equalsIgnoreCase(name)
     }) {
-      throw new DuplicatePipelineNameException()
+      throw new DuplicatePipelineNameException("A pipeline with name ${name} already exists in application ${application}")
     }
   }
 
   @ExceptionHandler(DuplicatePipelineNameException)
   @ResponseStatus(BAD_REQUEST)
-  Map handleDuplicatePipelineNameException() {
-    return [error: "A pipeline with that name already exists in that application", status: BAD_REQUEST]
+  Map handleDuplicatePipelineNameException(DuplicatePipelineNameException dpe) {
+    return [error: dpe.getMessage(), status: BAD_REQUEST]
   }
 
   @ExceptionHandler(InvalidPipelineDefinition)
   @ResponseStatus(UNPROCESSABLE_ENTITY)
-  Map handleInvalidPipelineDefinition() {
-    return [error: "A pipeline requires name and application fields", status: UNPROCESSABLE_ENTITY]
+  Map handleInvalidPipelineDefinition(InvalidPipelineDefinition ipd) {
+    return [error: ipd.getMessage(), status: UNPROCESSABLE_ENTITY]
   }
 
   @ExceptionHandler(AccessDeniedException)
@@ -147,9 +164,18 @@ class PipelineController {
     return [error: "Access is denied", status: HttpStatus.FORBIDDEN.value()]
   }
 
+  @ExceptionHandler(InvalidPipelineRequestException)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  Map handleInvalidPipelineRequestException(InvalidPipelineRequestException ipr) {
+    return [error: ipr.getMessage(), status: HttpStatus.BAD_REQUEST.value()]
+  }
+
   @InheritConstructors
   static class DuplicatePipelineNameException extends RuntimeException {}
 
   @InheritConstructors
   static class InvalidPipelineDefinition extends RuntimeException {}
+
+  @InheritConstructors
+  static class InvalidPipelineRequestException extends RuntimeException {}
 }

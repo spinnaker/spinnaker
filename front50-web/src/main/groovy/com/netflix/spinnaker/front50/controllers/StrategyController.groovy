@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
+import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.AccessDeniedException
@@ -96,6 +97,23 @@ class StrategyController {
         pipelineStrategyDAO.delete(id)
     }
 
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+    Pipeline update(@PathVariable String id, @RequestBody Pipeline strategy) {
+      Pipeline existingStrategy = pipelineStrategyDAO.findById(id)
+      if (strategy.id != existingStrategy.id) {
+        throw new InvalidStrategyRequestException("The provided id ${id} doesn't match the strategy id ${strategy.id}")
+      }
+
+      if (pipelineStrategyDAO.getPipelinesByApplication(strategy.getApplication()).any {
+        it.getName().equalsIgnoreCase(strategy.getName()) && it.getId() != id }) {
+        throw new DuplicateStrategyException("A strategy with name ${strategy.getName()} already exists in application ${strategy.getApplication()}")
+      }
+
+      strategy.updateTs = System.currentTimeMillis()
+      pipelineStrategyDAO.update(id, strategy)
+      return strategy
+    }
+
     @PreAuthorize("hasPermission(#command.application, 'APPLICATION', 'WRITE')")
     @RequestMapping(value = 'move', method = RequestMethod.POST)
     void rename(@RequestBody RenameCommand command) {
@@ -109,14 +127,14 @@ class StrategyController {
 
     private void checkForDuplicatePipeline(String application, String name) {
         if (pipelineStrategyDAO.getPipelinesByApplication(application).any { it.getName() == name}) {
-            throw new DuplicateStrategyException()
+            throw new DuplicateStrategyException("A strategy with name ${name} already exists in application ${application}")
         }
     }
 
     @ExceptionHandler(DuplicateStrategyException)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    Map handleDuplicateStrategyNameException() {
-        return [error: "A strategy with that name already exists in that application", status: HttpStatus.BAD_REQUEST]
+    Map handleDuplicateStrategyNameException(DuplicateStrategyException dpe) {
+        return [error: dpe.getMessage(), status: HttpStatus.BAD_REQUEST]
     }
 
     @ExceptionHandler(AccessDeniedException)
@@ -125,7 +143,17 @@ class StrategyController {
         return [error: "Access is denied", status: HttpStatus.FORBIDDEN.value()]
     }
 
-    static class DuplicateStrategyException extends Exception {}
+    @ExceptionHandler(InvalidStrategyRequestException)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Map handleInvalidStrategyRequestException(InvalidStrategyRequestException isr) {
+      return [error: isr.getMessage(), status: HttpStatus.BAD_REQUEST.value()]
+    }
+
+    @InheritConstructors
+    static class InvalidStrategyRequestException extends RuntimeException {}
+
+    @InheritConstructors
+    static class DuplicateStrategyException extends RuntimeException {}
 
     static class RenameCommand {
         String application
