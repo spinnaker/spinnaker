@@ -92,7 +92,7 @@ class ContextParameterProcessor {
     if (context.execution) {
       def deployedServerGroups = []
       context.execution.stages.findAll {
-        it.type in ['deploy', 'cloneServerGroup'] && it.status == ExecutionStatus.SUCCEEDED
+        it.type in ['deploy', 'cloneServerGroup', 'rollingPush'] && it.status == ExecutionStatus.SUCCEEDED
       }.each { deployStage ->
         if (deployStage.context.'deploy.server.groups') {
           Map deployDetails = [
