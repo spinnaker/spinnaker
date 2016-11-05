@@ -29,6 +29,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
     $scope.stage = stage;
     $scope.stage.failPipeline = ($scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline);
     $scope.stage.continuePipeline = ($scope.stage.continuePipeline === undefined ? false : $scope.stage.continuePipeline);
+    $scope.stage.waitForCompletion = ($scope.stage.waitForCompletion === undefined ? true : $scope.stage.waitForCompletion);
 
     $scope.viewState = {
       mastersLoaded: false,

@@ -5,105 +5,105 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.help.contents', [])
   .constant('helpContents', {
     'application.platformHealthOnly': 'When this option is enabled, instance status as reported by the cloud provider will be considered sufficient to ' +
-      'determine task completion. When this option is disabled, tasks will normally need health status reported by some other health provider (e.g. a ' +
-      'load balancer or discovery service) to determine task completion.',
+    'determine task completion. When this option is disabled, tasks will normally need health status reported by some other health provider (e.g. a ' +
+    'load balancer or discovery service) to determine task completion.',
     'application.showPlatformHealthOverride': 'When this option is enabled, users will be able to toggle the option above on a task-by-task basis.',
     'core.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
     'aws.associateElasticIp.elasticIp': '<p>(Optional) <b>Elastic IP</b> is an IP address that Spinnaker will associate with this cluster.' +
-      '<p>If specified, this elastic IP must exist and not already be attached to an instance or cluster.</p>' +
-      '<p>If left blank, Spinnaker will make a selection from the list of available elastic IPs in the provided account and region.</p>',
+    '<p>If specified, this elastic IP must exist and not already be attached to an instance or cluster.</p>' +
+    '<p>If left blank, Spinnaker will make a selection from the list of available elastic IPs in the provided account and region.</p>',
     'aws.associateElasticIp.type': '<p><b>Type</b> of elastic IP to associate:' +
-      '<ul>' +
-      '<li><b>standard</b> is usable in EC2 Classic</li>' +
-      '<li><b>vpc</b> is usable in VPC</li>' +
-      '</ul>',
+    '<ul>' +
+    '<li><b>standard</b> is usable in EC2 Classic</li>' +
+    '<li><b>vpc</b> is usable in VPC</li>' +
+    '</ul>',
     'aws.serverGroup.subnet': 'The subnet selection determines the VPC in which your server group will run. Options vary by account and region; the most common ones are:' +
-      '<ul>' +
-      '<li><b>None (EC2 Classic)</b>: instances will not run in a VPC</li>' +
-      '<li><b>internal</b> instances will be restricted to internal clients (i.e. require VPN access)</li>' +
-      '<li><b>external</b> instances will be publicly accessible and running in VPC</li>' +
-      '</ul>',
+    '<ul>' +
+    '<li><b>None (EC2 Classic)</b>: instances will not run in a VPC</li>' +
+    '<li><b>internal</b> instances will be restricted to internal clients (i.e. require VPN access)</li>' +
+    '<li><b>external</b> instances will be publicly accessible and running in VPC</li>' +
+    '</ul>',
     'aws.loadBalancer.subnet': 'The subnet selection determines the VPC in which your load balancer will run.<br/>' +
-      ' This also restricts the server groups which can be serviced by the load balancer.' +
-      ' Options vary by account and region; the most common ones are:' +
-      '<ul>' +
-      '<li><b>None (EC2 Classic)</b>: the load balancer will not run in a VPC</li>' +
-      '<li><b>internal</b> access to the load balancer will be restricted to internal clients (i.e. require VPN access)</li>' +
-      '<li><b>external</b> the load balancer will be publicly accessible and running in VPC</li>' +
-      '</ul>',
+    ' This also restricts the server groups which can be serviced by the load balancer.' +
+    ' Options vary by account and region; the most common ones are:' +
+    '<ul>' +
+    '<li><b>None (EC2 Classic)</b>: the load balancer will not run in a VPC</li>' +
+    '<li><b>internal</b> access to the load balancer will be restricted to internal clients (i.e. require VPN access)</li>' +
+    '<li><b>external</b> the load balancer will be publicly accessible and running in VPC</li>' +
+    '</ul>',
     'aws.loadBalancer.detail': '<p>(Optional) <b>Detail</b> is a string of free-form alphanumeric characters; by convention, we recommend using "frontend".</p><p>' +
-      'However, if your stack name needs to be longer (load balancer names are limited to 32 characters), consider changing it to "elb", or omit it altogether.</p>',
+    'However, if your stack name needs to be longer (load balancer names are limited to 32 characters), consider changing it to "elb", or omit it altogether.</p>',
     'aws.loadBalancer.stack': '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
     'aws.serverGroup.stack': '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
     'aws.serverGroup.detail': '(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.',
     'aws.serverGroup.imageName': '(Required) <b>Image</b> is the deployable Amazon Machine Image. Images are restricted to the account and region selected.',
     'aws.serverGroup.legacyUdf': '<p>(Optional) <b>User Data Format</b> allows overriding of the format used when generating user data during deployment. The default format used is configured ' +
-                                 'in the application\'s attributes, editable via the \'Config\' tab.</p>' +
-                                 '<p><b>Default</b> will use the value from the application\'s configuration.</p>' +
-                                 '<p><b>Modern</b> will use the modern template.</p>' +
-                                 '<p><b>Legacy</b> will use the legacy (<b>deprecated</b>) template.</p>' +
-                                 '<p>This option is intended to allow testing migration from legacy to modern before configuring it for the entire application. If unsure, pick <b>Default</b>.</p>',
+    'in the application\'s attributes, editable via the \'Config\' tab.</p>' +
+    '<p><b>Default</b> will use the value from the application\'s configuration.</p>' +
+    '<p><b>Modern</b> will use the modern template.</p>' +
+    '<p><b>Legacy</b> will use the legacy (<b>deprecated</b>) template.</p>' +
+    '<p>This option is intended to allow testing migration from legacy to modern before configuring it for the entire application. If unsure, pick <b>Default</b>.</p>',
     'aws.serverGroup.base64UserData': '(Optional) <b>UserData</b> is a base64 encoded string.',
     'aws.serverGroup.tags': '(Optional) <b>Tags</b> are propagated to the instances in this cluster.',
     'aws.serverGroup.allImages': 'Search for an image that does not match the name of your application.',
     'aws.serverGroup.filterImages': 'Select from a pre-filtered list of images matching the name of your application.',
     'aws.serverGroup.traffic': '' +
-      '<p>Enables the "AddToLoadBalancer" scaling process, which is used by Spinnaker and discovery services to determine if the server group is enabled.</p>' +
-      '<p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>',
+    '<p>Enables the "AddToLoadBalancer" scaling process, which is used by Spinnaker and discovery services to determine if the server group is enabled.</p>' +
+    '<p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>',
     'aws.securityGroup.vpc': '<p>The VPC to which this security group will apply.</p>' +
-      '<p>If you wish to use VPC but are unsure which VPC to use, the most common one is "Main".</p>' +
-      '<p>If you do not wish to use VPC, select "None".</p>',
+    '<p>If you wish to use VPC but are unsure which VPC to use, the most common one is "Main".</p>' +
+    '<p>If you do not wish to use VPC, select "None".</p>',
     'aws.scalingPolicy.search.restricted': '<p>Resets dimensions to "AutoScalingGroupName: {name of the ASG}" and provides' +
     ' a simpler, combined input for the namespace and metric name fields.</p>',
     'aws.scalingPolicy.search.all': '<p>Allows you to edit the dimensions and namespace to find a specific metric for' +
     ' this alarm.</p>',
     'cf.artifact.repository.options': '<p>You may include {job} and {buildNumber} to dynamically build a path to your artifact.</p>',
     'cluster.search': 'Quickly filter the displayed server groups by the following fields:' +
-      '<ul>' +
-      '<li>Build # (e.g. <samp>#337</samp>)</li>' +
-      '<li>Jenkins host</li>' +
-      '<li>Jenkins job name</li>' +
-      '<li>Cluster (prefixed, e.g. <samp>cluster:myapp-int</samp>)' +
-      '<li>VPC (prefixed, e.g. <samp>vpc:main</samp>)' +
-      '<li>Clusters (comma-separated list, e.g. <samp>clusters:myapp-int, myapp-test</samp>)' +
-      '<li>Server Group Name</li>' +
-      '<li>Region</li>' +
-      '<li>Account</li>' +
-      '<li>Load Balancer Name</li>' +
-      '<li>Instance ID</li>' +
-      '</ul>' +
-      '<p>You can search for multiple words or word fragments. For instance, to find all server groups in a prod stack with "canary" in the details' +
-      ', enter <samp>prod canary</samp>.</p>' +
-      '<p>To find a particular instance, enter the instance ID. Only the containing server group will be displayed, and the instance ' +
-      'will be highlighted for you.</p>',
+    '<ul>' +
+    '<li>Build # (e.g. <samp>#337</samp>)</li>' +
+    '<li>Jenkins host</li>' +
+    '<li>Jenkins job name</li>' +
+    '<li>Cluster (prefixed, e.g. <samp>cluster:myapp-int</samp>)' +
+    '<li>VPC (prefixed, e.g. <samp>vpc:main</samp>)' +
+    '<li>Clusters (comma-separated list, e.g. <samp>clusters:myapp-int, myapp-test</samp>)' +
+    '<li>Server Group Name</li>' +
+    '<li>Region</li>' +
+    '<li>Account</li>' +
+    '<li>Load Balancer Name</li>' +
+    '<li>Instance ID</li>' +
+    '</ul>' +
+    '<p>You can search for multiple words or word fragments. For instance, to find all server groups in a prod stack with "canary" in the details' +
+    ', enter <samp>prod canary</samp>.</p>' +
+    '<p>To find a particular instance, enter the instance ID. Only the containing server group will be displayed, and the instance ' +
+    'will be highlighted for you.</p>',
     'loadBalancer.search': 'Quickly filter the displayed load balancers by the following fields:' +
-      '<ul>' +
-      '<li>VPC (prefixed, e.g. <samp>vpc:main</samp>)' +
-      '<li>Server Group Name</li>' +
-      '<li>Load Balancer Name</li>' +
-      '<li>Region</li>' +
-      '<li>Account</li>' +
-      '<li>Instance ID</li>' +
-      '</ul>' +
-      '<p>You can search for multiple words or word fragments. For instance, to find all load balancers in a prod stack with "canary" in the details' +
-      ', enter <samp>prod canary</samp>.</p>',
+    '<ul>' +
+    '<li>VPC (prefixed, e.g. <samp>vpc:main</samp>)' +
+    '<li>Server Group Name</li>' +
+    '<li>Load Balancer Name</li>' +
+    '<li>Region</li>' +
+    '<li>Account</li>' +
+    '<li>Instance ID</li>' +
+    '</ul>' +
+    '<p>You can search for multiple words or word fragments. For instance, to find all load balancers in a prod stack with "canary" in the details' +
+    ', enter <samp>prod canary</samp>.</p>',
     'securityGroup.search': 'Quickly filter the displayed security groups by the following fields:' +
-      '<ul>' +
-      '<li>VPC (prefixed, e.g. <samp>vpc:main</samp>)' +
-      '<li>Security Group Name</li>' +
-      '<li>Server Group Name</li>' +
-      '<li>Load Balancer Name</li>' +
-      '<li>Region</li>' +
-      '<li>Account</li>' +
-      '</ul>' +
-      '<p>You can search for multiple words or word fragments. For instance, to find all security groups in a prod stack with "canary" in the details' +
-      ', enter <samp>prod canary</samp>.</p>',
+    '<ul>' +
+    '<li>VPC (prefixed, e.g. <samp>vpc:main</samp>)' +
+    '<li>Security Group Name</li>' +
+    '<li>Server Group Name</li>' +
+    '<li>Load Balancer Name</li>' +
+    '<li>Region</li>' +
+    '<li>Account</li>' +
+    '</ul>' +
+    '<p>You can search for multiple words or word fragments. For instance, to find all security groups in a prod stack with "canary" in the details' +
+    ', enter <samp>prod canary</samp>.</p>',
     'executions.search': 'Quickly filter the displayed executions by the following fields:' +
-      '<ul>' +
-      '<li>Name</li>' +
-      '<li>Trigger</li>' +
-      '<li>Context - server groups, bakery results, etc.</li>' +
-      '</ul>',
+    '<ul>' +
+    '<li>Name</li>' +
+    '<li>Trigger</li>' +
+    '<li>Context - server groups, bakery results, etc.</li>' +
+    '</ul>',
     'gce.instance.customInstance.cores': '<ul><li>Above 1, vCPU count must be even.</li><li>Zones that support Haswell and Ivy Bridge processors can support custom machine types up to 32 vCPUs.</li><li>Zones that support Sandy Bridge processors can support up to 16 vCPUs.</li></ul>',
     'gce.instance.customInstance.memory': '<ul><li>Memory per vCPU must be between .9 GB and 6.5 GB.</li><li>Total memory must be a multiple of 256 MB.</li></ul>',
     'gce.instance.customMetadata.instance-template': 'The instance template used to configure this instance.',
@@ -140,9 +140,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       if the desired instance count differs from the instance count that the autoscaler wants to maintain for its configured metrics,
       it will quickly override the desired instance count.`,
     'gce.serverGroup.scalingPolicy.coolDownPeriodSec': 'How long to wait before collecting information from a new instance. This should be at least the time it takes to initialize the instance.',
-    'gce.serverGroup.scalingPolicy.cpuUtilization' : 'Autoscaler adds or removes instances to maintain this CPU usage on each instance.',
-    'gce.serverGroup.scalingPolicy.loadBalancingUtilization' : 'Autoscaler adds or removes instances to maintain this usage of load-balancing capacity.',
-    'gce.serverGroup.scalingPolicy.customMetricUtilizations' : 'Autoscaler adds or removes instances to maintain this usage for custom metric.',
+    'gce.serverGroup.scalingPolicy.cpuUtilization': 'Autoscaler adds or removes instances to maintain this CPU usage on each instance.',
+    'gce.serverGroup.scalingPolicy.loadBalancingUtilization': 'Autoscaler adds or removes instances to maintain this usage of load-balancing capacity.',
+    'gce.serverGroup.scalingPolicy.customMetricUtilizations': 'Autoscaler adds or removes instances to maintain this usage for custom metric.',
     'gce.serverGroup.imageName': '(Required) <b>Image</b> is the Google Compute Engine image. Images are restricted to the account selected.',
     'gce.serverGroup.capacity': 'The number of instances that the instance group manager will attempt to maintain. Deleting or abandoning instances will affect this number, as will resizing the group.',
     'gce.serverGroup.customMetadata': '<b>Custom Metadata</b> will be propagated to the instances in this server group. This is useful for passing in arbitrary values that can be queried by your code on the instance.',
@@ -165,16 +165,16 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.serverGroup.autoHealing': 'VMs in the group are recreated as needed. You can use a health check to recreate a VM if the health check finds the VM unresponsive. If you do not select a health check, VMs are recreated only when stopped.',
     'gce.serverGroup.initialDelaySec': 'The time to allow an instance to boot and applications to fully start before the first health check.',
     'gce.serverGroup.maxUnavailable': 'Maximum number of instances that can be unavailable when auto-healing. The instance is considered available if all of the following conditions are satisfied:' +
-      '<ul>' +
-      '<li>1. Instance\'s status is RUNNING.</li>' +
-      '<li>2. Instance\'s liveness health check result was observed to be HEALTHY at least once.</li>' +
-      '</ul>',
+    '<ul>' +
+    '<li>1. Instance\'s status is RUNNING.</li>' +
+    '<li>2. Instance\'s liveness health check result was observed to be HEALTHY at least once.</li>' +
+    '</ul>',
     'gce.serverGroup.subnet': 'Subnetworks allow you to regionally segment the network IP space into prefixes (subnets) and control which prefix a VM instance\'s internal IP address is allocated from. There are several types of GCE networks:' +
-      '<ul>' +
-      '<li><b>Legacy (non-subnet) Network</b>: IP address allocation occurs at the global network level. This means the network address space spans across all regions.</li>' +
-      '<li><b>Auto Subnet Network</b>: Server groups will be automatically assigned to the specified region\'s subnet.</li>' +
-      '<li><b>Custom Subnet Network</b>: A subnet must be selected for the server group. If no subnets have been created for the specified region, you will not be able to provision the server group.</li>' +
-      '</ul>',
+    '<ul>' +
+    '<li><b>Legacy (non-subnet) Network</b>: IP address allocation occurs at the global network level. This means the network address space spans across all regions.</li>' +
+    '<li><b>Auto Subnet Network</b>: Server groups will be automatically assigned to the specified region\'s subnet.</li>' +
+    '<li><b>Custom Subnet Network</b>: A subnet must be selected for the server group. If no subnets have been created for the specified region, you will not be able to provision the server group.</li>' +
+    '</ul>',
     'gce.serverGroup.loadBalancingPolicy.balancingMode': 'Tells the load balancer when the backend is at capacity. If a backend is at capacity, new requests are routed to the nearest region that can handle requests. The balancing mode can be based on CPU utilization or requests per second (RPS).',
     'gce.serverGroup.loadBalancingPolicy.maxRatePerInstance': 'The maximum number of requests per second that can be sent to the backend instance group. Input must be a number greater than zero.',
     'gce.serverGroup.loadBalancingPolicy.maxUtilization': 'The maximum CPU utilization allowed for the backend. CPU utilization is calculated by averaging CPU use across all instances in the backend instance group. Input must be a number between 0 and 100.',
@@ -185,38 +185,38 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.serverGroup.loadBalancingPolicy.listeningPort': 'A load balancer sends traffic to an instance group through a named port. Input must be a port number (i.e., between 1 and 65535).',
     'gce.serverGroup.traffic': 'Registers the server group with any associated load balancers. These registrations are used by Spinnaker to determine if the server group is enabled.',
     'titus.serverGroup.traffic': '' +
-      '<p>Enables the "inService" scaling process, which is used by Spinnaker and discovery services to determine if the server group is enabled.</p>' +
-      '<p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>',
+    '<p>Enables the "inService" scaling process, which is used by Spinnaker and discovery services to determine if the server group is enabled.</p>' +
+    '<p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>',
     'pipeline.config.lock.allowUnlockUi': '' +
-      '<p><strong>Checked</strong> - the pipeline can be unlocked via the Spinnaker UI.</p>' +
-      '<p><strong>Unchecked</strong> - the pipeline can only be unlocked via the Spinnaker API.</p>',
+    '<p><strong>Checked</strong> - the pipeline can be unlocked via the Spinnaker UI.</p>' +
+    '<p><strong>Unchecked</strong> - the pipeline can only be unlocked via the Spinnaker API.</p>',
     'pipeline.config.lock.description': '' +
-      '<p>Friendly description of why this pipeline is locked.</p>' +
-      '<p>Please include an email address or slack channel as appropriate.</p>',
+    '<p>Friendly description of why this pipeline is locked.</p>' +
+    '<p>Please include an email address or slack channel as appropriate.</p>',
     'pipeline.config.optionalStage': '' +
-      '<p>When this option is enabled, stage will only execute when the supplied expression evaluates true.</p>' +
-      '<p>The expression <em>does not</em> need to be wrapped in ${ and }.</p>',
+    '<p>When this option is enabled, stage will only execute when the supplied expression evaluates true.</p>' +
+    '<p>The expression <em>does not</em> need to be wrapped in ${ and }.</p>',
     'pipeline.config.checkPreconditions.failPipeline': '' +
-      '<p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>' +
-      '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
+    '<p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>' +
+    '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
     'pipeline.config.checkPreconditions.expectedSize': 'Number of server groups in the selected cluster',
     'pipeline.config.checkPreconditions.expression': '<p>Value must evaluate to "true".</p>' +
-      '<p>Use of the <b>Spring Expression Language</b> allows for complex evaluations.</p>',
+    '<p>Use of the <b>Spring Expression Language</b> allows for complex evaluations.</p>',
     'pipeline.config.deploy.template': '<p>Select an existing cluster to use as a template for this deployment, and we\'ll pre-fill ' +
-      'the configuration based on the newest server group in the cluster.</p>' +
-      '<p>If you want to start from scratch, select "None".</p>' +
-      '<p>You can always edit the cluster configuration after you\'ve created it.</p>',
+    'the configuration based on the newest server group in the cluster.</p>' +
+    '<p>If you want to start from scratch, select "None".</p>' +
+    '<p>You can always edit the cluster configuration after you\'ve created it.</p>',
 
     'loadBalancer.advancedSettings.healthTimeout': '<p>Configures the timeout, in seconds, for reaching the healthCheck target.</p><p> Default: <b>5</b></p>',
     'loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the ELB.</p><p>Default: <b>2</b></p>',
     'pipeline.config.resizeAsg.action': '<p>Configures the resize action for the target server group.<ul>' +
-      '<li><b>Scale Up</b> increases the size of the target server group by an incremental or percentage amount</li>' +
-      '<li><b>Scale Down</b> decreases the size of the target server group by an incremental or percentage amount</li>' +
-      '<li><b>Scale to Cluster Size</b> increases the size of the target server group to match the largest server group in the cluster, optionally with an incremental or percentage additional capacity. Additional capacity will not exceed the existing maximum size.</li>' +
-      '<li><b>Scale to Exact Size</b> adjusts the size of the target server group to match the provided capacity</li>' +
-      '</ul></p>',
+    '<li><b>Scale Up</b> increases the size of the target server group by an incremental or percentage amount</li>' +
+    '<li><b>Scale Down</b> decreases the size of the target server group by an incremental or percentage amount</li>' +
+    '<li><b>Scale to Cluster Size</b> increases the size of the target server group to match the largest server group in the cluster, optionally with an incremental or percentage additional capacity. Additional capacity will not exceed the existing maximum size.</li>' +
+    '<li><b>Scale to Exact Size</b> adjusts the size of the target server group to match the provided capacity</li>' +
+    '</ul></p>',
     'pipeline.config.resizeAsg.cluster': '<p>Configures the cluster upon which this resize operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
     'pipeline.config.modifyScalingProcess.cluster': '<p>Configures the cluster upon which this modify scaling process operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
     'pipeline.config.enableAsg.cluster': '<p>Configures the cluster upon which this enable operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
@@ -229,8 +229,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.quickPatchAsg.skipUpToDate': '<p>Skip instances which already have the requested version.</p>',
     'pipeline.config.jenkins.propertyFile': '<p>(Optional) Configures the name to the Jenkins artifact file used to pass in properties to later stages in the Spinnaker pipeline.</p>',
     'pipeline.config.bake.package': '<p>The name of the package you want installed (without any version identifiers).</p>' +
-      '<p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>' +
-      '<p>If there are multiple packages (space separated), then they will be installed in the order they are entered.</p>',
+    '<p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>' +
+    '<p>If there are multiple packages (space separated), then they will be installed in the order they are entered.</p>',
     'pipeline.config.bake.baseAmi': '<p>(Optional) ami-????????</p>',
     'pipeline.config.bake.amiSuffix': '<p>(Optional) String of date in format YYYYMMDDHHmm, default is calculated from timestamp,</p>',
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
@@ -245,11 +245,11 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     '<p><strong>Checked</strong> - the pipeline will continue with the permissions of the approver.</p>' +
     '<p><strong>Unchecked</strong> - the pipeline will continue with it\'s current permissions.</p>',
     'pipeline.config.manualJudgment.judgmentInputs': '<p>(Optional) Entries populate a dropdown displayed when ' +
-      'performing a manual judgment.</p>' +
-      '<p>The selected value can be used in a subsequent <strong>Check Preconditions</strong> stage to determine branching.</p>' +
-      '<p>For example, if the user selects "rollback" from this list of options, that branch can be activated by using the ' +
-      'expression: ' +
-      '<samp class="small">execution.stages[n].context.judgmentInput=="rollback"</samp></p>',
+    'performing a manual judgment.</p>' +
+    '<p>The selected value can be used in a subsequent <strong>Check Preconditions</strong> stage to determine branching.</p>' +
+    '<p>For example, if the user selects "rollback" from this list of options, that branch can be activated by using the ' +
+    'expression: ' +
+    '<samp class="small">execution.stages[n].context.judgmentInput=="rollback"</samp></p>',
     'pipeline.config.haltPipelineOnFailure': '' +
     'Immediately halts execution of all running stages and fails the entire execution.',
     'pipeline.config.haltBranchOnFailure': '' +
@@ -257,18 +257,18 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.ignoreFailure': '' +
     'Continues execution of downstream stages, marking this stage as failed/continuing.',
     'pipeline.config.jenkins.markUnstableAsSuccessful.true': 'If Jenkins reports the build status as UNSTABLE, ' +
-      'Spinnaker will mark the stage as SUCCEEDED and continue execution of the pipeline.',
+    'Spinnaker will mark the stage as SUCCEEDED and continue execution of the pipeline.',
     'pipeline.config.jenkins.markUnstableAsSuccessful.false': 'If Jenkins reports the build status as UNSTABLE, ' +
-      'Spinnaker will mark the stage as FAILED; subsequent execution will be determined based on the configuration of the ' +
-      '<b>If build fails</b> option for this stage.',
+    'Spinnaker will mark the stage as FAILED; subsequent execution will be determined based on the configuration of the ' +
+    '<b>If build fails</b> option for this stage.',
     'pipeline.config.canary.clusterPairs': '' +
-      '<p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +
-      '<p>The version currently deployed in the baseline cluster will be used to create a new baseline server group, while the version created in the previous bake or Find AMI stage will be deployed into the canary.</p>',
+    '<p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +
+    '<p>The version currently deployed in the baseline cluster will be used to create a new baseline server group, while the version created in the previous bake or Find AMI stage will be deployed into the canary.</p>',
 
     'pipeline.config.canary.resultStrategy': '' +
-      '<p>The result stategy is used to determine how to roll up a score if multiple clusters are participating in the canary.</p>' +
-      '<p>The <em>lowest</em> strategy means that the cluster with the lowest score is used as the rolled up score</p>' +
-      '<p>The <em>average</em> strategy takes the average of all the canary scores</p>',
+    '<p>The result stategy is used to determine how to roll up a score if multiple clusters are participating in the canary.</p>' +
+    '<p>The <em>lowest</em> strategy means that the cluster with the lowest score is used as the rolled up score</p>' +
+    '<p>The <em>average</em> strategy takes the average of all the canary scores</p>',
 
     'pipeline.config.canary.delayBeforeAnalysis': '<p>The number of minutes until the first ACA measurement interval begins.</p>',
 
@@ -281,8 +281,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.canary.scaleUpCapacity': '<p>Desired capacity after canary and control clusters are scaled up</p>',
     'pipeline.config.canary.scaleUpDelay': '<p>Minutes to delay before initiating canary scale up</p>',
     'pipeline.config.canary.baselineVersion': '<p>The Canary stage will inspect the specified cluster to determine which version to deploy as the baseline in each cluster pair.</p>',
-    'pipeline.config.canary.lookback':'<p>By default ACA will look at the entire duration of the canary for its analysis. Setting a look-back duration limits the number of minutes that the canary will use for it\'s analysis report.<br> <b>Useful for long running canaries that span multiple days.</b></p>',
-    'pipeline.config.canary.continueOnUnhealthy':'<p>Continue the pipeline if the ACA comes back as <b>UNHEALTHY</b></p>',
+    'pipeline.config.canary.lookback': '<p>By default ACA will look at the entire duration of the canary for its analysis. Setting a look-back duration limits the number of minutes that the canary will use for it\'s analysis report.<br> <b>Useful for long running canaries that span multiple days.</b></p>',
+    'pipeline.config.canary.continueOnUnhealthy': '<p>Continue the pipeline if the ACA comes back as <b>UNHEALTHY</b></p>',
     'pipeline.config.canary.watchers': '<p>Comma separated list of emails to receive notifications of canary events.</p>',
     'pipeline.config.canary.useGlobalDataset': '<p>Uses the global atlas dataset instead of the region specific dataset for ACA</p>',
 
@@ -314,44 +314,44 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.script.propertyFile': '<p>(Optional) The name to the properties file produced by the script execution to be used by later stages of the Spinnaker pipeline. </p>',
     'pipeline.config.docker.trigger.tag': '<p>(Optional) If specified, only the tags that match this Java Regular Expression will be triggered. Leave empty to trigger builds on any tag pushed.</p>',
     'pipeline.config.git.trigger.branch': '<p>(Optional) If specified, only pushes to the branches that match this Java Regular Expression will be triggered. Leave empty to trigger builds for every branch.</p>',
-    'serverGroupCapacity.useSourceCapacityTrue':  '<p>Spinnaker will use the current capacity of the existing server group when deploying a new server group.</p>' +
-      '<p>This setting is intended to support a server group with auto-scaling enabled, where the bounds and desired capacity are controlled by an external process.</p>' +
-      '<p>In the event that there is no existing server group, the deploy will fail.</p>',
+    'serverGroupCapacity.useSourceCapacityTrue': '<p>Spinnaker will use the current capacity of the existing server group when deploying a new server group.</p>' +
+    '<p>This setting is intended to support a server group with auto-scaling enabled, where the bounds and desired capacity are controlled by an external process.</p>' +
+    '<p>In the event that there is no existing server group, the deploy will fail.</p>',
     'serverGroupCapacity.useSourceCapacityFalse': '<p>The specified capacity is used regardless of the presence or size of an existing server group.</p>',
     'strategy.redblack.scaleDown': '<p>Resizes the target server group to zero instances before disabling it.</p>' +
-      '<p>Select this if you wish to retain the launch configuration for the old server group without running any instances.</p>',
+    '<p>Select this if you wish to retain the launch configuration for the old server group without running any instances.</p>',
     'strategy.redblack.maxRemainingAsgs': '<p><b>Optional</b>: indicates the maximum number of server groups that will remain in this cluster - including the newly created one.</p>' +
-      '<p>If you wish to destroy all server groups except the newly created one, select "Highlander" as the strategy.</p>' +
-      '<p><strong>Minimum value:</strong> 2</p>',
+    '<p>If you wish to destroy all server groups except the newly created one, select "Highlander" as the strategy.</p>' +
+    '<p><strong>Minimum value:</strong> 2</p>',
     'strategy.rollingPush.relaunchAll': '<p>Incrementally terminates each instance in the server group, waiting for a new one to come up before terminating the next one.</p>',
     'strategy.rollingPush.totalRelaunches': '<p>Total number of instances to terminate and relaunch.</p>',
     'strategy.rollingPush.concurrentRelaunches': '<p>Number of instances to terminate and relaunch at a time.</p>',
     'strategy.rollingPush.order': '<p>Determines the order in which instances will be terminated. ' +
-      '<ul><li><b>Oldest</b> will terminate the oldest instances first</li>' +
-      '<li><b>Newest</b> will terminate those most recently launched.</li></ul></p>',
+    '<ul><li><b>Oldest</b> will terminate the oldest instances first</li>' +
+    '<li><b>Newest</b> will terminate those most recently launched.</li></ul></p>',
 
     'loadBalancers.filter.serverGroups': '<p>Displays all server groups configured to use the load balancer.</p>' +
-      '<p>If the server group is configured to <em>not</em> add new instances to the load balancer, it will be grayed out.</p>',
+    '<p>If the server group is configured to <em>not</em> add new instances to the load balancer, it will be grayed out.</p>',
     'loadBalancers.filter.instances': '<p>Displays all instances in the context of their parent server group. The color of the instance icon ' +
-      'indicates <em>only its health in relation to the load balancer</em>. That is, if the load balancer health check reports the instance ' +
-      'as healthy, the instance will appear green - even if other health indicators (Discovery, other load balancers, etc.) report the instance ' +
-      'as unhealthy.</p>' +
-      '<p>A red icon indicates the instance is failing the health check for the load balancer.</p>' +
-      '<p>A gray icon indicates the instance is currently detached from the load balancer.</p>',
+    'indicates <em>only its health in relation to the load balancer</em>. That is, if the load balancer health check reports the instance ' +
+    'as healthy, the instance will appear green - even if other health indicators (Discovery, other load balancers, etc.) report the instance ' +
+    'as unhealthy.</p>' +
+    '<p>A red icon indicates the instance is failing the health check for the load balancer.</p>' +
+    '<p>A gray icon indicates the instance is currently detached from the load balancer.</p>',
     'loadBalancers.filter.onlyUnhealthy': '<p>Filters the list of load balancers and server groups (if enabled) ' +
-      'to only show load balancers with instances failing the health check for the load balancer.</p>',
+    'to only show load balancers with instances failing the health check for the load balancer.</p>',
     'project.cluster.stack': '<p>(Optional field)</p><p>Filters displayed clusters by stack.</p><p>Enter <samp>*</samp> to include all stacks; leave blank to omit any clusters with a stack.</p>',
     'project.cluster.detail': '<p>(Optional field)</p><p>Filters displayed clusters by detail.</p><p>Enter <samp>*</samp> to include all details; leave blank to omit any clusters with a detail.</p>',
     'instanceType.storageOverridden': '<p>These storage settings have been cloned from the base server group and differ from the default settings for this instance type.</p>',
     'instanceType.unavailable': '<p>This instance type is not available for the selected configuration.</p>',
     'fastProperty.canary.strategy.rolloutList': '<p>A comma separated list of numbers or percentages of instance canary against.</p>',
     'execution.forceRebake': '<p>By default, the bakery will <b>not</b> create a new image if the contents of the package have not changed; ' +
-      'instead, it will return the previously baked image.</p>' +
-      '<p>Select this option to force the bakery to create a new image, regardless of whether or not the selected package exists.</p>',
+    'instead, it will return the previously baked image.</p>' +
+    '<p>Select this option to force the bakery to create a new image, regardless of whether or not the selected package exists.</p>',
     'kubernetes.serverGroup.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
     'kubernetes.serverGroup.detail': '(Optional) A string of free-form alphanumeric characters and hyphens to describe any other variables.',
     'kubernetes.serverGroup.containers': '(Required) Select at least one image to run in this server group (pod). ' +
-      'If multiple images are selected, they will be colocated and replicated equally.',
+    'If multiple images are selected, they will be colocated and replicated equally.',
     'kubernetes.serverGroup.autoscaling.enabled': 'If selected, a horizontal autoscaler will be attached to this replica set.',
     'kubernetes.serverGroup.autoscaling.min': 'The smallest number of pods to be deployed.',
     'kubernetes.serverGroup.autoscaling.max': 'The largest number of pods to be deployed.',
@@ -365,17 +365,17 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.containers.command': 'The list of commands which to overwrite the docker ENTRYPOINT array.',
     'kubernetes.containers.name': '(Required) The name of the container associated with the above image. Used for resource identification',
     'kubernetes.containers.pullpolicy': '<p>Sets the policy used to determine when to pull (download) the selected container image.</p>' +
-      '<p><i><b>Warning</b> - This shouldn\'t be modified for most production pipelines as it encourages aliasing tags, ' +
-      'preventing proper rollbacks and determining an image\'s source.</i></p>' +
-      '<p><b>IFNOTPRESENT</b>: (Default) Pulls the image only when it is not present on the host machine.</p>' +
-      '<p><b>ALWAYS</b>: Always pulls the image, regardless of if it is present or not.</p>' +
-      '<p><b>NEVER</b>: Never pulls the image, regardless of if it is present or not.</p>',
+    '<p><i><b>Warning</b> - This shouldn\'t be modified for most production pipelines as it encourages aliasing tags, ' +
+    'preventing proper rollbacks and determining an image\'s source.</i></p>' +
+    '<p><b>IFNOTPRESENT</b>: (Default) Pulls the image only when it is not present on the host machine.</p>' +
+    '<p><b>ALWAYS</b>: Always pulls the image, regardless of if it is present or not.</p>' +
+    '<p><b>NEVER</b>: Never pulls the image, regardless of if it is present or not.</p>',
     'kubernetes.containers.cpu': '(Optional) The relative CPU shares to allocate this container. If set, it is multiplied by 1024, then ' +
-      'passed to Docker as the --cpu-shares flag. Otherwise the default of 1 (1024) is used',
+    'passed to Docker as the --cpu-shares flag. Otherwise the default of 1 (1024) is used',
     'kubernetes.containers.memory': '(Optional) The relative memory in megabytes to allocate this container. If set, it is converted to an integer ' +
-      'and passed to Docker as the --memory flag',
+    'and passed to Docker as the --memory flag',
     'kubernetes.containers.requests': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +
-      'with at least this much of the resource available.',
+    'with at least this much of the resource available.',
     'kubernetes.containers.ports.name': '(Optional) A name for this port. Can be found using DNS lookup if specified.',
     'kubernetes.containers.ports.containerPort': '(Required) The port to expose on this container.',
     'kubernetes.containers.ports.hostPort': '(Optional) The port to expose on <b>Host IP</b>. Most containers do not need this',
@@ -383,8 +383,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.containers.ports.protocol': '(Required) The protocol for this port.',
     'kubernetes.containers.limits': '(Optional) This provides a hard limit on this resource for the given container.',
     'kubernetes.containers.probes.type': '<p><b>HTTP</b> Hit the probe at the specified port and path.</p>' +
-      '<p><b>EXEC</b> Execute the specified commands on the container.</p>' +
-      '<p><b>TCP</b> Connect to the container at the specified port.</p>',
+    '<p><b>EXEC</b> Execute the specified commands on the container.</p>' +
+    '<p><b>TCP</b> Connect to the container at the specified port.</p>',
     'kubernetes.containers.probes.initialDelay': 'How long to wait after startup before running this probe.',
     'kubernetes.containers.probes.timeout': 'How long to wait on the result of this probe.',
     'kubernetes.containers.probes.period': 'How long between probe executions.',
@@ -394,31 +394,31 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.containers.volumemounts.mountPath': 'The directory to mount the specified <b>Volume Source</b> to.',
     'kubernetes.namespace': 'The namespace you have configured with the above selected account. This will often be referred to as <b>Region</b> in Spinnaker.',
     'kubernetes.loadBalancer.detail': '(Optional) A string of free-form alphanumeric characters; by convention, we recommend using "frontend".',
-    'kubernetes.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.' ,
+    'kubernetes.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
     'kubernetes.service.ports.name': '(Optional) A name for this port. Can be found using DNS lookup if specified.',
     'kubernetes.service.ports.port': 'The port this service will expose to resources internal to the cluster.',
     'kubernetes.service.ports.nodePort': '(Optional) A port to open on every node in the cluster. This allows you to receive external traffic without ' +
-      'having to provision a cloud load balancer. <b>Type</b> in <b>Advanced Settings</b> cannot be set to <b>ClusterIP</b> for this to work.',
+    'having to provision a cloud load balancer. <b>Type</b> in <b>Advanced Settings</b> cannot be set to <b>ClusterIP</b> for this to work.',
     'kubernetes.service.ports.targetPort': '(Optional) The port to forward incoming traffic to for pods associated with this load balancer.',
     'kubernetes.service.ports.protocol': 'The protocol this port listens to.',
     'kubernetes.service.type': '<b>ClusterIP</b> means this is an internal load balancer only. <b>LoadBalancer</b> provisions a cloud load balancer if possible ' +
-      'at address <b>Load Balancer IP</b>. <b>NodePort</b> means this load balancer forwards traffic from ports with <b>Node Port</b> specified.',
+    'at address <b>Load Balancer IP</b>. <b>NodePort</b> means this load balancer forwards traffic from ports with <b>Node Port</b> specified.',
     'kubernetes.service.sessionAffinity': '<b>None</b> means incoming connections are not associated with the pods they are routed to. <b>ClientIP</b> ' +
-      'associates connections with pods by incoming IP address.',
+    'associates connections with pods by incoming IP address.',
     'kubernetes.service.clusterIp': '(Optional) If specified, and available, this internal IP address will be the internal endpoint for this load balancer.' +
-      'If not specified, one will be assigned.',
+    'If not specified, one will be assigned.',
     'kubernetes.service.loadBalancerIp': 'If specified, and available, this external IP address will be the external endpoint for this load balancer ' +
-      'when <b>Type</b> is set to <b>LoadBalancer</b>.',
+    'when <b>Type</b> is set to <b>LoadBalancer</b>.',
     'kubernetes.service.externalIps': 'IP addresses for which nodes in the cluster also accept traffic. This is not managed by Kubernetes and the ' +
-      'responsibility of the user to configure.',
+    'responsibility of the user to configure.',
     'kubernetes.pod.volume': '<p>A storage volume to be mounted and shared by containers in this pod. The lifecycle depends on the volume type selected.</p>' +
-      '<p><b>EMPTYDIR</b>: A transient volume tied to the lifecycle of this pod.</p>' +
-      '<p><b>HOSTPATH</b>: A directory on the host node. Most pods do not need this.</p>' +
-      '<p><b>PERSISTENTVOLUMECLAIM</b>: An already created persistent volume claim to be bound by this pod.</p>' +
-      '<p><b>SECRET</b>: An already created kubernetes secret to be mounted in this pod.</p>',
+    '<p><b>EMPTYDIR</b>: A transient volume tied to the lifecycle of this pod.</p>' +
+    '<p><b>HOSTPATH</b>: A directory on the host node. Most pods do not need this.</p>' +
+    '<p><b>PERSISTENTVOLUMECLAIM</b>: An already created persistent volume claim to be bound by this pod.</p>' +
+    '<p><b>SECRET</b>: An already created kubernetes secret to be mounted in this pod.</p>',
     'kubernetes.pod.emptydir.medium': 'The type of storage medium used by this volume type.' +
-      '<p><b>DEFAULT</b>: Depends on the storage mechanism backing this pod\'s Kubernetes installation.</p>' +
-      '<p><b>MEMORY</b>: A tmpfs (RAM-backed filesystem). Very fast, but usage counts against the memory resource limit, and contents are lost on reboot.</p>',
+    '<p><b>DEFAULT</b>: Depends on the storage mechanism backing this pod\'s Kubernetes installation.</p>' +
+    '<p><b>MEMORY</b>: A tmpfs (RAM-backed filesystem). Very fast, but usage counts against the memory resource limit, and contents are lost on reboot.</p>',
     'kubernetes.pod.volume.persistentvolumeclaim.claim': 'The name of the underlying persistent volume claim to request.',
     'kubernetes.pod.volume.hostpath.path': 'The path on the host node\'s filesystem to mount.',
     'kubernetes.pod.volume.secret.secretName': 'The name of the secret to mount.',
@@ -432,7 +432,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'changing something in an account deemed important, and prevents you from accidentally changing something ' +
     'when you meant to click on the "Cancel" button.',
     'azure.securityGroup.ingress.description': 'Friendly description of the rule you want to enable (limit 80 chars.)',
-    'azure.securityGroup.ingress.priority': 'Rules are processed in priority order; the lower the number, the higher the priority.  We recommend leaving gaps between rules - 100, 200, 300, etc. - so that it\'s easier to add new rules without having to edit existing rules.  There are several default rules that can be overridden with priority (65000, 65001 and 65500).  For more information visit http://portal.azure.com.' ,
+    'azure.securityGroup.ingress.priority': 'Rules are processed in priority order; the lower the number, the higher the priority.  We recommend leaving gaps between rules - 100, 200, 300, etc. - so that it\'s easier to add new rules without having to edit existing rules.  There are several default rules that can be overridden with priority (65000, 65001 and 65500).  For more information visit http://portal.azure.com.',
     'azure.securityGroup.ingress.source': 'The source filter can be Any, an IP address range or a default tag(\'Internet\', \'VirtualNetwork\', \AzureLoadBalancer\').  It specifies the incoming traffic from a specific source IP address range (CIDR format) that will be allowed or denied by this rule.',
     'azure.securityGroup.ingress.sourcePortRange': 'The source port range can be a single port, such as 80, or a port range, such as 1024-65535.  This specifies from which ports incoming traffic will be allowed or denied by this rule.  Provide an asterisk (*) to allow traffic from clients connecting from any port.',
     'azure.securityGroup.ingress.destination': 'The destination filter can be Any, an IP address range or a default tag(\'Internet\', \'VirtualNetwork\', \AzureLoadBalancer\').  It specifies the outgoing traffic from a specific destination IP address range (CIDR format) that will be allowed or denied by this rule.',
@@ -446,7 +446,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'azure.serverGroup.commandToExecute': 'Command(s) to execute custom script provided during provisioning of an instance.',
     'azure.serverGroup.customData': 'Script or metadata to be injected into each instances.',
     'openstack.loadBalancer.detail': '(Optional) A string of free-form alphanumeric characters; by convention, we recommend using "frontend".',
-    'openstack.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.' ,
+    'openstack.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
     'openstack.loadBalancer.subnet': 'The subnet where the instances for this load balancer reside.',
     'openstack.loadBalancer.protocol': 'The protocol for the traffic to be load balanced. Currently, only HTTP and HTTPS are supported.',
     'openstack.loadBalancer.network': 'The network containing the floating IP pool from which this load balancer will obtain and bind to a floating IP.',
@@ -469,4 +469,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'titus.deploy.efs': 'if completed, allows you to specify an EFS volume to attach to each Task that gets created for the Job',
     'titus.deploy.mountPoint': '(Required) A valid directory to mount the volume, e.g, <samp>/efs</samp>. Invalid locations are <samp>/</samp>, <samp>/data</samp>, and <samp>/logs</samp> as these are reserved directories.',
     'titus.deploy.efsId': '(Required) The EFS file system ID, e.g. <samp> fs-0208c74b</samp>.',
+    'titus.job.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the job to complete',
+    'pipeline.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the pipeline to complete',
+    'jenkins.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the jenkins job to complete',
+    'script.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the script to complete',
   });

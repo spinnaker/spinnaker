@@ -77,6 +77,11 @@
     </div>
   </div>
 
+  <stage-config-field label="Wait for results" help-key="jenkins.waitForCompletion">
+    <input type="checkbox" class="input-sm" name="waitForCompletion"
+           ng-model="stage.waitForCompletion"/>
+  </stage-config-field>
+
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-right">If build is unstable</label>
     <div class="col-md-9">
