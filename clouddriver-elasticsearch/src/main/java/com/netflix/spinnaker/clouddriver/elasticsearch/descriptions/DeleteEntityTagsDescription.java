@@ -16,13 +16,37 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.descriptions;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
+import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable;
 
-public class DeleteEntityTagsDescription {
+public class DeleteEntityTagsDescription implements CredentialsNameable {
+  @JsonIgnore
+  private AccountCredentials credentials;
+
   @JsonProperty
   private String id;
 
+  @JsonProperty
+  private String account;
+
   public String getId() {
     return id;
+  }
+
+  @Override
+  public String getAccount() {
+    return account;
+  }
+
+  @Override
+  @JsonIgnore
+  public AccountCredentials getCredentials() {
+    return credentials;
+  }
+
+  public void setCredentials(AccountCredentials accountCredentials) {
+    this.credentials = accountCredentials;
   }
 }
