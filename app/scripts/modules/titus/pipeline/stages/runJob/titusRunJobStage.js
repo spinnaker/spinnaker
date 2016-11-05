@@ -40,6 +40,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
     this.accountChanged = () => {
       this.accountChangedStream.next(null);
       this.updateRegions();
+
     };
 
     this.regionChanged = () => {
@@ -57,6 +58,38 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
         $scope.regions = null;
       }
     };
+
+    this.onChange = (changes) => {
+      stage.registry = changes.registry;
+    };
+
+    function updateImageId() {
+      if ($scope.stage.repository && $scope.stage.tag) {
+        $scope.stage.cluster.imageId = `${$scope.stage.repository}:${$scope.stage.tag}`;
+      }
+      else {
+        delete $scope.stage.cluster.imageId;
+      }
+    }
+
+    if ($scope.stage.cluster.imageId) {
+      const image = $scope.stage.cluster.imageId;
+      $scope.stage.organization = '';
+      const parts = image.split('/');
+      if (parts.length > 1) {
+        $scope.stage.organization = parts.shift();
+      }
+
+      const rest = parts.shift().split(':');
+      if ($scope.stage.organization) {
+        $scope.stage.repository = `${$scope.stage.organization}/${rest.shift()}`;
+      } else {
+        $scope.stage.repository = rest.shift();
+      }
+      $scope.stage.tag = rest.shift();
+    }
+
+    $scope.$watchGroup(['stage.repository', 'stage.tag'], updateImageId);
 
     if (!stage.credentials && $scope.application.defaultCredentials.titus) {
       stage.credentials = $scope.application.defaultCredentials.titus;
@@ -91,13 +124,16 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
     }).then((backingData) => {
       backingData.credentials = Object.keys(backingData.credentialsKeyedByAccount);
       $scope.backingData = backingData;
+
+      if (!stage.credentials) {
+        stage.credentials = backingData.credentials[0];
+      }
+
+      stage.registry = backingData.credentialsKeyedByAccount[stage.credentials].registry;
       return $q.all([]).then(() => {
-        if (stage.credentials) {
-          vm.updateRegions();
-        }
+        vm.updateRegions();
         this.loaded = true;
       });
     });
-
   });
 
