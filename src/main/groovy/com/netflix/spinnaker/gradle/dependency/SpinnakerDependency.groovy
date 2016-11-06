@@ -21,6 +21,7 @@ import groovy.text.Template
 import org.codehaus.groovy.runtime.GStringImpl
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.yaml.snakeyaml.Yaml
 
@@ -35,14 +36,9 @@ class SpinnakerDependency {
     private static final String DEFAULT_DEPENDENCIES_VERSION = 'latest.release'
     private static final GString DEFAULT_DEPENDENCIES_YAML = "com.netflix.spinnaker:spinnaker-dependencies:${DEFAULT_DEPENDENCIES_VERSION}@yml"
     private final Project project
-    private final Map dependencyConfig = [:]
-    private final SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
-    private final Map<String, Template> templates = new ConcurrentHashMap<>()
-
+    private final DependencyBuilder dependencyBuilder = new DependencyBuilder()
     private final AtomicBoolean configResolved = new AtomicBoolean(false)
     private final Lock configLock = new ReentrantLock()
-
-
 
     public Object dependenciesVersion
     public Object dependenciesYaml
@@ -51,15 +47,15 @@ class SpinnakerDependency {
         this.project = project
     }
 
-    private Map getConfig() {
+    private void ensureConfigResolved() {
         if (configResolved.get()) {
-            return dependencyConfig
+            return
         }
 
         configLock.lockInterruptibly()
         try {
             if (configResolved.get()) {
-                return dependencyConfig
+                return
             }
 
             String dependenciesVersion = project.hasProperty(OVERRIDE_PROJECT_PROPERTY) ? project.property(OVERRIDE_PROJECT_PROPERTY) : dependenciesVersion ?: DEFAULT_DEPENDENCIES_VERSION
@@ -70,81 +66,103 @@ class SpinnakerDependency {
             Map config = conf.singleFile.withReader {
                 return (Map) new Yaml().load(it)
             }
-            dependencyConfig.clear()
+            dependencyBuilder.configuration.clear()
             def depKeys = ['dependencies', 'versions', 'groups']
             for (String key : depKeys) {
-              dependencyConfig.put(key, [:])
+                dependencyBuilder.configuration.put(key, [:])
             }
-            dependencyConfig.putAll(config)
+            dependencyBuilder.configuration.putAll(config)
 
             def extExtension = project.extensions.getByType(ExtraPropertiesExtension)
             if (extExtension) {
-              for (String key : depKeys) {
-                if (extExtension.has(key)) {
-                  def extVal = extExtension.get(key)
-                  if (extVal instanceof Map) {
-                    dependencyConfig.get(key).putAll(extVal)
-                  }
+                for (String key : depKeys) {
+                    if (extExtension.has(key)) {
+                        def extVal = extExtension.get(key)
+                        if (extVal instanceof Map) {
+                            dependencyBuilder.configuration.get(key).putAll(extVal)
+                        }
+                    }
                 }
-              }
             }
             configResolved.set(true)
-
-            return dependencyConfig
         } finally {
             configLock.unlock()
         }
     }
 
-    Dependency dependency(String name) {
-        def conf = getConfig()
-        return createDependency(name, conf)
+    Object dependency(String name) {
+        ensureConfigResolved()
+        return dependencyBuilder.buildDependencyFromTemplate(name)
     }
 
     void group(String name) {
-        def conf = getConfig()
+        ensureConfigResolved()
+        Map<String, List<String>> group = dependencyBuilder.ensureGroupExists(name)
 
-        def group = (Map<String, List<String>>) conf.groups[name]
-        if (!group) {
-            throw new NoSuchElementException("No dependency group $name in $conf.groups")
-        }
+        def db = dependencyBuilder
 
-        for (Map.Entry<String, List<String>> deps : group.entrySet()) {
-            for (String dep : deps.value) {
-                project.dependencies.add(deps.key, createDependency(dep, conf))
+        project.dependencies { DependencyHandler dh ->
+            for (Map.Entry<String, List<String>> deps : group.entrySet()) {
+                for (String dep : deps.value) {
+                    dh.add(deps.key, db.buildDependencyFromTemplate(dep))
+                }
             }
         }
     }
 
     String version(String name) {
-        def conf = getConfig()
-        def version = conf.versions[name]
-        if (!version) {
-            throw new NoSuchElementException("No version $name in $conf.versions")
-        }
-        return version
+        ensureConfigResolved()
+        return dependencyBuilder.ensureVersionExists(name)
     }
 
-    private Template getTemplate(String name, String templateText) {
-        def template = templates.get(name)
-        if (template) {
-            return template
+
+    private static class DependencyBuilder {
+        private final SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
+        private final Map<String, Template> templates = new ConcurrentHashMap<>()
+        private final Map<String, ?> configuration = [:]
+
+        DependencyBuilder() {
         }
 
-        template = templateEngine.createTemplate(templateText)
-        return templates.putIfAbsent(name, template) ?: template
-    }
-
-    private Dependency createDependency(String name, Map conf) {
-
-        String depTemplate = conf.dependencies[name]
-
-        if (!depTemplate) {
-            throw new NoSuchElementException("No dependency $name in $conf.dependencies")
+        public Map<String, ?> getConfiguration() {
+            return configuration
         }
 
-        def tmpl = getTemplate(name, depTemplate)
-        return project.dependencies.create(tmpl.make(conf).toString())
-    }
+        Map<String, List<String>> ensureGroupExists(String name) {
+            def group = configuration.groups[name]
+            if (!group) {
+                throw new NoSuchElementException("No dependency group $name in $configuration.groups")
+            }
+            return group
+        }
 
+        String ensureVersionExists(String name) {
+            def version = configuration.versions[name]
+            if (!version) {
+                throw new NoSuchElementException("No version $name in $configuration.versions")
+            }
+            return version
+        }
+
+        private Template getTemplate(String name, String templateText) {
+            def template = templates.get(name)
+            if (template) {
+                return template
+            }
+
+            template = templateEngine.createTemplate(templateText)
+            return templates.putIfAbsent(name, template) ?: template
+        }
+
+        public Object buildDependencyFromTemplate(String name) {
+            String depTemplate = configuration.dependencies[name]
+
+            if (!depTemplate) {
+                throw new NoSuchElementException("No dependency $name in $configuration.dependencies")
+            }
+
+            def tmpl = getTemplate(name, depTemplate)
+            return tmpl.make(configuration).toString()
+        }
+    }
 }
