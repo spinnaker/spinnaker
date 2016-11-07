@@ -38,7 +38,7 @@ abstract class AbstractEurekaSupport {
                                              String instanceId,
                                              String asgName)
 
-  @Autowired
+  @Autowired(required = false)
   EurekaSupportConfigurationProperties eurekaSupportConfigurationProperties
 
   @Autowired
@@ -49,6 +49,10 @@ abstract class AbstractEurekaSupport {
                                          String phaseName,
                                          DiscoveryStatus discoveryStatus,
                                          List<String> instanceIds) {
+
+    if (eurekaSupportConfigurationProperties == null) {
+      throw new IllegalStateException("eureka configuration not supplied")
+    }
 
     def eureka = getEureka(description.credentials, description.region)
     def random = new Random()
