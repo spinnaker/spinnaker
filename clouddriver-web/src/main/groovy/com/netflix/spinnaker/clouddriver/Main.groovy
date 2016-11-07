@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver
 
+import com.netflix.spinnaker.clouddriver.appengine.AppEngineConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.azure.AzureConfiguration
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfig
@@ -53,6 +54,7 @@ import java.security.Security
   RetrofitConfig,
   AwsConfiguration,
   TitusConfiguration,
+  AppEngineConfiguration,
   GoogleConfiguration,
   KubernetesConfiguration,
   OpenstackConfiguration,

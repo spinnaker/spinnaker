@@ -25,6 +25,7 @@ dependencies {
   compile project(':clouddriver-aws')
   compile project(':clouddriver-azure')
   compile project(':clouddriver-cf')
+  compile project(':clouddriver-appengine')
   compile project(':clouddriver-google')
   compile project(':clouddriver-kubernetes')
   compile project(':clouddriver-openstack')

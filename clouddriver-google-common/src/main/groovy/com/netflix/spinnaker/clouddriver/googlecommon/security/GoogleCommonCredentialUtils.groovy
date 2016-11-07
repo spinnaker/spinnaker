@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.security
+package com.netflix.spinnaker.clouddriver.googlecommon.security
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.http.HttpTransport
 import com.google.api.client.json.JsonFactory
-import com.google.api.services.compute.ComputeScopes
-import com.netflix.spinnaker.clouddriver.google.ComputeVersion
-import com.netflix.spinnaker.clouddriver.googlecommon.security.GoogleCommonCredentialUtils
 
-class GoogleJsonCredentials extends GoogleCredentials {
-  final String jsonKey
+class GoogleCommonCredentialUtils {
+  static getCredentials (HttpTransport httpTransport, JsonFactory jsonFactory, String jsonKey, String scope) {
+    InputStream credentialStream = new ByteArrayInputStream(jsonKey.getBytes("UTF-8"))
 
-  GoogleJsonCredentials(String project, ComputeVersion computeVersion, String jsonKey) {
-    super(project, computeVersion)
-    this.jsonKey = jsonKey
-  }
-
-  @Override
-  GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory jsonFactory) {
-    GoogleCommonCredentialUtils.getCredentials(httpTransport, jsonFactory, jsonKey, ComputeScopes.COMPUTE);
+    return GoogleCredential.fromStream(credentialStream, httpTransport, jsonFactory)
+      .createScoped(Collections.singleton(scope))
   }
 }

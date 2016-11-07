@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.security
+package com.netflix.spinnaker.clouddriver.appengine.security
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.http.HttpTransport
 import com.google.api.client.json.JsonFactory
-import com.google.api.services.compute.ComputeScopes
-import com.netflix.spinnaker.clouddriver.google.ComputeVersion
+import com.google.api.services.appengine.v1.AppengineScopes
 import com.netflix.spinnaker.clouddriver.googlecommon.security.GoogleCommonCredentialUtils
 
-class GoogleJsonCredentials extends GoogleCredentials {
+class AppEngineJsonCredentials extends AppEngineCredentials {
   final String jsonKey
 
-  GoogleJsonCredentials(String project, ComputeVersion computeVersion, String jsonKey) {
-    super(project, computeVersion)
+  AppEngineJsonCredentials(String project, String jsonKey) {
+    super(project)
     this.jsonKey = jsonKey
   }
 
   @Override
   GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory jsonFactory) {
-    GoogleCommonCredentialUtils.getCredentials(httpTransport, jsonFactory, jsonKey, ComputeScopes.COMPUTE);
+    GoogleCommonCredentialUtils.getCredentials(httpTransport, jsonFactory, jsonKey, AppengineScopes.CLOUD_PLATFORM);
   }
 }

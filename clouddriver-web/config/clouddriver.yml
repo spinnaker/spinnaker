@@ -32,6 +32,7 @@ swagger:
     - .*applications.*
     - .*aws.*
     - .*azure.*
+    - .*appengine.*
     - .*gce.*
     - .*kubernetes.*
     - .*openstack.*
@@ -122,6 +123,9 @@ azure:
   #      blobDir: "vhds"
   #      osType: "Linux"
   #      region: "westus"
+
+appengine:
+  enabled: false
 
 google:
   enabled: false

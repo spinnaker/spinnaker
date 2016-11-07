@@ -1,0 +1,10 @@
+dependencies {
+  compile project(":clouddriver-core")
+  compile project(":clouddriver-google-common")
+  compile spinnaker.dependency("frigga")
+  compile spinnaker.dependency("bootActuator")
+  compile spinnaker.dependency("bootWeb")
+
+  // TODO(dpeach): move to spinnaker/spinnaker-dependencies.
+  compile "com.google.apis:google-api-services-appengine:v1-rev4-1.22.0"
+}
