@@ -38,6 +38,7 @@ class EchoNotifyingStageListener implements StageListener {
   <T extends Execution<T>> void beforeStage(Persister persister,
                                             Stage<T> stage) {
     if (stage.status == NOT_STARTED) {
+      log.debug("***** $stage.execution.id Echo stage $stage.name starting v2")
       recordEvent("stage", "starting", stage)
     }
   }
@@ -58,11 +59,14 @@ class EchoNotifyingStageListener implements StageListener {
     if (stage.execution instanceof Pipeline && stage.execution.executionEngine == "v1") {
       if (wasSuccessful) {
         if (task.name.contains('stageEnd')) {
+          log.debug("***** $stage.execution.id Echo stage $stage.name complete")
           recordEvent('stage', 'complete', stage, task)
         } else if (task.name.contains('stageStart')) {
+          log.debug("***** $stage.execution.id Echo stage $stage.name starting")
           recordEvent('stage', 'starting', stage, task)
         }
       } else {
+        log.debug("***** $stage.execution.id Echo stage $stage.name failed")
         recordEvent('stage', 'failed', stage, task)
       }
     }
@@ -73,8 +77,10 @@ class EchoNotifyingStageListener implements StageListener {
                                            Stage<T> stage) {
     if (stage.execution instanceof Pipeline) {
       if (stage.status.successful) {
+        log.debug("***** $stage.execution.id Echo stage $stage.name complete v2")
         recordEvent('stage', 'complete', stage)
       } else {
+        log.debug("***** $stage.execution.id Echo stage $stage.name failed v2")
         recordEvent('stage', 'failed', stage)
       }
     }
