@@ -69,7 +69,13 @@ class StageStatusPropagationListener implements StageListener {
           }
         }
       } else {
-        stage.status = executionStatus
+        if (executionStatus == ExecutionStatus.SUCCEEDED && stage.tasks.status.any {
+          it == ExecutionStatus.FAILED_CONTINUE
+        }) {
+          stage.status = ExecutionStatus.FAILED_CONTINUE
+        } else {
+          stage.status = executionStatus
+        }
 
         if (executionStatus.complete) {
           log.debug("***** $stage.execution.id Stage $stage.type $executionStatus")
