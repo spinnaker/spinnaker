@@ -67,11 +67,14 @@ class MonitorJenkinsJobTask implements RetryableTask {
       }
 
       if (statusMap.containsKey(result)) {
+        ExecutionStatus status = statusMap[result]
         Map<String, Object> properties = [:]
         if (stage.context.propertyFile) {
           properties = buildService.getPropertyFile(buildNumber, stage.context.propertyFile, master, job)
+          if (properties.size() == 0) {
+            throw new IllegalStateException("expected properties file ${stage.context.propertyFile} but one was not found or was empty")
+          }
         }
-        ExecutionStatus status = statusMap[result]
         if (result == 'UNSTABLE' && stage.context.markUnstableAsSuccessful) {
           status = ExecutionStatus.SUCCEEDED
         }
