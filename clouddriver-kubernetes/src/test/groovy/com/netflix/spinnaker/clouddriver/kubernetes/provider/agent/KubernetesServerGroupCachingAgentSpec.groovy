@@ -63,6 +63,8 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
     podList = Mock(PodList)
     apiMock = Mock(KubernetesApiAdaptor)
 
+    apiMock.getNamespacesByName() >> [NAMESPACE]
+
     def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
     kubernetesCredentials = new KubernetesCredentials(apiMock, [], [], accountCredentialsRepositoryMock)
@@ -72,7 +74,7 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
     serverGroupKey = Keys.getServerGroupKey(ACCOUNT_NAME, NAMESPACE, REPLICATION_CONTROLLER)
     instanceKey = Keys.getInstanceKey(ACCOUNT_NAME, NAMESPACE, POD)
 
-    cachingAgent = new KubernetesServerGroupCachingAgent(new KubernetesCloudProvider(), ACCOUNT_NAME, kubernetesCredentials, NAMESPACE, new ObjectMapper(), registryMock)
+    cachingAgent = new KubernetesServerGroupCachingAgent(ACCOUNT_NAME, kubernetesCredentials, new ObjectMapper(), 0, 1, registryMock)
   }
 
   void "Should store a single replication controller object and relationships"() {
@@ -83,14 +85,15 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
       def selector = ['replicationController': REPLICATION_CONTROLLER.toString()]
       replicationControllerSpecMock.getSelector() >> selector
       replicationControllerMetadataMock.getName() >> REPLICATION_CONTROLLER
+      replicationControllerMetadataMock.getNamespace() >> NAMESPACE
       replicationControllerMock.getMetadata() >> replicationControllerMetadataMock
       replicationControllerMock.getSpec() >> replicationControllerSpecMock
 
       def podMock = Mock(ReplicationController)
       def podMetadataMock = Mock(ObjectMeta)
       podMetadataMock.getName() >> POD
+      podMetadataMock.getNamespace() >> NAMESPACE
       podMock.getMetadata() >> podMetadataMock
-
       apiMock.getReplicationControllers(NAMESPACE) >> [replicationControllerMock]
       apiMock.getEvents(NAMESPACE, "ReplicationController") >> [:].withDefault { _ -> [] }
       apiMock.getAutoscalers(NAMESPACE, "replicationController") >> [:]

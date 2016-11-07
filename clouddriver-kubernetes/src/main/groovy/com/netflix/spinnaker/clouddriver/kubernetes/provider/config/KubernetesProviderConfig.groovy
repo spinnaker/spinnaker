@@ -99,11 +99,14 @@ class KubernetesProviderConfig implements Runnable {
       def newlyAddedAgents = []
 
       credentials.getNamespaces().forEach({ namespace ->
-        newlyAddedAgents << new KubernetesServerGroupCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
         newlyAddedAgents << new KubernetesLoadBalancerCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
-        newlyAddedAgents << new KubernetesInstanceCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
         newlyAddedAgents << new KubernetesSecurityGroupCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
       })
+
+      (0..<credentials.cacheThreads).each { int index ->
+        newlyAddedAgents << new KubernetesServerGroupCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
+        newlyAddedAgents << new KubernetesInstanceCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
+      }
 
       // If there is an agent scheduler, then this provider has been through the AgentController in the past.
       // In that case, we need to do the scheduling here (because accounts have been added to a running system).

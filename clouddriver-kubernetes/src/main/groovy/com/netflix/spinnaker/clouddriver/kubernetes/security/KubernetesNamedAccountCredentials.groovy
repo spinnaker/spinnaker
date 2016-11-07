@@ -33,6 +33,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   final String userAgent
   final String kubeconfigFile
   List<String> namespaces
+  final int cacheThreads
   KubernetesCredentials credentials
   final List<String> requiredGroupMembership
   final List<LinkedDockerRegistryConfiguration> dockerRegistries
@@ -48,6 +49,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
                                            String user,
                                            String kubeconfigFile,
                                            List<String> namespaces,
+                                           int cacheThreads,
                                            List<LinkedDockerRegistryConfiguration> dockerRegistries,
                                            List<String> requiredGroupMembership,
                                            KubernetesCredentials credentials) {
@@ -60,6 +62,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.userAgent = userAgent
     this.kubeconfigFile = kubeconfigFile
     this.namespaces = namespaces
+    this.cacheThreads = cacheThreads
     this.requiredGroupMembership = requiredGroupMembership
     this.dockerRegistries = dockerRegistries
     this.accountCredentialsRepository = accountCredentialsRepository
@@ -80,6 +83,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     String userAgent
     String kubeconfigFile
     List<String> namespaces
+    int cacheThreads
     KubernetesCredentials credentials
     List<String> requiredGroupMembership
     List<LinkedDockerRegistryConfiguration> dockerRegistries
@@ -140,6 +144,11 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
       return this
     }
 
+    Builder cacheThreads(int cacheThreads) {
+      this.cacheThreads = cacheThreads
+      return this
+    }
+
     Builder credentials(KubernetesCredentials credentials) {
       this.credentials = credentials
       return this
@@ -192,6 +201,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
           user,
           kubeconfigFile,
           namespaces,
+          cacheThreads,
           dockerRegistries,
           requiredGroupMembership,
           credentials

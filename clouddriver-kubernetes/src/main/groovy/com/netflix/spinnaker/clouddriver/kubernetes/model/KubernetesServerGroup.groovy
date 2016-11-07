@@ -31,7 +31,7 @@ import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import io.fabric8.kubernetes.client.internal.SerializationUtils
 
 @CompileStatic
-@EqualsAndHashCode(includes = ["name"])
+@EqualsAndHashCode(includes = ["name", "namespace"])
 class KubernetesServerGroup implements ServerGroup, Serializable {
   String name
   String type = "kubernetes"
@@ -80,7 +80,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.deployDescription = KubernetesApiConverter.fromReplicaSet(replicaSet)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(replicaSet)
     this.kind = replicaSet.kind
-    this.events = events.collect {
+    this.events = events?.collect {
       new KubernetesEvent(it)
     }
     if (autoscaler) {
@@ -104,7 +104,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.deployDescription = KubernetesApiConverter.fromReplicationController(replicationController)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(replicationController)
     this.kind = replicationController.kind
-    this.events = events.collect {
+    this.events = events?.collect {
       new KubernetesEvent(it)
     }
     if (autoscaler) {

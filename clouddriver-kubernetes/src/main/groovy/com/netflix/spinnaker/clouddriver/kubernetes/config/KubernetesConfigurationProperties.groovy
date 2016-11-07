@@ -30,6 +30,7 @@ class KubernetesConfigurationProperties {
     String user
     String kubeconfigFile
     List<String> namespaces
+    int cacheThreads
     List<LinkedDockerRegistryConfiguration> dockerRegistries
     List<String> requiredGroupMembership
   }

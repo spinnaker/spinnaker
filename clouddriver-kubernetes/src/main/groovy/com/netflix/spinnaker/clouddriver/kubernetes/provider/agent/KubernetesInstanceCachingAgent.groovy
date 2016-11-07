@@ -33,35 +33,17 @@ import io.fabric8.kubernetes.api.model.Pod
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
 @Slf4j
-class KubernetesInstanceCachingAgent implements CachingAgent, AccountAware {
+class KubernetesInstanceCachingAgent extends KubernetesCachingAgent {
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
       AUTHORITATIVE.forType(Keys.Namespace.INSTANCES.ns),
   ] as Set)
 
-  final KubernetesCloudProvider kubernetesCloudProvider
-  final String accountName
-  final String namespace
-  final KubernetesCredentials credentials
-  final ObjectMapper objectMapper
-  final Registry registry
-
-  KubernetesInstanceCachingAgent(KubernetesCloudProvider kubernetesCloudProvider,
-                                 String accountName,
+  KubernetesInstanceCachingAgent(String accountName,
                                  KubernetesCredentials credentials,
-                                 String namespace,
                                  ObjectMapper objectMapper,
-                                 Registry registry) {
-    this.kubernetesCloudProvider = kubernetesCloudProvider
-    this.accountName = accountName
-    this.credentials = credentials
-    this.objectMapper = objectMapper
-    this.namespace = namespace
-    this.registry = registry
-  }
-
-  @Override
-  String getAccountName() {
-    return accountName
+                                 int agentIndex,
+                                 int agentCount) {
+    super(accountName, objectMapper, credentials, agentIndex, agentCount)
   }
 
   @Override
@@ -72,8 +54,11 @@ class KubernetesInstanceCachingAgent implements CachingAgent, AccountAware {
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Loading pods in $agentType")
+    reloadNamespaces()
 
-    def pods = credentials.apiAdaptor.getPods(namespace)
+    def pods = namespaces.collect { String namespace ->
+      credentials.apiAdaptor.getPods(namespace)
+    }.flatten()
 
     buildCacheResult(pods)
   }
@@ -83,11 +68,13 @@ class KubernetesInstanceCachingAgent implements CachingAgent, AccountAware {
 
     Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
 
-    def podEvents = [:]
+    Map<String, Map<String, List<Event>>>  podEvents = [:].withDefault { _ -> [:] }
     try {
-      podEvents = credentials.apiAdaptor.getEvents(namespace, "Pod")
+      namespaces.each { String namespace ->
+        podEvents[namespace] = credentials.apiAdaptor.getEvents(namespace, "Pod")
+      }
     } catch (Exception e) {
-      log.warn "Failure fetching events for all pods in $namespace", e
+      log.warn "Failure fetching events for all pods in $namespaces", e
     }
 
     for (Pod pod : pods) {
@@ -95,13 +82,14 @@ class KubernetesInstanceCachingAgent implements CachingAgent, AccountAware {
         continue
       }
 
-      def events = podEvents[pod.metadata.name] ?: []
+      def events = podEvents[pod.metadata.namespace][pod.metadata.name] ?: []
 
-      def key = Keys.getInstanceKey(accountName, namespace, pod.metadata.name)
+      def key = Keys.getInstanceKey(accountName, pod.metadata.namespace, pod.metadata.name)
       cachedInstances[key].with {
         attributes.name = pod.metadata.name
         attributes.instance = new KubernetesInstance(pod, events)
       }
+
     }
 
     log.info("Caching ${cachedInstances.size()} instances in ${agentType}")
@@ -112,12 +100,7 @@ class KubernetesInstanceCachingAgent implements CachingAgent, AccountAware {
   }
 
   @Override
-  String getAgentType() {
-    "${accountName}/${namespace}/${KubernetesInstanceCachingAgent.simpleName}"
-  }
-
-  @Override
-  String getProviderName() {
-    KubernetesProvider.PROVIDER_NAME
+  String getSimpleName() {
+    KubernetesInstanceCachingAgent.simpleName
   }
 }
