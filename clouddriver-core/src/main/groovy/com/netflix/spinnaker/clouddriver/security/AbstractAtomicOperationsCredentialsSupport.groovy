@@ -51,13 +51,12 @@ abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOpera
       }
       credential = (T) repoCredential
     } catch (Exception e) {
-      throw new CredentialsNotFoundException(name)
+      throw new CredentialsNotFoundException("credential not found (name: ${name}, names: ${accountCredentialsProvider.getAll()*.name})", e)
     }
 
     return credential
   }
 
-  @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Credentials not found.")
   @InheritConstructors
   static class CredentialsNotFoundException extends RuntimeException {}
 }

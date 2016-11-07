@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationNotFoundEx
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.Canonical
@@ -37,12 +38,14 @@ import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
 import org.springframework.validation.ObjectError
+import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -209,5 +212,19 @@ class OperationsController {
   static class AtomicOperationBindingResult {
     AtomicOperation atomicOperations
     Errors errors
+  }
+
+  @ControllerAdvice
+  static class CredentialsNotFoundExceptionHandler {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    @ExceptionHandler(AbstractAtomicOperationsCredentialsSupport.CredentialsNotFoundException)
+    Map credentialsNotFoundException(AbstractAtomicOperationsCredentialsSupport.CredentialsNotFoundException e) {
+      return [
+        error  : "credentials.not.found",
+        message: e.message,
+        status : HttpStatus.BAD_REQUEST
+      ]
+    }
   }
 }
