@@ -63,7 +63,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
 
     accountsToAdd.each { GoogleConfigurationProperties.ManagedAccount managedAccount ->
       try {
-        def jsonKey = getJsonKey(managedAccount)
+        def jsonKey = GoogleCredentialsInitializer.getJsonKey(managedAccount)
         def googleAccount = new GoogleNamedAccountCredentials.Builder()
             .name(managedAccount.name)
             .environment(managedAccount.environment ?: managedAccount.name)

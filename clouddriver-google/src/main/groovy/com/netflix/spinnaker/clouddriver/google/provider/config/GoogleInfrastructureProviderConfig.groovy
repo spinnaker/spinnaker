@@ -42,13 +42,17 @@ class GoogleInfrastructureProviderConfig {
 
   @Bean
   @DependsOn('googleNamedAccountCredentials')
-  GoogleInfrastructureProvider googleInfrastructureProvider(AccountCredentialsRepository accountCredentialsRepository,
+  GoogleInfrastructureProvider googleInfrastructureProvider(String clouddriverUserAgentApplicationName,
+                                                            GoogleConfigurationProperties googleConfigurationProperties,
+                                                            AccountCredentialsRepository accountCredentialsRepository,
                                                             ObjectMapper objectMapper,
                                                             Registry registry) {
     def googleInfrastructureProvider =
         new GoogleInfrastructureProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
-    synchronizeGoogleInfrastructureProvider(googleInfrastructureProvider,
+    synchronizeGoogleInfrastructureProvider(clouddriverUserAgentApplicationName,
+                                            googleConfigurationProperties,
+                                            googleInfrastructureProvider,
                                             accountCredentialsRepository,
                                             objectMapper,
                                             registry)
