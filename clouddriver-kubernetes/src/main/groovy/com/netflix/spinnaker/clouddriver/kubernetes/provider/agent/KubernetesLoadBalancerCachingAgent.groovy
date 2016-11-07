@@ -37,13 +37,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
 @Slf4j
-class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
-
-  final KubernetesCloudProvider kubernetesCloudProvider
-  final String accountName
-  final String namespace
-  final KubernetesCredentials credentials
-  final ObjectMapper objectMapper
+class KubernetesLoadBalancerCachingAgent extends KubernetesCachingAgent implements OnDemandAgent {
 
   final OnDemandMetricsSupport metricsSupport
 
@@ -52,34 +46,16 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
     INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns),
   ] as Set)
 
-  KubernetesLoadBalancerCachingAgent(KubernetesCloudProvider kubernetesCloudProvider,
-                                     String accountName,
+  KubernetesLoadBalancerCachingAgent(String accountName,
                                      KubernetesCredentials credentials,
-                                     String namespace,
                                      ObjectMapper objectMapper,
+                                     int agentIndex,
+                                     int agentCount,
                                      Registry registry) {
-    this.kubernetesCloudProvider = kubernetesCloudProvider
-    this.accountName = accountName
-    this.credentials = credentials
-    this.objectMapper = objectMapper
-    this.namespace = namespace
+    super(accountName, objectMapper, credentials, agentIndex, agentCount)
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$kubernetesCloudProvider.id:$OnDemandAgent.OnDemandType.LoadBalancer")
   }
 
-  @Override
-  String getProviderName() {
-    KubernetesProvider.PROVIDER_NAME
-  }
-
-  @Override
-  String getAgentType() {
-    "${accountName}/${namespace}/${KubernetesLoadBalancerCachingAgent.simpleName}"
-  }
-
-  @Override
-  String getAccountName() {
-    accountName
-  }
 
   @Override
   Collection<AgentDataType> getProvidedDataTypes() {
@@ -101,14 +77,16 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
       return null
     }
 
-    if (data.region != namespace) {
+    reloadNamespaces()
+    String namespace = data.region
+    if (this.namespaces.contains(namespace)) {
       return null
     }
 
     def loadBalancerName = data.loadBalancerName.toString()
 
     Service service = metricsSupport.readData {
-      loadReplicationController(loadBalancerName)
+      loadService(namespace, loadBalancerName)
     }
 
     CacheResult result = metricsSupport.transformData {
@@ -159,7 +137,7 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
     def keys = providerCache.getIdentifiers(Keys.Namespace.ON_DEMAND.ns)
     keys = keys.findResults {
       def parse = Keys.parse(it)
-      if (parse && parse.namespace == namespace && parse.account == accountName) {
+      if (parse && namespaces.contains(parse.namespace) && parse.account == accountName) {
         return it
       } else {
         return null
@@ -182,10 +160,12 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
   }
 
   List<Service> loadServices() {
-    credentials.apiAdaptor.getServices(namespace)
+    namespaces.collect { String namespace ->
+      credentials.apiAdaptor.getServices(namespace)
+    }.flatten() - null
   }
 
-  Service loadReplicationController(String name) {
+  Service loadService(String namespace, String name) {
     credentials.apiAdaptor.getService(namespace, name)
   }
 
@@ -198,7 +178,7 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
     def keepInOnDemand = []
 
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns,
-      services.collect { Keys.getLoadBalancerKey(accountName, namespace, it.metadata.name) }).each {
+      services.collect { Keys.getLoadBalancerKey(accountName, it.metadata.namespace, it.metadata.name) }).each {
       // Ensure that we don't overwrite data that was inserted by the `handle` method while we retrieved the
       // replication controllers. Furthermore, cache data that hasn't been processed needs to be updated in the ON_DEMAND
       // cache, so don't evict data without a processedCount > 0.
@@ -243,6 +223,7 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
         continue
       }
 
+      def namespace = service.metadata.namespace
       def onDemandData = onDemandKeep ? onDemandKeep[Keys.getLoadBalancerKey(accountName, namespace, service.metadata.name)] : null
 
       if (onDemandData && onDemandData.attributes.cachetime >= start) {
@@ -269,6 +250,11 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
       (Keys.Namespace.ON_DEMAND.ns): onDemandEvict,
     ])
 
+  }
+
+  @Override
+  String getSimpleName() {
+    KubernetesLoadBalancerCachingAgent.simpleName
   }
 }
 

@@ -41,15 +41,9 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
 @Slf4j
-class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
+class KubernetesSecurityGroupCachingAgent extends KubernetesCachingAgent implements OnDemandAgent {
 
   private static final OnDemandAgent.OnDemandType ON_DEMAND_TYPE = OnDemandAgent.OnDemandType.SecurityGroup
-
-  final KubernetesCloudProvider kubernetesCloudProvider
-  final String accountName
-  final String namespace
-  final KubernetesCredentials credentials
-  final ObjectMapper objectMapper
 
   final OnDemandMetricsSupport metricsSupport
 
@@ -58,33 +52,14 @@ class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent
       AUTHORITATIVE.forType(Keys.Namespace.SECURITY_GROUPS.ns),
   ] as Set)
 
-  KubernetesSecurityGroupCachingAgent(KubernetesCloudProvider kubernetesCloudProvider,
-                                      String accountName,
+  KubernetesSecurityGroupCachingAgent(String accountName,
                                       KubernetesCredentials credentials,
-                                      String namespace,
                                       ObjectMapper objectMapper,
+                                      int agentIndex,
+                                      int agentCount,
                                       Registry registry) {
-    this.kubernetesCloudProvider = kubernetesCloudProvider
-    this.accountName = accountName
-    this.credentials = credentials
-    this.objectMapper = objectMapper
-    this.namespace = namespace
+    super(accountName, objectMapper, credentials, agentIndex, agentCount)
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$kubernetesCloudProvider.id:$ON_DEMAND_TYPE")
-  }
-
-  @Override
-  String getProviderName() {
-    KubernetesProvider.PROVIDER_NAME
-  }
-
-  @Override
-  String getAgentType() {
-    "${accountName}/${namespace}/${KubernetesSecurityGroupCachingAgent.simpleName}"
-  }
-
-  @Override
-  String getAccountName() {
-    accountName
   }
 
   @Override
@@ -107,7 +82,9 @@ class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent
       return null
     }
 
-    if (data.region != namespace) {
+    reloadNamespaces()
+    String namespace = data.region
+    if (namespaces.contains(namespace)) {
       return null
     }
 
@@ -165,7 +142,7 @@ class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent
     def keys = providerCache.getIdentifiers(Keys.Namespace.ON_DEMAND.ns)
     keys = keys.findResults {
       def parse = Keys.parse(it)
-      if (parse && parse.namespace == namespace && parse.account == accountName) {
+      if (parse && namespaces.contains(parse.namespace) && parse.account == accountName) {
         return it
       } else {
         return null
@@ -187,16 +164,22 @@ class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent
     ON_DEMAND_TYPE == type && cloudProvider == kubernetesCloudProvider.id
   }
 
+  List<Ingress> loadIngresses() {
+    namespaces.collect { String namespace ->
+      credentials.apiAdaptor.getIngress(namespace)
+    }.flatten() - null
+  }
+
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     Long start = System.currentTimeMillis()
-    List<Ingress> ingresses = credentials.apiAdaptor.getIngresses(namespace)
+    List<Ingress> ingresses = loadIngresses()
 
     def evictFromOnDemand = []
     def keepInOnDemand = []
 
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns,
-        ingresses.collect { Keys.getSecurityGroupKey(accountName, namespace, it.metadata.name) }).each {
+        ingresses.collect { Keys.getSecurityGroupKey(accountName, it.metadata.namespace, it.metadata.name) }).each {
       // Ensure that we don't overwrite data that was inserted by the `handle` method while we retrieved the
       // replication controllers. Furthermore, cache data that hasn't been processed needs to be updated in the ON_DEMAND
       // cache, so don't evict data without a processedCount > 0.
@@ -242,6 +225,8 @@ class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent
         continue
       }
 
+      def namespace = ingress.metadata.namespace
+
       def onDemandData = onDemandKeep ? onDemandKeep[Keys.getSecurityGroupKey(accountName, namespace, ingress.metadata.name)] : null
 
       if (onDemandData && onDemandData.attributes.cachetime >= start) {
@@ -285,6 +270,11 @@ class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent
         (Keys.Namespace.ON_DEMAND.ns): onDemandEvict,
     ])
 
+  }
+
+  @Override
+  String getSimpleName() {
+    KubernetesSecurityGroupCachingAgent.simpleName
   }
 }
 

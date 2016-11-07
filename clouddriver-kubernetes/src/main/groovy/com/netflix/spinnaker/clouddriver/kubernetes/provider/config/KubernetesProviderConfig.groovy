@@ -98,12 +98,9 @@ class KubernetesProviderConfig implements Runnable {
     allAccounts.each { KubernetesNamedAccountCredentials credentials ->
       def newlyAddedAgents = []
 
-      credentials.getNamespaces().forEach({ namespace ->
-        newlyAddedAgents << new KubernetesLoadBalancerCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
-        newlyAddedAgents << new KubernetesSecurityGroupCachingAgent(kubernetesCloudProvider, credentials.name, credentials.credentials, namespace, objectMapper, registry)
-      })
-
       (0..<credentials.cacheThreads).each { int index ->
+        newlyAddedAgents << new KubernetesLoadBalancerCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
+        newlyAddedAgents << new KubernetesSecurityGroupCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
         newlyAddedAgents << new KubernetesServerGroupCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
         newlyAddedAgents << new KubernetesInstanceCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
       }
