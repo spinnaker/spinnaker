@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.GET
@@ -25,7 +28,7 @@ import retrofit.http.Path
 import retrofit.http.Query
 import retrofit.http.QueryMap
 
-interface OortService {
+public interface OortService {
   @GET("/applications/{app}/clusters/{account}/{cluster}/{type}")
   Response getCluster(@Path("app") String app,
                       @Path("account") String account,
@@ -105,4 +108,38 @@ interface OortService {
                       @Query("account") String account,
                       @Query("region") String region,
                       @QueryMap Map additionalFilters)
+
+  @GET("/tags/{id}")
+  EntityTags getEntityTags(@Path("id") String id)
+
+  static class EntityTags {
+    String id
+
+    Map<String, Object> tags = [:]
+    EntityRef entityRef
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static class EntityRef {
+      private Map<String, Object> attributes = new HashMap<String, Object>()
+
+      String cloudProvider
+      String entityType
+      String entityId
+
+      @JsonAnyGetter
+      Map<String,Object> attributes() {
+        return attributes;
+      }
+
+      @JsonAnySetter
+      void set(String name, Object value) {
+        attributes.put(name, value);
+      }
+
+      String getEntityType() {
+        return entityType?.toLowerCase()
+      }
+    }
+  }
+
 }
