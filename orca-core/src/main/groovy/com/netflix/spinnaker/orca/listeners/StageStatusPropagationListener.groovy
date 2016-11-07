@@ -30,6 +30,7 @@ class StageStatusPropagationListener implements StageListener {
       return
     }
 
+    log.debug("***** $stage.execution.id Stage ${stage.type} starting")
     log.info("Marking Stage as RUNNING (stageId: ${stage.id})")
     stage.startTime = stage.startTime ?: System.currentTimeMillis()
     stage.status = ExecutionStatus.RUNNING
@@ -71,10 +72,12 @@ class StageStatusPropagationListener implements StageListener {
         stage.status = executionStatus
 
         if (executionStatus.complete) {
+          log.debug("***** $stage.execution.id Stage $stage.type $executionStatus")
           stage.endTime = stage.endTime ?: System.currentTimeMillis()
         }
       }
     } else {
+      log.debug("***** $stage.execution.id Stage $stage.type terminal due to missing status")
       stage.endTime = System.currentTimeMillis()
       stage.status = ExecutionStatus.TERMINAL
     }
