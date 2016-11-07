@@ -31,6 +31,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
       stage.cluster = {};
     }
 
+    $scope.stage.waitForCompletion = ($scope.stage.waitForCompletion === undefined ? true : $scope.stage.waitForCompletion);
+
     this.loaded = false;
     this.removedGroups = [];
     this.groupsRemovedStream = new Subject();
