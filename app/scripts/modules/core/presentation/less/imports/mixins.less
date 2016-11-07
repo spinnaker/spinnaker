@@ -13,25 +13,31 @@
 }
 
 .fade-in(@duration:0.25; @delay: 0) {
-  &.ng-enter {
-    transition: opacity ~"@{duration}s" ~"@{delay}s" ease-in;
-  }
-  &.ng-enter, &.ng-leave.ng-leave-active {
+  animation: @duration ease-in @delay fadeIn;
+  animation-iteration-count: 1;
+}
+
+.slide-down(@duration:0.25) {
+  animation: @duration ease-in-out 0 slideDown;
+  animation-iteration-count: 1;
+}
+
+@keyframes fadeIn {
+  0% {
     opacity: 0;
   }
-  &.ng-leave, &.ng-enter.ng-enter-active {
+  100% {
     opacity: 1;
   }
 }
 
-.slide-down(@duration:0.25) {
-  &.ng-enter {
-    transition: height ~"@{duration}s" 0s ease-in;
+@keyframes slideDown {
+  0% {
+    height: 0;
+    opacity: 0;
   }
-  &.ng-enter, &.ng-leave.ng-leave-active {
-    height: 1%;
-  }
-  &.ng-leave, &.ng-enter.ng-enter-active {
+  100% {
     height: 100%;
+    opacity: 1;
   }
 }

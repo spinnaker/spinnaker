@@ -81,23 +81,6 @@ modal-wizard {
         padding: @indicator-size - 5 3px 0;
         transition: all 0.25s ease-in-out;
 
-        &.ng-enter {
-          transform: scale(2.0);
-          opacity: 0.6;
-        }
-        &.ng-enter.ng-enter-active {
-          transform: scale(1.0);
-          opacity: 1;
-        }
-        &.ng-leave {
-          transform: scale(1.0);
-          opacity: 1;
-        }
-        &.ng-leave.ng-leave-active {
-          transform: scale(0.0);
-          opacity: 0;
-        }
-
         a:before {
           top: @indicator-radius * -1;
           width: @indicator-size;
@@ -174,44 +157,37 @@ modal-wizard {
   }
 }
 
-.forward {
-  .modal-page {
-    &.ng-leave, &.ng-enter {
-      left: 0;
-    }
-    &.ng-leave.ng-leave-active, &.ng-enter.ng-enter-active {
-      left: -600px;
-    }
-  }
-}
-
 .back {
   .modal-page {
-    &.ng-leave, &.ng-enter {
-      left: -600px;
-    }
-    &.ng-leave.ng-leave-active, &.ng-enter.ng-enter-active {
-      left: 0;
-    }
+    animation: 0.35s ease-in-out 0 pageRight;
+    animation-iteration-count: 1;
   }
 }
 
-.jump {
+.forward {
   .modal-page {
-    &.ng-leave, &.ng-enter.ng-enter-active {
-      opacity: 1;
-    }
-    &.ng-enter, &.ng-leave.ng-leave-active {
-      opacity: 0;
-    }
+    animation: 0.35s ease-in-out 0 pageLeft;
+    animation-iteration-count: 1;
   }
 }
 
-.forward, .back {
-  .modal-page {
-    &.ng-leave, &.ng-enter {
-      transition: opacity 0.15s ease-in-out, left 0.35s ease-in-out;
-    }
+@keyframes pageLeft {
+  0% {
+    left: 0;
+    opacity: 1;
+  }
+  100% {
+    left: -600px;
+    opacity: 0;
+  }
+}
+
+@keyframes pageRight {
+  0% {
+    left: -600px;
+  }
+  100% {
+    left: 0;
   }
 }
 
@@ -281,6 +257,16 @@ select.select2 {
 
 .ui-select-choices-content {
   background: #ffffff;
+}
+
+li.ui-select-choices-row {
+  &:hover {
+    background-color: lighten(#3875d7, 20%);
+    color: #ffffff;
+  }
+  &.select2-highlighted {
+    background-color: #3875d7;
+  }
 }
 
 abbr.select2-search-choice-close {
@@ -431,25 +417,6 @@ abbr.select2-search-choice-close {
     border-bottom-right-radius: 5px;
   }
 }
-.slide-in.ng-leave,
-.slide-in.ng-enter {
-  .transition(0.3s ease-in-out);
+.slide-in {
+  .slide-down(0.3s);
 }
-
-.slide-in.ng-enter {
-  line-height: 0px;
-  opacity: 0.25;
-}
-
-.slide-in.ng-leave,
-.slide-in.ng-enter.ng-enter-active {
-  line-height: 100%;
-  opacity: 1;
-}
-
-.slide-in.ng-leave-active {
-  line-height: 0px;
-  opacity: 0;
-}
-
-

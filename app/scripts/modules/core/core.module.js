@@ -31,7 +31,6 @@ templates.keys().forEach(function(key) {
 
 module.exports = angular
   .module('spinnaker.core', [
-    require('angular-animate'),
     require('angular-messages'),
     require('angular-sanitize'),
     require('angular-ui-router'),
@@ -197,9 +196,6 @@ module.exports = angular
   })
   .config(function($compileProvider) {
     $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|hipchat|slack):/);
-  })
-  .config(function($animateProvider) {
-    $animateProvider.classNameFilter(/animated/);
   })
   .config(require('./forms/uiSelect.decorator.js'))
   .config(function(uiSelectConfig) {

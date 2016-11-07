@@ -29,13 +29,13 @@
         </div>
       </div>
 
-      <div class="form-group row slide-in animated" ng-if="editApplicationForm.email.$dirty && editApplicationForm.email.$invalid">
+      <div class="form-group row slide-in" ng-if="editApplicationForm.email.$dirty && editApplicationForm.email.$invalid">
         <div class="col-sm-9 col-sm-offset-3 error-message">
           <span>Please enter a valid email address</span>
         </div>
       </div>
 
-      <div class="form-group row slide-in animated" ng-if="editApp.emailErrorMsg">
+      <div class="form-group row slide-in" ng-if="editApp.emailErrorMsg">
         <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in editApp.emailErrorMsg">
           {{errorMsg}} <small><span class="glyphicon glyphicon-remove" ng-click="editApp.clearEmailMsg()" style="cursor: pointer; padding-left: 10px"></span></small>
 
@@ -76,7 +76,7 @@
         </div>
       </div>
 
-      <div class="form-group row slide-in animated" ng-messages="editApplicationForm.repoSlug.$error">
+      <div class="form-group row slide-in" ng-messages="editApplicationForm.repoSlug.$error">
         <div class="col-sm-9 col-sm-offset-3 error-message" ng-message="pattern">
           Enter your source repository name (not the URL).
         </div>
@@ -166,7 +166,7 @@
         </div>
       </div>
 
-      <div class="form-group row slide-in animated" ng-if="editApp.errorMsgs">
+      <div class="form-group row slide-in" ng-if="editApp.errorMsgs">
         <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in editApp.errorMsgs">
           {{errorMsg}}
         </div>

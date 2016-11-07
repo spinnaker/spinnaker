@@ -9,7 +9,6 @@
       <div class="col-md-3 hidden-sm hidden-xs">
         <ul class="steps-indicator wizard-navigation">
           <li ng-repeat="page in $ctrl.wizard.renderedPages"
-              class="animated"
               ng-class="{
                   default: !page.state.done,
                   current: page.state.current,

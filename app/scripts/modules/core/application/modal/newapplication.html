@@ -28,7 +28,7 @@
 
       <application-name-validation-messages application="newAppModal.application"></application-name-validation-messages>
 
-      <div class="form-group row slide-in animated" ng-if="newApplicationForm.name.$error.validateUnique">
+      <div class="form-group row slide-in" ng-if="newApplicationForm.name.$error.validateUnique">
         <div class="col-sm-9 col-sm-offset-3 error-message">
           <span>Application name must be unique.</span>
         </div>
@@ -47,7 +47,7 @@
         </div>
       </div>
 
-      <div class="form-group row slide-in animated" ng-if="newApplicationForm.email.$dirty && newApplicationForm.email.$invalid">
+      <div class="form-group row slide-in" ng-if="newApplicationForm.email.$dirty && newApplicationForm.email.$invalid">
         <div class="col-sm-9 col-sm-offset-3 error-message">
           <span>Please enter a valid email address</span>
         </div>
@@ -85,7 +85,7 @@
         </div>
       </div>
 
-      <div class="form-group row slide-in animated" ng-messages="newApplicationForm.repoSlug.$error">
+      <div class="form-group row slide-in" ng-messages="newApplicationForm.repoSlug.$error">
         <div class="col-sm-9 col-sm-offset-3 error-message" ng-message="pattern">
           Enter your source repository name (not the URL).
         </div>
@@ -181,7 +181,7 @@
       <group-membership-configurer required-group-membership="newAppModal.application.requiredGroupMembership">
       </group-membership-configurer>
 
-      <div class="form-group row slide-in animated" ng-if="newAppModal.state.errorMessages.length">
+      <div class="form-group row slide-in" ng-if="newAppModal.state.errorMessages.length">
         <div class="col-md-12">
           <div class="alert alert-danger">
             <div ng-repeat="errorMessage in newAppModal.state.errorMessages">

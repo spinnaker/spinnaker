@@ -12,7 +12,9 @@ module.exports = angular.module('spinnaker.deck.gce.backendServiceSelector.compo
     controller: function($scope) {
 
       $scope.$on('$destroy', () => {
-        delete this.command.backendServices[this.loadBalancerName];
+        if (this.command.backendServices) {
+          delete this.command.backendServices[this.loadBalancerName];
+        }
       });
 
       $scope.$on('uis:select', function(event) {
