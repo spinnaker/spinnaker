@@ -57,6 +57,42 @@ class GoogleHealthCheck {
     new View()
   }
 
+  /**
+   * Health check endpoint of the form '{PROTO}:{PORT}{PATH}'.
+   */
+  String getTarget() {
+    switch (healthCheckType) {
+      case HealthCheckType.HTTP:
+        return this.port ?
+          "HTTP:${this.port}${this.requestPath ?: '/'}" :
+          null
+        break
+      case HealthCheckType.HTTPS:
+        break
+        return this.port ?
+          "HTTPS:${this.port}${this.requestPath ?: '/'}" :
+          null
+      case HealthCheckType.SSL:
+        return this.port ?
+          "SSL:${this.port}" :
+          null
+        break
+      case HealthCheckType.TCP:
+        return this.port ?
+          "TCP:${this.port}" :
+          null
+        break
+      case HealthCheckType.UDP:
+        return this.port ?
+          "UDP:${this.port}" :
+          null
+        break
+      default:
+        break
+    }
+  }
+
+
   @Canonical
   class View implements Serializable {
     String name = GoogleHealthCheck.this.name
@@ -68,13 +104,7 @@ class GoogleHealthCheck {
     int port = GoogleHealthCheck.this.port
     String requestPath = GoogleHealthCheck.this.requestPath
     String kind = GoogleHealthCheck.this.kind
-
-    String getTarget() {
-      GoogleHealthCheck.this.port ?
-          "HTTP:${GoogleHealthCheck.this.port}${GoogleHealthCheck.this.requestPath ?: '/'}" :
-          null
-    }
-
+    String target = GoogleHealthCheck.this.target
   }
 
   static enum HealthCheckType {
