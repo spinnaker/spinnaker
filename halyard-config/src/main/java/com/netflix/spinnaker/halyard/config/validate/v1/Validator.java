@@ -59,13 +59,18 @@ public abstract class Validator<T> {
   protected String description;
 
   /**
-   * A list of human-readable error messages. If the stream is empty, it is assumed that the validator has passed.
+   * A list of human-readable error messages.
+   *
+   * @return a stream of all validation errors encountered. Empty i.f.f this validator passed. Should never be null.
    */
   abstract public Stream<String> validate();
 
   /**
-   * When true, this validator won't be run.
+   * Indicates whether or not this validator should be run.
+   *
+   * @return true i.f.f. this validator should be skipped.
    */
+
   abstract public boolean skip();
 
   public static Validator construct(Halconfig context, Class<? extends Validator> v, Reference<?> reference)

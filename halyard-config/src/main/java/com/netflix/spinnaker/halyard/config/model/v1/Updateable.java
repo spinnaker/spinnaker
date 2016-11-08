@@ -38,10 +38,11 @@ public interface Updateable {
   /**
    * Attempts to update field to value, but will be rejected if the validation fails.
    *
-   * @param field The Field being updated.
-   * @return The list of errors when validation fails ([] when there are no failures and validation has passed).
-   * @throws IllegalAccessException
-   * @throws NoSuchFieldException
+   * @param context is the context being updated.
+   * @param field is the field being updated in provided context.
+   * @return the list of errors when validation fails ([] when there are no failures and validation has passed).
+   * @throws IllegalAccessException when the provided context's field cannot be accessed.
+   * @throws NoSuchFieldException when the requested field isn't found in the context.
    */
   default public List<String> update(Halconfig context, FieldReference<?> field) throws NoSuchFieldException, IllegalAccessException {
     Field aField = this.getClass().getDeclaredField(field.getFieldName());
@@ -71,10 +72,11 @@ public interface Updateable {
   /**
    * Validate a given field without updating it.
    *
-   * @param field The Field being validated.
-   * @return The list of errors when validation fails ([] when there are no failures and validation has passed).
-   * @throws IllegalAccessException
-   * @throws NoSuchFieldException
+   * @param context is the context being validated.
+   * @param field is the Field being validated.
+   * @return the list of errors when validation fails ([] when there are no failures and validation has passed).
+   * @throws IllegalAccessException when the provided context's field cannot be accessed.
+   * @throws NoSuchFieldException when the requested field isn't found in the context.
    */
   default public List<String> validate(Halconfig context, FieldReference<?> field)
       throws IllegalAccessException, NoSuchFieldException {
@@ -105,14 +107,10 @@ public interface Updateable {
   /**
    * Validate this entire class
    *
-   * @return The list of errors when validation fails ([] when there are no failures and validation has passed).
-   * @throws IllegalAccessException
-   * @throws NoSuchFieldException
+   * @return the list of errors when validation fails ([] when there are no failures and validation has passed).
    */
-  default public List<String> validate(Halconfig context) throws IllegalAccessException, NoSuchFieldException {
-    List<String> errors = new ArrayList<>();
-
-    return errors;
+  default public List<String> validate(Halconfig context) {
+    return new ArrayList<>();
   }
 }
 

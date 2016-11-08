@@ -62,8 +62,8 @@ public class HalconfigParser {
    * This is useful for implementing breaking version changes in Spinnaker that need to be migrated by some tool
    * (in this case Halyard).
    *
-   * @param version The version (seems like the i.d. function for Spring Boot).
-   * @return The version.
+   * @param version is the version (seems like the i.d. function for Spring Boot).
+   * @return the version of halyard.
    */
   @Bean
   String halyardVersion(@Value("${Implementation-Version:unknown}") String version) {
@@ -86,9 +86,8 @@ public class HalconfigParser {
    * Parse Halyard's config.
    *
    * @see Halconfig
-   * @param is The input stream to read from.
-   * @return The fully parsed halconfig.
-   * @throws UnrecognizedPropertyException
+   * @param is is the input stream to read from.
+   * @return the fully parsed halconfig.
    */
   Halconfig parseConfig(InputStream is) throws UnrecognizedPropertyException {
     try {
@@ -104,8 +103,7 @@ public class HalconfigParser {
    *
    * @see HalconfigParser#halconfigPath(String)
    * @see Halconfig
-   * @return The fully parsed halconfig.
-   * @throws UnrecognizedPropertyException
+   * @return the fully parsed halconfig.
    */
   public Halconfig getConfig() {
     Halconfig res = null;
