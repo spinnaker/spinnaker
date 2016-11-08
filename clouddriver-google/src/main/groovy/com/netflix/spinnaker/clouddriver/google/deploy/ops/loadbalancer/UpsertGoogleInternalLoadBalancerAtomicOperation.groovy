@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
-import com.google.api.services.compute.model.*
+import com.google.api.services.compute.model.BackendService
+import com.google.api.services.compute.model.ForwardingRule
+import com.google.api.services.compute.model.HealthCheck
+import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -142,13 +145,13 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       [404]
     )
 
-    needToUpdateHealthCheck = existingHealthCheck && healthCheckShouldBeUpdated(existingHealthCheck, descriptionHealthCheck)
+    needToUpdateHealthCheck = existingHealthCheck && GCEUtil.healthCheckShouldBeUpdated(existingHealthCheck, descriptionHealthCheck)
 
     // Now we start phase 2 of our plan -- upsert all the components.
     def healthCheckOp = null
     if (!existingHealthCheck) {
       task.updateStatus BASE_PHASE, "Creating health check $healthCheckName..."
-      def newHealthCheck = createNewHealthCheck(descriptionHealthCheck)
+      def newHealthCheck = GCEUtil.createNewHealthCheck(descriptionHealthCheck)
       SafeRetry<Operation> insertRetry = new SafeRetry<Operation>()
       healthCheckOp = insertRetry.doRetry(
         { compute.healthChecks().insert(project, newHealthCheck as HealthCheck).execute() },
@@ -161,7 +164,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       )
     } else if (existingHealthCheck && needToUpdateHealthCheck) {
       task.updateStatus BASE_PHASE, "Updating health check $healthCheckName..."
-      updateExistingHealthCheck(existingHealthCheck, descriptionHealthCheck)
+      GCEUtil.updateExistingHealthCheck(existingHealthCheck, descriptionHealthCheck)
       SafeRetry<Operation> updateRetry = new SafeRetry<Operation>()
       healthCheckOp = updateRetry.doRetry(
         { compute.healthChecks().update(project, healthCheckName, existingHealthCheck as HealthCheck).execute() },
@@ -184,7 +187,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       task.updateStatus BASE_PHASE, "Creating backend service ${description.backendService.name}..."
       BackendService bs = new BackendService(
         name: backendServiceName,
-        healthChecks: [GCEUtil.buildHealthCheckUrl(project, region, healthCheckName)],
+        healthChecks: [GCEUtil.buildHealthCheckUrl(project, healthCheckName)],
         sessionAffinity: description.backendService.sessionAffinity ?: 'NONE',
         loadBalancingScheme: 'INTERNAL',
         protocol: description.ipProtocol
@@ -200,7 +203,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       )
     } else if (existingBackendService && needToUpdateBackendService) {
       task.updateStatus BASE_PHASE, "Upating backend service ${description.backendService.name}..."
-      existingBackendService.healthChecks = [GCEUtil.buildHealthCheckUrl(project, region, healthCheckName)]
+      existingBackendService.healthChecks = [GCEUtil.buildHealthCheckUrl(project, healthCheckName)]
       existingBackendService.sessionAffinity = description.backendService.sessionAffinity ?: 'NONE'
       existingBackendService.loadBalancingScheme = 'INTERNAL'
       existingBackendService.protocol = description.ipProtocol
@@ -277,108 +280,5 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
 
     task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName in $region."
     [loadBalancers: [(region): [name: description.loadBalancerName]]]
-  }
-
-  private static Boolean healthCheckShouldBeUpdated(existingHealthCheck, GoogleHealthCheck descriptionHealthCheck) {
-    Boolean shouldUpdate = descriptionHealthCheck.checkIntervalSec != existingHealthCheck.getCheckIntervalSec() ||
-      descriptionHealthCheck.healthyThreshold != existingHealthCheck.getHealthyThreshold() ||
-      descriptionHealthCheck.unhealthyThreshold != existingHealthCheck.getUnhealthyThreshold() ||
-      descriptionHealthCheck.timeoutSec != existingHealthCheck.getTimeoutSec()
-
-    switch (descriptionHealthCheck.healthCheckType) {
-      case GoogleHealthCheck.HealthCheckType.HTTP:
-        shouldUpdate |= (descriptionHealthCheck.port != existingHealthCheck.httpHealthCheck.port ||
-          descriptionHealthCheck.requestPath != existingHealthCheck.httpHealthCheck.requestPath)
-        break
-      case GoogleHealthCheck.HealthCheckType.HTTPS:
-        shouldUpdate |= (descriptionHealthCheck.port != existingHealthCheck.httpsHealthCheck.port ||
-          descriptionHealthCheck.requestPath != existingHealthCheck.httpsHealthCheck.requestPath)
-        break
-      case GoogleHealthCheck.HealthCheckType.TCP:
-        shouldUpdate |= descriptionHealthCheck.port != existingHealthCheck.tcpHealthCheck.port
-        break
-      case GoogleHealthCheck.HealthCheckType.SSL:
-        shouldUpdate |= descriptionHealthCheck.port != existingHealthCheck.sslHealthCheck.port
-        break
-      case GoogleHealthCheck.HealthCheckType.UDP:
-        shouldUpdate |= descriptionHealthCheck.port != existingHealthCheck.udpHealthCheck.port
-        break
-      default:
-        throw new IllegalArgumentException("Internal load balancer upsert description contains illegal health check type.")
-        break
-    }
-    return shouldUpdate
-  }
-
-  private static void updateExistingHealthCheck(HealthCheck existingHealthCheck, GoogleHealthCheck descriptionHealthCheck) {
-    existingHealthCheck.checkIntervalSec = descriptionHealthCheck.checkIntervalSec
-    existingHealthCheck.healthyThreshold = descriptionHealthCheck.healthyThreshold
-    existingHealthCheck.unhealthyThreshold = descriptionHealthCheck.unhealthyThreshold
-    existingHealthCheck.timeoutSec = descriptionHealthCheck.timeoutSec
-
-    switch (descriptionHealthCheck.healthCheckType) {
-      case GoogleHealthCheck.HealthCheckType.HTTP:
-        existingHealthCheck.httpHealthCheck.port = descriptionHealthCheck.port
-        existingHealthCheck.httpHealthCheck.requestPath = descriptionHealthCheck.requestPath
-        break
-      case GoogleHealthCheck.HealthCheckType.HTTPS:
-        existingHealthCheck.httpsHealthCheck.port = descriptionHealthCheck.port
-        existingHealthCheck.httpsHealthCheck.requestPath = descriptionHealthCheck.requestPath
-        break
-      case GoogleHealthCheck.HealthCheckType.TCP:
-        existingHealthCheck.tcpHealthCheck.port = descriptionHealthCheck.port
-        break
-      case GoogleHealthCheck.HealthCheckType.SSL:
-        existingHealthCheck.sslHealthCheck.port = descriptionHealthCheck.port
-        break
-      case GoogleHealthCheck.HealthCheckType.UDP:
-        existingHealthCheck.udpHealthCheck.port = descriptionHealthCheck.port
-        break
-      default:
-        throw new IllegalArgumentException("Internal load balancer upsert description contains illegal health check type.")
-        break
-    }
-  }
-
-  private static HealthCheck createNewHealthCheck(GoogleHealthCheck descriptionHealthCheck) {
-    def newHealthCheck = new HealthCheck(
-      name: descriptionHealthCheck.name,
-      checkIntervalSec: descriptionHealthCheck.checkIntervalSec,
-      healthyThreshold: descriptionHealthCheck.healthyThreshold,
-      unhealthyThreshold: descriptionHealthCheck.unhealthyThreshold,
-      timeoutSec: descriptionHealthCheck.timeoutSec,
-    )
-    switch (descriptionHealthCheck.healthCheckType) {
-      case GoogleHealthCheck.HealthCheckType.HTTP:
-        newHealthCheck.type = 'HTTP'
-        newHealthCheck.httpHealthCheck = new HttpHealthCheck(
-          port: descriptionHealthCheck.port,
-          requestPath: descriptionHealthCheck.requestPath,
-        )
-        break
-      case GoogleHealthCheck.HealthCheckType.HTTPS:
-        newHealthCheck.type = 'HTTPS'
-        newHealthCheck.httpsHealthCheck = new HttpsHealthCheck(
-          port: descriptionHealthCheck.port,
-          requestPath: descriptionHealthCheck.requestPath,
-        )
-        break
-      case GoogleHealthCheck.HealthCheckType.TCP:
-        newHealthCheck.type = 'TCP'
-        newHealthCheck.tcpHealthCheck = new TCPHealthCheck(port: descriptionHealthCheck.port)
-        break
-      case GoogleHealthCheck.HealthCheckType.SSL:
-        newHealthCheck.type = 'SSL'
-        newHealthCheck.sslHealthCheck = new SSLHealthCheck(port:  descriptionHealthCheck.port)
-        break
-      case GoogleHealthCheck.HealthCheckType.UDP:
-        newHealthCheck.type = 'UDP'
-        newHealthCheck.udpHealthCheck = new UDPHealthCheck(port:  descriptionHealthCheck.port)
-        break
-      default:
-        throw new IllegalArgumentException("Internal load balancer upsert description contains illegal health check type.")
-        break
-    }
-    return newHealthCheck
   }
 }

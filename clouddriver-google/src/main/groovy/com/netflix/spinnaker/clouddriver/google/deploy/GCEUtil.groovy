@@ -507,7 +507,7 @@ class GCEUtil {
     return GCE_API_PREFIX + "$projectName/global/httpsHealthChecks/$healthCheckName"
   }
 
-  static String buildHealthCheckUrl(String projectName, String region, String healthCheckName) {
+  static String buildHealthCheckUrl(String projectName, String healthCheckName) {
     return GCE_API_PREFIX + "$projectName/global/healthChecks/$healthCheckName"
   }
 
@@ -1095,7 +1095,7 @@ class GCEUtil {
   }
 
   /**
-   * Deletes an L7 global listener, i.e. a global forwarding rule and its target proxy.
+   * Deletes an L7/SSL LB global listener, i.e. a global forwarding rule and its target proxy.
    * @param compute
    * @param project
    * @param forwardingRuleName - Name of global forwarding rule to delete (along with its target proxy).
@@ -1212,5 +1212,124 @@ class GCEUtil {
     }
 
     return firewall
+  }
+
+  /**
+   * Used in LB upserts to tell if HealthCheck objects are different.
+   * @param existingHealthCheck
+   * @param descriptionHealthCheck
+   * @return
+   */
+  public static Boolean healthCheckShouldBeUpdated(existingHealthCheck, GoogleHealthCheck descriptionHealthCheck) {
+    Boolean shouldUpdate = descriptionHealthCheck.checkIntervalSec != existingHealthCheck.getCheckIntervalSec() ||
+      descriptionHealthCheck.healthyThreshold != existingHealthCheck.getHealthyThreshold() ||
+      descriptionHealthCheck.unhealthyThreshold != existingHealthCheck.getUnhealthyThreshold() ||
+      descriptionHealthCheck.timeoutSec != existingHealthCheck.getTimeoutSec()
+
+    switch (descriptionHealthCheck.healthCheckType) {
+      case GoogleHealthCheck.HealthCheckType.HTTP:
+        shouldUpdate |= (descriptionHealthCheck.port != existingHealthCheck.httpHealthCheck.port ||
+          descriptionHealthCheck.requestPath != existingHealthCheck.httpHealthCheck.requestPath)
+        break
+      case GoogleHealthCheck.HealthCheckType.HTTPS:
+        shouldUpdate |= (descriptionHealthCheck.port != existingHealthCheck.httpsHealthCheck.port ||
+          descriptionHealthCheck.requestPath != existingHealthCheck.httpsHealthCheck.requestPath)
+        break
+      case GoogleHealthCheck.HealthCheckType.TCP:
+        shouldUpdate |= descriptionHealthCheck.port != existingHealthCheck.tcpHealthCheck.port
+        break
+      case GoogleHealthCheck.HealthCheckType.SSL:
+        shouldUpdate |= descriptionHealthCheck.port != existingHealthCheck.sslHealthCheck.port
+        break
+      case GoogleHealthCheck.HealthCheckType.UDP:
+        shouldUpdate |= descriptionHealthCheck.port != existingHealthCheck.udpHealthCheck.port
+        break
+      default:
+        throw new IllegalArgumentException("Description contains illegal health check type.")
+        break
+    }
+    return shouldUpdate
+  }
+
+  /**
+   * Updates existingHealthCheck with the attributes in descriptionHealthCheck. Used in LB upserts.
+   * @param existingHealthCheck
+   * @param descriptionHealthCheck
+   */
+  public static void updateExistingHealthCheck(HealthCheck existingHealthCheck, GoogleHealthCheck descriptionHealthCheck) {
+    existingHealthCheck.checkIntervalSec = descriptionHealthCheck.checkIntervalSec
+    existingHealthCheck.healthyThreshold = descriptionHealthCheck.healthyThreshold
+    existingHealthCheck.unhealthyThreshold = descriptionHealthCheck.unhealthyThreshold
+    existingHealthCheck.timeoutSec = descriptionHealthCheck.timeoutSec
+
+    switch (descriptionHealthCheck.healthCheckType) {
+      case GoogleHealthCheck.HealthCheckType.HTTP:
+        existingHealthCheck.httpHealthCheck.port = descriptionHealthCheck.port
+        existingHealthCheck.httpHealthCheck.requestPath = descriptionHealthCheck.requestPath
+        break
+      case GoogleHealthCheck.HealthCheckType.HTTPS:
+        existingHealthCheck.httpsHealthCheck.port = descriptionHealthCheck.port
+        existingHealthCheck.httpsHealthCheck.requestPath = descriptionHealthCheck.requestPath
+        break
+      case GoogleHealthCheck.HealthCheckType.TCP:
+        existingHealthCheck.tcpHealthCheck.port = descriptionHealthCheck.port
+        break
+      case GoogleHealthCheck.HealthCheckType.SSL:
+        existingHealthCheck.sslHealthCheck.port = descriptionHealthCheck.port
+        break
+      case GoogleHealthCheck.HealthCheckType.UDP:
+        existingHealthCheck.udpHealthCheck.port = descriptionHealthCheck.port
+        break
+      default:
+        throw new IllegalArgumentException("Description contains illegal health check type.")
+        break
+    }
+  }
+
+  /**
+   * Creates a new HealthCheck from a GoogleHealthCheck.
+   * @param descriptionHealthCheck
+   * @return
+   */
+  public static HealthCheck createNewHealthCheck(GoogleHealthCheck descriptionHealthCheck) {
+    def newHealthCheck = new HealthCheck(
+      name: descriptionHealthCheck.name,
+      checkIntervalSec: descriptionHealthCheck.checkIntervalSec,
+      healthyThreshold: descriptionHealthCheck.healthyThreshold,
+      unhealthyThreshold: descriptionHealthCheck.unhealthyThreshold,
+      timeoutSec: descriptionHealthCheck.timeoutSec,
+    )
+    switch (descriptionHealthCheck.healthCheckType) {
+      case GoogleHealthCheck.HealthCheckType.HTTP:
+        newHealthCheck.type = 'HTTP'
+        newHealthCheck.httpHealthCheck = new HttpHealthCheck(
+          port: descriptionHealthCheck.port,
+          requestPath: descriptionHealthCheck.requestPath,
+        )
+        break
+      case GoogleHealthCheck.HealthCheckType.HTTPS:
+        newHealthCheck.type = 'HTTPS'
+        newHealthCheck.httpsHealthCheck = new HttpsHealthCheck(
+          port: descriptionHealthCheck.port,
+          requestPath: descriptionHealthCheck.requestPath,
+        )
+        break
+      case GoogleHealthCheck.HealthCheckType.TCP:
+        newHealthCheck.type = 'TCP'
+        newHealthCheck.tcpHealthCheck = new TCPHealthCheck(port: descriptionHealthCheck.port)
+        break
+      case GoogleHealthCheck.HealthCheckType.SSL:
+        newHealthCheck.type = 'SSL'
+        newHealthCheck.sslHealthCheck = new SSLHealthCheck(port:  descriptionHealthCheck.port)
+        break
+      case GoogleHealthCheck.HealthCheckType.UDP:
+        newHealthCheck.type = 'UDP'
+        newHealthCheck.udpHealthCheck = new UDPHealthCheck(port:  descriptionHealthCheck.port)
+        break
+      default:
+        throw new IllegalArgumentException("Description contains illegal health check type.")
+        break
+    }
+    return newHealthCheck
   }
 }

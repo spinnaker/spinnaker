@@ -109,6 +109,24 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             "upsertGoogleLoadBalancerDescription.networkOrSubnet.networkAndSubnetRequired")
         }
         break
+      case GoogleLoadBalancerType.SSL:
+        def bs = description.backendService
+        if (!bs) {
+          errors.rejectValue("backendService",
+            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+        }
+
+        def hc = bs.healthCheck
+        if (!hc) {
+          errors.rejectValue("backendService.healthCheck",
+            "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
+        }
+
+        if (!description.certificate) {
+          errors.rejectValue("certificate",
+            "upsertGoogleLoadBalancerDescription.certificate.certificateRequired")
+        }
+        break
       default:
         // TODO(jacobkiefer): Fail here once frontend calls are modified.
         break

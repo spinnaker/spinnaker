@@ -20,7 +20,7 @@ class Constants {
   private static final String HEALTH_CHECK_NAME_PREFIX = "hc"
 
   // These match the values described in the GCE client library documentation.
-  private static final String  DEFAULT_IP_PROTOCOL = "TCP"
+  public static final String  DEFAULT_IP_PROTOCOL = "TCP"
   private static final String  DEFAULT_PORT_RANGE = "1-65535"
   private static final Integer DEFAULT_CHECK_INTERVAL_SEC = 5
   private static final Integer DEFAULT_HEALTHY_THRESHOLD = 2
