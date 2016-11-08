@@ -92,18 +92,20 @@ public class PermissionsController {
   }
 
   private void syncUsers(Application.Permission permission) {
-    if (fiatService && permission) {
-      // Specifically using an empty list here instead of null, because an empty list will update
-      // the anonymous user's app list.
-      List<String> roles = []
-      if (permission.requiredGroupMembership) {
-        roles = permission.requiredGroupMembership
-      }
-      try {
-        fiatService.sync(roles)
-      } catch (RetrofitError re) {
-        log.warn("Error syncing users", re)
-      }
+    if (!fiatService || !permission) {
+      return
+    }
+
+    // Specifically using an empty list here instead of null, because an empty list will update
+    // the anonymous user's app list.
+    List<String> roles = []
+    if (permission.requiredGroupMembership) {
+      roles = permission.requiredGroupMembership
+    }
+    try {
+      fiatService.sync(roles)
+    } catch (RetrofitError re) {
+      log.warn("Error syncing users", re)
     }
   }
 }
