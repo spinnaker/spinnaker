@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.netflix.spinnaker.halyard.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.model.v1.Halconfig;
+import com.netflix.spinnaker.halyard.services.v1.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,20 +32,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/config")
 public class ConfigController {
   @Autowired
-  HalconfigParser halyardConfig;
+  ConfigService configService;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  Halconfig config() throws UnrecognizedPropertyException {
-    return halyardConfig.getConfig();
+  Halconfig config() {
+    return configService.getConfig();
   }
 
   @RequestMapping(value = "/currentDeployment", method = RequestMethod.GET)
-  String currentDeployment() throws UnrecognizedPropertyException {
-    Halconfig halconfig = halyardConfig.getConfig();
-    if (halconfig != null) {
-      return halconfig.getCurrentDeployment();
-    } else {
-      return null;
-    }
+  String currentDeployment() {
+    return configService.getCurrentDeployment();
   }
 }

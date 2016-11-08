@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.model.v1;
+package com.netflix.spinnaker.halyard.errors.v1.config;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.netflix.spinnaker.halyard.errors.v1.HalconfigException;
 
-/**
- * A reference to a field in halconfig.
- * @param <T> The type of the update
- */
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class FieldReference<T> extends Reference<T> {
-
-  /**
-   * The name of the field being updated.
-   */
-  private String fieldName;
+public class NoConfigException extends HalconfigException {
+  public NoConfigException(String filePath) {
+    addError("Your halconfig could not be found at " + filePath);
+  }
 }

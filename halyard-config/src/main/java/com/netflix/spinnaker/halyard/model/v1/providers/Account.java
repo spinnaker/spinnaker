@@ -16,18 +16,15 @@
 
 package com.netflix.spinnaker.halyard.model.v1.providers;
 
-import com.netflix.spinnaker.halyard.model.v1.FieldReference;
 import com.netflix.spinnaker.halyard.model.v1.Halconfig;
 import com.netflix.spinnaker.halyard.model.v1.Reference;
 import com.netflix.spinnaker.halyard.model.v1.Updateable;
 import com.netflix.spinnaker.halyard.validate.v1.ValidateAccount;
 import com.netflix.spinnaker.halyard.validate.v1.ValidateField;
-import com.netflix.spinnaker.halyard.validate.v1.Validator;
 import com.netflix.spinnaker.halyard.validate.v1.providers.ValidateAccountName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;

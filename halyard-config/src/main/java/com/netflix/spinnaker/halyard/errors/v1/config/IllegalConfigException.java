@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.model.v1;
+package com.netflix.spinnaker.halyard.errors.v1.config;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.netflix.spinnaker.halyard.errors.v1.HalconfigException;
 
 /**
- * A reference to a field in halconfig.
- * @param <T> The type of the update
+ * This is reserved for Halyard configs that fall between unparseable (not valid yaml), and incorrectly configured
+ * (provider-specific error). Essentially, when a config has problems that prevent halyard from validating it, although
+ * it is readable by our yaml parser into the halfconfig Object, this is thrown
  */
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class FieldReference<T> extends Reference<T> {
-
-  /**
-   * The name of the field being updated.
-   */
-  private String fieldName;
+public class IllegalConfigException extends HalconfigException {
+  public IllegalConfigException(String message) {
+    addError(message);
+  }
 }

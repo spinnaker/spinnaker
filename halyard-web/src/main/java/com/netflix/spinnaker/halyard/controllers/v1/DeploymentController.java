@@ -16,75 +16,29 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import com.netflix.spinnaker.halyard.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.model.v1.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.model.v1.Halconfig;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.netflix.spinnaker.halyard.services.v1.DeploymentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/v1/config/deployments")
 public class DeploymentController {
   @Autowired
-  HalconfigParser halyardConfig;
+  DeploymentService deploymentService;
 
   @RequestMapping(value = "/{deployment:.+}", method = RequestMethod.GET)
-  DeploymentConfiguration deploymentConfigurations(@PathVariable String deployment) throws UnrecognizedPropertyException {
-    Halconfig halconfig = halyardConfig.getConfig();
-    if (halconfig != null) {
-      List<DeploymentConfiguration> matching = halconfig.getDeploymentConfigurations()
-          .stream()
-          .filter(d -> d.getName().equals(deployment))
-          .collect(Collectors.toList());
-
-      if (matching.size() == 0) {
-        throw new DeploymentNotFoundExecption(deployment);
-      } else if (matching.size() > 1) {
-        throw new DuplicateDeploymentException(deployment);
-      } else {
-        return matching.get(0);
-      }
-    } else {
-      return null;
-    }
+  DeploymentConfiguration deploymentConfiguration(@PathVariable String deployment) {
+    return deploymentService.getDeploymentConfiguration(deployment);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  List<DeploymentConfiguration> deploymentConfigurations() throws UnrecognizedPropertyException {
-    Halconfig halconfig = halyardConfig.getConfig();
-    if (halconfig != null) {
-      return halconfig.getDeploymentConfigurations();
-    } else {
-      return null;
-    }
-  }
-
-  @Data
-  @EqualsAndHashCode(callSuper = false)
-  @ResponseStatus(value = HttpStatus.NOT_FOUND)
-  static public class DeploymentNotFoundExecption extends RuntimeException {
-    String deploymentName;
-
-    DeploymentNotFoundExecption(String deploymentName) {
-      this.deploymentName = deploymentName;
-    }
-  }
-
-  @Data
-  @EqualsAndHashCode(callSuper = false)
-  @ResponseStatus(value = HttpStatus.CONFLICT)
-  static public class DuplicateDeploymentException extends RuntimeException {
-    String deploymentName;
-
-    DuplicateDeploymentException(String deploymentName) {
-      this.deploymentName = deploymentName;
-    }
+  List<DeploymentConfiguration> deploymentConfigurations() {
+    return deploymentService.getDeploymentConfigurations();
   }
 }

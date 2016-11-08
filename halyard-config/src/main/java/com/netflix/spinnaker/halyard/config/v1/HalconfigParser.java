@@ -18,12 +18,16 @@ package com.netflix.spinnaker.halyard.config.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import com.netflix.spinnaker.halyard.errors.v1.config.NoConfigException;
+import com.netflix.spinnaker.halyard.errors.v1.config.ParseConfigException;
 import com.netflix.spinnaker.halyard.model.v1.Halconfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.parser.ParserException;
+import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -103,14 +107,21 @@ public class HalconfigParser {
    * @return The fully parsed halconfig.
    * @throws UnrecognizedPropertyException
    */
-  public Halconfig getConfig() throws UnrecognizedPropertyException {
+  public Halconfig getConfig() {
     Halconfig res = null;
     try {
       InputStream is = new FileInputStream(new File(halconfigPath));
       res = parseConfig(is);
     } catch (FileNotFoundException e) {
-      res = new Halconfig().setHalyardVersion(halyardVersion);
+      throw new NoConfigException(halconfigPath);
+    } catch (UnrecognizedPropertyException e) {
+      throw new ParseConfigException(e);
+    } catch (ParserException e) {
+      throw new ParseConfigException(e);
+    } catch (ScannerException e) {
+      throw new ParseConfigException(e);
     }
+
     return res;
   }
 }

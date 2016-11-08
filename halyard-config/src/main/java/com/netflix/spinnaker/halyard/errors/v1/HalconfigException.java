@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.model.v1;
+package com.netflix.spinnaker.halyard.errors.v1;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
- * A reference to a field in halconfig.
- * @param <T> The type of the update
+ * This is the base exception class that needs to be thrown by all validators.
  */
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class FieldReference<T> extends Reference<T> {
+public class HalconfigException extends RuntimeException {
+  @Getter
+  protected HalconfigFixableIssue issue = new HalconfigFixableIssue();
 
-  /**
-   * The name of the field being updated.
-   */
-  private String fieldName;
+  public void addError(String error) {
+    issue.getErrors().add(error);
+  }
+
+  public void addWarning(String warning) {
+    issue.getWarnings().add(warning);
+  }
+
+  public HalconfigException() {
+    super();
+  }
 }
