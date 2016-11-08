@@ -1,4 +1,4 @@
-import {trim} from 'lodash';
+import {isString, trim} from 'lodash';
 import {module} from 'angular';
 import {DOCKER_IMAGE_READER_SERVICE, DockerImageReaderService, IDockerImage} from './docker.image.reader.service';
 
@@ -25,7 +25,6 @@ class DockerImageAndTagSelectorController implements ng.IComponentController {
     imagesRefreshing: false
   };
 
-  private initCalled = false;
   private accountMap: { [key: string]: string[] };
   private organizationMap: { [key: string]: string[] };
   private repositoryMap: { [key: string]: string[] };
@@ -220,17 +219,11 @@ class DockerImageAndTagSelectorController implements ng.IComponentController {
     if (!this.deferInitialization && (this.registry || this.isNew())) {
       this.initializeAccounts();
     }
-    this.initCalled = true;
   }
 
   public $onChanges(changes: IOnDockerBindingsChanges): void {
-    if (this.initCalled &&
-        !this.viewState.imagesLoaded &&
-      ((this.showRegistry && this.account) || (!this.showRegistry && this.registry)) &&
-      changes.registry &&
-      changes.registry.currentValue) {
-      this.initializeAccounts();
-    } else if (!changes.registry.previousValue && changes.registry.currentValue) {
+
+    if (this.deferInitialization && changes.registry && isString(changes.registry.currentValue)) {
       this.initializeAccounts();
     }
   }
