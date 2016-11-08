@@ -166,7 +166,7 @@ class KubernetesSecurityGroupCachingAgent extends KubernetesCachingAgent impleme
 
   List<Ingress> loadIngresses() {
     namespaces.collect { String namespace ->
-      credentials.apiAdaptor.getIngress(namespace)
+      credentials.apiAdaptor.getIngresses(namespace)
     }.flatten() - null
   }
 
