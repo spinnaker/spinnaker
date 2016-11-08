@@ -1041,7 +1041,7 @@ class GCEUtil {
 
     def globalForwardingRules = compute.globalForwardingRules().list(project).execute().getItems()
     globalForwardingRules.each { ForwardingRule fr ->
-      String proxyType = Utils.getTargetProxyType(fr.target)
+      GoogleTargetProxyType proxyType = Utils.getTargetProxyType(fr.target)
       def proxy = null
       switch (proxyType) {
         case GoogleTargetProxyType.HTTP:
