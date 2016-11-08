@@ -1,19 +1,12 @@
-<div class="row pipeline-stage-config-heading">
-  <div class="col-md-8">
-    <h4 ng-bind="stage.name || '[new stage]'"></h4>
-    <p class="small" ng-if="stage.type"><strong>Stage type:</strong> {{label}}<br/> {{description}}</p>
-    <p class="small" ng-if="extendedDescription" ng-bind-html="extendedDescription"></p>
-    <p class="small" ng-if="!stage.type">No stage type selected</p>
-  </div>
-  <div class="col-md-2 col-md-offset-2 text-right">
-    <button type="button" class="btn btn-sm btn-default" ng-click="pipelineConfigurerCtrl.removeStage(stage)">
-      <span class="glyphicon glyphicon-trash" uib-tooltip="Remove stage"></span> Remove stage
-    </button>
-  </div>
-</div>
-<div class="row panel-pipeline-phase no-border">
-  <div class="col-md-12">
-    <div class="form-horizontal">
+<div class="form-horizontal">
+  <div class="row pipeline-stage-config-heading">
+    <div class="col-md-3">
+      <h4 ng-bind="stage.name || '[new stage]'"></h4>
+      <p class="small" ng-if="stage.type"><strong>Stage type:</strong> {{label}}<br/> {{description}}</p>
+      <p class="small" ng-if="extendedDescription" ng-bind-html="extendedDescription"></p>
+      <p class="small" ng-if="!stage.type">No stage type selected</p>
+    </div>
+    <div class="col-md-7 form-horizontal">
       <stage-config-field label="Type" field-columns="9" ng-if="stage.isNew">
         <ui-select ng-model="options.selectedStageType"
                    style="width: 250px"
@@ -23,7 +16,14 @@
             <strong>{{$select.selected.label}}</strong>
           </ui-select-match>
           <ui-select-choices repeat="option.key as option in options.stageTypes | anyFieldFilter: {label: $select.search, description: $select.search}">
-            <div><strong>{{option.label}}</strong></div>
+            <div class="stage-choice">
+              <strong>{{option.label}}</strong>
+              <span class="available-providers" ng-if="showProviders">
+                <cloud-provider-logo ng-repeat="provider in option.cloudProviders"
+                                     provider="provider"
+                                     height="12px" width="12px" show-tooltip="true"></cloud-provider-logo>
+              </span>
+            </div>
             <div ng-bind-html="option.description"></div>
           </ui-select-choices>
         </ui-select>
@@ -38,28 +38,34 @@
           <ui-select-match>{{$item.name}}</ui-select-match>
           <ui-select-choices repeat="option.refId as option in options.dependencies | anyFieldFilter: {name: $select.search}"
                              ui-disable-choice="!option.available"
-                             group-by="groupDependencyOptions"
-            >
+                             group-by="groupDependencyOptions">
             <span ng-if="!stage.requisiteStageRefIds.includes(option.refId)" ng-bind-html="option.name | highlight: $select.search"></span>
           </ui-select-choices>
         </ui-select>
       </stage-config-field>
-      <div ng-show="stage.type">
-        <div class="stage-details">
-          <div class="row">
-            <div class="stage-body"></div>
-          </div>
-        </div>
-        <override-failure stage="stage"></override-failure>
-        <stage-config-field label="Comments" style="margin-top:20px">
-          <textarea class="form-control" ng-model="stage.comments" rows="3"
-                    placeholder="(Optional) anything that might be helpful to explain the purpose of this stage; HTML is okay"></textarea>
-        </stage-config-field>
-        <execution-windows stage="stage" ng-if="!pipeline.strategy"></execution-windows>
-        <override-timeout stage="stage"></override-timeout>
-        <notification-list level="stage" notifications="stage.notifications" parent="stage" ng-if="!pipeline.strategy"></notification-list>
-        <optional-stage stage="stage"></optional-stage>
-      </div>
+    </div>
+    <div class="col-md-2 text-right">
+      <button type="button" class="btn btn-sm btn-default" ng-click="pipelineConfigurerCtrl.removeStage(stage)">
+        <span class="glyphicon glyphicon-trash" uib-tooltip="Remove stage"></span> Remove stage
+      </button>
     </div>
   </div>
+  <page-navigator scrollable-container="[ui-view]" ng-show="stage.type">
+    <page-section key="stage" label="{{label}} Configuration">
+      <div class="stage-details"></div>
+    </page-section>
+    <page-section key="execution" label="Execution Options">
+      <override-failure stage="stage"></override-failure>
+      <execution-windows stage="stage" ng-if="!pipeline.strategy"></execution-windows>
+      <override-timeout stage="stage"></override-timeout>
+      <optional-stage stage="stage"></optional-stage>
+    </page-section>
+    <page-section key="notification" label="Notifications" visible="canConfigureNotifications" badge="stage.notifications.length">
+      <notification-list level="stage" notifications="stage.notifications" parent="stage"></notification-list>
+    </page-section>
+    <page-section key="comments" label="Comments" no-wrapper="true">
+        <textarea class="form-control" ng-model="stage.comments" rows="3"
+                  placeholder="(Optional) anything that might be helpful to explain the purpose of this stage; HTML is okay"></textarea>
+    </page-section>
+  </page-navigator>
 </div>

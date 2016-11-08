@@ -1,46 +1,53 @@
-<div class="form-horizontal">
-
-  <h4 ng-if="!pipeline.strategy">Concurrent Executions</h4>
-  <div class="form-group" ng-if="!pipeline.strategy">
-    <div class="col-md-11 col-md-offset-1">
-      <div class="checkbox">
-        <label>
-          <input type="checkbox" ng-model="pipeline.limitConcurrent">
-         <strong>Disable concurrent pipeline executions (only run one at a time). </strong>
-        </label>
-      </div>
-      <div ng-if="pipeline.limitConcurrent"class="checkbox">
-        <label>
-          <input type="checkbox" ng-model="pipeline.keepWaitingPipelines">
-          <strong>Do not automatically cancel pipelines waiting in queue. </strong>
-          <help-field key="pipeline.config.parallel.cancel.queue"/>
-        </label>
+<page-navigator scrollable-container="[ui-view]">
+  <page-section key="concurrent" label="Concurrent Executions" visible="!pipeline.strategy">
+    <div class="row">
+      <div class="col-md-11 col-md-offset-1">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="pipeline.limitConcurrent">
+            <strong>Disable concurrent pipeline executions (only run one at a time). </strong>
+          </label>
+        </div>
+        <div ng-if="pipeline.limitConcurrent" class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="pipeline.keepWaitingPipelines">
+            <strong>Do not automatically cancel pipelines waiting in queue.</strong>
+            <help-field key="pipeline.config.parallel.cancel.queue"></help-field>
+          </label>
+        </div>
       </div>
     </div>
-  </div>
-
-  <div ng-if="!pipeline.strategy">
-  <h4>Automated Triggers</h4>
-  <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application"></trigger>
-  <div class="row" ng-if="!pipeline.triggers.length">
-    <p class="col-md-12">
-      You don't have any triggers configured for {{pipeline.name}}.
-    </p>
-  </div>
-  <div class="row">
-    <div class="col-md-12">
-      <button class="btn btn-block btn-add-trigger add-new" ng-click="triggersCtrl.addTrigger()">
-        <span class="glyphicon glyphicon-plus-sign"></span> Add Trigger
-      </button>
+  </page-section>
+  <page-section key="triggers" label="Automated Triggers" badge="pipeline.triggers.length" no-wrapper="true">
+    <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application"></trigger>
+    <div class="row" ng-if="!pipeline.triggers.length">
+      <p class="col-md-12">
+        You don't have any triggers configured for {{pipeline.name}}.
+      </p>
     </div>
-  </div>
-  </div>
-
-  <h4>Parameters</h4>
-  <parameters pipeline="pipeline"></parameters>
-
-  <h4 ng-if="!pipeline.strategy">Notifications</h4>
-  <notification-list ng-if="!pipeline.strategy" level="pipeline" notifications="pipeline.notifications" parent="pipeline">
-  </notification-list>
-
-</div>
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn btn-block btn-add-trigger add-new" ng-click="triggersCtrl.addTrigger()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Trigger
+        </button>
+      </div>
+    </div>
+  </page-section>
+  <page-section key="parameters" label="Parameters" no-wrapper="true" badge="pipeline.parameterConfig.length">
+    <parameters pipeline="pipeline"></parameters>
+  </page-section>
+  <page-section key="notifications" label="Notifications" visible="!pipeline.strategy" badge="pipeline.notifications.length">
+    <notification-list ng-if="!pipeline.strategy" level="pipeline" notifications="pipeline.notifications" parent="pipeline">
+    </notification-list>
+  </page-section>
+  <page-section key="description" label="Description" no-wrapper="true">
+    <div class="row">
+      <div class="col-md-12">
+        <textarea class="form-control"
+                  ng-model="pipeline.description"
+                  rows="3"
+                  placeholder="(Optional) anything that might be helpful to explain the purpose of this pipeline"></textarea>
+      </div>
+    </div>
+  </page-section>
+</page-navigator>

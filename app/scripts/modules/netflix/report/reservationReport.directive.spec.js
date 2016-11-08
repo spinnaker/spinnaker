@@ -1,12 +1,14 @@
 'use strict';
 
+import {matchers} from '../../../../../test/helpers/customMatchers';
+
 describe('Directives: reservation report', function () {
 
   require('./reservationReport.directive.html');
 
   beforeEach(window.module(require('./reservationReport.directive')));
   beforeEach(function() {
-    jasmine.addMatchers(require('../../../../../test/helpers/customMatchers'));
+    jasmine.addMatchers(matchers);
   });
 
   beforeEach(window.inject(function ($rootScope, $compile, reservationReportReader, $httpBackend, settings, accountService, $q) {

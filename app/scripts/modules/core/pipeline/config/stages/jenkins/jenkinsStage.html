@@ -62,7 +62,7 @@
     <h4 class="text-left" >Job Parameters</h4>
     <div class="form-group" ng-repeat="parameter in jobParams | orderBy:'name' ">
       <div class="col-md-3 sm-label-right">
-        <b>{{parameter.name}}</b>
+        <b class="break-word">{{parameter.name}}</b>
         <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
       </div>
       <div class="col-md-5">

@@ -1,38 +1,40 @@
 <div class="pipeline-configurer">
   <div class="pipeline-config-heading">
-    <h3>
-      <a class="btn btn-configure" ui-sref="^.executions" uib-tooltip="Back to Executions">
-        <span class="glyphicon glyphicon glyphicon-circle-arrow-left"></span>
-      </a>
-      <a href class="nav-popover"
-         ng-click="navMenuState.showMenu = !navMenuState.showMenu"
-         ng-blur="pipelineConfigurerCtrl.hideNavigationMenu()">
-        {{pipeline.name}}
-        <span ng-if="pipeline.disabled">(disabled)</span>
-      </a>
-      <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
-    </h3>
-
-    <div class="permalink">
-      <a target="_blank"
-         analytics-on="click"
-         analytics-category="Pipeline Config"
-         analytics-event="Permalink clicked"
-         ng-href="{{pipelineConfigurerCtrl.getUrl()}}">Permalink</a>
-      <copy-to-clipboard text="{{pipelineConfigurerCtrl.getUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
-    </div>
-    <div class="create-action">
-      <create-new application="application"></create-new>
-    </div>
-    <div class="pipeline-actions text-right">
-      <div ng-include="pipelineConfigurerCtrl.actionsTemplateUrl"></div>
+    <div class="config-heading-row">
+      <h3>
+        <a class="btn btn-configure" ui-sref="^.executions" uib-tooltip="Back to Executions">
+          <span class="glyphicon glyphicon glyphicon-circle-arrow-left"></span>
+        </a>
+        <a href class="nav-popover"
+           ng-click="navMenuState.showMenu = !navMenuState.showMenu"
+           ng-blur="pipelineConfigurerCtrl.hideNavigationMenu()">
+          {{pipeline.name}}
+          <span ng-if="pipeline.disabled">(disabled)</span>
+        </a>
+        <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
+      </h3>
+      <div class="config-heading-actions">
+        <div class="permalink">
+          <a target="_blank"
+             analytics-on="click"
+             analytics-category="Pipeline Config"
+             analytics-event="Permalink clicked"
+             ng-href="{{pipelineConfigurerCtrl.getUrl()}}">Permalink</a>
+          <copy-to-clipboard text="{{pipelineConfigurerCtrl.getUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
+        </div>
+        <div class="create-action">
+          <create-new application="application"></create-new>
+        </div>
+        <div class="pipeline-actions text-right">
+          <div ng-include="pipelineConfigurerCtrl.actionsTemplateUrl"></div>
+        </div>
+      </div>
     </div>
     <div class="band band-info" ng-if="pipeline.locked">
       <span class="glyphicon glyphicon small glyphicon-lock"></span> {{ pipeline.locked.description || "This pipeline is locked and does not allow modification" }}
     </div>
-  </div>
-  <div class="pipeline-contents">
-    <div class="row pipeline-config" ng-if="!pipeline.parallel">
+
+    <div class="row pipeline-config config-heading-body" ng-if="!pipeline.parallel">
       <div class="col-md-12">
         <ul class="nav-pipeline-config">
           <li class="config-section">
@@ -70,7 +72,7 @@
         </ul>
       </div>
     </div>
-    <div ng-if="pipeline.parallel">
+    <div class="config-heading-body" ng-if="pipeline.parallel">
       <div class="pipeline-graph-container">
         <pipeline-graph view-state="viewState" pipeline="pipeline" on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
       </div>
@@ -86,6 +88,9 @@
         </div>
       </div>
     </div>
+
+  </div>
+  <div class="pipeline-contents">
 
     <pipeline-config-view application="application" pipeline="pipeline" view-state="viewState"></pipeline-config-view>
 

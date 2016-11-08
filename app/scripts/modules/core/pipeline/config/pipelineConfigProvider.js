@@ -59,10 +59,38 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
       return angular.copy(stageTypes);
     }
 
-    function getConfigurableStageTypes() {
-      return getStageTypes().filter(function(stageType) {
-        return !stageType.synthetic && !stageType.provides;
-      });
+    function getConfigurableStageTypes(providers) {
+      let allStageTypes = getStageTypes();
+      let configurableStageTypes = allStageTypes.filter(stageType => !stageType.synthetic && !stageType.provides);
+      if (!providers) {
+        return configurableStageTypes;
+      }
+      configurableStageTypes.forEach(type => type.cloudProviders = getCloudProvidersForStage(type, allStageTypes, providers));
+      getCloudProvidersForStage(allStageTypes, configurableStageTypes, providers);
+      return configurableStageTypes
+        .filter(stageType => stageType.cloudProviders.length)
+        .sort((a, b) => a.label.localeCompare(b.label));
+    }
+
+    function getCloudProvidersForStage(type, allStageTypes, providers) {
+      let cloudProviders = [];
+      if (type.providesFor) {
+        cloudProviders = type.providesFor;
+      } else if (type.cloudProvider) {
+        cloudProviders = [type.cloudProvider];
+      } else if (type.useBaseProvider) {
+        const stageProviders = allStageTypes.filter(s => s.provides === type.key);
+        stageProviders.forEach(sp => {
+          if (sp.providesFor) {
+            cloudProviders = cloudProviders.concat(sp.providesFor);
+          } else {
+            cloudProviders.push(sp.cloudProvider);
+          }
+        });
+      } else {
+        cloudProviders = providers;
+      }
+      return _.intersection(providers, cloudProviders);
     }
 
     function getProvidersFor(key) {

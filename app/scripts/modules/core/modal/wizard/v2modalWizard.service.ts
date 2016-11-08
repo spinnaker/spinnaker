@@ -1,4 +1,5 @@
 import {module} from 'angular';
+import {SCROLL_TO_SERVICE, ScrollToService} from '../../utils/scrollTo/scrollTo.service';
 
 export interface WizardPageState {
   done: boolean;
@@ -24,7 +25,7 @@ export class V2ModalWizardService {
   public heading: string;
   public pageOffset: number = -30;
 
-  public constructor(private scrollToService: any) {}
+  public constructor(private scrollToService: ScrollToService) {}
 
   public setHeading(heading: string): void {
     this.heading = heading;
@@ -129,8 +130,7 @@ export class V2ModalWizardService {
 
 const moduleName = 'spinnaker.core.modalWizard.service.v2';
 
-module(moduleName, [
-  require('../../utils/scrollTo/scrollTo.service.js'),
-]).service('v2modalWizardService', V2ModalWizardService);
+module(moduleName, [SCROLL_TO_SERVICE])
+  .service('v2modalWizardService', V2ModalWizardService);
 
 export default moduleName;

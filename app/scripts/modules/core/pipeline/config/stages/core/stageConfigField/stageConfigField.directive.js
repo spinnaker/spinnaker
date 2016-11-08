@@ -21,7 +21,7 @@ module.exports = angular
         fieldColumns: '@',
       },
       controller: function() {
-        this.fieldColumns = this.fieldColumns || 6;
+        this.fieldColumns = this.fieldColumns || 8;
       }
     };
   });

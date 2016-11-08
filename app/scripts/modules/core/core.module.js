@@ -2,6 +2,7 @@
 
 import {AUTHENTICATION} from 'core/authentication/authentication.module';
 import {API_SERVICE} from 'core/api/api.service';
+import {CLOUD_PROVIDER_LOGO} from 'core/cloudProvider/cloudProviderLogo.component';
 
 import Spinner from 'spin.js';
 
@@ -52,7 +53,7 @@ module.exports = angular
     API_SERVICE,
 
     require('./cache/caches.module.js'),
-    require('./cloudProvider/cloudProviderLogo.directive.js'),
+    CLOUD_PROVIDER_LOGO,
     require('./cloudProvider/cloudProviderLabel.directive.js'),
     require('./cloudProvider/serviceDelegate.service.js'),
     require('./cluster/cluster.module.js'),

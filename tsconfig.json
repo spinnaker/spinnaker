@@ -16,7 +16,8 @@
     "outDir": "transpiled"
   },
   "files": [
-    "typings/index.d.ts"
+    "typings/index.d.ts",
+    "test/helpers/customMatchers.d.ts"
   ],
   "exclude": [
     "build",

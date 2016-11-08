@@ -1,11 +1,13 @@
 'use strict';
 
+import {SCROLL_TO_SERVICE} from '../../utils/scrollTo/scrollTo.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.executions.controller', [
   require('../service/execution.service.js'),
   require('../../pipeline/config/services/pipelineConfigService.js'),
-  require('../../utils/scrollTo/scrollTo.service.js'),
+  SCROLL_TO_SERVICE,
   require('../../insight/insightFilterState.model.js'),
   require('../filter/executionFilter.model.js'),
   require('../filter/executionFilter.service.js'),
