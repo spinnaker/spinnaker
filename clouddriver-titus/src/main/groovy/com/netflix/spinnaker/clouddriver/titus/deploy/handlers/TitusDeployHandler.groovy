@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
+import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
@@ -117,7 +118,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       if (description.jobType != 'batch' && deployDefaults.addAppGroupToServerGroup && securityGroups.size() < deployDefaults.maxSecurityGroups) {
         String applicationSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, description.application)
         if (!applicationSecurityGroup) {
-          applicationSecurityGroup = awsLookupUtil.createSecurityGroupForApplication(account, region, description.application)
+          applicationSecurityGroup = OperationPoller.retryWithBackoff({ o -> awsLookupUtil.createSecurityGroupForApplication(account, region, description.application) }, 1000, 5 )
         }
         if (!securityGroups.contains(applicationSecurityGroup)) {
           securityGroups << applicationSecurityGroup
