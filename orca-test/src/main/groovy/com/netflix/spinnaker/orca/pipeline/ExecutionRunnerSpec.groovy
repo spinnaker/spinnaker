@@ -35,11 +35,11 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.ExecutionStatus.REDIRECT
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.FULL
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.TaskDefinition
@@ -616,6 +616,71 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     where:
     execution = Pipeline.builder().withId("1").withParallel(true).build()
     contexts = [[region: "a"], [region: "b"]]
+  }
+
+  def "if a stage is allowed to fail it is marked as FAILED_CONTINUE"() {
+    given:
+    def stage = new PipelineStage(execution, stageType, [continuePipeline: true])
+    execution.stages << stage
+
+    and:
+    executionRepository.retrievePipeline(execution.id) >> execution
+
+    and:
+    def stageDefinitionBuilder = stageDefinition(stageType) { builder ->
+      builder.withTask("fails", TestTask)
+    }
+    @Subject runner = create(stageDefinitionBuilder)
+
+    and:
+    testTask.execute(_) >> new DefaultTaskResult(TERMINAL)
+
+    when:
+    runner.start(execution)
+
+    then:
+    1 * executionRepository.updateStatus(execution.id, SUCCEEDED)
+
+    and:
+    execution.stages.first().status == FAILED_CONTINUE
+
+    where:
+    stageType = "canfail"
+    execution = Pipeline.builder().withId("1").withParallel(true).build()
+  }
+
+  @Issue("SPIN-2122")
+  def "a stage is still considered FAILED_CONTINUE if a task downstream of the failed one succeeds"() {
+    given:
+    def stage = new PipelineStage(execution, stageType, [continuePipeline: true])
+    execution.stages << stage
+
+    and:
+    executionRepository.retrievePipeline(execution.id) >> execution
+
+    and:
+    def stageDefinitionBuilder = stageDefinition(stageType) { builder ->
+      builder.withTask("fails", StartLoopTask)
+      builder.withTask("succeeds", EndLoopTask)
+    }
+    @Subject runner = create(stageDefinitionBuilder)
+
+    and:
+    startLoopTask.execute(_) >> new DefaultTaskResult(TERMINAL)
+    endLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+
+    when:
+    runner.start(execution)
+
+    then:
+    1 * executionRepository.updateStatus(execution.id, SUCCEEDED)
+
+    and:
+    execution.stages.first().status == FAILED_CONTINUE
+
+    where:
+    stageType = "canfail"
+    execution = Pipeline.builder().withId("1").withParallel(true).build()
   }
 
   @Unroll
