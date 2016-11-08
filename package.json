@@ -35,7 +35,7 @@
     "loader-utils": "^0.2.11",
     "lodash": "^4.16.1",
     "moment-timezone": "^0.4.0",
-    "rxjs": "^5.0.0-rc.1",
+    "rxjs": "=5.0.0-rc.1",
     "select2-bootstrap-css": "git://github.com/t0m/select2-bootstrap-css.git#v1.3.1",
     "source-map": "^0.4.4",
     "source-sans-pro": "^2.0.10",
