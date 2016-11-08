@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security
 
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
-import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
@@ -34,6 +33,8 @@ import org.springframework.context.annotation.Scope
 @Slf4j
 @Configuration
 class KubernetesCredentialsInitializer implements CredentialsInitializerSynchronizable {
+  private static final DEFAULT_CACHE_THREADS = 1
+
   @Bean
   List<? extends KubernetesNamedAccountCredentials> kubernetesNamedAccountCredentials(
     String clouddriverUserAgentApplicationName,
