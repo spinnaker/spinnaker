@@ -43,6 +43,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 
 abstract class StrategyControllerTck extends Specification {
 
@@ -118,6 +119,48 @@ abstract class StrategyControllerTck extends Specification {
     true             || { Map p -> p.triggers*.id == ["original-id"] }
   }
 
+  void 'should update a strategy'() {
+    given:
+    def strategy = pipelineStrategyDAO.create(null, new Pipeline([name: "test pipeline", application: "test_application"]))
+
+    when:
+    strategy.name = "Updated Name"
+    def response = mockMvc.perform(put("/strategies/${strategy.id}").contentType(MediaType.APPLICATION_JSON)
+      .content(new ObjectMapper().writeValueAsString(strategy))).andReturn().response
+
+    then:
+    response.status == OK
+    pipelineStrategyDAO.findById(strategy.getId()).getName() == "Updated Name"
+
+  }
+
+  void 'should fail update on duplicate strategy or invalid request'() {
+    given:
+    def (strategy1, strategy2) = [
+      pipelineStrategyDAO.create(null, new Pipeline([name: "test strategy 1", application: "test_application"])),
+      pipelineStrategyDAO.create(null, new Pipeline([name: "test strategy 2", application: "test_application"]))
+    ]
+
+    and:
+    strategy1.name = strategy2.name
+
+    when:
+    def response = mockMvc.perform(put("/strategies/${strategy1.id}").contentType(MediaType.APPLICATION_JSON)
+      .content(new ObjectMapper().writeValueAsString(strategy1))).andReturn().response
+
+    then:
+    response.status == BAD_REQUEST
+    response.contentAsString == '{"error":"A strategy with name '+ strategy2.name +' already exists in application '+ strategy2.application +'","status":"BAD_REQUEST"}'
+
+    when:
+    response = mockMvc.perform(put("/strategies/${strategy1.id}").contentType(MediaType.APPLICATION_JSON)
+      .content(new ObjectMapper().writeValueAsString(strategy2))).andReturn().response
+
+    then:
+    response.status == BAD_REQUEST
+    response.contentAsString == '{"error":"The provided id '+ strategy1.id +' doesn\'t match the strategy id '+ strategy2.id +'","status":400}'
+  }
+
   void 'should delete an existing pipeline by name or id'() {
     given:
     pipelineStrategyDAO.create(null, new Pipeline([
@@ -168,7 +211,7 @@ abstract class StrategyControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A strategy with that name already exists in that application","status":"BAD_REQUEST"}'
+    response.contentAsString == '{"error":"A strategy with name pipeline1 already exists in application test","status":"BAD_REQUEST"}'
   }
 
   void 'should enforce unique names on rename operations'() {
@@ -188,7 +231,7 @@ abstract class StrategyControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A strategy with that name already exists in that application","status":"BAD_REQUEST"}'
+    response.contentAsString == '{"error":"A strategy with name pipeline1 already exists in application test","status":"BAD_REQUEST"}'
   }
 }
 
