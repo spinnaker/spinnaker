@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.netflix.spinnaker.halyard.model.v1.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.services.v1.DeploymentService;
+import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

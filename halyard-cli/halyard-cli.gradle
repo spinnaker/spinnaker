@@ -1,0 +1,8 @@
+dependencies {
+  compile "com.beust:jcommander:1.48"
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'com.netflix.spinnaker.halyard.cli.Main'

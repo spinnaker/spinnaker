@@ -14,31 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.controllers.v1;
+package com.netflix.spinnaker.halyard.config.services.v1;
 
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
-import com.netflix.spinnaker.halyard.config.services.v1.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Component;
 
 /**
- * Reports the entire contents of ~/.hal/config
+ * This class is meant to be autowired into any controller or service that needs to read the current halconfig.
  */
-@RestController
-@RequestMapping("/v1/config")
-public class ConfigController {
+@Component
+public class ConfigService {
   @Autowired
-  ConfigService configService;
+  HalconfigParser halconfigParser;
 
-  @RequestMapping(value = "/", method = RequestMethod.GET)
-  Halconfig config() {
-    return configService.getConfig();
+  public Halconfig getConfig() {
+    return halconfigParser.getConfig();
   }
 
-  @RequestMapping(value = "/currentDeployment", method = RequestMethod.GET)
-  String currentDeployment() {
-    return configService.getCurrentDeployment();
+  public String getCurrentDeployment() {
+    return getConfig().getCurrentDeployment();
   }
 }

@@ -1,0 +1,202 @@
+/*
+ * Copyright 2016 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.halyard.config.model.v1
+
+import com.netflix.spinnaker.halyard.config.model.v1.providers.Account
+import com.netflix.spinnaker.halyard.config.validate.v1.ValidateAccount
+import com.netflix.spinnaker.halyard.config.validate.v1.ValidateField
+import com.netflix.spinnaker.halyard.config.validate.v1.Validator
+import lombok.Data
+import spock.lang.Specification
+
+import java.util.stream.Stream
+
+public class UpdateableSpec extends Specification {
+  static final String ORIGINAL_VALUE = "1"
+  static final String GOOD_VALUE = "2"
+  static final String SKIP_VALUE = "3"
+  static final String BAD_VALUE = "."
+  static final String ERROR_MESSAGE = "Bad value."
+
+  void "should update my field name"() {
+    when:
+    def test = new Test(name: ORIGINAL_VALUE)
+    def fieldref = new FieldReference(fieldName: "name", value: GOOD_VALUE, valueType: String.class)
+    def res = test.update(null, fieldref)
+
+    then:
+    res == []
+    test.name == GOOD_VALUE
+  }
+
+  void "should not update my field name"() {
+    when:
+    def test = new Test(name: ORIGINAL_VALUE)
+    def fieldref = new FieldReference(fieldName: "name", value: BAD_VALUE, valueType: String.class)
+    def res = test.update(null, fieldref)
+
+    then:
+    res[0].contains(ERROR_MESSAGE)
+    test.name == ORIGINAL_VALUE
+  }
+
+  void "should update my field name due to skip"() {
+    when:
+    def test = new Test(name: ORIGINAL_VALUE)
+    def fieldref = new FieldReference(fieldName: "name", value: SKIP_VALUE, valueType: String.class)
+    def res = test.update(null, fieldref)
+
+    then:
+    res == []
+    test.name == SKIP_VALUE
+  }
+
+  void "should fail to validate my field "() {
+    when:
+    def test = new Test(name: BAD_VALUE)
+    def fieldref = new FieldReference(fieldName: "name", valueType: String.class)
+    def res = test.validate(null, fieldref)
+
+    then:
+    res[0].contains(ERROR_MESSAGE)
+    test.name == BAD_VALUE
+  }
+
+  void "should fail to validate my account"() {
+    when:
+    def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: BAD_VALUE)
+    def halconfig = new Halconfig(halyardVersion: null)
+    def res = test.validate(halconfig)
+
+    then:
+    res[0].contains(ERROR_MESSAGE)
+    res[1].contains(ERROR_MESSAGE)
+    test.name == ORIGINAL_VALUE
+    test.duplicateName == BAD_VALUE
+  }
+
+  void "should succeed validating my account"() {
+    when:
+    def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: ORIGINAL_VALUE)
+    def halconfig = new Halconfig(halyardVersion: "1.0.0")
+    def res = test.validate(halconfig)
+
+    then:
+    res == []
+    test.name == ORIGINAL_VALUE
+    test.duplicateName == ORIGINAL_VALUE
+  }
+
+  void "should update my account"() {
+    when:
+    def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: BAD_VALUE)
+    def halconfig = new Halconfig(halyardVersion: "1.0.0")
+    def fieldref = new FieldReference(fieldName: "duplicateName", value: ORIGINAL_VALUE, valueType: String.class)
+    def res = test.update(halconfig, fieldref)
+
+    then:
+    res == []
+    test.name == ORIGINAL_VALUE
+    test.duplicateName == ORIGINAL_VALUE
+  }
+
+  void "should fail to update my account"() {
+    when:
+    def test = new MyAccount(name: ORIGINAL_VALUE, duplicateName: ORIGINAL_VALUE)
+    def halconfig = new Halconfig(halyardVersion: null)
+    def fieldref = new FieldReference(fieldName: "duplicateName", value: BAD_VALUE, valueType: String.class)
+    def res = test.update(halconfig, fieldref)
+
+    then:
+    res[0].contains(ERROR_MESSAGE)
+    res[1].contains(ERROR_MESSAGE)
+    test.name == ORIGINAL_VALUE
+    test.duplicateName == ORIGINAL_VALUE
+  }
+
+  @Data
+  public class Test implements Updateable {
+    @ValidateField(validators = [TestValidator.class])
+    String name
+  }
+}
+
+public class TestValidator extends Validator<String> {
+  public TestValidator(String value) {
+    super(value)
+  }
+
+  @Override
+  public Stream<String> validate() {
+    if (subject == UpdateableSpec.GOOD_VALUE) {
+      return null
+    } else {
+      return [UpdateableSpec.ERROR_MESSAGE].stream()
+    }
+  }
+
+  @Override
+  public boolean skip() {
+    return (subject == UpdateableSpec.SKIP_VALUE)
+  }
+}
+
+@ValidateAccount(validators = [AccountValidator.class, VersionValidator.class])
+public class MyAccount extends Account {
+  String duplicateName
+}
+
+// Validates that MyAccount.duplicateName matches MyAccount.name
+public class AccountValidator extends Validator<MyAccount> {
+  public AccountValidator(MyAccount subject) {
+    super(subject)
+  }
+
+  @Override
+  Stream<String> validate() {
+    if (subject.name == subject.duplicateName) {
+      return null
+    } else {
+      return Stream.of(UpdateableSpec.ERROR_MESSAGE)
+    }
+  }
+
+  @Override
+  boolean skip() {
+    return false
+  }
+}
+
+public class VersionValidator extends Validator<MyAccount> {
+  public VersionValidator(Halconfig halconfig, MyAccount subject) {
+    super(halconfig, subject)
+  }
+
+  @Override
+  Stream<String> validate() {
+    if (context.halyardVersion == null) {
+      return Stream.of(UpdateableSpec.ERROR_MESSAGE)
+    } else {
+      return null
+    }
+  }
+
+  @Override
+  boolean skip() {
+    return false
+  }
+}

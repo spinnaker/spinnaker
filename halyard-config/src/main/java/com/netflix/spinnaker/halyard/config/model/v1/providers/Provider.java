@@ -1,11 +1,11 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-rootProject.name="halyard"
+package com.netflix.spinnaker.halyard.config.model.v1.providers;
 
-include 'halyard-cli'
-include 'halyard-config'
-include 'halyard-web'
+import lombok.Data;
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+public class Provider<T extends Account> implements Cloneable {
+  boolean enabled;
+  List<T> accounts = new ArrayList<T>();
 }
-
-rootProject.children.each {
-  setBuildFile(it)
-}
-
