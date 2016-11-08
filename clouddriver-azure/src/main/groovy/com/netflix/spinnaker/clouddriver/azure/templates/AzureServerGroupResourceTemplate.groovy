@@ -61,7 +61,7 @@ class AzureServerGroupResourceTemplate {
   /**
    * Initialize variables that will be used in mulitple places
    * @param description Azure Server Group description object
-     */
+   */
   private static void initializeCommonVariables(AzureServerGroupDescription description) {
     LB_NAME = AzureUtilities.LB_NAME_PREFIX + description.name
   }
@@ -396,47 +396,42 @@ class AzureServerGroupResourceTemplate {
     }
   }
 
+  interface ScaleSetOsProfile {}
+
   // ***OSProfile
-  static class ScaleSetOsProfileProperty {
+  static class ScaleSetOsProfileProperty implements ScaleSetOsProfile {
     String computerNamePrefix
     String adminUsername
     String adminPassword
-    String customData
 
-    /**
-     *
-     * @param description
-     */
     ScaleSetOsProfileProperty(AzureServerGroupDescription description) {
       //Max length of 10 characters to allow for an aditional postfix within a max length of 15 characters
       computerNamePrefix = description.getIdentifier().substring(0, 10)
       log.info("computerNamePrefix will be truncated to 10 characters to maintain Azure restrictions")
       adminUsername = "[parameters('${vmUserNameParameterName}')]"
       adminPassword = "[parameters('${vmPasswordParameterName}')]"
+    }
+  }
+
+  static class ScaleSetOsProfileCustomDataProperty extends ScaleSetOsProfileProperty implements ScaleSetOsProfile {
+    String customData
+
+    ScaleSetOsProfileCustomDataProperty(AzureServerGroupDescription description) {
+      super(description)
       customData = "[base64(parameters('customData'))]"
     }
   }
 
 
   // ***Network Profile
-  /**
-   *
-   */
   static class ScaleSetNetworkProfileProperty {
     ArrayList<NetworkInterfaceConfiguration> networkInterfaceConfigurations = []
 
-    /**
-     *
-     * @param description
-     */
     ScaleSetNetworkProfileProperty(AzureServerGroupDescription description) {
       networkInterfaceConfigurations.add(new NetworkInterfaceConfiguration(description))
     }
   }
 
-  /**
-   *
-   */
   static class NetworkInterfaceConfiguration {
     String name
     NetworkInterfaceConfigurationProperty properties
@@ -547,14 +542,16 @@ class AzureServerGroupResourceTemplate {
    */
   static class ScaleSetVMProfileProperty implements ScaleSetVMProfile {
     StorageProfile storageProfile
-    ScaleSetOsProfileProperty osProfile
+    ScaleSetOsProfile osProfile
     ScaleSetNetworkProfileProperty networkProfile
 
     ScaleSetVMProfileProperty(AzureServerGroupDescription description) {
       storageProfile = description.image.isCustom ?
         new ScaleSetCustomImageStorageProfile(description) :
         new ScaleSetStorageProfile(description)
-      osProfile = new ScaleSetOsProfileProperty(description)
+      osProfile = description.osConfig.customData ?
+        new ScaleSetOsProfileCustomDataProperty(description) :
+        new ScaleSetOsProfileProperty(description)
       networkProfile = new ScaleSetNetworkProfileProperty(description)
 
     }

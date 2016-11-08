@@ -67,6 +67,17 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedCustomScriptTemplateWindows
   }
 
+  def 'generate server group template with custom data'() {
+    description = createCustomDescription()
+
+    description.osConfig.customData = "this is test custom data"
+
+    String template = AzureServerGroupResourceTemplate.getTemplate(description)
+
+    expect:
+    template.replaceAll('"createdTime" : "\\d+"', '"createdTime" : "1234567890"') == expectedCustomDataTemplate
+  }
+
   def 'verify parameters JSON'() {
 
     def parameters = [:]
@@ -76,7 +87,6 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
 
     expect: parametersJSON == expectedParameters
   }
-
 
   private static AzureServerGroupDescription createDescription(boolean withCustomImage = false) {
     AzureServerGroupDescription description = new AzureServerGroupDescription()
@@ -157,13 +167,13 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       }
     },
     "vmuserName" : {
-      "type" : "secureString",
+      "type" : "securestring",
       "metadata" : {
         "description" : "default VM account name"
       }
     },
     "vmPassword" : {
-      "type" : "secureString",
+      "type" : "securestring",
       "metadata" : {
         "description" : "default VM account password"
       }
@@ -308,8 +318,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
         "osProfile" : {
           "computerNamePrefix" : "azureMASM-",
           "adminUsername" : "[parameters('vmUsername')]",
-          "adminPassword" : "[parameters('vmPassword')]",
-          "customData" : "[base64(parameters('customData'))]"
+          "adminPassword" : "[parameters('vmPassword')]"
         },
         "networkProfile" : {
           "networkInterfaceConfigurations" : [ {
@@ -364,13 +373,13 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       }
     },
     "vmuserName" : {
-      "type" : "secureString",
+      "type" : "securestring",
       "metadata" : {
         "description" : "default VM account name"
       }
     },
     "vmPassword" : {
-      "type" : "secureString",
+      "type" : "securestring",
       "metadata" : {
         "description" : "default VM account password"
       }
@@ -487,8 +496,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
         "osProfile" : {
           "computerNamePrefix" : "azureMASM-",
           "adminUsername" : "[parameters('vmUsername')]",
-          "adminPassword" : "[parameters('vmPassword')]",
-          "customData" : "[base64(parameters('customData'))]"
+          "adminPassword" : "[parameters('vmPassword')]"
         },
         "networkProfile" : {
           "networkInterfaceConfigurations" : [ {
@@ -543,13 +551,455 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       }
     },
     "vmuserName" : {
-      "type" : "secureString",
+      "type" : "securestring",
       "metadata" : {
         "description" : "default VM account name"
       }
     },
     "vmPassword" : {
-      "type" : "secureString",
+      "type" : "securestring",
+      "metadata" : {
+        "description" : "default VM account password"
+      }
+    },
+    "customData" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "custom data to pass down to the virtual machine(s)"
+      },
+      "defaultValue" : ""
+    }
+  },
+  "variables" : {
+    "apiVersion" : "2015-06-15",
+    "publicIPAddressName" : "pip-azureMASM-st1-d11",
+    "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]",
+    "publicIPAddressType" : "Dynamic",
+    "dnsNameForLBIP" : "dns-azuremasm-st1-d11",
+    "loadBalancerBackend" : "be-azureMASM-st1-d11",
+    "loadBalancerFrontEnd" : "fe-azureMASM-st1-d11",
+    "loadBalancerName" : "lb-azureMASM-st1-d11",
+    "loadBalancerID" : "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
+    "frontEndIPConfigID" : "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations/', variables('loadBalancerName'), variables('loadBalancerFrontEnd'))]",
+    "inboundNatPoolName" : "np-azureMASM-st1-d11",
+    "vhdContainerName" : "azuremasm-st1-d11",
+    "osType" : {
+      "publisher" : "Canonical",
+      "offer" : "UbuntuServer",
+      "sku" : "14.04.3-LTS",
+      "version" : "latest"
+    },
+    "imageReference" : "[variables('osType')]",
+    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), 'sa')]" ]
+  },
+  "resources" : [ {
+    "apiVersion" : "[variables('apiVersion')]",
+    "name" : "[concat(variables('uniqueStorageNameArray')[copyIndex()])]",
+    "type" : "Microsoft.Storage/storageAccounts",
+    "location" : "[parameters('location')]",
+    "tags" : {
+      "appName" : "azureMASM",
+      "stack" : "st1",
+      "detail" : "d11",
+      "cluster" : "azureMASM-st1-d11",
+      "serverGroupName" : "azureMASM-st1-d11",
+      "createdTime" : "1234567890"
+    },
+    "copy" : {
+      "name" : "storageLoop",
+      "count" : 1
+    },
+    "properties" : {
+      "accountType" : "Premium_LRS"
+    }
+  }, {
+    "apiVersion" : "[variables('apiVersion')]",
+    "name" : "[variables('publicIPAddressName')]",
+    "type" : "Microsoft.Network/publicIPAddresses",
+    "location" : "[parameters('location')]",
+    "tags" : null,
+    "properties" : {
+      "publicIPAllocationMethod" : "[variables('publicIPAddressType')]",
+      "dnsSettings" : {
+        "domainNameLabel" : "[variables('dnsNameForLBIP')]"
+      }
+    }
+  }, {
+    "apiVersion" : "[variables('apiVersion')]",
+    "name" : "[variables('loadBalancerName')]",
+    "type" : "Microsoft.Network/loadBalancers",
+    "location" : "[parameters('location')]",
+    "tags" : {
+      "appName" : "azureMASM",
+      "stack" : "st1",
+      "detail" : "d11",
+      "createdTime" : "1234567890",
+      "cluster" : "azureMASM-st1-d11",
+      "serverGroup" : "azureMASM-st1-d11"
+    },
+    "dependsOn" : [ "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]" ],
+    "properties" : {
+      "frontendIPConfigurations" : [ {
+        "name" : "[variables('loadBalancerFrontEnd')]",
+        "properties" : {
+          "publicIpAddress" : {
+            "id" : "[variables('publicIPAddressID')]"
+          }
+        }
+      } ],
+      "backendAddressPools" : [ {
+        "name" : "[variables('loadBalancerBackEnd')]"
+      } ],
+      "inboundNatPools" : [ {
+        "name" : "InboundPortConfig",
+        "properties" : {
+          "frontendIPConfiguration" : {
+            "id" : "[variables('frontEndIPConfigID')]"
+          },
+          "protocol" : "tcp",
+          "frontendPortRangeStart" : 50000,
+          "frontendPortRangeEnd" : 50099,
+          "backendPort" : 22
+        }
+      } ]
+    }
+  }, {
+    "apiVersion" : "[variables('apiVersion')]",
+    "name" : "azureMASM-st1-d11",
+    "type" : "Microsoft.Compute/virtualMachineScaleSets",
+    "location" : "[parameters('location')]",
+    "tags" : {
+      "appName" : "azureMASM",
+      "stack" : "st1",
+      "detail" : "d11",
+      "cluster" : "azureMASM-st1-d11",
+      "createdTime" : "1234567890",
+      "loadBalancerName" : "lb-azureMASM-st1-d11",
+      "hasNewSubnet" : "false",
+      "imageIsCustom" : "false",
+      "storageAccountNames" : "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), 'sa')]"
+    },
+    "dependsOn" : [ "[concat('Microsoft.Storage/storageAccounts/', variables('uniqueStorageNameArray')[0])]", "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]" ],
+    "sku" : {
+      "name" : "Standard_A1",
+      "tier" : "Standard",
+      "capacity" : 2
+    },
+    "properties" : {
+      "upgradePolicy" : {
+        "mode" : "Manual"
+      },
+      "virtualMachineProfile" : {
+        "storageProfile" : {
+          "osDisk" : {
+            "name" : "osdisk-azureMASM-st1-d11",
+            "caching" : "ReadOnly",
+            "createOption" : "FromImage",
+            "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
+          },
+          "imageReference" : "[variables('imageReference')]"
+        },
+        "osProfile" : {
+          "computerNamePrefix" : "azureMASM-",
+          "adminUsername" : "[parameters('vmUsername')]",
+          "adminPassword" : "[parameters('vmPassword')]"
+        },
+        "networkProfile" : {
+          "networkInterfaceConfigurations" : [ {
+            "name" : "nic-azureMASM-st1-d11",
+            "properties" : {
+              "primary" : true,
+              "ipConfigurations" : [ {
+                "name" : "ipc-azureMASM-st1-d11",
+                "properties" : {
+                  "subnet" : {
+                    "id" : "[parameters('subnetId')]"
+                  },
+                  "loadBalancerBackendAddressPools" : [ {
+                    "id" : "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalancerName'), variables('loadBalancerBackend'))]"
+                  } ],
+                  "loadBalancerInboundNatPools" : [ {
+                    "id" : "[resourceId('Microsoft.Network/loadBalancers/inboundNatPools', variables('loadBalancerName'), variables('inboundNatPoolName'))]"
+                  } ],
+                  "applicationGatewayBackendAddressPools" : [ {
+                    "id" : "[parameters('appGatewayAddressPoolId')]"
+                  } ]
+                }
+              } ]
+            }
+          } ]
+        },
+        "extensionProfile" : {
+          "extensions" : [ {
+            "name" : "azureMASM_ext",
+            "properties" : {
+              "publisher" : "Microsoft.Azure.Extensions",
+              "type" : "CustomScript",
+              "typeHandlerVersion" : "2.0",
+              "autoUpgradeMinorVersion" : true,
+              "settings" : {
+                "fileUris" : [ "storage1", "file2" ],
+                "commandToExecute" : "mkdir mydir"
+              }
+            }
+          } ]
+        }
+      }
+    }
+  } ]
+}'''
+
+  private static String expectedCustomScriptTemplateWindows = '''{
+  "$schema" : "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion" : "1.0.0.0",
+  "parameters" : {
+    "location" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Location to deploy"
+      }
+    },
+    "subnetId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Subnet Resource ID"
+      }
+    },
+    "appGatewayAddressPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "App Gateway backend address pool resource ID"
+      }
+    },
+    "vmuserName" : {
+      "type" : "securestring",
+      "metadata" : {
+        "description" : "default VM account name"
+      }
+    },
+    "vmPassword" : {
+      "type" : "securestring",
+      "metadata" : {
+        "description" : "default VM account password"
+      }
+    },
+    "customData" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "custom data to pass down to the virtual machine(s)"
+      },
+      "defaultValue" : ""
+    }
+  },
+  "variables" : {
+    "apiVersion" : "2015-06-15",
+    "publicIPAddressName" : "pip-azureMASM-st1-d11",
+    "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]",
+    "publicIPAddressType" : "Dynamic",
+    "dnsNameForLBIP" : "dns-azuremasm-st1-d11",
+    "loadBalancerBackend" : "be-azureMASM-st1-d11",
+    "loadBalancerFrontEnd" : "fe-azureMASM-st1-d11",
+    "loadBalancerName" : "lb-azureMASM-st1-d11",
+    "loadBalancerID" : "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
+    "frontEndIPConfigID" : "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations/', variables('loadBalancerName'), variables('loadBalancerFrontEnd'))]",
+    "inboundNatPoolName" : "np-azureMASM-st1-d11",
+    "vhdContainerName" : "azuremasm-st1-d11",
+    "osType" : {
+      "publisher" : "Canonical",
+      "offer" : "UbuntuServer",
+      "sku" : "14.04.3-LTS",
+      "version" : "latest"
+    },
+    "imageReference" : "[variables('osType')]",
+    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), 'sa')]" ]
+  },
+  "resources" : [ {
+    "apiVersion" : "[variables('apiVersion')]",
+    "name" : "[concat(variables('uniqueStorageNameArray')[copyIndex()])]",
+    "type" : "Microsoft.Storage/storageAccounts",
+    "location" : "[parameters('location')]",
+    "tags" : {
+      "appName" : "azureMASM",
+      "stack" : "st1",
+      "detail" : "d11",
+      "cluster" : "azureMASM-st1-d11",
+      "serverGroupName" : "azureMASM-st1-d11",
+      "createdTime" : "1234567890"
+    },
+    "copy" : {
+      "name" : "storageLoop",
+      "count" : 1
+    },
+    "properties" : {
+      "accountType" : "Premium_LRS"
+    }
+  }, {
+    "apiVersion" : "[variables('apiVersion')]",
+    "name" : "[variables('publicIPAddressName')]",
+    "type" : "Microsoft.Network/publicIPAddresses",
+    "location" : "[parameters('location')]",
+    "tags" : null,
+    "properties" : {
+      "publicIPAllocationMethod" : "[variables('publicIPAddressType')]",
+      "dnsSettings" : {
+        "domainNameLabel" : "[variables('dnsNameForLBIP')]"
+      }
+    }
+  }, {
+    "apiVersion" : "[variables('apiVersion')]",
+    "name" : "[variables('loadBalancerName')]",
+    "type" : "Microsoft.Network/loadBalancers",
+    "location" : "[parameters('location')]",
+    "tags" : {
+      "appName" : "azureMASM",
+      "stack" : "st1",
+      "detail" : "d11",
+      "createdTime" : "1234567890",
+      "cluster" : "azureMASM-st1-d11",
+      "serverGroup" : "azureMASM-st1-d11"
+    },
+    "dependsOn" : [ "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]" ],
+    "properties" : {
+      "frontendIPConfigurations" : [ {
+        "name" : "[variables('loadBalancerFrontEnd')]",
+        "properties" : {
+          "publicIpAddress" : {
+            "id" : "[variables('publicIPAddressID')]"
+          }
+        }
+      } ],
+      "backendAddressPools" : [ {
+        "name" : "[variables('loadBalancerBackEnd')]"
+      } ],
+      "inboundNatPools" : [ {
+        "name" : "InboundPortConfig",
+        "properties" : {
+          "frontendIPConfiguration" : {
+            "id" : "[variables('frontEndIPConfigID')]"
+          },
+          "protocol" : "tcp",
+          "frontendPortRangeStart" : 50000,
+          "frontendPortRangeEnd" : 50099,
+          "backendPort" : 3389
+        }
+      } ]
+    }
+  }, {
+    "apiVersion" : "[variables('apiVersion')]",
+    "name" : "azureMASM-st1-d11",
+    "type" : "Microsoft.Compute/virtualMachineScaleSets",
+    "location" : "[parameters('location')]",
+    "tags" : {
+      "appName" : "azureMASM",
+      "stack" : "st1",
+      "detail" : "d11",
+      "cluster" : "azureMASM-st1-d11",
+      "createdTime" : "1234567890",
+      "loadBalancerName" : "lb-azureMASM-st1-d11",
+      "hasNewSubnet" : "false",
+      "imageIsCustom" : "false",
+      "storageAccountNames" : "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), 'sa')]"
+    },
+    "dependsOn" : [ "[concat('Microsoft.Storage/storageAccounts/', variables('uniqueStorageNameArray')[0])]", "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]" ],
+    "sku" : {
+      "name" : "Standard_A1",
+      "tier" : "Standard",
+      "capacity" : 2
+    },
+    "properties" : {
+      "upgradePolicy" : {
+        "mode" : "Manual"
+      },
+      "virtualMachineProfile" : {
+        "storageProfile" : {
+          "osDisk" : {
+            "name" : "osdisk-azureMASM-st1-d11",
+            "caching" : "ReadOnly",
+            "createOption" : "FromImage",
+            "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
+          },
+          "imageReference" : "[variables('imageReference')]"
+        },
+        "osProfile" : {
+          "computerNamePrefix" : "azureMASM-",
+          "adminUsername" : "[parameters('vmUsername')]",
+          "adminPassword" : "[parameters('vmPassword')]"
+        },
+        "networkProfile" : {
+          "networkInterfaceConfigurations" : [ {
+            "name" : "nic-azureMASM-st1-d11",
+            "properties" : {
+              "primary" : true,
+              "ipConfigurations" : [ {
+                "name" : "ipc-azureMASM-st1-d11",
+                "properties" : {
+                  "subnet" : {
+                    "id" : "[parameters('subnetId')]"
+                  },
+                  "loadBalancerBackendAddressPools" : [ {
+                    "id" : "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalancerName'), variables('loadBalancerBackend'))]"
+                  } ],
+                  "loadBalancerInboundNatPools" : [ {
+                    "id" : "[resourceId('Microsoft.Network/loadBalancers/inboundNatPools', variables('loadBalancerName'), variables('inboundNatPoolName'))]"
+                  } ],
+                  "applicationGatewayBackendAddressPools" : [ {
+                    "id" : "[parameters('appGatewayAddressPoolId')]"
+                  } ]
+                }
+              } ]
+            }
+          } ]
+        },
+        "extensionProfile" : {
+          "extensions" : [ {
+            "name" : "azureMASM_ext",
+            "properties" : {
+              "publisher" : "Microsoft.Compute",
+              "type" : "CustomScriptExtension",
+              "typeHandlerVersion" : "1.8",
+              "autoUpgradeMinorVersion" : true,
+              "settings" : {
+                "fileUris" : [ "storage1", "file2" ],
+                "commandToExecute" : "mkdir mydir"
+              }
+            }
+          } ]
+        }
+      }
+    }
+  } ]
+}'''
+
+  private static String expectedCustomDataTemplate = '''{
+  "$schema" : "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion" : "1.0.0.0",
+  "parameters" : {
+    "location" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Location to deploy"
+      }
+    },
+    "subnetId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Subnet Resource ID"
+      }
+    },
+    "appGatewayAddressPoolId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "App Gateway backend address pool resource ID"
+      }
+    },
+    "vmuserName" : {
+      "type" : "securestring",
+      "metadata" : {
+        "description" : "default VM account name"
+      }
+    },
+    "vmPassword" : {
+      "type" : "securestring",
       "metadata" : {
         "description" : "default VM account password"
       }
@@ -729,228 +1179,6 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
               "publisher" : "Microsoft.Azure.Extensions",
               "type" : "CustomScript",
               "typeHandlerVersion" : "2.0",
-              "autoUpgradeMinorVersion" : true,
-              "settings" : {
-                "fileUris" : [ "storage1", "file2" ],
-                "commandToExecute" : "mkdir mydir"
-              }
-            }
-          } ]
-        }
-      }
-    }
-  } ]
-}'''
-
-  private static String expectedCustomScriptTemplateWindows = '''{
-  "$schema" : "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion" : "1.0.0.0",
-  "parameters" : {
-    "location" : {
-      "type" : "string",
-      "metadata" : {
-        "description" : "Location to deploy"
-      }
-    },
-    "subnetId" : {
-      "type" : "string",
-      "metadata" : {
-        "description" : "Subnet Resource ID"
-      }
-    },
-    "appGatewayAddressPoolId" : {
-      "type" : "string",
-      "metadata" : {
-        "description" : "App Gateway backend address pool resource ID"
-      }
-    },
-    "vmuserName" : {
-      "type" : "secureString",
-      "metadata" : {
-        "description" : "default VM account name"
-      }
-    },
-    "vmPassword" : {
-      "type" : "secureString",
-      "metadata" : {
-        "description" : "default VM account password"
-      }
-    },
-    "customData" : {
-      "type" : "string",
-      "metadata" : {
-        "description" : "custom data to pass down to the virtual machine(s)"
-      },
-      "defaultValue" : ""
-    }
-  },
-  "variables" : {
-    "apiVersion" : "2015-06-15",
-    "publicIPAddressName" : "pip-azureMASM-st1-d11",
-    "publicIPAddressID" : "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]",
-    "publicIPAddressType" : "Dynamic",
-    "dnsNameForLBIP" : "dns-azuremasm-st1-d11",
-    "loadBalancerBackend" : "be-azureMASM-st1-d11",
-    "loadBalancerFrontEnd" : "fe-azureMASM-st1-d11",
-    "loadBalancerName" : "lb-azureMASM-st1-d11",
-    "loadBalancerID" : "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
-    "frontEndIPConfigID" : "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations/', variables('loadBalancerName'), variables('loadBalancerFrontEnd'))]",
-    "inboundNatPoolName" : "np-azureMASM-st1-d11",
-    "vhdContainerName" : "azuremasm-st1-d11",
-    "osType" : {
-      "publisher" : "Canonical",
-      "offer" : "UbuntuServer",
-      "sku" : "14.04.3-LTS",
-      "version" : "latest"
-    },
-    "imageReference" : "[variables('osType')]",
-    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), 'sa')]" ]
-  },
-  "resources" : [ {
-    "apiVersion" : "[variables('apiVersion')]",
-    "name" : "[concat(variables('uniqueStorageNameArray')[copyIndex()])]",
-    "type" : "Microsoft.Storage/storageAccounts",
-    "location" : "[parameters('location')]",
-    "tags" : {
-      "appName" : "azureMASM",
-      "stack" : "st1",
-      "detail" : "d11",
-      "cluster" : "azureMASM-st1-d11",
-      "serverGroupName" : "azureMASM-st1-d11",
-      "createdTime" : "1234567890"
-    },
-    "copy" : {
-      "name" : "storageLoop",
-      "count" : 1
-    },
-    "properties" : {
-      "accountType" : "Premium_LRS"
-    }
-  }, {
-    "apiVersion" : "[variables('apiVersion')]",
-    "name" : "[variables('publicIPAddressName')]",
-    "type" : "Microsoft.Network/publicIPAddresses",
-    "location" : "[parameters('location')]",
-    "tags" : null,
-    "properties" : {
-      "publicIPAllocationMethod" : "[variables('publicIPAddressType')]",
-      "dnsSettings" : {
-        "domainNameLabel" : "[variables('dnsNameForLBIP')]"
-      }
-    }
-  }, {
-    "apiVersion" : "[variables('apiVersion')]",
-    "name" : "[variables('loadBalancerName')]",
-    "type" : "Microsoft.Network/loadBalancers",
-    "location" : "[parameters('location')]",
-    "tags" : {
-      "appName" : "azureMASM",
-      "stack" : "st1",
-      "detail" : "d11",
-      "createdTime" : "1234567890",
-      "cluster" : "azureMASM-st1-d11",
-      "serverGroup" : "azureMASM-st1-d11"
-    },
-    "dependsOn" : [ "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]" ],
-    "properties" : {
-      "frontendIPConfigurations" : [ {
-        "name" : "[variables('loadBalancerFrontEnd')]",
-        "properties" : {
-          "publicIpAddress" : {
-            "id" : "[variables('publicIPAddressID')]"
-          }
-        }
-      } ],
-      "backendAddressPools" : [ {
-        "name" : "[variables('loadBalancerBackEnd')]"
-      } ],
-      "inboundNatPools" : [ {
-        "name" : "InboundPortConfig",
-        "properties" : {
-          "frontendIPConfiguration" : {
-            "id" : "[variables('frontEndIPConfigID')]"
-          },
-          "protocol" : "tcp",
-          "frontendPortRangeStart" : 50000,
-          "frontendPortRangeEnd" : 50099,
-          "backendPort" : 3389
-        }
-      } ]
-    }
-  }, {
-    "apiVersion" : "[variables('apiVersion')]",
-    "name" : "azureMASM-st1-d11",
-    "type" : "Microsoft.Compute/virtualMachineScaleSets",
-    "location" : "[parameters('location')]",
-    "tags" : {
-      "appName" : "azureMASM",
-      "stack" : "st1",
-      "detail" : "d11",
-      "cluster" : "azureMASM-st1-d11",
-      "createdTime" : "1234567890",
-      "loadBalancerName" : "lb-azureMASM-st1-d11",
-      "hasNewSubnet" : "false",
-      "imageIsCustom" : "false",
-      "storageAccountNames" : "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), 'sa')]"
-    },
-    "dependsOn" : [ "[concat('Microsoft.Storage/storageAccounts/', variables('uniqueStorageNameArray')[0])]", "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]" ],
-    "sku" : {
-      "name" : "Standard_A1",
-      "tier" : "Standard",
-      "capacity" : 2
-    },
-    "properties" : {
-      "upgradePolicy" : {
-        "mode" : "Manual"
-      },
-      "virtualMachineProfile" : {
-        "storageProfile" : {
-          "osDisk" : {
-            "name" : "osdisk-azureMASM-st1-d11",
-            "caching" : "ReadOnly",
-            "createOption" : "FromImage",
-            "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
-          },
-          "imageReference" : "[variables('imageReference')]"
-        },
-        "osProfile" : {
-          "computerNamePrefix" : "azureMASM-",
-          "adminUsername" : "[parameters('vmUsername')]",
-          "adminPassword" : "[parameters('vmPassword')]",
-          "customData" : "[base64(parameters('customData'))]"
-        },
-        "networkProfile" : {
-          "networkInterfaceConfigurations" : [ {
-            "name" : "nic-azureMASM-st1-d11",
-            "properties" : {
-              "primary" : true,
-              "ipConfigurations" : [ {
-                "name" : "ipc-azureMASM-st1-d11",
-                "properties" : {
-                  "subnet" : {
-                    "id" : "[parameters('subnetId')]"
-                  },
-                  "loadBalancerBackendAddressPools" : [ {
-                    "id" : "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalancerName'), variables('loadBalancerBackend'))]"
-                  } ],
-                  "loadBalancerInboundNatPools" : [ {
-                    "id" : "[resourceId('Microsoft.Network/loadBalancers/inboundNatPools', variables('loadBalancerName'), variables('inboundNatPoolName'))]"
-                  } ],
-                  "applicationGatewayBackendAddressPools" : [ {
-                    "id" : "[parameters('appGatewayAddressPoolId')]"
-                  } ]
-                }
-              } ]
-            }
-          } ]
-        },
-        "extensionProfile" : {
-          "extensions" : [ {
-            "name" : "azureMASM_ext",
-            "properties" : {
-              "publisher" : "Microsoft.Compute",
-              "type" : "CustomScriptExtension",
-              "typeHandlerVersion" : "1.8",
               "autoUpgradeMinorVersion" : true,
               "settings" : {
                 "fileUris" : [ "storage1", "file2" ],

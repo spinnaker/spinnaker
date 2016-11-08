@@ -184,12 +184,12 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         description.credentials.subscriptionId,
         description.credentials.defaultResourceGroup,
         description.credentials.defaultKeyVault)
-      templateParameters[AzureServerGroupResourceTemplate.customDataParameterName] = description.osConfig.customData ?: "nodata"
+      templateParameters[AzureServerGroupResourceTemplate.customDataParameterName] = description.osConfig.customData ?: ""
 
       if (errList.isEmpty()) {
         description.subnetId = subnetId
         task.updateStatus(BASE_PHASE, "Deploying server group")
-        DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
+        DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
           AzureServerGroupResourceTemplate.getTemplate(description),
           resourceGroupName,
           description.region,

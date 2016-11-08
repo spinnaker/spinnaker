@@ -80,8 +80,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param templateParams - key/value list of parameters to pass to the template
    * @return
    */
-  DeploymentExtended createResourceFromTemplate(AzureCredentials credentials,
-                                                String template,
+  DeploymentExtended createResourceFromTemplate(String template,
                                                 String resourceGroupName,
                                                 String region,
                                                 String resourceName,
@@ -252,27 +251,23 @@ class AzureResourceManagerClient extends AzureBaseClient {
         createOrUpdate(resourceGroupName, deploymentName, deployment)?.
         body
     } catch (CloudException ce) {  //TODO: (masm) move this error handling logic into the operation classes as part of refactoring how we monitor/report deployment operations/errors
-      log.error("Azure Deployment Error: ${ce.body.message}")
+      log.error("Azure Deployment Error: ${ce.body.message}\nError Details: ${ce.body.details.dump()}")
       throw ce
     } catch (Exception e) {
       log.error("Exception occured during deployment ${e.message}")
       throw e
     } finally {
-      log.info("Template for deployment {}: {}", deploymentName, template)
+      logDeploymentTemplate(deploymentName, template, templateParameters)
     }
   }
 
+  static void logDeploymentTemplate(String deploymentName, String template, Map<String, Object> parameters) {
+    log.info("Template for deployment {}: {}\nTemplate Parameters: {}", deploymentName, template, parameters.toMapString())
+  }
+
   static String convertParametersToTemplateJSON(ObjectMapper mapper, Map<String, Object> sourceParameters) {
-    def parameters = [:]
-    sourceParameters.each {
-      if (it.value.class == String) {
-        parameters[it.key] = new ValueParameter(it.value)
-      }
-      else {
-        parameters[it.key] = new ReferenceParameter(it.value)
-      }
-    }
-    mapper.writeValueAsString(parameters)
+    def parameters2 = sourceParameters.collectEntries{[it.key, (it.value.class == String ? new ValueParameter(it.value) : new ReferenceParameter(it.value))]}
+    mapper.writeValueAsString(parameters2)
   }
 
   /**

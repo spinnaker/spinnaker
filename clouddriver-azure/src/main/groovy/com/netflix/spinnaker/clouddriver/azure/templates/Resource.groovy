@@ -109,7 +109,7 @@ class StringParameterWithDefault extends StringParameter {
 class SecureStringParameter extends StringParameter{
   SecureStringParameter(Map<String, String> metadata) {
     super(metadata)
-    type = "secureString"
+    type = "securestring"
   }
 }
 
