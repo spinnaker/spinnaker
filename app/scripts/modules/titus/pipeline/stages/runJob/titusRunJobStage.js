@@ -121,6 +121,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
       };
     }
 
+    stage.deferredInitialization = true;
     $q.all({
       credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),
     }).then((backingData) => {

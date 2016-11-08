@@ -73,6 +73,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
 
     let securityGroupsRemoved = () => v2modalWizardService.markDirty('securityGroups');
 
+    serverGroupCommand.deferredInitialization = true;
     function configureCommand() {
       titusServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function () {
         serverGroupCommand.registry =
