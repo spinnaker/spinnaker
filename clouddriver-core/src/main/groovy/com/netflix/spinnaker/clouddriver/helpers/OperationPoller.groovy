@@ -62,12 +62,13 @@ class OperationPoller {
         pollOperation(operation, ifDone, getTimeout(timeoutSeconds)), task, resourceString, basePhase)
   }
 
-  static void retryWithBackoff(Function operation, long backOff, int maxRetries) {
+  static Object retryWithBackoff(Function operation, long backOff, int maxRetries) {
     int retries = 0
+    Object result
     boolean succeeded = false
     while (!succeeded) {
       try {
-        operation.apply(null);
+        result = operation.apply(null);
         succeeded = true
       } catch (Exception e) {
         if (retries >= maxRetries) {
@@ -78,6 +79,7 @@ class OperationPoller {
         Thread.sleep(timeout)
       }
     }
+    return result
   }
 
   private long getTimeout(Long timeoutSeconds) {
