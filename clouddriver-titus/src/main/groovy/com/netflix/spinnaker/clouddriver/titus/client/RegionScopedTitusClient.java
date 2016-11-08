@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
 import com.netflix.spinnaker.clouddriver.titus.model.TitusError;
 import okhttp3.MediaType;
@@ -120,38 +121,39 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     private <T> T execute(String requestName, Call<T> call) {
-        long startTime = System.nanoTime();
-        boolean success = false;
-        Integer responseCode = null;
-        try {
-            retrofit2.Response<T> response = call.execute();
-            responseCode = response.code();
-            success = response.isSuccess();
-            if (success) {
-                return response.body();
-            }
-            String errorMessage = response.message();
-            if (response != null && response.errorBody() != null) {
-                try {
-                  Converter<okhttp3.ResponseBody, TitusError> converter = retrofit.responseBodyConverter(TitusError.class, new Annotation[0]);
-                  TitusError error = converter.convert(response.errorBody());
-                  errorMessage = error.getMessage();
-                } catch( Exception e ){
-                }
-            }
-            throw new RuntimeException("response failed " + response.code() + " " + errorMessage);
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        } finally {
-            Id timerId = registry.createId("titus.request")
-              .withTag("titusAccount", titusRegion.getAccount())
-              .withTag("titusRegion", titusRegion.getName())
-              .withTag("request", requestName)
-              .withTag("success", Boolean.toString(success))
-              .withTag("responseCode", Optional.ofNullable(responseCode).map(Object::toString).orElse("UNKNOWN"));
-            registry.timer(timerId).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
-        }
-
+       return (T) OperationPoller.retryWithBackoff( o -> {
+         long startTime = System.nanoTime();
+         boolean success = false;
+         Integer responseCode = null;
+         try {
+           retrofit2.Response<T> response = call.execute();
+           responseCode = response.code();
+           success = response.isSuccess();
+           if (success) {
+             return response.body();
+           }
+           String errorMessage = response.message();
+           if (response != null && response.errorBody() != null) {
+             try {
+               Converter<okhttp3.ResponseBody, TitusError> converter = retrofit.responseBodyConverter(TitusError.class, new Annotation[0]);
+               TitusError error = converter.convert(response.errorBody());
+               errorMessage = error.getMessage();
+             } catch (Exception e) {
+             }
+           }
+           throw new RuntimeException("response failed " + response.code() + " " + errorMessage);
+         } catch (IOException ioe) {
+           throw new RuntimeException(ioe);
+         } finally {
+           Id timerId = registry.createId("titus.request")
+             .withTag("titusAccount", titusRegion.getAccount())
+             .withTag("titusRegion", titusRegion.getName())
+             .withTag("request", requestName)
+             .withTag("success", Boolean.toString(success))
+             .withTag("responseCode", Optional.ofNullable(responseCode).map(Object::toString).orElse("UNKNOWN"));
+           registry.timer(timerId).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+         }
+       }, 1000, 3 );
     }
 
     @Override
