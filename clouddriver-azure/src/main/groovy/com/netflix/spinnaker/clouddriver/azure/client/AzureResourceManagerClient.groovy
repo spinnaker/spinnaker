@@ -251,7 +251,8 @@ class AzureResourceManagerClient extends AzureBaseClient {
         createOrUpdate(resourceGroupName, deploymentName, deployment)?.
         body
     } catch (CloudException ce) {  //TODO: (masm) move this error handling logic into the operation classes as part of refactoring how we monitor/report deployment operations/errors
-      log.error("Azure Deployment Error: ${ce.body.message}\nError Details: ${ce.body.details.dump()}")
+      def errorDetails = ce.body.details*.message.join('\n')
+      log.error("Azure Deployment Error: ${ce.body.message}. Error Details: {}", errorDetails)
       throw ce
     } catch (Exception e) {
       log.error("Exception occured during deployment ${e.message}")
@@ -266,8 +267,8 @@ class AzureResourceManagerClient extends AzureBaseClient {
   }
 
   static String convertParametersToTemplateJSON(ObjectMapper mapper, Map<String, Object> sourceParameters) {
-    def parameters2 = sourceParameters.collectEntries{[it.key, (it.value.class == String ? new ValueParameter(it.value) : new ReferenceParameter(it.value))]}
-    mapper.writeValueAsString(parameters2)
+    def parameters = sourceParameters.collectEntries{[it.key, (it.value.class == String ? new ValueParameter(it.value) : new ReferenceParameter(it.value))]}
+    mapper.writeValueAsString(parameters)
   }
 
   /**
