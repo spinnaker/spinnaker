@@ -49,4 +49,9 @@ class StrategyController {
   void renameStrategy(@RequestBody Map renameCommand) {
     strategyService.move(renameCommand)
   }
+
+  @RequestMapping(value = "{id}", method = RequestMethod.PUT)
+  Map updateStrategy(@PathVariable("id") String id, @RequestBody Map strategy) {
+    strategyService.update(id, strategy)
+  }
 }

@@ -57,7 +57,13 @@ class PipelineService {
     } execute()
   }
 
-  void move(Map moveCommand) {
+  Map update(String pipelineId, Map pipeline) {
+    HystrixFactory.newMapCommand(GROUP, "updatePipeline") {
+      front50Service.updatePipeline(pipelineId, pipeline)
+    } execute()
+  }
+
+  void move(Map moveCommand) { //TODO: use update endpoint when front50 is live
     front50Service.movePipelineConfig(moveCommand)
   }
 

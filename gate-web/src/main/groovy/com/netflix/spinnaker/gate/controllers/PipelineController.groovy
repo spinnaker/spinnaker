@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @Slf4j
@@ -60,6 +59,11 @@ class PipelineController {
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
   Map getPipeline(@PathVariable("id") String id) {
     pipelineService.getPipeline(id);
+  }
+
+  @RequestMapping(value = "{id}", method = RequestMethod.PUT)
+  Map updatePipeline(@PathVariable("id") String id, @RequestBody Map pipeline) {
+    pipelineService.update(id, pipeline)
   }
 
   @RequestMapping(value = "{id}/cancel", method = RequestMethod.PUT)
