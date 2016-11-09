@@ -29,9 +29,11 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
   final String accountType
   final String project
   final String cloudProvider = AppEngineCloudProvider.ID
+  final String region
   final List<String> requiredGroupMembership
 
   @JsonIgnore
+  final String jsonPath
   final AppEngineCredentials credentials
   final String applicationName
   final Appengine appengine
@@ -41,12 +43,19 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
     String environment
     String accountType
     String project
+    String region
     List<String> requiredGroupMembership
     AppEngineCredentials credentials
 
     String jsonKey
+    String jsonPath
     String applicationName
     Appengine appengine
+
+    /*
+    * If true, the builder will overwrite region with a value from the platform.
+    * */
+    Boolean liveLookupsEnabled = true
 
     Builder name(String name) {
       this.name = name
@@ -68,8 +77,19 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
       return this
     }
 
+    Builder region(String region) {
+      this.region = region
+      this.liveLookupsEnabled = false
+      return this
+    }
+
     Builder requiredGroupMembership(List<String> requiredGroupMembership) {
       this.requiredGroupMembership = requiredGroupMembership
+      return this
+    }
+
+    Builder jsonPath(String jsonPath) {
+      this.jsonPath = jsonPath
       return this
     }
 
@@ -90,12 +110,18 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
 
       appengine = credentials.getAppEngine(applicationName)
 
+      if (liveLookupsEnabled) {
+        region = appengine.apps().get(project).execute().getLocationId()
+      }
+
       return new AppEngineNamedAccountCredentials(name,
                                                   environment,
                                                   accountType,
                                                   project,
                                                   AppEngineCloudProvider.ID,
+                                                  region,
                                                   requiredGroupMembership,
+                                                  jsonPath,
                                                   credentials,
                                                   applicationName,
                                                   appengine)

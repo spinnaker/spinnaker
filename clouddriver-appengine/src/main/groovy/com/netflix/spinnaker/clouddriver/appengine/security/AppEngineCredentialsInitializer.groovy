@@ -66,6 +66,7 @@ class AppEngineCredentialsInitializer implements CredentialsInitializerSynchroni
           .project(managedAccount.project)
           .jsonKey(jsonKey)
           .applicationName(clouddriverUserAgentApplicationName)
+          .jsonPath(managedAccount.jsonPath)
           .requiredGroupMembership(managedAccount.requiredGroupMembership)
           .build()
 
