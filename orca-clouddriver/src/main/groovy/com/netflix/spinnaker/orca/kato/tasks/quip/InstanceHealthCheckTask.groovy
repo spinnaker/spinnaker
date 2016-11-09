@@ -64,7 +64,8 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
         }
 
         URL healthCheckUrl = new URL(instance.healthCheckUrl)
-        def instanceService = createInstanceService("http://${healthCheckUrl.host}:${healthCheckUrl.port}")
+        def host = instance.privateIpAddress ?: healthCheckUrl.host
+        def instanceService = createInstanceService("http://${host}:${healthCheckUrl.port}")
         try { // keep trying until we get a 200 or time out
           instanceService.healthCheck(healthCheckUrl.path.substring(1))
         } catch(RetrofitError e) {
