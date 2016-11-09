@@ -18,26 +18,21 @@ package com.netflix.spinnaker.clouddriver.aws.services
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
-import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
+import com.netflix.spinnaker.clouddriver.aws.deploy.AsgLifecycleHookWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.DefaultLaunchConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder
-import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaUtil
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
-import org.apache.http.impl.client.HttpClients
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RestAdapter
-import retrofit.client.ApacheClient
-
-import java.util.concurrent.atomic.AtomicReference
-import java.util.regex.Pattern
 
 @Component
 class RegionScopedProviderFactory {
@@ -109,6 +104,10 @@ class RegionScopedProviderFactory {
 
     AsgReferenceCopier getAsgReferenceCopier(NetflixAmazonCredentials targetCredentials, String targetRegion) {
       new AsgReferenceCopier(amazonClientProvider, amazonCredentials, region, targetCredentials, targetRegion, new IdGenerator())
+    }
+
+    AsgLifecycleHookWorker getAsgLifecycleHookWorker() {
+      new AsgLifecycleHookWorker(amazonClientProvider, amazonCredentials, region, new IdGenerator())
     }
 
     LaunchConfigurationBuilder getLaunchConfigurationBuilder() {

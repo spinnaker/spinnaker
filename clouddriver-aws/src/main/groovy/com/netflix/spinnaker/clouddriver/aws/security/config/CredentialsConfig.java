@@ -72,6 +72,64 @@ public class CredentialsConfig {
         }
     }
 
+    public static class LifecycleHook {
+      private String name;
+      private String roleARN;
+      private String notificationTargetARN;
+      private String lifecycleTransition;
+      private Integer heartbeatTimeout;
+      private String defaultResult;
+
+      public String getName() {
+        return name;
+      }
+
+      public void setName(String name) {
+        this.name = name;
+      }
+
+      public String getRoleARN() {
+        return roleARN;
+      }
+
+      public void setRoleARN(String roleARN) {
+        this.roleARN = roleARN;
+      }
+
+      public String getNotificationTargetARN() {
+        return notificationTargetARN;
+      }
+
+      public void setNotificationTargetARN(String notificationTargetARN) {
+        this.notificationTargetARN = notificationTargetARN;
+      }
+
+      public String getLifecycleTransition() {
+        return lifecycleTransition;
+      }
+
+      public void setLifecycleTransition(String lifecycleTransition) {
+        this.lifecycleTransition = lifecycleTransition;
+      }
+
+      public Integer getHeartbeatTimeout() {
+        return heartbeatTimeout;
+      }
+
+      public void setHeartbeatTimeout(Integer heartbeatTimeout) {
+        this.heartbeatTimeout = heartbeatTimeout;
+      }
+
+      public String getDefaultResult() {
+        return defaultResult;
+      }
+
+      public void setDefaultResult(String defaultResult) {
+        this.defaultResult = defaultResult;
+      }
+
+    }
+
     public static class Account {
         private String name;
         private String environment;
@@ -91,6 +149,7 @@ public class CredentialsConfig {
         private Boolean bastionEnabled;
         private String assumeRole;
         private String sessionName;
+        private List<LifecycleHook> lifecycleHooks;
 
         public String getName() {
             return name;
@@ -235,17 +294,28 @@ public class CredentialsConfig {
         public void setSessionName(String sessionName) {
             this.sessionName = sessionName;
         }
+
+        public List<LifecycleHook> getLifecycleHooks() {
+          return lifecycleHooks;
+        }
+
+        public void setLifecycleHooks(List<LifecycleHook> lifecycleHooks) {
+          this.lifecycleHooks = lifecycleHooks;
+        }
     }
 
     private String defaultKeyPairTemplate;
     private List<Region> defaultRegions;
     private List<String> defaultSecurityGroups;
+    private List<LifecycleHook> defaultLifecycleHooks;
     private String defaultEddaTemplate;
     private String defaultFront50Template;
     private String defaultBastionHostTemplate;
     private String defaultDiscoveryTemplate;
     private String defaultAssumeRole;
     private String defaultSessionName;
+    private String defaultLifecycleHookRoleARNTemplate;
+    private String defaultLifecycleHookNotificationTargetARNTemplate;
 
     private List<Account> accounts;
 
@@ -327,5 +397,29 @@ public class CredentialsConfig {
 
     public void setAccounts(List<Account> accounts) {
         this.accounts = accounts;
+    }
+
+    public List<LifecycleHook> getDefaultLifecycleHooks() {
+        return defaultLifecycleHooks;
+    }
+
+    public void setDefaultLifecycleHooks(List<LifecycleHook> defaultLifecycleHooks) {
+        this.defaultLifecycleHooks = defaultLifecycleHooks;
+    }
+
+    public String getDefaultLifecycleHookRoleARNTemplate() {
+      return defaultLifecycleHookRoleARNTemplate;
+    }
+
+    public void setDefaultLifecycleHookRoleARNTemplate(String defaultLifecycleHookRoleARNTemplate) {
+        this.defaultLifecycleHookRoleARNTemplate = defaultLifecycleHookRoleARNTemplate;
+    }
+
+    public String getDefaultLifecycleHookNotificationTargetARNTemplate() {
+        return defaultLifecycleHookNotificationTargetARNTemplate;
+    }
+
+    public void setDefaultLifecycleHookNotificationTargetARNTemplate(String defaultLifecycleHookNotificationTargetARNTemplate) {
+        this.defaultLifecycleHookNotificationTargetARNTemplate = defaultLifecycleHookNotificationTargetARNTemplate;
     }
 }

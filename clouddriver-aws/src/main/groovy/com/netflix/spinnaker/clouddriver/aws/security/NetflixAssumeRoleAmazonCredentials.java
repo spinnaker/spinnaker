@@ -41,6 +41,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
                                               @JsonProperty("regions") List<AWSRegion> regions,
                                               @JsonProperty("defaultSecurityGroups") List<String> defaultSecurityGroups,
                                               @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
+                                              @JsonProperty("lifecycleHooks") List<LifecycleHook> lifecycleHooks,
                                               @JsonProperty("edda") String edda,
                                               @JsonProperty("eddaEnabled") Boolean eddaEnabled,
                                               @JsonProperty("discovery") String discovery,
@@ -52,15 +53,15 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
                                               @JsonProperty("assumeRole") String assumeRole,
                                               @JsonProperty("sessionName") String sessionName) {
 
-        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, bastionHost, bastionEnabled, assumeRole, sessionName);
+        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, bastionHost, bastionEnabled, assumeRole, sessionName);
     }
 
     public NetflixAssumeRoleAmazonCredentials(NetflixAssumeRoleAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
-        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getDefaultSecurityGroups(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled(), copy.getBastionHost(), copy.getBastionEnabled(), copy.getAssumeRole(), copy.getSessionName());
+        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getDefaultSecurityGroups(), copy.getRequiredGroupMembership(), copy.getLifecycleHooks(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled(), copy.getBastionHost(), copy.getBastionEnabled(), copy.getAssumeRole(), copy.getSessionName());
     }
 
-    NetflixAssumeRoleAmazonCredentials(String name, String environment, String accountType, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> defaultSecurityGroups, List<String> requiredGroupMembership, AWSCredentialsProvider credentialsProvider, String edda, Boolean eddaEnabled, String discovery, Boolean discoveryEnabled, String front50, Boolean front50Enabled, String bastionHost, Boolean bastionEnabled, String assumeRole, String sessionName) {
-        super(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, AssumeRoleAmazonCredentials.createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName), edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, bastionHost, bastionEnabled);
+    NetflixAssumeRoleAmazonCredentials(String name, String environment, String accountType, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> defaultSecurityGroups, List<String> requiredGroupMembership, List<LifecycleHook> lifecycleHooks, AWSCredentialsProvider credentialsProvider, String edda, Boolean eddaEnabled, String discovery, Boolean discoveryEnabled, String front50, Boolean front50Enabled, String bastionHost, Boolean bastionEnabled, String assumeRole, String sessionName) {
+        super(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, AssumeRoleAmazonCredentials.createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName), edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, bastionHost, bastionEnabled);
         this.assumeRole = assumeRole;
         this.sessionName = sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName;
     }

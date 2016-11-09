@@ -21,8 +21,9 @@ import com.netflix.spinnaker.clouddriver.aws.security.AWSAccountInfoLookup
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.AssumeRoleAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Account;
-import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Region;
+import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Account
+import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.LifecycleHook
+import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig.Region
 import spock.lang.Specification
 
 class CredentialsLoaderSpec extends Specification {
@@ -156,6 +157,8 @@ class CredentialsLoaderSpec extends Specification {
                 defaultFront50Template: 'http://front50.prod.netflix.net/{{name}}',
                 defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
                 defaultAssumeRole: 'role/asgard',
+                defaultLifecycleHookRoleARNTemplate: 'arn:aws:iam::{{accountId}}:role/my-notification-role',
+                defaultLifecycleHookNotificationTargetARNTemplate: 'arn:aws:sns:{{region}}:{{accountId}}:my-sns-topic',
                 accounts: [
                         new Account(
                                 name: 'test',
@@ -163,7 +166,14 @@ class CredentialsLoaderSpec extends Specification {
                                 regions: [new Region(name: 'us-west-1', availabilityZones: ['us-west-1a'])],
                                 discovery: 'us-west-1.discoveryqa.netflix.net',
                                 eddaEnabled: false,
-                                defaultKeyPair: 'oss-{{accountId}}-keypair')
+                                defaultKeyPair: 'oss-{{accountId}}-keypair',
+                                lifecycleHooks: [
+                                  new LifecycleHook(
+                                    lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
+                                    heartbeatTimeout: 1800,
+                                    defaultResult: 'CONTINUE'
+                                  )
+                                ])
                 ]
         )
         AWSCredentialsProvider provider = Mock(AWSCredentialsProvider)
@@ -189,6 +199,12 @@ class CredentialsLoaderSpec extends Specification {
             cred.regions.first().name == 'us-west-1'
             cred.regions.first().availabilityZones == ['us-west-1a']
             cred.credentialsProvider == provider
+            cred.lifecycleHooks.size() == 1
+            cred.lifecycleHooks.first().roleARN == 'arn:aws:iam::12345:role/my-notification-role'
+            cred.lifecycleHooks.first().notificationTargetARN == 'arn:aws:sns:{{region}}:12345:my-sns-topic'
+            cred.lifecycleHooks.first().lifecycleTransition == 'autoscaling:EC2_INSTANCE_TERMINATING'
+            cred.lifecycleHooks.first().heartbeatTimeout == 1800
+            cred.lifecycleHooks.first().defaultResult == 'CONTINUE'
         }
         0 * _
     }
@@ -212,6 +228,7 @@ class CredentialsLoaderSpec extends Specification {
         !cred.discoveryEnabled
         !cred.eddaEnabled
         !cred.front50Enabled
+        cred.lifecycleHooks.size() == 0
     }
 
     def 'accountId must be provided for assumeRole account types'() {

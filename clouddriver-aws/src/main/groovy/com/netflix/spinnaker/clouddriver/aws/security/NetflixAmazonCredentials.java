@@ -42,6 +42,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                                     @JsonProperty("regions") List<AWSRegion> regions,
                                     @JsonProperty("defaultSecurityGroups") List<String> defaultSecurityGroups,
                                     @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
+                                    @JsonProperty("lifecycleHooks") List<LifecycleHook> lifecycleHooks,
                                     @JsonProperty("edda") String edda,
                                     @JsonProperty("eddaEnabled") Boolean eddaEnabled,
                                     @JsonProperty("discovery") String discovery,
@@ -50,7 +51,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                                     @JsonProperty("front50Enabled") Boolean front50Enabled,
                                     @JsonProperty("bastionHost") String bastionHost,
                                     @JsonProperty("bastionEnabled") Boolean bastionEnabled) {
-        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, bastionHost, bastionEnabled);
+        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, bastionHost, bastionEnabled);
     }
 
     private static boolean flagValue(String serviceUrl, Boolean flag) {
@@ -58,7 +59,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public NetflixAmazonCredentials(NetflixAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
-        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getDefaultSecurityGroups(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled(), copy.getBastionHost(), copy.getBastionEnabled());
+        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getDefaultSecurityGroups(), copy.getRequiredGroupMembership(), copy.getLifecycleHooks(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled(), copy.getBastionHost(), copy.getBastionEnabled());
     }
 
     NetflixAmazonCredentials(String name,
@@ -69,6 +70,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                              List<AWSRegion> regions,
                              List<String> defaultSecurityGroups,
                              List<String> requiredGroupMembership,
+                             List<LifecycleHook> lifecycleHooks,
                              AWSCredentialsProvider credentialsProvider,
                              String edda,
                              Boolean eddaEnabled,
@@ -78,7 +80,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                              Boolean front50Enabled,
                              String bastionHost,
                              Boolean bastionEnabled) {
-        super(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, credentialsProvider);
+        super(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, credentialsProvider);
         this.edda = edda;
         this.eddaEnabled = flagValue(edda, eddaEnabled);
         this.discovery = discovery;
