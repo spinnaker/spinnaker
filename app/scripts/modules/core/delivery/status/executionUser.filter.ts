@@ -16,9 +16,6 @@ export function executionUserFilter() {
   };
 }
 
-const MODULE_NAME = 'spinnaker.core.delivery.executionUser.filter';
-
-module(MODULE_NAME, [])
+export const EXECUTION_USER_FILTER = 'spinnaker.core.delivery.executionUser.filter';
+module(EXECUTION_USER_FILTER, [])
   .filter('executionUser', executionUserFilter);
-
-export default MODULE_NAME;

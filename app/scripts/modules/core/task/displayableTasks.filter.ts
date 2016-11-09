@@ -15,9 +15,6 @@ export function displayableTaskFilter() {
   };
 }
 
-const MODULE_NAME = 'spinnaker.pipelines.stages.core.displayableTasks.filter';
-
-module(MODULE_NAME, [])
+export const DISPLAYABLE_TASKS_FILTER = 'spinnaker.pipelines.stages.core.displayableTasks.filter';
+module(DISPLAYABLE_TASKS_FILTER, [])
   .filter('displayableTasks', displayableTaskFilter);
-
-export default MODULE_NAME;

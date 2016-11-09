@@ -3,14 +3,14 @@
 let angular = require('angular');
 
 import {DOCKER_IMAGE_READER_SERVICE} from 'docker/image/docker.image.reader.service';
-import {DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT_MODULE} from 'docker/image/dockerImageAndTagSelector.component';
+import {DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT} from 'docker/image/dockerImageAndTagSelector.component';
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
     require('core/config/settings.js'),
     require('core/serviceAccount/serviceAccount.service.js'),
     DOCKER_IMAGE_READER_SERVICE,
     require('./dockerTriggerOptions.directive.js'),
-    DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT_MODULE
+    DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT
   ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
