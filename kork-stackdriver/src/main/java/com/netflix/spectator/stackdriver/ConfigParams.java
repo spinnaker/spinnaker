@@ -145,9 +145,14 @@ public class ConfigParams {
           JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
           GoogleCredential credential = loadCredential(transport, jsonFactory,
                                                        credentialsPath);
+          String version = getClass().getPackage().getImplementationVersion();
+          if (version == null) {
+            version = "Unknown";
+          }
+                  
           result.monitoring
               = new Monitoring.Builder(transport, jsonFactory, credential)
-                    .setApplicationName("Spectator")
+                    .setApplicationName("Spinnaker/" + version)
                     .build();
         } catch (IOException | java.security.GeneralSecurityException e) {
             final Logger log = LoggerFactory.getLogger("StackdriverWriter");
