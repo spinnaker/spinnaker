@@ -42,7 +42,7 @@ class TitusServerGroupNameResolver extends AbstractServerGroupNameResolver {
   List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
     def clusterNameParts = Names.parseName(clusterName)
     List<Job> jobs = titusClient.findJobsByApplication(clusterNameParts.app)
-                                .findAll { it.name?.startsWith(clusterName) }
+      .findAll { Names.parseName(it.name).cluster == Names.parseName(clusterName).cluster }
 
     return jobs.collect { Job job ->
       return new AbstractServerGroupNameResolver.TakenSlot(
