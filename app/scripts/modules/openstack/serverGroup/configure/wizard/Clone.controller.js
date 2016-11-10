@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
     function configureCommand() {
       serverGroupCommand.viewState.contextImages = $scope.contextImages;
       $scope.contextImages = null;
-      openstackServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
+      openstackServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
         $scope.state.loaded = true;
         initializeWizardState();
         initializeWatches();

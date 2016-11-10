@@ -93,6 +93,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
     this.mockLoadBalancerReader = addDeferredMock({}, 'listLoadBalancers');
     this.mockAccountService = addDeferredMock({}, 'listAccounts');
     this.mockLoadBalancerWriter = addDeferredMock({}, 'upsertLoadBalancer');
+    this.mockSecurityGroupReader = addDeferredMock({}, 'getAllSecurityGroups');
     this.mockTaskMonitor = {
       submit: jasmine.createSpy('taskMonitor.submit')
     };
@@ -114,7 +115,8 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
         loadBalancerReader: this.mockLoadBalancerReader,
         accountService: this.mockAccountService,
         loadBalancerWriter: this.mockLoadBalancerWriter,
-        taskMonitorService: this.mockTaskMonitorService
+        taskMonitorService: this.mockTaskMonitorService,
+        securityGroupReader: this.mockSecurityGroupReader,
       });
     };
   }));

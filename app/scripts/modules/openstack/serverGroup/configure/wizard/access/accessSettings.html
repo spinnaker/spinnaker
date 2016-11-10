@@ -16,17 +16,17 @@
       </div>
     </div>
 
-    <os-app-cache-backed-multi-select-field label="Load Balancers"
-                                            cache-key="loadBalancers"
-                                            filter="filter"
+    <os-cache-backed-multi-select-field label="Load Balancers"
+                                            cache="allLoadBalancers"
+                                            refresh-cache="updateLoadBalancers"
                                             required="false"
-                                            model="command.loadBalancers"></os-app-cache-backed-multi-select-field>
+                                            model="command.loadBalancers"></os-cache-backed-multi-select-field>
 
-    <os-app-cache-backed-multi-select-field label="Security Groups"
-                                            cache-key="securityGroups"
-                                            filter="filter"
+    <os-cache-backed-multi-select-field label="Security Groups"
+                                            cache="allSecurityGroups"
+                                            refresh-cache="updateSecurityGroups"
                                             required="true"
-                                            model="command.securityGroups"></os-app-cache-backed-multi-select-field>
+                                            model="command.securityGroups"></os-cache-backed-multi-select-field>
 
     <div class="form-group">
       <div class="col-md-5 sm-label-left">
@@ -61,4 +61,3 @@
     </ng-form>
   </div>
 </div>
-

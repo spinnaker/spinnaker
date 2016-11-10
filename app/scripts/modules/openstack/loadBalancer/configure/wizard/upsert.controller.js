@@ -19,15 +19,14 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     require('../../../subnet/subnetSelectField.directive.js'),
     require('../../../network/networkSelectField.directive.js'),
     require('../../../common/isolateForm.directive.js'),
+    require('core/securityGroup/securityGroup.read.service.js')
   ])
   .controller('openstackUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
                                                                 application, loadBalancer, isNew, loadBalancerReader,
                                                                 accountService, openstackLoadBalancerTransformer,
-                                                                loadBalancerWriter, taskMonitorService) {
+                                                                loadBalancerWriter, taskMonitorService, securityGroupReader) {
     var ctrl = this;
     $scope.isNew = isNew;
-    $scope.application = application;
-
     $scope.application = application;
 
     $scope.pages = {
@@ -52,6 +51,11 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       { label: 'Least Connections', value: 'LEAST_CONNECTIONS' },
       { label: 'Source IP', value: 'SOURCE_IP' }
     ];
+
+    $scope.allSecurityGroups = [];
+    $scope.$watch('loadBalancer.account', updateSecurityGroups);
+    $scope.$watch('loadBalancer.region', updateSecurityGroups);
+    updateSecurityGroups();
 
     // initialize controller
     if (loadBalancer) {
@@ -133,6 +137,18 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       $scope.existingLoadBalancerNames = _.flatten(_.map(allLoadBalancerNames[$scope.loadBalancer.account || ''] || []));
     }
 
+    function updateSecurityGroups() {
+      var account = _.get($scope, ['loadBalancer', 'account']);
+      var region = _.get($scope, ['loadBalancer', 'region']);
+      if (!account || !region) {
+        $scope.allSecurityGroups = [];
+      }
+      securityGroupReader.getAllSecurityGroups()
+        .then(function(securityGroups) {
+          $scope.allSecurityGroups = _.get(securityGroups, [account, 'openstack', region], []);
+        });
+    }
+
     // Controller API
     this.updateName = function() {
       if (!isNew) {
@@ -179,17 +195,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     this.prependForwardSlash = (text) => {
       return text && text.indexOf('/') !== 0 ? `/${text}` : text;
     };
-
-    function updateFilter() {
-      $scope.filter = {
-        account: $scope.loadBalancer.account,
-        region: $scope.loadBalancer.region
-      };
-    }
-
-    $scope.$watch('loadBalancer.account', updateFilter);
-    $scope.$watch('loadBalancer.region', updateFilter);
-    updateFilter();
 
     this.removeListener = function(index) {
       $scope.loadBalancer.listeners.splice(index, 1);

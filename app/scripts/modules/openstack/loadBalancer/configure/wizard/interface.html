@@ -2,10 +2,10 @@
   <div class="modal-body">
     <network-select-field model="loadBalancer.networkId" help-key="openstack.loadBalancer.network" read-only="!isNew"></network-select-field>
 
-    <os-app-cache-backed-multi-select-field label="Security Groups"
-                                            cache-key="securityGroups"
-                                            filter="filter"
+    <os-cache-backed-multi-select-field label="Security Groups"
+                                            cache="allSecurityGroups"
+                                            refresh-cache="updateSecurityGroups"
                                             required="true"
-                                            model="loadBalancer.securityGroups"></os-app-cache-backed-multi-select-field>
+                                            model="loadBalancer.securityGroups"></os-cache-backed-multi-select-field>
   </div>
 </ng-form>

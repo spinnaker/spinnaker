@@ -4,58 +4,49 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.openstack.appCacheBackedMultiSelectField.directive', [])
-  .directive('osAppCacheBackedMultiSelectField', function () {
+module.exports = angular.module('spinnaker.openstack.cacheBackedMultiSelectField.directive', [])
+  .directive('osCacheBackedMultiSelectField', function () {
     return {
       restrict: 'E',
-      templateUrl: require('./appCacheBackedMultiSelect.template.html'),
+      templateUrl: require('./cacheBackedMultiSelect.template.html'),
       scope: {
-        cacheKey: '@',
-        filter: '<?',
+        cache: '=',
+        refreshCache: '=',
         label: '@',
         model: '=',
         onChange: '&',
         required: '<?'
       },
       link: function(scope) {
-        var app = scope.$parent.application;
-        var cache = app[scope.cacheKey];
-
         _.defaults(scope, {
           //wrap selectedOptions to work around issue with ng-model where binding only works if the model is a property of an object
           // (probably fixed in newer versions of AngularJS)
           state: { selectedOptions: scope.model },
           refreshTooltipLabel: scope.label,
           refreshTooltipTemplate: require('./cacheRefresh.tooltip.html'),
-          filter: {},
-          cache: cache,
+          cache: [],
           required: false,
+          forceRefreshCache: _.isFunction(scope.refreshCache) ? scope.refreshCache : function() {},
 
           onSelectionsChanged: function() {
             //Hack to work around bug in ui-select where selected values re-appear in the drop-down
             scope.state.selectedOptions = _.uniq(scope.state.selectedOptions);
             scope.model = scope.state.selectedOptions;
             if( scope.onChange ) {
-              var args = {};
-              args[scope.cacheKey] = scope.model;
+              var args = { selection: scope.model };
               scope.onChange(args);
             }
           }
         });
 
         function updateOptions() {
-          scope.options = _.chain(cache.data)
-            .filter(scope.filter)
-            .sortBy(function(o) { o.name; })
-            .value();
+          scope.options = _.sortBy(scope.cache, 'name');
         }
 
-        cache.onRefresh(scope, updateOptions);
-        scope.$watch('filter', updateOptions, true);
+        scope.$watch('cache', updateOptions);
         scope.$watch('model', function(model) {
           scope.state.selectedOptions = model;
         });
-
         updateOptions();
       }
     };
