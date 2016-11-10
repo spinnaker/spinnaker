@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.controllers
 
 import java.time.Clock
 import java.time.Instant
-import java.time.ZoneId
 import groovy.json.JsonSlurper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -30,7 +29,9 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
+import static java.time.ZoneOffset.UTC
 import static java.time.temporal.ChronoUnit.DAYS
+import static java.time.temporal.ChronoUnit.HOURS
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 
@@ -41,7 +42,7 @@ class TaskControllerSpec extends Specification {
   def front50Service = Mock(Front50Service)
   def startTracker = Mock(PipelineStartTracker)
 
-  def clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
+  def clock = Clock.fixed(Instant.now(), UTC)
   int daysOfExecutionHistory = 14
   int numberOfOldPipelineExecutionsToInclude = 2
 
@@ -125,8 +126,8 @@ class TaskControllerSpec extends Specification {
   void '/applications/{application}/tasks only returns un-started and tasks from the past two weeks, sorted newest first'() {
     given:
     def tasks = [
-      [startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minusMillis(1).toEpochMilli(), id: 'too-old'] as Orchestration,
-      [startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plusMillis(1).toEpochMilli(), id: 'not-too-old'] as Orchestration,
+      [startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli(), id: 'too-old'] as Orchestration,
+      [startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(1, HOURS).toEpochMilli(), id: 'not-too-old'] as Orchestration,
       [startTime: clock.instant().minus(1, DAYS).toEpochMilli(), id: 'pretty-new'] as Orchestration,
       [id: 'not-started-1'] as Orchestration,
       [id: 'not-started-2'] as Orchestration
@@ -145,17 +146,17 @@ class TaskControllerSpec extends Specification {
   void '/applications/{application}/pipelines should only return pipelines from the past two weeks, newest first'() {
     given:
     def pipelines = [
-      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minusMillis(1).toEpochMilli(), id: 'old'],
-      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plusMillis(1).toEpochMilli(), id: 'newer'],
+      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli(), id: 'old'],
+      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(1, HOURS).toEpochMilli(), id: 'newer'],
       [pipelineConfigId: "1", id: 'not-started'],
       [pipelineConfigId: "1", id: 'also-not-started'],
 
       /*
        * If a pipeline has no recent executions, the most recent N executions should be included
        */
-      [pipelineConfigId: "2", id: 'older1', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minusMillis(1).toEpochMilli()],
-      [pipelineConfigId: "2", id: 'older2', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minusMillis(2).toEpochMilli()],
-      [pipelineConfigId: "2", id: 'older3', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minusMillis(3).toEpochMilli()]
+      [pipelineConfigId: "2", id: 'older1', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(1, HOURS).toEpochMilli()],
+      [pipelineConfigId: "2", id: 'older2', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(2, HOURS).toEpochMilli()],
+      [pipelineConfigId: "2", id: 'older3', startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(3, HOURS).toEpochMilli()]
     ]
     def app = 'test'
 
@@ -183,13 +184,13 @@ class TaskControllerSpec extends Specification {
   void '/pipelines should only return the latest pipelines for the provided config ids, newest first'() {
     given:
     def pipelines = [
-      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minusMillis(1).toEpochMilli(), id: 'old-1'],
-      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plusMillis(1).toEpochMilli(), id: 'newer-1'],
+      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli(), id: 'old-1'],
+      [pipelineConfigId: "1", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(1, HOURS).toEpochMilli(), id: 'newer-1'],
       [pipelineConfigId: "1", id: 'not-started-1'],
-      [pipelineConfigId: "2", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minusMillis(1).toEpochMilli(), id: 'old-2'],
-      [pipelineConfigId: "2", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plusMillis(1).toEpochMilli(), id: 'newer-2'],
+      [pipelineConfigId: "2", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli(), id: 'old-2'],
+      [pipelineConfigId: "2", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).plus(1, HOURS).toEpochMilli(), id: 'newer-2'],
       [pipelineConfigId: "2", id: 'not-started-2'],
-      [pipelineConfigId: "3", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minusMillis(1).toEpochMilli(), id: 'old-3']
+      [pipelineConfigId: "3", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(1, HOURS).toEpochMilli(), id: 'old-3']
     ]
 
     executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
