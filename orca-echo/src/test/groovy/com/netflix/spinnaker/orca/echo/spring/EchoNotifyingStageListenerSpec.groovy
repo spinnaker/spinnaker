@@ -2,6 +2,7 @@ package com.netflix.spinnaker.orca.echo.spring
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.*
 import spock.lang.Shared
 import spock.lang.Specification
@@ -12,6 +13,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 class EchoNotifyingStageListenerSpec extends Specification {
 
   def echoService = Mock(EchoService)
+  def persister = Stub(Persister)
 
   @Subject
   def echoListener = new EchoNotifyingStageListener(echoService)
@@ -27,7 +29,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     def task = new DefaultTask(status: ExecutionStatus.NOT_STARTED)
 
     when:
-    echoListener.beforeTask(null, pipelineStage, task)
+    echoListener.beforeTask(persister, pipelineStage, task)
 
     then:
     1 * echoService.recordEvent({ event -> event.details.type == "orca:task:starting" })
@@ -38,7 +40,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     def task = new DefaultTask(stageStart: true)
 
     when:
-    echoListener.beforeStage(null, pipelineStage)
+    echoListener.beforeStage(persister, pipelineStage)
 
     then:
     1 * echoService.recordEvent({ event -> event.details.type == "orca:stage:starting" })
@@ -53,7 +55,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     echoService.recordEvent(_) >> { events << it[0]; null }
 
     when:
-    echoListener.beforeTask(null, pipelineStage, task)
+    echoListener.beforeTask(persister, pipelineStage, task)
 
     then:
     events.size() == 1
@@ -66,7 +68,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     def task = new DefaultTask(name: taskName, stageEnd: isEnd)
 
     when:
-    echoListener.afterTask(null, stage, task, executionStatus, wasSuccessful)
+    echoListener.afterTask(persister, stage, task, executionStatus, wasSuccessful)
 
     then:
     invocations * echoService.recordEvent(_)
@@ -85,7 +87,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
   @Unroll
   def "triggers an end stage event"() {
     when:
-    echoListener.afterStage(null, stage)
+    echoListener.afterStage(persister, stage)
 
     then:
     invocations * echoService.recordEvent(_)
@@ -109,7 +111,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
     }
 
     when:
-    echoListener.afterTask(null, stage, task, executionStatus, wasSuccessful)
+    echoListener.afterTask(persister, stage, task, executionStatus, wasSuccessful)
 
     then:
     message.details.source == "orca"
