@@ -86,7 +86,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
         description.serverGroups = appGatewayDescription.serverGroups
         description.trafficEnabledSG = appGatewayDescription.trafficEnabledSG
 
-        DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
+        DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
           AzureAppGatewayResourceTemplate.getTemplate(description),
           resourceGroupName,
           description.region,
@@ -163,7 +163,7 @@ class UpsertAzureAppGatewayAtomicOperation implements AtomicOperation<Map> {
         }
 
         task.updateStatus(BASE_PHASE, "Create new application gateway ${description.loadBalancerName} in ${description.region}...")
-        DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
+        DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
           AzureAppGatewayResourceTemplate.getTemplate(description),
           resourceGroupName,
           description.region,

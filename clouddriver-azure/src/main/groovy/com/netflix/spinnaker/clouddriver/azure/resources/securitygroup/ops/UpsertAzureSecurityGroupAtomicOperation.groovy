@@ -61,7 +61,7 @@ class UpsertAzureSecurityGroupAtomicOperation implements AtomicOperation<Map> {
       // Create corresponding ResourceGroup if it's not created already
       description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(description.credentials, resourceGroupName, null, description.region)
 
-      DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
+      DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
         AzureSecurityGroupResourceTemplate.getTemplate(description),
         resourceGroupName,
         description.region,

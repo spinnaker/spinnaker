@@ -58,7 +58,7 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
 
       task.updateStatus(BASE_PHASE, "Beginning load balancer deployment")
 
-      DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
+      DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(
         AzureLoadBalancerResourceTemplate.getTemplate(description),
         resourceGroupName,
         description.region,
