@@ -31,17 +31,20 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.transf
           var status = stage.status;
 
           var canaryStatus = stage.context.canary.status;
+
+          var canaryResult = stage.context.canary.canaryResult && stage.context.canary.canaryResult.overallResult;
+
           if (canaryStatus && status !== 'CANCELED') {
             if (canaryStatus.status === 'LAUNCHED' || canaryStatus.status === 'RUNNING') {
               status = 'RUNNING';
             }
-            if (canaryStatus.complete) {
+            if (canaryStatus.complete && canaryResult === 'SUCCESS') {
               status = 'SUCCEEDED';
             }
             if (canaryStatus.status === 'DISABLED') {
               status = 'DISABLED';
             }
-            if (canaryStatus.status === 'FAILED') {
+            if (canaryStatus.status === 'FAILED' || canaryResult === 'FAILURE') {
               status = 'FAILED';
             }
             if (canaryStatus.status === 'TERMINATED') {
