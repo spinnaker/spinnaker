@@ -25,11 +25,9 @@ include "orca-core",
   "orca-mine",
   "orca-mahe",
   "orca-test",
-  "orca-rush",
   "orca-flex",
   "orca-web",
   "orca-smoke-test",
-  "orca-tide",
   "orca-applications",
   "orca-spring-batch"
 

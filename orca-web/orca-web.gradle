@@ -40,10 +40,8 @@ dependencies {
   compile project(":orca-echo")
   compile project(":orca-mine")
   compile project(":orca-mahe")
-  compile project(":orca-rush")
   compile project(":orca-igor")
   compile project(":orca-eureka")
-  compile project(":orca-tide")
   compile project(":orca-spring-batch")
 
 //  Replace below with this line when fiat becomes stable.
