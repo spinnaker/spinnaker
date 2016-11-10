@@ -77,8 +77,8 @@ class PackageInfo {
   @CompileDynamic
   @VisibleForTesting
   private Map createAugmentedRequest(Map trigger, Map buildInfo, Map request, boolean allowMissingPackageInstallation) {
-
-    List<Map> triggerArtifacts = trigger?.buildInfo?.artifacts ?: trigger?.parentExecution?.trigger?.buildInfo?.artifacts
+    Map artifactSourceBuildInfo = getArtifactSourceBuildInfo(trigger)
+    List<Map> triggerArtifacts = artifactSourceBuildInfo?.artifacts
     List<Map> buildArtifacts = buildInfo?.artifacts
 
     if (isUrl(request.package) || request.package?.isEmpty() || !request.package) {
@@ -151,7 +151,7 @@ class PackageInfo {
       if (packageName) {
 
         if (extractBuildDetails) {
-          def buildInfoForDetails = buildArtifact ? buildInfo : trigger?.buildInfo
+          def buildInfoForDetails = buildArtifact ? buildInfo : artifactSourceBuildInfo
           buildDetailExtractor.tryToExtractBuildDetails(buildInfoForDetails, request)
         }
       }
@@ -166,6 +166,16 @@ class PackageInfo {
     return request
   }
 
+  @CompileDynamic
+  Map getArtifactSourceBuildInfo(Map trigger){
+    if (trigger?.buildInfo?.artifacts) {
+      return trigger.buildInfo
+    }
+    if (trigger?.parentExecution?.trigger) {
+      return getArtifactSourceBuildInfo(trigger.parentExecution.trigger)
+    }
+    return null
+  }
 
   @CompileDynamic
   private String extractPackageName(Map artifact, String fileExtension) {

@@ -262,4 +262,78 @@ class PackageInfoSpec extends Specification {
       def exception = thrown(IllegalStateException)
       exception.message == "Unable to find deployable artifact starting with [foo_, bar_] and ending with .deb in [] and [[fileName:test-package_1.0.0.deb]]. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
   }
+
+  @Unroll
+  def "getArtifactSourceBuildInfo: get buildInfo from nearest trigger with artifact"() {
+    given:
+    PackageInfo packageInfo = new PackageInfo(null, null, null, true, true, null)
+
+    when:
+    Map artifactSourceBuildInfo = packageInfo.getArtifactSourceBuildInfo(trigger)
+
+    then:
+    buildInfo == artifactSourceBuildInfo
+
+    where:
+    trigger                                                ||  buildInfo
+    [buildInfo: [
+      something: "else"
+    ]]                                                     ||  null
+    [parentExecution: [
+      trigger: [
+        buildInfo: [
+          artifacts: [
+            [fileName: "api_1.1.1-h01.sha123_all.deb"]
+          ]]]]]                                            ||  [artifacts:[[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
+    [buildInfo: [
+      artifacts: [
+        [fileName: "api_1.1.1-h01.sha123_all.deb"]
+      ]]]                                                  ||  [artifacts:[[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
+    [
+    buildInfo: [
+      artifacts: [
+        [fileName: "first_1.1.1-h01.sha123_all.deb"]
+      ]],
+    parentExecution: [
+      trigger: [
+        buildInfo: [
+          artifacts: [
+            [fileName: "api_1.1.1-h01.sha123_all.deb"]
+      ]]]]
+    ]                                                      ||  [artifacts:[[fileName: "first_1.1.1-h01.sha123_all.deb"]]]
+  }
+
+
+  @Unroll
+  def "findTargetPackage: get packageVersion from trigger and parentExecution.trigger"() {
+    given:
+    Stage quipStage = new PipelineStage()
+    Pipeline pipeline = new Pipeline()
+    pipeline.trigger << trigger
+    quipStage.execution = pipeline
+    quipStage.context = ['package': "api"]
+
+    PackageType packageType = PackageType.DEB
+    ObjectMapper objectMapper = new ObjectMapper()
+    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+
+    when:
+    Map targetPkg = packageInfo.findTargetPackage(true)
+
+    then:
+    targetPkg.packageVersion == packageVersion
+
+    where:
+    trigger                                                ||  packageVersion
+    [parentExecution: [
+      trigger: [
+        buildInfo: [
+          artifacts: [
+            [fileName: "api_1.1.1-h01.sha123_all.deb"]
+          ]]]]]                                            ||  "1.1.1-h01.sha123"
+    [buildInfo: [
+      artifacts: [
+        [fileName: "api_1.1.1-h01.sha123_all.deb"]
+      ]]]                                                  ||  "1.1.1-h01.sha123"
+  }
 }
