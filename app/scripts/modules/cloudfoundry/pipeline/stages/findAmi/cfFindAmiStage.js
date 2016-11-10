@@ -1,11 +1,12 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage', [
   require('core/application/listExtractor/listExtractor.service.js'),
   require('./findAmiExecutionDetails.controller.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/config/settings.js')
 ])
   .config(function(pipelineConfigProvider) {

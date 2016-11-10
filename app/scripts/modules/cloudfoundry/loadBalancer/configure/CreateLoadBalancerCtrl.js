@@ -1,12 +1,13 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   require('angular-ui-router'),
   require('core/loadBalancer/loadBalancer.write.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
   require('core/modal/wizard/modalWizard.service.js'),
   require('core/task/monitor/taskMonitorService.js'),

@@ -1,9 +1,10 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.providerSelection.service', [
-  require('../../account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('../../config/settings.js'),
   require('../cloudProvider.registry.js'),
 ])

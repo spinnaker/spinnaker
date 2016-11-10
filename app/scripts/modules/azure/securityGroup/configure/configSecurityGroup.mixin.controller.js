@@ -3,13 +3,14 @@
 import _ from 'lodash';
 
 var angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.baseConfig.controller', [
     require('angular-ui-router'),
     require('core/task/monitor/taskMonitorService.js'),
     require('core/securityGroup/securityGroup.write.service.js'),
-    require('core/account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('core/modal/wizard/modalWizard.service.js'),
   ])
   .controller('azureConfigSecurityGroupMixin', function ($scope,

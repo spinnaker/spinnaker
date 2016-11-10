@@ -1,13 +1,14 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage', [
   require('core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
   require('core/cloudProvider/cloudProvider.registry.js'),
   require('core/config/settings.js'),
   require('../canary/canaryExecutionSummary.controller'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
 ])
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature && settings.feature.netflixMode) {
@@ -58,7 +59,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
         : $scope.stage.canary.watchers //if it is not an array it is probably a SpEL
       : '';
 
-    accountService.getUniqueAttributeForAllAccounts('regions')('aws')
+    accountService.getUniqueAttributeForAllAccounts('aws', 'regions')
       .then( (regions) => {
         $scope.regions = regions.sort();
       });

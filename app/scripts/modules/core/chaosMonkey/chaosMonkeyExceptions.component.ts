@@ -1,17 +1,21 @@
 import {module} from 'angular';
 
+import {
+  ACCOUNT_SERVICE, AccountService, IAccountDetails, IRegion,
+  IAggregatedAccounts
+} from 'core/account/account.service';
 import './chaosMonkeyExceptions.component.less';
 
 export class ChaosMonkeyExceptionsController {
 
   static get $inject() { return ['accountService', '$q']; }
 
-  public accounts: any[] = [];
+  public accounts: IAccountDetails[] = [];
   public regionsByAccount: any;
   public config: any;
   public configChanged: () => void;
 
-  public constructor(private accountService: any, private $q: ng.IQService) {}
+  public constructor(private accountService: AccountService, private $q: ng.IQService) {}
 
   public addException(): void {
     this.config.exceptions = this.config.exceptions || [];
@@ -25,15 +29,14 @@ export class ChaosMonkeyExceptionsController {
   };
 
   public $onInit(): void {
-    this.accountService.listAccounts().then((accounts: any[]) => {
-      this.$q.all(accounts.map((account: any) => this.accountService.getAccountDetails(account.name)))
-        .then((details) => {
-          this.accounts = details.filter((account: any) => account.regions );
-          this.regionsByAccount = {};
-          this.accounts.forEach((account: any) => {
-            this.regionsByAccount[account.name] = ['*'].concat(account.regions.map((region: any) => region.name));
-          });
-        });
+    this.accountService.getCredentialsKeyedByAccount().then((aggregated: IAggregatedAccounts) => {
+      this.accounts = Object.keys(aggregated)
+        .map((name: string) => aggregated[name])
+        .filter((details: IAccountDetails) => details.regions);
+      this.regionsByAccount = {};
+      this.accounts.forEach((details: IAccountDetails) => {
+        this.regionsByAccount[details.name] = ['*'].concat(details.regions.map((region: IRegion) => region.name));
+      });
     });
   }
 }
@@ -49,9 +52,7 @@ class ChaosMonkeyExceptionsComponent implements ng.IComponentOptions {
 
 const moduleName = 'spinnaker.core.chaosMonkey.exceptions.directive';
 
-module(moduleName, [
-  require('../account/account.service.js'),
-])
+module(moduleName, [ACCOUNT_SERVICE])
 .component('chaosMonkeyExceptions', new ChaosMonkeyExceptionsComponent());
 
 export default moduleName;

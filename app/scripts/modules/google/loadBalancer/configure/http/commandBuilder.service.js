@@ -3,6 +3,7 @@
 import * as _ from 'lodash';
 import {HttpLoadBalancerTemplate, ListenerTemplate} from './templates';
 import {sessionAffinityModelToViewMap} from '../common/sessionAffinityNameMaps';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 let angular = require('angular');
 
@@ -10,7 +11,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
     require('../../../backendService/backendService.reader.js'),
     require('core/cache/cacheInitializer.js'),
     require('../../../certificate/certificate.reader.js'),
-    require('core/account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('core/loadBalancer/loadBalancer.read.service.js'),
     require('../../elSevenUtils.service.js'),
     require('../../../httpHealthCheck/httpHealthCheck.reader.js'),

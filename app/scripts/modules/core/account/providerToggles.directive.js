@@ -1,11 +1,10 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
-  .module('spinnaker.core.account.providerToggle.directive', [
-    require('./account.service.js')
-  ])
+  .module('spinnaker.core.account.providerToggle.directive', [ACCOUNT_SERVICE])
   .directive('ifMultipleProviders', function(accountService) {
     return {
       restrict: 'A',

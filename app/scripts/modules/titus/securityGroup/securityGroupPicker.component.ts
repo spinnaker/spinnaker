@@ -2,13 +2,16 @@ import {module} from 'angular';
 import * as _ from 'lodash';
 import {Subject, Subscription} from 'rxjs';
 
-import {ITitusCredentials} from '../domain';
 import {ISecurityGroup, IVpc} from 'core/domain';
+import {
+  ACCOUNT_SERVICE, AccountService, IAggregatedAccounts,
+  IAccountDetails
+} from 'core/account/account.service';
 
 class SecurityGroupPickerController implements ng.IComponentController {
   public securityGroups: any;
   public availableGroups: ISecurityGroup[];
-  public credentials: ITitusCredentials[];
+  public credentials: IAggregatedAccounts;
   public command: any;
   public groupsToEdit: string[];
   public removedGroups: string[];
@@ -23,11 +26,11 @@ class SecurityGroupPickerController implements ng.IComponentController {
 
   static get $inject(): string[] { return ['$q', 'securityGroupReader', 'accountService', 'cacheInitializer', 'vpcReader']; }
 
-  public constructor(private $q: ng.IQService, private securityGroupReader: any, private accountService: any,
+  public constructor(private $q: ng.IQService, private securityGroupReader: any, private accountService: AccountService,
                      private cacheInitializer: any, private vpcReader: any) {}
 
   public $onInit(): void {
-    let credentialLoader: ng.IPromise<void> = this.accountService.getCredentialsKeyedByAccount('titus').then((credentials: ITitusCredentials[]) => {
+    let credentialLoader: ng.IPromise<void> = this.accountService.getCredentialsKeyedByAccount('titus').then((credentials: IAggregatedAccounts) => {
       this.credentials = credentials;
     });
     let groupLoader: ng.IPromise<void> = this.securityGroupReader.getAllSecurityGroups().then((groups: any[]) => {
@@ -45,7 +48,7 @@ class SecurityGroupPickerController implements ng.IComponentController {
     this.subscriptions.forEach(s => s.unsubscribe());
   }
 
-  private getCredentials(): ITitusCredentials {
+  private getCredentials(): IAccountDetails {
     return this.credentials[this.command.credentials];
   }
 
@@ -151,7 +154,7 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
 const moduleName = 'spinnaker.titus.securityGroup.picker.component';
 
 module(moduleName, [
-  require('core/account/account.service'),
+  ACCOUNT_SERVICE,
   require('core/securityGroup/securityGroup.read.service'),
   require('core/cache/cacheInitializer'),
   require('amazon/vpc/vpc.read.service'),

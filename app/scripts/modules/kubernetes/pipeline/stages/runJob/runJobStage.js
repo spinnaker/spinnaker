@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.runJob
       _.set(this.stage, 'container.name', Date.now().toString());
     }
 
-    accountService.getUniqueAttributeForAllAccounts('namespaces')('kubernetes')
+    accountService.getUniqueAttributeForAllAccounts('kubernetes', 'namespaces')
       .then((namespaces) => {
         this.namespaces = namespaces;
       });

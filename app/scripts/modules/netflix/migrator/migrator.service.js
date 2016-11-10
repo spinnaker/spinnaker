@@ -3,12 +3,13 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
 
   .module('spinnaker.migrator.service', [
     require('core/task/taskExecutor.js'),
-    require('core/account/account.service'),
+    ACCOUNT_SERVICE,
   ])
   .factory('migratorService', function(taskExecutor, accountService) {
 

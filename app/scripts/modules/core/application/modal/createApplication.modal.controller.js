@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import chaosMonkeyConfigModule from '../../chaosMonkey/chaosMonkeyNewApplicationConfig.component';
 
 let angular = require('angular');
@@ -10,7 +11,7 @@ module.exports = angular
     require('angular-ui-router'),
     require('../service/applications.write.service.js'),
     require('../service/applications.read.service.js'),
-    require('../../account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('../../task/task.read.service.js'),
     require('../../config/settings'),
     require('./validation/applicationNameValidationMessages.directive.js'),

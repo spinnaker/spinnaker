@@ -3,11 +3,12 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('kubernetes.namespace.multiSelectField.component', [
     require('core/application/listExtractor/listExtractor.service'),
-    require('core/account/account.service'),
+    ACCOUNT_SERVICE,
   ])
   .directive('namespaceMultiSelectField', function() {
     return {

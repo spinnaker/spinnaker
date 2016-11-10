@@ -1,10 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.google.securityGroup.edit.controller', [
   require('angular-ui-router'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/cache/infrastructureCaches.js'),
   require('core/cache/cacheInitializer.js'),
   require('core/task/monitor/taskMonitorService.js'),

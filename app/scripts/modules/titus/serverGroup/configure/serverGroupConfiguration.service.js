@@ -3,9 +3,10 @@
 import {Subject} from 'rxjs/Subject';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.configuration.service', [
-  require('core/account/account.service'),
+  ACCOUNT_SERVICE,
 ])
   .factory('titusServerGroupConfigurationService', function(accountService, $q) {
 

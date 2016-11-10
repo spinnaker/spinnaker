@@ -35,5 +35,3 @@ describe('Controller: titusResizeServerGroupCtrl', function () {
     expect(controller).toBeDefined();
   });
 });
-
-

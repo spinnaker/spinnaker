@@ -3,10 +3,11 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.controller', [
   require('angular-ui-router'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/securityGroup/securityGroup.write.service.js'),
   require('core/confirmationModal/confirmationModal.service.js'),

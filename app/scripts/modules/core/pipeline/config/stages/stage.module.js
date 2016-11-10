@@ -4,6 +4,7 @@ import _ from 'lodash';
 import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   API_SERVICE,
@@ -13,7 +14,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   require('./overrideFailure/overrideFailure.component.js'),
   require('./optionalStage/optionalStage.directive.js'),
   require('core/confirmationModal/confirmationModal.service.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('./core/stageConfigField/stageConfigField.directive.js'),
 ])
   .directive('pipelineConfigStage', function() {

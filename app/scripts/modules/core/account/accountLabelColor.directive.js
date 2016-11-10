@@ -2,10 +2,10 @@
 
 let angular = require('angular');
 
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+
 module.exports = angular
-  .module('spinnaker.core.account.accountLabelColor.directive', [
-    require('./account.service.js'),
-  ])
+  .module('spinnaker.core.account.accountLabelColor.directive', [ACCOUNT_SERVICE])
   .directive('accountLabelColor', function () {
     return {
       restrict: 'E',

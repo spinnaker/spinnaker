@@ -3,10 +3,11 @@
 import _ from 'lodash';
 
 var angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.clone.controller', [
-    require('core/account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('core/task/monitor/taskMonitorService.js'),
     require('../securityGroup.write.service.js'),
     require('../configure/CreateSecurityGroupCtrl.js')

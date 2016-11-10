@@ -3,9 +3,10 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.cache.initializer', [
-  require('../account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('../network/network.read.service.js'),
   require('../securityGroup/securityGroup.read.service.js'),
   require('../application/service/applications.read.service.js'),

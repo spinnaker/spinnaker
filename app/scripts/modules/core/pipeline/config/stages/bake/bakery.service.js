@@ -3,10 +3,11 @@
 import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [
   API_SERVICE,
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/config/settings.js'),
 ])
   .factory('bakeryService', function($q, API, accountService, settings) {
@@ -15,7 +16,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [
       if (_.has(settings, `providers.${provider}.bakeryRegions`)) {
         return $q.when(_.get(settings, `providers.${provider}.bakeryRegions`));
       }
-      return accountService.getUniqueAttributeForAllAccounts('regions')(provider).then(regions => regions.sort());
+      return accountService.getUniqueAttributeForAllAccounts(provider, 'regions').then(regions => regions.sort());
     }
 
     function getBaseOsOptions(provider) {

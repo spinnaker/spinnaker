@@ -4,13 +4,14 @@ import _ from 'lodash';
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 
 var angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.baseConfig.controller', [
     require('angular-ui-router'),
     require('core/task/monitor/taskMonitorService.js'),
     require('core/securityGroup/securityGroup.write.service.js'),
-    require('core/account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('core/network/network.read.service.js'),
     modalWizardServiceModule,
   ])

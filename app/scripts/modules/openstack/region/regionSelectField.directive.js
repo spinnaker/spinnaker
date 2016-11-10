@@ -3,9 +3,10 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.openstack.region.regionSelectField.directive', [
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('../common/selectField.component.js')
 ])
   .directive('osRegionSelectField', function (accountService) {

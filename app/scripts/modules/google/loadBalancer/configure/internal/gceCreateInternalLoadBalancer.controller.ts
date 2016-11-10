@@ -8,6 +8,7 @@ import {IStateService} from 'angular-ui-router';
 import {InternalLoadBalancer,
         GceInternalLoadBalancerCommandBuilder,
         GCE_INTERNAL_LOAD_BALANCER_COMMAND_BUILDER} from './commandBuilder.service';
+import {ACCOUNT_SERVICE, AccountService, IRegion} from 'core/account/account.service';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
@@ -61,7 +62,7 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
                private infrastructureCaches: any,
                private isNew: boolean,
                private $uibModalInstance: any,
-               private accountService: any,
+               private accountService: AccountService,
                private loadBalancerWriter: any,
                private wizardSubFormValidation: any,
                private taskMonitorService: any) { }
@@ -201,8 +202,8 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
       .map((network) => network.name);
 
     this.accountService.getRegionsForAccount(this.loadBalancer.credentials)
-      .then((regions: { name: string }[]) => {
-        this.regions = regions.map((r) => r.name);
+      .then((regions: IRegion[]) => {
+        this.regions = regions.map((region: IRegion) => region.name);
         this.networkUpdated();
       });
   }
@@ -250,7 +251,7 @@ const gceInternalLoadBalancerCtrl = 'spinnaker.gce.internalLoadBalancer.controll
 module(gceInternalLoadBalancerCtrl, [
     gceHealthCheckCreate,
     GCE_INTERNAL_LOAD_BALANCER_COMMAND_BUILDER,
-    require('core/account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('core/cache/infrastructureCaches.js'),
     require('core/modal/wizard/wizardSubFormValidation.service.js'),
     require('core/loadBalancer/loadBalancer.write.service.js'),

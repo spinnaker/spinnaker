@@ -1,6 +1,7 @@
 'use strict';
 
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 let angular = require('angular');
 
@@ -8,7 +9,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   require('angular-ui-router'),
   require('core/loadBalancer/loadBalancer.write.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('../../loadBalancer.transformer.js'),
   modalWizardServiceModule,
   require('core/task/monitor/taskMonitorService.js'),

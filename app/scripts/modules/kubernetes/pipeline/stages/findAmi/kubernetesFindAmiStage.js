@@ -1,11 +1,12 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.findAmiStage', [
   require('core/application/listExtractor/listExtractor.service.js'),
   require('./findAmiExecutionDetails.controller.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

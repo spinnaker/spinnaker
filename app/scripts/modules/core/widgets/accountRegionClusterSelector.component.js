@@ -3,11 +3,12 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.core.accountRegionClusterSelector.directive', [
     require('core/application/listExtractor/listExtractor.service'),
-    require('core/account/account.service'),
+    ACCOUNT_SERVICE,
   ])
   .directive('accountRegionClusterSelector', function() {
     return {
@@ -78,7 +79,7 @@ module.exports = angular
         };
 
         let init = () => {
-          accountService.getUniqueAttributeForAllAccounts('regions')(vm.component.cloudProviderType).then((allRegions) => {
+          accountService.getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'regions').then((allRegions) => {
             regions = allRegions;
 
             // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.

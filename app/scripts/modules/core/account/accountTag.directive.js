@@ -1,11 +1,10 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
-  .module('spinnaker.core.account.accountTag.directive', [
-    require('./account.service.js'),
-  ])
+  .module('spinnaker.core.account.accountTag.directive', [ACCOUNT_SERVICE])
   .directive('accountTag', function () {
     return {
       restrict: 'E',

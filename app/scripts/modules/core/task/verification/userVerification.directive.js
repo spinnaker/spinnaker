@@ -1,12 +1,13 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 require('./userVerification.directive.less');
 
 module.exports = angular
   .module('spinnaker.core.task.verification.userVerification.directive', [
-    require('../../account/account.service.js'),
+    ACCOUNT_SERVICE,
   ])
   .directive('userVerification', function () {
     /**

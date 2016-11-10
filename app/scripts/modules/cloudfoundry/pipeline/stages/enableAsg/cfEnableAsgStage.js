@@ -3,10 +3,11 @@
 //BEN_TODO: where is this defined?
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.enableAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/pipeline/config/stages/stageConstants.js'),
   require('./enableAsgExecutionDetails.controller.js')
 ])

@@ -1,9 +1,10 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSettingsSelector', [
-  require('core/account/account.service')
+  ACCOUNT_SERVICE
 ])
   .directive('titusServerGroupBasicSettingsSelector', function () {
     return {

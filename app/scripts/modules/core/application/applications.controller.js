@@ -1,13 +1,14 @@
 'use strict';
 
 import {ANY_FIELD_FILTER} from '../presentation/anyFieldFilter/anyField.filter';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.applications.controller', [
   require('angular-ui-router'),
   require('./service/applications.read.service.js'),
-  require('../account/account.service.js'),
+  ACCOUNT_SERVICE,
   ANY_FIELD_FILTER,
   require('../cache/viewStateCache.js'),
   require('../presentation/sortToggle/sorttoggle.directive.js'),

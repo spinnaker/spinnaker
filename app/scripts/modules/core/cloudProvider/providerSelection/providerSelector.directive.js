@@ -1,11 +1,12 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 require('./providerSelection.modal.less');
 
 module.exports = angular.module('spinnaker.providerSelection.directive', [
-  require('../../account/account.service.js'),
+  ACCOUNT_SERVICE,
 ])
   .directive('providerSelector', function(accountService, $q) {
     return {

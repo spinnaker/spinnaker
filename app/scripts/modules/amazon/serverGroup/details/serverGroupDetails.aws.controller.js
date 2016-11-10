@@ -5,6 +5,7 @@ import _ from 'lodash';
 require('../configure/serverGroup.configure.aws.module.js');
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
   require('angular-ui-router'),
@@ -13,7 +14,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('core/serverGroup/serverGroup.write.service.js'),
   require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('core/overrideRegistry/override.registry.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
   require('core/serverGroup/serverGroup.read.service.js'),

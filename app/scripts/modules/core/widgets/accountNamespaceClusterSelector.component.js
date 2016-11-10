@@ -3,11 +3,12 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.core.accountNamespaceClusterSelector.directive', [
     require('core/application/listExtractor/listExtractor.service'),
-    require('core/account/account.service'),
+    ACCOUNT_SERVICE,
   ])
   .directive('accountNamespaceClusterSelector', function() {
     return {
@@ -75,7 +76,7 @@ module.exports = angular
         };
 
         let init = () => {
-          accountService.getUniqueAttributeForAllAccounts('namespaces')(vm.component.cloudProviderType).then((allNamespaces) => {
+          accountService.getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'namespaces').then((allNamespaces) => {
             namespaces = allNamespaces;
             return allNamespaces;
           })

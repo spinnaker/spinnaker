@@ -1,9 +1,10 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClusterStage', [
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('./scaleDownClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {

@@ -1,9 +1,10 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.controller', [
-      require('core/account/account.service.js'),
+      ACCOUNT_SERVICE,
       require('core/application/modal/platformHealthOverride.directive.js'),
       require('core/task/modal/reason.directive.js'),
       require('core/serverGroup/serverGroup.write.service.js'),

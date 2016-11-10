@@ -3,10 +3,11 @@
 import _ from 'lodash';
 
 var angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.clone.controller', [
-    require('core/account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('core/task/monitor/taskMonitorService.js'),
     require('core/securityGroup/securityGroup.write.service.js'),
     require('../configure/ConfigSecurityGroupMixin.controller.js')

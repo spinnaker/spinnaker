@@ -1,6 +1,7 @@
 'use strict';
 
 var angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.create.controller', [
@@ -8,7 +9,7 @@ module.exports = angular
     require('core/task/monitor/taskMonitorService.js'),
     require('../securityGroup.write.service.js'),
     require('core/region/regionSelectField.directive.js'),
-    require('core/account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('core/securityGroup/securityGroup.read.service.js'),
     require('core/cache/infrastructureCaches.js'),
     require('core/cache/cacheInitializer.js'),

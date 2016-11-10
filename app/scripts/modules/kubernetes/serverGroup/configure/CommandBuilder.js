@@ -1,10 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.service', [
   require('core/config/settings.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/naming/naming.service.js'),
   require('../../cluster/cluster.kubernetes.module.js'),
 ])

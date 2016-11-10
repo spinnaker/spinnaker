@@ -3,10 +3,11 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.configuration.service', [
   require('../../image/image.reader.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('../../../netflix/serverGroup/diff/diff.service.js'),
   require('core/naming/naming.service.js'),
   require('core/securityGroup/securityGroup.read.service.js'),

@@ -3,6 +3,7 @@
 require('../configure/serverGroup.configure.openstack.module.js');
 
 import _ from 'lodash';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 let angular = require('angular');
 
@@ -14,7 +15,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   require('core/serverGroup/serverGroup.write.service.js'),
   require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('core/overrideRegistry/override.registry.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/serverGroup/serverGroup.read.service.js'),
   require('../configure/ServerGroupCommandBuilder.js'),
   require('core/serverGroup/configure/common/runningExecutions.service.js'),

@@ -3,11 +3,12 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/instance/instance.write.service.js'),
   require('core/instance/instance.read.service.js'),
   require('core/confirmationModal/confirmationModal.service.js'),

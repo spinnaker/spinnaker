@@ -3,11 +3,12 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [
     require('../service/applications.write.service.js'),
-    require('../../account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('../../task/task.read.service.js'),
     require('./applicationProviderFields.component.js'),
   ])

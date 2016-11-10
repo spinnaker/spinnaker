@@ -3,12 +3,13 @@
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
   require('angular-ui-router'),
   require('../loadBalancer.write.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
   modalWizardServiceModule,
   require('core/task/monitor/taskMonitorService.js'),

@@ -3,11 +3,12 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.snapshot.write.service', [
     require('../task/taskExecutor.js'),
-    require('../account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('../cloudProvider/cloudProvider.registry.js'),
   ])
   .factory('snapshotWriter', function($q, taskExecutor, cloudProviderRegistry,

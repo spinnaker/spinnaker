@@ -3,9 +3,10 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.configuration.service', [
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/cache/cacheInitializer.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
   require('../../image/image.reader.js'),

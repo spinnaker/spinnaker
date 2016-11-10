@@ -3,10 +3,11 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
   require('core/cache/deckCacheFactory.js'),
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/instance/instanceTypeService.js'),
   require('core/naming/naming.service.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),

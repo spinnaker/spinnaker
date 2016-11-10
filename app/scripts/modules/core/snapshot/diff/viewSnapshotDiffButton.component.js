@@ -2,11 +2,13 @@
 
 import _ from 'lodash';
 
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.core.viewSnapshotDiff.component', [
     require('../../cloudProvider/cloudProvider.registry.js'),
-    require('../../account/account.service.js'),
+    ACCOUNT_SERVICE,
     require('./snapshotDiff.modal.controller.js'),
   ])
   .component('viewSnapshotDiffButton', {

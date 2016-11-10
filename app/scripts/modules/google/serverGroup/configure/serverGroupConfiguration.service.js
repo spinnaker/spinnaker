@@ -4,10 +4,11 @@ import _ from 'lodash';
 import gceLoadBalancerSetTransformer from '../../loadBalancer/loadBalancer.setTransformer';
 
 let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.configuration.service', [
   gceLoadBalancerSetTransformer,
-  require('core/account/account.service.js'),
+  ACCOUNT_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/cache/cacheInitializer.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
