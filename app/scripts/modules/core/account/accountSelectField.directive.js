@@ -37,7 +37,7 @@ module.exports = angular
       let getAccountDetails = this.provider ? accountService.getAllAccountDetailsForProvider(this.provider) : $q.when([]);
       if (!this.provider && accountsAreObjects) {
         let providers = _.uniq(_.map(accounts, 'type'));
-        getAccountDetails = $q.all(providers.map(accountService.getAllAccountDetailsForProvider))
+        getAccountDetails = $q.all(providers.map((provider) => accountService.getAllAccountDetailsForProvider(provider)))
           .then((details) => _.flatten(details));
       }
 
