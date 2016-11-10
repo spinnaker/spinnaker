@@ -39,7 +39,8 @@ import org.openstack4j.model.compute.SecGroupExtension
 @Slf4j
 class UpsertOpenstackSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
-  private final String BASE_PHASE = "UPSERT_SECURITY_GROUP"
+  private final String BASE_PHASE = 'UPSERT_SECURITY_GROUP'
+  static final String SELF_REFERENCIAL_RULE = 'SELF'
   UpsertOpenstackSecurityGroupDescription description
 
   UpsertOpenstackSecurityGroupAtomicOperation(UpsertOpenstackSecurityGroupDescription description) {
@@ -87,11 +88,12 @@ class UpsertOpenstackSecurityGroupAtomicOperation implements AtomicOperation<Voi
 
       description.rules.each { rule ->
         task.updateStatus BASE_PHASE, "Creating rule for ${rule.cidr} from port ${rule.fromPort} to port ${rule.toPort}"
+        String remoteSecurityGroupId = rule.remoteSecurityGroupId == SELF_REFERENCIAL_RULE ? securityGroup.id : rule.remoteSecurityGroupId
         provider.createSecurityGroupRule(description.region,
           securityGroup.id,
           IPProtocol.value(rule.ruleType),
           rule.cidr,
-          rule.remoteSecurityGroupId,
+          remoteSecurityGroupId,
           rule.fromPort,
           rule.toPort,
           rule.icmpType,

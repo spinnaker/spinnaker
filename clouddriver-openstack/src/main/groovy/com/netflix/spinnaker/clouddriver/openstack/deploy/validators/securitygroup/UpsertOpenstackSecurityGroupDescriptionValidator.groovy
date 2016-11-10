@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.securitygr
 
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygroup.UpsertOpenstackSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.securitygroup.UpsertOpenstackSecurityGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.AbstractOpenstackDescriptionValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -53,7 +54,12 @@ class UpsertOpenstackSecurityGroupDescriptionValidator extends AbstractOpenstack
 
         // Either the remote security group id or cidr must be provided
         if (r.remoteSecurityGroupId) {
-          validator.validateUUID(r.remoteSecurityGroupId, 'remoteSecurityGroupId')
+          /* Remote Security Group ID can be either 'self' or a UUID. Self means the rule references the security group
+           * being upserted. Since the ID may not exist yet, a place holder of 'self' is used.
+           */
+          if (r.remoteSecurityGroupId != UpsertOpenstackSecurityGroupAtomicOperation.SELF_REFERENCIAL_RULE) {
+            validator.validateUUID(r.remoteSecurityGroupId, 'remoteSecurityGroupId')
+          }
         } else {
           validator.validateCIDR(r.cidr, 'cidr')
         }
