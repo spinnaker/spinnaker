@@ -1,18 +1,18 @@
-'use strict';
+import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
 
-describe('namingService', function() {
-  beforeEach(function() {
-    window.module(
-      require('./naming.service')
+describe('namingService', function () {
+  beforeEach(function () {
+    angular.mock.module(
+      NAMING_SERVICE
     );
   });
 
-  beforeEach(window.inject(function(namingService) {
+  beforeEach(angular.mock.inject(function (namingService: NamingService) {
     this.namingService = namingService;
   }));
 
-  describe('parseServerGroupName', function() {
-    it('parses server group name with no stack or details', function() {
+  describe('parseServerGroupName', function () {
+    it('parses server group name with no stack or details', function () {
       expect(this.namingService.parseServerGroupName('app-v001'))
         .toEqual({application: 'app', stack: '', freeFormDetails: ''});
       expect(this.namingService.parseServerGroupName('app-test-v001'))
@@ -23,7 +23,7 @@ describe('namingService', function() {
         .toEqual({application: 'app', stack: '', freeFormDetails: 'detail-withdashes'});
     });
 
-    it('parses server group name with no version', function() {
+    it('parses server group name with no version', function () {
       expect(this.namingService.parseServerGroupName('app'))
         .toEqual({application: 'app', stack: '', freeFormDetails: ''});
       expect(this.namingService.parseServerGroupName('app-test'))
@@ -33,10 +33,22 @@ describe('namingService', function() {
       expect(this.namingService.parseServerGroupName('app--detail-withdashes'))
         .toEqual({application: 'app', stack: '', freeFormDetails: 'detail-withdashes'});
     });
-
   });
 
-  it('returns cluster name', function() {
+  describe('parseLoadBalancerName', function () {
+    it('parses name with no stack or details', function () {
+      expect(this.namingService.parseLoadBalancerName('app'))
+        .toEqual({application: 'app', stack: '', freeFormDetails: ''});
+      expect(this.namingService.parseLoadBalancerName('app-test'))
+        .toEqual({application: 'app', stack: 'test', freeFormDetails: ''});
+      expect(this.namingService.parseLoadBalancerName('app--detail'))
+        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail'});
+      expect(this.namingService.parseLoadBalancerName('app--detail-withdashes'))
+        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail-withdashes'});
+    });
+  });
+
+  it('returns cluster name', function () {
     expect(this.namingService.getClusterName('app', null, null)).toBe('app');
     expect(this.namingService.getClusterName('app', 'cluster', null)).toBe('app-cluster');
     expect(this.namingService.getClusterName('app', null, 'details')).toBe('app--details');
@@ -45,7 +57,7 @@ describe('namingService', function() {
     expect(this.namingService.getClusterName('app', 'cluster', 'details-withdash')).toBe('app-cluster-details-withdash');
   });
 
-  it('returns sequence if found, else null', function() {
+  it('returns sequence if found, else null', function () {
     expect(this.namingService.getSequence('app')).toBe(null);
     expect(this.namingService.getSequence('app-vnope')).toBe(null);
     expect(this.namingService.getSequence('app-v003-no')).toBe(null);

@@ -3,13 +3,15 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service', [
   require('core/cache/deckCacheFactory.js'),
   ACCOUNT_SERVICE,
   require('core/instance/instanceTypeService.js'),
-  require('core/naming/naming.service.js'),
+  NAMING_SERVICE,
 ])
   .factory('cfServerGroupCommandBuilder', function (settings, $q,
                                                      accountService, instanceTypeService, namingService) {

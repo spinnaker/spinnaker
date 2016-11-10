@@ -81,7 +81,6 @@ module.exports = angular
 
     require('./modal/modal.module.js'),
 
-    require('./naming/naming.service.js'),
     require('./navigation/states.provider.js'),
     require('./notification/notifications.module.js'),
     require('./notification/types/email/email.notification.type.module.js'),

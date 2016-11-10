@@ -3,6 +3,7 @@
 import _ from 'lodash';
 
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
@@ -19,7 +20,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   require('core/subnet/subnet.read.service.js'),
   require('core/cache/cacheInitializer.js'),
   require('core/cache/infrastructureCaches.js'),
-  require('core/naming/naming.service.js'),
+  NAMING_SERVICE,
   require('./loadBalancerAvailabilityZoneSelector.directive.js'),
   require('core/region/regionSelectField.directive.js'),
   require('core/account/accountSelectField.directive.js'),

@@ -2,11 +2,12 @@
 
 import * as _ from 'lodash';
 import {sessionAffinityViewToModelMap, sessionAffinityModelToViewMap} from '../common/sessionAffinityNameMaps';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.deck.httpLoadBalancer.transformer', [
-    require('core/naming/naming.service.js'),
+    NAMING_SERVICE,
   ])
   .factory('gceHttpLoadBalancerTransformer', function (namingService) {
     // SERIALIZE

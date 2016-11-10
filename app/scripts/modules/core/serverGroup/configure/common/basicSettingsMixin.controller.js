@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 
@@ -8,7 +9,7 @@ module.exports = angular
   .module('spinnaker.core.serverGroup.basicSettings.controller', [
     require('angular-ui-bootstrap'),
     require('angular-ui-router'),
-    require('core/naming/naming.service.js'),
+    NAMING_SERVICE,
     require('../../../image/image.reader.js')
   ])
   .controller('BasicSettingsMixin', function ($scope, imageReader, namingService, $uibModalStack, $state) {

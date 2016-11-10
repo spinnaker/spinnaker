@@ -1,12 +1,13 @@
 'use strict';
 
 import {API_SERVICE} from 'core/api/api.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.loadBalancer.read.service', [
-    require('../naming/naming.service.js'),
+    NAMING_SERVICE,
     require('../cache/infrastructureCaches.js'),
     require('./loadBalancer.transformer.js'),
     API_SERVICE

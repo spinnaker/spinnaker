@@ -3,6 +3,7 @@
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.basicSettings', [
   require('angular-ui-router'),
@@ -11,7 +12,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.basicSett
   require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   modalWizardServiceModule,
   require('core/image/image.reader.js'),
-  require('core/naming/naming.service.js'),
+  NAMING_SERVICE,
 ])
   .controller('azureServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
                                                           v2modalWizardService, imageReader, namingService) {

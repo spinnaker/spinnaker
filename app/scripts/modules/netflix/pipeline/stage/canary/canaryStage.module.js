@@ -1,7 +1,9 @@
 'use strict';
 
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary', [
   require('./canaryStage.js'),
@@ -14,7 +16,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary', [
   require('./canaryScore.directive.js'),
   require('./canaryStatus.directive.js'),
   ACCOUNT_SERVICE,
-  require('core/naming/naming.service.js')
+  NAMING_SERVICE,
 ])
   .run(function(pipelineConfig, canaryStageTransformer) {
     pipelineConfig.registerTransformer(canaryStageTransformer);

@@ -3,12 +3,14 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.cloneServerGroupStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   ACCOUNT_SERVICE,
-  require('core/naming/naming.service.js'),
+  NAMING_SERVICE,
   require('./cloneServerGroupExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {

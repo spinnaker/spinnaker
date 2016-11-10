@@ -4,11 +4,12 @@
 
 import _ from 'lodash';
 import {API_SERVICE} from '../api/api.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.cluster.service', [
-  require('../naming/naming.service.js'),
+  NAMING_SERVICE,
   API_SERVICE,
   require('../serverGroup/serverGroup.transformer.js'),
 ])

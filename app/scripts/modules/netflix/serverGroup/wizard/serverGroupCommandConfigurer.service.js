@@ -3,13 +3,14 @@
 import _ from 'lodash';
 
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.serverGroup.configurer.service', [
     require('./../diff/diff.service.js'),
-    require('core/naming/naming.service.js'),
+    NAMING_SERVICE,
     require('core/config/settings.js'),
     require('core/serverGroup/configure/common/serverGroupCommand.registry.js'),
     modalWizardServiceModule,

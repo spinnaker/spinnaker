@@ -1,12 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastPropertiesScope.service', [
-    require('core/naming/naming.service.js'),
+    NAMING_SERVICE,
   ])
   .factory('FastPropertyScopeService', function ($q, namingService) {
 

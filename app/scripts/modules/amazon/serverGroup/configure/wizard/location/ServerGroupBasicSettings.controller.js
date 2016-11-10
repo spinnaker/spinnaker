@@ -3,6 +3,7 @@
 import {Observable, Subject} from 'rxjs';
 
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
   require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   modalWizardServiceModule,
   require('core/image/image.reader.js'),
-  require('core/naming/naming.service.js'),
+  NAMING_SERVICE,
 ])
   .controller('awsServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
                                                           v2modalWizardService, imageReader, namingService) {

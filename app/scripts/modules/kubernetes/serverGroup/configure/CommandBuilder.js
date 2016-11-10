@@ -1,12 +1,14 @@
 'use strict';
 
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.service', [
   require('core/config/settings.js'),
   ACCOUNT_SERVICE,
-  require('core/naming/naming.service.js'),
+  NAMING_SERVICE,
   require('../../cluster/cluster.kubernetes.module.js'),
 ])
   .factory('kubernetesServerGroupCommandBuilder', function (settings, $q, accountService, namingService,

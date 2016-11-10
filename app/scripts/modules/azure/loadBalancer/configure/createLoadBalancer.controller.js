@@ -1,6 +1,7 @@
 'use strict';
 
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
@@ -15,7 +16,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
   require('core/task/monitor/taskMonitorService.js'),
   require('core/cache/cacheInitializer.js'),
   require('core/cache/infrastructureCaches.js'),
-  require('core/naming/naming.service.js'),
+  NAMING_SERVICE,
   require('core/region/regionSelectField.directive.js'),
   require('core/account/accountSelectField.directive.js'),
   require('core/network/network.read.service.js'),

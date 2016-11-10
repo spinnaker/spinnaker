@@ -1,12 +1,14 @@
 'use strict';
 
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.service', [
   require('core/cache/deckCacheFactory.js'),
   ACCOUNT_SERVICE,
-  require('core/naming/naming.service.js')
+  NAMING_SERVICE,
 ])
   .factory('titusServerGroupCommandBuilder', function (settings, $q,
                                                        accountService, namingService) {

@@ -2,6 +2,7 @@
 
 import {Observable, Subject} from 'rxjs';
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 
@@ -11,7 +12,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.b
   require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   modalWizardServiceModule,
   require('core/image/image.reader.js'),
-  require('core/naming/naming.service.js'),
+  NAMING_SERVICE,
   require('../../../../gceRegionSelectField.directive.js'),
   require('../../../../gceNetworkSelectField.directive.js'),
   require('../../../../subnet/subnetSelectField.directive.js'),

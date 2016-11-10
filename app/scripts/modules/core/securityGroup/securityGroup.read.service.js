@@ -2,13 +2,14 @@
 
 import _ from 'lodash';
 import {API_SERVICE} from 'core/api/api.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
   require('../cache/deckCacheFactory.js'),
   require('../search/search.service.js'),
-  require('../naming/naming.service.js'),
+  NAMING_SERVICE,
   require('../cache/infrastructureCaches.js'),
   require('./securityGroup.transformer.js'),
   require('../cloudProvider/serviceDelegate.service.js'),

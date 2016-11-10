@@ -1,7 +1,9 @@
 'use strict';
 
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 require('./propertyStage.less');
 
@@ -13,7 +15,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.property', [
   require('core/deploymentStrategy/deploymentStrategy.module.js'),
   require('core/serverGroup/serverGroup.read.service.js'),
   ACCOUNT_SERVICE,
-  require('core/naming/naming.service.js'),
+  NAMING_SERVICE,
   require('../../../fastProperties/modal/fastPropertyConstraint.directive'),
   require('../../../fastProperties/modal/wizard/fastPropertyConstraintsSelector.directive'),
 ]);
