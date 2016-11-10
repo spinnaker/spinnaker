@@ -1,4 +1,5 @@
 dependencies {
+  compile spinnaker.dependency('lombok')
   compile "com.beust:jcommander:1.48"
 }
 
