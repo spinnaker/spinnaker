@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
@@ -32,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/gce/loadBalancers")
-class GoogleLoadBalancerController {
+class GoogleLoadBalancerController implements LoadBalancerProviderTempShim {
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -99,9 +100,9 @@ class GoogleLoadBalancerController {
   }
 
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  List<GoogleLoadBalancerDetails> getDetailsInAccountAndRegionByName(@PathVariable String account,
-                                                                     @PathVariable String region,
-                                                                     @PathVariable String name) {
+  List<GoogleLoadBalancerDetails> byAccountAndRegionAndName(@PathVariable String account,
+                                                            @PathVariable String region,
+                                                            @PathVariable String name) {
     GoogleLoadBalancerView view = googleLoadBalancerProvider.getApplicationLoadBalancers(name).find { view ->
       view.account == account && view.region == region
     }
@@ -161,7 +162,7 @@ class GoogleLoadBalancerController {
                                    ]])]
   }
 
-  static class GoogleLoadBalancerAccountRegionSummary {
+  static class GoogleLoadBalancerAccountRegionSummary implements LoadBalancerProviderTempShim.Item {
 
     String name
 
@@ -171,12 +172,12 @@ class GoogleLoadBalancerController {
     }
 
     @JsonProperty("accounts")
-    List<GoogleLoadBalancerAccount> getAccounts() {
+    List<GoogleLoadBalancerAccount> getByAccounts() {
       mappedAccounts.values() as List
     }
   }
 
-  static class GoogleLoadBalancerAccount {
+  static class GoogleLoadBalancerAccount implements LoadBalancerProviderTempShim.ByAccount {
 
     String name
 
@@ -186,17 +187,17 @@ class GoogleLoadBalancerController {
     }
 
     @JsonProperty("regions")
-    List<GoogleLoadBalancerAccountRegion> getRegions() {
+    List<GoogleLoadBalancerAccountRegion> getByRegions() {
       mappedRegions.values() as List
     }
   }
 
-  static class GoogleLoadBalancerAccountRegion {
+  static class GoogleLoadBalancerAccountRegion implements LoadBalancerProviderTempShim.ByRegion {
     String name
     List<GoogleLoadBalancerSummary> loadBalancers = []
   }
 
-  static class GoogleLoadBalancerSummary {
+  static class GoogleLoadBalancerSummary implements LoadBalancerProviderTempShim.Details {
     GoogleLoadBalancerType loadBalancerType
     String account
     String region
@@ -206,7 +207,7 @@ class GoogleLoadBalancerController {
     String urlMapName
   }
 
-  static class GoogleLoadBalancerDetails {
+  static class GoogleLoadBalancerDetails implements LoadBalancerProviderTempShim.Details {
     Long createdTime
     String dnsname
     String ipAddress

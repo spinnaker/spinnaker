@@ -26,19 +26,18 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/applications/{application}/loadBalancers")
 class LoadBalancerController {
 
   @Autowired
   List<LoadBalancerProvider> loadBalancerProviders
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
-  @RequestMapping(method = RequestMethod.GET)
-  Set<LoadBalancer> list(@PathVariable String application) {
-    ((List<LoadBalancer>) loadBalancerProviders.findResults {
+  @RequestMapping(value = "/applications/{application}/loadBalancers", method = RequestMethod.GET)
+  List<LoadBalancer> list(@PathVariable String application) {
+    loadBalancerProviders.findResults {
       it.getApplicationLoadBalancers(application)
-    })
-      .flatten()
-      .sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
+    }
+    .flatten()
+    .sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() } as List<LoadBalancer>
   }
 }

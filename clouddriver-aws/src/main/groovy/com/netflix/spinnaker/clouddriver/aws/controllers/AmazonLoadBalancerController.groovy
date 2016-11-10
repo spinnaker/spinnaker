@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,7 +32,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LO
 
 @RestController
 @RequestMapping("/aws/loadBalancers")
-class AmazonLoadBalancerController {
+class AmazonLoadBalancerController implements LoadBalancerProviderTempShim {
 
   private final Cache cacheView
 
@@ -58,14 +59,17 @@ class AmazonLoadBalancerController {
   }
 
   @RequestMapping(value = "/{account}/{region}", method = RequestMethod.GET)
-  List<AmazonLoadBalancerSummary> getInAccountAndRegion(@PathVariable String account, @PathVariable String region) {
+  List<AmazonLoadBalancerSummary> getInAccountAndRegion(@PathVariable String account,
+                                                        @PathVariable String region) {
     def searchKey = Keys.getLoadBalancerKey('*', account, region, null, null)
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     getSummaryForLoadBalancers(identifiers).values() as List
   }
 
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  List<Map> getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
+  List<Map> byAccountAndRegionAndName(@PathVariable String account,
+                                      @PathVariable String region,
+                                      @PathVariable String name) {
     def searchKey = Keys.getLoadBalancerKey(name, account, region, null, null) + '*'
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey).findAll {
       def key = Keys.parse(it)
@@ -76,7 +80,10 @@ class AmazonLoadBalancerController {
   }
 
   @RequestMapping(value = "/{account}/{region}/{name}/{vpcId}", method = RequestMethod.GET)
-  Map getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name, @PathVariable String vpcId) {
+  Map getDetailsInAccountAndRegionByName(@PathVariable String account,
+                                         @PathVariable String region,
+                                         @PathVariable String name,
+                                         @PathVariable String vpcId) {
     def key = Keys.getLoadBalancerKey(name, account, region, vpcId, null)
     cacheView.get(LOAD_BALANCERS.ns, key)?.attributes
   }
@@ -112,7 +119,7 @@ class AmazonLoadBalancerController {
 
   // view models...
 
-  static class AmazonLoadBalancerSummary {
+  static class AmazonLoadBalancerSummary implements LoadBalancerProviderTempShim.Item {
     private Map<String, AmazonLoadBalancerAccount> mappedAccounts = [:]
     String name
 
@@ -124,12 +131,12 @@ class AmazonLoadBalancerController {
     }
 
     @JsonProperty("accounts")
-    List<AmazonLoadBalancerAccount> getAccounts() {
+    List<AmazonLoadBalancerAccount> getByAccounts() {
       mappedAccounts.values() as List
     }
   }
 
-  static class AmazonLoadBalancerAccount {
+  static class AmazonLoadBalancerAccount implements LoadBalancerProviderTempShim.ByAccount {
     private Map<String, AmazonLoadBalancerAccountRegion> mappedRegions = [:]
     String name
 
@@ -141,17 +148,17 @@ class AmazonLoadBalancerController {
     }
 
     @JsonProperty("regions")
-    List<AmazonLoadBalancerAccountRegion> getRegions() {
+    List<AmazonLoadBalancerAccountRegion> getByRegions() {
       mappedRegions.values() as List
     }
   }
 
-  static class AmazonLoadBalancerAccountRegion {
+  static class AmazonLoadBalancerAccountRegion implements LoadBalancerProviderTempShim.ByRegion {
     String name
     List<AmazonLoadBalancerSummary> loadBalancers
   }
 
-  static class AmazonLoadBalancerDetail {
+  static class AmazonLoadBalancerDetail implements LoadBalancerProviderTempShim.Details {
     String account
     String region
     String name
