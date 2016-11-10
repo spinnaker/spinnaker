@@ -21,6 +21,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 /**
  * For Http(s), balancingMode must be either UTILIZATION or RATE.
  * maxRatePerInstance must be set if RATE, and maxUtilization must be set if UTILIZATION.
+ *
+ * For Ssl, balancingMode must be either UTILIZATION or CONNECTION.
+ * maxUtilization must be set if UTILIZATION, maxConnectionsPerInstance if CONNECTION.
  */
 class GoogleHttpLoadBalancingPolicy extends GoogleLoadBalancingPolicy {
   @JsonIgnore
@@ -33,6 +36,8 @@ class GoogleHttpLoadBalancingPolicy extends GoogleLoadBalancingPolicy {
 
   Float maxUtilization
 
+  Float maxConnectionsPerInstance
+
   /**
    * Additional scaler option that sets the current max usage of the server group for either balancingMode.
    * Valid values are 0.0 through 1.0.
@@ -44,5 +49,4 @@ class GoogleHttpLoadBalancingPolicy extends GoogleLoadBalancingPolicy {
    * Port that the HTTP LB will forward traffic to on the server group.
    */
   Integer listeningPort
-
 }

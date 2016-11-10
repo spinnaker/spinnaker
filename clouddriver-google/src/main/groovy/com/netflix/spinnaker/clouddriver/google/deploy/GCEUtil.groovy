@@ -863,6 +863,8 @@ class GCEUtil {
         policy.maxRatePerInstance : null,
       maxUtilization: balancingMode == GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION ?
         policy.maxUtilization : null,
+      maxConnectionsPerInstance: balancingMode == GoogleLoadBalancingPolicy.BalancingMode.CONNECTION ?
+        policy.maxConnectionsPerInstance : null,
       capacityScaler: policy.capacityScaler != null ? policy.capacityScaler : 1.0,
     )
   }
@@ -876,6 +878,8 @@ class GCEUtil {
         backend.maxRatePerInstance : null,
       maxUtilization: backendBalancingMode == GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION ?
         backend.maxUtilization : null,
+      maxConnectionsPerInstance: backendBalancingMode == GoogleLoadBalancingPolicy.BalancingMode.CONNECTION ?
+        backend.maxConnectionsPerInstance : null,
       capacityScaler: backend.capacityScaler,
     )
   }
