@@ -4,10 +4,10 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
-import {DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT_MODULE} from 'docker/image/dockerImageAndTagSelector.component';
+import {DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT} from 'docker/image/dockerImageAndTagSelector.component';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.runJobStage', [
-  DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT_MODULE,
+  DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
   require('kubernetes/container/commands.component.js'),
   require('kubernetes/container/arguments.component.js'),
   require('kubernetes/container/environmentVariables.component.js'),

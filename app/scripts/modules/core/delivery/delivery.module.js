@@ -1,6 +1,6 @@
 'use strict';
 
-import buildDisplayNameFilter from './executionBuild/buildDisplayName.filter';
+import {BUILD_DISPLAY_NAME_FILTER} from './executionBuild/buildDisplayName.filter';
 
 let angular = require('angular');
 
@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.delivery', [
   require('./details/executionDetails.directive.js'),
   require('./details/executionDetailsSectionNav.directive.js'),
 
-  buildDisplayNameFilter,
+  BUILD_DISPLAY_NAME_FILTER,
   require('./executionBuild/executionBuildNumber.directive.js'),
   require('./executions/executions.directive.js'),
 

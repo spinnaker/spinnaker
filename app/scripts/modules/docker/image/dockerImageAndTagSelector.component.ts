@@ -247,6 +247,6 @@ class DockerImageAndTagSelectorComponent implements ng.IComponentOptions {
   public templateUrl: string = require('./dockerImageAndTagSelector.component.html');
 }
 
-export const DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT_MODULE = 'spinnaker.deck.docker.imageAndTagSelector.component';
-module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT_MODULE, [require('core/account/account.service.js'), DOCKER_IMAGE_READER_SERVICE])
+export const DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT = 'spinnaker.deck.docker.imageAndTagSelector.component';
+module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, [require('core/account/account.service.js'), DOCKER_IMAGE_READER_SERVICE])
   .component('dockerImageAndTagSelector', new DockerImageAndTagSelectorComponent());

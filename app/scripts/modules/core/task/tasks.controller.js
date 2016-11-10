@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import displayableTaskFilter from './displayableTasks.filter';
+import {DISPLAYABLE_TASKS_FILTER} from './displayableTasks.filter';
 
 let angular = require('angular');
 
@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
   require('../cache/viewStateCache.js'),
   require('./task.write.service.js'),
   require('../confirmationModal/confirmationModal.service.js'),
-  displayableTaskFilter,
+  DISPLAYABLE_TASKS_FILTER,
   require('../cache/deckCacheFactory.js'),
   require('../config/settings.js'),
 ])

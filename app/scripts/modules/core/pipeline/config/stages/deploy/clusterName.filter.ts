@@ -1,7 +1,5 @@
-import { module } from 'angular';
-import { StageContext } from 'core/domain/stageContext';
-
-const MODULE_NAME = 'spinnaker.core.pipeline.clusterName.filter';
+import {module} from 'angular';
+import {StageContext} from 'core/domain/stageContext';
 
 export function clusterNameFilter(namingService: any): any {
   return function (input: StageContext) {
@@ -10,10 +8,9 @@ export function clusterNameFilter(namingService: any): any {
       return 'n/a';
     }
     return namingService.getClusterName(input.application, input.stack, input.freeFormDetails);
-    };
+  };
 }
 
-module(MODULE_NAME, [])
+export const CLUSTER_NAME_FILTER = 'spinnaker.core.pipeline.clusterName.filter';
+module(CLUSTER_NAME_FILTER, [])
   .filter('clusterName', clusterNameFilter);
-
-export default MODULE_NAME;

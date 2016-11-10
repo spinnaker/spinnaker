@@ -10,8 +10,6 @@
 
 import { module } from 'angular';
 
-const MODULE_NAME = 'spinnaker.core.presentation.anyFieldFilter';
-
 export function anyFieldFilter() {
   return function(items: any, props: any): any[] {
     let out: any[] = [];
@@ -43,7 +41,6 @@ export function anyFieldFilter() {
   };
 }
 
-module(MODULE_NAME, [])
+export const ANY_FIELD_FILTER = 'spinnaker.core.presentation.anyFieldFilter';
+module(ANY_FIELD_FILTER, [])
   .filter('anyFieldFilter', anyFieldFilter);
-
-export default MODULE_NAME;
