@@ -24,6 +24,14 @@ module.exports = angular.module('spinnaker.titus', [
   require('./validation/applicationName.validator.js'),
   require('./pipeline/stages/findAmi/titusFindAmiStage.js'),
   require('./pipeline/stages/runJob/titusRunJobStage.js'),
+  require('./pipeline/stages/enableAsg/titusEnableAsgStage.js'),
+  require('./pipeline/stages/disableAsg/titusDisableAsgStage.js'),
+  require('./pipeline/stages/destroyAsg/titusDestroyAsgStage.js'),
+  require('./pipeline/stages/resizeAsg/titusResizeAsgStage.js'),
+  require('./pipeline/stages/cloneServerGroup/titusCloneServerGroupStage.js'),
+  require('./pipeline/stages/disableCluster/titusDisableClusterStage.js'),
+  require('./pipeline/stages/shrinkCluster/titusShrinkClusterStage.js'),
+  require('./pipeline/stages/scaleDownCluster/titusScaleDownClusterStage.js'),
   TITUS_MIGRATION_CONFIG_COMPONENT,
 ])
   .config(function(cloudProviderRegistryProvider) {
