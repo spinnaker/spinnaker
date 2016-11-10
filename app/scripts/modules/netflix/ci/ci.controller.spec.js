@@ -1,5 +1,5 @@
 import MODEL_BUILDER from 'core/application/applicationModel.builder';
-import DATA_SOURCE_REGISTRY from 'core/application/service/applicationDataSource.registry';
+import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
 
 describe('Controller: NetflixCiCtrl', function () {
 
@@ -9,7 +9,7 @@ describe('Controller: NetflixCiCtrl', function () {
     window.module(
       require('./ci.controller.js'),
       MODEL_BUILDER,
-      DATA_SOURCE_REGISTRY
+      APPLICATION_DATA_SOURCE_REGISTRY
     )
   );
 

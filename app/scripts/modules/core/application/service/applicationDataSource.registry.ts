@@ -38,9 +38,7 @@ export class ApplicationDataSourceRegistry {
   }
 }
 
-const moduleName = 'spinnaker.core.application.section.registry';
+export const APPLICATION_DATA_SOURCE_REGISTRY = 'spinnaker.core.application.section.registry';
 
-module(moduleName, [])
+module(APPLICATION_DATA_SOURCE_REGISTRY, [])
   .service('applicationDataSourceRegistry', ApplicationDataSourceRegistry);
-
-export default moduleName;

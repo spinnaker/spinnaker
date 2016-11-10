@@ -1,14 +1,14 @@
 import {Application} from 'core/application/application.model';
 import APPLICATION_MODEL_BUILDER, {ApplicationModelBuilder} from '../../core/application/applicationModel.builder';
 import IProvideService = angular.auto.IProvideService;
-import DATA_SOURCE_REGISTRY from 'core/application/service/applicationDataSource.registry';
+import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
 
 describe('CI Data Source', function () {
   beforeEach(
     angular.mock.module(
       require('./ci.dataSource'),
       APPLICATION_MODEL_BUILDER,
-      DATA_SOURCE_REGISTRY,
+      APPLICATION_DATA_SOURCE_REGISTRY,
       function($provide: IProvideService) {
         return $provide.constant('settings', {
           feature: { netflixMode: true }

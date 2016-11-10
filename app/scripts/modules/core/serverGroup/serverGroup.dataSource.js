@@ -1,11 +1,11 @@
 import {DataSourceConfig} from '../application/service/applicationDataSource';
-import dataSourceRegistryModule from '../application/service/applicationDataSource.registry';
+import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.dataSource', [
-    dataSourceRegistryModule,
+    APPLICATION_DATA_SOURCE_REGISTRY,
     require('../cluster/cluster.service'),
   ])
   .run(function($q, applicationDataSourceRegistry, clusterService, serverGroupTransformer) {

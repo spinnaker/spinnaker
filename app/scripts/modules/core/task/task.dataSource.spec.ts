@@ -1,6 +1,6 @@
 import {Application} from '../application/application.model';
 import modelBuilderModule from '../application/applicationModel.builder';
-import dataSourceRegistryModule from '../application/service/applicationDataSource.registry';
+import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 
 describe('Task Data Source', function () {
 
@@ -15,7 +15,7 @@ describe('Task Data Source', function () {
     angular.mock.module(
       require('./task.dataSource'),
       require('./task.read.service'),
-      dataSourceRegistryModule,
+      APPLICATION_DATA_SOURCE_REGISTRY,
       modelBuilderModule
     ));
 

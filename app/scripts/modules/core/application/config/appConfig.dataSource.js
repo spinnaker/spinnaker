@@ -1,11 +1,11 @@
 import {DataSourceConfig} from '../service/applicationDataSource';
-import registryModule from '../service/applicationDataSource.registry';
+import {APPLICATION_DATA_SOURCE_REGISTRY} from '../service/applicationDataSource.registry';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.dataSource', [
-    registryModule,
+    APPLICATION_DATA_SOURCE_REGISTRY,
   ])
   .run(function($q, applicationDataSourceRegistry) {
     applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
