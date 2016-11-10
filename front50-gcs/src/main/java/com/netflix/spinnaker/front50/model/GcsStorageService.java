@@ -135,7 +135,7 @@ public class GcsStorageService implements StorageService {
       GoogleCredential credential = loadCredential(httpTransport, jsonFactory,
                                                    credentialsPath);
 
-      String applicationName = "Spinnaker-front50/" + applicationVersion;
+      String applicationName = "Spinnaker/" + applicationVersion;
       storage = new Storage.Builder(httpTransport, jsonFactory, credential)
                            .setApplicationName(applicationName)
                            .build();
