@@ -2,12 +2,15 @@
 
 import _ from 'lodash';
 
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.titus.cloneServerGroupStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/account/account.service.js'),
-  require('core/naming/naming.service.js'),
+  ACCOUNT_SERVICE,
+  NAMING_SERVICE,
   require('./cloneServerGroupExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {
