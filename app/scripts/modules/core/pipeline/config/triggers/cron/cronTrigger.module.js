@@ -2,10 +2,12 @@
 
 let angular = require('angular');
 
+import {UUID_SERVICE} from 'core/utils/uuid.service';
+
 module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
     require('../trigger.directive.js'),
     require('core/serviceAccount/serviceAccount.service.js'),
-    require('core/utils/uuid.service.js'),
+    UUID_SERVICE,
     require('./cron.validator.directive.js'),
   ])
   .config(function(pipelineConfigProvider) {
