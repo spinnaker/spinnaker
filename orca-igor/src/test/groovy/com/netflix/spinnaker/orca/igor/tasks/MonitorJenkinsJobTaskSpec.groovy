@@ -160,6 +160,24 @@ class MonitorJenkinsJobTaskSpec extends Specification {
 
   }
 
+  def "fails stage if property file is expected but not returned from jenkins"() {
+    given:
+    def stage = new PipelineStage(pipeline, "jenkins", [master: 'builds', job: 'orca', buildNumber: 4, propertyFile: 'noexist.properties'])
+
+    and:
+    task.buildService = Stub(BuildService) {
+      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> [result: 'SUCCESS', running: false]
+      getPropertyFile(stage.context.buildNumber, stage.context.propertyFile, stage.context.master, stage.context.job) >> [:]
+    }
+
+    when:
+    task.execute(stage)
+
+    then:
+    IllegalStateException e = thrown IllegalStateException
+    e.message == 'expected properties file noexist.properties but one was not found or was empty'
+  }
+
   def "marks 'unstable' results as successful if explicitly configured to do so"() {
     given:
     def stage = new PipelineStage(pipeline, "jenkins",
