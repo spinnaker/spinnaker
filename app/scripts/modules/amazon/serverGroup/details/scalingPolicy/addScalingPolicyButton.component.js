@@ -1,12 +1,10 @@
 'use strict';
 
 const angular = require('angular');
-import {UUID_SERVICE} from 'core/utils/uuid.service';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.addButton', [
     require('angular-ui-bootstrap'),
-    UUID_SERVICE
   ])
   .component('addScalingPolicyButton', {
     bindings: {

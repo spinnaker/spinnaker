@@ -1,15 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
-import {UUID_SERVICE} from 'core/utils/uuid.service';
+import {UUIDGenerator} from 'core/utils/uuid.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.history.service', [
   require('../cache/deckCacheFactory.js'),
-  UUID_SERVICE
 ])
-  .factory('recentHistoryService', function (deckCacheFactory, uuidService) {
+  .factory('recentHistoryService', function (deckCacheFactory) {
     const maxItems = 5;
 
     deckCacheFactory.createCache('history', 'user', {
@@ -38,7 +37,7 @@ module.exports = angular.module('spinnaker.core.history.service', [
             state: state,
             accessTime: new Date().getTime(),
             extraData: {},
-            id: uuidService.generateUuid(),
+            id: UUIDGenerator.generateUuid(),
           };
       if (existing) {
         items.splice(items.indexOf(existing), 1);
