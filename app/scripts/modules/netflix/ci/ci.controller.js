@@ -28,9 +28,13 @@ module.exports = angular.module('spinnaker.netflix.ci.controller', [
       }
     };
 
+    dataSource.activate();
     dataSource.ready().then(this.getBuilds);
     dataSource.onRefresh($scope, this.getBuilds);
 
-    $scope.$on('$destroy', () => CiFilterModel.searchFilter = '');
+    $scope.$on('$destroy', () => {
+      CiFilterModel.searchFilter = '';
+      dataSource.deactivate();
+    });
   });
 

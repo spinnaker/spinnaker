@@ -39,10 +39,13 @@ module.exports = angular
 
     let addRunningExecutions = (application, data) => {
       executionService.transformExecutions(application, data);
-      clusterService.addExecutionsToServerGroups(application);
       return $q.when(data);
     };
 
+    let runningExecutionsLoaded = (application) => {
+      clusterService.addExecutionsToServerGroups(application);
+      application.getDataSource('serverGroups').dataUpdated();
+    };
 
     if (settings.feature && settings.feature.pipelines !== false) {
       applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
@@ -71,6 +74,7 @@ module.exports = angular
         visible: false,
         loader: loadRunningExecutions,
         onLoad: addRunningExecutions,
+        afterLoad: runningExecutionsLoaded,
       }));
     }
 

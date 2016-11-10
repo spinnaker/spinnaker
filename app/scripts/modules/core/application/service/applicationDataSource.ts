@@ -63,7 +63,9 @@ export class DataSourceConfig {
   public activeState: string;
 
   /**
-   * Determines whether the data source appears on the application header. Default: true
+   * Determines whether the data source appears on the application header and contributes to the application's ready state.
+   *
+   * Default: true
    */
   public visible: boolean = true;
 
@@ -91,6 +93,12 @@ export class DataSourceConfig {
    * will remain unchanged.
    */
   public onLoad: {(fn: any): ng.IPromise<any>};
+
+  /**
+   * (Optional) A method that is called after the "onLoad" method resolves. The data source's data will be populated
+   * when this method is called.
+   */
+  public afterLoad: {(application: Application): void};
 
   /**
    * If the data source should contribute to the application's default credentials setting, this field should be set
@@ -237,7 +245,12 @@ export class ApplicationDataSource {
   /**
    * See DataSourceConfig#onLoad
    */
-  public onLoad: {(Application: any, fn: any): ng.IPromise<any>};
+  public onLoad: {(application: Application, fn: any): ng.IPromise<any>};
+
+  /**
+   * See DataSourceConfig#afterLoad
+   */
+  public afterLoad: {(application: Application): void};
 
   /**
    * See DataSourceConfig#loader
@@ -379,6 +392,9 @@ export class ApplicationDataSource {
           this.loading = false;
           this.loadFailure = false;
           this.lastRefresh = new Date().getTime();
+          if (this.afterLoad) {
+            this.afterLoad(this.application);
+          }
           this.dataUpdated();
         });
       })

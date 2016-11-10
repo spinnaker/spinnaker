@@ -24,8 +24,12 @@ module.exports = angular
     };
 
     let addRunningTasks = (application, data) => {
-      clusterService.addTasksToServerGroups(application);
       return $q.when(data);
+    };
+
+    let runningTasksLoaded = (application) => {
+      clusterService.addTasksToServerGroups(application);
+      application.getDataSource('serverGroups').dataUpdated();
     };
 
     applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
@@ -34,6 +38,7 @@ module.exports = angular
       badge: 'runningTasks',
       loader: loadTasks,
       onLoad: addTasks,
+      afterLoad: runningTasksLoaded,
       lazy: true,
     }));
 

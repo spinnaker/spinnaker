@@ -82,10 +82,16 @@ export class Application {
    * one of the data sources fails to refresh
    */
   public refresh(forceRefresh?: boolean): ng.IPromise<any> {
-    return this.$q.all(this.dataSources.map(source => source.refresh(forceRefresh))).then(
-      () => this.applicationLoadSuccess(),
-      (error) => this.applicationLoadError(error)
-    );
+    // refresh hidden data sources but do not consider their results when determining when the refresh completes
+    this.dataSources.filter(ds => !ds.visible).forEach(ds => ds.refresh(forceRefresh));
+    return this.$q.all(
+      this.dataSources
+        .filter(ds => ds.visible)
+        .map(source => source.refresh(forceRefresh)))
+        .then(
+          () => this.applicationLoadSuccess(),
+          (error) => this.applicationLoadError(error)
+        );
   }
 
   /**
@@ -95,7 +101,10 @@ export class Application {
    * not useful - it's only useful to watch the promise itself
    */
   public ready(): ng.IPromise<any> {
-    return this.$q.all(this.dataSources.filter(ds => ds.onLoad !== undefined).map(dataSource => dataSource.ready()));
+    return this.$q.all(
+      this.dataSources
+        .filter(ds => ds.onLoad !== undefined && ds.visible)
+        .map(dataSource => dataSource.ready()));
   }
 
   /**

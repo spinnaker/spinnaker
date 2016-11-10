@@ -37,6 +37,7 @@ module.exports = angular
         label: 'CI',
         optional: true,
         optIn: true,
+        lazy: true,
         description: 'Container-based continuous integration (alpha)',
         loader: loadBuilds,
         onLoad: buildsLoaded,
