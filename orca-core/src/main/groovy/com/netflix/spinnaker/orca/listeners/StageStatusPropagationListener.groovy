@@ -35,15 +35,6 @@ class StageStatusPropagationListener implements StageListener {
     stage.startTime = stage.startTime ?: System.currentTimeMillis()
     stage.status = ExecutionStatus.RUNNING
 
-    if (stage.execution.executionEngine == "v2") {
-      stage.context.stageDetails = [
-        name       : stage.name,
-        type       : stage.type,
-        startTime  : stage.startTime,
-        isSynthetic: stage.syntheticStageOwner != null
-      ]
-    }
-
     persister.save(stage)
   }
 
@@ -86,10 +77,6 @@ class StageStatusPropagationListener implements StageListener {
       log.debug("***** $stage.execution.id Stage $stage.type terminal due to missing status")
       stage.endTime = System.currentTimeMillis()
       stage.status = ExecutionStatus.TERMINAL
-    }
-
-    if (stage.endTime && stage.execution.executionEngine == "v2") {
-      stage.context.stageDetails.endTime = stage.endTime
     }
 
     persister.save(stage)

@@ -81,8 +81,8 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
         .map(context ->
           newStage(
             stage.getExecution(),
-            context.get("type").toString(),
-            context.get("name").toString(),
+            context.getOrDefault("type", stage.getType()).toString(),
+            context.getOrDefault("name", stage.getName()).toString(),
             context,
             stage,
             STAGE_AFTER

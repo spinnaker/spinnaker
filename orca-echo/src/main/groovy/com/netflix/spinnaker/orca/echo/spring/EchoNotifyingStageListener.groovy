@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.echo.spring
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -10,6 +11,7 @@ import com.netflix.spinnaker.orca.pipeline.model.*
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static java.lang.System.currentTimeMillis
 
 /**
  * Converts execution events to Echo events.
@@ -35,9 +37,21 @@ class EchoNotifyingStageListener implements StageListener {
   }
 
   @Override
+  @CompileDynamic
   <T extends Execution<T>> void beforeStage(Persister persister,
                                             Stage<T> stage) {
     if (stage.status == NOT_STARTED) {
+      def details = [
+        name       : stage.name,
+        type       : stage.type,
+        // because this listener runs before the one setting the startTime
+        // TODO: handle better when we remove v1 path
+        startTime  : stage.startTime ?: currentTimeMillis(),
+        isSynthetic: stage.syntheticStageOwner != null
+      ]
+      stage.context.stageDetails = details
+      persister.save(stage)
+
       log.debug("***** $stage.execution.id Echo stage $stage.name starting v2")
       recordEvent("stage", "starting", stage)
     }
@@ -73,9 +87,15 @@ class EchoNotifyingStageListener implements StageListener {
   }
 
   @Override
+  @CompileDynamic
   <T extends Execution<T>> void afterStage(Persister persister,
                                            Stage<T> stage) {
     if (stage.execution instanceof Pipeline) {
+      if (stage.endTime) {
+        stage.context.stageDetails.endTime = stage.endTime
+      }
+      persister.save(stage)
+
       if (stage.status.successful) {
         log.debug("***** $stage.execution.id Echo stage $stage.name complete v2")
         recordEvent('stage', 'complete', stage)
