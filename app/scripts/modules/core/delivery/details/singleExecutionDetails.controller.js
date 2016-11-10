@@ -18,10 +18,10 @@ module.exports = angular.module('spinnaker.singleExecutionDetails.controller', [
       if ($scope.application.notFound) {
         return;
       }
-      executionService.getExecution($state.params.executionId).then((execution) =>
-      {
-        this.execution = execution;
-        executionService.transformExecution(this.application, this.execution);
+      executionService.getExecution($state.params.executionId).then((execution) => {
+        this.execution = this.execution || execution;
+        executionService.transformExecution(this.application, execution);
+        executionService.synchronizeExecution(this.execution, execution);
         if (!execution.isActive) {
           executionScheduler.unsubscribe();
           executionLoader.unsubscribe();

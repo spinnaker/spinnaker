@@ -337,6 +337,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       getRunningExecutions: getRunningExecutions,
       transformExecutions: transformExecutions,
       transformExecution: transformExecution,
+      synchronizeExecution: synchronizeExecution,
       cancelExecution: cancelExecution,
       resumeExecution: resumeExecution,
       pauseExecution: pauseExecution,
