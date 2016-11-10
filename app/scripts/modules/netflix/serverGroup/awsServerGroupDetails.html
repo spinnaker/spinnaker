@@ -290,6 +290,8 @@
         <dd>{{ctrl.serverGroup.buildInfo.version}}</dd>
         <dt>Build Link</dt>
         <dd><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
+        <dt ng-if="ctrl.serverGroup.baseAmiVersion">Base Ami Version</dt>
+        <dd ng-if="ctrl.serverGroup.baseAmiVersion">{{ctrl.serverGroup.baseAmiVersion}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Advanced Settings">
