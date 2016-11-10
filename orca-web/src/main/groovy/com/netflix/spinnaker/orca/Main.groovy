@@ -38,8 +38,6 @@ import com.netflix.spinnaker.orca.igor.config.IgorConfiguration
 import com.netflix.spinnaker.orca.mahe.config.MaheConfiguration
 import com.netflix.spinnaker.orca.mine.config.MineConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.rush.config.RushConfiguration
-import com.netflix.spinnaker.orca.tide.config.TideConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -71,13 +69,11 @@ import org.springframework.scheduling.annotation.EnableAsync
   Front50Configuration,
   FlexConfiguration,
   CloudDriverConfiguration,
-  RushConfiguration,
   IgorConfiguration,
   DiscoveryPollingConfiguration,
   TomcatConfiguration,
   MineConfiguration,
   MaheConfiguration,
-  TideConfiguration,
   ApplicationConfig,
   FiatAuthenticationConfig,
   StackdriverConfig,
