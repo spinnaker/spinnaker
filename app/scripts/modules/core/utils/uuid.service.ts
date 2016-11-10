@@ -6,7 +6,7 @@ export class UUIDService {
     return Math.random() * max;
   }
 
-  public static generateUuid(): string {
+  public generateUuid(): string {
 
     // source: https://github.com/daniellmb/angular-uuid-service/blob/master/angular-uuid-service.js
     let uuid = '';

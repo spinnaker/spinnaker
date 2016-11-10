@@ -1,13 +1,21 @@
 import {isString, range} from 'lodash';
-import {UUIDService} from './uuid.service';
+import {UUID_SERVICE, UUIDService} from './uuid.service';
 
-fdescribe('UUID Service', () => {
+describe('UUID Service', () => {
+
+  let uuidService: UUIDService;
+
+  beforeEach(angular.mock.module(UUID_SERVICE));
+
+  beforeEach(angular.mock.inject(function (_uuidService_: UUIDService) {
+    uuidService = _uuidService_;
+  }));
 
   describe('verify uuid generation format', () => {
 
     let uuid: string;
     beforeEach(() => {
-      uuid = UUIDService.generateUuid();
+      uuid = uuidService.generateUuid();
     });
 
     it('should generate a non-empty string', () => {
