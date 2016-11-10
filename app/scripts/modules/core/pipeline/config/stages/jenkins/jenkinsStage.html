@@ -79,7 +79,8 @@
 
   <stage-config-field label="Wait for results" help-key="jenkins.waitForCompletion">
     <input type="checkbox" class="input-sm" name="waitForCompletion"
-           ng-model="stage.waitForCompletion"/>
+           ng-model="viewState.waitForCompletion"
+           ng-change="jenkinsStageCtrl.waitForCompletionChanged()"/>
   </stage-config-field>
 
   <div class="form-group">

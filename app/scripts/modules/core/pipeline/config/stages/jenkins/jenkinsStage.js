@@ -29,7 +29,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
     $scope.stage = stage;
     $scope.stage.failPipeline = ($scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline);
     $scope.stage.continuePipeline = ($scope.stage.continuePipeline === undefined ? false : $scope.stage.continuePipeline);
-    $scope.stage.waitForCompletion = ($scope.stage.waitForCompletion === undefined ? true : $scope.stage.waitForCompletion);
 
     $scope.viewState = {
       mastersLoaded: false,
@@ -37,11 +36,14 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
       jobsLoaded: false,
       jobsRefreshing: false,
       failureOption: 'fail',
-      markUnstableAsSuccessful: !!stage.markUnstableAsSuccessful
+      markUnstableAsSuccessful: !!stage.markUnstableAsSuccessful,
+      waitForCompletion: stage.waitForCompletion || stage.waitForCompletion === undefined,
     };
 
     // Using viewState to avoid marking pipeline as dirty if field is not set
     this.markUnstableChanged = () => stage.markUnstableAsSuccessful = $scope.viewState.markUnstableAsSuccessful;
+
+    this.waitForCompletionChanged = () => stage.waitForCompletion = $scope.viewState.waitForCompletion;
 
     function initializeMasters() {
       igorService.listMasters().then(function (masters) {
