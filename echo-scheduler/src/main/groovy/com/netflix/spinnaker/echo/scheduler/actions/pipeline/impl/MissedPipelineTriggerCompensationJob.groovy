@@ -130,7 +130,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
 
   void onOrcaResponse(Collection<PipelineResponse> response, List<Pipeline> pipelines, List<Trigger> triggers) {
     triggers.each { trigger ->
-      Pipeline pipeline = pipelines.find { it.triggers*.id.contains(trigger.id) }
+      Pipeline pipeline = pipelines.find { it.triggers && it.triggers*.id.contains(trigger.id) }
       List<Date> executions = response.findAll { it.pipelineConfigId == pipeline.id }.collect {
         // A null value is valid; a pipeline that hasn't started won't get re-triggered.
         it.startTime != null ? new Date(it.startTime) : null
