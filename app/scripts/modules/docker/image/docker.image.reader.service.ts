@@ -1,5 +1,6 @@
 import {module} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
+import {RETRY_SERVICE, RetryService} from 'core/retry/retry.service';
 
 export interface IDockerImage {
   account: string;
@@ -11,7 +12,7 @@ export interface IDockerImage {
 export class DockerImageReaderService {
 
   constructor(private API: Api,
-              private retryService: any) {}
+              private retryService: RetryService) {}
 
   public findImages(params: any): ng.IPromise<IDockerImage[]> {
     return this.retryService.buildRetrySequence(() => this.API.all('images/find')
@@ -22,5 +23,5 @@ export class DockerImageReaderService {
 }
 
 export const DOCKER_IMAGE_READER_SERVICE = 'spinnaker.docker.image.reader';
-module(DOCKER_IMAGE_READER_SERVICE, [API_SERVICE, require('core/retry/retry.service.js')])
+module(DOCKER_IMAGE_READER_SERVICE, [API_SERVICE, RETRY_SERVICE])
   .service('dockerImageReader', DockerImageReaderService);
