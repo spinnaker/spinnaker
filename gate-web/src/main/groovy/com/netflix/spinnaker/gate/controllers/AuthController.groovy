@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 import javax.servlet.http.HttpServletResponse
+import java.util.regex.Pattern
 
 @Slf4j
 @RestController
@@ -47,6 +48,9 @@ class AuthController {
       "I wish we could chat longer, but I'm having an old friend for dinner. Bye!",
       "Hodor.",
   ]
+  private final Random r = new Random()
+  private final URL deckBaseUrl
+  private final Pattern redirectHostPattern
 
   @Autowired
   PermissionService permissionService
@@ -54,10 +58,15 @@ class AuthController {
   @Autowired(required = false)
   UserRolesSyncer userRolesSyncer
 
-  @Value('${services.deck.baseUrl}')
-  URL deckBaseUrl
+  @Autowired
+  AuthController(@Value('${services.deck.baseUrl}') URL deckBaseUrl,
+                 @Value('${services.deck.redirectHostPattern:#{null}}') String redirectHostPattern) {
+    this.deckBaseUrl = deckBaseUrl
 
-  Random r = new Random()
+    if (redirectHostPattern) {
+      this.redirectHostPattern = Pattern.compile(redirectHostPattern)
+    }
+  }
 
   @RequestMapping("/user")
   User user(@SpinnakerUser User user) {
@@ -103,9 +112,19 @@ class AuthController {
       return false
     }
 
-    log.info "validDeckRedirect($to)..."
-    log.info "      toURL=[host:$toURL.host, port:$toURL.port]"
-    log.info "deckBaseUrl=[host:$deckBaseUrl.host, port:$deckBaseUrl.port]"
+    log.debug([
+      "validateDeckRedirect(${to})",
+      "toUrl(host: ${toURL.host}, port: ${toURL.port})",
+      "deckBaseUrl(host: ${deckBaseUrl.host}, port: ${deckBaseUrl.port})",
+      "redirectHostPattern(${redirectHostPattern?.pattern()})"
+      ].join(" - ")
+    )
+
+    if (redirectHostPattern) {
+      def matcher = redirectHostPattern.matcher(toURL.host)
+      return matcher.matches()
+    }
+
     return toURL.host == deckBaseUrl.host &&
         toURL.port == deckBaseUrl.port
   }
