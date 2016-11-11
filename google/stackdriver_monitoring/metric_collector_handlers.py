@@ -1,24 +1,46 @@
+# Copyright 2016 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from datetime import datetime
-import cgi
 import json
-import logging
-from stackdriver_client import StackdriverClient
+
+
+def accepts_html(request):
+  if not hasattr(request, 'headers'):
+    return False
+  accept = request.headers.get('accept', None)
+  if not accept:
+    return None
+  return 'text/html' in accept.split(',')
+
+
+def millis_to_time(millis):
+  return datetime.fromtimestamp(millis / 1000).isoformat('T') + 'Z'
+
 
 def params_to_query(params):
   query_list = ['{0}={1}'.format(key, value) for key, value in params.items()]
   return '?{0}'.format('&'.join(query_list)) if query_list else ''
 
+
 class BaseHandler(object):
-  def __init__(self, options):
-    pass
+  def __init__(self, options, registry):
+    self.__registry = registry
 
   def __call__(self, request, path, params, fragment):
     query = params_to_query(params)
-    rows = [('/clear', 'Clear all Spinnaker Metrics.'),
-            ('/dump', 'Show current raw metric JSON from all the servers.'),
-            ('/list', 'List all the Stackdriver Custom Metric Descriptors.'),
-            ('/explore', 'Explore Custom Metric Type usage across Spinnaker.'),
-            ('/show', 'Show current metric JSON for all Spinnaker.')]
+    rows = [(entry.url_path, entry.description) for entry in self.__registry]
     row_html = [('<tr>'
                  '<td><A href="{path}{params}">{path}</A></td>'
                  '<td>{info}</td>'
@@ -29,6 +51,7 @@ class BaseHandler(object):
     html_doc = request.build_html_document(
         html_body, title='Spinnaker Metrics Administration')
     request.respond(200, {'ContentType': 'application/html'}, html_doc)
+
 
 class DumpMetricsHandler(object):
   def __init__(self, options, spectator):
@@ -47,118 +70,6 @@ class DumpMetricsHandler(object):
       data_map = self.__spectator.scan_by_type(service_list, params=params)
     body = json.JSONEncoder(indent=2).encode(data_map)
     request.respond(200, {'ContentType': 'application/json'}, body)
-
-
-class ListCustomDescriptorsHandler(object):
-  """Administrative handler to list all the known descriptors."""
-
-  @staticmethod
-  def compare_types(a, b):
-    # pylint: disable=invalid-name
-    a_root = a['type'][len(StackdriverClient.CUSTOM_PREFIX):]
-    b_root = b['type'][len(StackdriverClient.CUSTOM_PREFIX):]
-    return (-1 if a_root < b_root
-            else 0 if a_root == b_root
-            else 1)
-
-  def __init__(self, options, stackdriver):
-    self.__stackdriver = stackdriver
-    self.__project = options.project
-
-  def __call__(self, request, path, params, fragment):
-    project = params.get('project', self.__project)
-    type_map = self.__stackdriver.fetch_custom_descriptors(project)
-    descriptor_list = type_map.values()
-    descriptor_list.sort(self.compare_types)
-
-    html = self.descriptors_to_html(descriptor_list)
-    html_doc = request.build_html_document(html, title='Custom Descriptors')
-    request.respond(200, {'ContentType': 'text/html'}, html_doc)
-
-  def collect_rows(self, descriptor_list):
-    rows = []
-    for elem in descriptor_list:
-      type_name = elem['type'][len(StackdriverClient.CUSTOM_PREFIX):]
-      labels = elem.get('labels', [])
-      label_names = [k['key'] for k in labels]
-      rows.append((type_name, label_names))
-    return rows
-
-  def descriptors_to_html(self, descriptor_list):
-    rows = self.collect_rows(descriptor_list)
-
-    html = ['<table>', '<tr><th>Custom Type</th><th>Labels</th></tr>']
-    html.extend(['<tr><td><b>{0}</b></td><td><code>{1}</code></td></tr>'
-                 .format(row[0], ', '.join(row[1]))
-                 for row in rows])
-    html.append('</table>')
-    html.append('<p>Found {0} Custom Metrics</p>'
-                .format(len(descriptor_list)))
-    return '\n'.join(html)
-
-
-class ClearCustomDescriptorsHandler(object):
-  """Administrative handler to clear all the known descriptors.
-
-  This clears all the TimeSeries history as well.
-  """
-  def __init__(self, options, stackdriver):
-    self.__stackdriver = stackdriver
-    self.__project = options.project
-
-  def __call__(self, request, path, params, fragment):
-    project = params.get('project', self.__project)
-
-    delete_method = (self.__stackdriver.service.projects()
-                     .metricDescriptors().delete)
-
-    type_map = self.__stackdriver.fetch_custom_descriptors(project)
-
-    all_names = [descriptor['name'] for descriptor in type_map.values()]
-    batch = self.__stackdriver.service.new_batch_http_request()
-    max_batch = 100
-    count = 0
-
-    class BatchResponseHandler(object):
-      def __init__(self, num):
-        self.batch_response = [None] * num
-        self.num_ok = 0
-
-      def handle_batch_response(self, index_str, good, bad):
-        index = int(index_str)
-        if bad:
-          self.batch_response[index] = 'ERROR {0}'.format(cgi.escape(str(bad)))
-          logging.error(bad)
-        else:
-          self.num_ok += 1
-          if not good:
-            good = ''
-          self.batch_response[index] = 'OK {0}'.format(cgi.escape(good))
-
-    handler = BatchResponseHandler(len(all_names))
-    for name in all_names:
-      logging.info('batch DELETE %s', name)
-      invocation = delete_method(name=name)
-      batch.add(invocation, callback=handler.handle_batch_response,
-                request_id=str(count))
-      count += 1
-      if count % max_batch == 0:
-        logging.info('Executing batch of %d', max_batch)
-        batch.execute()
-        batch = self.__stackdriver.service.new_batch_http_request()
-
-    if count % max_batch:
-      logging.info('Executing final batch of %d', count % max_batch)
-      batch.execute()
-
-    html_rows = [('<tr><td>{0}</td><td>{1}</td></tr>'
-                  .format(all_names[i], handler.batch_response[i]))
-                 for i in range(len(all_names))]
-    html_body = 'Deleted {0} of {1}:\n<table>\n{2}\n</table>'.format(
-        handler.num_ok, len(all_names), '\n'.join(html_rows))
-    html_doc = request.build_html_document(html_body, title='Cleared Time Series')
-    response_code = 200 if handler.num_ok == len(all_names) else 500
-    request.respond(response_code, {'ContentType': 'text/html'}, html_doc)
 
 
 class ExploreCustomDescriptorsHandler(object):
@@ -237,8 +148,9 @@ class ExploreCustomDescriptorsHandler(object):
       query_params = dict(params or {})
       query_params['meterNameRegex'] = type_name
       metric_url = '/show{0}'.format(params_to_query(query_params))
-      row_html.append('<td{row_span}><A href="{url}">{type_name}</A></td>'.format(
-          row_span=row_span, url=metric_url, type_name=type_name))
+      row_html.append(
+          '<td{row_span}><A href="{url}">{type_name}</A></td>'.format(
+              row_span=row_span, url=metric_url, type_name=type_name))
       sep = ''
       for label_name, service_values in tag_service_map.items():
         if label_name is None:
@@ -288,15 +200,29 @@ class ShowCurrentMetricsHandler(object):
     service_list = (services_text.split(',')
                     if services_text else self.__service_list)
 
+    if accepts_html(request):
+      content_type = 'text/html'
+      by_service = self.service_map_to_html
+      by_type = self.type_map_to_html
+    else:
+      content_type = 'text/plain'
+      by_service = self.service_map_to_text
+      by_type = self.type_map_to_text
+
     by = params.get('by', 'service')
     if by == 'service':
-      service_map = self.__spectator.scan_by_service(service_list, params=params)
-      html = self.service_map_to_html(service_map, params=params)
+      service_map = self.__spectator.scan_by_service(
+          service_list, params=params)
+      content_data = by_service(service_map, params=params)
     else:
       type_map = self.__spectator.scan_by_type(service_list, params=params)
-      html = self.type_map_to_html(type_map, params=params)
-    html_doc = request.build_html_document(html, title='Current Metrics')
-    request.respond(200, {'ContentType': 'text/html'}, html_doc)
+      content_data = by_type(type_map, params=params)
+
+    if content_type == 'text/html':
+      body = request.build_html_document(content_data, title='Current Metrics')
+    else:
+      body = content_data
+    request.respond(200, {'ContentType': content_type}, body)
 
   def all_tagged_values(self, value_list):
     all_values = []
@@ -310,15 +236,46 @@ class ShowCurrentMetricsHandler(object):
     if len(data_points) == 1:
       point = data_points[0]
       return '<td>{time}</td><td>{value}</td>'.format(
-          time=StackdriverClient.millis_to_time(point['t']), value=point['v'])
+          time=millis_to_time(point['t']), value=point['v'])
 
       td_html = '<td colspan=2><table>'
       for point in data_points:
         td_html += '<tr><td>{time}</td><td>{value}</td></tr>'.format(
-            time=StackdriverClient.millis_to_time(point['t']),
+            time=millis_to_time(point['t']),
             value=point['v'])
       td_html += '</tr></table></td>'
       return td_html
+
+  def data_points_to_text(self, data_points):
+    if len(data_points) == 1:
+      point = data_points[0]
+      return '{time} {value}'.format(
+          time=millis_to_time(point['t']), value=point['v'])
+
+      text = []
+      for point in data_points:
+        text.append('{time}  {value}'.format(
+            time=millis_to_time(point['t']),
+            value=point['v']))
+      return ', '.join(text)
+
+  def service_map_to_text(self, service_map, params=None):
+    lines = []
+    for service, entry in sorted(service_map.items()):
+      metrics = entry.get('metrics', {})
+      for key, value in metrics.items():
+        tagged_values = self.all_tagged_values(value.get('values'))
+        parts = ['Service "{0}"'.format(service)]
+        parts.append('  {0}'.format(key))
+
+        for one in tagged_values:
+          tag_list = one[0]
+          tag_text = ', '.join([str(elem) for elem in tag_list])
+          time_values = self.data_points_to_text(one[1])
+          parts.append('    Tags={0}'.format(tag_text))
+          parts.append('    Values={0}'.format(time_values))
+        lines.append('\n'.join(parts))
+    return '\n\n'.join(lines)
 
   def service_map_to_html(self, service_map, params=None):
     column_headers_html = ('<tr><th>Service</th><th>Key</th><th>Tags</th>'
@@ -331,16 +288,19 @@ class ShowCurrentMetricsHandler(object):
       for key, value in metrics.items():
           # pylint: disable=bad-indentation
           tagged_values = self.all_tagged_values(value.get('values'))
-          service_url = '/show{0}'.format(params_to_query({'services': service}))
-          metric_url = '/show{0}'.format(params_to_query({'meterNameRegex': key}))
-          html = ('<tr>'
-                  '<th rowspan={rowspan}><A href="{service_url}">{service}</A></th>'
-                  '<th rowspan={rowspan}><A href="{metric_url}">{key}</A></th>'
-                  .format(rowspan=len(tagged_values),
-                          service_url=service_url,
-                          service=service,
-                          metric_url=metric_url,
-                          key=key))
+          service_url = '/show{0}'.format(
+              params_to_query({'services': service}))
+          metric_url = '/show{0}'.format(
+              params_to_query({'meterNameRegex': key}))
+          html = (
+              '<tr>'
+              '<th rowspan={rowspan}><A href="{service_url}">{service}</A></th>'
+              '<th rowspan={rowspan}><A href="{metric_url}">{key}</A></th>'
+              .format(rowspan=len(tagged_values),
+                      service_url=service_url,
+                      service=service,
+                      metric_url=metric_url,
+                      key=key))
           for one in tagged_values:
             tag_list = one[0]
             tag_html = '<br/>'.join([elem.as_html() for elem in tag_list])
@@ -351,6 +311,25 @@ class ShowCurrentMetricsHandler(object):
             html = '<tr>'
     result.append('</table>')
     return '\n'.join(result)
+
+  def type_map_to_text(self, type_map, params=None):
+    lines = []
+    for key, entry in sorted(type_map.items()):
+      tag_to_service_values = {}
+      for service, value in sorted(entry.items()):
+        tagged_values = self.all_tagged_values(value.get('values'))
+        for tag_value in tagged_values:
+          text_key = ', '.join([str(tag) for tag in tag_value[0]])
+          tag_to_service_values[text_key] = (service, tag_value[1])
+
+      parts = ['Metric "{0}"'.format(key)]
+      for tags_text, values in sorted(tag_to_service_values.items()):
+        parts.append('  Service "{0}"'.format(values[0]))
+        parts.append('    Value: {0}'.format(
+            self.data_points_to_text(values[1])))
+        parts.append('    Tags: {0}'.format(tags_text))
+      lines.append('\n'.join(parts))
+    return '\n\n'.join(lines)
 
   def type_map_to_html(self, type_map, params=None):
     """Helper function to render descriptor usage into text."""

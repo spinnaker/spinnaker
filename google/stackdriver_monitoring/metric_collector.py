@@ -1,21 +1,37 @@
 #!/usr/bin/env python
+
+# Copyright 2016 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 # pylint: disable=missing-docstring
 import argparse
 import logging
 import logging.config
+import collections
 
 from http_server import (HttpServer, StdoutRequestHandler)
 
 import metric_collector_handlers as handlers
+import stackdriver_handlers as stackdriver_handlers
 
 from spectator_client import SpectatorClient
 from stackdriver_client import StackdriverClient
 
 
-# Treat everything as a gauge because StackDriver counters
-# require managing a start time.
-COUNTER_KIND = 'GAUGE'
-KIND_MAP = {'Gauge': 'GAUGE', 'Counter': COUNTER_KIND, 'Timer': COUNTER_KIND}
+HandlerDefinition = collections.namedtuple(
+  'HandlersDefinition', ['handler', 'url_path', 'command_name', 'description'])
 
 
 def init_logging(log_file):
@@ -57,7 +73,7 @@ def get_options():
 
   parser.add_argument('--port', default=8008, type=int)
   parser.add_argument('--project', default='')
-  parser.add_argument('--credential_path', default='')
+  parser.add_argument('--credentials_path', default='')
   parser.add_argument('--host', default='localhost')
   parser.add_argument('--period', default=30)
   parser.add_argument('--prototype_path', default='')
@@ -69,27 +85,23 @@ def get_options():
   return parser.parse_args()
 
 
-def process_command(command, spectator, stackdriver, options):
+def process_command(command, registry):
+  """Process the given command.
+
+  Args:
+    command: [string] The name of the command to run.
+    registry: [list of HandlerDefinition]: The inventory of known commands.
+  """
   request = StdoutRequestHandler()
   params = {}
 
-  if command == 'clear':
-    handlers.ClearCustomDescriptorsHandler(
-        options, stackdriver)(request, '/clear', params, None)
-  elif command == 'dump':
-    handlers.DumpMetricsHandler(
-        options, spectator)(request, '/dump', params, None)
-  elif command == 'list':
-    handlers.ListCustomDescriptorsHandler(
-        options, stackdriver)(request, '/list', params, None)
-  elif command == 'explore':
-    handlers.ExploreCustomDescriptorsHandler(
-        options, spectator)(request, '/explore', params, None)
-  elif command == 'show':
-    handlers.ShowCurrentMetricsHandler(
-        options, spectator)(request, '/show', params, None)
-  else:
-    raise ValueError('Unknown command "{0}".'.format(command))
+  for entry in registry:
+    if command == entry.command_name:
+      entry.handler(request, entry.url_path, params, None)
+      return
+
+  raise ValueError('Unknown command "{0}".'.format(command))
+
 
 def main():
   init_logging('metric_collector.log')
@@ -99,25 +111,56 @@ def main():
   try:
     stackdriver = StackdriverClient.make_client(options)
   except IOError as ioerror:
-    logging.error('Could not create stackdriver client -- Stackdriver will be unavailable\n%s',
+    logging.error('Could not create stackdriver client'
+                  ' -- Stackdriver will be unavailable\n%s',
                   ioerror)
     stackdriver = None
 
+  registry = []
+  registry.extend([
+      HandlerDefinition(
+          handlers.BaseHandler(options, registry),
+          '/', 'Home', 'Home page for Spinnaker metric administration.'),
+      HandlerDefinition(
+          stackdriver_handlers.ClearCustomDescriptorsHandler(
+              options, stackdriver),
+          '/clear',
+          'clear',
+          'Clear all the Stackdriver Custom Metrics'),
+      HandlerDefinition(
+          stackdriver_handlers.ListCustomDescriptorsHandler(
+              options, stackdriver),
+          '/list',
+          'list',
+          'List all the Stackdriver Custom Metric Descriptors.'
+          ),
+
+      HandlerDefinition(
+          handlers.DumpMetricsHandler(options, spectator),
+          '/dump',
+          'dump',
+          'Show current raw metric JSON from all the servers.'),
+      HandlerDefinition(
+          handlers.ExploreCustomDescriptorsHandler(options, spectator),
+          '/explore',
+          'explore',
+          'Explore metric type usage across Spinnaker microservices.',
+          ),
+      HandlerDefinition(
+          handlers.ShowCurrentMetricsHandler(options, spectator),
+          '/show',
+          'show',
+          'Show current metric JSON for all Spinnaker.'
+          ),
+      ])
+
   if options.command:
-    process_command(options.command, spectator, stackdriver, options)
+    process_command(options.command, registry)
     return
 
-  path_handlers = {
-    '/': handlers.BaseHandler(options),
-    '/clear': handlers.ClearCustomDescriptorsHandler(options, stackdriver),
-    '/dump': handlers.DumpMetricsHandler(options, spectator),
-    '/list': handlers.ListCustomDescriptorsHandler(options, stackdriver),
-    '/explore': handlers.ExploreCustomDescriptorsHandler(options, spectator),
-    '/show': handlers.ShowCurrentMetricsHandler(options, spectator)
-   }
-
   logging.info('Starting HTTP server on port %d', options.port)
-  httpd = HttpServer(options.port, path_handlers)
+  url_path_to_handler = {entry.url_path: entry.handler for entry in registry}
+  httpd = HttpServer(options.port, url_path_to_handler)
   httpd.serve_forever()
 
 
