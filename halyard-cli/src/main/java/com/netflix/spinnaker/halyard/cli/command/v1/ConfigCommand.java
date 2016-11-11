@@ -29,22 +29,20 @@ import java.util.Map;
  * Usage is `$ hal config`
  */
 @Parameters(commandDescription = "Configure and view your halconfig")
-public class ConfigCommand extends NestableCommand {
+class ConfigCommand extends NestableCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PROTECTED)
   private String commandName = "config";
 
-  public ConfigCommand(GlobalOptions globalOptions) {
-    super(globalOptions);
-
-    ShowCommand show = new ShowCommand(globalOptions);
+  ConfigCommand() {
+    ShowCommand show = new ShowCommand();
     this.subcommands.put(show.getCommandName(), show);
   }
 
   @Override
   protected void executeThis() {
-
+    getCommander().usage();
   }
 }

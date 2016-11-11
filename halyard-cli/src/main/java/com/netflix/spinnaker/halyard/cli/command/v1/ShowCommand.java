@@ -18,19 +18,24 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.netflix.spinnaker.halyard.cli.services.v1.Daemon.getService;
 
 /**
  * This command displays its parent's resource.
  *
  * Usage is `$ hal config show`
  */
+@Slf4j
 @Parameters(commandDescription = "Show the resource in question", separators = "=")
-public class ShowCommand extends NestableCommand {
+class ShowCommand extends NestableCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -40,12 +45,14 @@ public class ShowCommand extends NestableCommand {
   @Parameter(names = "--provider", description = "Select the provider's config to display", arity = 1)
   protected String provider;
 
-  public ShowCommand(GlobalOptions globalOptions) {
-    super(globalOptions);
+  ShowCommand() {
+    super();
   }
 
   @Override
   protected void executeThis() {
-
+    Halconfig config = getService().getHalconfig();
+    getUi().success("Your currently loaded halconfig:");
+    getUi().raw(config.toString());
   }
 }

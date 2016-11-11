@@ -21,11 +21,9 @@ package com.netflix.spinnaker.halyard.cli.ui.v1;
  */
 public class Ui {
   private Color color;
-  private boolean verbose;
 
-  public Ui(boolean colorEnabled, boolean verbose) {
+  public Ui(boolean colorEnabled) {
     this.color = new Color(colorEnabled);
-    this.verbose = verbose;
   }
 
   private void reset(String message) {
@@ -43,9 +41,7 @@ public class Ui {
   }
 
   public void info(String message) {
-    if (verbose) {
-      reset(color.BOLD + color.BLUE + ". " + color.RESET + message);
-    }
+    reset(color.BOLD + color.BLUE + ". " + color.RESET + message);
   }
 
   public void warning(String message) {
@@ -54,6 +50,10 @@ public class Ui {
 
   public void failure(String message) {
     reset(color.BOLD + color.RED + "! " + color.RESET + message);
+  }
+
+  public void remediation(String message) {
+    reset(color.BOLD + color.MAGENTA + "? " + color.RESET + message);
   }
 
   public void success(String message) {

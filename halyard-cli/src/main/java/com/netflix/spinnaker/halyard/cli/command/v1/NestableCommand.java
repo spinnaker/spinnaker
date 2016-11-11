@@ -18,44 +18,77 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.netflix.spinnaker.halyard.cli.ui.v1.Ui;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigFixableIssue;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.Setter;
+import retrofit.RetrofitError;
 
+import java.net.ConnectException;
 import java.util.Map;
 
 abstract class NestableCommand {
   @Setter
-  protected JCommander commander;
-  private GlobalOptions globalOptions;
+  @Getter(AccessLevel.PROTECTED)
+  private JCommander commander;
+
+  @Getter(AccessLevel.PROTECTED)
+  private Ui ui;
 
   @Parameter(names = { "-h", "--help" }, help = true)
   private boolean help;
 
-  public NestableCommand(GlobalOptions globalOptions) {
-    this.globalOptions = globalOptions;
+  NestableCommand() {
+    boolean color = GlobalOptions.getGlobalOptions().isColor();
+    ui = new Ui(color);
   }
 
   /**
-   * This recusively walks the chain of subcommands, until it finds the last in the chain, and runs executeThis.
+   * This recursively walks the chain of subcommands, until it finds the last in the chain, and runs executeThis.
    *
    * @see NestableCommand#executeThis()
    */
   public void execute() {
     String subCommand = commander.getParsedCommand();
     if (subCommand == null) {
-      executeThis();
+      safeExecuteThis();
     } else {
       getSubcommands().get(subCommand).execute();
     }
   }
 
-  abstract protected void executeThis();
+  /**
+   * Used to consistently format exceptions thrown by connecting to the halyard daemon.
+   */
+  private void safeExecuteThis() {
+    try {
+      executeThis();
+    } catch (RetrofitError e) {
+      if (e.getCause() instanceof ConnectException) {
+        ui.failure(e.getCause().getMessage());
+        ui.remediation("Is your daemon running?");
+      } else {
+        HalconfigFixableIssue issue = (HalconfigFixableIssue) e.getBodyAs(HalconfigFixableIssue.class);
+        for (String warning : issue.getWarnings()) {
+          ui.warning(warning);
+        }
+
+        for (String error : issue.getErrors()) {
+          ui.failure(error);
+        }
+      }
+    }
+  }
+
   abstract protected Map<String, NestableCommand> getSubcommands();
   abstract protected String getCommandName();
+  abstract protected void executeThis();
 
   /**
    * Register all subcommands with this class's commander, and then recursively set the subcommands.
    */
-  protected void configureSubcommands() {
+  void configureSubcommands() {
     for (NestableCommand subCommand: getSubcommands().values()) {
       commander.addCommand(subCommand.getCommandName(), subCommand);
       // We need to provide the subcommand with its own commander before recursively populating its subcommands, since
