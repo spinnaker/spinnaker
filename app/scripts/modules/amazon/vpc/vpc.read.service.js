@@ -1,11 +1,12 @@
 'use strict';
 
+import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.vpc.read.service', [
-    require('core/network/network.read.service.js')
+    NETWORK_READ_SERVICE,
   ])
   .factory('vpcReader', function ($q, networkReader) {
 

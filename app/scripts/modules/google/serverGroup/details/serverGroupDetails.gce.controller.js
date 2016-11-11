@@ -3,6 +3,7 @@
 require('../configure/serverGroup.configure.gce.module.js');
 
 import _ from 'lodash';
+import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 
 let angular = require('angular');
 
@@ -13,7 +14,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('core/serverGroup/serverGroup.read.service.js'),
   require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('core/confirmationModal/confirmationModal.service.js'),
-  require('core/network/network.read.service.js'),
+  NETWORK_READ_SERVICE,
   require('core/serverGroup/serverGroup.write.service.js'),
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('core/insight/insightFilterState.model.js'),

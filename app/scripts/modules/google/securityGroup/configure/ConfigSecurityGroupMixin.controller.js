@@ -2,9 +2,10 @@
 
 import _ from 'lodash';
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 
 var angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.baseConfig.controller', [
@@ -12,7 +13,7 @@ module.exports = angular
     require('core/task/monitor/taskMonitorService.js'),
     require('core/securityGroup/securityGroup.write.service.js'),
     ACCOUNT_SERVICE,
-    require('core/network/network.read.service.js'),
+    NETWORK_READ_SERVICE,
     modalWizardServiceModule,
   ])
   .controller('gceConfigSecurityGroupMixin', function ($scope,

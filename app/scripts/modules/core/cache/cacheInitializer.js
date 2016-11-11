@@ -7,7 +7,6 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.cache.initializer', [
   ACCOUNT_SERVICE,
-  require('../network/network.read.service.js'),
   require('../securityGroup/securityGroup.read.service.js'),
   require('../application/service/applications.read.service.js'),
   require('../ci/jenkins/igor.service.js'),
