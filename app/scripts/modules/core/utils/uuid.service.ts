@@ -1,12 +1,10 @@
-import {module} from 'angular';
-
-export class UUIDService {
+export class UUIDGenerator {
 
   private static getRandom(max: number) {
     return Math.random() * max;
   }
 
-  public generateUuid(): string {
+  public static generateUuid(): string {
 
     // source: https://github.com/daniellmb/angular-uuid-service/blob/master/angular-uuid-service.js
     let uuid = '';
@@ -16,7 +14,7 @@ export class UUIDService {
           uuid += '4';
           break;
         case 19:
-          uuid += '89ab'.charAt(UUIDService.getRandom(4));
+          uuid += '89ab'.charAt(UUIDGenerator.getRandom(4));
           break;
         case 8:
         case 13:
@@ -25,14 +23,10 @@ export class UUIDService {
           uuid += '-';
           break;
         default:
-          uuid += '0123456789abcdef'.charAt(UUIDService.getRandom(16));
+          uuid += '0123456789abcdef'.charAt(UUIDGenerator.getRandom(16));
       }
     }
 
     return uuid;
   }
 }
-
-export const UUID_SERVICE = 'spinnaker.core.utils.uuid.service';
-module(UUID_SERVICE, [])
-  .service('uuidService', UUIDService);
