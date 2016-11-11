@@ -42,7 +42,7 @@ class OpenstackLoadBalancerControllerSpec extends Specification {
 
   def 'search for all load balancers'() {
     when:
-    Set<OpenstackLoadBalancerSummary> result = controller.list()
+    List<OpenstackLoadBalancerSummary> result = controller.list()
 
     then:
     1 * provider.getLoadBalancers('*','*','*') >> lbs
@@ -79,7 +79,7 @@ class OpenstackLoadBalancerControllerSpec extends Specification {
     String name = 'id0'
 
     when:
-    Set<OpenstackLoadBalancer> result = controller.getDetailsInAccountAndRegionByName(account, region, name)
+    List<OpenstackLoadBalancer> result = controller.byAccountAndRegionAndName(account, region, name)
 
     then:
     1 * provider.getLoadBalancers(account, region, name) >> lbs
@@ -99,7 +99,7 @@ class OpenstackLoadBalancerControllerSpec extends Specification {
     Throwable throwable = new JedisException('exception')
 
     when:
-    controller.getDetailsInAccountAndRegionByName(account, region, name)
+    controller.byAccountAndRegionAndName(account, region, name)
 
     then:
     1 * provider.getLoadBalancers(account, region, name) >> { throw throwable }

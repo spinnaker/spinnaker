@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.controllers
 
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancerSummary
 import com.netflix.spinnaker.clouddriver.openstack.provider.view.OpenstackLoadBalancerProvider
@@ -30,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/openstack/loadBalancers")
-class OpenstackLoadBalancerController {
+class OpenstackLoadBalancerController implements LoadBalancerProviderTempShim {
 
   OpenstackLoadBalancerProvider provider
 
@@ -39,18 +40,24 @@ class OpenstackLoadBalancerController {
     this.provider = provider
   }
 
+  // TODO: OpenstackLoadBalancerSummary is not a LoadBalancerProviderTempShim.Item, but still
+  // compiles anyway because of groovy magic.
   @RequestMapping(method = RequestMethod.GET)
-  Set<OpenstackLoadBalancerSummary> list() {
+  List<OpenstackLoadBalancerSummary> list() {
     provider.getLoadBalancers('*', '*', '*').collect { lb ->
       new OpenstackLoadBalancerSummary(account: lb.account, region: lb.region, id: lb.id, name: lb.name)
-    }.sort { it.name }.toSet()
+    }.sort { it.name }
+  }
+
+  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
+  LoadBalancerProviderTempShim.Item get(@PathVariable String name) {
+    throw new UnsupportedOperationException("TODO: Support a single getter")
   }
 
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  Set<OpenstackLoadBalancer.View> getDetailsInAccountAndRegionByName(@PathVariable String account,
-                                                                @PathVariable String region,
-                                                                @PathVariable String name) {
-    provider.getLoadBalancers(account, region, name)
+  List<OpenstackLoadBalancer.View> byAccountAndRegionAndName(@PathVariable String account,
+                                                             @PathVariable String region,
+                                                             @PathVariable String name) {
+    provider.getLoadBalancers(account, region, name) as List
   }
-
 }

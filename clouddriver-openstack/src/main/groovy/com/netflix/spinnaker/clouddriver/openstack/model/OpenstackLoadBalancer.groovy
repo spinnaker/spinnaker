@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.model
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
@@ -110,7 +111,7 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
 
   @Canonical
   @JsonIgnoreProperties(['createdRegex', 'createdPattern'])
-  static class View extends OpenstackLoadBalancer implements LoadBalancer {
+  static class View extends OpenstackLoadBalancer implements LoadBalancer, LoadBalancerProviderTempShim.Details {
     String ip = ""
     String subnetId = ""
     String subnetName = ""
