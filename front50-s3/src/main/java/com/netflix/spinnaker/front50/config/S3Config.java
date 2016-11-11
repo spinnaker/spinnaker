@@ -1,18 +1,18 @@
 package com.netflix.spinnaker.front50.config;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.awsobjectmapper.AmazonObjectMapper;
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
-import com.netflix.spinnaker.front50.model.*;
+import com.netflix.spinnaker.front50.model.S3StorageService;
+import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.DefaultApplicationDAO;
@@ -66,6 +66,24 @@ public class S3Config {
   @Value("${spinnaker.s3.proxyProtocol:#{null}}")
   private String proxyProtocol;
 
+  @Value("${spinnaker.s3.failover.enabled:false}")
+  private Boolean failoverEnabled;
+
+  @Value("${spinnaker.s3.failover.bucket:#{null}}")
+  private String failoverBucket;
+
+  @Value("${spinnaker.s3.failover.proxyHost:#{null}}")
+  private String failoverProxyHost;
+
+  @Value("${spinnaker.s3.failover.proxyPort:#{null}}")
+  private String failoverProxyPort;
+
+  @Value("${spinnaker.s3.failover.proxyProtocol:#{null}}")
+  private String failoverProxyProtocol;
+
+  @Value("${spinnaker.s3.failover.region:#{null}}")
+  private String failoverS3Region;
+
   @Bean
   public AmazonClientProvider amazonClientProvider() {
     return new AmazonClientProvider();
@@ -74,21 +92,21 @@ public class S3Config {
   @Bean
   public AmazonS3 awsS3Client(AWSCredentialsProvider awsCredentialsProvider) {
     ClientConfiguration clientConfiguration = new ClientConfiguration();
-    if (proxyProtocol != null) {
-      if (proxyProtocol.equalsIgnoreCase("HTTPS")) {
+    if (getProxyProtocol() != null) {
+      if (getProxyProtocol().equalsIgnoreCase("HTTPS")) {
         clientConfiguration.setProtocol(Protocol.HTTPS);
       } else {
         clientConfiguration.setProtocol(Protocol.HTTP);
       }
-      Optional.ofNullable(proxyHost)
+      Optional.ofNullable(getProxyHost())
         .ifPresent(clientConfiguration::setProxyHost);
-      Optional.ofNullable(proxyPort)
+      Optional.ofNullable(getProxyPort())
         .map(Integer::parseInt)
         .ifPresent(clientConfiguration::setProxyPort);
     }
 
     AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
-    Optional.ofNullable(s3Region)
+    Optional.ofNullable(getS3Region())
       .map(Regions::fromName)
       .map(Region::getRegion)
       .ifPresent(client::setRegion);
@@ -106,7 +124,7 @@ public class S3Config {
     ObjectMapper awsObjectMapper = new ObjectMapper();
     AmazonObjectMapperConfigurer.configure(awsObjectMapper);
 
-    return new S3StorageService(awsObjectMapper, amazonS3, bucket, rootFolder);
+    return new S3StorageService(awsObjectMapper, amazonS3, getBucket(), rootFolder, failoverEnabled);
   }
 
   @Bean
@@ -152,5 +170,40 @@ public class S3Config {
   @Bean
   public EntityTagsDAO entityTagsDAO(StorageService storageService) {
     return new DefaultEntityTagsDAO(storageService, null, -1);
+  }
+
+  private String getProxyProtocol() {
+    if (failoverEnabled) {
+      return failoverProxyProtocol;
+    }
+    return proxyProtocol;
+  }
+
+  private String getProxyHost() {
+    if (failoverEnabled) {
+      return failoverProxyHost;
+    }
+    return proxyHost;
+  }
+
+  private String getProxyPort() {
+    if (failoverEnabled) {
+      return failoverProxyPort;
+    }
+    return proxyPort;
+  }
+
+  private String getS3Region() {
+    if (failoverEnabled) {
+      return failoverS3Region;
+    }
+    return s3Region;
+  }
+
+  private String getBucket() {
+    if (failoverEnabled) {
+      return failoverBucket;
+    }
+    return bucket;
   }
 }

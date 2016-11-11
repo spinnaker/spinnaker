@@ -17,11 +17,18 @@
 package com.netflix.spinnaker.front50.model;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ListVersionsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.VersionListing;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
-import com.netflix.spinnaker.front50.model.tag.EntityTags;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -31,7 +38,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,15 +49,18 @@ public class S3StorageService implements StorageService {
   private final AmazonS3 amazonS3;
   private final String bucket;
   private final String rootFolder;
+  private final Boolean readOnlyMode;
 
   public S3StorageService(ObjectMapper objectMapper,
                           AmazonS3 amazonS3,
                           String bucket,
-                          String rootFolder) {
+                          String rootFolder,
+                          Boolean readOnlyMode) {
     this.objectMapper = objectMapper;
     this.amazonS3 = amazonS3;
     this.bucket = bucket;
     this.rootFolder = rootFolder;
+    this.readOnlyMode = readOnlyMode;
   }
 
   @Override
@@ -113,12 +122,18 @@ public class S3StorageService implements StorageService {
 
   @Override
   public void deleteObject(ObjectType objectType, String objectKey) {
+    if (readOnlyMode) {
+      throw new ReadOnlyModeException();
+    }
     amazonS3.deleteObject(bucket, buildS3Key(objectType.group, objectKey, objectType.defaultMetadataFilename));
     writeLastModified(objectType.group);
   }
 
   @Override
   public <T extends Timestamped> void storeObject(ObjectType objectType, String objectKey, T item) {
+    if (readOnlyMode) {
+      throw new ReadOnlyModeException();
+    }
     try {
       item.setLastModifiedBy(AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"));
       byte[] bytes = objectMapper.writeValueAsBytes(item);
@@ -207,6 +222,9 @@ public class S3StorageService implements StorageService {
   }
 
   private void writeLastModified(String group) {
+    if (readOnlyMode) {
+      throw new ReadOnlyModeException();
+    }
     try {
       byte[] bytes = objectMapper.writeValueAsBytes(Collections.singletonMap("lastModified", System.currentTimeMillis()));
 
