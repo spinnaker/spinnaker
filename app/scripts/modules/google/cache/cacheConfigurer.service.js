@@ -3,13 +3,14 @@
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {GCE_HEALTH_CHECK_READER} from '../healthCheck/healthCheck.read.service';
+import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 
 module.exports = angular.module('spinnaker.gce.cache.initializer', [
   require('../backendService/backendService.reader.js'),
   ACCOUNT_SERVICE,
   require('core/instance/instanceTypeService.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/network/network.read.service.js'),
+  NETWORK_READ_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/subnet/subnet.read.service.js'),
   GCE_HEALTH_CHECK_READER,

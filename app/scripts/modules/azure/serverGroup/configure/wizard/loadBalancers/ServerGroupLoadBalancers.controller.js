@@ -1,6 +1,7 @@
 'use strict';
 
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 
 let angular = require('angular');
 
@@ -8,7 +9,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.loadBalan
   require('core/cache/infrastructureCaches.js'),
   modalWizardServiceModule,
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/network/network.read.service.js'),
+  NETWORK_READ_SERVICE,
 ])
   .controller('azureServerGroupLoadBalancersCtrl', function($scope, infrastructureCaches, loadBalancerReader, networkReader, v2modalWizardService) {
     v2modalWizardService.markClean('load-balancers');

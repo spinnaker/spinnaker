@@ -2,6 +2,7 @@
 
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
+import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
@@ -19,7 +20,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
   NAMING_SERVICE,
   require('core/region/regionSelectField.directive.js'),
   require('core/account/accountSelectField.directive.js'),
-  require('core/network/network.read.service.js'),
+  NETWORK_READ_SERVICE,
 ])
   .controller('azureCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, azureLoadBalancerTransformer,
