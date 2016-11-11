@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.cf.cache.Keys
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,7 +32,7 @@ import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.LOAD_BAL
 
 @RestController
 @RequestMapping("/cf/loadBalancers")
-class CloudFoundryLoadBalancerController {
+class CloudFoundryLoadBalancerController implements LoadBalancerProviderTempShim {
 
   private final Cache cacheView
 
@@ -41,7 +42,7 @@ class CloudFoundryLoadBalancerController {
   }
 
   @RequestMapping(method = RequestMethod.GET)
-  List<CloudFoundryLoadBalancerAccount> list() {
+  List<CloudFoundryLoadBalancerSummary> list() {
     def searchKey = Keys.getLoadBalancerKey('*', '*', '*')
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     getSummaryForLoadBalancers(identifiers).values() as List
@@ -55,7 +56,7 @@ class CloudFoundryLoadBalancerController {
   }
 
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  List<Map> getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
+  List<Map> byAccountAndRegionAndName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
     def searchKey = Keys.getLoadBalancerKey(name, account, region)
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     cacheView.getAll(LOAD_BALANCERS.ns, identifiers).attributes
@@ -87,7 +88,7 @@ class CloudFoundryLoadBalancerController {
     map
   }
 
-  static class CloudFoundryLoadBalancerSummary {
+  static class CloudFoundryLoadBalancerSummary implements LoadBalancerProviderTempShim.Item {
     private Map<String, CloudFoundryLoadBalancerAccount> mappedAccounts = [:]
     String name
 
@@ -99,12 +100,12 @@ class CloudFoundryLoadBalancerController {
     }
 
     @JsonProperty("accounts")
-    List<CloudFoundryLoadBalancerAccount> getAccounts() {
+    List<CloudFoundryLoadBalancerAccount> getByAccounts() {
       mappedAccounts.values() as List
     }
   }
 
-  static class CloudFoundryLoadBalancerAccount {
+  static class CloudFoundryLoadBalancerAccount implements LoadBalancerProviderTempShim.ByAccount {
     private Map<String, CloudFoundryLoadBalancerAccountRegion> mappedRegions = [:]
     String name
 
@@ -116,17 +117,17 @@ class CloudFoundryLoadBalancerController {
     }
 
     @JsonProperty("regions")
-    List<CloudFoundryLoadBalancerAccountRegion> getRegions() {
+    List<CloudFoundryLoadBalancerAccountRegion> getByRegions() {
       mappedRegions.values() as List
     }
   }
 
-  static class CloudFoundryLoadBalancerAccountRegion {
+  static class CloudFoundryLoadBalancerAccountRegion implements LoadBalancerProviderTempShim.ByRegion {
     String name
     List<CloudFoundryLoadBalancerDetail> loadBalancers
   }
 
-  static class CloudFoundryLoadBalancerDetail {
+  static class CloudFoundryLoadBalancerDetail implements LoadBalancerProviderTempShim.Details {
     String account
     String region
     String name

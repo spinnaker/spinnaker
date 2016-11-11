@@ -70,7 +70,7 @@ class CloudFoundryLoadBalancerControllerSpec extends Specification {
     def region = account.getOrCreateRegion('my-region')
 
     account.name == 'prod'
-    account.regions == [region]
+    account.byRegions == [region]
 
     region.name == 'my-region'
     region.loadBalancers.size() == 1
@@ -79,7 +79,7 @@ class CloudFoundryLoadBalancerControllerSpec extends Specification {
     region.loadBalancers[0].account == 'prod'
     region.loadBalancers[0].type == 'cf'
 
-    summary.accounts == [account]
+    summary.byAccounts == [account]
   }
 
   void "look up all load balancer accounts"() {
@@ -94,7 +94,7 @@ class CloudFoundryLoadBalancerControllerSpec extends Specification {
 
   void "look up load balancers by account, region, and name"() {
     when:
-    def summaries = controller.getDetailsInAccountAndRegionByName('prod', 'my-region', 'production')
+    def summaries = controller.byAccountAndRegionAndName('prod', 'my-region', 'production')
 
     then:
     summaries != null
@@ -107,7 +107,7 @@ class CloudFoundryLoadBalancerControllerSpec extends Specification {
 
   void "should return an empty list if account doesn't exist"() {
     when:
-    def summaries = controller.getDetailsInAccountAndRegionByName('not-there', null, 'production')
+    def summaries = controller.byAccountAndRegionAndName('not-there', null, 'production')
 
     then:
     summaries != null
