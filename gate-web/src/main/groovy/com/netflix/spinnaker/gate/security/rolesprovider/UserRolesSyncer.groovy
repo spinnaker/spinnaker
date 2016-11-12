@@ -101,6 +101,9 @@ class UserRolesSyncer {
 
     def keysToDelete = sessionIdsToDelete.collect { String id -> "spring:session:sessions:" + id }
     sessionRedisTemplate.delete(keysToDelete)
-    log.info("Invalidated {} user sessions due to changed group memberships.", keysToDelete.size())
+
+    if (keysToDelete) {
+      log.info("Invalidated {} user sessions due to changed group memberships.", keysToDelete.size())
+    }
   }
 }
