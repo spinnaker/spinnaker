@@ -120,6 +120,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
                   });
                 }
 
+                if (details.image && details.image.tags) {
+                  var baseAmiVersionTag = details.image.tags.find(tag => tag.key === 'base_ami_version');
+                  if (baseAmiVersionTag) {
+                    details.baseAmiVersion = baseAmiVersionTag.value;
+                  }
+                }
+
                 if (details.launchConfig && details.launchConfig.securityGroups) {
                   this.securityGroups = _.chain(details.launchConfig.securityGroups).map((id) => {
                     return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
