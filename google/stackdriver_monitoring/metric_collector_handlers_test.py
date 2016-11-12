@@ -1,3 +1,17 @@
+# Copyright 2016 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import json
 import re
 import unittest
@@ -11,6 +25,9 @@ import metric_collector_handlers as handlers
 
 import spectator_client
 import spectator_client_test as sample_data
+
+# pylint: disable=invalid-name
+# pylint: disable=missing-docstring
 
 
 def TABLE(row_html_list):
@@ -41,12 +58,9 @@ class MetricCollectorHandlersTest(unittest.TestCase):
     self.mock_options.services = ['clouddriver', 'gate']
     self.spectator = spectator_client.SpectatorClient(self.mock_options)
 
-    expect_clouddriver = sample_data.SAMPLE_CLOUDDRIVER_RESPONSE_OBJ
-    expect_gate = sample_data.SAMPLE_GATE_RESPONSE_OBJ
-
     self.mock_clouddriver_response = (
-      StringIO(sample_data.SAMPLE_CLOUDDRIVER_RESPONSE_TEXT))
-    self.mock_gate_response = StringIO(sample_data.SAMPLE_GATE_RESPONSE_TEXT)
+      StringIO(sample_data.CLOUDDRIVER_RESPONSE_TEXT))
+    self.mock_gate_response = StringIO(sample_data.GATE_RESPONSE_TEXT)
 
     self.mock_request = Mock()
     self.mock_request.respond = Mock()
@@ -54,8 +68,8 @@ class MetricCollectorHandlersTest(unittest.TestCase):
   @patch('spectator_client.urllib2.urlopen')
   def test_dump_handler_default(self, mock_urlopen):
     expected_by_service = {
-        'clouddriver': sample_data.SAMPLE_CLOUDDRIVER_RESPONSE_OBJ,
-        'gate': sample_data.SAMPLE_GATE_RESPONSE_OBJ
+        'clouddriver': sample_data.CLOUDDRIVER_RESPONSE_OBJ,
+        'gate': sample_data.GATE_RESPONSE_OBJ
     }
     mock_urlopen.side_effect = [self.mock_clouddriver_response,
                                 self.mock_gate_response]
@@ -73,7 +87,7 @@ class MetricCollectorHandlersTest(unittest.TestCase):
   def test_explore_to_service_tag_one(self):
     klass = handlers.ExploreCustomDescriptorsHandler
     type_map = spectator_client.SpectatorClient.service_map_to_type_map(
-        {'clouddriver': sample_data.SAMPLE_CLOUDDRIVER_RESPONSE_OBJ})
+        {'clouddriver': sample_data.CLOUDDRIVER_RESPONSE_OBJ})
     service_tag_map, services = klass.to_service_tag_map(type_map)
     expect = {
         'jvm.buffer.memoryUsed': {
@@ -92,9 +106,9 @@ class MetricCollectorHandlersTest(unittest.TestCase):
   def test_explore_to_service_tag_map_two(self):
     klass = handlers.ExploreCustomDescriptorsHandler
     type_map = spectator_client.SpectatorClient.service_map_to_type_map(
-        {'clouddriver': sample_data.SAMPLE_CLOUDDRIVER_RESPONSE_OBJ})
+        {'clouddriver': sample_data.CLOUDDRIVER_RESPONSE_OBJ})
     spectator_client.SpectatorClient.ingest_metrics(
-        'gate', sample_data.SAMPLE_GATE_RESPONSE_OBJ, type_map)
+        'gate', sample_data.GATE_RESPONSE_OBJ, type_map)
     usage, services = klass.to_service_tag_map(type_map)
     expect = {
         'controller.invocations': {

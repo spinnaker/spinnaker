@@ -1,3 +1,17 @@
+# Copyright 2016 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import json
 import unittest
 from StringIO import StringIO
@@ -7,9 +21,13 @@ from mock import Mock
 
 import spectator_client
 
+# pylint: disable=missing-docstring
+# pylint: disable=invalid-name
+
+
 TEST_HOST = 'test_hostname'
 
-SAMPLE_CLOUDDRIVER_RESPONSE_OBJ = {
+CLOUDDRIVER_RESPONSE_OBJ = {
   'applicationName': 'clouddriver',
   'metrics' : {
     'jvm.buffer.memoryUsed' : {
@@ -40,11 +58,11 @@ SAMPLE_CLOUDDRIVER_RESPONSE_OBJ = {
 }
 
 
-SAMPLE_CLOUDDRIVER_RESPONSE_TEXT = json.JSONEncoder(encoding='utf-8').encode(
-    SAMPLE_CLOUDDRIVER_RESPONSE_OBJ)
+CLOUDDRIVER_RESPONSE_TEXT = json.JSONEncoder(encoding='utf-8').encode(
+    CLOUDDRIVER_RESPONSE_OBJ)
 
 
-SAMPLE_GATE_RESPONSE_OBJ = {
+GATE_RESPONSE_OBJ = {
   'applicationName': 'gate',
   'metrics' : {
     'jvm.buffer.memoryUsed' : {
@@ -75,8 +93,8 @@ SAMPLE_GATE_RESPONSE_OBJ = {
   }
 }
 
-SAMPLE_GATE_RESPONSE_TEXT = json.JSONEncoder(encoding='utf-8').encode(
-    SAMPLE_GATE_RESPONSE_OBJ)
+GATE_RESPONSE_TEXT = json.JSONEncoder(encoding='utf-8').encode(
+    GATE_RESPONSE_OBJ)
 
 class SpectatorClientTest(unittest.TestCase):
   def setUp(self):
@@ -95,7 +113,8 @@ class SpectatorClientTest(unittest.TestCase):
     mock_urlopen.return_value = mock_http_response
 
     response = self.spectator.collect_metrics(TEST_HOST, port)
-    mock_urlopen.assert_called_with('http://{0}:{1}/spectator/metrics'.format(TEST_HOST, port))
+    mock_urlopen.assert_called_with(
+        'http://{0}:{1}/spectator/metrics'.format(TEST_HOST, port))
     self.assertEqual(expect, response)
 
   @patch('spectator_client.urllib2.urlopen')
@@ -160,30 +179,30 @@ class SpectatorClientTest(unittest.TestCase):
 
   def test_service_map_to_type_map_one(self):
     got = spectator_client.SpectatorClient.service_map_to_type_map(
-      {'clouddriver': SAMPLE_CLOUDDRIVER_RESPONSE_OBJ})
+      {'clouddriver': CLOUDDRIVER_RESPONSE_OBJ})
     expect = {}
     self.spectator.ingest_metrics(
-        'clouddriver', SAMPLE_CLOUDDRIVER_RESPONSE_OBJ, expect)
+        'clouddriver', CLOUDDRIVER_RESPONSE_OBJ, expect)
     self.assertEquals(expect, got)
 
   def test_service_map_to_type_map_two(self):
     got = spectator_client.SpectatorClient.service_map_to_type_map(
-      {'clouddriver': SAMPLE_CLOUDDRIVER_RESPONSE_OBJ,
-       'gate': SAMPLE_GATE_RESPONSE_OBJ})
+      {'clouddriver': CLOUDDRIVER_RESPONSE_OBJ,
+       'gate': GATE_RESPONSE_OBJ})
     expect = {}
     self.spectator.ingest_metrics(
-        'clouddriver', SAMPLE_CLOUDDRIVER_RESPONSE_OBJ, expect)
+        'clouddriver', CLOUDDRIVER_RESPONSE_OBJ, expect)
     self.spectator.ingest_metrics(
-        'gate', SAMPLE_GATE_RESPONSE_OBJ, expect)
+        'gate', GATE_RESPONSE_OBJ, expect)
     self.assertEquals(expect, got)
 
   @patch('spectator_client.urllib2.urlopen')
   def test_scan_by_type_base_case(self, mock_urlopen):
     expect = {}
     self.spectator.ingest_metrics(
-        'clouddriver', SAMPLE_CLOUDDRIVER_RESPONSE_OBJ, expect)
+        'clouddriver', CLOUDDRIVER_RESPONSE_OBJ, expect)
 
-    mock_http_response = StringIO(SAMPLE_CLOUDDRIVER_RESPONSE_TEXT)
+    mock_http_response = StringIO(CLOUDDRIVER_RESPONSE_TEXT)
     mock_urlopen.return_value = mock_http_response
 
     response = self.spectator.scan_by_type(['clouddriver'])
@@ -195,12 +214,12 @@ class SpectatorClientTest(unittest.TestCase):
   def test_scan_by_type_incremental_case(self, mock_urlopen):
     expect = {}
     self.spectator.ingest_metrics(
-        'clouddriver', SAMPLE_CLOUDDRIVER_RESPONSE_OBJ, expect)
+        'clouddriver', CLOUDDRIVER_RESPONSE_OBJ, expect)
     self.spectator.ingest_metrics(
-        'gate', SAMPLE_GATE_RESPONSE_OBJ, expect)
+        'gate', GATE_RESPONSE_OBJ, expect)
 
-    mock_clouddriver_response = StringIO(SAMPLE_CLOUDDRIVER_RESPONSE_TEXT)
-    mock_gate_response = StringIO(SAMPLE_GATE_RESPONSE_TEXT)
+    mock_clouddriver_response = StringIO(CLOUDDRIVER_RESPONSE_TEXT)
+    mock_gate_response = StringIO(GATE_RESPONSE_TEXT)
 
     mock_urlopen.side_effect = [mock_clouddriver_response,
                                 mock_gate_response]
@@ -215,24 +234,25 @@ class SpectatorClientTest(unittest.TestCase):
   def test_ingest_metrics_base_case(self):
     result = {}
     self.spectator.ingest_metrics(
-        'clouddriver', SAMPLE_CLOUDDRIVER_RESPONSE_OBJ, result)
+        'clouddriver', CLOUDDRIVER_RESPONSE_OBJ, result)
 
     expect = {
         key: {'clouddriver': value}
-        for key, value in SAMPLE_CLOUDDRIVER_RESPONSE_OBJ['metrics'].items()
+        for key, value in CLOUDDRIVER_RESPONSE_OBJ['metrics'].items()
         }
     self.assertEqual(expect, result)
 
   def test_ingest_metrics_incremental_case(self):
     result = {}
     self.spectator.ingest_metrics(
-        'clouddriver', SAMPLE_CLOUDDRIVER_RESPONSE_OBJ, result)
+        'clouddriver', CLOUDDRIVER_RESPONSE_OBJ, result)
     self.spectator.ingest_metrics(
-      'gate', SAMPLE_GATE_RESPONSE_OBJ, result)
+      'gate', GATE_RESPONSE_OBJ, result)
 
     expect = {key: {'clouddriver': value}
-              for key, value in SAMPLE_CLOUDDRIVER_RESPONSE_OBJ['metrics'].items()}
-    for key, value in SAMPLE_GATE_RESPONSE_OBJ['metrics'].items():
+              for key, value
+              in CLOUDDRIVER_RESPONSE_OBJ['metrics'].items()}
+    for key, value in GATE_RESPONSE_OBJ['metrics'].items():
       if key in expect:
         expect[key]['gate'] = value
       else:
@@ -243,8 +263,8 @@ class SpectatorClientTest(unittest.TestCase):
   def test_filter_name(self):
     prototype = {'metrics': {'tasks': {}}}
     expect = {'applicationName': 'clouddriver',
-              'metrics': {'tasks': SAMPLE_CLOUDDRIVER_RESPONSE_OBJ['metrics']['tasks']}}
-    got = self.spectator.filter_metrics(SAMPLE_CLOUDDRIVER_RESPONSE_OBJ, prototype)
+              'metrics': {'tasks': CLOUDDRIVER_RESPONSE_OBJ['metrics']['tasks']}}
+    got = self.spectator.filter_metrics(CLOUDDRIVER_RESPONSE_OBJ, prototype)
     self.assertEqual(expect, got)
 
   def test_filter_tag(self):
@@ -258,12 +278,12 @@ class SpectatorClientTest(unittest.TestCase):
         }
       }
 
-    metric = dict(SAMPLE_CLOUDDRIVER_RESPONSE_OBJ['metrics']['jvm.buffer.memoryUsed'])
+    metric = dict(CLOUDDRIVER_RESPONSE_OBJ['metrics']['jvm.buffer.memoryUsed'])
     metric['values'] = [metric['values'][1]]  # Keep just the one tag set value.
     expect = {'applicationName': 'clouddriver',
               'metrics': {'jvm.buffer.memoryUsed': metric}
              }
-    got = self.spectator.filter_metrics(SAMPLE_CLOUDDRIVER_RESPONSE_OBJ, prototype)
+    got = self.spectator.filter_metrics(CLOUDDRIVER_RESPONSE_OBJ, prototype)
     self.assertEqual(expect, got)
 
 
