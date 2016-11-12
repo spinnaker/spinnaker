@@ -72,9 +72,9 @@ class ApplicationService {
       .repeat()
       .subscribe({ Long interval ->
       try {
-        log.info("Refreshing Application List")
+        log.debug("Refreshing Application List")
         allApplicationsCache.set(tick(true))
-        log.info("Refreshed Application List")
+        log.debug("Refreshed Application List")
       } catch (e) {
         log.error("Unable to refresh application list, reason: ${e.message}")
       }
