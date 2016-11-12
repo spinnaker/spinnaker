@@ -2,13 +2,13 @@
 
 import spectator_client
 
-class DummyMetricService(object):
-  def store(self, service_metrics):
+class DummyMetricsService(object):
+  def publish_metrics(self, service_metrics):
     spectator_client.foreach_metric_in_service_map(service_metrics, self.dump)
     return -1
 
   def dump(self, service, name, instance, metric_data, service_data):
-    # pylint: disable=unused-argiment
+    # pylint: disable=unused-argument
     name, tags = spectator_client.normalize_name_and_tags(
         name, instance, metric_data)
     if tags is None:

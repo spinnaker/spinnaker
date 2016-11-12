@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import collections
-import logging
 from http_server import StdoutRequestHandler
 
 
@@ -36,7 +35,7 @@ class CommandRequest(StdoutRequestHandler):
   def __init__(self, content_type='text/plain', options=None):
     StdoutRequestHandler.__init__(self)
     self.__headers = {'accept': content_type}
-    self.__output_path = options.output_path if options is not None else None
+    self.__output_path = (options or {}).get('output_path', None)
 
   def respond(self, code, headers=None, body=None, *pos_args):
     StdoutRequestHandler.respond(self, code, headers, body, *pos_args)
