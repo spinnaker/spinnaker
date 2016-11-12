@@ -16,6 +16,10 @@ import cgi
 import httplib
 import json
 import logging
+
+from command_processor import CommandHandler
+import http_server
+import stackdriver_service
 from stackdriver_service import StackdriverMetricsService
 
 
@@ -63,12 +67,14 @@ class BatchProcessor(object):
     if exception:
       self.was_ok[index] = False
       self.num_bad += 1
-      self.batch_response[index] = 'ERROR {0}'.format(cgi.escape(str(exception)))
+      self.batch_response[index] = 'ERROR {0}'.format(
+          cgi.escape(str(exception)))
       logging.error(exception)
     else:
       self.was_ok[index] = True
       self.num_ok += 1
-      self.batch_response[index] = 'OK {0}'.format(cgi.escape(str(response)))
+      self.batch_response[index] = 'OK {0}'.format(
+          cgi.escape(str(response)))
 
   def process(self):
     """Process all the data by sending one or more batches."""
@@ -101,7 +107,7 @@ class BatchProcessor(object):
                    for i in range(self.__num_data)]
       html_body = '{0} {1} of {2}:\n<table>\n{3}\n</table>'.format(
           action, self.num_ok, self.__num_data, '\n'.join(html_rows))
-      html_doc = request.build_html_document(
+      html_doc = html_server.build_html_document(
           html_body, title=title)
       return {'ContentType': 'text/html'}, html_doc
 
@@ -113,7 +119,18 @@ class BatchProcessor(object):
     return {'ContentType': 'text/plain'}, '\n'.join(text)
 
 
-class ListCustomDescriptorsHandler(object):
+class BaseStackdriverCommandHandler(CommandHandler):
+  """Base CommandHandler for Stackdriver commands."""
+
+  def add_argparser(self, subparsers):
+    """Implements CommandHandler."""
+    parser = super(BaseStackdriverCommandHandler, self).add_argparser(
+        subparsers)
+    stackdriver_service.StackdriverMetricsService.add_parser_arguments(parser)
+    return parser
+
+
+class ListCustomDescriptorsHandler(BaseStackdriverCommandHandler):
   """Administrative handler to list all the known descriptors."""
 
   @staticmethod
@@ -126,19 +143,26 @@ class ListCustomDescriptorsHandler(object):
             else 0 if a_root == b_root
             else 1)
 
-  def __init__(self, options, stackdriver):
-    self.__stackdriver = stackdriver
-    self.__project = options['project']
-
-  def __call__(self, request, path, params, fragment):
-    project = params.get('project', self.__project)
-    type_map = self.__stackdriver.fetch_all_custom_descriptors(project)
+  def __get_descriptor_list(self, options):
+    stackdriver = stackdriver_service.make_service(options)
+    project = options.get('project', None)
+    type_map = stackdriver.fetch_all_custom_descriptors(project)
     descriptor_list = type_map.values()
     descriptor_list.sort(self.compare_types)
+    return descriptor_list
+
+  def process_commandline_request(self, options):
+    descriptor_list = self.__get_descriptor_list(options)
+    json_text = json.JSONEncoder(indent=2).encode(descriptor_list)
+    self.output(options, json_text)
+
+  def process_web_request(self, request, path, params, fragment):
+    descriptor_list = self.__get_descriptor_list(params)
 
     if accepts_content_type(request, 'text/html'):
       html = self.descriptors_to_html(descriptor_list)
-      html_doc = request.build_html_document(html, title='Custom Descriptors')
+      html_doc = http_server.build_html_document(
+          html, title='Custom Descriptors')
       request.respond(200, {'ContentType': 'text/html'}, html_doc)
     elif accepts_content_type(request, 'application/json'):
       json_doc = json.JSONEncoder(indent=2).encode(descriptor_list)
@@ -178,35 +202,45 @@ class ListCustomDescriptorsHandler(object):
     return '\n\n'.join(text)
 
 
-class ClearCustomDescriptorsHandler(object):
+class ClearCustomDescriptorsHandler(BaseStackdriverCommandHandler):
   """Administrative handler to clear all the known descriptors.
 
   This clears all the TimeSeries history as well.
   """
-  def __init__(self, options, stackdriver):
-    self.__stackdriver = stackdriver
-    self.__project = options['project']
 
-  def __call__(self, request, path, params, fragment):
-    project = params.get('project', self.__project)
-    type_map = self.__stackdriver.fetch_all_custom_descriptors(project)
+  def __do_clear(self, options):
+    """Deletes exsiting custom metric descriptors."""
+    project = options.get('project', None)
+    stackdriver = stackdriver_service.make_service(options)
 
-    delete_method = (self.__stackdriver.stub.projects()
-                     .metricDescriptors().delete)
+    type_map = stackdriver.fetch_all_custom_descriptors(project)
+    delete_method = (stackdriver.stub.projects().metricDescriptors().delete)
     def delete_invocation(descriptor):
       name = descriptor['name']
       logging.info('batch DELETE %s', name)
       return delete_method(name=name)
     get_descriptor_name = lambda descriptor: descriptor['name']
 
-    handler = BatchProcessor(
-        project, self.__stackdriver,
+    processor = BatchProcessor(
+        project, stackdriver,
         type_map.values(), delete_invocation, get_descriptor_name)
-    handler.process()
+    processor.process()
+    return type_map, processor
 
-    response_code = (httplib.OK if handler.num_ok == len(type_map)
+  def process_commandline_request(self, options):
+    """Implements CommandHandler."""
+    type_map, processor = self.__do_clear(options)
+    headers, body = processor.make_response(
+        None, False,
+        'Deleted', 'Cleared Time Series')
+    self.output(options, body)
+
+  def process_web_request(self, request, path, params, fragment):
+    """Implements CommandHandler."""
+    type_map, processor = self.__do_clear(params)
+    response_code = (httplib.OK if processor.num_ok == len(type_map)
                      else httplib.INTERNAL_SERVER_ERROR)
-    headers, body = handler.make_response(
+    headers, body = processor.make_response(
         request, accepts_content_type(request, 'text/html'),
         'Deleted', 'Cleared Time Series')
     request.respond(response_code, headers, body)
@@ -214,19 +248,12 @@ class ClearCustomDescriptorsHandler(object):
 
 class UpsertCustomDescriptorsProcessor(object):
   """Administrative helper to update/create new descriptors."""
-  @property
-  def project(self):
-    return self.__project
-
-  @property
-  def stackdriver(self):
-    return self.__stackdriver
-
   def __init__(self, project, stackdriver):
     self.__project = project
     self.__stackdriver = stackdriver
 
   def __do_batch_create(self, project, create_list):
+    """Create the new descriptors as a batch request."""
     create_method = (self.__stackdriver.stub.projects()
                      .metricDescriptors().create)
 
@@ -250,10 +277,22 @@ class UpsertCustomDescriptorsProcessor(object):
 
   def __do_batch_update_delete_helper(
       self, project, delete_list, success_list, failed_list, failed_errors):
+    """Delete descriptors as a batch request.
+
+    We need to delete descriptors in order to update them.
+
+    Args:
+      project: [string] The project to delete from.
+      delete_list: [list of descriptor] The types to delete.
+      success_list: [list of descriptor] The types that were actually deleted.
+      failed_list: [list of descriptor] The types for which DELETE failed.
+      failed_errors: [list of string] The error messages from the failures.   
+    """
     get_descriptor_name = lambda descriptor: descriptor['name']
     delete_method = (self.__stackdriver.stub.projects()
                      .metricDescriptors().delete)
     def delete_invocation(descriptor):
+      """Helper method tocreate the delete request."""
       name = descriptor['name']
       logging.info('batch DELETE %s', name)
       return delete_method(name=name)
@@ -272,10 +311,22 @@ class UpsertCustomDescriptorsProcessor(object):
 
   def __do_batch_update_create_helper(
       self, project, create_list, success_list, failed_list, failed_errors):
+    """Create descriptors as a batch request.
+
+    We need to create new descriptors to update them.
+
+    Args:
+      project: [string] The project to create in.
+      delete_list: [list of descriptor] The types to create.
+      success_list: [list of descriptor] The types that were actually created.
+      failed_list: [list of descriptor] The types for which PUT failed.
+      failed_errors: [list of string] The error messages from the failures.   
+    """
     get_descriptor_name = lambda descriptor: descriptor['name']
     create_method = (self.__stackdriver.stub.projects()
                      .metricDescriptors().create)
     def create_invocation(descriptor):
+      """Helper method to create the create request."""
       name = descriptor['name']
       logging.info('batch CREATE %s', name)
       return create_method(
@@ -294,6 +345,14 @@ class UpsertCustomDescriptorsProcessor(object):
         failed_errors.append(create_processor.batch_response[index])
 
   def __do_batch_update(self, project, update_list, original_type_map):
+    """Orchestrate updates of existing descriptors.
+
+    Args:
+      project: [string] The project we're updating in.
+      update_list: [list of descriptors] The new descriptor definitions.
+      original_type_map: [type to descriptor] The original definitions in
+       case we need to restore them.
+    """
     get_descriptor_name = lambda descriptor: descriptor['name']
 
     delete_errors = []
@@ -340,7 +399,7 @@ class UpsertCustomDescriptorsProcessor(object):
     return response_code, {'Content-Type': 'text/plain'}, '\n'.join(bodies)
 
   def upsert_descriptors(
-      self, project, upsert_descriptors, type_map, response_collector):
+      self, project, upsert_descriptors, type_map, output_method):
     create_list = []
     update_list = []
     for elem in upsert_descriptors:
@@ -371,29 +430,57 @@ class UpsertCustomDescriptorsProcessor(object):
       response_body.append(update_response_body)
       headers.update(update_headers)
 
-    response_collector(response_code, headers, '\n'.join(response_body))
+    output_method({}, '\n'.join(response_body))
 
 
-class UpsertCustomDescriptorsHandler(UpsertCustomDescriptorsProcessor):
+class UpsertCustomDescriptorsHandler(BaseStackdriverCommandHandler):
   """Administrative handler to update/create new descriptors."""
-  def __init__(self, options, stackdriver):
-    super(UpsertCustomDescriptorsHandler, self).__init__(
-        options['project'], stackdriver)
-    self.__source_path = options['source_path']
 
-  def load_descriptors(self):
-    with open(self.__source_path, 'r') as f:
+  def add_argparser(self, subparsers):
+    """Implements CommandHandler."""
+    parser = (super(UpsertCustomDescriptorsHandler, self)
+              .add_argparser(subparsers))
+    parser.add_argument('--source_path', required=True)
+    return parser
+
+  def load_descriptors(self, options):
+    """Loads existing descriptors to be uploaded."""
+    with open(options['source_path'], 'r') as f:
       return json.JSONDecoder().decode(f.read())
 
-  def __call__(self, request, path, params, fragment, upsert_descriptors=None):
-    if self.__source_path is None:
-      raise ValueError('--source_path not provided.')
+  def process_commandline_request(self, options, upsert_descriptors=None):
+    """Implements CommandHandler."""
     if upsert_descriptors is None:
-      upsert_descriptors = self.load_descriptors()
-    project = params.get('project', self.project)
-    type_map = self.stackdriver.fetch_all_custom_descriptors(project)
+      upsert_descriptors = self.load_descriptors(options)
 
-    response_collector = (lambda code, headers, content: request.respond(
-        code, headers, content))
-    self.upsert_descriptors(project, upsert_descriptors, type_map,
-                            response_collector)
+    stackdriver = stackdriver_service.make_service(options)
+    processor = UpsertCustomDescriptorsProcessor(
+        options['project'], stackdriver)
+    project = options.get('project', None)
+    type_map = stackdriver.fetch_all_custom_descriptors(project)
+
+    processor.upsert_descriptors(
+        project, upsert_descriptors, type_map, self.output)
+
+
+def add_handlers(handler_list, subparsers):
+  """Registers CommandHandlers for interacting with Stackdriver."""
+  command_handlers = [
+      ListCustomDescriptorsHandler(
+          '/stackdriver/list_descriptors',
+          'list_stackdriver',
+          'Get the JSON of all the Stackdriver Custom Metric Descriptors.'),
+      ClearCustomDescriptorsHandler(
+          '/stackdriver/clear_descriptors',
+          'clear_stackdriver',
+          'Clear all the Stackdriver Custom Metrics'),
+      UpsertCustomDescriptorsHandler(
+          None,
+          'upsert_stackdriver_descriptors',
+          'Given a file of Stackdriver Custom Metric Desciptors,'
+          ' update the existing ones and add the new ones.'
+          ' WARNING: Historic time-series data may be lost on update.')
+  ]
+  for handler in command_handlers:
+    handler.add_argparser(subparsers)
+    handler_list.append(handler)

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for complexity in metric_collector_handlers."""
+"""Tests for complexity in spectator_handlers."""
 
 # pylint: disable=missing-docstring
 
@@ -25,10 +25,11 @@ from StringIO import StringIO
 from mock import patch
 from mock import Mock
 
-import metric_collector_handlers as handlers
-
+import command_processor
+import http_server
 import spectator_client
 import spectator_client_test as sample_data
+import spectator_handlers
 
 # pylint: disable=invalid-name
 # pylint: disable=missing-docstring
@@ -59,6 +60,8 @@ class MetricCollectorHandlersTest(unittest.TestCase):
     self.options = {'prototype_path': None,
                     'host': 'spectator_hostname',
                     'services': ['clouddriver', 'gate']}
+    command_processor.set_global_options(self.options)
+
     self.spectator = spectator_client.SpectatorClient(self.options)
 
     self.mock_clouddriver_response = (
@@ -77,10 +80,10 @@ class MetricCollectorHandlersTest(unittest.TestCase):
     mock_urlopen.side_effect = [self.mock_clouddriver_response,
                                 self.mock_gate_response]
 
-    dump = handlers.DumpMetricsHandler(self.options, self.spectator)
-
-    params = {}
-    dump(self.mock_request, '/dump', params, '')
+    dump = spectator_handlers.DumpMetricsHandler(None, None, None)
+    params = dict(self.options)
+    params['services'] = ','.join(params['services'])
+    dump.process_web_request(self.mock_request, '/dump', params, '')
     called_with = self.mock_request.respond.call_args[0]
     self.assertEqual(200, called_with[0])
     self.assertEqual({'ContentType': 'application/json'}, called_with[1])
@@ -88,7 +91,7 @@ class MetricCollectorHandlersTest(unittest.TestCase):
     self.assertEqual(expected_by_service, doc)
 
   def test_explore_to_service_tag_one(self):
-    klass = handlers.ExploreCustomDescriptorsHandler
+    klass = spectator_handlers.ExploreCustomDescriptorsHandler
     type_map = spectator_client.SpectatorClient.service_map_to_type_map(
         {'clouddriver': sample_data.CLOUDDRIVER_RESPONSE_OBJ})
     service_tag_map, services = klass.to_service_tag_map(type_map)
@@ -107,7 +110,7 @@ class MetricCollectorHandlersTest(unittest.TestCase):
     self.assertEqual(set(['clouddriver']), services)
 
   def test_explore_to_service_tag_map_two(self):
-    klass = handlers.ExploreCustomDescriptorsHandler
+    klass = spectator_handlers.ExploreCustomDescriptorsHandler
     type_map = spectator_client.SpectatorClient.service_map_to_type_map(
         {'clouddriver': sample_data.CLOUDDRIVER_RESPONSE_OBJ})
     spectator_client.SpectatorClient.ingest_metrics(
@@ -135,7 +138,7 @@ class MetricCollectorHandlersTest(unittest.TestCase):
     self.assertEqual(expect, usage)
 
   def test_to_tag_service_map(self):
-    klass = handlers.ExploreCustomDescriptorsHandler
+    klass = spectator_handlers.ExploreCustomDescriptorsHandler
     service_tag_map = {
         'A': [{'x': 'X', 'y': 'Y'}, {'x': '1', 'y': '2'}],
         'B': [{'x': 'X', 'z': 'Z'}, {'x': 'b', 'z': '3'}]}
@@ -149,47 +152,53 @@ class MetricCollectorHandlersTest(unittest.TestCase):
 
   @patch('spectator_client.urllib2.urlopen')
   def test_explore_custom_descriptors_default(self, mock_urlopen):
-    klass = handlers.ExploreCustomDescriptorsHandler
-    explore = klass(self.options, self.spectator)
+    klass = spectator_handlers.ExploreCustomDescriptorsHandler
+    explore = klass(None, None, None)
 
     mock_urlopen.side_effect = [self.mock_clouddriver_response,
                                 self.mock_gate_response]
 
-    self.mock_request.build_html_document = lambda body, title: body
-    params = {}
-    explore(self.mock_request, '/explore', params, '')
+    params = dict(self.options)
+    params['services'] = ','.join(params['services'])
+
+    explore.process_web_request(self.mock_request, '/explore', params, '')
     called_with = self.mock_request.respond.call_args[0]
     self.assertEqual(200, called_with[0])
     self.assertEqual({'ContentType': 'text/html'}, called_with[1])
     html = minimize_html(called_with[2])
 
-    make_link = lambda name: '<A href="/show?meterNameRegex={0}">{0}</A>'.format(
-        name)
-    expect = TABLE([
+    service_link = '<A href="/show?services={0}">{0}</A>'.format
+    name_link = '<A href="/show?meterNameRegex={0}">{0}</A>'.format
+    tag_link = '<A href="/explore?tagNameRegex={0}">{0}</A>'.format
+    value_link = '<A href="/explore?tagValueRegex={0}">{0}</A>'.format
+
+    expect_body = TABLE([
         TR(TH(['Metric',
                'Label',
-               'clouddriver',
-               'gate'])),
-        TR(TD([make_link('controller.invocations')], rowspan=2),
-           TD(['controller',
+               service_link('clouddriver'),
+               service_link('gate')])),
+        TR(TD([name_link('controller.invocations')], rowspan=2),
+           TD([tag_link('controller'),
                '',
-               'PipelineController'])),
-        TR(TD(['method',
+               value_link('PipelineController')])),
+        TR(TD([tag_link('method'),
                '',
-               'savePipeline'])),
-        TR(TD([make_link('jvm.buffer.memoryUsed'),
-               'id',
-               'direct, mapped',
-               'direct, mapped'])),
-        TR(TD([make_link('jvm.gc.maxDataSize'),
+               value_link('savePipeline')])),
+        TR(TD([name_link('jvm.buffer.memoryUsed'),
+               tag_link('id'),
+               ', '.join([value_link('direct'), value_link('mapped')]),
+               ', '.join([value_link('direct'), value_link('mapped')])])),
+        TR(TD([name_link('jvm.gc.maxDataSize'),
                '',
                'n/a',
                'n/a'])),
-        TR(TD([make_link('tasks'),
-               'success',
-               'true',
+        TR(TD([name_link('tasks'),
+               tag_link('success'),
+               value_link('true'),
                ''])),
     ])
+    expect = minimize_html(
+        http_server.build_html_document(expect_body, 'Metric Usage'))
     self.assertEqual(expect, html)
 
 

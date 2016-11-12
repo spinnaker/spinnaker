@@ -15,6 +15,10 @@
 from datetime import datetime
 import json
 
+import command_processor
+import http_server
+import spectator_client
+
 
 def accepts_html(request):
   if not hasattr(request, 'headers'):
@@ -29,64 +33,89 @@ def millis_to_time(millis):
   return datetime.fromtimestamp(millis / 1000).isoformat('T') + 'Z'
 
 
-def params_to_query(params):
-  query_list = ['{0}={1}'.format(key, value) for key, value in params.items()]
-  return '?{0}'.format('&'.join(query_list)) if query_list else ''
+def strip_non_html_params(options):
+  params = {}
+  for key in ['tagNameRegex', 'tagValueRegex', 'metricNameRegex']:
+    if key in options:
+      params[key] = options[key]
+  return params
 
 
-class BaseHandler(object):
-  def __init__(self, options, registry):
-    self.__registry = registry
+class BaseSpectatorCommandHandler(command_processor.CommandHandler):
+  def make_spectator_client(self, options):
+    return spectator_client.SpectatorClient(options)
 
-  def __call__(self, request, path, params, fragment):
-    query = params_to_query(params)
-    rows = [(entry.url_path, entry.description) for entry in self.__registry]
-    row_html = [('<tr>'
-                 '<td><A href="{path}{params}">{path}</A></td>'
-                 '<td>{info}</td>'
-                 '</tr>'.format(path=row[0], params=query, info=row[1]))
-                for row in rows]
-
-    html_body = '<table>\n{0}\n</table>'.format('\n'.join(row_html))
-    html_doc = request.build_html_document(
-        html_body, title='Spinnaker Metrics Administration')
-    request.respond(200, {'ContentType': 'application/html'}, html_doc)
+  def add_argparser(self, subparsers):
+    parser = super(BaseSpectatorCommandHandler, self).add_argparser(subparsers)
+    parser.add_argument('--by', default='service',
+                        help='Organize by "service" or by "metric" name.')
+    spectator_client.SpectatorClient.add_standard_parser_arguments(parser)
+    return parser
 
 
-class DumpMetricsHandler(object):
-  def __init__(self, options, spectator):
-    self.__service_list = options.get('services', ['all'])
-    self.__spectator = spectator
+class DumpMetricsHandler(BaseSpectatorCommandHandler):
+  def __get_data_map(self, options):
+    service_list = options['services']
+    spectator = self.make_spectator_client(options)
 
-  def __call__(self, request, path, params, fragment):
-    services_text = params.get('services', None)
-    service_list = (services_text.split(',')
-                    if services_text else self.__service_list)
-
-    by = params.get('by', 'service')
+    by = options.get('by', 'service')
     if by == 'service':
-      data_map = self.__spectator.scan_by_service(service_list, params=params)
+      data_map = spectator.scan_by_service(service_list, params=options)
     else:
-      data_map = self.__spectator.scan_by_type(service_list, params=params)
+      data_map = spectator.scan_by_type(service_list, params=options)
+    return data_map
+
+  def process_commandline_request(self, options):
+    data_map = self.__get_data_map(options)
+    json_text = json.JSONEncoder(indent=2).encode(data_map)
+    self.output(options, json_text)
+
+  def process_web_request(self, request, path, params, fragment):
+    options = dict(command_processor.get_global_options())
+    options['services'] = ','.join(options.get('services', '[all]'))
+    options.update(params)
+    options['services'] = options.get('services', 'all').split(',')
+
+    data_map = self.__get_data_map(options)
     body = json.JSONEncoder(indent=2).encode(data_map)
     request.respond(200, {'ContentType': 'application/json'}, body)
 
 
-class ExploreCustomDescriptorsHandler(object):
+class ExploreCustomDescriptorsHandler(BaseSpectatorCommandHandler):
   """Show all the current descriptors in use, and who is using them."""
-  def __init__(self, options, spectator):
-    self.__spectator = spectator
-    self.__service_list = options.get('services', ['all'])
 
-  def __call__(self, request, path, params, fragment):
-    services_text = params.get('services', None)
-    service_list = (services_text.split(',')
-                    if services_text else self.__service_list)
+  def __get_type_and_tag_map_and_active_services(self, options):
+    service_list = options['services']
+    spectator = self.make_spectator_client(options)
 
-    type_map = self.__spectator.scan_by_type(service_list, params=params)
+    type_map = spectator.scan_by_type(service_list, params=options)
     service_tag_map, active_services = self.to_service_tag_map(type_map)
+    return type_map, service_tag_map, active_services
+
+  def process_commandline_request(self, options):
+    type_map, service_tag_map, active_services = (
+        self.__get_type_and_tag_map_and_active_services(options))
+
+    params = strip_non_html_params(options)
     html = self.to_html(type_map, service_tag_map, active_services, params)
-    html_doc = request.build_html_document(html, title='Metric Usage')
+    html_doc = http_server.build_html_document(
+        html, title='Metric Usage')
+    self.output(options, html_doc)
+
+  def process_web_request(self, request, path, params, fragment):
+    options = dict(command_processor.get_global_options())
+    options['services'] = ','.join(options.get('services', '[all]'))
+    options.update(params)
+    service_list = options.get('services', 'all').split(',')
+    options['services'] = service_list
+
+    type_map, service_tag_map, active_services = (
+        self.__get_type_and_tag_map_and_active_services(options))
+
+    params = strip_non_html_params(options)
+    html = self.to_html(type_map, service_tag_map, active_services, params)
+    html_doc = http_server.build_html_document(
+        html, title='Metric Usage')
     request.respond(200, {'ContentType': 'text/html'}, html_doc)
 
   @staticmethod
@@ -133,7 +162,8 @@ class ExploreCustomDescriptorsHandler(object):
     columns = {}
     for service_name in sorted(active_services):
       columns[service_name] = len(columns)
-      header_html.append('<th>{0}</th>'.format(service_name))
+      header_html.append('<th><A href="/show?services={0}">{0}</A></th>'.format(
+          service_name))
     header_html.append('</tr>')
 
     html = ['<table border=1>']
@@ -147,19 +177,27 @@ class ExploreCustomDescriptorsHandler(object):
       row_span = ' rowspan={0}'.format(num_labels) if num_labels > 1 else ''
       query_params = dict(params or {})
       query_params['meterNameRegex'] = type_name
-      metric_url = '/show{0}'.format(params_to_query(query_params))
+      metric_url = '/show{0}'.format(self.params_to_query(query_params))
       row_html.append(
           '<td{row_span}><A href="{url}">{type_name}</A></td>'.format(
               row_span=row_span, url=metric_url, type_name=type_name))
 
       for label_name, service_values in tag_service_map.items():
         if label_name is None:
-          label_name = ''
-        row_html.append('<td>{0}</td>'.format(label_name))
+          row_html.append('<td></td>')
+        else:
+          row_html.append(
+              '<td><A href="/explore?tagNameRegex={0}">{0}</A></td>'.format(
+                  label_name))
         for value_set in service_values:
           if value_set == set([None]):
-            value_set = ['n/a']
-          row_html.append('<td>{0}</td>'.format(', '.join(sorted(value_set))))
+            row_html.append('<td>n/a</td>')
+          else:
+            row_html.append(
+                '<td>{0}</td>'.format(', '.join(
+                  ['<A href="/explore?tagValueRegex={v}">{v}</A>'.format(
+                      v=value)
+                   for value in sorted(value_set)])))
         row_html.append('</tr>')
         html.append(''.join(row_html))
         row_html = ['<tr>']  # prepare for next row if needed
@@ -189,16 +227,38 @@ class TagValue(object):
     return '<code><b>{0}</b>={1}</code>'.format(self.key, self.value)
 
 
-class ShowCurrentMetricsHandler(object):
+class ShowCurrentMetricsHandler(BaseSpectatorCommandHandler):
   """Show all the current metric values."""
-  def __init__(self, options, spectator):
-    self.__spectator = spectator
-    self.__service_list = options.get('services', ['all'])
 
-  def __call__(self, request, path, params, fragment):
-    services_text = params.get('services', None)
-    service_list = (services_text.split(',')
-                    if services_text else self.__service_list)
+  def __get_data_map(self, options):
+    service_list = options['services']
+    spectator = self.make_spectator_client(options)
+
+    by = options.get('by', 'service')
+    if by == 'service':
+      service_map = spectator.scan_by_service(
+          service_list, params=options)
+      return service_map
+    else:
+      type_map = spectator.scan_by_type(service_list, params=options)
+      return type_map
+
+  def process_commandline_request(self, options):
+    data_map = self.__get_data_map(options)
+    by = options.get('by', 'service')
+    if by == 'service':
+      content_data = self.service_map_to_text(data_map, params=options)
+    else:
+      content_data = self.type_map_to_text(data_map, params=options)
+    self.output(options, content_data)
+
+  def process_web_request(self, request, path, params, fragment):
+    options = dict(command_processor.get_global_options())
+    options['services'] = ','.join(options.get('services', '[all]'))
+    options.update(params)
+    service_list = options.get('services', 'all').split(',')
+    options['services'] = service_list
+    data_map = self.__get_data_map(options)
 
     if accepts_html(request):
       content_type = 'text/html'
@@ -209,17 +269,15 @@ class ShowCurrentMetricsHandler(object):
       by_service = self.service_map_to_text
       by_type = self.type_map_to_text
 
-    by = params.get('by', 'service')
+    by = options.get('by', 'service')
     if by == 'service':
-      service_map = self.__spectator.scan_by_service(
-          service_list, params=params)
-      content_data = by_service(service_map, params=params)
+      content_data = by_service(data_map, params=params)
     else:
-      type_map = self.__spectator.scan_by_type(service_list, params=params)
-      content_data = by_type(type_map, params=params)
+      content_data = by_type(data_map, params=params)
 
     if content_type == 'text/html':
-      body = request.build_html_document(content_data, title='Current Metrics')
+      body = http_server.build_html_document(
+          content_data, title='Current Metrics')
     else:
       body = content_data
     request.respond(200, {'ContentType': content_type}, body)
@@ -262,6 +320,8 @@ class ShowCurrentMetricsHandler(object):
   def service_map_to_text(self, service_map, params=None):
     lines = []
     for service, entry in sorted(service_map.items()):
+      if entry is None:
+        continue
       metrics = entry.get('metrics', {})
       for key, value in metrics.items():
         tagged_values = self.all_tagged_values(value.get('values'))
@@ -284,14 +344,16 @@ class ShowCurrentMetricsHandler(object):
               '<tr><th>Service</th><th>Metric</th>'
               '<th>Timestamp</th><th>Values</th><th>Labels</th></tr>']
     for service, entry in sorted(service_map.items()):
+      if entry is None:
+        continue
       metrics = entry.get('metrics', {})
       for key, value in metrics.items():
           # pylint: disable=bad-indentation
           tagged_values = self.all_tagged_values(value.get('values'))
           service_url = '/show{0}'.format(
-              params_to_query({'services': service}))
+              self.params_to_query({'services': service}))
           metric_url = '/show{0}'.format(
-              params_to_query({'meterNameRegex': key}))
+              self.params_to_query({'meterNameRegex': key}))
           html = (
               '<tr>'
               '<th rowspan={rowspan}><A href="{service_url}">{service}</A></th>'
@@ -360,3 +422,19 @@ class ShowCurrentMetricsHandler(object):
 
     return '<table>\n{header}\n{rows}\n</table>'.format(
         header=column_headers_html, rows='\n'.join(row_html))
+
+
+def add_handlers(handler_list, subparsers):
+  command_handlers = [
+      ShowCurrentMetricsHandler(
+          '/show', 'show', 'Show current metric JSON for all Spinnaker.'),
+      DumpMetricsHandler(
+          '/dump', 'dump',
+          'Show current raw metric JSON from all the servers.'),
+      ExploreCustomDescriptorsHandler(
+          '/explore', 'explore',
+          'Explore metric type usage across Spinnaker microservices.')
+  ]
+  for handler in command_handlers:
+    handler.add_argparser(subparsers)
+    handler_list.append(handler)

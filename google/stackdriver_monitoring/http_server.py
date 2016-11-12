@@ -16,13 +16,12 @@
 
 import BaseHTTPServer
 
-
-class DelegatingRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-  def build_html_document(self, body, title=None):
-    title_html = '<h1>{0}</h1>\n'.format(title) if title else ''
-    html = ['<html>', '<head>',
-            '<title>{title}</title>'.format(title=title),
-            '<style>',
+def build_html_document(body, title=None):
+  """Produces the HTML document wrapper for a text/html response."""
+  title_html = '<h1>{0}</h1>\n'.format(title) if title else ''
+  html = ['<html>', '<head>',
+          '<title>{title}</title>'.format(title=title),
+          '<style>',
 """
   body { font-size:10pt }
   table { font-size:10pt;border-width:none;
@@ -36,14 +35,19 @@ class DelegatingRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   a.toggle:hover, a.toggle:active {
       color:#FFFFFF;background-color:#000099 }
 """
-            '</style>'
-            '</head>', '<body>',
-            title_html,
-            body,
-            '</body>', '</html>']
-    return '\n'.join(html)
+          '</style>'
+          '</head>', '<body>',
+          title_html,
+          body,
+          '</body>', '</html>']
+  return '\n'.join(html)
+
+
+class DelegatingRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+  """An HttpServer request handler that delegates to our CommandHandler."""
 
   def respond(self, code, headers, body=None):
+    """Send response to the HTTP request."""
     self.send_response(code)
     for key, value in headers.items():
       self.send_header(key, value)
@@ -52,6 +56,7 @@ class DelegatingRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
       self.wfile.write(body)
 
   def decode_request(self, request):
+    """Extract the URL components from the request."""
     parameters = {}
     path, ignore, query = request.partition('?')
     if not query:
@@ -65,10 +70,12 @@ class DelegatingRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     return path, parameters, fragment
 
   def do_HEAD(self):
+    """Implements BaseHTTPRequestHandler."""
     # pylint: disable=invalid-name
     self.respond(200, {'Content-Type': 'text/html'})
 
   def do_GET(self):
+    """Implements BaseHTTPRequestHandler."""
     # pylint: disable=invalid-name
     path, parameters, fragment = self.decode_request(self.path)
     offset = len(path)

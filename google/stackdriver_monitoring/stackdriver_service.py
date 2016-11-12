@@ -39,7 +39,13 @@ def get_google_metadata(attribute):
   url = os.path.join('http://169.254.169.254/computeMetadata/v1', attribute)
   request = urllib2.Request(url)
   request.add_header('Metadata-Flavor', 'Google')
-  response = urllib2.urlopen(request)
+  try:
+    response = urllib2.urlopen(request)
+  except IOError as ioex:
+    print 'CAUGHT ' + str(ioex)
+    print 'request {0}'.format(url)
+    raise ioex
+
   return response.read()
 
 
@@ -53,26 +59,12 @@ class StackdriverMetricsService(object):
   def millis_to_time(millis):
     return datetime.fromtimestamp(millis / 1000).isoformat('T') + 'Z'
 
-  @staticmethod
-  def make_service(option_dict):
-    credentials_path = option_dict.get('credentials_path', None)
-    http = httplib2.Http()
-    http = apiclient.http.set_user_agent(
-        http, 'SpinnakerStackdriverAgent/0.001')
-    if credentials_path:
-      credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            credentials_path, scopes=StackdriverMetricsService.WRITE_SCOPE)
-    else:
-      credentials = GoogleCredentials.get_application_default()
-
-    http = credentials.authorize(http)
-    stub = apiclient.discovery.build('monitoring', 'v3', http=http)
-    return StackdriverMetricsService(stub, option_dict)
-
   @property
   def stub(self):
     """Returns the stackdriver client stub."""
-    return self.__stackdriver
+    if self.__stub is None:
+      self.__stub = self.__stub_factory()
+    return self.__stub
 
   @property
   def monitored_resource(self):
@@ -82,7 +74,7 @@ class StackdriverMetricsService(object):
       instance_id = self.__options.get('instance_id', None)
 
       if not project:
-        project = get_google_metadata('projects/project-id')
+        project = get_google_metadata('project/project-id')
       if not zone:
         zone = os.path.basename(get_google_metadata('instance/zone'))
       if not instance_id:
@@ -99,23 +91,39 @@ class StackdriverMetricsService(object):
 
     return self.__monitored_resource
 
-  def __init__(self, stub, options):
+  def __init__(self, stub_factory, options):
+    """Constructor.
+
+    Args:
+      stub_factory: [callable that creates stub for stackdriver]
+          This is passed as a callable to defer initialization because
+          we create the handlers before we process commandline args.
+    """
     self.logger = logging.getLogger(__name__)
     self.__options = options
 
-    self.__stackdriver = stub
+    self.__stub_factory = stub_factory
+    self.__stub = None
     self.__project = options.get('project', None)
     if not self.__project:
       # Set default to our instance if we are on GCE.
       # Otherwise ignore since we might not actually need the project.
       try:
-        self.__project = get_google_metadata('projects/project-id')
-      except IOException as ioex:
+        self.__project = get_google_metadata('project/project-id')
+      except IOError:
         pass
 
     self.__fix_stackdriver_labels_unsafe = options.get(
         'fix_stackdriver_labels_unsafe', False)
     self.__monitored_resource = None
+
+  @staticmethod
+  def add_parser_arguments(parser):
+    """Add arguments for coniguring stackdriver."""
+    parser.add_argument('--project', default='')
+    parser.add_argument('--zone', default='us-central1-f')
+    parser.add_argument('--instance_id', default=0, type=int)
+    parser.add_argument('--credentials_path', default='')
 
   def project_to_resource(self, project):
     if not project:
@@ -145,7 +153,7 @@ class StackdriverMetricsService(object):
 
   def foreach_custom_descriptor(self, func, **args):
     """Apply a function to each metric descriptor known to Stackdriver."""
-    request = self.__stackdriver.projects().metricDescriptors().list(**args)
+    request = self.stub.projects().metricDescriptors().list(**args)
 
     count = 0
     while request:
@@ -154,7 +162,7 @@ class StackdriverMetricsService(object):
       for elem in response.get('metricDescriptors', []):
         count += 1
         func(elem)
-      request = self.__stackdriver.projects().metricDescriptors().list_next(
+      request = self.stub.projects().metricDescriptors().list_next(
           request, response)
     return count
 
@@ -181,7 +189,7 @@ class StackdriverMetricsService(object):
     try:
       content = json.JSONDecoder().decode(error.content)
       message = content['error']['message']
-    except KeyError as kex:
+    except KeyError:
       return []
 
     pattern = (r'timeSeries\[(\d+?)\]\.metric\.labels\[\d+?\]'
@@ -224,7 +232,6 @@ class StackdriverMetricsService(object):
       logging.info('Label was already added: %s', descriptor)
       return True
 
-    have_type_map = {descriptor['type']: dict(descriptor)}
     logging.info('Starting with metricDescriptors.get %s:', descriptor)
     labels.append({'key': label, 'valueType': 'STRING'})
     descriptor['labels'] = labels
@@ -308,3 +315,23 @@ class StackdriverMetricsService(object):
         'valueType': 'DOUBLE',
         'points': points
         })
+
+def make_service(options):
+  """Factory method for creating a new StackdriverMetricsService."""
+  def make_stub():
+    """Helper function for making a stub to talk to service."""
+    credentials_path = options.get('credentials_path', None)
+    http = httplib2.Http()
+    http = apiclient.http.set_user_agent(
+        http, 'SpinnakerStackdriverAgent/0.001')
+    if credentials_path:
+      credentials = ServiceAccountCredentials.from_json_keyfile_name(
+            credentials_path, scopes=StackdriverMetricsService.WRITE_SCOPE)
+    else:
+      credentials = GoogleCredentials.get_application_default()
+
+    http = credentials.authorize(http)
+    return apiclient.discovery.build('monitoring', 'v3', http=http)
+
+  return StackdriverMetricsService(make_stub, options)
+
