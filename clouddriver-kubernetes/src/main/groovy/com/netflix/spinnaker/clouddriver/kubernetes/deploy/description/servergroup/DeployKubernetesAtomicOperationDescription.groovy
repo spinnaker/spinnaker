@@ -39,6 +39,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   KubernetesScalingPolicy scalingPolicy
   Map<String, String> replicaSetAnnotations
   Map<String, String> podAnnotations
+  KubernetesSecurityContext securityContext
 }
 
 @AutoClone
@@ -89,6 +90,8 @@ class KubernetesContainerDescription {
 
   List<String> command
   List<String> args
+
+  KubernetesSecurityContext securityContext
 }
 
 @AutoClone
@@ -297,4 +300,31 @@ class KubernetesResourceDescription {
 class KeyValuePair {
   String name
   String value
+}
+
+@AutoClone
+@Canonical
+class KubernetesSecurityContext {
+  KubernetesCapabilities capabilities
+  Boolean privileged
+  KubernetesSeLinuxOptions seLinuxOptions
+  Long runAsUser
+  Boolean runAsNonRoot
+  Boolean readOnlyRootFilesystem
+}
+
+@AutoClone
+@Canonical
+class KubernetesCapabilities {
+  List<String> add
+  List<String> drop
+}
+
+@AutoClone
+@Canonical
+class KubernetesSeLinuxOptions {
+  String user
+  String role
+  String type
+  String level
 }

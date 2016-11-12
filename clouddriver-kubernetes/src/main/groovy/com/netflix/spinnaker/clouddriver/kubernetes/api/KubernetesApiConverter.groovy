@@ -261,6 +261,39 @@ class KubernetesApiConverter {
       }
     }
 
+    if (container.securityContext) {
+      def securityContext = container.securityContext
+
+      containerBuilder = containerBuilder.withNewSecurityContext()
+
+      containerBuilder.withRunAsNonRoot(securityContext.runAsNonRoot)
+        .withRunAsUser(securityContext.runAsUser)
+        .withPrivileged(securityContext.privileged)
+        .withReadOnlyRootFilesystem(securityContext.readOnlyRootFilesystem)
+
+      if (securityContext.seLinuxOptions) {
+        def seLinuxOptions = securityContext.seLinuxOptions
+
+        containerBuilder = containerBuilder.withNewSeLinuxOptions()
+          .withUser(seLinuxOptions.user)
+          .withRole(seLinuxOptions.role)
+          .withType(seLinuxOptions.type)
+          .withLevel(seLinuxOptions.level)
+          .endSeLinuxOptions()
+      }
+
+      if (securityContext.capabilities) {
+        def capabilities = securityContext.capabilities
+
+        containerBuilder = containerBuilder.withNewCapabilities()
+          .withAdd(capabilities.add)
+          .withDrop(capabilities.drop)
+          .endCapabilities()
+      }
+
+      containerBuilder.endSecurityContext()
+    }
+
     [liveness: container.livenessProbe, readiness: container.readinessProbe].each { k, v ->
       def probe = v
       if (probe) {
@@ -461,6 +494,32 @@ class KubernetesApiConverter {
       port.protocol = it?.protocol
 
       return port
+    }
+
+    if (container.securityContext) {
+      def securityContext = container.securityContext
+
+      containerDescription.securityContext = new KubernetesSecurityContext(privileged: securityContext.privileged,
+                                                                           runAsNonRoot: securityContext.runAsNonRoot,
+                                                                           runAsUser: securityContext.runAsUser,
+                                                                           readOnlyRootFilesystem: securityContext.readOnlyRootFilesystem
+      )
+
+      if (securityContext.capabilities) {
+        def capabilities = securityContext.capabilities
+
+        containerDescription.securityContext.capabilities = new KubernetesCapabilities(add: capabilities.add, drop: capabilities.drop)
+      }
+
+      if (securityContext.seLinuxOptions) {
+        def seLinuxOptions = securityContext.seLinuxOptions
+
+        containerDescription.securityContext.seLinuxOptions = new KubernetesSeLinuxOptions(user: seLinuxOptions.user,
+                                                                                           role: seLinuxOptions.role,
+                                                                                           type: seLinuxOptions.type,
+                                                                                           level: seLinuxOptions.level
+        )
+      }
     }
 
     containerDescription.livenessProbe = fromProbe(container?.livenessProbe)

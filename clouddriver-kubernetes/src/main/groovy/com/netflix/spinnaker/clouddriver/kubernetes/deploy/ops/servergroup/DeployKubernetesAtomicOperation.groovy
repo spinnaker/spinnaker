@@ -25,7 +25,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.autoscaler.KubernetesAutoscalerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscalerBuilder
+import io.fabric8.kubernetes.api.model.Capabilities
+import io.fabric8.kubernetes.api.model.SELinuxOptions
+import io.fabric8.kubernetes.api.model.SecurityContext
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder
 
@@ -49,6 +51,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "volumeSources": [ { "name": "storage", "type": "EMPTYDIR", "emptyDir": {} } ], "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx", "tag": "latest", "registry": "index.docker.io" }, "volumeMounts": [ { "name": "storage", "mountPath": "/storage", "readOnly": false } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx" } } ], "capacity": { "min": 1, "max": 5 }, "scalingPolicy": { "cpuUtilization": { "target": 40 } }, "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    */
+
   @Override
   DeploymentResult operate(List priorOutputs) {
 
@@ -85,8 +88,8 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     task.updateStatus BASE_PHASE, "Setting target size to ${targetSize}..."
 
     replicaSetBuilder = replicaSetBuilder.withReplicas(targetSize)
-        .withNewTemplate()
-        .withNewMetadata()
+      .withNewTemplate()
+      .withNewMetadata()
 
     task.updateStatus BASE_PHASE, "Setting replica set spec labels & annotations..."
 
@@ -128,7 +131,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     replicaSetBuilder = replicaSetBuilder.endSpec().endTemplate().endSpec()
 
     task.updateStatus BASE_PHASE, "Sending replica set spec to the Kubernetes master."
-	  ReplicaSet replicaSet = credentials.apiAdaptor.createReplicaSet(namespace, replicaSetBuilder.build())
+    ReplicaSet replicaSet = credentials.apiAdaptor.createReplicaSet(namespace, replicaSetBuilder.build())
 
     task.updateStatus BASE_PHASE, "Finished creating replica set ${replicaSet.metadata.name}."
 
