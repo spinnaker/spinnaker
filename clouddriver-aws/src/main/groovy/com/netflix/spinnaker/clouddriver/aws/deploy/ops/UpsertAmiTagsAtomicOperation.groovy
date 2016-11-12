@@ -47,7 +47,7 @@ class UpsertAmiTagsAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     def descriptor = "${description.credentials.name}/${description.amiName}"
-    task.updateStatus BASE_PHASE, "Initializing Upsert ASG Tags operation for ${descriptor}..."
+    task.updateStatus BASE_PHASE, "Initializing Upsert AMI Tags operation for ${descriptor}..."
 
     description.regions.each { String region ->
       def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region, true)
