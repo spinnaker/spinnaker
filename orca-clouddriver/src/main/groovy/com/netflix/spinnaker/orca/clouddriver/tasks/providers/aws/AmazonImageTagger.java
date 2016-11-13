@@ -151,7 +151,7 @@ public class AmazonImageTagger implements ImageTagger, CloudProviderAware {
 
           List<String> imagesForRegion = matchedImage.amis.get(region);
           imagesForRegion.forEach(image -> {
-            Map<String, String> allImageTags = matchedImage.tagsByImageId.get(image);
+            Map<String, String> allImageTags = matchedImage.tagsByImageId.getOrDefault(image, new HashMap<>());
             targetImage.tags.entrySet().forEach(entry -> {
               // assert tag equality
               isUpserted.set(isUpserted.get() && entry.getValue().equals(allImageTags.get(entry.getKey())));
