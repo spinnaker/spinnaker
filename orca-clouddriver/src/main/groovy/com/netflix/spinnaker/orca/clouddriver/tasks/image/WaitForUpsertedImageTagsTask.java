@@ -52,7 +52,7 @@ public class WaitForUpsertedImageTagsTask implements RetryableTask, CloudProvide
 
   @Override
   public long getBackoffPeriod() {
-    return TimeUnit.SECONDS.toMillis(5);
+    return TimeUnit.SECONDS.toMillis(30);
   }
 
   @Override

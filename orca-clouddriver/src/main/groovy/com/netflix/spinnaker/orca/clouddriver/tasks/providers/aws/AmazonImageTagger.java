@@ -64,7 +64,7 @@ public class AmazonImageTagger implements ImageTagger, CloudProviderAware {
 
     stageData.imageNames = matchedImages.stream()
       .map(matchedImage -> matchedImage.imageName)
-      .collect(Collectors.toList());
+      .collect(Collectors.toSet());
 
     // Built-in tags are not updatable
     Map<String, String> tags = stageData.tags.entrySet().stream()
@@ -132,7 +132,7 @@ public class AmazonImageTagger implements ImageTagger, CloudProviderAware {
   @Override
   public boolean areImagesTagged(Collection<Image> targetImages, Stage stage) {
     Collection<MatchedImage> matchedImages = findImages(
-      targetImages.stream().map(targetImage -> targetImage.imageName).collect(Collectors.toList()),
+      targetImages.stream().map(targetImage -> targetImage.imageName).collect(Collectors.toSet()),
       stage
     );
 
@@ -169,9 +169,9 @@ public class AmazonImageTagger implements ImageTagger, CloudProviderAware {
     return "aws";
   }
 
-  private Collection<MatchedImage> findImages(List<String> imageNames, Stage stage) {
+  private Collection<MatchedImage> findImages(Collection<String> imageNames, Stage stage) {
     if (imageNames == null || imageNames.isEmpty()) {
-      imageNames = new ArrayList<>();
+      imageNames = new HashSet<>();
 
       // attempt to find upstream images in the event that one was not explicitly provided
       Collection<String> upstreamImageIds = AmazonImageTaggerSupport.upstreamImageIds(stage);
@@ -206,7 +206,7 @@ public class AmazonImageTagger implements ImageTagger, CloudProviderAware {
   }
 
   static class StageData {
-    public List<String> imageNames;
+    public Set<String> imageNames;
     public Set<String> regions = new HashSet<>();
     public Map<String, String> tags = new HashMap<>();
   }
