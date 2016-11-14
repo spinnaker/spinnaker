@@ -81,6 +81,7 @@ class UpsertOpenstackSecurityGroupDescriptionValidatorSpec extends Specification
       new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 80, toPort: 80, cidr: '0.0.0.0/0', ruleType: 'TCP'),
       new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 443, toPort: 443, remoteSecurityGroupId: UUID.randomUUID().toString(), ruleType: 'UDP'),
       new UpsertOpenstackSecurityGroupDescription.Rule(icmpType: 2, icmpCode: 3, cidr: '0.0.0.0/0', ruleType: 'ICMP'),
+      new UpsertOpenstackSecurityGroupDescription.Rule(fromPort: 22, toPort: 22, remoteSecurityGroupId: 'SELF', ruleType: 'TCP'),
     ]
     def description = new UpsertOpenstackSecurityGroupDescription(account: 'foo', region: 'r1', id: id, name: name, description: desc, rules: rules, credentials: credz)
 

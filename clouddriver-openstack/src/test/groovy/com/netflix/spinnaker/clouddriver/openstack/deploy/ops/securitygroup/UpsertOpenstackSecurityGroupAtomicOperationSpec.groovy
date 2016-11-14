@@ -80,7 +80,6 @@ class UpsertOpenstackSecurityGroupAtomicOperationSpec extends Specification {
       new UpsertOpenstackSecurityGroupDescription.Rule(ruleType: 'TCP', fromPort: 80, toPort: 80, cidr: '0.0.0.0/0'),
       new UpsertOpenstackSecurityGroupDescription.Rule(ruleType: 'TCP', fromPort: 443, toPort: 443, cidr: '0.0.0.0/0'),
       new UpsertOpenstackSecurityGroupDescription.Rule(ruleType: 'ICMP', icmpType: 3, icmpCode: 4, remoteSecurityGroupId: 'abc')
-
     ]
 
     def description = new UpsertOpenstackSecurityGroupDescription(account: ACCOUNT_NAME, region: REGION, credentials: credentials, name: name, description: desc, rules: rules)
@@ -97,6 +96,29 @@ class UpsertOpenstackSecurityGroupAtomicOperationSpec extends Specification {
     rules.each { rule ->
       1 * provider.createSecurityGroupRule(REGION, id, IPProtocol.value(rule.ruleType), rule.cidr, rule.remoteSecurityGroupId, rule.fromPort, rule.toPort, rule.icmpType, rule.icmpCode)
     }
+    noExceptionThrown()
+  }
+
+  def "create security group with self referencial rule"() {
+    setup:
+    def id = UUID.randomUUID().toString()
+    def name = 'sec-group-1'
+    def desc = 'A description'
+    SecGroupExtension securityGroup = new NovaSecGroupExtension(id: id, name: name, description: desc)
+    def rule = new UpsertOpenstackSecurityGroupDescription.Rule(ruleType: 'TCP', fromPort: 80, toPort: 80, remoteSecurityGroupId: 'SELF')
+
+    def description = new UpsertOpenstackSecurityGroupDescription(account: ACCOUNT_NAME, region: REGION, credentials: credentials, name: name, description: desc, rules: [rule])
+    def operation = new UpsertOpenstackSecurityGroupAtomicOperation(description)
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * provider.createSecurityGroup(REGION, name, desc) >> securityGroup
+    0 * provider.getSecurityGroup(_, _)
+    0 * provider.updateSecurityGroup(_, _, _, _)
+    0 * provider.deleteSecurityGroupRule(_, _)
+    1 * provider.createSecurityGroupRule(REGION, id, IPProtocol.value(rule.ruleType), null, id, rule.fromPort, rule.toPort, null, null)
     noExceptionThrown()
   }
 
