@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.config;
 
 import com.netflix.spectator.controllers.filter.PrototypeMeasurementFilter;
-import com.netflix.spectator.controllers.MetricsController;
 import com.netflix.spectator.stackdriver.ConfigParams;
 import com.netflix.spectator.stackdriver.MetricDescriptorCache;
 import com.netflix.spectator.stackdriver.StackdriverWriter;
@@ -52,12 +51,6 @@ import rx.schedulers.Schedulers;
 @EnableConfigurationProperties({StackdriverConfig.SpectatorStackdriverConfigurationProperties.class, StackdriverConfig.StackdriverConfigurationHints.class})
 @ConditionalOnProperty("spectator.stackdriver.enabled")
 public class StackdriverConfig {
-
-  @Bean
-  @ConditionalOnProperty("spectator.webEndpoint.enabled")
-  MetricsController metricsController(Registry registry) {
-    return new MetricsController();
-  }
 
   @ConfigurationProperties("spectator")
   public static class SpectatorStackdriverConfigurationProperties {
