@@ -16,22 +16,22 @@
 
 package com.netflix.spinnaker.halyard.cli.ui.v1;
 
-public class Color {
-  public final String RESET;
-  public final String BOLD;
-  public final String RED;
-  public final String GREEN;
-  public final String YELLOW;
-  public final String BLUE;
-  public final String MAGENTA;
+import lombok.Getter;
 
-  public Color (boolean colorEnabled) {
-    RESET = colorEnabled ? "\033[0m" : "";
-    BOLD = colorEnabled ? "\033[1m": "";
-    RED = colorEnabled ? "\033[31m": "";
-    GREEN = colorEnabled ? "\033[32m": "";
-    YELLOW = colorEnabled ? "\033[33m": "";
-    BLUE = colorEnabled ? "\033[34m": "";
-    MAGENTA = colorEnabled ? "\033[35m": "";
+public enum AnsiBackgroundColor implements AnsiCode {
+  BLACK("\033[40m"),
+  RED("\033[41m"),
+  GREEN("\033[42m"),
+  YELLOW("\033[43m"),
+  BLUE("\033[44m"),
+  MAGENTA("\033[45m"),
+  CYAN("\033[46m"),
+  WHITE("\033[47m");
+
+  @Getter
+  final String code;
+
+  AnsiBackgroundColor(String code) {
+    this.code = code;
   }
 }

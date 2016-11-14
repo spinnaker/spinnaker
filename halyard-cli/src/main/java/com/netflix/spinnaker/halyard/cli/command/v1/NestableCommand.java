@@ -18,7 +18,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.netflix.spinnaker.halyard.cli.ui.v1.Ui;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigFixableIssue;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,15 +33,11 @@ abstract class NestableCommand {
   @Getter(AccessLevel.PROTECTED)
   private JCommander commander;
 
-  @Getter(AccessLevel.PROTECTED)
-  private Ui ui;
-
   @Parameter(names = { "-h", "--help" }, help = true)
   private boolean help;
 
   NestableCommand() {
     boolean color = GlobalOptions.getGlobalOptions().isColor();
-    ui = new Ui(color);
   }
 
   /**
@@ -66,16 +62,16 @@ abstract class NestableCommand {
       executeThis();
     } catch (RetrofitError e) {
       if (e.getCause() instanceof ConnectException) {
-        ui.failure(e.getCause().getMessage());
-        ui.remediation("Is your daemon running?");
+        AnsiUi.failure(e.getCause().getMessage());
+        AnsiUi.remediation("Is your daemon running?");
       } else {
         HalconfigFixableIssue issue = (HalconfigFixableIssue) e.getBodyAs(HalconfigFixableIssue.class);
         for (String warning : issue.getWarnings()) {
-          ui.warning(warning);
+          AnsiUi.warning(warning);
         }
 
         for (String error : issue.getErrors()) {
-          ui.failure(error);
+          AnsiUi.failure(error);
         }
       }
     }

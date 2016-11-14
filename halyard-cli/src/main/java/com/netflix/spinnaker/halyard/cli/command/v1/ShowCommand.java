@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -52,7 +53,7 @@ class ShowCommand extends NestableCommand {
   @Override
   protected void executeThis() {
     Halconfig config = getService().getHalconfig();
-    getUi().success("Your currently loaded halconfig:");
-    getUi().raw(config.toString());
+    AnsiUi.success("Your currently loaded halconfig:");
+    AnsiUi.raw(config.toString());
   }
 }

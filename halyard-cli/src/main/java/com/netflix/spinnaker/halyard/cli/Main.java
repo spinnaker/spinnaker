@@ -4,7 +4,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.cli.command.v1.HalCommand;
-import com.netflix.spinnaker.halyard.cli.ui.v1.Ui;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import retrofit.RetrofitError;
 
 public class Main {
@@ -21,12 +21,10 @@ public class Main {
       jc.usage();
     }
 
-    Ui ui = new Ui(globalOptions.isColor());
-
     try {
       hal.execute();
     } catch (RetrofitError e) {
-      ui.failure(e.getMessage());
+      AnsiUi.failure(e.getMessage());
     }
   }
 }
