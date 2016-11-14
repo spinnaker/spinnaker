@@ -54,6 +54,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.cloneServerGr
       stage.credentials = $scope.application.defaultCredentials.aws;
     }
 
+    if (stage.isNew && _.get($scope, 'application.attributes.providerSettings.aws.useAmiBlockDeviceMappings')) {
+      stage.useAmiBlockDeviceMappings = $scope.application.attributes.providerSettings.aws.useAmiBlockDeviceMappings;
+    }
+
     this.targetClusterUpdated = () => {
       if (stage.targetCluster) {
         let clusterName = namingService.parseServerGroupName(stage.targetCluster);
