@@ -78,6 +78,14 @@
       </label>
     </div>
   </stage-config-field>
+  <stage-config-field label="AMI Block Device Mappings">
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" ng-model="stage.useAmiBlockDeviceMappings"/>
+        Prefer AMI Block Device Mappings
+      </label>
+    </div>
+  </stage-config-field>
   <stage-platform-health-override application="application"
                                   stage="stage"
                                   platform-health-type="'Amazon'">
