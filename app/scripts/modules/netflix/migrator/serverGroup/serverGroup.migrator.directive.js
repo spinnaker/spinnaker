@@ -2,6 +2,7 @@
 
 require('../migrator.less');
 import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
+import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
 import _ from 'lodash';
 
@@ -12,7 +13,7 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('amazon/vpc/vpc.read.service.js'),
     require('core/config/settings.js'),
-    require('core/subnet/subnet.read.service'),
+    SUBNET_READ_SERVICE,
     require('../migrator.service.js'),
     AUTO_SCROLL_DIRECTIVE,
     require('amazon/keyPairs/keyPairs.read.service'),

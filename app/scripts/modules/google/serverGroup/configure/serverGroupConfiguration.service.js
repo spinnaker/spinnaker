@@ -4,6 +4,7 @@ import _ from 'lodash';
 import gceLoadBalancerSetTransformer from '../../loadBalancer/loadBalancer.setTransformer';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
+import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
 let angular = require('angular');
 
@@ -14,7 +15,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('core/cache/cacheInitializer.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
   NETWORK_READ_SERVICE,
-  require('core/subnet/subnet.read.service.js'),
+  SUBNET_READ_SERVICE,
   require('../../image/image.reader.js'),
   require('../../instance/gceInstanceType.service.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),

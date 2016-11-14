@@ -1,19 +1,21 @@
-'use strict';
-
-import {API_SERVICE} from 'core/api/api.service';
+import {API_SERVICE, Api} from 'core/api/api.service';
+import {SUBNET_READ_SERVICE, SubnetReader, ISubnet} from 'core/subnet/subnet.read.service';
 
 describe('subnetReader', function() {
 
-  var service, $http, $scope, API;
+  let service: SubnetReader,
+      $http: ng.IHttpBackendService,
+      $scope: ng.IScope,
+      API: Api;
 
   beforeEach(
-    window.module(
-      require('./subnet.read.service.js'),
-      API_SERVICE
+    angular.mock.module(
+      API_SERVICE,
+      SUBNET_READ_SERVICE
     )
   );
 
-  beforeEach(window.inject(function ($httpBackend, $rootScope, _subnetReader_, _API_) {
+  beforeEach(angular.mock.inject(function ($httpBackend: ng.IHttpBackendService, $rootScope: ng.IRootScopeService, _subnetReader_: SubnetReader, _API_: Api) {
     API = _API_;
     service = _subnetReader_;
     $http = $httpBackend;
@@ -29,9 +31,9 @@ describe('subnetReader', function() {
       { purpose: 'internal' },
     ]);
 
-    var result = null;
+    let result: ISubnet[] = null;
 
-    service.listSubnets().then(function(vpcs) { result = vpcs; });
+    service.listSubnets().then((subnets: ISubnet[]) => { result = subnets; });
 
     $http.flush();
     $scope.$digest();

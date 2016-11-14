@@ -28,7 +28,6 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./loadBalancer/details/details.openstack.module.js'),
   require('./loadBalancer/transformer.js'),
   require('./instance/details/instance.details.controller.js'),
-  require('core/subnet/subnet.module.js'),
   require('./common/selectField.component.js'),
   require('./search/resultFormatter.js'),
   require('./pipeline/stages/bake/openstackBakeStage.js'),
@@ -41,7 +40,6 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./pipeline/stages/scaleDownCluster/openstackScaleDownClusterStage.js'),
   require('./pipeline/stages/shrinkCluster/openstackShrinkClusterStage.js'),
   require('./pipeline/stages/cloneServerGroup/openstackCloneServerGroupStage.js'),
-  require('core/subnet/subnet.module.js'),
   require('./subnet/subnet.renderer.js')
 ])
   .config(function(cloudProviderRegistryProvider) {

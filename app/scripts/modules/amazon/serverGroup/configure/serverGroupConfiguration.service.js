@@ -1,18 +1,19 @@
 'use strict';
 
 import _ from 'lodash';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
+import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
 let angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
-  require('core/subnet/subnet.read.service.js'),
+  SUBNET_READ_SERVICE,
   require('../../instance/awsInstanceType.service.js'),
   require('../../keyPairs/keyPairs.read.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),

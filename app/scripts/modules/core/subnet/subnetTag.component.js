@@ -1,9 +1,11 @@
 'use strict';
 
+import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.subnet.tag.component', [
-  require('./subnet.read.service.js'),
+  SUBNET_READ_SERVICE,
 ])
   .component('subnetTag', {
     bindings: {

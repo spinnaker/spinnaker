@@ -7,6 +7,7 @@ import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
   require('angular-ui-router'),
@@ -17,7 +18,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   require('core/securityGroup/securityGroup.read.service.js'),
   modalWizardServiceModule,
   require('core/task/monitor/taskMonitorService.js'),
-  require('core/subnet/subnet.read.service.js'),
+  SUBNET_READ_SERVICE,
   require('core/cache/cacheInitializer.js'),
   require('core/cache/infrastructureCaches.js'),
   NAMING_SERVICE,

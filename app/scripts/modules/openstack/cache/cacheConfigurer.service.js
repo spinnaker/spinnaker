@@ -3,6 +3,7 @@
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
+import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
 module.exports = angular.module('spinnaker.openstack.cache.initializer', [
   ACCOUNT_SERVICE,
@@ -10,7 +11,7 @@ module.exports = angular.module('spinnaker.openstack.cache.initializer', [
   require('core/instance/instanceTypeService.js'),
   require('core/securityGroup/securityGroup.read.service.js'),
   NETWORK_READ_SERVICE,
-  require('core/subnet/subnet.read.service.js'),
+  SUBNET_READ_SERVICE,
 ])
   .factory('openstackCacheConfigurer', function (accountService, instanceTypeService, loadBalancerReader, networkReader, subnetReader) {
 
