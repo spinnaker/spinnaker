@@ -72,10 +72,6 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
   def credentials
   def provider
 
-  DeployOpenstackAtomicOperation createDeployOpenstackAO() {
-    new DeployOpenstackAtomicOperation(createAncestorDeployAtomicOperationDescription())
-  }
-
   DeployOpenstackAtomicOperationDescription createAncestorDeployAtomicOperationDescription() {
     def scaleup = new ServerGroupParameters.Scaler(cooldown: 60, adjustment: 1, period: 60, threshold: 50)
     def scaledown = new ServerGroupParameters.Scaler(cooldown: 60, adjustment: -1, period: 600, threshold: 15)
@@ -91,7 +87,7 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       scaleup: scaleup,
       scaledown: scaledown,
       tags: ['foo':'bar'],
-      resourceFilename: 'servergroup_resource'
+      resourceFilename: 'servergroup_resource',
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK,
@@ -138,8 +134,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
     )
   }
 
-  def ancestorDeployAtomicOperationDescription = createAncestorDeployAtomicOperationDescription()
-  def newDeployAtomicOperationDescription = createNewDeployAtomicOperationDescription()
+  def ancestorDeployAtomicOperationDescription
+  def newDeployAtomicOperationDescription
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -151,6 +147,8 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
     OpenstackNamedAccountCredentials creds = Mock(OpenstackNamedAccountCredentials)
     OpenstackProviderFactory.createProvider(creds) >> { provider }
     credentials = new OpenstackCredentials(creds)
+    ancestorDeployAtomicOperationDescription = createAncestorDeployAtomicOperationDescription()
+    newDeployAtomicOperationDescription = createNewDeployAtomicOperationDescription()
   }
 
   def "builds a description based on ancestor server group, overrides nothing"() {
@@ -237,6 +235,70 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
     resultDescription.disableRollback == newDeployAtomicOperationDescription.disableRollback
     resultDescription.account == newDeployAtomicOperationDescription.account
     resultDescription.region == newDeployAtomicOperationDescription.region
+  }
+
+  def "builds a description based on ancestor server group, overrides floating network id"() {
+    given:
+
+    def scaleup = new ServerGroupParameters.Scaler(cooldown: 60, adjustment: 1, period: 60, threshold: 50)
+    def scaledown = new ServerGroupParameters.Scaler(cooldown: 60, adjustment: -1, period: 600, threshold: 15)
+    def ancestorParams = new ServerGroupParameters(
+      instanceType: INSTANCE_TYPE,
+      image:IMAGE,
+      maxSize: MAX_SIZE,
+      minSize: MIN_SIZE,
+      subnetId: SUBNET_ID,
+      loadBalancers: [POOL_ID],
+      securityGroups: SECURITY_GROUPS,
+      autoscalingType: ServerGroupParameters.AutoscalingType.CPU,
+      scaleup: scaleup,
+      scaledown: scaledown,
+      tags: ['foo':'bar'],
+      floatingNetworkId: UUID.toString(),
+      resourceFilename: 'servergroup_resource',
+    )
+    def ancestor = new DeployOpenstackAtomicOperationDescription(
+      stack: STACK,
+      application: APPLICATION,
+      freeFormDetails: DETAILS,
+      region: REGION,
+      serverGroupParameters: ancestorParams,
+      timeoutMins: TIMEOUT_MINS,
+      disableRollback: DISABLE_ROLLBACK,
+      account: ACCOUNT_NAME,
+      credentials: credentials,
+      userData: 'foo'
+    )
+
+    def inputDescription = new CloneOpenstackAtomicOperationDescription(
+      source: new CloneOpenstackAtomicOperationDescription.OpenstackCloneSource(
+        serverGroupName: ANCESTOR_STACK_NAME,
+        region: REGION
+      ),
+      region: REGION,
+      account: ACCOUNT_NAME,
+      credentials: credentials
+    )
+    Stack mockStack = Mock(Stack)
+    mockStack.parameters >> { ancestor.serverGroupParameters.toParamsMap() }
+    mockStack.timeoutMins >> { ancestor.timeoutMins }
+
+    @Subject def operation = new CloneOpenstackAtomicOperation(inputDescription)
+
+    when:
+    def resultDescription = operation.cloneAndOverrideDescription()
+
+    then:
+    1 * inputDescription.credentials.provider.getStack(REGION, ANCESTOR_STACK_NAME) >> mockStack
+
+    resultDescription.serverGroupParameters.floatingNetworkId == null
+    resultDescription.application == ancestor.application
+    resultDescription.stack == ancestor.stack
+    resultDescription.timeoutMins == ancestor.timeoutMins
+    resultDescription.freeFormDetails == ancestor.freeFormDetails
+    resultDescription.disableRollback == ancestor.disableRollback
+    resultDescription.account == ancestor.account
+    resultDescription.region == ancestor.region
   }
 
   def "ancestor stack not found throws operation exception"() {

@@ -90,7 +90,6 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
       minSize = description.serverGroupParameters?.minSize ?: ancestorParams.minSize
       desiredSize = description.serverGroupParameters?.desiredSize ?: ancestorParams.desiredSize
       subnetId = description.serverGroupParameters?.subnetId ?: ancestorParams.subnetId
-      floatingNetworkId = description.serverGroupParameters?.floatingNetworkId ?: ancestorParams.floatingNetworkId
       loadBalancers = description.serverGroupParameters?.loadBalancers ?: ancestorParams.loadBalancers
       securityGroups = description.serverGroupParameters?.securityGroups ?: ancestorParams.securityGroups
       autoscalingType = description.serverGroupParameters?.autoscalingType ?: ancestorParams.autoscalingType
@@ -98,6 +97,9 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
       scaledown = description.serverGroupParameters?.scaledown ?: ancestorParams.scaledown
       tags = description.serverGroupParameters?.tags ?: ancestorParams.tags
       resourceFilename = description.serverGroupParameters?.resourceFilename ?: ancestorParams.resourceFilename
+
+      // Lack of floatingNetworkId means to not set one, so can't pull this value from the ancestorParams
+      floatingNetworkId = description.serverGroupParameters?.floatingNetworkId
     }
     deployDescription.userDataType = description.userDataType ?: ancestorParams.sourceUserDataType
     deployDescription.userData = description.userData ?: ancestorParams.sourceUserData
