@@ -19,6 +19,38 @@ import logging
 import urllib2
 
 
+def __foreach_metric_tag_binding(
+    service, metric_name, metric_data,
+    visitor, visitor_pos_args, visitor_kwargs):
+  for metric_instance in metric_data['values']:
+    visitor(service, metric_name, metric_data, metric_instance,
+            *visitor_pos_args, **visitor_kwargs)
+
+
+def foreach_metric_in_service_map(
+    service_map, visitor, *visitor_pos_args, **visitor_kwargs):
+  for service, service_metrics in service_map.items():
+    for metric_name, metric_data in service_metrics.items():
+      __foreach_metric_tag_binding(
+          service, metric_name, metric_data,
+          visitor, visitor_pos_args, visitor_kwargs)
+
+
+def normalize_name_and_tags(name, metric_metadata, metric_instance):
+  tags = metric_instance.get('tags', None)
+  if not tags:
+    return name, None   # signal this metric had no tags so we can ignore it.
+
+  is_timer = metric_metadata['kind'] == 'Timer'
+  if is_timer:
+    for index, tag in enumerate(tags):
+      if tag['key'] == 'statistic':
+        name = name + '__{0}'.format(tag['value'])
+        del tags[index]
+        break
+  return name, tags
+
+
 class SpectatorClient(object):
   """Helper class for pulling data from Spectator servers."""
 
@@ -129,7 +161,7 @@ class SpectatorClient(object):
 
   @staticmethod
   def ingest_metrics(service, service_response, type_map):
-    """Add JSON metrics |response| from |service| name and add them into |type_map|"""
+    """Add JSON metrics |response| from |service| name and add to |type_map|"""
     for key, value in service_response['metrics'].items():
       if key in type_map:
         type_map[key][service] = value
