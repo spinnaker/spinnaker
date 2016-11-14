@@ -23,6 +23,7 @@ describe('Controller: MultipleServerGroups', function () {
       this.createController = function (serverGroups) {
         let application = applicationModelBuilder.createApplication({key: 'serverGroups', lazy: true});
         application.serverGroups.data = serverGroups;
+        application.serverGroups.loaded = true;
         this.application = application;
 
         controller = $controller('MultipleServerGroupsCtrl', {

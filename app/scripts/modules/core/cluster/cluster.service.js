@@ -201,7 +201,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
     function addExecutionsToServerGroups(application) {
       let executions = _.get(application, 'runningExecutions.data', []);
 
-      if(!application.serverGroups.data) {
+      if (!application.serverGroups.data) {
         return; // still run if there are no running tasks, since they may have all finished and we need to clear them.
       }
 

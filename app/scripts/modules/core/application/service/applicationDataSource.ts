@@ -266,7 +266,9 @@ export class ApplicationDataSource {
    * independent of the execution data source's refresh cycle
    */
   public dataUpdated(): void {
-    this.refreshStream.next(null);
+    if (this.loaded) {
+      this.refreshStream.next(null);
+    }
   }
 
   constructor(config: DataSourceConfig, private application: Application, private $q?: ng.IQService, private $log?: ng.ILogService, private $filter?: any) {
