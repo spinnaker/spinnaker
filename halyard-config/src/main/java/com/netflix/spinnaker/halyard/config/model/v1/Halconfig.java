@@ -42,4 +42,33 @@ public class Halconfig {
    * List of available deployments.
    */
   private List<DeploymentConfiguration> deploymentConfigurations = new ArrayList<>();
+
+  @Override
+  public String toString() {
+    StringBuilder result = new StringBuilder();
+
+    result.append("version: ")
+        .append(halyardVersion)
+        .append('\n');
+
+    result.append("currentDeployment: ")
+        .append(currentDeployment)
+        .append('\n');
+
+    result.append("deployments: ");
+
+    if (deploymentConfigurations.isEmpty()) {
+      result.append("null");
+    }
+
+    result.append('\n');
+
+    for (DeploymentConfiguration deployment : deploymentConfigurations) {
+      result.append("  - ")
+          .append(deployment.getName())
+          .append('\n');
+    }
+
+    return result.toString();
+  }
 }

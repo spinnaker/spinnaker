@@ -33,13 +33,11 @@ public class HalCommand extends NestableCommand {
   @Getter(AccessLevel.PROTECTED)
   private String commandName = "hal";
 
-  public HalCommand(GlobalOptions globalOptions, JCommander commander) {
-    super(globalOptions);
-
+  public HalCommand(JCommander commander) {
     commander.setProgramName(getCommandName());
     setCommander(commander);
 
-    ConfigCommand config = new ConfigCommand(globalOptions);
+    ConfigCommand config = new ConfigCommand();
     this.subcommands.put(config.getCommandName(), config);
 
     this.configureSubcommands();
@@ -47,6 +45,6 @@ public class HalCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    commander.usage();
+    getCommander().usage();
   }
 }

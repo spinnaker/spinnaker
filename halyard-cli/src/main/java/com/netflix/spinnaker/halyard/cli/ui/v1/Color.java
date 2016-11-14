@@ -23,6 +23,7 @@ public class Color {
   public final String GREEN;
   public final String YELLOW;
   public final String BLUE;
+  public final String MAGENTA;
 
   public Color (boolean colorEnabled) {
     RESET = colorEnabled ? "\033[0m" : "";
@@ -31,5 +32,6 @@ public class Color {
     GREEN = colorEnabled ? "\033[32m": "";
     YELLOW = colorEnabled ? "\033[33m": "";
     BLUE = colorEnabled ? "\033[34m": "";
+    MAGENTA = colorEnabled ? "\033[35m": "";
   }
 }

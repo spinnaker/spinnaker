@@ -26,9 +26,24 @@ import lombok.Data;
 @Data
 @Parameters(separators = "=")
 public class GlobalOptions {
-  @Parameter(names = { "-v", "--verbose" }, description = "Enable verbose output")
-  private boolean verbose = false;
+  @Parameter(names = { "-v", "--version" }, description = "Display the halyard version.")
+  private boolean version = false;
 
   @Parameter(names = { "-c", "--color" }, description = "Enable terminal color output.", arity = 1)
   private boolean color = true;
+
+  @Parameter(names = { "-d", "--debug" }, description = "Enable debug logging")
+  private boolean debug = false;
+
+  private static GlobalOptions globalOptions = null;
+
+  public static GlobalOptions getGlobalOptions() {
+    if (globalOptions == null) {
+      globalOptions = new GlobalOptions();
+    }
+
+    return globalOptions;
+  }
+
+  private GlobalOptions() { }
 }
