@@ -161,9 +161,6 @@
         <dt ng-if="ctrl.serverGroup.image.properties.kernel_id">Kernel ID</dt>
         <dd ng-if="ctrl.serverGroup.image.properties.kernel_id">{{ctrl.serverGroup.image.properties.kernel_id}}</dd>
 
-        <dt ng-if="ctrl.serverGroup.image.properties.ramdisk_id">Ramdisk ID</dt>
-        <dd ng-if="ctrl.serverGroup.image.properties.ramdisk_id">{{ctrl.serverGroup.image.properties.ramdisk_id}}</dd>
-
         <dt ng-if="ctrl.serverGroup.launchConfig.associatePublicIpAddress">Floating IP Network</dt>
         <dd ng-if="ctrl.serverGroup.launchConfig.associatePublicIpAddress">{{ctrl.floatingNetworkName || ctrl.serverGroup.launchConfig.floatingNetworkId}} <span ng-if="ctrl.floatingNetworkName">({{ctrl.serverGroup.launchConfig.floatingNetworkId}})</span></dd>
       </dl>

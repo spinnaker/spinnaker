@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
           application: application.name,
           credentials: defaultCredentials,
           region: defaultRegion,
+          associatePublicIpAddress: false,
           strategy: '',
           stack: '',
           freeFormDetails: '',
@@ -105,7 +106,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
           angular.extend(command, {
             instanceType: serverGroup.launchConfig.instanceType,
             associatePublicIpAddress: serverGroup.launchConfig.associatePublicIpAddress,
-            ramdiskId: serverGroup.launchConfig.ramdiskId,
+            floatingNetworkId: serverGroup.launchConfig.floatingNetworkId
           });
 
           command.securityGroups = serverGroup.launchConfig.securityGroups || [];
@@ -140,4 +141,3 @@ module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.s
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline
     };
   });
-
