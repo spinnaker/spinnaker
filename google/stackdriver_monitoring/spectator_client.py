@@ -20,23 +20,23 @@ import urllib2
 
 
 def __foreach_metric_tag_binding(
-    service, metric_name, metric_data,
+    service, metric_name, metric_data, service_data,
     visitor, visitor_pos_args, visitor_kwargs):
   for metric_instance in metric_data['values']:
-    visitor(service, metric_name, metric_data, metric_instance,
+    visitor(service, metric_name, metric_instance, metric_data, service_data,
             *visitor_pos_args, **visitor_kwargs)
 
 
 def foreach_metric_in_service_map(
     service_map, visitor, *visitor_pos_args, **visitor_kwargs):
   for service, service_metrics in service_map.items():
-    for metric_name, metric_data in service_metrics.items():
+    for metric_name, metric_data in service_metrics['metrics'].items():
       __foreach_metric_tag_binding(
-          service, metric_name, metric_data,
+          service, metric_name, metric_data, service_metrics,
           visitor, visitor_pos_args, visitor_kwargs)
 
 
-def normalize_name_and_tags(name, metric_metadata, metric_instance):
+def normalize_name_and_tags(name, metric_instance, metric_metadata):
   tags = metric_instance.get('tags', None)
   if not tags:
     return name, None   # signal this metric had no tags so we can ignore it.

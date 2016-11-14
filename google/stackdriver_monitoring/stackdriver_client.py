@@ -47,8 +47,9 @@ class StackdriverClient(object):
   def __init__(self, service, options):
     self.logger = logging.getLogger(__name__)
     self.__stackdriver = service
+    self.__project = options.project
     self.__project_name = 'projects/{0}'.format(options.project)
-    self.__custom_descriptors = self.fetch_custom_descriptors(options.project)
+    self.__cache = {}
 
   def name_to_type(self, name):
     """Determine stackdriver descriptor type name for the given metric name."""
@@ -70,6 +71,7 @@ class StackdriverClient(object):
   def foreach_descriptor(self, func, **args):
     """Apply a function to each metric descriptor known to Stackdriver."""
     request = self.__stackdriver.projects().metricDescriptors().list(**args)
+
     count = 0
     while request:
       self.logger.info('Fetching metricDescriptors')
@@ -77,50 +79,9 @@ class StackdriverClient(object):
       for elem in response.get('metricDescriptors', []):
         count += 1
         func(elem)
-        request = self.__stackdriver.projects().metricDescriptors().list_next(
-            request, response)
+      request = self.__stackdriver.projects().metricDescriptors().list_next(
+          request, response)
     return count
-
-  def hack_maybe_add_label(self, key, label_list):
-    """Add label with |key| to |label_list| if not already present."""
-    for tag in label_list:
-      if tag['key'] == key:
-        return
-    label_list.append({'key': key, 'valueType': 'STRING'})
-
-  def get_descriptor(self, name, record, kind_map, default_kind):
-    """Return the stackdriver metric descriptor for the spectator metric."""
-    custom_type = self.name_to_type(name)
-    descriptor = self.__custom_descriptors.get(custom_type, None)
-    if descriptor is not None:
-      return descriptor
-
-    label_list = [{'key': 'MicroserviceSrc', 'valueType': 'STRING'},
-                  {'key': 'InstanceSrc', 'valueType': 'STRING'}],
-    label_list.add_all([{'key': tag['key'], 'valueType': 'STRING'}
-                       for tag in record['values'][0]['tags']])
-    if name == 'controller.invocations':
-      self.hack_maybe_add_label('account', label_list)
-
-    custom = {
-      'name': name,
-      'type': custom_type,
-      'labels': label_list,
-      'metricKind':  kind_map.get(record['kind'], default_kind),
-      'valueType': 'DOUBLE',
-    }
-
-    self.logger.info('Creating %s', name)
-    try:
-      descriptor = self.__stackdriver.projects().metricDescriptors().create(
-          name=self.__project_name, body=custom).execute()
-      self.logger.info('Added %s', name)
-    except HttpError as err:
-      self.logger.error('CAUGHT: %s', err)
-      descriptor = None
-
-    self.__custom_descriptors['type'] = descriptor
-    return descriptor
 
   @staticmethod
   def make_client(options):
