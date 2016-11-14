@@ -8,6 +8,8 @@ dependencies {
     compile spinnaker.dependency('spectatorAws')
     compile spinnaker.dependency('spectatorGc')
     compile spinnaker.dependency('spectatorJvm')
+    compile spinnaker.dependency('spectatorWebSpring')
+
     testCompile spinnaker.dependency('junit')
     testRuntime spinnaker.dependency('slf4jSimple')
 }
