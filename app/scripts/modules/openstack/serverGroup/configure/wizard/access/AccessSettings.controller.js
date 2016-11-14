@@ -22,6 +22,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.acces
   $scope.$watch('application.loadBalancers', $scope.updateLoadBalancers);
   $scope.updateLoadBalancers();
 
+  $scope.$watch('command.associatePublicIpAddress', resetFloatingNetworkIp);
+
   // Loads all security groups in the current region and account
   $scope.updateSecurityGroups = function() {
     $scope.allSecurityGroups = getSecurityGroups();
@@ -44,4 +46,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.acces
     return _.get($scope.command.backingData, 'filtered.securityGroups', []);
   }
 
+  function resetFloatingNetworkIp() {
+    if ($scope.command.associatePublicIpAddress === false) {
+      $scope.command.floatingNetworkId = undefined;
+    }
+  }
 });
