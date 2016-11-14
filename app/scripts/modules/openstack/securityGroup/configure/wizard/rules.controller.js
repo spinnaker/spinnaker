@@ -1,7 +1,5 @@
 'use strict';
 
-import {Subject} from 'rxjs';
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.configure.openstack.ports', [
@@ -33,7 +31,6 @@ module.exports = angular.module('spinnaker.securityGroup.configure.openstack.por
        return infrastructureCaches.securityGroups.getStats().ageMax;
     };
 
-    $scope.allSecurityGroupsUpdated = new Subject();
 
     $scope.initializeSecurityGroups = function() {
        return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
@@ -47,18 +44,21 @@ module.exports = angular.module('spinnaker.securityGroup.configure.openstack.por
            $scope.availableSecurityGroups = securityGroups;
          }
 
-         //Add CIDR at the start of avaibleSecurityGroup Collection.
-         var cidrObj = {
-           id: 'CIDR',
-           name: 'CIDR'
-         };
-
-         if ($scope.availableSecurityGroups.unshift && $scope.availableSecurityGroups.some(g => g.id !== 'CIDR')) {
-           $scope.availableSecurityGroups.unshift(cidrObj);
+         // Add self referencial option at the start of avaibleSecurityGroup Collection
+         // Only do need this on create as an edit has itself in the list already.
+         if ($scope.securityGroup.edit === undefined) {
+           $scope.prependSecurityGroupOption({ id: 'SELF', name: 'This Security Group (Self)' });
          }
 
-         $scope.allSecurityGroupsUpdated.next();
+         // Add CIDR at the start of avaibleSecurityGroup Collection
+         $scope.prependSecurityGroupOption({ id: 'CIDR', name: 'CIDR' });
        });
+    };
+
+    $scope.prependSecurityGroupOption = function(option) {
+      if ($scope.availableSecurityGroups.unshift && $scope.availableSecurityGroups.some(g => g.id !== option.id)) {
+        $scope.availableSecurityGroups.unshift(option);
+      }
     };
 
     $scope.remoteSecurityGroupSelected = function(indx, remoteSecurityGroupId) {
