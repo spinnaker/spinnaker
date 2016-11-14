@@ -79,7 +79,7 @@ class DelegatingRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         offset = path.rfind('/', 0, offset)
 
     if handler is None:
-      self.respond(404, {'Content-Type': 'text/html'}, "Unknown");
+      self.respond(404, {'Content-Type': 'text/html'}, "Unknown")
     else:
       handler(self, path, parameters, fragment)
 
