@@ -18,6 +18,7 @@ module.exports = angular.module('spinnaker.cf', [
     require('./serverGroup/configure/wizard/CloneServerGroupCtrl.js'),
     require('./serverGroup/configure/serverGroup.configure.cf.module.js'),
     require('./serverGroup/serverGroup.transformer.js'),
+    require('./pipeline/stages/cloneServerGroup/cfCloneServerGroupStage.js'),
     require('./pipeline/stages/destroyAsg/cfDestroyAsgStage.js'),
     require('./pipeline/stages/disableAsg/cfDisableAsgStage.js'),
     require('./pipeline/stages/enableAsg/cfEnableAsgStage.js'),
