@@ -19,6 +19,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.envsSelector
     .controller('cfServerGroupEnvsSelectorCtrl', function($scope) {
 
       this.addEnv = function() {
+        if ($scope.command.envs === undefined) {
+          $scope.command.envs = [];
+        }
         $scope.command.envs.push({});
       };
 

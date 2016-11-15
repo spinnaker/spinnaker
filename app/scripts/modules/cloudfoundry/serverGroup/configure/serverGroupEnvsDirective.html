@@ -11,7 +11,7 @@
         </thead>
         <tbody>
         <tr ng-repeat="env in command.envs">
-          <td><input class="form-control input-sm" type="text" ng-model="env.name" required/></td>
+          <td><input class="form-control input-sm" type="text" ng-model="env.key" required/></td>
           <td><input class="form-control input-sm" type="text" ng-model="env.value" required/></td>
           <td><a class="btn btn-link sm-label"
                  ng-click="envsCtrl.removeEnv($index)"><span

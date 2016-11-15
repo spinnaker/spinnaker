@@ -136,7 +136,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       $scope.command.username = $scope.command.username;
       $scope.command.password = $scope.command.password;
 
-      $scope.command.envs = $scope.command.envs;
+      // Convert list of single entry maps into a single, comprehensive map.
+      let envs = {};
+      _.forEach($scope.command.envs, function(env) {
+        envs[env.key] = env.value;
+      });
+      $scope.command.envs = envs;
       $scope.command.services = $scope.command.services;
 
       // We want min/max set to the same value as desired.
