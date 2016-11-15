@@ -20,5 +20,6 @@ class Resources {
   int cpu
   int memory
   int disk
+  int gpu
   int networkMbps
 }

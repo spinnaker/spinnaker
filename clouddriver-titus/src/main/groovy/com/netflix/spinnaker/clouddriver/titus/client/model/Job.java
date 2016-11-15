@@ -178,6 +178,7 @@ public class Job {
     private int cpu;
     private int memory;
     private int disk;
+    private int gpu;
     private int networkMbps;
     private int[] ports;
     private Map<String, String> environment;
@@ -300,6 +301,10 @@ public class Job {
     public void setDisk(int disk) {
         this.disk = disk;
     }
+
+    public void setGpu(int gpu) { this.gpu = gpu; }
+
+    public int getGpu() { return gpu; }
 
     public int[] getPorts() {
         return ports;

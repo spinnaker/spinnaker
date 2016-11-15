@@ -69,8 +69,11 @@ public class SubmitJobRequest {
     private int instancesMax;
     private int instancesDesired;
     private int cpu;
+    private int gpu;
     private int memory;
     private int disk;
+    private int retries;
+    private int runtimeLimitSecs;
     private int networkMbps;
     private Efs efs;
     private int[] ports;
@@ -133,6 +136,21 @@ public class SubmitJobRequest {
     public SubmitJobRequest withDisk(int disk) {
         this.disk = disk;
         return this;
+    }
+
+    public SubmitJobRequest withRetries(int retries) {
+      this.retries = retries;
+      return this;
+    }
+
+    public SubmitJobRequest withRuntimeLimitSecs(int runtimeLimitSecs) {
+      this.runtimeLimitSecs = runtimeLimitSecs;
+      return this;
+    }
+
+    public SubmitJobRequest withGpu(int gpu) {
+      this.gpu = gpu;
+      return this;
     }
 
     public SubmitJobRequest withPorts(int[] ports) {
@@ -243,6 +261,12 @@ public class SubmitJobRequest {
     public int getCpu() {
         return cpu;
     }
+
+    public int getGpu() { return gpu; }
+
+    public int getRetries() { return retries; }
+
+    public int getRuntimeLimitSecs() { return runtimeLimitSecs; }
 
     public int getMemory() {
         return memory;

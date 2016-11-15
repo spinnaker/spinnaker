@@ -41,6 +41,8 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   String user
   Boolean inService
   String jobType
+  int retries
+  int runtimeLimitSecs
 
   @Canonical
   static class Capacity {
@@ -54,6 +56,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
     int cpu
     int memory
     int disk
+    int gpu
     int networkMbps
     int[] ports
     boolean allocateIpAddress
