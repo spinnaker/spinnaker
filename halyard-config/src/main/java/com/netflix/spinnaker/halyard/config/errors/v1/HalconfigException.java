@@ -18,12 +18,17 @@ package com.netflix.spinnaker.halyard.config.errors.v1;
 
 import lombok.Getter;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * This is the base exception class that needs to be thrown by all validators.
  */
 public class HalconfigException extends RuntimeException {
   @Getter
   protected HalconfigFixableIssue issue = new HalconfigFixableIssue();
+
+  @Getter
+  private int responseCode = HttpServletResponse.SC_CONFLICT;
 
   public void addError(String error) {
     issue.getErrors().add(error);

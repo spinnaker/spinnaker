@@ -29,7 +29,7 @@ public class HalconfigExceptionHandler {
   @ExceptionHandler({HalconfigException.class})
   @ResponseBody
   public HalconfigFixableIssue handleHalconfigException(HttpServletResponse response, HalconfigException exception) {
-    response.setStatus(HttpServletResponse.SC_CONFLICT);
+    response.setStatus(exception.getResponseCode());
     return exception.getIssue();
   }
 }

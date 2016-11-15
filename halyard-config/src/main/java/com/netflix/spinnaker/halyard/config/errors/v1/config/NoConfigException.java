@@ -17,8 +17,14 @@
 package com.netflix.spinnaker.halyard.config.errors.v1.config;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
+import lombok.Getter;
+
+import javax.servlet.http.HttpServletResponse;
 
 public class NoConfigException extends HalconfigException {
+  @Getter
+  private int responseCode = HttpServletResponse.SC_NOT_FOUND;
+
   public NoConfigException(String filePath) {
     addError("Your halconfig could not be found at " + filePath);
   }

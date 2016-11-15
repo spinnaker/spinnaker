@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.NoAccountException;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.Providers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,28 +33,27 @@ import java.util.stream.Collectors;
  * deployments.
  */
 @Component
-public class DeploymentService {
+public class AccountService {
   @Autowired
-  ConfigService configService;
+  ProviderService providerService;
 
-  public DeploymentConfiguration getDeploymentConfiguration(String deployment) {
-    Halconfig halconfig = configService.getConfig();
-    List<DeploymentConfiguration> matching = halconfig.getDeploymentConfigurations()
+  public Account getAccount(String deploymentName, String providerName, String accountName) {
+    Provider provider = providerService.getProvider(deploymentName, providerName);
+
+    List<Account> accounts = provider.getAccounts();
+
+    List<Account> matchingAccounts = accounts
         .stream()
-        .filter(d -> d.getName().equals(deployment))
+        .filter(a -> a.getName().equals(accountName))
         .collect(Collectors.toList());
 
-    switch (matching.size()) {
+    switch (matchingAccounts.size()) {
       case 0:
-        throw new IllegalConfigException("The " + NamingService.deployment(deployment) + " not found");
+        throw new NoAccountException("No account in " + NamingService.account(deploymentName, providerName, accountName) + " could be found");
       case 1:
-        return matching.get(0);
+        return matchingAccounts.get(0);
       default:
-        throw new IllegalConfigException("The " + NamingService.deployment(deployment) + " appears more than once");
+        throw new IllegalConfigException("Multiple accounts in " + NamingService.account(deploymentName, providerName, accountName) + " were found");
     }
-  }
-
-  public List<DeploymentConfiguration> getDeploymentConfigurations() {
-    return configService.getConfig().getDeploymentConfigurations();
   }
 }

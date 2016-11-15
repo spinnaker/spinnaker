@@ -24,5 +24,5 @@ import java.util.List;
 @Data
 public class Provider<T extends Account> implements Cloneable {
   boolean enabled;
-  List<T> accounts = new ArrayList<T>();
+  List<T> accounts = new ArrayList<>();
 }

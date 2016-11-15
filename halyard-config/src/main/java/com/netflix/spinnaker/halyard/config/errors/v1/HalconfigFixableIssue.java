@@ -33,6 +33,7 @@ public class HalconfigFixableIssue {
    * lists of regions/namespaces not supported by the cloud provider, unresolved references to other configuration, etc...
    */
   protected List<String> errors = new ArrayList<>();
+
   /**
    * Warnings are things that Halyard thinks might be a problem. This includes credentials with leading/trailing spaces,
    * an apparent but uncheckable lack of IAM permissions, etc...

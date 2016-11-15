@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.providers;
+package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
-import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class Providers implements Cloneable {
-  KubernetesProvider kubernetes;
-  DockerRegistryProvider dockerRegistry;
-  GoogleProvider google;
+@EqualsAndHashCode(callSuper = false)
+public class GoogleProvider extends Provider<GoogleAccount> implements Cloneable {
 }
