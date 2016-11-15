@@ -59,8 +59,6 @@ public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOper
   }
 
   public UpsertEntityTagsDescription convertDescription(Map input) {
-    UpsertEntityTagsDescription description = objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
-    description.setCredentials(getCredentialsObject((String) description.getEntityRef().attributes().get("account")));
-    return description;
+    return objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
   }
 }

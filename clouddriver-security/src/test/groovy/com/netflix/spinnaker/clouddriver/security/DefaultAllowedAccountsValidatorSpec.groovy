@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.security
 
+import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -124,6 +125,22 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
     0 * errors.rejectValue(_, _, _)
   }
 
+  void "should allow if description is non-credentialed"() {
+    given:
+    def errors = Mock(Errors)
+    def validator = new DefaultAllowedAccountsValidator(
+      accountCredentialsProvider: Mock(AccountCredentialsProvider) {
+        1 * getAll() >> { [credentialsWithRequiredGroup] }
+        0 * _
+      })
+
+    when:
+    validator.validate("TestAccount", [], new TestGlobalDescription(), errors)
+
+    then:
+    0 * errors.rejectValue(_, _, _)
+  }
+
   void "should reject if no credentials in description"() {
     given:
     def errors = Mock(Errors)
@@ -151,6 +168,10 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
 
   static class TestDescription {
     TestAccountCredentials credentials
+  }
+
+  static class TestGlobalDescription implements NonCredentialed {
+
   }
 
   static class MultiAccountDescription {

@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.elasticsearch.descriptions;
+package com.netflix.spinnaker.clouddriver.security.resources;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.clouddriver.model.EntityTags;
-import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed;
-
-public class UpsertEntityTagsDescription extends EntityTags implements NonCredentialed {
-  // TODO-AJ partial is yet supported
-  @JsonProperty
-  boolean isPartial = false;
+/**
+ * Marker interface indicating that a description does not have account-level credentials specified.
+ */
+public interface NonCredentialed {
 }

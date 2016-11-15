@@ -17,11 +17,9 @@
 package com.netflix.spinnaker.clouddriver.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.discovery.converters.Auto
+import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Slf4j
@@ -52,7 +50,9 @@ class DefaultAllowedAccountsValidator implements AllowedAccountsValidator {
         validateTargetAccount(description.credentials, allowedAccounts, description, user, errors)
       }
     } else {
-      errors.rejectValue("credentials", "missing", "no credentials found in description: ${description.class.simpleName})")
+      if (!(description instanceof NonCredentialed)) {
+        errors.rejectValue("credentials", "missing", "no credentials found in description: ${description.class.simpleName})")
+      }
     }
   }
 
