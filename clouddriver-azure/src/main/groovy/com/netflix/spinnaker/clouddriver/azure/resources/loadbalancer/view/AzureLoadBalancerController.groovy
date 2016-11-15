@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.view
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/azure/loadBalancersL4")
-class AzureLoadBalancerController {
+class AzureLoadBalancerController implements LoadBalancerProviderTempShim {
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -60,8 +61,13 @@ class AzureLoadBalancerController {
     map
   }
 
+  @Override
+  LoadBalancerProviderTempShim.Item get(String name) {
+    throw new UnsupportedOperationException("TODO: Implement single getter.")
+  }
+
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  List<Map> getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
+  List<Map> byAccountAndRegionAndName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
     String appName = AzureUtilities.getAppNameFromAzureResourceName(name)
     AzureLoadBalancerDescription azureLoadBalancerDescription = azureLoadBalancerProvider.getLoadBalancerDescription(account, appName, region, name)
 
@@ -88,7 +94,7 @@ class AzureLoadBalancerController {
     return []
   }
 
-  static class AzureLoadBalancerSummary {
+  static class AzureLoadBalancerSummary implements LoadBalancerProviderTempShim.Item {
     private Map<String, AzureLoadBalancerAccount> mappedAccounts = [:]
     String name
 
@@ -101,12 +107,12 @@ class AzureLoadBalancerController {
     }
 
     @JsonProperty("accounts")
-    List<AzureLoadBalancerAccount> getAccounts() {
+    List<AzureLoadBalancerAccount> getByAccounts() {
       mappedAccounts.values() as List
     }
   }
 
-  static class AzureLoadBalancerAccount {
+  static class AzureLoadBalancerAccount implements LoadBalancerProviderTempShim.ByAccount {
     private Map<String, AzureLoadBalancerAccountRegion> mappedRegions = [:]
     String name
 
@@ -118,18 +124,18 @@ class AzureLoadBalancerController {
     }
 
     @JsonProperty("regions")
-    List<AzureLoadBalancerAccountRegion> getRegions() {
+    List<AzureLoadBalancerAccountRegion> getByRegions() {
       mappedRegions.values() as List
     }
 
   }
 
-  static class AzureLoadBalancerAccountRegion {
+  static class AzureLoadBalancerAccountRegion implements LoadBalancerProviderTempShim.Details {
     String name
     List<AzureLoadBalancerDetail> loadBalancers
   }
 
-  static class AzureLoadBalancerDetail {
+  static class AzureLoadBalancerDetail implements LoadBalancerProviderTempShim.Details {
     String account
     String region
     String name

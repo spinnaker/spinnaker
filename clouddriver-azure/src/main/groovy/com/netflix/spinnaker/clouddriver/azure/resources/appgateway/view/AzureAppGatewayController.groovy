@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.view
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/azure/loadBalancers")
-class AzureAppGatewayController {
+class AzureAppGatewayController implements LoadBalancerProviderTempShim {
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -60,8 +61,13 @@ class AzureAppGatewayController {
     map
   }
 
+  @Override
+  LoadBalancerProviderTempShim.Item get(String name) {
+    throw new UnsupportedOperationException("TODO: Implement single getter.")
+  }
+
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  List<Map> getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
+  List<Map> byAccountAndRegionAndName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
     String appName = AzureUtilities.getAppNameFromAzureResourceName(name)
     AzureAppGatewayDescription description = azureAppGatewayProvider.getAppGatewayDescription(account, appName, region, name)
 
@@ -97,7 +103,7 @@ class AzureAppGatewayController {
     return []
   }
 
-  static class AzureAppGatewaySummary {
+  static class AzureAppGatewaySummary implements LoadBalancerProviderTempShim.Item {
     private Map<String, AzureAppGatewayAccount> mappedAccounts = [:]
     String name
 
@@ -108,9 +114,14 @@ class AzureAppGatewayController {
 
       mappedAccounts[name]
     }
+
+    @JsonProperty("accounts")
+    List<AzureAppGatewayAccount> getByAccounts() {
+      mappedAccounts.values() as List
+    }
   }
 
-  static class AzureAppGatewayAccount {
+  static class AzureAppGatewayAccount implements LoadBalancerProviderTempShim.ByAccount {
     private Map<String, AzureAppGatewayAccountRegion> mappedRegions = [:]
     String name
 
@@ -123,18 +134,18 @@ class AzureAppGatewayController {
     }
 
     @JsonProperty("regions")
-    List<AzureAppGatewayAccountRegion> getRegions() {
+    List<AzureAppGatewayAccountRegion> getByRegions() {
       mappedRegions.values() as List
     }
 
   }
 
-  static class AzureAppGatewayAccountRegion {
+  static class AzureAppGatewayAccountRegion implements LoadBalancerProviderTempShim.Details {
     String name
     List<AzureAppGatewayAccountRegionDetail> loadBalancers = []
   }
 
-  static class AzureAppGatewayAccountRegionDetail {
+  static class AzureAppGatewayAccountRegionDetail implements LoadBalancerProviderTempShim.Details {
     String type="azure"
     String account
     String region
