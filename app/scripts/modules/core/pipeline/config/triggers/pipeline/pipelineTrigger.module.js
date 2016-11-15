@@ -8,7 +8,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
   require('../../services/pipelineConfigService.js'),
   require('../../pipelineConfigProvider.js'),
   require('core/application/service/applications.read.service.js'),
-  require('core/serviceAccount/serviceAccount.service.js'),
   require('../trigger.directive.js'),
   require('./pipelineTriggerOptions.directive.js'),
 ])
@@ -46,13 +45,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
       selectorTemplate: require('./selectorTemplate.html'),
     };
   })
-  .controller('pipelineTriggerCtrl', function ($scope, trigger, pipelineConfigService, applicationReader, settings, serviceAccountService) {
+  .controller('pipelineTriggerCtrl', function ($scope, trigger, pipelineConfigService, applicationReader) {
 
     $scope.trigger = trigger;
-    this.fiatEnabled = settings.feature.fiatEnabled;
-    serviceAccountService.getServiceAccounts().then(accounts => {
-      this.serviceAccounts = accounts || [];
-    });
 
     if (!$scope.trigger.application) {
       $scope.trigger.application = $scope.application.name;
