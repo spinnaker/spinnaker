@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+import {AMAZON_APPLICATION_NAME_VALIDATOR} from './validation/applicationName.validator';
+
 require('./logo/aws.logo.less');
 
 // load all templates into the $templateCache
@@ -39,7 +41,7 @@ module.exports = angular.module('spinnaker.aws', [
   require('./securityGroup/securityGroup.transformer.js'),
   require('./securityGroup/securityGroup.reader.js'),
   require('./subnet/subnet.renderer.js'),
-  require('./validation/applicationName.validator.js'),
+  AMAZON_APPLICATION_NAME_VALIDATOR,
   require('./vpc/vpc.module.js'),
   require('./image/image.reader.js'),
   require('./cache/cacheConfigurer.service.js'),

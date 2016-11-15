@@ -2,9 +2,11 @@
 
 const angular = require('angular');
 
+import {APPLICATION_NAME_VALIDATOR} from 'core/application/modal/validation/applicationName.validator';
+
 module.exports = angular
   .module('spinnaker.openstack.validation.applicationName', [
-    require('core/application/modal/validation/applicationName.validator.js'),
+    APPLICATION_NAME_VALIDATOR,
   ])
   .factory('openstackApplicationNameValidator', function () {
 

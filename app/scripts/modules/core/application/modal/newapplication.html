@@ -26,7 +26,8 @@
         </div>
       </div>
 
-      <application-name-validation-messages application="newAppModal.application"></application-name-validation-messages>
+      <application-name-validation-messages name="newAppModal.application.name"
+                                            cloud-providers="newAppModal.application.cloudProviders"></application-name-validation-messages>
 
       <div class="form-group row slide-in" ng-if="newApplicationForm.name.$error.validateUnique">
         <div class="col-sm-9 col-sm-offset-3 error-message">

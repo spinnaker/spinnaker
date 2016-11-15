@@ -1,6 +1,7 @@
 'use strict';
 
 import {TITUS_MIGRATION_CONFIG_COMPONENT} from './migration/titusMigrationConfig.component';
+import {TITUS_APPLICATION_NAME_VALIDATOR} from './validation/applicationName.validator';
 
 let angular = require('angular');
 
@@ -21,7 +22,7 @@ module.exports = angular.module('spinnaker.titus', [
   require('./serverGroup/configure/serverGroup.configure.titus.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
   require('./instance/details/instance.details.controller.js'),
-  require('./validation/applicationName.validator.js'),
+  TITUS_APPLICATION_NAME_VALIDATOR,
   require('./pipeline/stages/findAmi/titusFindAmiStage.js'),
   require('./pipeline/stages/runJob/titusRunJobStage.js'),
   require('./pipeline/stages/enableAsg/titusEnableAsgStage.js'),

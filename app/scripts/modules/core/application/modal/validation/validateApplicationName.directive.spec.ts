@@ -1,17 +1,24 @@
-'use strict';
+import {
+  EXAMPLE_APPLICATION_NAME_VALIDATOR, ExampleApplicationNameValidator,
+  ExampleApplicationNameValidator2
+} from './exampleApplicationName.validator';
+import {VALIDATE_APPLICATION_NAME} from './validateApplicationName.directive';
 
 describe('Validator: validateApplicationName', function () {
 
-  var validator1, validator2;
+  let validator1: ExampleApplicationNameValidator,
+      validator2: ExampleApplicationNameValidator2;
 
   beforeEach(
-    window.module(
-      require('./exampleApplicationName.validator.js'),
-      require('./validateApplicationName.directive.js')
+    angular.mock.module(
+      EXAMPLE_APPLICATION_NAME_VALIDATOR,
+      VALIDATE_APPLICATION_NAME
     )
   );
 
-  beforeEach(window.inject(function ($rootScope, $compile, exampleApplicationNameValidator, exampleApplicationNameValidator2) {
+  beforeEach(angular.mock.inject(function ($rootScope: ng.IRootScopeService, $compile: ng.ICompileService,
+                                           exampleApplicationNameValidator: ExampleApplicationNameValidator,
+                                           exampleApplicationNameValidator2: ExampleApplicationNameValidator2) {
     this.$rootScope = $rootScope;
     this.compile = $compile;
     validator1 = exampleApplicationNameValidator;
@@ -19,18 +26,16 @@ describe('Validator: validateApplicationName', function () {
   }));
 
   beforeEach(function() {
-    var compile = this.compile;
-
-    this.initialize = function(val, cloudProviders) {
+    this.initialize = function(val: string, cloudProviders: string[]) {
       this.scope = this.$rootScope.$new();
       this.scope.app = { name: val };
       this.scope.cp = cloudProviders;
 
-      var input = '<input type="text" name="appName" ng-model="app.name" validate-application-name cloud-providers="cp"/>';
+      const input = '<input type="text" name="appName" ng-model="app.name" validate-application-name cloud-providers="cp"/>';
 
-      var dom = '<form name="form">' + input + '</form>';
+      const dom = '<form name="form">' + input + '</form>';
 
-      compile(dom)(this.scope);
+      this.compile(dom)(this.scope);
       this.scope.$digest();
     };
 
