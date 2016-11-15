@@ -2,6 +2,10 @@ server:
   port: ${services.front50.port:8080}
   address: ${services.front50.host:localhost}
 
+hystrix:
+  command:
+    default.execution.isolation.thread.timeoutInMilliseconds: 15000
+
 cassandra:
   enabled: ${services.front50.cassandra.enabled:true}
   embedded: ${services.cassandra.embedded:false}
@@ -32,7 +36,34 @@ spinnaker:
     project: ${providers.google.primaryCredentials.project}
     jsonPath: ${providers.google.primaryCredentials.jsonPath}
 
-  aws:
+  s3:
     enabled: ${services.front50.s3.enabled:false}
     bucket: ${services.front50.storage_bucket:}
     rootFolder: ${services.front50.bucket_root:front50}
+
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: ${services.spectator.webEndpoint.enabled:false}
+    prototypeFilter:
+      path: ${services.spectator.webEndpoint.prototypeFilter.path:}
+
+  stackdriver:
+    enabled: ${services.stackdriver.enabled}
+    projectName: ${services.stackdriver.projectName}
+    credentialsPath: ${services.stackdriver.credentialsPath}
+
+stackdriver:
+  hints:
+    - name: controller.invocations
+      labels:
+      - application
+      - cause
+    - name: aws.request.httpRequestTime
+      labels:
+      - status
+      - exception
+      - AWSErrorCode
+    - name: aws.request.requestSigningTime
+      labels:
+      - exception
