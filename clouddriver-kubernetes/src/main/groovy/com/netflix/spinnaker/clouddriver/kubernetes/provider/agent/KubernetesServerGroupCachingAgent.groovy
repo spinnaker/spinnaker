@@ -103,11 +103,11 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implement
     def serverGroupName = data.serverGroupName.toString()
 
     ReplicationController replicationController = metricsSupport.readData {
-      loadReplicationController(serverGroupName)
+      loadReplicationController(namespace, serverGroupName)
     }
 
     ReplicaSet replicaSet = metricsSupport.readData {
-      loadReplicaSet(serverGroupName)
+      loadReplicaSet(namespace, serverGroupName)
     }
 
     CacheResult result = metricsSupport.transformData {
