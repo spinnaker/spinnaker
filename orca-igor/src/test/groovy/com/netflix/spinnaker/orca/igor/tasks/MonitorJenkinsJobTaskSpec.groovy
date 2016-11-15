@@ -160,7 +160,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
 
   }
 
-  def "fails stage if property file is expected but not returned from jenkins"() {
+  def "fails stage if property file is expected but not returned from jenkins and build passed"() {
     given:
     def stage = new PipelineStage(pipeline, "jenkins", [master: 'builds', job: 'orca', buildNumber: 4, propertyFile: 'noexist.properties'])
 

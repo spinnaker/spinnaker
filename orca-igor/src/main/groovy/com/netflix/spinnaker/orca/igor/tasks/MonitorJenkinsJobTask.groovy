@@ -71,7 +71,7 @@ class MonitorJenkinsJobTask implements RetryableTask {
         Map<String, Object> properties = [:]
         if (stage.context.propertyFile) {
           properties = buildService.getPropertyFile(buildNumber, stage.context.propertyFile, master, job)
-          if (properties.size() == 0) {
+          if (properties.size() == 0 && result == 'SUCCESS') {
             throw new IllegalStateException("expected properties file ${stage.context.propertyFile} but one was not found or was empty")
           }
         }
