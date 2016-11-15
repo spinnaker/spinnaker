@@ -41,7 +41,7 @@ module.exports = angular
           : appCloudProviders;
       }
 
-      return candidateProvidersToShow
+      return (candidateProvidersToShow || [])
         .filter(provider => cloudProviderRegistry.hasValue(provider, templateUrlPath))
         .map(provider => cloudProviderRegistry.getValue(provider, templateUrlPath));
     };

@@ -18,10 +18,18 @@ module.exports = angular.module('spinnaker.deck.gce.elSevenOptionsGenerator.comp
       link: function(scope, element) {
         let compiledTemplate = $compile(template)(scope);
 
-        angular
+        // Look up DOM to find container for selected load balancer.
+        let listItem = angular
           .element(element)
-          .closest('.ui-select-match-item')
-          .after(compiledTemplate);
+          .closest('.ui-select-match-item');
+
+        // Drop service selector in between load balancers.
+        listItem.after(compiledTemplate);
+
+        scope.$on('$destroy', () => {
+          // Remove selector if load balancer is removed.
+          listItem.next().remove();
+        });
       }
     };
   });

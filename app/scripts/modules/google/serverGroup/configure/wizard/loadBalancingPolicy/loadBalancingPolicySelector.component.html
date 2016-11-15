@@ -28,7 +28,7 @@
                    on-select="$ctrl.onBalancingModeChange($item)"
                    class="form-control input-sm" required>
           <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
-          <ui-select-choices repeat="balancingMode in ['RATE', 'UTILIZATION'] | filter: $select.search">
+          <ui-select-choices repeat="balancingMode in $ctrl.getBalancingModes() | filter: $select.search">
             <span ng-bind-html="balancingMode"></span>
           </ui-select-choices>
         </ui-select>
@@ -72,12 +72,31 @@
                    class="form-control input-sm"
                    ng-model="$ctrl.command.loadBalancingPolicy.maxRatePerInstance"
                    min="0"/>
-            <span class="input-group-addon">%</span>
           </div>
         </div>
         <div class="col-md-4 error-message"
              ng-if="loadBalancingPolicySubForm.maxRatePerInstance.$error.min">
-          Must be greater than 0.
+          Cannot be less than zero.
+        </div>
+      </div>
+      <div class="form-group" ng-switch-when="CONNECTION">
+        <div class="col-md-5 sm-label-right">
+          <b>Max connections per instance</b>
+          <help-field key="gce.serverGroup.loadBalancingPolicy.maxConnectionsPerInstance"></help-field>
+        </div>
+        <div class="col-md-3">
+          <div class="input-group">
+            <input type="number"
+                   name="maxConnectionsPerInstance"
+                   required
+                   class="form-control input-sm"
+                   ng-model="$ctrl.command.loadBalancingPolicy.maxConnectionsPerInstance"
+                   min="0"/>
+          </div>
+        </div>
+        <div class="col-md-4 error-message"
+             ng-if="loadBalancingPolicySubForm.maxConnectionsPerInstance.$error.min">
+          Cannot be less than zero.
         </div>
       </div>
     </div>

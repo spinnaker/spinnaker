@@ -297,6 +297,10 @@
         <dd ng-if="ctrl.serverGroup.loadBalancingPolicy.maxUtilization">
           {{ctrl.serverGroup.loadBalancingPolicy.maxUtilization | decimalToPercent}}
         </dd>
+        <dt ng-if="ctrl.serverGroup.loadBalancingPolicy.maxConnectionsPerInstance">Max connections per instance</dt>
+        <dd ng-if="ctrl.serverGroup.loadBalancingPolicy.maxConnectionsPerInstance">
+          {{ctrl.serverGroup.loadBalancingPolicy.maxConnectionsPerInstance}}
+        </dd>
         <dt ng-if="ctrl.serverGroup.loadBalancingPolicy.capacityScaler">Capacity</dt>
         <dd ng-if="ctrl.serverGroup.loadBalancingPolicy.capacityScaler">
           {{ctrl.serverGroup.loadBalancingPolicy.capacityScaler | decimalToPercent}}

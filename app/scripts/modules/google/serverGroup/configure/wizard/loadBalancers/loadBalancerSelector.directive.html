@@ -23,7 +23,7 @@
         <ui-select-match>
           {{$item}}
           <gce-el-seven-options-generator ng-if="vm.isElSeven(vm.command.backingData.filtered.loadBalancerIndex[$item])"
-                                        command="vm.command" load-balancer-name="{{:: $item}}">
+                                          command="vm.command" load-balancer-name="{{:: $item}}">
           </gce-el-seven-options-generator>
         </ui-select-match>
         <ui-select-choices repeat="loadBalancer in vm.command.backingData.filtered.loadBalancers | filter: $select.search">
