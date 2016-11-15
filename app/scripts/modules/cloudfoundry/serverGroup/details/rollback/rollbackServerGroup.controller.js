@@ -9,7 +9,8 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.rollback.contr
       require('core/task/modal/reason.directive.js'),
       require('core/serverGroup/serverGroup.write.service.js'),
       require('core/task/monitor/taskMonitorService.js'),
-    ])
+      require('../../../common/footer.directive.js'),
+])
     .controller('cfRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter,
                                                         taskMonitorService,
                                                         application, serverGroup, disabledServerGroups) {
@@ -27,6 +28,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.rollback.contr
 
       if (application && application.attributes) {
         $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
+        $scope.command.interestingHealthProviderNames = ['Cloud Foundry'];
       }
 
       this.isValid = function () {
@@ -45,6 +47,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.rollback.contr
       });
 
       this.rollback = function () {
+        this.submitting = true;
         if (!this.isValid()) {
           return;
         }

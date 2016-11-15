@@ -1,0 +1,11 @@
+<div class="modal-footer">
+  <user-verification account="vm.account" verification="vm.verification"></user-verification>
+  <button type="submit" ng-click="vm.action()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+  <button class="btn btn-default" ng-click="vm.cancel()">Cancel</button>
+  <button type="submit"
+          class="btn btn-primary"
+          ng-click="vm.action()"
+          ng-disabled="!vm.isValid()">
+    Submit
+  </button>
+</div>

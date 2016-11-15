@@ -1,6 +1,6 @@
 <div modal-page class="confirmation-modal">
   <task-monitor monitor="taskMonitor"></task-monitor>
-  <form role="form">
+  <form role="form" ng-if="!ctrl.submitting">
     <modal-close dismiss="$dismiss()"></modal-close>
     <div class="modal-header">
       <h3>Rollback {{serverGroup.name}}</h3>
@@ -31,17 +31,36 @@
       </div>
 
       <task-reason command="command"></task-reason>
+
+        <div class="row">
+            <div class="col-sm-4 sm-label-right">
+                Rollback Operations
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-11 col-sm-offset-1">
+                <ol>
+                    <li>Enable <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em></li>
+                    <li>Resize <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> to [
+                        <strong>min</strong>: {{serverGroup.capacity.min}},
+                        <strong>max</strong>: {{ serverGroup.capacity.max }},
+                        <strong>desired</strong>: {{ serverGroup.capacity.desired }}
+                        ]
+                    </li>
+                    <li>Disable {{ serverGroup.name }}</li>
+                </ol>
+
+                <p>
+                    This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
+                </p>
+            </div>
+        </div>
+
     </div>
-    <div class="modal-footer">
-      <user-verification account="serverGroup.account" verification="verification"></user-verification>
-      <button type="submit" ng-click="ctrl.rollback()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
-      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-click="ctrl.rollback()"
-              ng-disabled="!ctrl.isValid()">
-        Submit
-      </button>
-    </div>
+    <cf-footer action="ctrl.rollback()"
+               cancel="ctrl.cancel()"
+               is-valid="ctrl.isValid()"
+               account="serverGroup.account"
+               verification="verification"></cf-footer>
   </form>
 </div>
