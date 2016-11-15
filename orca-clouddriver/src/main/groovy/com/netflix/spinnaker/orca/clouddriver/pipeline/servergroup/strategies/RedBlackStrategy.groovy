@@ -57,8 +57,13 @@ class RedBlackStrategy implements Strategy, ApplicationContextAware {
       cluster                                : cleanupConfig.cluster,
       credentials                            : cleanupConfig.account,
       cloudProvider                          : cleanupConfig.cloudProvider,
-      interestingHealthProviderNames         : stage.context.interestingHealthProviderNames
     ]
+
+    // We don't want the key propagated if interestingHealthProviderNames isn't defined, since this prevents
+    // health providers from the stage's 'determineHealthProviders' task to be added to the context.
+    if (stage.context.interestingHealthProviderNames != null) {
+      baseContext.interestingHealthProviderNames = stage.context.interestingHealthProviderNames
+    }
 
     if (stageData?.maxRemainingAsgs && (stageData?.maxRemainingAsgs > 0)) {
       Map shrinkContext = baseContext + [

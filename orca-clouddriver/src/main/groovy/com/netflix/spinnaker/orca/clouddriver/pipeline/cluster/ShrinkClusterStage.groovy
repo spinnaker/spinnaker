@@ -49,8 +49,14 @@ class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
         remainingEnabledServerGroups  : stage.context.shrinkToSize,
         preferLargerOverNewer         : stage.context.retainLargerOverNewer,
         continueIfClusterNotFound     : stage.context.shrinkToSize == 0,
-        interestingHealthProviderNames: stage.context.interestingHealthProviderNames
       ]
+
+      // We don't want the key propagated if interestingHealthProviderNames isn't defined, since this prevents
+      // health providers from the stage's 'determineHealthProviders' task to be added to the context.
+      if (stage.context.interestingHealthProviderNames != null) {
+        context.interestingHealthProviderNames = stage.context.interestingHealthProviderNames
+      }
+
       return [
         StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage(
           stage.execution, disableClusterStage.type, "disableCluster", context, stage, SyntheticStageOwner.STAGE_BEFORE
