@@ -431,6 +431,60 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     execution = Pipeline.builder().withId("1").withParallel(true).build()
   }
 
+  @Issue("SPIN-2165")
+  def "executes pipelines with multiple 'root' stages"() {
+    given:
+    def branchAStage = new PipelineStage(execution, "branchA")
+    def branchBStage = new PipelineStage(execution, "branchB")
+    def endStage = new PipelineStage(execution, "end")
+
+    branchAStage.refId = "1"
+    branchBStage.refId = "2"
+    endStage.refId = "3"
+
+    branchAStage.requisiteStageRefIds = []
+    branchBStage.requisiteStageRefIds = []
+    endStage.requisiteStageRefIds = [branchAStage.refId, branchBStage.refId]
+
+    execution.stages << endStage
+    execution.stages << branchBStage
+    execution.stages << branchAStage
+
+    executionRepository.retrievePipeline(execution.id) >> execution
+
+    and:
+    def branchAStageDefinitionBuilder = Stub(StageDefinitionBuilder) {
+      getType() >> branchAStage.type
+      buildTaskGraph(_) >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("test", TestTask)])
+    }
+    def branchBStageDefinitionBuilder = Stub(StageDefinitionBuilder) {
+      getType() >> branchBStage.type
+      buildTaskGraph(_) >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("test", TestTask)])
+    }
+    def endStageDefinitionBuilder = Stub(StageDefinitionBuilder) {
+      getType() >> endStage.type
+      buildTaskGraph(_) >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("test", TestTask)])
+    }
+    @Subject runner = create(branchAStageDefinitionBuilder, branchBStageDefinitionBuilder, endStageDefinitionBuilder)
+
+    and:
+    def executedStageTypes = []
+    testTask.execute(_) >> { Stage stage ->
+      executedStageTypes << stage.type
+      new DefaultTaskResult(SUCCEEDED)
+    }
+
+    when:
+    runner.start(execution)
+
+    then:
+    expect executedStageTypes, containsInAnyOrder(branchAStage.type, branchBStage.type, endStage.type)
+    executedStageTypes.last() == endStage.type
+
+    where:
+    execution = Pipeline.builder().withId("1").withParallel(true).build()
+  }
+
   def "executes loops"() {
     given:
     def stage = new PipelineStage(execution, "looping")

@@ -165,8 +165,12 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
       .filter(Stage::isInitialStage)
       .collect(toList());
     Set<Serializable> alreadyBuilt = new HashSet<>();
-    for (Stage<E> stage : initialStages) {
-      flow = buildStepsForStageAndDownstream(flow, stage, alreadyBuilt);
+    if (initialStages.size() > 1) {
+      flow = buildDownstreamFork(flow, execution.getId(), initialStages, alreadyBuilt);
+    } else if (initialStages.size() == 1) {
+      flow = buildStepsForStageAndDownstream(flow, initialStages.get(0), alreadyBuilt);
+    } else {
+      throw new IllegalStateException("Could not identify initial stages for pipeline");
     }
     return flow;
   }
@@ -196,7 +200,7 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
     List<Stage<E>> downstreamStages = stage.downstreamStages();
     boolean isFork = downstreamStages.size() > 1;
     if (isFork) {
-      return buildDownstreamFork(flow, stage, downstreamStages, alreadyBuilt);
+      return buildDownstreamFork(flow, stage.getId(), downstreamStages, alreadyBuilt);
     } else if (downstreamStages.isEmpty()) {
       return flow;
     } else {
@@ -208,7 +212,7 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
     }
   }
 
-  private <E extends Execution<E>, Q> FlowBuilder<Q> buildDownstreamFork(FlowBuilder<Q> flow, Stage<E> stage, List<Stage<E>> downstreamStages, Set<Serializable> alreadyBuilt) {
+  private <E extends Execution<E>, Q> FlowBuilder<Q> buildDownstreamFork(FlowBuilder<Q> flow, String parentId, List<Stage<E>> downstreamStages, Set<Serializable> alreadyBuilt) {
     List<Flow> flows = downstreamStages
       .stream()
       .map(downstreamStage -> {
@@ -219,7 +223,7 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
     SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
     executor.setConcurrencyLimit(MAX_PARALLEL_CONCURRENCY);
     // children of a fan-out stage should be executed in parallel
-    FlowBuilder<Flow> parallelFlowBuilder = flowBuilder(format("ParallelChildren.%s", stage.getId()));
+    FlowBuilder<Flow> parallelFlowBuilder = flowBuilder(format("ParallelChildren.%s", parentId));
     parallelFlowBuilder
       .start(new SimpleFlow("NoOp"))
       .split(executor)
