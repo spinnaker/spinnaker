@@ -1,6 +1,5 @@
 'use strict';
 
-import _ from 'lodash';
 import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
@@ -36,23 +35,19 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache,
                                           pipelineConfigService, pipelineConfig, accountService) {
 
-    var stageTypes = pipelineConfig.getConfigurableStageTypes(),
-        lastStageScope;
+    var lastStageScope;
 
     $scope.options = {
-      stageTypes: _.sortBy(stageTypes, function (stageType) {
-        return stageType.label;
-      }),
+      stageTypes: [],
       selectedStageType: null,
     };
 
     accountService.listProviders($scope.application).then((providers) => {
-      $scope.options.stageTypes = $scope.options.stageTypes.filter((stageType) => {
-        return !stageType.cloudProvider || _.includes(providers, stageType.cloudProvider);
-      });
+      $scope.options.stageTypes = pipelineConfig.getConfigurableStageTypes(providers);
+      $scope.showProviders = providers.length > 1;
     });
 
-    if($scope.pipeline.strategy) {
+    if ($scope.pipeline.strategy) {
       $scope.options.stageTypes = $scope.options.stageTypes.filter((stageType) => {
             return stageType.strategy || false;
       });
@@ -131,6 +126,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       if (type) {
         let config = getConfig(type);
         if (config) {
+          $scope.canConfigureNotifications = !$scope.pipeline.strategy && !config.disableNotifications;
           $scope.description = config.description;
           $scope.extendedDescription = config.extendedDescription;
           $scope.label = config.label;

@@ -52,10 +52,10 @@ describe('Directives: stageConfigField', function () {
     expect(field.find('a.help-field').size()).toBe(0);
   });
 
-  it('transcludes content, defaulting to 6-columns', function () {
+  it('transcludes content, defaulting to 8-columns', function () {
     var field = compile('<stage-config-field label="Label"><h3>The content</h3></stage-config-field>')(scope);
     scope.$digest();
-    expect(field.find('.col-md-6 h3').html()).toBe('The content');
+    expect(field.find('.col-md-8 h3').html()).toBe('The content');
   });
 
   it('allows columns to be overridden for field', function () {

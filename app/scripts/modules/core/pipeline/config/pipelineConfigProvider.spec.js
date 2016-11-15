@@ -93,6 +93,78 @@ describe('pipelineConfigProvider: API', function() {
     }));
   });
 
+  describe('stage type retrieval', function () {
+    describe('no provider configured', function () {
+      it('adds all providers to stages that do not have any provider configuration', window.inject(function () {
+        configurer.registerStage({key: 'a'});
+        expect(service.getConfigurableStageTypes(['aws', 'gcp'])).toEqual([{key: 'a', cloudProviders: ['aws', 'gcp']}]);
+      }));
+    });
+
+    describe('cloud providers configured on stage', function () {
+      it('preserves providers that match passed in providers if configured with cloudProviders', window.inject(function () {
+        configurer.registerStage({key: 'a', providesFor: ['aws']});
+        expect(service.getConfigurableStageTypes(['aws', 'gcp'])).toEqual([{key: 'a', providesFor: ['aws'], cloudProviders: ['aws']}]);
+      }));
+
+      it('filters providers to those passed in', window.inject(function () {
+        configurer.registerStage({key: 'a', providesFor: ['aws', 'gcp']});
+        expect(service.getConfigurableStageTypes(['gcp'])).toEqual([{key: 'a', providesFor: ['aws', 'gcp'], cloudProviders: ['gcp']}]);
+      }));
+
+      it('filters out stages that do not support passed in providers', window.inject(function () {
+        configurer.registerStage({key: 'a', providesFor: ['aws', 'gcp']});
+        expect(service.getConfigurableStageTypes(['titus'])).toEqual([]);
+      }));
+
+      it('filters out stages that do not support passed in providers', window.inject(function () {
+        configurer.registerStage({key: 'a', providesFor: ['aws', 'gcp']});
+        expect(service.getConfigurableStageTypes(['titus'])).toEqual([]);
+      }));
+    });
+
+    describe('single cloud provider configured on stage', function () {
+      it('retains cloud providers when matching passed in providers', window.inject(function () {
+        configurer.registerStage({key: 'a', cloudProvider: 'aws'});
+        expect(service.getConfigurableStageTypes(['aws'])).toEqual([{key: 'a', cloudProvider: 'aws', cloudProviders: ['aws']}]);
+      }));
+
+      it('filters stages when provider does not match', window.inject(function () {
+        configurer.registerStage({key: 'a', cloudProvider: 'aws'});
+        expect(service.getConfigurableStageTypes(['gcp'])).toEqual([]);
+      }));
+    });
+
+    describe('base stages', function () {
+      it('returns stage implementation providers that match based on cloud provider', window.inject(function () {
+        configurer.registerStage({key: 'a', useBaseProvider: true});
+        configurer.registerStage({key: 'b', provides: 'a', cloudProvider: 'aws'});
+        expect(service.getConfigurableStageTypes(['aws'])).toEqual([{key: 'a', useBaseProvider: true, cloudProviders: ['aws']}]);
+      }));
+
+      it('filters stage implementations with no matching cloud provider', window.inject(function () {
+        configurer.registerStage({key: 'a', useBaseProvider: true});
+        configurer.registerStage({key: 'b', provides: 'a', cloudProvider: 'aws'});
+        expect(service.getConfigurableStageTypes(['gcp'])).toEqual([]);
+      }));
+
+      it('aggregates and filters cloud providers', window.inject(function () {
+        configurer.registerStage({key: 'a', useBaseProvider: true});
+        configurer.registerStage({key: 'b', provides: 'a', cloudProvider: 'aws'});
+        configurer.registerStage({key: 'c', provides: 'a', cloudProvider: 'gcp'});
+        configurer.registerStage({key: 'd', provides: 'a', cloudProvider: 'titus'});
+        expect(service.getConfigurableStageTypes(['aws', 'titus'])).toEqual([{key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'titus']}]);
+      }));
+
+      it('prefers providesFor to cloudProvider when configured on an implementing stage', window.inject(function () {
+        configurer.registerStage({key: 'a', useBaseProvider: true});
+        configurer.registerStage({key: 'b', provides: 'a', cloudProvider: 'aws', providesFor: ['aws', 'gcp', 'titus']});
+        expect(service.getConfigurableStageTypes(['aws', 'titus'])).toEqual([{key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'titus']}]);
+      }));
+    });
+
+  });
+
   describe('manualExecutionHandlers', function () {
     it ('hasManualExecutionHandlerForTriggerType returns false if nothing configured', function () {
       configurer.registerTrigger({key: 'a'});

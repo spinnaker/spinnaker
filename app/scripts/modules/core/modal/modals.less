@@ -251,6 +251,12 @@ select.select2 {
   }
 }
 
+.select2-container {
+  &.form-control {
+    box-shadow: none;
+  }
+}
+
 .ui-select-highlight {
   font-weight: bold;
 }
@@ -278,6 +284,7 @@ abbr.select2-search-choice-close {
     .select2-choices {
       border: 0;
       box-shadow: none;
+      background-color: transparent;
       .select2-search-field {
         border: 1px solid #66afe9;
 
@@ -314,6 +321,7 @@ abbr.select2-search-choice-close {
       input {
         position: relative;
         z-index: 3;
+        background-color: #ffffff;
       }
     }
 
@@ -330,6 +338,8 @@ abbr.select2-search-choice-close {
         width: calc(~"100% - 40px");
         display: inline-block;
         border: 1px solid #cccccc;
+        background-color: #ffffff;
+        font-family: 'Source Sans Pro', sans-serif;
         border-radius: 4px;
       }
       .select2-search-choice-close {

@@ -21,9 +21,11 @@
         </td>
         <td>
           <a class="btn btn-xs btn-link" href
-             ng-click="preconditionListCtrl.editPrecondition(precondition, strategy)">Edit</a>
+             ng-click="preconditionListCtrl.editPrecondition(precondition, strategy)">
+            <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span></a>
           <a class="btn btn-xs btn-link pad-left" href
-             ng-click="preconditionListCtrl.removePrecondition(precondition)">Remove</a>
+             ng-click="preconditionListCtrl.removePrecondition(precondition)">
+            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove"></span></a>
         </td>
       </tr>
       </tbody>

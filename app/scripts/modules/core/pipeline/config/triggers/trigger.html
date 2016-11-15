@@ -1,8 +1,8 @@
 <div class="row">
   <div class="col-md-12">
     <div class="form-horizontal panel-pipeline-phase">
-      <div class="form-group">
-        <div class="col-md-8 col-md-offset-1">
+      <div class="form-group row">
+        <div class="col-md-10">
           <div class="row">
             <label class="col-md-3 sm-label-right">Type</label>
             <div class="col-md-9">
@@ -16,28 +16,28 @@
             </div>
           </div>
         </div>
-        <div class="col-md-2 col-md-offset-1 text-right">
+        <div class="col-md-2 text-right">
           <button class="btn btn-sm btn-default" ng-click="triggerCtrl.removeTrigger(trigger)">
             <span class="glyphicon glyphicon-trash" uib-tooltip="Remove trigger"></span> Remove trigger
           </button>
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-8 col-md-offset-1">
+        <div class="col-md-10">
           <div class="trigger-body"></div>
         </div>
       </div>
       <div class="form-group" ng-if="trigger.type && !triggerCtrl.disableAutoTriggering.includes(trigger.type)">
-        <div class="col-md-8 col-md-offset-1">
+        <div class="col-md-10">
           <div class="row">
-            <div class="col-md-8 col-md-offset-3 checkbox">
+            <div class="col-md-9 col-md-offset-3 checkbox">
               <label><input type="checkbox" ng-model="trigger.enabled" ng-value="true"/> Trigger Enabled</label>
             </div>
           </div>
         </div>
       </div>
       <div class="form-group" ng-if="trigger.type && triggerCtrl.disableAutoTriggering.includes(trigger.type)">
-        <div class="col-md-8 col-md-offset-1">
+        <div class="col-md-10 col-md-offset-1">
           <div class="row">
             <div class="col-md-8 col-md-offset-3">
               <div class="alert alert-warning">

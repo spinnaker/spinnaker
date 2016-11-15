@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.core.delivery.states', [])
       abstract: true,
       views: {
         'insight': {
-          template: '<div ui-view="pipelines" class="flex-fill"></div>'
+          template: '<div ui-view="pipelines" sticky-headers class="flex-fill"></div>'
         }
       },
       children: [

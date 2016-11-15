@@ -1,6 +1,7 @@
 'use strict';
 
 import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
+import {SCROLL_TO_SERVICE} from 'core/utils/scrollTo/scrollTo.service';
 
 require('../migrator.less');
 
@@ -17,7 +18,7 @@ module.exports = angular
     require('../migrator.service.js'),
     AUTO_SCROLL_DIRECTIVE,
     require('core/pipeline/config/services/pipelineConfigService.js'),
-    require('core/utils/scrollTo/scrollTo.service.js'),
+    SCROLL_TO_SERVICE,
     require('core/cache/cacheInitializer.js'),
     require('core/task/task.read.service.js'),
     require('amazon/keyPairs/keyPairs.read.service'),
