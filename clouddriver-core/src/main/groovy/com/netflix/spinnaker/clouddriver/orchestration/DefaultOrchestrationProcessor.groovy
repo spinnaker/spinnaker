@@ -20,19 +20,33 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.metrics.TimedCallable
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+
+import static com.netflix.spinnaker.security.AuthenticatedRequest.propagate
 
 @Slf4j
 class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   private static final String TASK_PHASE = "ORCHESTRATION"
 
-  protected ExecutorService executorService = Executors.newCachedThreadPool()
+  protected ExecutorService executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+    60L, TimeUnit.SECONDS,
+    new SynchronousQueue<Runnable>()) {
+    @Override
+    protected void afterExecute(Runnable r, Throwable t) {
+      resetMDC()
+      super.afterExecute(r, t)
+    }
+  }
 
   @Autowired
   TaskRepository taskRepository
@@ -54,7 +68,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       return existingTask
     }
     def task = taskRepository.create(TASK_PHASE, "Initializing Orchestration Task...", clientRequestId)
-    executorService.submit TimedCallable.forClosure(registry, orchestrationsId) {
+    def operationClosure = {
       try {
         // Autowire the atomic operations
         for (op in atomicOperations) {
@@ -117,10 +131,27 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       }
     }
 
+    def timedCallable = TimedCallable.forClosure(registry, orchestrationsId, propagate(operationClosure, true))
+    executorService.submit(timedCallable)
+
     task
   }
 
   void autowire(obj) {
     applicationContext.autowireCapableBeanFactory.autowireBean obj
+  }
+
+  /**
+   * Ensure that the Spinnaker-related MDC values are cleared.
+   *
+   * This is particularly important for the inheritable MDC variables that are commonly to transmit the auth context.
+   */
+  static void resetMDC() {
+    try {
+      MDC.remove(AuthenticatedRequest.SPINNAKER_USER)
+      MDC.remove(AuthenticatedRequest.SPINNAKER_ACCOUNTS)
+    } catch (Exception e) {
+      log.error("Unable to clear thread locals, reason: ${e.message}")
+    }
   }
 }

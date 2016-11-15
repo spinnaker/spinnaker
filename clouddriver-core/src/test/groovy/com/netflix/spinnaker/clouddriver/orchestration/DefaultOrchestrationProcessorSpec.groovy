@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.orchestration
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import org.slf4j.MDC
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.context.ApplicationContext
 import spock.lang.Shared
@@ -108,6 +110,21 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     1 * taskRepository.create(_, _, taskKey) >> task
     task.status.isCompleted()
     !task.status.isFailed()
+  }
+
+  void "should clear MDC thread local"() {
+    given:
+    MDC.put("myKey", "myValue")
+    MDC.put(AuthenticatedRequest.SPINNAKER_ACCOUNTS, "myAccounts")
+    MDC.put(AuthenticatedRequest.SPINNAKER_USER, "myUser")
+
+    when:
+    DefaultOrchestrationProcessor.resetMDC()
+
+    then:
+    MDC.get("myKey") == "myValue"
+    MDC.get(AuthenticatedRequest.SPINNAKER_ACCOUNTS) == null
+    MDC.get(AuthenticatedRequest.SPINNAKER_USER) == null
   }
 
   private void submitAndWait(AtomicOperation atomicOp) {

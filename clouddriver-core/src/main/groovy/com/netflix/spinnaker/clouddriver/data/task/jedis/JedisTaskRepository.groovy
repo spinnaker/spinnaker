@@ -26,11 +26,13 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import groovy.util.logging.Slf4j
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 
 import java.util.concurrent.TimeUnit
 
+@Slf4j
 class JedisTaskRepository implements TaskRepository {
   private static final String RUNNING_TASK_KEY = "kato:tasks"
   private static final String TASK_KEY_MAP = "kato:taskmap"
@@ -124,6 +126,8 @@ class JedisTaskRepository implements TaskRepository {
       pipe.expire(resultId, TASK_TTL)
       pipe.sync()
     }
+
+    log.debug("addResultObjects (resultId: ${resultId}, values: ${values})")
   }
 
   List<Object> getResultObjects(JedisTask task) {
