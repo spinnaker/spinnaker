@@ -215,7 +215,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     function filterRunningTasks() {
       var running = _.chain(application.tasks.data)
         .filter(function(task) {
-          return task.name && task.status === 'RUNNING';
+          return task.name && task.isActive;
         })
         .value();
 
@@ -225,7 +225,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     function filterNonRunningTasks() {
       var notRunning = _.chain(application.tasks.data)
         .filter(function(task) {
-          return task.name && task.status !== 'RUNNING';
+          return task.name && !task.isActive;
         })
         .value();
 
