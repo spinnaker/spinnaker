@@ -462,6 +462,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'openstack.serverGroup.userData': '<p>Provides a script that will run when each server group instance starts.</p>',
     'openstack.serverGroup.tags': '<p>Key-value pairs of metadata that will be associate to each server group instance.</p>',
     'titus.deploy.iamProfile': 'AWS IAM instance profile to assign to this service',
+    'titus.deploy.capacityGroup': 'Used by Titus to ensure capacity guarantees, defaults to the application name if not provided',
     'titus.deploy.network': 'Amount of networking bandwidth to allocate in Mbps',
     'titus.deploy.allocateIP': 'If selected, specifies an IP to be allocated for each of your job’s containers',
     'titus.deploy.softConstraints': 'Soft constraints are enforced on a best efforts basis. For example, if tasks can’t be perfectly balanced across zones, the best available balance is achieved without keeping the tasks pending for execution.',
