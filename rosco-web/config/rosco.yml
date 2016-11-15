@@ -3,6 +3,9 @@ server:
 
 rosco:
   configDir: /some/path/to/config/packer
+  jobs:
+    local:
+      timeoutMinutes: 20
 
 metrics:
   reporter:

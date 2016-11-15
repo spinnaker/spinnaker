@@ -94,7 +94,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
           tenantId: TENANT_ID,
           subscriptionId: SUBSCRIPTION_ID,
           packerResourceGroup: RESOURCE_GROUP,
-          storageAccount: STORAGE_ACCOUNT
+          packerStorageAccount: STORAGE_ACCOUNT
         ]
       ]
     ]
