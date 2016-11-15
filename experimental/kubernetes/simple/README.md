@@ -130,7 +130,7 @@ is mostly filled out:
 
 ```yaml
   front50:
-    host: spin-front50.spinnaker.svc.cluster.local
+    host: spin-front50.spinnaker
     port: 8080
     baseUrl: ${services.default.protocol}://${services.front50.host}:${services.front50.port}
 
