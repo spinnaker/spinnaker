@@ -1,57 +1,76 @@
+  <div class="row fastProperty-wrapper">
+    <div class="col-md-12 fastProperty">
 
-<div class="col-md-4 col-sm-12">
-  <form class="form form-horizontal">
-    <div class="form-group">
-      <div class="col-md-12">
-        <input type="search"
-               placeholder="Search applications"
-               class="form-control input-md"
-               focus
-               ng-model="fp.applicationFilter"
-               ng-change="fp.filter(fp.applications)"/>
+      <form class="form form-inline">
+        <div class="form-group">
+          <label for="propertySearch">Search</label>
+          <input type="search"
+                 id="propertySearch"
+                 placeholder="Search properties"
+                 class="form-control"
+                 focus
+                 ng-model="fp.searchTerm"
+                 ng-change="fp.search()"/>
+        </div>
+
+        <div class="form-group"
+             ng-if="fp.propertiesList"
+             style="margin-left: 10px">
+          <label for="propertyGroup">Group</label>
+          <div class="btn-group"
+               role="group"
+               id="propertyGroup">
+            <button class="btn btn-default" ng-class="{active: fp.selectedGroupIs(fp.groupNames.NONE)}"
+                    ng-click="fp.setGroupTo(fp.groupNames.NONE)">None
+            </button>
+            <button class="btn btn-default" ng-class="{active: fp.selectedGroupIs(fp.groupNames.APP)}"
+                    ng-click="fp.setGroupTo(fp.groupNames.APP)">App
+            </button>
+            <button class="btn btn-default" ng-class="{active: fp.selectedGroupIs(fp.groupNames.PROPERTY)}"
+                    ng-click="fp.setGroupTo(fp.groupNames.PROPERTY)">Property
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" ng-if="fp.propertiesList">
+          <fast-property-filter-search properties="fp.searchResults" filters="filters" create-filter-tag="createFilterTag"></fast-property-filter-search>
+        </div>
+
+        <div style="margin-top: 5px" class="fast-property-filter-tags">
+          <filter-tags
+            tags="filters.list"
+            tag-cleared="fp.filterAndGroup(fp.propertiesList)"
+            clear-filters="fp.clearFilters()">
+          </filter-tags>
+        </div>
+      </form>
+
+
+
+
+      <h2 ng-if="fp.fetchingProperties" class="text-center" style="margin-bottom: 250px">
+        <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+      </h2>
+
+      <h2 ng-if="fp.searchError" class="text-center">
+        {{fp.searchError}}
+      </h2>
+
+      <h2 ng-if="!fp.fetchingProperties && !fp.propertiesList && !fp.searchError && !fp.propertiesList && fp.searchTerm.length === 0" class="text-center">
+          Enter a search term to begin
+      </h2>
+
+      <h2 ng-if="!fp.fetchingProperties && !fp.searchError && fp.isPropertiesListEmpty() && fp.selectedFilterIs(fp.filterNames.GLOBAL)" class="text-center">
+         No <b>Global only</b> results for <b>{{fp.searchTerm}}</b>
+      </h2>
+
+
+      <div class="row" ng-if="!fp.isPropertiesListEmpty()">
+        <div class="col-md-12">
+          <global-fast-property-pods properties="fp.propertiesList"
+                                     grouped-by="fp.groupName"></global-fast-property-pods>
+        </div>
       </div>
     </div>
-  </form>
-</div>
-
-<h2 ng-if="!fp.applicationsLoaded" class="text-center" style="margin-bottom: 250px">
-  <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
-</h2>
-
-<div class="row">
-  <div class="col-md-12">
-    <table ng-if="fp.applications" class="table table-hover">
-      <thead>
-      <tr>
-        <th width="20%" key="name" label="Name" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Name</th>
-        <th width="20%" key="createTs" label="Created" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Created</th>
-        <th width="20%" key="updateTs" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Created</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr class="clickable" ng-repeat="application in fp.filteredResultPage()" ui-sref="home.applications.application.propInsights.properties({ application: application.name.toLowerCase() })">
-        <td>
-          <a ui-sref="home.applications.application.propInsights.properties({ application: application.name.toLowerCase() })" ng-click="$event.preventDefault()">
-            {{ application.name.toLowerCase() }}
-          </a>
-        </td>
-        <td>
-          {{ application.createTs | timestamp }}
-        </td>
-        <td>
-          {{ application.updateTs | timestamp }}
-        </td>
-      </tr>
-      </tbody>
-    </table>
-
-
-    <uib-pagination ng-if="fp.applications"
-                    items-per-page="fp.pagination.itemsPerPage"
-                    total-items="fp.filteredCount()"
-                    max-size="fp.pagination.maxSize"
-                    ng-model="fp.pagination.currentPage">
-    </uib-pagination>
   </div>
 
-</div>

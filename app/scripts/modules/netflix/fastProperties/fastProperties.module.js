@@ -1,7 +1,12 @@
 'use strict';
 
+import { FAST_PROPERTY_SEARCH_COMPONENT } from './dataNav/fastPropertyFilterSearch.component';
+
 let angular = require('angular');
+
+
 require('./fastProperties.less');
+require('./dataNav/fastPropertyFilterSearch.less');
 require('../../netflix/canary/canary.less');
 
 module.exports = angular
@@ -14,7 +19,6 @@ module.exports = angular
     require('./scopeSelect.directive.js'),
     require('./modal/deleteFastProperty.controller.js'),
     require('./dataNav/fastPropertyRollouts.controller.js'),
-    require('./dataNav/fastProperties.data.controller.js'),
     require('./fastPropertyProgressBar.directive.js'),
     require('./modal/fastPropertyConstraint.directive.js'),
     require('./modal/fastPropertyStrategySelector.directive.js'),
@@ -28,4 +32,7 @@ module.exports = angular
     require('./asgSelector.component'),
     require('./fastPropertyPod.component'),
     require('./fastProperty.dataSource'),
+    require('./globalFastPropertyPods.component'),
+    require('./globalFastPropertyDetails.controller'),
+    FAST_PROPERTY_SEARCH_COMPONENT,
   ]);

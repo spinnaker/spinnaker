@@ -2,29 +2,28 @@
 
   <div class="container">
 
-      <h2 data-purpose="view-header">Data</h2>
+      <h2 data-purpose="view-header">Properties</h2>
 
       <ul class="nav nav-pills">
         <li>
           <a ui-sref=".properties"
              ng-class="{active: $state.includes('**.properties.**')}">
-            Properties
-          </a>
-        </li>
-        <li>
-          <a ui-sref=".rollouts"
-             ng-class="{active: $state.includes('**.rollouts.**')}">
-            Rollouts
+            Active Properties
           </a>
         </li>
       </ul>
 
     </div>
   </div>
-
-  <div class="col-md-12 secondary-panel">
-    <div ui-view="master" class="nav-content" data-scroll-id="nav-content"></div>
-  </div>
-
 </div>
+
+<div class="scrollable-columns">
+  <div class="col-md-12 secondary-panel">
+    <div class="row insight">
+      <div ui-view="master" class="nav-content" data-scroll-id="nav-content" style="width: 960px; height: 100%;"></div>
+      <div ui-view="detail" class="detail-content" style="width: 350px;"></div>
+    </div>
+  </div>
+</div>
+
 

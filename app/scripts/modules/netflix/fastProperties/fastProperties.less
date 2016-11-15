@@ -2,6 +2,7 @@
 
 .fastProperty-wrapper {
   display: flex;
+  height:100%;
 }
 
 .fastProperty {
@@ -123,3 +124,46 @@ dl.fastProperty-list dt {
 .activeProperty {
   background-color: @active_pod_blue;
 }
+
+@fast-property-extra-filters-height: 170px;
+
+.fast-property-extra-filters {
+  position: relative;
+  margin-top: 10px;
+  border: 1px solid @mid_light_grey;
+  background-color: @secondary_panel_grey;
+  visibility: visible;
+  opacity:1;
+  transition: margin-top 0.25s, opacity 0.125s ease;
+}
+
+.fast-property-extra-filters .nav-container {
+  display: flex;
+  height: @fast-property-extra-filters-height;
+}
+
+.fast-property-extra-filter-container {
+  flex: 1 0 auto;
+  margin: 0 10px;
+  height: 100%
+}
+
+.fast-property-extra-filter-container .scrollable {
+  flex: 1;
+  overflow: scroll;
+}
+
+.fast-property-extra-filters.closed {
+  margin-top: -@fast-property-extra-filters-height;
+  visibility: hidden;
+  opacity: 0;
+  transition: margin-top 0.25s, opacity 0.125s ease;
+}
+
+.fast-property-extra-filter-container h4 {
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0;
+  font-size: 16px;
+}
+

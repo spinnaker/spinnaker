@@ -16,6 +16,10 @@ module.exports = angular
       return API.all('fastproperties').all('application').one(appName).get();
     }
 
+    function search(searchTerm) {
+      return API.all('fastproperties').all('search').one(searchTerm).get();
+    }
+
     function getPropByIdAndEnv(id, env) {
       return API.all('fastproperties').one('id', id).one('env', env).get();
     }
@@ -52,6 +56,7 @@ module.exports = angular
       fetchForAppName: fetchForAppName,
       fetchImpactCountForScope: fetchImpactCountForScope,
       loadPromotions: loadPromotions,
+      search: search,
       loadPromotionsByApp: loadPromotionsByApp,
       getPropByIdAndEnv: getPropByIdAndEnv
     };

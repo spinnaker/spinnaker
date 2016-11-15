@@ -1,0 +1,32 @@
+<div ng-if="fpPod.isArray()">
+  <global-fast-property-pod-table properties="fpPod.properties"></global-fast-property-pod-table>
+</div>
+
+
+<div
+  ng-repeat="(key, properties) in fpPod.properties" >
+  <div class="row rollup-entry sub-group" ng-if="fpPod.isGrouped()" >
+
+    <div class="rollup-summary">
+      <div class="container-fluid no-padding">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="rollup-title-cell">
+              <h5 style="margin-left: 15px">
+                <span class="glyphicon glyphicon-equalizer"></span>
+                {{key}}
+              </h5>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rollup-details" style="margin: 15px; border-top: none">
+      <global-fast-property-pod-table properties="properties" grouped-by="fpPod.groupedBy"></global-fast-property-pod-table>
+    </div>
+
+  </div>
+</div>
+
+
