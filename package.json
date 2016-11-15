@@ -44,12 +44,13 @@
     "zone.js": "^0.6.23"
   },
   "engines": {
-    "node": ">=4.0.0",
+    "node": "7.0.0",
     "npm": ">=2.0.0"
   },
   "scripts": {
     "build": "webpack --bail",
-    "start": "webpack-dev-server",
+    "start": "sh ./start.sh",
+    "start-dev-server": "webpack-dev-server",
     "test": "karma start",
     "postinstall": "typings install",
     "int": "protractor protractor.conf.js"
