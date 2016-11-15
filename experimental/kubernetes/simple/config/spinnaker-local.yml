@@ -20,7 +20,7 @@ services:
     protocol: http
 
   clouddriver:
-    host: spin-clouddriver.spinnaker.svc.cluster.local
+    host: spin-clouddriver.spinnaker
     port: 7002
     baseUrl: ${services.default.protocol}://${services.clouddriver.host}:${services.clouddriver.port}
     # Controls whether UserDataProviders are used to populate user data of new server groups.
@@ -32,7 +32,7 @@ services:
 
   echo:
     enabled: true
-    host: spin-echo.spinnaker.svc.cluster.local
+    host: spin-echo.spinnaker
     port: 8089
     baseUrl: ${services.default.protocol}://${services.echo.host}:${services.echo.port}
     cron:
@@ -58,7 +58,7 @@ services:
         token: # the part after http://hooks.slack.com/services/
 
   deck:
-    host: spin-deck.spinnaker.svc.cluster.local
+    host: spin-deck.spinnaker
     port: 9000
     baseUrl: ${services.default.protocol}://${services.deck.host}:${services.deck.port}
     gateUrl: ${services.gate.baseUrl}
@@ -68,7 +68,7 @@ services:
       enabled: false
 
   front50:
-    host: spin-front50.spinnaker.svc.cluster.local
+    host: spin-front50.spinnaker
     port: 8080
     baseUrl: ${services.default.protocol}://${services.front50.host}:${services.front50.port}
 
@@ -88,7 +88,7 @@ services:
       enabled: false # Or me
 
   gate:
-    host: spin-gate.spinnaker.svc.cluster.local
+    host: spin-gate.spinnaker
     port: 8084
     baseUrl: ${services.default.protocol}://${services.gate.host}:${services.gate.port}
 
@@ -96,7 +96,7 @@ services:
     # If you are integrating Jenkins then you must also enable Spinnaker's
     # "igor" subsystem.
     enabled: false
-    host: spin-igor.spinnaker.svc.cluster.local
+    host: spin-igor.spinnaker
     port: 8088
     baseUrl: ${services.default.protocol}://${services.igor.host}:${services.igor.port}
 
@@ -111,7 +111,7 @@ services:
     baseUrl: ${services.clouddriver.baseUrl}
 
   orca:
-    host: spin-orca.spinnaker.svc.cluster.local
+    host: spin-orca.spinnaker
     port: 8083
     baseUrl: ${services.default.protocol}://${services.orca.host}:${services.orca.port}
     enabled: true
@@ -122,7 +122,7 @@ services:
     baseUrl: ${services.clouddriver.baseUrl}
 
   rosco:
-    host: spin-rosco.spinnaker.svc.cluster.local
+    host: spin-rosco.spinnaker
     port: 8087
     baseUrl: ${services.default.protocol}://${services.rosco.host}:${services.rosco.port}
     # You need to provide the fully-qualified path to the directory containing the packer templates.
@@ -157,7 +157,7 @@ services:
       password:  # Expected in spinnaker-local.yml
 
   redis:
-    host: data-redis-server.spinnaker.svc.cluster.local
+    host: data-redis-server.spinnaker
     port: 6379
     connection: redis://${services.redis.host}:${services.redis.port}
 
