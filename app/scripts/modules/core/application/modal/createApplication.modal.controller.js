@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {APPLICATION_NAME_VALIDATION_MESSAGES} from './validation/applicationNameValidationMessages.component';
+import {VALIDATE_APPLICATION_NAME} from './validation/validateApplicationName.directive';
 import chaosMonkeyConfigModule from '../../chaosMonkey/chaosMonkeyNewApplicationConfig.component';
 
 let angular = require('angular');
@@ -14,8 +16,8 @@ module.exports = angular
     ACCOUNT_SERVICE,
     require('../../task/task.read.service.js'),
     require('../../config/settings'),
-    require('./validation/applicationNameValidationMessages.directive.js'),
-    require('./validation/validateApplicationName.directive.js'),
+    APPLICATION_NAME_VALIDATION_MESSAGES,
+    VALIDATE_APPLICATION_NAME,
     require('./applicationProviderFields.component.js'),
     require('./groupMembershipConfigurer.component.js'),
     chaosMonkeyConfigModule,

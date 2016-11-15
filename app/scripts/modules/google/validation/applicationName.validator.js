@@ -1,10 +1,12 @@
 'use strict';
 
+import {APPLICATION_NAME_VALIDATOR} from 'core/application/modal/validation/applicationName.validator';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.gce.validation.applicationName', [
-    require('core/application/modal/validation/applicationName.validator.js'),
+    APPLICATION_NAME_VALIDATOR,
   ])
   .factory('gceApplicationNameValidator', function () {
 
