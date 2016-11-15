@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.aws.cache.initializer', [
 
     config.subnets = {
       version: 2,
-      initializers: [subnetReader.listSubnets],
+      initializers: [() => subnetReader.listSubnets() ],
     };
 
     config.networks = {

@@ -14,16 +14,11 @@ export interface ISubnet {
 
 export class SubnetReader {
 
-  private cachedSubnets: ISubnet[];
-
   static get $inject() { return ['$q', 'API', 'infrastructureCaches']; }
 
   public constructor(private $q: ng.IQService, private API: Api, private infrastructureCaches: any) {}
 
   public listSubnets(): ng.IPromise<ISubnet[]> {
-    if (this.cachedSubnets) {
-      return this.$q.when(this.cachedSubnets);
-    }
     return this.API.one('subnets')
       .useCache(this.infrastructureCaches.subnets)
       .getList()
@@ -35,7 +30,6 @@ export class SubnetReader {
             subnet.label += ' (deprecated)';
           }
         });
-        this.cachedSubnets = subnets;
         return subnets;
       });
   }
