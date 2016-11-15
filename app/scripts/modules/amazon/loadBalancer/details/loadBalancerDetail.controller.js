@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
 let angular = require('angular');
 
@@ -13,7 +14,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('core/insight/insightFilterState.model.js'),
   require('core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('core/utils/selectOnDblClick.directive.js'),
-  require('core/subnet/subnet.read.service'),
+  SUBNET_READ_SERVICE,
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, $q, loadBalancer, app, InsightFilterStateModel,
                                                    securityGroupReader, confirmationModalService, loadBalancerWriter,

@@ -1,5 +1,6 @@
 import {module} from 'angular';
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
+import {SubnetReader, SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {IGceBackendService} from 'google/domain/index';
 import {GceHealthCheckReader, GCE_HEALTH_CHECK_READER} from 'google/healthCheck/healthCheck.read.service';
 
@@ -24,7 +25,7 @@ export class GceInternalLoadBalancerCommandBuilder {
               private loadBalancerReader: any,
               private settings: any,
               private accountService: AccountService,
-              private subnetReader: any,
+              private subnetReader: SubnetReader,
               private gceHealthCheckReader: GceHealthCheckReader,
               private networkReader: any) {}
 
@@ -101,6 +102,6 @@ export const GCE_INTERNAL_LOAD_BALANCER_COMMAND_BUILDER = 'spinnaker.gce.interna
 module(GCE_INTERNAL_LOAD_BALANCER_COMMAND_BUILDER, [
   ACCOUNT_SERVICE,
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/subnet/subnet.read.service.js'),
+  SUBNET_READ_SERVICE,
   GCE_HEALTH_CHECK_READER,
 ]).service('gceInternalLoadBalancerCommandBuilder', GceInternalLoadBalancerCommandBuilder);

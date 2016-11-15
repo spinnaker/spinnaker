@@ -255,7 +255,6 @@ module(gceInternalLoadBalancerCtrl, [
     require('core/cache/infrastructureCaches.js'),
     require('core/modal/wizard/wizardSubFormValidation.service.js'),
     require('core/loadBalancer/loadBalancer.write.service.js'),
-    require('core/subnet/subnet.read.service.js'),
     require('core/task/monitor/taskMonitorService.js'),
   ])
   .controller('gceInternalLoadBalancerCtrl', InternalLoadBalancerCtrl);

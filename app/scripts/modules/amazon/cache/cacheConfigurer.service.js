@@ -2,13 +2,14 @@
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
 module.exports = angular.module('spinnaker.aws.cache.initializer', [
   ACCOUNT_SERVICE,
   require('core/loadBalancer/loadBalancer.read.service.js'),
   require('core/instance/instanceTypeService.js'),
   require('core/securityGroup/securityGroup.read.service.js'),
-  require('core/subnet/subnet.read.service.js'),
+  SUBNET_READ_SERVICE,
   require('../vpc/vpc.read.service.js'),
 ])
   .factory('awsCacheConfigurer', function ($q,
