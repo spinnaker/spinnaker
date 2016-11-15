@@ -62,7 +62,7 @@ describe('Controller: tasks', function () {
       scope.$digest();
       expect(controller.sortedTasks.length).toBe(0);
 
-      controller.application.tasks.data.push({status: 'RUNNING', startTime:20, name: 'a'});
+      controller.application.tasks.data.push({isActive: true, startTime:20, name: 'a'});
       controller.application.tasks.dataUpdated();
       scope.$digest();
 
@@ -114,22 +114,22 @@ describe('Controller: tasks', function () {
 
   describe('Filtering Task list with one running task', function () {
     var tasks = [
-        {status: 'SUCCEEDED', name: 'a'},
-        {status: 'RUNNING', name: 'a'},
+        {isActive: false, name: 'a'},
+        {isActive: true, name: 'a'},
       ];
 
     it('should sort the tasks with the RUNNING status at the top', function () {
       this.initializeController(tasks);
       controller.sortTasks();
       expect(controller.sortedTasks.length).toBe(2);
-      expect(controller.sortedTasks[0].status).toEqual('RUNNING');
+      expect(controller.sortedTasks[0].isActive).toBe(true);
     });
   });
 
   describe('Filtering Task list by startTime in descending order with only running task', function () {
     var tasks = [
-        {status: 'RUNNING', startTime:20, name: 'a'},
-        {status: 'RUNNING', startTime:99, name: 'a'},
+        {isActive: true, startTime:20, name: 'a'},
+        {isActive: true, startTime:99, name: 'a'},
       ];
 
     it('should sort the tasks with the RUNNING status at the top', function () {
@@ -139,15 +139,15 @@ describe('Controller: tasks', function () {
       expect(sortedList.length).toBe(2);
       expect(sortedList[0].startTime).toBe(99);
       sortedList.forEach(function(task) {
-        expect(task.status).toEqual('RUNNING');
+        expect(task.isActive).toBe(true);
       });
     });
   });
 
   describe('Filtering Task list with zero running task', function () {
     var tasks = [
-        {status: 'SUCCEEDED', startTime: 22, name: 'a'},
-        {status: 'SUCCEEDED', startTime: 100, name: 'a'},
+        {isActive: false, startTime: 22, name: 'a'},
+        {isActive: false, startTime: 100, name: 'a'},
       ];
 
     it('should sort the tasks in descending order by startTime', function () {
@@ -157,7 +157,7 @@ describe('Controller: tasks', function () {
       expect(sortedList.length).toBe(2);
       expect(sortedList[0].startTime).toBe(100);
       sortedList.forEach(function(task) {
-        expect(task.status).toEqual('SUCCEEDED');
+        expect(task.isActive).toBe(false);
       });
     });
   });
