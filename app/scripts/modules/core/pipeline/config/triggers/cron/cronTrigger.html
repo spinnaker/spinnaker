@@ -1,30 +1,11 @@
 <ng-form name="cronForm">
-  <div class="form-group">
+  <div class="form-group" style="margin-top: 10px">
     <label class="col-md-3 sm-label-right">
-      CRON Expression
-      <help-field key="pipeline.config.cron.expression"></help-field>
+      Frequency
     </label>
-    <div class="col-md-3">
-      <input type="text" class="form-control input-sm"
-             ng-model="vm.trigger.cronExpression"
-             ng-change="vm.compressWhitespace()"
-             name="cronExpression"
-             required
-             cron-validator
-             cron-validation-messages="vm.validationMessages"
-          />
-    </div>
-  </div>
-  <div class="form-group" ng-if="vm.validationMessages.description && !cronForm.cronExpression.$invalid">
-    <div class="col-md-8 col-md-offset-3">
-      <p>(will run {{vm.validationMessages.description}})</p>
-    </div>
-  </div>
-
-
-  <div class="form-group row slide-in" ng-if="cronForm.cronExpression.$error.cronExpression">
-    <div class="col-sm-9 col-sm-offset-3 error-message">
-      {{vm.validationMessages.error}}
+    <div class="col-md-9">
+      <cron-gen ng-model="vm.trigger.cronExpression"
+                options="vm.cronOptions"></cron-gen>
     </div>
   </div>
 
