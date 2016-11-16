@@ -71,30 +71,26 @@ abstract class CloudProviderBakeHandler {
    * bake.
    */
   String produceBakeKey(String region, BakeRequest bakeRequest) {
-    // TODO(duftler): Consider whether template_file_name, extended_attributes and var_file_name should be
-    // taken into account when composing the bake key.
     bakeRequest.with {
-      def bakeKey = "bake:$cloud_provider_type:$base_os"
+      def keys = [
+        'bake',
+        cloud_provider_type,
+        base_os,
+        base_ami,
+        ami_name,
+        template_file_name,
+        var_file_name,
+      ].findAll { it }
 
-      if (base_ami) {
-        bakeKey += ":$base_ami"
-      }
+      // Package name is always part of key, even if it is an empty string
+      keys << (package_name ? package_name.tokenize().join('|') : "")
 
-      if (ami_name) {
-        bakeKey += ":$ami_name"
-      }
-
-      String packages = package_name ? package_name.tokenize().join('|') : ""
-
-      bakeKey += ":$packages"
-
-      def providerSpecificBakeKeyComponent = produceProviderSpecificBakeKeyComponent(region, bakeRequest)
-
+      String providerSpecificBakeKeyComponent = produceProviderSpecificBakeKeyComponent(region, bakeRequest)
       if (providerSpecificBakeKeyComponent) {
-        bakeKey += ":$providerSpecificBakeKeyComponent"
+        keys << providerSpecificBakeKeyComponent
       }
 
-      return bakeKey
+      return keys.join(':')
     }
   }
 

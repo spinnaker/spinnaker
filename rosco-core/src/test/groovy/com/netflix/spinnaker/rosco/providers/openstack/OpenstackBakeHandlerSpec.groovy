@@ -749,4 +749,23 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
       bakeKey1 == "bake:openstack:centos:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:RegionOne"
       bakeKey2 == bakeKey1
   }
+
+  def 'produce an openstack bakeKey with a template and var file names'() {
+    setup:
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+        package_name: PACKAGES_NAME,
+        base_os: "centos",
+        cloud_provider_type: BakeRequest.CloudProviderType.openstack,
+        template_file_name: 'custom-template.json',
+        var_file_name: 'custom-vars.json'
+      )
+      @Subject
+      OpenstackBakeHandler openstackBakeHandler = new OpenstackBakeHandler(openstackBakeryDefaults: openstackBakeryDefaults)
+
+    when:
+      String bakeKey = openstackBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+      bakeKey == "bake:openstack:centos:custom-template.json:custom-vars.json:kato|nflx-djangobase-enhanced_0.1-h12.170cdbd_all|mongodb:RegionOne"
+  }
 }
