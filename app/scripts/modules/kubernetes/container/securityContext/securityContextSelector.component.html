@@ -1,0 +1,21 @@
+<div class="col-md-12">
+  <div class="form-group">
+    <div class="row" ng-repeat="field in $ctrl.fields">
+      <div class="col-md-4 sm-label-right">
+        {{::field.label}}
+        <help-field key="{{::field.helpField}}"></help-field>
+      </div>
+      <div class="col-md-{{::field.columns || 8}}">
+        <input type="{{::field.type}}"
+               class="{{::field.inputClasses}}"
+               ng-model="$ctrl.component.securityContext[field.model]"/>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <kubernetes-se-linux-options-selector component="$ctrl.component"></kubernetes-se-linux-options-selector>
+  </div>
+  <div class="form-group">
+    <kubernetes-capabilities-selector component="$ctrl.component"></kubernetes-capabilities-selector>
+  </div>
+</div>

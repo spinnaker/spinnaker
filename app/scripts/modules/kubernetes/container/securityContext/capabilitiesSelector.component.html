@@ -1,0 +1,26 @@
+<div class="sm-label-left">
+  <b>Linux Capabilities</b>
+</div>
+<div class="col-md-12">
+  <div class="sm-label-left" ng-repeat-start="field in $ctrl.fields">
+    <b>{{field.label}}</b>
+  </div>
+  <table class="table table-condensed packed tags">
+    <tbody>
+    <tr ng-repeat="entry in $ctrl.component.securityContext.capabilities[field.model] track by $index">
+      <td>
+        <input class="form-control input-sm" type="text"
+               ng-model="$ctrl.component.securityContext.capabilities[field.model][$index]">
+      </td>
+      <td class="table-remove-button">
+        <a class="btn btn-link sm-label" ng-click="$ctrl.remove(field.model, $index)">
+          <span class="glyphicon glyphicon-trash"></span>
+        </a>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <button class="add-new col-md-12" ng-click="$ctrl.add(field.model)" ng-repeat-end>
+    <span class="glyphicon glyphicon-plus-sign"></span> {{::field.buttonLabel}}
+  </button>
+</div>

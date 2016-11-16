@@ -10,9 +10,7 @@ class KubernetesAnnotationDetailsComponent implements ng.IComponentOptions {
   `;
 }
 
-const moduleName = 'spinnaker.kubernetes.annotation.details.component';
+export const KUBERNETES_ANNOTATION_DETAILS = 'spinnaker.kubernetes.annotation.details.component';
 
-module(moduleName, [])
+module(KUBERNETES_ANNOTATION_DETAILS, [])
   .component('kubernetesAnnotationDetails', new KubernetesAnnotationDetailsComponent());
-
-export default moduleName;

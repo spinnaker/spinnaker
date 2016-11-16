@@ -50,9 +50,7 @@ class KubernetesAnnotationConfigurerComponent implements ng.IComponentOptions {
   controller: ng.IComponentController = KubernetesAnnotationConfigurer;
 }
 
-const moduleName = 'spinnaker.kubernetes.annotation.configurer.component';
+export const KUBERNETES_ANNOTATION_CONFIGURER = 'spinnaker.kubernetes.annotation.configurer.component';
 
-module(moduleName, [])
+module(KUBERNETES_ANNOTATION_CONFIGURER, [])
   .component('kubernetesAnnotationConfigurer', new KubernetesAnnotationConfigurerComponent());
-
-export default moduleName;

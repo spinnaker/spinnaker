@@ -49,4 +49,8 @@
     <kubernetes-container-volumes volume-sources="ctrl.stage.volumeSources" volume-mounts="ctrl.stage.container.volumeMounts">
     </kubernetes-container-volumes>
   </stage-config-field>
+  <stage-config-field label="Security Context">
+    <kubernetes-security-context-selector component="ctrl.stage.container">
+    </kubernetes-security-context-selector>
+  </stage-config-field>
 </div>
