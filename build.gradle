@@ -1,5 +1,6 @@
 import java.nio.file.Paths
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 
 buildscript {
   repositories {
@@ -27,9 +28,12 @@ jar {
 }
 
 node {
-    // Version of node to use.
-    version = '7.0.0'
-    npmVersion = '3.10.8'
+    // Pulls node and npm versions from package.json.
+    def packageSlurper = new JsonSlurper()
+    def packageJson = packageSlurper.parse file('package.json')
+
+    version = packageJson.engines.node
+    npmVersion = packageJson.engines.npm
 
     // Enabled the automatic download. False is the default (for now).
     download = true
