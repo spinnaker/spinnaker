@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppEngineDescription
+import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
@@ -41,10 +42,12 @@ class DeployAppEngineDescriptionValidatorSpec extends Specification {
     validator = new DeployAppEngineDescriptionValidator()
 
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
+    def mockCredentials = Mock(AppEngineCredentials)
     def namedAccountCredentials = new AppEngineNamedAccountCredentials.Builder()
       .name(ACCOUNT_NAME)
       .region(REGION)
       .applicationName(APPLICATION_NAME)
+      .credentials(mockCredentials)
       .build()
     credentialsRepo.save(ACCOUNT_NAME, namedAccountCredentials)
 

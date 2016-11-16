@@ -103,8 +103,14 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
       return this
     }
 
+    Builder credentials(AppEngineCredentials credentials) {
+      this.credentials = credentials
+      return this
+    }
+
     AppEngineNamedAccountCredentials build() {
-      credentials = jsonKey ?
+      credentials = credentials ?:
+        jsonKey ?
         new AppEngineJsonCredentials(project, jsonKey) :
         new AppEngineCredentials(project)
 
