@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.amazonaws.services.ec2.model.DescribeImagesRequest
+import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.Image
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -114,12 +115,13 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric, Cust
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
+    //we read public images directly from AWS instead of having edda cache them:
+    def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region, includePublicImages)
     def request = new DescribeImagesRequest()
     if (includePublicImages) {
-      request.withExecutableUsers('all')
+      request.withFilters(new Filter('is-public', ['true']))
     } else {
-      request.withExecutableUsers(account.getAccountId())
+      request.withFilters(new Filter('is-public', ['false']))
     }
 
     List<Image> images = amazonEC2.describeImages(request).images

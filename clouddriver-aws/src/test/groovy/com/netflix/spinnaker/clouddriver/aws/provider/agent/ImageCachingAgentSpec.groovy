@@ -20,8 +20,10 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.DomainType
+import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.awsobjectmapper.AmazonObjectMapper
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
@@ -84,15 +86,15 @@ class ImageCachingAgentSpec extends Specification {
       getEddaEnabled() >> eddaEnabled
     }
     def acp = Stub(AmazonClientProvider) {
-      getAmazonEC2(creds, region) >> ec2
+      getAmazonEC2(creds, region, _) >> ec2
     }
-    new ImageCachingAgent(acp, creds, region, new AmazonObjectMapper(), Spectator.registry(), publicImages)
+    new ImageCachingAgent(acp, creds, region, AmazonObjectMapperConfigurer.createConfigured(), Spectator.globalRegistry(), publicImages)
   }
 
   void "should include only private images"() {
     given:
     def agent = getAgent(false, false)
-    def request = new DescribeImagesRequest().withExecutableUsers(accountId)
+    def request = new DescribeImagesRequest().withFilters(new Filter('is-public', ['false']))
 
     when:
     def result = agent.loadData(providerCache)
@@ -110,7 +112,7 @@ class ImageCachingAgentSpec extends Specification {
   void "should include only public images"() {
     given:
     def agent = getAgent(true, false)
-    def request = new DescribeImagesRequest().withExecutableUsers('all')
+    def request = new DescribeImagesRequest().withFilters(new Filter('is-public', ['true']))
 
     when:
     def result = agent.loadData(providerCache)
@@ -128,7 +130,7 @@ class ImageCachingAgentSpec extends Specification {
   void "should manually filter private images from Edda"() {
     given:
     def agent = getAgent(false, true)
-    def request = new DescribeImagesRequest().withExecutableUsers(accountId)
+    def request = new DescribeImagesRequest().withFilters(new Filter('is-public', ['false']))
 
     when:
     def result = agent.loadData(providerCache)
@@ -146,7 +148,7 @@ class ImageCachingAgentSpec extends Specification {
   void "should manually filter public images from Edda"() {
     given:
     def agent = getAgent(true, true)
-    def request = new DescribeImagesRequest().withExecutableUsers('all')
+    def request = new DescribeImagesRequest().withFilters(new Filter('is-public', ['true']))
 
     when:
     def result = agent.loadData(providerCache)
