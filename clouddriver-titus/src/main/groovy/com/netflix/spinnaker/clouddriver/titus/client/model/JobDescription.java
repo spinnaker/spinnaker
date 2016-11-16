@@ -34,6 +34,9 @@ public class JobDescription {
     private int cpu;
     private int memory;
     private int disk;
+    private int gpu;
+    private int retries;
+    private int runtimeLimitSecs;
     private int networkMbps;
     private int[] ports;
     private Map<String,String> env;
@@ -93,6 +96,9 @@ public class JobDescription {
         securityGroups = request.getSecurityGroups();
         inService = request.getInService();
         efs = request.getEfs();
+        gpu = request.getGpu();
+        retries = request.getRetries();
+        runtimeLimitSecs = request.getRuntimeLimitSecs();
     }
 
     public String getName() {
@@ -165,6 +171,26 @@ public class JobDescription {
 
     public void setDisk(int disk) {
         this.disk = disk;
+    }
+
+    public void setGpu(int gpu) {
+      this.gpu = gpu;
+    }
+
+    public int getGpu() {
+      return gpu;
+    }
+
+    public void setRetries() { this.retries = retries; }
+
+    public int getRetries() { return retries; }
+
+    public int getRuntimeLimitSecs() {
+      return runtimeLimitSecs;
+    }
+
+    public void setRuntimeLimitSecs(int runtimeLimitSecs) {
+      this.runtimeLimitSecs = runtimeLimitSecs;
     }
 
     public int getNetworkMbps() {

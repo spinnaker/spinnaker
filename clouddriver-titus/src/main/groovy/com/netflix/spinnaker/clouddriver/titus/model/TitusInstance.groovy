@@ -51,7 +51,6 @@ class TitusInstance implements Instance {
     image << [dockerImageName: job.applicationName]
     image << [dockerImageVersion: job.version]
     state = task.state
-
     placement.account = job.environment?.account
     placement.region = task.region
     placement.subnetId = null //TODO(cfieber) what to do here
@@ -62,6 +61,7 @@ class TitusInstance implements Instance {
     resources.cpu = job.cpu
     resources.memory = job.memory
     resources.disk = job.disk
+    resources.gpu = job.gpu
     resources.networkMbps = job.networkMbps
     resources.ports = job.ports ? job.ports.toList().collectEntries { [(it): it] } : [:]
 

@@ -26,6 +26,7 @@ public class Task {
     private TaskState state;
     private String applicationName;
     private int cpu;
+    private int gpu;
     private int memory;
     private int disk;
     private Map<Integer, Integer> ports;
@@ -82,6 +83,14 @@ public class Task {
 
     public void setCpu(int cpu) {
         this.cpu = cpu;
+    }
+
+    public int getGpu() {
+      return gpu;
+    }
+
+    public void setGpu(int gpu) {
+      this.gpu = gpu;
     }
 
     public int getMemory() {

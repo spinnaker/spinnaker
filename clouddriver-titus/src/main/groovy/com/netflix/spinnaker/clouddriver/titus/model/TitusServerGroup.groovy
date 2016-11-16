@@ -53,6 +53,8 @@ class TitusServerGroup implements ServerGroup, Serializable {
   boolean disabled
   Efs efs
   String capacityGroup
+  int retries
+  int runtimeLimitSecs
 
   TitusServerGroup() {}
 
@@ -66,6 +68,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     resources.cpu = job.cpu
     resources.memory = job.memory
     resources.disk = job.disk
+    resources.gpu = job.gpu
     resources.networkMbps = job.networkMbps
     resources.ports = job.ports ? job.ports.toList() : []
     resources.allocateIpAddress = job.allocateIpAddress
@@ -82,6 +85,8 @@ class TitusServerGroup implements ServerGroup, Serializable {
     securityGroups = job.securityGroups
     hardConstraints = job.hardConstraints
     softConstraints = job.softConstraints
+    retries = job.retries
+    runtimeLimitSecs = job.runtimeLimitSecs
     efs = job.efs
   }
 
