@@ -44,7 +44,7 @@ module.exports = angular.module('spinnaker.subnet.subnetSelectField.directive', 
           scope.activeSubnets = subnets.filter(function(subnet) { return !subnet.deprecated; });
           scope.deprecatedSubnets = subnets.filter(function(subnet) { return subnet.deprecated; });
           if (subnets.length) {
-            if (!scope.component[scope.field]) {
+            if (!scope.component[scope.field] && !scope.readOnly) {
               scope.component[scope.field] = subnets[0].purpose;
             }
           }
