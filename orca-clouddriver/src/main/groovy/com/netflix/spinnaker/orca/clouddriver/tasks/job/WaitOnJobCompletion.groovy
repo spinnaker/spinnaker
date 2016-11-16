@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.job
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
@@ -55,12 +56,23 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
     }
 
     Map<String, Object> outputs = [:]
+    if (jobs.size() > 1) {
+      throw new IllegalStateException("At most one job location can be specified at a time.")
+    }
+
     jobs.each { location, names ->
       if (!names) {
         return
       }
 
-      Map job = objectMapper.readValue(oortService.collectJob("*", account, location, names[0], "delete").body.in(), new TypeReference<Map>() {})
+      if (names.size() > 1) {
+        throw new IllegalStateException("At most one job can be run and monitored at a time.")
+      }
+
+      def name = names[0]
+      def parsedName = Names.parseName(name)
+
+      Map job = objectMapper.readValue(oortService.collectJob(parsedName.app, account, location, name, "delete").body.in(), new TypeReference<Map>() {})
       outputs.jobStatus = job
 
       switch ((String)job.jobState) {
