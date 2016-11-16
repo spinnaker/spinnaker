@@ -105,7 +105,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
     }
 
     return sources.collectEntries { CacheData source ->
-      [(source.id): source.relationships[relationship].collect { String key -> allData[key] }]
+      [(source.id): source.relationships[relationship].collect { String key -> allData[key] } - null]
     }
   }
 
