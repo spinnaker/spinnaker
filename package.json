@@ -14,6 +14,7 @@
     "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "~1.5.8",
     "angular-cache": "^4.2.2",
+    "angular-cron-gen": "0.0.6",
     "angular-filter": "^0.5.4",
     "angular-hotkeys": "^1.5.0",
     "angular-marked": "0.0.17",

@@ -3,8 +3,10 @@
 let angular = require('angular');
 
 import {UUIDGenerator} from 'core/utils/uuid.service';
+import './cronTrigger.less';
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
+    require('angular-cron-gen'),
     require('../trigger.directive.js'),
     require('core/serviceAccount/serviceAccount.service.js'),
     require('./cron.validator.directive.js'),
@@ -32,5 +34,10 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
     this.validationMessages = {};
 
     trigger.id = trigger.id || UUIDGenerator.generateUuid();
+    trigger.cronExpression = trigger.cronExpression || '0 0 10 ? * MON-FRI *';
+
+    this.cronOptions = {
+      templateUrl: require('./cronPicker.html'),
+    };
 
   });
