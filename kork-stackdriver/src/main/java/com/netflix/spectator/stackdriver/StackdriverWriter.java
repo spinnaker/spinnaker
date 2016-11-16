@@ -20,7 +20,6 @@ package com.netflix.spectator.stackdriver;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.model.CreateTimeSeriesRequest;
 import com.google.api.services.monitoring.v3.model.Metric;
-import com.google.api.services.monitoring.v3.model.MetricDescriptor;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.api.services.monitoring.v3.model.Point;
 import com.google.api.services.monitoring.v3.model.TimeInterval;
@@ -55,26 +54,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-/* These are builtin metric types that we might be able to use
- * except probably not because there isnt a label to say this is our use
- * as opposed to the assumption that "there is only one" of them.
-
-    "agent.googleapis.com/jvm/memory/usage"
-    "agent.googleapis.com/jvm/cpu/time"
-    "agent.googleapis.com/jvm/gc/time"
-    "agent.googleapis.com/jvm/thread/num_live"
-    "agent.googleapis.com/jvm/thread/peak"
-    "agent.googleapis.com/jvm/uptime"
-
-    "agent.googleapis.com/tomcat/manager/sessions"
-    "agent.googleapis.com/tomcat/request_processor/error_count"
-    "agent.googleapis.com/tomcat/request_processor/processing_time"
-    "agent.googleapis.com/tomcat/request_processor/request_count"
-    "agent.googleapis.com/tomcat/request_processor/traffic_count"
-    "agent.googleapis.com/tomcat/threads/current"
-    "agent.googleapis.com/tomcat/threads/busy"
-*/
-
 
 /**
  * Adapter from Spectator Meters to Stackdriver Time Series Metrics.
@@ -87,6 +66,10 @@ import java.util.regex.Pattern;
  * which is stated to not be thread-safe.
  */
 public class StackdriverWriter {
+   // Capture groups are time series index and actual label name.
+   final private static Pattern INVALID_LABEL_REGEX = Pattern.compile(
+     "timeSeries\\[(\\d+?)\\]\\.metric\\.labels\\[\\d+?\\] had an invalid value of \\W*(\\w+)");
+
   /**
    * This is the Spectator Id used for the timer measuring writeRegistry calls.
    */
@@ -174,37 +157,6 @@ public class StackdriverWriter {
   private boolean addApplicationLabelToTimeSeriesData;
 
   /**
-   * If Stackdriver were to return an error complaining about a TimeSeries
-   * data element we are trying to write, it references that by its index
-   * into the array we sent. That is pretty much useless to debug since we
-   * have no idea what or how the data is organized.
-   *
-   * This method is intended to interpret the Stackdriver error message
-   * in the context of the request we made and return the referenced element
-   * so that it can be logged in more explicit detail to understand what
-   * happened (most likely what label was missing from what descriptor type).
-   *
-   * @param msg
-   *   The exception message.
-   *
-   * @param nextN
-   *   The time series data from the request
-   *
-   * @return
-   *   The time series element referred to by the message, or null.
-   */
-  public static TimeSeries
-  findProblematicTimeSeriesElement(String msg, List<TimeSeries> nextN) {
-    String regex = "timeSeries\\[(\\d+?)\\]\\.metric\\.labels\\[(\\d+?)\\]";
-    Matcher matcher = Pattern.compile(regex).matcher(msg);
-    if (matcher.find()) {
-      int tsIndex = Integer.parseInt(matcher.group(1));
-      return nextN.get(tsIndex);
-    }
-    return null;
-  }
-
-  /**
    * Constructs a writer instance.
    *
    * @param configParams
@@ -238,10 +190,25 @@ public class StackdriverWriter {
    */
   private void handleTimeSeriesResponseException(
        HttpResponseException rex, String msg, List<TimeSeries> nextN) {
-    TimeSeries ts = findProblematicTimeSeriesElement(rex.getMessage(), nextN);
-    if (ts != null) {
+    Matcher matcher = INVALID_LABEL_REGEX.matcher(rex.getContent());
+    TimeSeries ts = null;
+    String label = null;
+    if (matcher.find()) {
+      int tsIndex = Integer.parseInt(matcher.group(1));
+      ts = nextN.get(tsIndex);
+      label = matcher.group(2);
       log.error("{}:  time series element: {}",
                 rex.getMessage(), ts.toString());
+      cache.addLabel(ts.getMetric().getType(), label);
+      try {
+        log.info("Retrying individual time series element");
+        CreateTimeSeriesRequest tsRequest = new CreateTimeSeriesRequest();
+        tsRequest.setTimeSeries(nextN.subList(tsIndex, tsIndex + 1));
+        service.projects().timeSeries().create(projectResourceName, tsRequest)
+            .execute();
+      } catch (IOException ioex) {
+        log.error("Retry failed with " + ioex);
+      }
     } else {
       log.error("Caught HttpResponseException {}", msg, rex);
     }
@@ -250,8 +217,8 @@ public class StackdriverWriter {
   /**
    * Convert a Spectator metric Meter into a Stackdriver TimeSeries entry.
    *
-   * @param descriptor
-   *   The Stackdriver MetricDescriptor for the measurement.
+   * @param descriptorType
+   *   The Stackdriver MetricDescriptorType name for the measurement.
    *
    * @param measurement
    *   The Spectator Measurement to encode.
@@ -260,9 +227,9 @@ public class StackdriverWriter {
    *   The Stackdriver TimeSeries equivalent for the measurement.
    */
   public TimeSeries measurementToTimeSeries(
-        MetricDescriptor descriptor, Measurement measurement) {
+        String descriptorType, Registry registry, Meter meter, Measurement measurement) {
     Map<String, String> labels
-        = cache.tagsToTimeSeriesLabels(descriptor, measurement.id().tags());
+        = cache.tagsToTimeSeriesLabels(descriptorType, measurement.id().tags());
 
     long millis = measurement.timestamp();
     double value = measurement.value();
@@ -271,7 +238,8 @@ public class StackdriverWriter {
     Date date = new Date(millis);
     timeInterval.setEndTime(rfc3339.format(date));
 
-    if (descriptor.getMetricKind().equals("CUMULATIVE")) {
+    String descriptorKind = cache.descriptorTypeToKind(descriptorType, registry, meter);
+    if (descriptorKind == "CUMULATIVE") {
       timeInterval.setStartTime(counterStartTimeRfc3339);
     }
 
@@ -283,13 +251,13 @@ public class StackdriverWriter {
     point.setInterval(timeInterval);
 
     Metric metric = new Metric();
-    metric.setType(descriptor.getType());
+    metric.setType(descriptorType);
     metric.setLabels(labels);
 
     TimeSeries ts = new TimeSeries();
     ts.setResource(monitoredResource);
     ts.setMetric(metric);
-    ts.setMetricKind(descriptor.getMetricKind());
+    ts.setMetricKind(descriptorKind);
     ts.setValueType("DOUBLE");
     ts.setPoints(Lists.<Point>newArrayList(point));
 
@@ -386,12 +354,8 @@ public class StackdriverWriter {
         continue;
       }
 
-      MetricDescriptor descriptor
-          = cache.descriptorOrNull(registry, meter, measurement);
-      if (descriptor == null) {
-        continue;
-      }
-      tsList.add(measurementToTimeSeries(descriptor, measurement));
+      String descriptorType = cache.idToDescriptorType(measurement.id());
+      tsList.add(measurementToTimeSeries(descriptorType, registry, meter, measurement));
     }
   }
 
@@ -490,7 +454,7 @@ public class StackdriverWriter {
         handleTimeSeriesResponseException(rex, "creating time series", nextN);
         failed += nextN.size();
       } catch (IOException ioex) {
-        log.error("Caught HttpResponseException creating time series " + ioex);
+        log.error("Caught Exception creating time series " + ioex);
         failed += nextN.size();
       }
     }
