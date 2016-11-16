@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.providers;
+package com.netflix.spinnaker.halyard.config.errors.v1.config;
 
-import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
-import lombok.Data;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
+import lombok.Getter;
 
-@Data
-public class Providers implements Cloneable {
-  KubernetesProvider kubernetes;
-  DockerRegistryProvider dockerRegistry;
-  GoogleProvider google;
+import javax.servlet.http.HttpServletResponse;
+
+public class NoProviderException extends HalconfigException {
+  @Getter
+  private int responseCode = HttpServletResponse.SC_NOT_FOUND;
+
+  public NoProviderException(String message) {
+    addError(message);
+  }
 }
