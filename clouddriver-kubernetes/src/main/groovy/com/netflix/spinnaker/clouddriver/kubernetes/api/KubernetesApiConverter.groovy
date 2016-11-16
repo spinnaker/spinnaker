@@ -291,7 +291,7 @@ class KubernetesApiConverter {
           .endCapabilities()
       }
 
-      containerBuilder.endSecurityContext()
+      containerBuilder = containerBuilder.endSecurityContext()
     }
 
     [liveness: container.livenessProbe, readiness: container.readinessProbe].each { k, v ->
