@@ -50,8 +50,13 @@ class HighlanderStrategy implements Strategy, ApplicationContextAware {
         shrinkToSize                           : 1,
         allowDeleteActive                      : true,
         retainLargerOverNewer                  : false,
-        interestingHealthProviderNames         : stage.context.interestingHealthProviderNames
     ]
+
+    // We don't want the key propagated if interestingHealthProviderNames isn't defined, since this prevents
+    // health providers from the stage's 'determineHealthProviders' task to be added to the context.
+    if (stage.context.interestingHealthProviderNames != null) {
+      shrinkContext.interestingHealthProviderNames = stage.context.interestingHealthProviderNames
+    }
 
     return [
       newStage(

@@ -50,14 +50,16 @@ class HighlanderStrategySpec extends Specification {
 
     when:
       def syntheticStages = strat.composeFlow(stage)
-    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+      def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
+      def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
       beforeStages.isEmpty()
       afterStages.size() == 1
       afterStages.last().type == shrinkClusterStage.type
-      afterStages.last().context == [
+
+      if (interestingHealthProviderNames) {
+        afterStages.last().context == [
           credentials                   : "testAccount",
           (locationType)                : locationValue,
           cluster                       : "unit-tests",
@@ -66,7 +68,18 @@ class HighlanderStrategySpec extends Specification {
           retainLargerOverNewer         : false,
           allowDeleteActive             : true,
           interestingHealthProviderNames: propagatedInterestingHealthProviderNames
-      ]
+        ]
+      } else {
+        afterStages.last().context == [
+          credentials                   : "testAccount",
+          (locationType)                : locationValue,
+          cluster                       : "unit-tests",
+          cloudProvider                 : cloudProvider,
+          shrinkToSize                  : 1,
+          retainLargerOverNewer         : false,
+          allowDeleteActive             : true,
+        ]
+      }
 
     where:
       cloudProvider | locationType | locationValue | interestingHealthProviderNames | propagatedInterestingHealthProviderNames
