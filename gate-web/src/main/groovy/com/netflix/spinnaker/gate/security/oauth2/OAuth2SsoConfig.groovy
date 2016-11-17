@@ -68,6 +68,11 @@ class OAuth2SsoConfig {
     new ExternalAuthTokenFilter()
   }
 
+  @Bean
+  Adapter oauth2SsoAdapter() {
+    new Adapter()
+  }
+
   /**
    * Use this class to specify how to map fields from the userInfoUri response to what's expected to be in the User.
    */
@@ -85,7 +90,6 @@ class OAuth2SsoConfig {
   static class UserInfoRequirements extends HashMap<String, String> {
   }
 
-  @Component
   static class Adapter extends OAuth2SsoConfigurerAdapter {
     @Autowired
     AuthConfig authConfig

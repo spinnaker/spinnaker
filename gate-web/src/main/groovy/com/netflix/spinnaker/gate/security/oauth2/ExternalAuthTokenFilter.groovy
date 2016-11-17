@@ -43,8 +43,7 @@ class ExternalAuthTokenFilter implements Filter {
   @Qualifier("userInfoRestTemplate")
   OAuth2RestOperations restTemplate
 
-  @Autowired
-  BearerTokenExtractor extractor
+  BearerTokenExtractor extractor = new BearerTokenExtractor()
 
   @Override
   void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
