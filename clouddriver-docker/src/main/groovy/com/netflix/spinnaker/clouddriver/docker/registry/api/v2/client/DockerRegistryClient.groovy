@@ -279,11 +279,15 @@ class DockerRegistryClient {
    * This method will hit the /v2/ endpoint of the configured docker registry. If it this endpoint is up,
    * it will return silently. Otherwise, an exception is thrown detailing why the endpoint isn't available.
    */
-
   public void checkV2Availability() {
     try {
       doCheckV2Availability()
     } catch (RetrofitError error) {
+      // If no credentials are supplied, and we got a 401, the best[1] we can do is assume the registry is OK.
+      // [1] https://docs.docker.com/registry/spec/api/#/api-version-check
+      if (!tokenService.basicAuthHeader && error.response?.status == 401) {
+        return
+      }
       Response response = doCheckV2Availability(tokenService.basicAuthHeader)
       if (!response){
         LOG.error "checkV2Availability", error
