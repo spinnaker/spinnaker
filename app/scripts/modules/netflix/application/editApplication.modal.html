@@ -24,8 +24,7 @@
                  data-purpose="application-email"
                  ng-model="editApp.applicationAttributes.email"
                  placeholder="Enter an email address"
-                 required>
-          </input>
+                 required/>
         </div>
       </div>
 
@@ -96,7 +95,7 @@
       <div class="form-group row">
         <div class="col-md-3 sm-label-right">Account(s)</div>
         <div class="col-md-9">
-          <p class="form-control-static">{{editApp.applicationAttributes.accounts}}</p>
+          <account-select-field component="editApp.data" field="applicationAccounts" accounts="editApp.data.accounts" multiselect="true" on-change="editApp.updateAccounts()"></account-select-field>
         </div>
       </div>
 

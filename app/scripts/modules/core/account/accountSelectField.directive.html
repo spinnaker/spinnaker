@@ -13,7 +13,9 @@
 </div>
 
 <div ng-if="vm.multiselect">
-  <ui-select multiple required name="vm.accounts" ng-model="vm.component[vm.field]" class="form-control input-sm" style="width:200px" >
+  <ui-select multiple required name="vm.accounts" ng-model="vm.component[vm.field]" class="form-control input-sm" style="width:200px"
+             on-select="vm.onChange()"
+             on-remove="vm.onChange()" >
     <ui-select-match >
       {{$item}}
     </ui-select-match>
