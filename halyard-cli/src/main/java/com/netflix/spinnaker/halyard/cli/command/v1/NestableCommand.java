@@ -19,7 +19,9 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigFixableIssue;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblemSet;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -62,16 +64,44 @@ abstract class NestableCommand {
       executeThis();
     } catch (RetrofitError e) {
       if (e.getCause() instanceof ConnectException) {
-        AnsiUi.failure(e.getCause().getMessage());
+        AnsiUi.error(e.getCause().getMessage());
         AnsiUi.remediation("Is your daemon running?");
       } else {
-        HalconfigFixableIssue issue = (HalconfigFixableIssue) e.getBodyAs(HalconfigFixableIssue.class);
-        for (String warning : issue.getWarnings()) {
-          AnsiUi.warning(warning);
-        }
+        HalconfigProblemSet problemSet = (HalconfigProblemSet) e.getBodyAs(HalconfigProblemSet.class);
 
-        for (String error : issue.getErrors()) {
-          AnsiUi.failure(error);
+        problemSet.sortIncreasingSeverity();
+        for (HalconfigProblem problem : problemSet.getProblems()) {
+          HalconfigProblem.Severity severity = problem.getSeverity();
+          HalconfigCoordinates coordinates = problem.getCoordinates();
+          String problemLocation;
+          String message = problem.getMessage();
+          String remediation = problem.getRemediation();
+
+          if (coordinates != null) {
+            problemLocation = "In " + coordinates + ":";
+          } else {
+            problemLocation = "Global:";
+          }
+
+          if (severity == HalconfigProblem.Severity.FATAL) {
+            AnsiUi.error(problemLocation);
+            AnsiUi.error(message);
+          } else if (severity == HalconfigProblem.Severity.ERROR) {
+            AnsiUi.error(problemLocation);
+            AnsiUi.error(message);
+          } else if (severity == HalconfigProblem.Severity.WARNING) {
+            AnsiUi.warning(problemLocation);
+            AnsiUi.warning(message);
+          } else {
+            throw new RuntimeException("Unknown severity level " + severity);
+          }
+
+          if (!remediation.isEmpty()) {
+            AnsiUi.remediation(remediation);
+          }
+
+          // Newline between errors
+          AnsiUi.raw("");
         }
       }
     }

@@ -18,19 +18,23 @@ package com.netflix.spinnaker.halyard.config.errors.v1.config;
 
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
 import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
 public class ParseConfigException extends HalconfigException {
   public ParseConfigException(UnrecognizedPropertyException e) {
-    addError("Unrecognized property in your halconfig: " + e.getMessage());
+    HalconfigProblem problem = new HalconfigProblem(HalconfigProblem.Severity.FATAL, "Unrecognized property in your halconfig: " + e.getMessage());
+    getProblems().add(problem);
   }
 
   public ParseConfigException(ParserException e) {
-    addError("Could not parse your halconfig: " + e.getMessage());
+    HalconfigProblem problem = new HalconfigProblem(HalconfigProblem.Severity.FATAL, "Could not parse your halconfig: " + e.getMessage());
+    getProblems().add(problem);
   }
 
   public ParseConfigException(ScannerException e) {
-    addError("Could not parse your halconfig: " + e.getMessage());
+    HalconfigProblem problem = new HalconfigProblem(HalconfigProblem.Severity.FATAL, "Could not parse your halconfig: " + e.getMessage());
+    getProblems().add(problem);
   }
 }

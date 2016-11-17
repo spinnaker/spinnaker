@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,8 @@ public class DeploymentController {
 
   @RequestMapping(value = "/{deployment:.+}", method = RequestMethod.GET)
   DeploymentConfiguration deploymentConfiguration(@PathVariable String deployment) {
-    return deploymentService.getDeploymentConfiguration(deployment);
+    HalconfigCoordinates coordinates = new HalconfigCoordinates().setDeployment(deployment);
+    return deploymentService.getDeploymentConfiguration(coordinates);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)

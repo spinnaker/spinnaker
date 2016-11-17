@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.config.NoProviderException;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
 import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Providers;
@@ -32,8 +33,10 @@ public class ProviderService {
   @Autowired
   DeploymentService deploymentService;
 
-  public Provider getProvider(String deploymentName, String providerName) {
-    Providers providers = getProviders(deploymentName);
+  public Provider getProvider(HalconfigCoordinates coordinates) {
+    Providers providers = getProviders(coordinates);
+    String deploymentName = coordinates.getDeployment();
+    String providerName = coordinates.getProvider();
 
     Provider provider = null;
     if (providerName.toLowerCase().equals("kubernetes")) {
@@ -42,21 +45,29 @@ public class ProviderService {
       provider = providers.getDockerRegistry();
     } else if (providerName.toLowerCase().equals("google")) {
       provider = providers.getGoogle();
+    } else {
+      throw new IllegalRequestException(coordinates,
+          "There is no support for managing the selected provider using halyard",
+          "You either made a typo, or should file a feature request: https://github.com/spinnaker/spinnaker/issues");
     }
 
     if (provider == null) {
-      throw new NoProviderException("The " + NamingService.provider(deploymentName, providerName) + " was not configured");
+      throw new IllegalRequestException(coordinates,
+          "The selected provider was not configured",
+          "Add an account for the selected provider, or pick a different provider");
     }
 
     return provider;
   }
 
-  public Providers getProviders(String deploymentName) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+  public Providers getProviders(HalconfigCoordinates coordinates) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(coordinates);
 
     Providers providers = deploymentConfiguration.getProviders();
     if (providers == null) {
-      throw new NoProviderException("The " + NamingService.deployment(deploymentName) + " has no providers configured");
+      throw new IllegalRequestException(coordinates,
+          "The selected deployment has no providers configured",
+          "Add an account for any provider, or pick a different deployment");
     }
 
     return providers;

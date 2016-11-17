@@ -24,7 +24,7 @@ public class Main {
     try {
       hal.execute();
     } catch (RetrofitError e) {
-      AnsiUi.failure(e.getMessage());
+      AnsiUi.error(e.getMessage());
     }
   }
 }

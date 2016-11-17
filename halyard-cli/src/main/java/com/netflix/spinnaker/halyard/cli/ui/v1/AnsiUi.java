@@ -40,7 +40,7 @@ public class AnsiUi {
     prefixedPrint(prefix, message);
   }
 
-  public static void failure(String message) {
+  public static void error(String message) {
     AnsiMessage prefix = new AnsiMessage("! ")
         .setForegroundColor(AnsiForegroundColor.RED)
         .addStyle(AnsiStyle.BOLD);
@@ -49,7 +49,7 @@ public class AnsiUi {
   }
 
   public static void remediation(String message) {
-    AnsiMessage prefix = new AnsiMessage("? ")
+    AnsiMessage prefix = new AnsiMessage("\t? ")
         .setForegroundColor(AnsiForegroundColor.MAGENTA)
         .addStyle(AnsiStyle.BOLD);
 
@@ -58,7 +58,7 @@ public class AnsiUi {
 
   public static void success(String message) {
     AnsiMessage prefix = new AnsiMessage("+ ")
-        .setForegroundColor(AnsiForegroundColor.BLUE)
+        .setForegroundColor(AnsiForegroundColor.GREEN)
         .addStyle(AnsiStyle.BOLD);
 
     prefixedPrint(prefix, message);

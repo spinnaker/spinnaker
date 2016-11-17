@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
 import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,20 +36,25 @@ public class DeploymentService {
   @Autowired
   ConfigService configService;
 
-  public DeploymentConfiguration getDeploymentConfiguration(String deployment) {
+  public DeploymentConfiguration getDeploymentConfiguration(HalconfigCoordinates coordinates) {
+    String deploymentName = coordinates.getDeployment();
     Halconfig halconfig = configService.getConfig();
     List<DeploymentConfiguration> matching = halconfig.getDeploymentConfigurations()
         .stream()
-        .filter(d -> d.getName().equals(deployment))
+        .filter(d -> d.getName().equals(deploymentName))
         .collect(Collectors.toList());
 
     switch (matching.size()) {
       case 0:
-        throw new IllegalConfigException("The " + NamingService.deployment(deployment) + " not found");
+        throw new IllegalRequestException(coordinates,
+            "No matching deployment could be found",
+            "Create a new deployment");
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException("The " + NamingService.deployment(deployment) + " appears more than once");
+        throw new IllegalConfigException(coordinates,
+            "More than one matching deployment found",
+            "Manually delete or rename matching deployments in your halconfig file");
     }
   }
 

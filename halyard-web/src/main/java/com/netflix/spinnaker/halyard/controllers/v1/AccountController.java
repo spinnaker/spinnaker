@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,11 @@ public class AccountController {
 
   @RequestMapping(value = "/{account:.+}", method = RequestMethod.GET)
   Account account(@PathVariable String deployment, @PathVariable String provider, @PathVariable String account) {
-    return accountService.getAccount(deployment, provider, account);
+    HalconfigCoordinates coordinates = new HalconfigCoordinates()
+        .setDeployment(deployment)
+        .setProvider(provider)
+        .setAccount(account);
+
+    return accountService.getAccount(coordinates);
   }
 }

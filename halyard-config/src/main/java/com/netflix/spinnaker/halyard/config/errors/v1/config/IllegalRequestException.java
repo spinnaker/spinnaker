@@ -21,17 +21,16 @@ import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
 
 /**
- * This is reserved for Halyard configs that fall between unparseable (not valid yaml), and incorrectly configured
- * (provider-specific error). Essentially, when a config has problems that prevent halyard from validating it, although
- * it is readable by our yaml parser into the hafconfig Object, this is thrown
+ * This is meant for requests that Halyard cannot figure out how to handle.
+ * For example: Asking to load an account that isn't in your config.
  */
-public class IllegalConfigException extends HalconfigException {
-  public IllegalConfigException(String message, String remediation) {
+public class IllegalRequestException extends HalconfigException {
+  public IllegalRequestException(String message, String remediation) {
     HalconfigProblem problem = new HalconfigProblem(HalconfigProblem.Severity.FATAL, message, remediation);
     getProblems().add(problem);
   }
 
-  public IllegalConfigException(HalconfigCoordinates coordinates, String message, String remediation) {
+  public IllegalRequestException(HalconfigCoordinates coordinates, String message, String remediation) {
     HalconfigProblem problem = new HalconfigProblem(HalconfigProblem.Severity.FATAL, coordinates, message, remediation);
     getProblems().add(problem);
   }

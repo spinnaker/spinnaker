@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Providers;
 import com.netflix.spinnaker.halyard.config.services.v1.ProviderService;
@@ -33,11 +34,13 @@ public class ProviderController {
 
   @RequestMapping(value = "/{provider:.+}", method = RequestMethod.GET)
   Provider provider(@PathVariable String deployment, @PathVariable String provider) {
-    return providerService.getProvider(deployment, provider);
+    HalconfigCoordinates coordinates = new HalconfigCoordinates().setDeployment(deployment).setProvider(provider);
+    return providerService.getProvider(coordinates);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   Providers providers(@PathVariable String deployment) {
-    return providerService.getProviders(deployment);
+    HalconfigCoordinates coordinates = new HalconfigCoordinates().setDeployment(deployment);
+    return providerService.getProviders(coordinates);
   }
 }

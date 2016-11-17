@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.errors.v1;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigFixableIssue;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblemSet;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -28,8 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 public class HalconfigExceptionHandler {
   @ExceptionHandler({HalconfigException.class})
   @ResponseBody
-  public HalconfigFixableIssue handleHalconfigException(HttpServletResponse response, HalconfigException exception) {
+  public HalconfigProblemSet handleHalconfigException(HttpServletResponse response, HalconfigException exception) {
     response.setStatus(exception.getResponseCode());
-    return exception.getIssue();
+    return exception.getProblems();
   }
 }

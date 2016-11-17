@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.NoAccountException;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Providers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,8 +36,10 @@ public class AccountService {
   @Autowired
   ProviderService providerService;
 
-  public Account getAccount(String deploymentName, String providerName, String accountName) {
-    Provider provider = providerService.getProvider(deploymentName, providerName);
+  public Account getAccount(HalconfigCoordinates coordinates) {
+    Provider provider = providerService.getProvider(coordinates);
+
+    String accountName = coordinates.getAccount();
 
     List<Account> accounts = provider.getAccounts();
 
@@ -49,11 +50,15 @@ public class AccountService {
 
     switch (matchingAccounts.size()) {
       case 0:
-        throw new NoAccountException("No account in " + NamingService.account(deploymentName, providerName, accountName) + " could be found");
+        throw new IllegalRequestException(coordinates,
+            "No matching account found account",
+            "Check if this account was defined in another provider, or create a new one");
       case 1:
         return matchingAccounts.get(0);
       default:
-        throw new IllegalConfigException("Multiple accounts in " + NamingService.account(deploymentName, providerName, accountName) + " were found");
+        throw new IllegalConfigException(coordinates,
+            "More than one matching account found",
+            "Manually delete/rename duplicate accounts in your halconfig file");
     }
   }
 }
