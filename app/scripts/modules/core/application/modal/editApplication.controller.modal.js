@@ -25,8 +25,12 @@ module.exports = angular
     vm.applicationAttributes.cloudProviders = application.attributes.cloudProviders ?
       application.attributes.cloudProviders.split(',') :
       [];
+    vm.data.applicationAccounts = application.attributes.accounts ?
+      application.attributes.accounts.split(',') :
+      [];
 
     accountService.listProviders().then((providers) => vm.data.cloudProviders = providers);
+    accountService.listAccounts().then((accounts) => vm.data.accounts = accounts);
 
     function closeModal() {
       vm.data.cloudProviders = null; // wha? prevents a fight with the ui-select directive trying to invalidate the selections
@@ -63,6 +67,10 @@ module.exports = angular
     function submitting() {
       vm.state.submitting = true;
     }
+
+    vm.updateAccounts = function() {
+      vm.applicationAttributes.accounts = vm.data.applicationAccounts.join(',');
+    };
 
     vm.updateCloudProviderHealthWarning = (platformHealthOnlyShowOverrideClicked) => {
       if (vm.applicationAttributes.platformHealthOnlyShowOverride
