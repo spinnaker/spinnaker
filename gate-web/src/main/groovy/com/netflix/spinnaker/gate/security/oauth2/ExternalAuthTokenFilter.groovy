@@ -49,7 +49,7 @@ class ExternalAuthTokenFilter implements Filter {
   void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     def httpServletRequest = (HttpServletRequest) request
     Authentication auth = extractor.extract(httpServletRequest)
-    if (auth.principal) {
+    if (auth?.principal) {
       restTemplate.OAuth2ClientContext.accessToken = new DefaultOAuth2AccessToken(auth.principal.toString())
     }
     chain.doFilter(request, response)
