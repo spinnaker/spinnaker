@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Primary
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter
 import org.springframework.stereotype.Component
 
 /**
@@ -54,25 +55,17 @@ import org.springframework.stereotype.Component
 // Note the 4 single-quotes below - this is a raw groovy string, because SpEL and groovy
 // string syntax overlap!
 @ConditionalOnExpression(''''${spring.oauth2.client.clientId:}'!=""''')
-class OAuth2SsoConfig extends OAuth2SsoConfigurerAdapter {
-
-  @Autowired
-  AuthConfig authConfig
-
-  @Override
-  void match(OAuth2SsoConfigurer.RequestMatchers matchers) {
-    matchers.antMatchers('/**')
-  }
-
-  @Override
-  void configure(HttpSecurity http) throws Exception {
-    authConfig.configure(http)
-  }
+class OAuth2SsoConfig {
 
   @Primary
   @Bean
   ResourceServerTokenServices spinnakerUserInfoTokenServices() {
     new SpinnakerUserInfoTokenServices()
+  }
+
+  @Bean
+  ExternalAuthTokenFilter externalAuthTokenFilter() {
+    new ExternalAuthTokenFilter()
   }
 
   /**
@@ -90,5 +83,25 @@ class OAuth2SsoConfig extends OAuth2SsoConfigurerAdapter {
   @Component
   @ConfigurationProperties("spring.oauth2.userInfoRequirements")
   static class UserInfoRequirements extends HashMap<String, String> {
+  }
+
+  @Component
+  static class Adapter extends OAuth2SsoConfigurerAdapter {
+    @Autowired
+    AuthConfig authConfig
+
+    @Autowired
+    ExternalAuthTokenFilter externalAuthTokenFilter
+
+    @Override
+    void match(OAuth2SsoConfigurer.RequestMatchers matchers) {
+      matchers.antMatchers('/**')
+    }
+
+    @Override
+    void configure(HttpSecurity http) throws Exception {
+      authConfig.configure(http)
+      http.addFilterBefore(externalAuthTokenFilter, AbstractPreAuthenticatedProcessingFilter.class)
+    }
   }
 }
