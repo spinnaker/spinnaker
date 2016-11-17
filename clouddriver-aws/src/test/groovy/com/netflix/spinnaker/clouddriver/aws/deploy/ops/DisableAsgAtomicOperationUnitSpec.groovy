@@ -16,7 +16,10 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.Instance
+import com.amazonaws.services.ec2.model.DescribeInstancesResult
+import com.amazonaws.services.ec2.model.Instance
+import com.amazonaws.services.ec2.model.InstanceState
+import com.amazonaws.services.ec2.model.Reservation
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
@@ -34,17 +37,22 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     op = new DisableAsgAtomicOperation(description)
   }
 
-  void 'should deregister instances from load balancers and suspend scaling processes'() {
-    setup:
+  def 'should deregister instances from load balancer and suspend scaling processes'() {
+    given:
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
-    asg.getInstances() >> [new Instance().withInstanceId("i1").withLifecycleState("InService")]
+
+    and:
+    def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
+    def describeInstanceResult = Mock(DescribeInstancesResult)
+    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
 
     when:
     op.operate([])
 
     then:
+    1 * amazonEc2.describeInstances(_) >> describeInstanceResult
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * asgService.suspendProcesses(_, AutoScalingProcessType.getDisableProcesses())
     1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
@@ -53,17 +61,22 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     }
   }
 
-  void 'should not fail if a load balancer does not exist'() {
-    setup:
+  def 'should not fail if a load balancer does not exist'() {
+    given:
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
-    asg.getInstances() >> [new Instance().withInstanceId("i1").withLifecycleState("InService")]
+
+    and:
+    def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
+    def describeInstanceResult = Mock(DescribeInstancesResult)
+    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
 
     when:
     op.operate([])
 
     then:
+    1 * amazonEc2.describeInstances(_) >> describeInstanceResult
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * asgService.suspendProcesses(_, AutoScalingProcessType.getDisableProcesses())
     1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { throw new LoadBalancerNotFoundException("Does not exist") }
@@ -78,15 +91,18 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     0 * task.fail()
   }
 
-  void 'should disable instances for asg in discovery'() {
-    setup:
+  def 'should disable instances for asg in discovery'() {
+    given:
     def asg = Mock(AutoScalingGroup)
-    asg.getInstances() >> [new Instance().withInstanceId("i1").withLifecycleState("InService")]
+    def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
+    def describeInstanceResult = Mock(DescribeInstancesResult)
+    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
 
     when:
     op.operate([])
 
     then:
+    1 * amazonEc2.describeInstances(_) >> describeInstanceResult
     2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * eureka.getInstanceInfo('i1') >>
@@ -98,8 +114,8 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     1 * eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE')
   }
 
-  void 'should skip discovery if not enabled for account'() {
-    setup:
+  def 'should skip discovery if not enabled for account'() {
+    given:
     def noDiscovery = new EnableDisableAsgDescription([
       asgs: [[
         serverGroupName: "kato-main-v000",
@@ -113,12 +129,17 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
 
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
-    asg.getInstances() >> [new Instance().withInstanceId("i1")]
+
+    and:
+    def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
+    def describeInstanceResult = Mock(DescribeInstancesResult)
+    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
 
     when:
     noDiscoveryOp.operate([])
 
     then:
+    1 * amazonEc2.describeInstances(_) >> describeInstanceResult
     1 * asgService.getAutoScalingGroup(_) >> asg
     0 * eureka.updateInstanceStatus(*_)
   }
