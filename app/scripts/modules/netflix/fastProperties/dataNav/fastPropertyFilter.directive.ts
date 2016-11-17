@@ -1,5 +1,7 @@
 import * as _ from 'lodash';
+import { DirectiveFactory } from '../../../core/utils/tsDecorators/directiveFactoryDecorator';
 
+@DirectiveFactory()
 class FastPropertyFilterDirective implements ng.IDirective {
 
   scope: any = {
@@ -26,9 +28,7 @@ class FastPropertyFilterDirective implements ng.IDirective {
         index: 1,
         search: (term: string, callback: any) => {
           callback(getScopeAttributeList(field).filter((attr: string) => {
-            if (attr.includes(term) ) {
-              return attr;
-            }
+            return attr.includes(term);
           }));
         },
         replace: (attr: string): string => {
@@ -72,23 +72,9 @@ class FastPropertyFilterDirective implements ng.IDirective {
   }
 }
 
-class DirectiveFactory {
-
-  public static getFactoryFor<T extends ng.IDirective>(classType: Function): ng.IDirectiveFactory {
-    let factory = (...args: any[]): T => {
-      let directive = <any>classType;
-      return new directive(args);
-    };
-
-    factory.$inject = classType.$inject;
-    return factory;
-  }
-}
-
-const moduleName = 'spinnaker.netflix.fastPropertyFilter.directive';
+export const FAST_PROPERTY_FILTER_DIRECTIVE = 'spinnaker.netflix.fastPropertyFilter.directive';
 
 angular
-  .module(moduleName, [])
-  .directive('fastPropertyFilter', DirectiveFactory.getFactoryFor(FastPropertyFilterDirective));
+  .module(FAST_PROPERTY_FILTER_DIRECTIVE, [])
+  .directive('fastPropertyFilter', <any>FastPropertyFilterDirective);
 
-export default moduleName;

@@ -1,4 +1,5 @@
 import {module} from 'angular';
+import { DirectiveFactory } from '../../../utils/tsDecorators/directiveFactoryDecorator';
 import {
   APPLICATION_NAME_VALIDATOR,
   ApplicationNameValidator
@@ -21,8 +22,6 @@ class ValidateApplicationNameController implements ng.IComponentController {
   public $attrs: IValidateNameAttrs;
   public $scope: ng.IScope;
 
-  static get $inject() { return ['applicationNameValidator']; }
-
   public constructor(private applicationNameValidator: ApplicationNameValidator) {}
 
   public initialize() {
@@ -33,24 +32,27 @@ class ValidateApplicationNameController implements ng.IComponentController {
   }
 }
 
+
+@DirectiveFactory('applicationNameValidator')
+class ValidateApplicationNameDirective implements ng.IDirective {
+  restrict: string = 'A';
+  controller: ng.IComponentController =  ValidateApplicationNameController;
+  controllerAs: string = '$ctrl';
+  require: string = 'ngModel';
+  bindToController: Object = {
+    cloudProviders: '<',
+  };
+
+  link($scope: ng.IScope, $element: JQuery, $attrs: IValidateNameAttrs, ctrl: ng.INgModelController) {
+    const $ctrl: ValidateApplicationNameController = $scope['$ctrl'];
+    $ctrl.$scope = $scope;
+    $ctrl.$attrs = $attrs;
+    $ctrl.model = ctrl;
+    $ctrl.initialize();
+  }
+}
+
 export const VALIDATE_APPLICATION_NAME = 'spinnaker.core.application.modal.validateApplicationName.component';
 
 module(VALIDATE_APPLICATION_NAME, [APPLICATION_NAME_VALIDATOR])
-  .directive('validateApplicationName', [() => {
-    return {
-      restrict: 'A',
-      controller: ValidateApplicationNameController,
-      controllerAs: '$ctrl',
-      require: 'ngModel',
-      bindToController: {
-        cloudProviders: '<',
-      },
-      link: ($scope: ng.IScope, $element: JQuery, $attrs: IValidateNameAttrs, ctrl: ng.INgModelController) => {
-        const $ctrl: ValidateApplicationNameController = $scope['$ctrl'];
-        $ctrl.$scope = $scope;
-        $ctrl.$attrs = $attrs;
-        $ctrl.model = ctrl;
-        $ctrl.initialize();
-      }
-    };
-  }]);
+  .directive('validateApplicationName', <any>ValidateApplicationNameDirective);

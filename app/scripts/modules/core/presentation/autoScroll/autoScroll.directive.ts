@@ -1,4 +1,5 @@
 import {module} from 'angular';
+import { DirectiveFactory } from '../../utils/tsDecorators/directiveFactoryDecorator';
 import {Subject} from 'rxjs';
 
 interface AutoScrollAttrs {
@@ -6,7 +7,7 @@ interface AutoScrollAttrs {
   autoScroll: string;
 }
 
-export class AutoScrollController {
+export class AutoScrollController implements ng.IComponentController {
   public autoScrollParent: string;
   public autoScrollEnabled: string;
   public onScroll: (event: Event) => void;
@@ -19,8 +20,6 @@ export class AutoScrollController {
   private scrollEnabled: boolean = true;
 
   private containerEvent: string = 'scroll.autoScrollWatcher';
-
-  static get $inject() { return ['$timeout']; }
 
   private toggleAutoScrollEnabled(newVal: boolean): void {
     if (newVal !== undefined) {
@@ -54,25 +53,28 @@ export class AutoScrollController {
   public constructor(private $timeout: ng.ITimeoutService) {}
 }
 
+@DirectiveFactory('$timeout')
+class AutoScrollDirective implements ng.IDirective {
+  restrict: string = 'A';
+  controller: ng.IComponentController = AutoScrollController;
+  controllerAs: string = '$ctrl';
+  bindToController: Object = {
+    autoScrollParent: '@?',
+    autoScrollEnabled: '@?',
+    onScroll: '=?',
+    scrollToTop: '=?',
+  };
+
+  link($scope: ng.IScope, $element: JQuery, $attrs: AutoScrollAttrs, ctrl: AutoScrollController) {
+    ctrl.$scope = $scope;
+    ctrl.$element = $element;
+    ctrl.$attrs = $attrs;
+    ctrl.initialize();
+  }
+}
+
+
 export const AUTO_SCROLL_DIRECTIVE = 'spinnaker.core.autoScroll';
 
 module(AUTO_SCROLL_DIRECTIVE, [])
-  .directive('autoScroll', [() => {
-    return {
-      restrict: 'A',
-      controller: AutoScrollController,
-      controllerAs: '$ctrl',
-      bindToController: {
-        autoScrollParent: '@?',
-        autoScrollEnabled: '@?',
-        onScroll: '=?',
-        scrollToTop: '=?',
-      },
-      link: ($scope: ng.IScope, $element: JQuery, $attrs: AutoScrollAttrs, ctrl: AutoScrollController) => {
-        ctrl.$scope = $scope;
-        ctrl.$element = $element;
-        ctrl.$attrs = $attrs;
-        ctrl.initialize();
-      }
-    };
-  }]);
+  .directive('autoScroll', <any>AutoScrollDirective);
