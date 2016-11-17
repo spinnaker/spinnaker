@@ -166,7 +166,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
     azureSG.subnet = AzureUtilities.getNameFromResourceId(azureSG.subnetId)
     azureSG.vnet = azureSG.subnetId ? AzureUtilities.getNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnet
     azureSG.vnetResourceGroup = azureSG.subnetId ? AzureUtilities.getResourceGroupNameFromResourceId(azureSG.subnetId) : scaleSet.tags?.vnetResourceGroup
-    azureSG.hasNewSubnet = scaleSet.tags?.hasNewSubnet
+    azureSG.hasNewSubnet = (scaleSet.tags?.hasNewSubnet == "true")
 
     azureSG.createdTime = scaleSet.tags?.createdTime?.toLong()
     azureSG.image = new AzureNamedImage(isCustom: scaleSet.tags?.customImage, imageName: scaleSet.tags?.imageName)
