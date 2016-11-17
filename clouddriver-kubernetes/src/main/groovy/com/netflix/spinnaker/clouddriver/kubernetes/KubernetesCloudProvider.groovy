@@ -26,7 +26,9 @@ import java.lang.annotation.Annotation
  */
 @Component
 class KubernetesCloudProvider implements CloudProvider {
-  final String id = "kubernetes"
+  static final String ID = "kubernetes"
+
+  final String id = ID
   final String displayName = "Kubernetes"
   final Class<Annotation> operationAnnotationType = KubernetesOperation.class
 }

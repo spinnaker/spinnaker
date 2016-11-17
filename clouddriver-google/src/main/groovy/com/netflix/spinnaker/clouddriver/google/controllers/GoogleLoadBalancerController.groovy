@@ -21,19 +21,24 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHostRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.stereotype.Component
 
-@RestController
-@RequestMapping("/gce/loadBalancers")
+@Component
 class GoogleLoadBalancerController implements LoadBalancerProviderTempShim {
+
+  final String cloudProvider = GoogleCloudProvider.GCE
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -41,7 +46,6 @@ class GoogleLoadBalancerController implements LoadBalancerProviderTempShim {
   @Autowired
   GoogleLoadBalancerProvider googleLoadBalancerProvider
 
-  @RequestMapping(method = RequestMethod.GET)
   List<GoogleLoadBalancerAccountRegionSummary> list() {
     def loadBalancerViewsByName = googleLoadBalancerProvider.getApplicationLoadBalancers("").groupBy { it.name }
 
@@ -92,17 +96,15 @@ class GoogleLoadBalancerController implements LoadBalancerProviderTempShim {
     }
   }
 
-  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
-  GoogleLoadBalancerAccountRegionSummary get(@PathVariable String name) {
+  GoogleLoadBalancerAccountRegionSummary get(String name) {
     // TODO(ttomsu): It's inefficient to pull everything back and (possibly) discard most of it.
     // Refactor when addressing https://github.com/spinnaker/spinnaker/issues/807
     list().find { it.name == name }
   }
 
-  @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  List<GoogleLoadBalancerDetails> byAccountAndRegionAndName(@PathVariable String account,
-                                                            @PathVariable String region,
-                                                            @PathVariable String name) {
+  List<GoogleLoadBalancerDetails> byAccountAndRegionAndName(String account,
+                                                            String region,
+                                                            String name) {
     GoogleLoadBalancerView view = googleLoadBalancerProvider.getApplicationLoadBalancers(name).find { view ->
       view.account == account && view.region == region
     }

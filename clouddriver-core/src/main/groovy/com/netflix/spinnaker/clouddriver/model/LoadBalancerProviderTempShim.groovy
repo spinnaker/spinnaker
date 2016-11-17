@@ -27,6 +27,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 interface LoadBalancerProviderTempShim {
 
+  String getCloudProvider()
+
   List<Item> list()
 
   Item get(String name)

@@ -17,19 +17,18 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.appgateway.view
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureAppGatewayDescription
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.stereotype.Component
 
-@RestController
-@RequestMapping("/azure/loadBalancers")
+@Component
 class AzureAppGatewayController implements LoadBalancerProviderTempShim {
+
+  final String cloudProvider = AzureCloudProvider.AZURE
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -37,7 +36,6 @@ class AzureAppGatewayController implements LoadBalancerProviderTempShim {
   @Autowired
   AzureAppGatewayProvider azureAppGatewayProvider
 
-  @RequestMapping(method = RequestMethod.GET)
   List<AzureAppGatewaySummary> list() {
     getSummaryForAppGateways().values() as List
   }
@@ -66,8 +64,7 @@ class AzureAppGatewayController implements LoadBalancerProviderTempShim {
     throw new UnsupportedOperationException("TODO: Implement single getter.")
   }
 
-  @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  List<Map> byAccountAndRegionAndName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
+  List<Map> byAccountAndRegionAndName(String account, String region, String name) {
     String appName = AzureUtilities.getAppNameFromAzureResourceName(name)
     AzureAppGatewayDescription description = azureAppGatewayProvider.getAppGatewayDescription(account, appName, region, name)
 

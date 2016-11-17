@@ -20,19 +20,18 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
 
-@RestController
-@RequestMapping("/aws/loadBalancers")
+@Component
 class AmazonLoadBalancerController implements LoadBalancerProviderTempShim {
+
+  final String cloudProvider = AmazonCloudProvider.AWS
 
   private final Cache cacheView
 
@@ -41,15 +40,13 @@ class AmazonLoadBalancerController implements LoadBalancerProviderTempShim {
     this.cacheView = cacheView
   }
 
-  @RequestMapping(method = RequestMethod.GET)
   List<AmazonLoadBalancerSummary> list() {
     def searchKey = Keys.getLoadBalancerKey('*', '*', '*', null, null) + '*'
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     getSummaryForLoadBalancers(identifiers).values() as List
   }
 
-  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
-  AmazonLoadBalancerSummary get(@PathVariable String name) {
+  AmazonLoadBalancerSummary get(String name) {
     def searchKey = Keys.getLoadBalancerKey(name, '*', '*', null, null)  + "*"
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey).findAll {
       def key = Keys.parse(it)
@@ -58,18 +55,17 @@ class AmazonLoadBalancerController implements LoadBalancerProviderTempShim {
     getSummaryForLoadBalancers(identifiers).get(name)
   }
 
-  @RequestMapping(value = "/{account}/{region}", method = RequestMethod.GET)
-  List<AmazonLoadBalancerSummary> getInAccountAndRegion(@PathVariable String account,
-                                                        @PathVariable String region) {
+  // TODO: Remove, doesn't appear to be used.
+  List<AmazonLoadBalancerSummary> getInAccountAndRegion(String account,
+                                                        String region) {
     def searchKey = Keys.getLoadBalancerKey('*', account, region, null, null)
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     getSummaryForLoadBalancers(identifiers).values() as List
   }
 
-  @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  List<Map> byAccountAndRegionAndName(@PathVariable String account,
-                                      @PathVariable String region,
-                                      @PathVariable String name) {
+  List<Map> byAccountAndRegionAndName(String account,
+                                      String region,
+                                      String name) {
     def searchKey = Keys.getLoadBalancerKey(name, account, region, null, null) + '*'
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey).findAll {
       def key = Keys.parse(it)
@@ -79,11 +75,11 @@ class AmazonLoadBalancerController implements LoadBalancerProviderTempShim {
     cacheView.getAll(LOAD_BALANCERS.ns, identifiers).attributes
   }
 
-  @RequestMapping(value = "/{account}/{region}/{name}/{vpcId}", method = RequestMethod.GET)
-  Map getDetailsInAccountAndRegionByName(@PathVariable String account,
-                                         @PathVariable String region,
-                                         @PathVariable String name,
-                                         @PathVariable String vpcId) {
+  // TODO: Remove, doesn't appear to be used.
+  Map getDetailsInAccountAndRegionByName(String account,
+                                         String region,
+                                         String name,
+                                         String vpcId) {
     def key = Keys.getLoadBalancerKey(name, account, region, vpcId, null)
     cacheView.get(LOAD_BALANCERS.ns, key)?.attributes
   }

@@ -17,19 +17,22 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.view
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.stereotype.Component
 
-@RestController
-@RequestMapping("/azure/loadBalancersL4")
+
+/**
+ * @deprecated - Use AzureAppGatewayController instead.
+ */
+@Deprecated
 class AzureLoadBalancerController implements LoadBalancerProviderTempShim {
+
+  final String cloudProvider = "DoNotUse"
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -37,7 +40,6 @@ class AzureLoadBalancerController implements LoadBalancerProviderTempShim {
   @Autowired
   AzureLoadBalancerProvider azureLoadBalancerProvider
 
-  @RequestMapping(method = RequestMethod.GET)
   List<AzureLoadBalancerSummary> list() {
     getSummaryForLoadBalancers().values() as List
   }
@@ -66,8 +68,7 @@ class AzureLoadBalancerController implements LoadBalancerProviderTempShim {
     throw new UnsupportedOperationException("TODO: Implement single getter.")
   }
 
-  @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
-  List<Map> byAccountAndRegionAndName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
+  List<Map> byAccountAndRegionAndName(String account, String region, String name) {
     String appName = AzureUtilities.getAppNameFromAzureResourceName(name)
     AzureLoadBalancerDescription azureLoadBalancerDescription = azureLoadBalancerProvider.getLoadBalancerDescription(account, appName, region, name)
 
