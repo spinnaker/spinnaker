@@ -27,6 +27,9 @@ class CredentialsService {
   private static final String GROUP = "credentials"
 
   @Autowired
+  AccountLookupService accountLookupService
+
+  @Autowired
   ClouddriverService clouddriverService
 
   @Autowired
@@ -49,7 +52,7 @@ class CredentialsService {
    */
   List<ClouddriverService.Account> getAccounts(Collection<String> userRoles) {
     HystrixFactory.newListCommand(GROUP, "getAccounts") {
-      return clouddriverService.accounts.findAll { ClouddriverService.Account account ->
+      return accountLookupService.accounts.findAll { ClouddriverService.Account account ->
         if (fiatConfig.enabled) {
           return true // Returned list is filtered later.
         }

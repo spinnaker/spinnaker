@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit
  * DefaultProviderLookupService.
  */
 @Component("providerLookupService")
-class DefaultProviderLookupService implements ProviderLookupService {
+class DefaultProviderLookupService implements ProviderLookupService, AccountLookupService {
 
   private static final String FALLBACK = "unknown"
   private static final String ACCOUNTS_KEY = "all"
@@ -41,7 +41,7 @@ class DefaultProviderLookupService implements ProviderLookupService {
   private final LoadingCache<String, List<ClouddriverService.Account>> accountsCache = CacheBuilder.newBuilder()
     .initialCapacity(1)
     .maximumSize(1)
-    .refreshAfterWrite(5, TimeUnit.SECONDS)
+    .refreshAfterWrite(2, TimeUnit.SECONDS)
     .build(new CacheLoader<String, List<ClouddriverService.Account>>() {
         @Override
         List<ClouddriverService.Account> load(String key) throws Exception {
@@ -54,6 +54,7 @@ class DefaultProviderLookupService implements ProviderLookupService {
     this.clouddriverService = clouddriverService
   }
 
+  @Override
   public String providerForAccount(String account) {
     try {
       return accountsCache.get(ACCOUNTS_KEY)?.find { it.name == account }?.type ?: FALLBACK
@@ -62,4 +63,8 @@ class DefaultProviderLookupService implements ProviderLookupService {
     }
   }
 
+  @Override
+  public List<ClouddriverService.Account> getAccounts() {
+    return accountsCache.get(ACCOUNTS_KEY)
+  }
 }

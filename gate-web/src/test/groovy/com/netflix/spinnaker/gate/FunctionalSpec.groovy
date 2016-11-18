@@ -20,6 +20,7 @@ import com.netflix.spinnaker.config.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.controllers.PipelineController
+import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.ExecutionHistoryService
@@ -59,6 +60,7 @@ class FunctionalSpec extends Specification {
   static CredentialsService credentialsService
   static PipelineService pipelineService
   static ServiceConfiguration serviceConfiguration
+  static AccountLookupService accountLookupService
 
   ConfigurableApplicationContext ctx
 
@@ -70,6 +72,7 @@ class FunctionalSpec extends Specification {
     clouddriverService = Mock(ClouddriverService)
     orcaService = Mock(OrcaService)
     credentialsService = Mock(CredentialsService)
+    accountLookupService = Mock(AccountLookupService)
     pipelineService = Mock(PipelineService)
     serviceConfiguration = new ServiceConfiguration()
 
@@ -227,6 +230,11 @@ class FunctionalSpec extends Specification {
     @Bean
     ServiceConfiguration serviceConfiguration() {
       serviceConfiguration
+    }
+
+    @Bean
+    AccountLookupService accountLookupService() {
+      accountLookupService
     }
 
     @Bean

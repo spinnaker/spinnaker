@@ -27,13 +27,13 @@ class CredentialsServiceSpec extends Specification {
   @Unroll
   def "should return allowed account names"() {
     setup:
-      ClouddriverService clouddriverService = Mock(ClouddriverService) {
+      AccountLookupService accountLookupService = Mock(AccountLookupService) {
         getAccounts() >> accounts
       }
       FiatClientConfigurationProperties fiatConfig = new FiatClientConfigurationProperties(enabled: false)
 
       @Subject
-      CredentialsService credentialsService = new CredentialsService(clouddriverService: clouddriverService,
+      CredentialsService credentialsService = new CredentialsService(accountLookupService: accountLookupService,
                                                                      fiatConfig: fiatConfig)
 
     when:
