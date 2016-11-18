@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
-import com.netflix.spinnaker.halyard.config.validate.v1.ValidateField;
-import com.netflix.spinnaker.halyard.config.validate.v1.providers.ValidateAccountName;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -25,7 +23,6 @@ import java.util.List;
 
 @Data
 public class DockerRegistryReference {
-  @ValidateField(validators = {ValidateAccountName.class})
   String accountName;
   List<String> namespaces = new ArrayList<>();
 }

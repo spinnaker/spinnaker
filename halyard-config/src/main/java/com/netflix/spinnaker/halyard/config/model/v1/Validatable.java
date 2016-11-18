@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
+package com.netflix.spinnaker.halyard.config.model.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
-import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
-public class GoogleAccount extends Account implements Cloneable {
-  public List<HalconfigProblem> validate(Halconfig context, HalconfigCoordinates coordinates) {
-    return new ArrayList<>();
-  }
+/**
+ * Anything implementing this interface is validatable, meaning after we validate it, we get a non-null list of HalconfigProblems
+ *
+ * Warning: If any of the fields in a class implement Validatable, do not call validate on them!! This will mean even the simplest
+ * config changes could cause the full halconfig for every deployment to be validated (very costly, many network calls). It is up
+ * to whatever is performing a field update to decide what to validate.
+ */
+public interface Validatable {
+  List<HalconfigProblem> validate(Halconfig context, HalconfigCoordinates coordinates);
 }

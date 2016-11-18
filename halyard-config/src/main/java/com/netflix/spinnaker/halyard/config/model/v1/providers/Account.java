@@ -16,41 +16,12 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers;
 
-import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.Reference;
-import com.netflix.spinnaker.halyard.config.model.v1.Updateable;
-import com.netflix.spinnaker.halyard.config.validate.v1.ValidateAccount;
-import com.netflix.spinnaker.halyard.config.validate.v1.ValidateField;
-import com.netflix.spinnaker.halyard.config.validate.v1.providers.ValidateAccountName;
+import com.netflix.spinnaker.halyard.config.model.v1.Validatable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Account implements Cloneable, Updateable {
-  @ValidateField(validators = {ValidateAccountName.class})
+public abstract class Account implements Cloneable, Validatable {
   String name;
-
-  public List<String> validate(Halconfig context) {
-    Account account = this;
-    Class aClass = this.getClass();
-    Reference<Account> reference = new Reference<>()
-        .setValue(account)
-        .setValueType(aClass);
-
-    List<String> errors = applyValidators(Arrays.stream(aClass.getDeclaredAnnotations())
-        .filter(c -> c instanceof ValidateAccount)                             // Find all ValidateAccount annotations
-        .map(v -> (ValidateAccount) v)
-        .map(ValidateAccount::validators)                                      // Pick of the validators
-        .flatMap(Stream::of), context, reference)                              // Flatten the stream of lists
-        .map(s -> String.format("Invalid field \"%s\": %s", account.getName(), s))
-        .collect(Collectors.toList());
-
-    return errors;
-  }
 }

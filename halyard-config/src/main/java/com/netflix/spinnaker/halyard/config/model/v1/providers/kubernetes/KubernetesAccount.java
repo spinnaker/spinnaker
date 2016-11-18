@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
+import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.Validatable;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
-import com.netflix.spinnaker.halyard.config.validate.v1.ValidateField;
-import com.netflix.spinnaker.halyard.config.validate.v1.ValidateNotNull;
-import com.netflix.spinnaker.halyard.config.validate.v1.providers.ValidateFileExists;
-import com.netflix.spinnaker.halyard.config.validate.v1.providers.kubernetes.ValidateKubernetesContext;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,15 +29,12 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class KubernetesAccount extends Account implements Cloneable {
-  @ValidateField(validators = {ValidateKubernetesContext.class})
+public class KubernetesAccount extends Account implements Cloneable, Validatable {
   String context;
   String cluster;
   String user;
-  @ValidateField(validators = {ValidateFileExists.class})
   String kubeconfigFile;
   List<String> namespaces = new ArrayList<>();
-  @ValidateField(validators = {ValidateNotNull.class})
   List<DockerRegistryReference> dockerRegistries = new ArrayList<>();
 
   public String getKubeconfigFile() {
@@ -46,5 +43,9 @@ public class KubernetesAccount extends Account implements Cloneable {
     } else {
       return kubeconfigFile;
     }
+  }
+
+  public List<HalconfigProblem> validate(Halconfig context, HalconfigCoordinates coordinates) {
+    return new ArrayList<>();
   }
 }
