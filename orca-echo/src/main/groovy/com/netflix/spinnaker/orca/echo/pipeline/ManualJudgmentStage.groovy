@@ -155,6 +155,10 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
           application: stage.execution.application
         ),
         additionalContext: [
+          stageName: stage.name,
+          stageId: stage.refId,
+          restrictExecutionDuringTimeWindow: stage.context.restrictExecutionDuringTimeWindow,
+          execution: stage.execution,
           instructions: stage.context.instructions ?: ""
         ]
       ))
