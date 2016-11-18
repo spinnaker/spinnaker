@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;

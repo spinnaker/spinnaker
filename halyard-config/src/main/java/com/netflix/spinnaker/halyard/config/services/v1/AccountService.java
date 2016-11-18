@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
 import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class AccountService {
   ProviderService providerService;
 
   @Autowired
-  DeploymentService deploymentService;
+  ValidateService validateService;
 
   public Account getAccount(HalconfigCoordinates coordinates) {
     Provider provider = providerService.getProvider(coordinates);
@@ -69,13 +69,7 @@ public class AccountService {
   }
 
   public void validateAccount(HalconfigCoordinates coordinates) {
-    Account acccount = getAccount(coordinates);
-    DeploymentConfiguration deployment = deploymentService.getDeploymentConfiguration(coordinates);
-
-    List<HalconfigProblem> problems = acccount.validate(deployment, coordinates);
-
-    if (!problems.isEmpty()) {
-      throw new IllegalConfigException(problems);
-    }
+    Account account = getAccount(coordinates);
+    validateService.validate(account, coordinates);
   }
 }

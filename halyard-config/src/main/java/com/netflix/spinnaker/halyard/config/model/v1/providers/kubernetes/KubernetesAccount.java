@@ -17,10 +17,8 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
 import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import io.fabric8.kubernetes.api.model.NamedContext;
@@ -37,6 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem.Severity.ERROR;
+import static com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem.Severity.WARNING;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -56,8 +57,7 @@ public class KubernetesAccount extends Account implements Cloneable {
     }
   }
 
-  public List<HalconfigProblem> validateKubeconfig(DeploymentConfiguration deployment, HalconfigCoordinates coordinates) {
-    ArrayList<HalconfigProblem> result = new ArrayList<>();
+  private void validateKubeconfig(HalconfigProblemSetBuilder builder, DeploymentConfiguration deployment) {
     io.fabric8.kubernetes.api.model.Config kubeconfig;
 
     // This indicates if a first pass at the config looks OK. If we don't see any serious problems, we'll do one last check
@@ -68,8 +68,8 @@ public class KubernetesAccount extends Account implements Cloneable {
       File kubeconfigFileOpen = new File(getKubeconfigFile());
       kubeconfig = KubeConfigUtils.parseConfig(kubeconfigFileOpen);
     } catch (IOException e) {
-      result.add(new HalconfigProblem(HalconfigProblem.Severity.ERROR, coordinates, e.getMessage()));
-      return result;
+      builder.addProblem(ERROR, e.getMessage());
+      return;
     }
 
     if (context != null && !context.isEmpty()) {
@@ -80,22 +80,19 @@ public class KubernetesAccount extends Account implements Cloneable {
           .findFirst();
 
       if (!namedContext.isPresent()) {
-        result.add(new HalconfigProblem(HalconfigProblem.Severity.ERROR, coordinates,
-            "Context \"" + context + "\" not found in kubeconfig \"" + getKubeconfigFile() + "\"",
-            "Either add this context to your kubeconfig, rely on the default context, or pick another kubeconfig file"));
+        builder.addProblem(ERROR, "Context \"" + context + "\" not found in kubeconfig \"" + getKubeconfigFile() + "\"")
+            .setRemediation("Either add this context to your kubeconfig, rely on the default context, or pick another kubeconfig file");
         smoketest = false;
       }
     } else {
       String currentContext = kubeconfig.getCurrentContext();
       if (currentContext.isEmpty()) {
-        result.add(new HalconfigProblem(HalconfigProblem.Severity.ERROR, coordinates,
-            "You have not specified a Kubernetes context, and your kubeconfig \"" + getKubeconfigFile() + "\" has no current-context",
-            "Either specify a context in your halconfig, or set a current-context in your kubeconfig"));
+        builder.addProblem(ERROR, "You have not specified a Kubernetes context, and your kubeconfig \"" + getKubeconfigFile() + "\" has no current-context")
+            .setRemediation("Either specify a context in your halconfig, or set a current-context in your kubeconfig");
         smoketest = false;
       } else {
-        result.add(new HalconfigProblem(HalconfigProblem.Severity.WARNING, coordinates,
-            "You have not specified a Kubernetes context in your halconfig, Spinnaker will use \"" + currentContext + "\" instead",
-            "We recommend explicitly setting a context in your halconfig, to ensure changes to your kubeconfig won't break your deployment"));
+        builder.addProblem(WARNING, "You have not specified a Kubernetes context in your halconfig, Spinnaker will use \"" + currentContext + "\" instead")
+            .setRemediation("We recommend explicitly setting a context in your halconfig, to ensure changes to your kubeconfig won't break your deployment");
       }
     }
 
@@ -106,29 +103,22 @@ public class KubernetesAccount extends Account implements Cloneable {
       try {
         client.namespaces().list();
       } catch (Exception e) {
-        result.add(new HalconfigProblem(HalconfigProblem.Severity.ERROR, coordinates,
-            "Unable to communicate with your Kubernetes cluster: " + e.getMessage(),
-            "Verify that these credentials work manually using \"kubectl\""));
+        builder.addProblem(ERROR, "Unable to communicate with your Kubernetes cluster: " + e.getMessage())
+            .setRemediation("Verify that these credentials work manually using \"kubectl\"");
       }
     }
-
-    return result;
   }
 
-  public List<HalconfigProblem> validateDockerRegistries(DeploymentConfiguration deployment, HalconfigCoordinates coordinates) {
-    ArrayList<HalconfigProblem> result = new ArrayList<>();
-
+  public void validateDockerRegistries(HalconfigProblemSetBuilder builder, DeploymentConfiguration deployment) {
     if (dockerRegistries == null || dockerRegistries.isEmpty()) {
-      result.add(new HalconfigProblem(HalconfigProblem.Severity.ERROR, coordinates,
-          "You have not specified any docker registries to deploy to",
-          "Add a docker registry that can be found in this deployment's dockerRegistries provider"));
+      builder.addProblem(ERROR, "You have not specified any docker registries to deploy to")
+          .setRemediation("Add a docker registry that can be found in this deployment's dockerRegistries provider");
     }
 
     DockerRegistryProvider dockerRegistryProvider = deployment.getProviders().getDockerRegistry();
     if (dockerRegistryProvider == null || dockerRegistryProvider.getAccounts() == null || dockerRegistryProvider.getAccounts().isEmpty()) {
-      result.add(new HalconfigProblem(HalconfigProblem.Severity.ERROR, coordinates,
-          "The docker registry provider has not yet been configured for this deployment",
-          "Kubernetes needs a Docker Registry as an image source to run"));
+      builder.addProblem(ERROR, "The docker registry provider has not yet been configured for this deployment")
+          .setRemediation("Kubernetes needs a Docker Registry as an image source to run");
     } else {
       List<String> availableRegistries = dockerRegistryProvider
           .getAccounts()
@@ -137,30 +127,24 @@ public class KubernetesAccount extends Account implements Cloneable {
 
       for (DockerRegistryReference registryReference : dockerRegistries) {
         if (!availableRegistries.contains(registryReference.accountName)) {
-          result.add(new HalconfigProblem(HalconfigProblem.Severity.ERROR, coordinates,
-              "The chosen registry \"" + registryReference.accountName + "\" has not been configured in your halconfig",
-              "Either add \"" + registryReference.accountName + "\" as a new Docker Registry account, or pick a different one"));
+          builder.addProblem(ERROR, "The chosen registry \"" + registryReference.accountName + "\" has not been configured in your halconfig")
+              .setRemediation("Either add \"" + registryReference.accountName + "\" as a new Docker Registry account, or pick a different one");
         }
 
         if (!registryReference.namespaces.isEmpty() && !namespaces.isEmpty()) {
           for (String namespace : registryReference.namespaces) {
             if (!namespaces.contains(namespace)) {
-              result.add(new HalconfigProblem(HalconfigProblem.Severity.ERROR, coordinates,
-                  "The deployable namespace \"" + namespace + "\" for registry \"" + registryReference.accountName + "\" is not accessibly by this kubernetes account",
-                  "Either remove this namespace from this docker registry, add the namespace to the account's list of namespaces, or drop the list of namespaces"));
+              builder.addProblem(ERROR, "The deployable namespace \"" + namespace + "\" for registry \"" + registryReference.accountName + "\" is not accessibly by this kubernetes account")
+                  .setRemediation("Either remove this namespace from this docker registry, add the namespace to the account's list of namespaces, or drop the list of namespaces");
             }
           }
         }
       }
     }
-
-    return result;
   }
 
-  public List<HalconfigProblem> validate(DeploymentConfiguration deployment, HalconfigCoordinates coordinates) {
-    List<HalconfigProblem> result = validateDockerRegistries(deployment, coordinates);
-    result.addAll(validateKubeconfig(deployment, coordinates));
-
-    return result;
+  public void validate(HalconfigProblemSetBuilder builder, DeploymentConfiguration deployment) {
+    validateDockerRegistries(builder, deployment);
+    validateKubeconfig(builder, deployment);
   }
 }

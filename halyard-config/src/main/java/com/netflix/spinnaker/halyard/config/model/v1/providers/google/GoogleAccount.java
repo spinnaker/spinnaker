@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem;
 import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,7 +30,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class GoogleAccount extends Account implements Cloneable {
-  public List<HalconfigProblem> validate(DeploymentConfiguration deployment, HalconfigCoordinates coordinates) {
-    return new ArrayList<>();
+  public void validate(HalconfigProblemSetBuilder problemSetBuilder, DeploymentConfiguration deployment) {
+
   }
 }

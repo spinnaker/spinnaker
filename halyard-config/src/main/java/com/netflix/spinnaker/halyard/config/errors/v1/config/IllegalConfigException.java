@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.halyard.config.errors.v1.config;
 
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblemSet;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemBuilder;
 
 import java.util.List;
 
 /**
  * This is reserved for Halyard configs that fall between unparseable (not valid yaml), and incorrectly configured
  * (provider-specific error). Essentially, when a config has problems that prevent halyard from validating it, although
- * it is readable by our yaml parser into the hafconfig Object, this is thrown
+ * it is readable by our yaml parser into the halconfig Object, this is thrown
  */
 public class IllegalConfigException extends HalconfigException {
   public IllegalConfigException(List<HalconfigProblem> problems) {
@@ -34,12 +34,12 @@ public class IllegalConfigException extends HalconfigException {
   }
 
   public IllegalConfigException(String message, String remediation) {
-    HalconfigProblem problem = new HalconfigProblem(HalconfigProblem.Severity.FATAL, message, remediation);
+    HalconfigProblem problem = new HalconfigProblemBuilder(HalconfigProblem.Severity.FATAL, message).setRemediation(remediation).build();
     getProblems().add(problem);
   }
 
   public IllegalConfigException(HalconfigCoordinates coordinates, String message, String remediation) {
-    HalconfigProblem problem = new HalconfigProblem(HalconfigProblem.Severity.FATAL, coordinates, message, remediation);
+    HalconfigProblem problem = new HalconfigProblemBuilder(HalconfigProblem.Severity.FATAL, message).setRemediation(remediation).setCoordinates(coordinates).build();
     getProblems().add(problem);
   }
 }

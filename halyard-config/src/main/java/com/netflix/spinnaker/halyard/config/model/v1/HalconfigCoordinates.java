@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.config.v1;
+package com.netflix.spinnaker.halyard.config.model.v1;
 
 import lombok.Data;
 
@@ -56,7 +56,7 @@ public class HalconfigCoordinates {
     }
 
     String output = res.toString();
-    // cut of trailing period
+    // cut off trailing period
     return res.toString().substring(0, output.length() - 1);
   }
 }

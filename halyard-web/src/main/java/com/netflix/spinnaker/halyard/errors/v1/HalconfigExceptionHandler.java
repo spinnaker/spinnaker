@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.errors.v1;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblemSet;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemSet;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;

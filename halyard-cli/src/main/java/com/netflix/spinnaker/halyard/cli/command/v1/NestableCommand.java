@@ -19,9 +19,9 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblemSet;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemSet;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,6 +29,8 @@ import retrofit.RetrofitError;
 
 import java.net.ConnectException;
 import java.util.Map;
+
+import static com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem.*;
 
 abstract class NestableCommand {
   @Setter
@@ -71,7 +73,7 @@ abstract class NestableCommand {
 
         problemSet.sortIncreasingSeverity();
         for (HalconfigProblem problem : problemSet.getProblems()) {
-          HalconfigProblem.Severity severity = problem.getSeverity();
+          Severity severity = problem.getSeverity();
           HalconfigCoordinates coordinates = problem.getCoordinates();
           String problemLocation;
           String message = problem.getMessage();
@@ -83,17 +85,18 @@ abstract class NestableCommand {
             problemLocation = "Global:";
           }
 
-          if (severity == HalconfigProblem.Severity.FATAL) {
-            AnsiUi.error(problemLocation);
-            AnsiUi.error(message);
-          } else if (severity == HalconfigProblem.Severity.ERROR) {
-            AnsiUi.error(problemLocation);
-            AnsiUi.error(message);
-          } else if (severity == HalconfigProblem.Severity.WARNING) {
-            AnsiUi.warning(problemLocation);
-            AnsiUi.warning(message);
-          } else {
-            throw new RuntimeException("Unknown severity level " + severity);
+          switch(severity) {
+            case FATAL:
+            case ERROR:
+              AnsiUi.error(problemLocation);
+              AnsiUi.error(message);
+              break;
+            case WARNING:
+              AnsiUi.warning(problemLocation);
+              AnsiUi.warning(message);
+              break;
+            default:
+              throw new RuntimeException("Unknown severity level " + severity);
           }
 
           if (!remediation.isEmpty()) {

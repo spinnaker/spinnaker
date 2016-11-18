@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
 import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;

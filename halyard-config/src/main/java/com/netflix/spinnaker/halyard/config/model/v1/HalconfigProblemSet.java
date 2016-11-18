@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.errors.v1;
+package com.netflix.spinnaker.halyard.config.model.v1;
 
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -46,5 +47,14 @@ public class HalconfigProblemSet {
 
   public HalconfigProblemSet() {
 
+  }
+
+  /**
+   * This will throw an exception if this problem set stores any problems.
+   */
+  public void throwIfProblem() {
+    if (!problems.isEmpty()) {
+      throw new HalconfigException(problems);
+    }
   }
 }

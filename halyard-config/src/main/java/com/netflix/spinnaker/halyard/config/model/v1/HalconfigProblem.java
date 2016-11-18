@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.errors.v1;
+package com.netflix.spinnaker.halyard.config.model.v1;
 
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
 import lombok.Getter;
 
 /**
@@ -66,27 +65,6 @@ public class HalconfigProblem {
    */
   @Getter
   final private Severity severity;
-
-  public HalconfigProblem(Severity severity, String message) {
-    this.severity = severity;
-    this.coordinates = null;
-    this.message = message;
-    this.remediation = "";
-  }
-
-  public HalconfigProblem(Severity severity, String message, String remediation) {
-    this.severity = severity;
-    this.coordinates = null;
-    this.message = message;
-    this.remediation = remediation;
-  }
-
-  public HalconfigProblem(Severity severity, HalconfigCoordinates coordinates, String message) {
-    this.severity = severity;
-    this.coordinates = coordinates;
-    this.message = message;
-    this.remediation = "";
-  }
 
   public HalconfigProblem(Severity severity, HalconfigCoordinates coordinates, String message, String remediation) {
     this.severity = severity;

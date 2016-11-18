@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.errors.v1.config;
 
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemBuilder;
 
 /**
  * This is meant for requests that Halyard cannot figure out how to handle.
@@ -26,12 +27,12 @@ import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
  */
 public class IllegalRequestException extends HalconfigException {
   public IllegalRequestException(String message, String remediation) {
-    HalconfigProblem problem = new HalconfigProblem(HalconfigProblem.Severity.FATAL, message, remediation);
+    HalconfigProblem problem = new HalconfigProblemBuilder(HalconfigProblem.Severity.FATAL, message).setRemediation(remediation).build();
     getProblems().add(problem);
   }
 
   public IllegalRequestException(HalconfigCoordinates coordinates, String message, String remediation) {
-    HalconfigProblem problem = new HalconfigProblem(HalconfigProblem.Severity.FATAL, coordinates, message, remediation);
+    HalconfigProblem problem = new HalconfigProblemBuilder(HalconfigProblem.Severity.FATAL, message).setRemediation(remediation).setCoordinates(coordinates).build();
     getProblems().add(problem);
   }
 }

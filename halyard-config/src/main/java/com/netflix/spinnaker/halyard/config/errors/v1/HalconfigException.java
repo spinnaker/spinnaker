@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.errors.v1;
 
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem;
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemSet;
 import lombok.Getter;
 
 import javax.servlet.http.HttpServletResponse;

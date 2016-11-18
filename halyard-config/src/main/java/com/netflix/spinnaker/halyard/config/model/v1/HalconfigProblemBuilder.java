@@ -16,13 +16,28 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1;
 
-/**
- * Anything implementing this interface is validatable, meaning after we validate it, we get a non-null list of HalconfigProblems
- *
- * Warning: If any of the fields in a class implement Validatable, do not call validate on them!! This will mean even the simplest
- * config changes could cause the full halconfig for every deployment to be validated (very costly, many network calls). It is up
- * to whatever is performing a field update to decide what to validate.
- */
-public interface Validatable {
-  void validate(HalconfigProblemSetBuilder problemSetBuilder, DeploymentConfiguration deployment);
+import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem.Severity;
+import lombok.Setter;
+
+public class HalconfigProblemBuilder {
+  @Setter
+  String message;
+
+  @Setter
+  String remediation;
+
+  @Setter
+  HalconfigCoordinates coordinates;
+
+  @Setter
+  Severity severity;
+
+  public HalconfigProblemBuilder(Severity severity, String message) {
+    this.severity = severity;
+    this.message = message;
+  }
+
+  public HalconfigProblem build() {
+    return new HalconfigProblem(severity, coordinates, message, remediation);
+  }
 }
