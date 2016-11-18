@@ -16,6 +16,8 @@
 
 import json
 import logging
+import threading
+import time
 import urllib2
 
 
@@ -30,6 +32,8 @@ def __foreach_metric_tag_binding(
 def foreach_metric_in_service_map(
     service_map, visitor, *visitor_pos_args, **visitor_kwargs):
   for service, service_metrics in service_map.items():
+    if service_metrics is None:
+      continue
     for metric_name, metric_data in service_metrics['metrics'].items():
       __foreach_metric_tag_binding(
           service, metric_name, metric_data, service_metrics,
@@ -66,13 +70,12 @@ class SpectatorClient(object):
   }
 
   def __init__(self, options):
-    self.__host = options.host
+    self.__host = options['host']
     self.__prototype = None
-    self.__options = options
     self.__default_scan_params = {}
 
-    if options.prototype_path:
-      with open(options.prototype_path) as fd:
+    if options['prototype_path']:
+      with open(options['prototype_path']) as fd:
         self.__prototype = json.JSONDecoder().decode(fd.read())
 
   def collect_metrics(self, host, port, params=None):
@@ -147,12 +150,30 @@ class SpectatorClient(object):
     if service_list == ['all']:
       service_list = self.SERVICE_PORT_MAP.keys()
 
-    for service in service_list:
-      port = self.SERVICE_PORT_MAP[service]
+    start = time.time()
+    service_time = {service: 0 for service in service_list}
+    result = {service: None for service in service_list}
+    threads = {}
+
+    def timed_collect(self, service): #, params, service_time, result):
+      now = time.time()
       try:
+        port = self.SERVICE_PORT_MAP[service]
         result[service] = self.collect_metrics(self.__host, port, params=params)
       except IOError as ioex:
         logging.getLogger(__name__).error('%s failed: %s', service, ioex)
+      service_time[service] = int((time.time() - now) * 1000)
+
+    for service in service_list:
+      threads[service] = threading.Thread(
+          target=timed_collect,
+          args=(self, service))#, params, service_time, result))
+      threads[service].start()
+    for service in service_list:
+      threads[service].join()
+
+    logging.info('Collection times %d (ms): %s',
+                 (time.time() - start) * 1000, service_time)
     return result
 
   def scan_by_type(self, service_list, params=None):

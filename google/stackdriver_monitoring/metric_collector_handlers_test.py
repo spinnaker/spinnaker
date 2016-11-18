@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tests for complexity in metric_collector_handlers."""
+
+# pylint: disable=missing-docstring
+
+
 import json
 import re
 import unittest
 from StringIO import StringIO
 
-import mock
 from mock import patch
 from mock import Mock
 
@@ -52,11 +56,10 @@ def TD(cells, rowspan=None):
 
 class MetricCollectorHandlersTest(unittest.TestCase):
   def setUp(self):
-    self.mock_options = Mock()
-    self.mock_options.prototype_path = None
-    self.mock_options.host = 'spectator_hostname'
-    self.mock_options.services = ['clouddriver', 'gate']
-    self.spectator = spectator_client.SpectatorClient(self.mock_options)
+    self.options = {'prototype_path': None,
+                    'host': 'spectator_hostname',
+                    'services': ['clouddriver', 'gate']}
+    self.spectator = spectator_client.SpectatorClient(self.options)
 
     self.mock_clouddriver_response = (
       StringIO(sample_data.CLOUDDRIVER_RESPONSE_TEXT))
@@ -74,7 +77,7 @@ class MetricCollectorHandlersTest(unittest.TestCase):
     mock_urlopen.side_effect = [self.mock_clouddriver_response,
                                 self.mock_gate_response]
 
-    dump = handlers.DumpMetricsHandler(self.mock_options, self.spectator)
+    dump = handlers.DumpMetricsHandler(self.options, self.spectator)
 
     params = {}
     dump(self.mock_request, '/dump', params, '')
@@ -147,7 +150,7 @@ class MetricCollectorHandlersTest(unittest.TestCase):
   @patch('spectator_client.urllib2.urlopen')
   def test_explore_custom_descriptors_default(self, mock_urlopen):
     klass = handlers.ExploreCustomDescriptorsHandler
-    explore = klass(self.mock_options, self.spectator)
+    explore = klass(self.options, self.spectator)
 
     mock_urlopen.side_effect = [self.mock_clouddriver_response,
                                 self.mock_gate_response]

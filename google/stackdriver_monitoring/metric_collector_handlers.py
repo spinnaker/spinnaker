@@ -55,7 +55,7 @@ class BaseHandler(object):
 
 class DumpMetricsHandler(object):
   def __init__(self, options, spectator):
-    self.__service_list = options.services
+    self.__service_list = options.get('services', ['all'])
     self.__spectator = spectator
 
   def __call__(self, request, path, params, fragment):
@@ -76,7 +76,7 @@ class ExploreCustomDescriptorsHandler(object):
   """Show all the current descriptors in use, and who is using them."""
   def __init__(self, options, spectator):
     self.__spectator = spectator
-    self.__service_list = options.services or ['all']
+    self.__service_list = options.get('services', ['all'])
 
   def __call__(self, request, path, params, fragment):
     services_text = params.get('services', None)
@@ -151,7 +151,7 @@ class ExploreCustomDescriptorsHandler(object):
       row_html.append(
           '<td{row_span}><A href="{url}">{type_name}</A></td>'.format(
               row_span=row_span, url=metric_url, type_name=type_name))
-      sep = ''
+
       for label_name, service_values in tag_service_map.items():
         if label_name is None:
           label_name = ''
@@ -193,7 +193,7 @@ class ShowCurrentMetricsHandler(object):
   """Show all the current metric values."""
   def __init__(self, options, spectator):
     self.__spectator = spectator
-    self.__service_list = options.services or ['all']
+    self.__service_list = options.get('services', ['all'])
 
   def __call__(self, request, path, params, fragment):
     services_text = params.get('services', None)

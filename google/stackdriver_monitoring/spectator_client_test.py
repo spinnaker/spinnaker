@@ -98,9 +98,7 @@ GATE_RESPONSE_TEXT = json.JSONEncoder(encoding='utf-8').encode(
 
 class SpectatorClientTest(unittest.TestCase):
   def setUp(self):
-    options = Mock()
-    options.prototype_path = None
-    options.host = TEST_HOST
+    options = {'prototype_path': None, 'host': TEST_HOST}
     self.spectator = spectator_client.SpectatorClient(options)
 
   @patch('spectator_client.urllib2.urlopen')

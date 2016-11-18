@@ -23,6 +23,7 @@ import socket
 import sys
 import threading
 import time
+import traceback
 
 from http_server import HttpServer
 
@@ -30,10 +31,10 @@ import metric_collector_handlers as handlers
 import stackdriver_handlers as stackdriver_handlers
 
 from command_processor import (CommandDefinition, CommandRequest)
+
+from stackdriver_service import StackdriverMetricsService
 import command_processor
 import spectator_client
-import stackdriver_client
-from dummy_service import DummyMetricService
 
 
 def __determine_host(host):
@@ -44,10 +45,10 @@ def __determine_host(host):
 
 class Monitor(object):
   def __init__(self, spectator, metric_service, options):
-    self.__period = options.period
+    self.__period = options['period']
     self.__spectator = spectator
     self.__metric_service = metric_service
-    self.__services = options.services
+    self.__services = options['services']
     self.__params = {}
 
   def __data_map_to_service_metrics(self, data_map):
@@ -68,12 +69,13 @@ class Monitor(object):
         self.__services, params=self.__params)
       collected = time.time()
       try:
-        count = self.__metric_service.store(service_metric_map)
+        count = self.__metric_service.publish_metrics(service_metric_map)
         done = time.time()
-        logging.info('Wrote %d metrics in %d ms + %d ms',
-                     count, collected - start, done - collected)
+        logging.info(
+            'Wrote %d metrics in %d ms + %d ms',
+            count, (collected - start) * 1000, (done - collected) * 1000)
       except BaseException as ex:
-        print ex
+        traceback.print_exc(ex)
         logging.error(ex)
         sys.exit(-1)
 
@@ -117,6 +119,18 @@ def init_logging(log_file):
 def get_options():
   parser = argparse.ArgumentParser()
 
+  parser.add_argument(
+      '--fix_stackdriver_labels_unsafe', default=False,
+      action='store_true',
+      help=('Automatically fix stackdriver errors when new label uses are'
+            ' discovered. Doing so can lose all existing data for the metric.'
+            ' Not doing so will continue to 400 every time that label is'
+            ' reported on the metric (which will be every cycle until the'
+            ' metric expires, if ever)'))
+  parser.add_argument('--nofix_stackdriver_labels_unsafe',
+                      dest='fix_stackdriver_labels_unsafe',
+                      action='store_false')
+
   parser.add_argument('--port', default=8008, type=int)
   parser.add_argument('--project', default='')
   parser.add_argument('--zone', default='us-central1-f')
@@ -129,6 +143,8 @@ def get_options():
   parser.add_argument('--monitor', default=False, action='store_true')
   parser.add_argument('--output_path', default=None,
                       help='Stores command output into file, if specified.')
+  parser.add_argument('--source_path', default=None,
+                      help='Location of metric descriptors for upsert command.')
   parser.add_argument('--nomonitor', dest='monitor', action='store_false')
 
   # Either space or ',' delimited
@@ -139,11 +155,12 @@ def get_options():
 
 def main():
   init_logging('metric_collector.log')
-  options = get_options()
+  options = vars(get_options())
 
   spectator = spectator_client.SpectatorClient(options)
   try:
-    stackdriver = stackdriver_client.StackdriverClient.make_client(options)
+    stackdriver = StackdriverMetricsService.make_service(options)
+
   except IOError as ioerror:
     logging.error('Could not create stackdriver client'
                   ' -- Stackdriver will be unavailable\n%s',
@@ -173,6 +190,16 @@ def main():
           CommandRequest(content_type='application/json', options=options),
           'Get the JSON of all the Stackdriver Custom Metric Descriptors.'
           ),
+      CommandDefinition(
+          stackdriver_handlers.UpsertCustomDescriptorsHandler(
+              options, stackdriver),
+          None,
+          'upsert_descriptors',
+          CommandRequest(options=options),
+          'Given a file of Stackdriver Custom Metric Desciptors,'
+          ' update the existing ones and add the new ones.'
+          ' WARNING: Historic time-series data may be lost on update.'
+          ),
 
       CommandDefinition(
           handlers.DumpMetricsHandler(options, spectator),
@@ -196,22 +223,21 @@ def main():
           ),
       ])
 
-  if options.command:
-    command_processor.process_command(options.command, registry)
+  if options.get('command', None):
+    command_processor.process_command(options['command'], registry)
     return
 
-  if options.monitor:
-    logging.info('Starting Monitor every %d s', options.period)
+  if options.get('monitor', None):
+    logging.info('Starting Monitor every %d s', options['period'])
 
-    # TODO: Replace this with a real service.
-    metric_service = DummyMetricService()
+    metric_service = stackdriver
 
     monitor = Monitor(spectator, metric_service, options)
     threading.Thread(target=monitor, name='monitor').start()
 
-  logging.info('Starting HTTP server on port %d', options.port)
+  logging.info('Starting HTTP server on port %d', options['port'])
   url_path_to_handler = {entry.url_path: entry.handler for entry in registry}
-  httpd = HttpServer(options.port, url_path_to_handler)
+  httpd = HttpServer(options['port'], url_path_to_handler)
   httpd.serve_forever()
   sys.exit(-1)
 
