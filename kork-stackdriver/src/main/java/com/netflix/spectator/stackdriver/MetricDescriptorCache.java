@@ -172,8 +172,8 @@ public class MetricDescriptorCache {
   /**
    * Get the labels to use for a given metric instance.
    *
-   * @param descriptor
-   *   The Stackdriver MetricDescriptor for the labels.
+   * @param descriptorType
+   *   The Stackdriver custom descriptor ype name for the labels.
    *
    * @param tags
    *   The Spectator Measurement tags for the data.
