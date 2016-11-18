@@ -47,6 +47,13 @@ class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
     def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
+    if (credentials.apiAdaptor.getAutoscaler(namespace, description.serverGroupName)) {
+      task.updateStatus BASE_PHASE, "Destroying autoscaler..."
+      if (!credentials.apiAdaptor.deleteAutoscaler(namespace, description.serverGroupName)) {
+        throw new KubernetesOperationException("Failed to delete associated autoscaler $description.serverGroupName in $namespace.")
+      }
+    }
+
     task.updateStatus BASE_PHASE, "Destroying replication controller..."
 
     if (credentials.apiAdaptor.getReplicationController(namespace, description.serverGroupName)) {
@@ -59,12 +66,6 @@ class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
       }
     } else {
       throw new KubernetesOperationException("Failed to find replication controller or replica set $description in $namespace.")
-    }
-
-    if (credentials.apiAdaptor.getAutoscaler(namespace, description.serverGroupName)) {
-      if (!credentials.apiAdaptor.deleteAutoscaler(namespace, description.serverGroupName)) {
-        throw new KubernetesOperationException("Failed to delete associated autoscaler $description.serverGroupName in $namespace.")
-      }
     }
 
     task.updateStatus BASE_PHASE, "Successfully destroyed replication controller $description.serverGroupName."
