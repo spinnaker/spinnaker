@@ -15,7 +15,10 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.Instance
+import com.amazonaws.services.ec2.model.DescribeInstancesResult
+import com.amazonaws.services.ec2.model.Instance
+import com.amazonaws.services.ec2.model.InstanceState
+import com.amazonaws.services.ec2.model.Reservation
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
@@ -32,17 +35,22 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
   }
 
-  void 'should register instances from load balancers and resume scaling processes'() {
-    setup:
+  def 'should register instances from load balancer and resume scaling processes'() {
+    given:
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
-    asg.getInstances() >> [new Instance().withInstanceId("i1").withLifecycleState("InService")]
+
+    and:
+    def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
+    def describeInstanceResult = Mock(DescribeInstancesResult)
+    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
 
     when:
     op.operate([])
 
     then:
+    1 * amazonEc2.describeInstances(_) >> describeInstanceResult
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * asgService.resumeProcesses(_, AutoScalingProcessType.getDisableProcesses())
     1 * loadBalancing.registerInstancesWithLoadBalancer(_) >> { RegisterInstancesWithLoadBalancerRequest req ->
@@ -51,19 +59,22 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     }
   }
 
-  void 'should enable instances for asg in discovery'() {
-    setup:
+  def 'should enable instances for asg in discovery'() {
+    given:
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
-    asg.getInstances() >> [
-      new Instance().withInstanceId("i1").withLifecycleState("InService"),
-      new Instance().withInstanceId("i2").withLifecycleState("Terminating") // should be skipped
-    ]
+
+    and:
+    def instance1 = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
+    def instance2 = new Instance().withState(new InstanceState().withName("terminated")).withInstanceId("i2")
+    def describeInstanceResult = Mock(DescribeInstancesResult)
+    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance1), new Reservation().withInstances(instance2)]
 
     when:
     op.operate([])
 
     then:
+    1 * amazonEc2.describeInstances(_) >> describeInstanceResult
     2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * eureka.getInstanceInfo('i1') >>
@@ -75,8 +86,8 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     1 * eureka.updateInstanceStatus('asg1', 'i1', 'UP')
   }
 
-  void 'should skip discovery if not enabled for account'() {
-    setup:
+  def 'should skip discovery if not enabled for account'() {
+    given:
     def noDiscovery = new EnableDisableAsgDescription([
       asgs: [[
         serverGroupName: "kato-main-v000",
@@ -90,12 +101,17 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
-    asg.getInstances() >> [new Instance().withInstanceId("i1")]
+
+    and:
+    def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
+    def describeInstanceResult = Mock(DescribeInstancesResult)
+    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
 
     when:
     noDiscoveryOp.operate([])
 
     then:
+    1 * amazonEc2.describeInstances(_) >> describeInstanceResult
     1 * asgService.getAutoScalingGroup(_) >> asg
     0 * eureka.updateInstanceStatus(*_)
   }

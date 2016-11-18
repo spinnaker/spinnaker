@@ -15,6 +15,12 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
+
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest
+import com.amazonaws.services.ec2.model.DescribeInstancesResult
+import com.amazonaws.services.ec2.model.Filter
+import com.amazonaws.services.ec2.model.InstanceStateName
+import com.amazonaws.services.ec2.model.Reservation
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
@@ -26,7 +32,6 @@ import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
 import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -41,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired
 @Slf4j
 abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<Void> {
   private static final long THROTTLE_MS = 150
+  private static final String INSTANCE_ASG_TAG_NAME = "tag:aws:autoscaling:groupName"
 
   abstract boolean isDisable()
 
@@ -103,9 +109,25 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         asgService.resumeProcesses(serverGroupName, AutoScalingProcessType.getDisableProcesses())
       }
 
-      def instanceIds = asg.instances.findAll {
-        it.lifecycleState == "InService" || it.lifecycleState.startsWith("Pending")
-      }*.instanceId
+      List<String> instanceIds = new ArrayList<>()
+      DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest().withFilters(
+        new Filter().withName(INSTANCE_ASG_TAG_NAME).withValues(serverGroupName)
+      )
+
+      DescribeInstancesResult describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
+      List<Reservation> reservations = describeInstancesResult.getReservations()
+      while (describeInstancesResult.getNextToken()) {
+        describeInstancesRequest.setNextToken(describeInstancesResult.getNextToken())
+        describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
+        reservations += describeInstancesResult.getReservations()
+      }
+
+      for (Reservation reservation : reservations) {
+        instanceIds += reservation.getInstances().findAll {
+          [ InstanceStateName.Running, InstanceStateName.Pending ].contains(InstanceStateName.fromValue(it.getState().getName()))
+        }*.instanceId
+      }
+
 
       if (disable) {
         changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, instanceIds) { String loadBalancerName, List<Instance> instances ->

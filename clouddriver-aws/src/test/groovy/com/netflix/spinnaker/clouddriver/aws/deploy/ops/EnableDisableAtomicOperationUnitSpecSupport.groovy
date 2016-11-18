@@ -59,6 +59,9 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
   @Shared
   AmazonElasticLoadBalancingV2 loadBalancingV2
 
+  @Shared
+  AmazonEC2 amazonEc2
+
   def setup() {
     task = Mock(Task)
     TaskRepository.threadLocalTask.set(task)
@@ -66,6 +69,7 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
     asgService = Mock(AsgService)
     loadBalancing = Mock(AmazonElasticLoadBalancing)
     loadBalancingV2 = Mock(AmazonElasticLoadBalancingV2)
+    amazonEc2 = Mock(AmazonEC2)
     wireOpMocks(op)
   }
 
@@ -77,6 +81,7 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
           getAmazonElasticLoadBalancing() >> loadBalancing
           getAmazonElasticLoadBalancingV2() >> loadBalancingV2
           getEureka() >> eureka
+          getAmazonEC2() >> amazonEc2
         }
       }
     }
