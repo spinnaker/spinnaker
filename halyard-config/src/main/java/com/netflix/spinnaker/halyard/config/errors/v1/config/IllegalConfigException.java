@@ -19,6 +19,9 @@ package com.netflix.spinnaker.halyard.config.errors.v1.config;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblemSet;
+
+import java.util.List;
 
 /**
  * This is reserved for Halyard configs that fall between unparseable (not valid yaml), and incorrectly configured
@@ -26,6 +29,10 @@ import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
  * it is readable by our yaml parser into the hafconfig Object, this is thrown
  */
 public class IllegalConfigException extends HalconfigException {
+  public IllegalConfigException(List<HalconfigProblem> problems) {
+    super(problems);
+  }
+
   public IllegalConfigException(String message, String remediation) {
     HalconfigProblem problem = new HalconfigProblem(HalconfigProblem.Severity.FATAL, message, remediation);
     getProblems().add(problem);

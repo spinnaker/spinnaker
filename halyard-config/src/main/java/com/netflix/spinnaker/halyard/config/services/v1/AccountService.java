@@ -17,8 +17,11 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigProblem;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
+import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +38,9 @@ import java.util.stream.Collectors;
 public class AccountService {
   @Autowired
   ProviderService providerService;
+
+  @Autowired
+  DeploymentService deploymentService;
 
   public Account getAccount(HalconfigCoordinates coordinates) {
     Provider provider = providerService.getProvider(coordinates);
@@ -59,6 +65,17 @@ public class AccountService {
         throw new IllegalConfigException(coordinates,
             "More than one matching account found",
             "Manually delete/rename duplicate accounts in your halconfig file");
+    }
+  }
+
+  public void validateAccount(HalconfigCoordinates coordinates) {
+    Account acccount = getAccount(coordinates);
+    DeploymentConfiguration deployment = deploymentService.getDeploymentConfiguration(coordinates);
+
+    List<HalconfigProblem> problems = acccount.validate(deployment, coordinates);
+
+    if (!problems.isEmpty()) {
+      throw new IllegalConfigException(problems);
     }
   }
 }

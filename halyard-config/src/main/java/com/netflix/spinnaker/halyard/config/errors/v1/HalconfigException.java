@@ -16,22 +16,27 @@
 
 package com.netflix.spinnaker.halyard.config.errors.v1;
 
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigCoordinates;
 import lombok.Getter;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
  * This is the base exception class that needs to be thrown by all validators.
  */
 public class HalconfigException extends RuntimeException {
   @Getter
-  private HalconfigProblemSet problems = new HalconfigProblemSet();
+  protected HalconfigProblemSet problems = new HalconfigProblemSet();
 
   @Getter
   private int responseCode = HttpServletResponse.SC_CONFLICT;
 
   public HalconfigException() {
     super();
+  }
+
+  public HalconfigException(List<HalconfigProblem> problems) {
+    super();
+    this.problems = new HalconfigProblemSet(problems);
   }
 }

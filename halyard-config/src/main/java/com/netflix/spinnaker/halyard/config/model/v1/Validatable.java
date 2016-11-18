@@ -29,5 +29,5 @@ import java.util.List;
  * to whatever is performing a field update to decide what to validate.
  */
 public interface Validatable {
-  List<HalconfigProblem> validate(Halconfig context, HalconfigCoordinates coordinates);
+  List<HalconfigProblem> validate(DeploymentConfiguration deployment, HalconfigCoordinates coordinates);
 }

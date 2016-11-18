@@ -40,4 +40,14 @@ public class AccountController {
 
     return accountService.getAccount(coordinates);
   }
+
+  @RequestMapping(value = "/{account:.+}/validate", method = RequestMethod.GET)
+  void validateAccount(@PathVariable String deployment, @PathVariable String provider, @PathVariable String account) {
+    HalconfigCoordinates coordinates = new HalconfigCoordinates()
+        .setDeployment(deployment)
+        .setProvider(provider)
+        .setAccount(account);
+
+    accountService.validateAccount(coordinates);
+  }
 }

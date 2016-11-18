@@ -39,4 +39,12 @@ public class HalconfigProblemSet {
   public void add(HalconfigProblem problem) {
     problems.add(problem);
   }
+
+  public HalconfigProblemSet(List<HalconfigProblem> problems) {
+    this.problems = problems;
+  }
+
+  public HalconfigProblemSet() {
+
+  }
 }
