@@ -77,13 +77,22 @@
         <pipeline-graph view-state="viewState" pipeline="pipeline" on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
       </div>
       <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-8">
           <button class="btn btn-block btn-sm add-new"
                   analytics-on="click"
                   analytics-category="Pipeline Config"
                   analytics-event="Add stage button clicked"
                   ng-click="pipelineConfigurerCtrl.addStage()">
             <span class="glyphicon glyphicon-plus-sign"></span> Add stage
+          </button>
+        </div>
+        <div class="col-md-4">
+          <button class="btn btn-block btn-sm add-new"
+                  analytics-on="click"
+                  analytics-category="Pipeline Config"
+                  analytics-event="Copy existing stage button clicked"
+                  ng-click="pipelineConfigurerCtrl.copyExistingStage()">
+            <span class="glyphicon glyphicon-share-alt"></span> Copy an existing stage
           </button>
         </div>
       </div>

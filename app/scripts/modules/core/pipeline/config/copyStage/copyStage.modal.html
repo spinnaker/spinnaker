@@ -1,0 +1,66 @@
+<div modal-page class="copy-stage-modal">
+  <modal-close dismiss="$dismiss()"></modal-close>
+  <div class="modal-header">
+    <h3>Copy Stage</h3>
+  </div>
+  <div class="modal-body">
+    <div class="alert alert-danger" ng-if="copyStageModalCtrl.viewState.error">
+      <p>Could not load stages.</p>
+    </div>
+    <form role="form" name="form" class="form-horizontal" ng-submit="copyStageModalCtrl.copyStage()">
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          <b>From Application</b>
+        </div>
+        <div class="col-md-7">
+          <ui-select class="form-control input-sm"
+                     on-select="copyStageModalCtrl.onApplicationSelect($item)"
+                     ng-model="copyStageModalCtrl.application">
+            <ui-select-match>
+              <span>{{$select.selected.name}}</span>
+            </ui-select-match>
+            <ui-select-choices repeat="application in copyStageModalCtrl.applications | filter: $select.search">
+              <span ng-bind-html="application.name"></span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          <b>Copy Stage</b>
+        </div>
+        <div class="col-md-7" ng-if="!copyStageModalCtrl.viewState.loading && copyStageModalCtrl.stages.length > 0">
+          <ui-select ng-model="copyStageModalCtrl.selectedStage"
+                     class="form-control input-sm bordered-choices">
+            <ui-select-match>
+              <span>{{$select.selected.stage.name}}</span>
+            </ui-select-match>
+            <ui-select-choices repeat="stageWrapper in copyStageModalCtrl.stages | filter: $select.search">
+              <copy-stage-card stage-wrapper="stageWrapper"></copy-stage-card>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+        <div class="col-md-7" ng-if="copyStageModalCtrl.viewState.loading" style="margin-top: 5px;">
+          <h3 us-spinner="{radius:4, width:2, length: 2}"></h3>
+        </div>
+        <div class="col-md-7 no-stages-message" ng-if="copyStageModalCtrl.stages.length === 0">
+          <p>This application has no stages.</p>
+        </div>
+      </div>
+    </form>
+    <div class="row">
+      <div class="col-md-offset-3 col-md-7">
+        <div class="well">
+          <p class="small">It is not possible to copy a deploy stage, and deploy stages will not be included in the list above.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="copyStageModalCtrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-click="copyStageModalCtrl.copyStage()">
+      <span class="glyphicon glyphicon-ok-circle"></span> Copy Stage
+    </button>
+  </div>
+</div>

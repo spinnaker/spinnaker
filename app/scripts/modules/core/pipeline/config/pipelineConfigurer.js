@@ -69,8 +69,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       });
     };
 
-    this.addStage = function() {
-      var newStage = { isNew: true };
+    this.addStage = function(newStage = { isNew: true }) {
       $scope.pipeline.stages = $scope.pipeline.stages || [];
       if ($scope.pipeline.parallel) {
         newStage.refId = Math.max(0, ...$scope.pipeline.stages.map(s => Number(s.refId) || 0)) + 1 + '';
@@ -81,6 +80,17 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       }
       $scope.pipeline.stages.push(newStage);
       this.navigateToStage($scope.pipeline.stages.length - 1);
+    };
+
+    this.copyExistingStage = function() {
+      $uibModal.open({
+        templateUrl: require('./copyStage/copyStage.modal.html'),
+        controller: 'CopyStageModalCtrl',
+        controllerAs: 'copyStageModalCtrl',
+        resolve: {
+          application: () => $scope.application,
+        }
+      }).result.then(stageTemplate => ctrl.addStage(stageTemplate));
     };
 
     var ctrl = this;

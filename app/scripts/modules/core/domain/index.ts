@@ -10,3 +10,5 @@ export * from './instanceCounts';
 export * from './ISecurityGroup';
 export * from './ICredentials';
 export * from './IVpc';
+export * from './IStage';
+export * from './IPipeline';
