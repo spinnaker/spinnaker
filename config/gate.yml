@@ -34,11 +34,3 @@ spectator:
     enabled: ${services.stackdriver.enabled}
     projectName: ${services.stackdriver.projectName}
     credentialsPath: ${services.stackdriver.credentialsPath}
-
-stackdriver:
-  hints:
-    - name: EurekaOkClient_Request
-      labels:
-      - cause
-      - reason
-      - status
