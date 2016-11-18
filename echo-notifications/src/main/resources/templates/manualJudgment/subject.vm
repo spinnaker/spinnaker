@@ -1,1 +1,9 @@
-Spinnaker application '$notification.source.application' is awaiting manual judgment
+#if( $notification.additionalContext.pipelineName && !$notification.additionalContext.pipelineName.empty )
+#if( $notification.additionalContext.buildNumber && !$notification.additionalContext.buildNumber.empty )
+Stage $notification.additionalContext.stageName for $notification.source.application's $notification.additionalContext.pipelineName pipeline build #$notification.additionalContext.buildNumber is awaiting manual judgment
+#else
+Stage $notification.additionalContext.stageName for $notification.source.application's $notification.additionalContext.pipelineName pipeline is awaiting manual judgment
+#end
+#else
+Stage $notification.additionalContext.stageName for $notification.source.application is awaiting manual judgment
+#end

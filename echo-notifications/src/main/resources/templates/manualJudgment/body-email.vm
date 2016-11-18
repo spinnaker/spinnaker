@@ -4,4 +4,12 @@ $htmlToText.convert($notification.additionalContext.instructions)
 #end
 For more details, please visit:
 
+#if($notification.additionalContext.stageId && !$notification.additionalContext.stageId.empty)
+#if($notification.additionalContext.restrictExecutionDuringTimeWindow)
+$baseUrl/#/applications/$notification.source.application/executions/details/$notification.source.executionId?stage=$notification.additionalContext.stageId&step=1
+#else
+$baseUrl/#/applications/$notification.source.application/executions/details/$notification.source.executionId?stage=$notification.additionalContext.stageId
+#end
+#else
 $baseUrl/#/applications/$notification.source.application/executions/details/$notification.source.executionId
+#end
