@@ -84,7 +84,9 @@ public class StackdriverWriterTest {
       }
   };
 
-  private long millis = 12345L;
+  static final long START_TIME_MILLIS
+      = TimeUnit.MILLISECONDS.convert(1472394000L, TimeUnit.SECONDS);
+  private long millis = START_TIME_MILLIS + 12345L;  // doesnt matter
   private Clock clock = new Clock() {
       public long wallTime() {
           return millis;
@@ -126,8 +128,7 @@ public class StackdriverWriterTest {
 
   ConfigParams.Builder writerConfig;
   TestableStackdriverWriter writer;
-  MetricDescriptorCacheTest.TestableMetricDescriptorCache
-      descriptorRegistrySpy;
+  MetricDescriptorCache descriptorRegistrySpy;
 
   MetricDescriptor descriptorA;
   MetricDescriptor descriptorB;
@@ -137,7 +138,6 @@ public class StackdriverWriterTest {
   private MetricDescriptor makeDescriptor(Id id, List<String> tagNames) {
       MetricDescriptor descriptor = new MetricDescriptor();
       descriptor.setDisplayName(id.name());
-      descriptor.setName(descriptorRegistrySpy.idToDescriptorName(id));
       descriptor.setType(descriptorRegistrySpy.idToDescriptorType(id));
       descriptor.setValueType("DOUBLE");
       descriptor.setMetricKind("GAUGE");
@@ -177,6 +177,7 @@ public class StackdriverWriterTest {
       when(projectsApi.timeSeries()).thenReturn(timeseriesApi);
 
       writerConfig = new ConfigParams.Builder()
+              .setCounterStartTime(START_TIME_MILLIS)
               .setDetermineProjectName(name -> name)
               .setStackdriverStub(monitoringApi)
               .setCustomTypeNamespace("TESTNAMESPACE")
@@ -185,9 +186,7 @@ public class StackdriverWriterTest {
               .setInstanceId(INSTANCE_ID)
               .setMeasurementFilter(allowAll);
 
-      descriptorRegistrySpy = spy(
-          new MetricDescriptorCacheTest.TestableMetricDescriptorCache(
-                  writerConfig.build()));
+      descriptorRegistrySpy = spy(new MetricDescriptorCache(writerConfig.build()));
       writerConfig.setDescriptorCache(descriptorRegistrySpy);
 
       writer = new TestableStackdriverWriter(writerConfig.build());
@@ -204,6 +203,7 @@ public class StackdriverWriterTest {
   @Test
   public void testConfigParamsDefaultInstanceId() {
     ConfigParams config = new ConfigParams.Builder()
+            .setCounterStartTime(START_TIME_MILLIS)
             .setStackdriverStub(monitoringApi)
             .setCustomTypeNamespace("TESTNAMESPACE")
             .setProjectName(projectName)
@@ -213,38 +213,12 @@ public class StackdriverWriterTest {
     Assert.assertTrue(!config.getInstanceId().isEmpty());
   }
 
-  @Test
-  public void testFindBadTimeSeriesInError() {
-      TimeSeries tsA = new TimeSeries();
-      TimeSeries tsB = new TimeSeries();
-      TimeSeries tsC = new TimeSeries();
-      TimeSeries tsD = new TimeSeries();
-      tsA.setValueType("A");  // these are bogus values to distinguish them
-      tsB.setValueType("B");
-      tsC.setValueType("C");
-      tsD.setValueType("D");
-
-      List<TimeSeries> tsList = Arrays.asList(tsA, tsB, tsC, tsD);
-      String prefix = "Bogus text\n  thing 1\n  more babble ";
-
-      Assert.assertEquals(
-          tsList.get(1),
-          StackdriverWriter.findProblematicTimeSeriesElement(
-                  prefix + " timeSeries[1].metric.labels[2] one", tsList));
-      Assert.assertEquals(
-          tsList.get(2),
-          StackdriverWriter.findProblematicTimeSeriesElement(
-                  prefix + " timeSeries[2].metric.labels[1] one", tsList));
-      Assert.assertEquals(
-          null,
-          StackdriverWriter.findProblematicTimeSeriesElement(prefix, tsList));
-  }
-
   TimeSeries makeTimeSeries(MetricDescriptor descriptor,
                             Id id, double value, String time) {
     TypedValue tv = new TypedValue();
     tv.setDoubleValue(value);
     TimeInterval timeInterval = new TimeInterval();
+    timeInterval.setStartTime("2016-08-28T14:20:00.000000000Z");
     timeInterval.setEndTime(time);
 
     Point point = new Point();
@@ -266,7 +240,7 @@ public class StackdriverWriterTest {
     ts.setResource(writer.peekMonitoredResource());
     ts.setMetric(metric);
     ts.setPoints(Arrays.asList(point));
-    ts.setMetricKind("GAUGE");
+    ts.setMetricKind("CUMULATIVE");
     ts.setValueType("DOUBLE");
 
     return ts;
@@ -287,64 +261,43 @@ public class StackdriverWriterTest {
     TestableStackdriverWriter spy
         = spy(new TestableStackdriverWriter(writerConfig.build()));
 
-    doNothing().when(descriptorRegistrySpy)
-        .initKnownDescriptors();
-    doThrow(new IOException()).when(descriptorRegistrySpy)
-        .fetchDescriptorFromService(any(), any());
-    doAnswer(new Answer<Void>() {
-             public Void answer(InvocationOnMock invocation) {
-                descriptorRegistrySpy
-                    .injectDescriptor(descriptorA.getType(), descriptorA);
-                return null;
-             }}).when(descriptorRegistrySpy)
-                .createDescriptorInServer(eq(idAXY), eq(testRegistry), any());
-    doAnswer(new Answer<Void>() {
-             public Void answer(InvocationOnMock invocation) {
-                descriptorRegistrySpy
-                    .injectDescriptor(descriptorB.getType(), descriptorB);
-                return null;
-             }}).when(descriptorRegistrySpy)
-                .createDescriptorInServer(eq(idBXY), eq(testRegistry), any());
-
     Meter counterA = testRegistry.counter(idAXY);
     Meter counterB = testRegistry.counter(idBXY);
 
-    descriptorRegistrySpy.descriptorOrNull(
-        testRegistry, counterA, counterA.measure().iterator().next());
-    descriptorRegistrySpy.descriptorOrNull(
-        testRegistry, counterB, counterB.measure().iterator().next());
-
-    Assert.assertTrue(descriptorA
-                      == descriptorRegistrySpy.peekDescriptor(idAXY));
-    Assert.assertTrue(descriptorB
-                      == descriptorRegistrySpy.peekDescriptor(idBXY));
-
     doReturn(new TimeSeries()).when(spy).measurementToTimeSeries(
-        eq(descriptorA), eq(measureAXY));
+        eq(descriptorA.getType()), eq(testRegistry), eq(counterA), eq(measureAXY));
     doReturn(new TimeSeries()).when(spy).measurementToTimeSeries(
-        eq(descriptorB), eq(measureBXY));
+        eq(descriptorB.getType()), eq(testRegistry), eq(counterB), eq(measureBXY));
 
     // Just testing the call flow produces descriptors since
     // we return empty TimeSeries values.
     spy.registryToTimeSeries(testRegistry);
-
   }
 
   @Test
   public void testAddMeasurementsToTimeSeries() {
+    DefaultRegistry testRegistry = new DefaultRegistry(clock);
+
     long millisA = TimeUnit.MILLISECONDS.convert(1472394975L, TimeUnit.SECONDS);
     long millisB = millisA + 987;
     String timeA = "2016-08-28T14:36:15.000000000Z";
     String timeB = "2016-08-28T14:36:15.987000000Z";
+    Meter timerA = testRegistry.timer(idAXY);
+    Meter timerB = testRegistry.timer(idBXY);
     Measurement measureAXY = new Measurement(idAXY, millisA, 1);
     Measurement measureBXY = new Measurement(idBXY, millisB, 20.1);
 
+    descriptorRegistrySpy.addExtraTimeSeriesLabel(
+        MetricDescriptorCache.APPLICATION_LABEL, applicationName);
+    descriptorRegistrySpy.addExtraTimeSeriesLabel(
+        MetricDescriptorCache.INSTANCE_LABEL, INSTANCE_ID);
+    
     Assert.assertEquals(
         makeTimeSeries(descriptorA, idAXY, 1, timeA),
-        writer.measurementToTimeSeries(descriptorA, measureAXY));
+        writer.measurementToTimeSeries(descriptorA.getType(), testRegistry, timerA, measureAXY));
     Assert.assertEquals(
         makeTimeSeries(descriptorB, idBXY, 20.1, timeB),
-        writer.measurementToTimeSeries(descriptorB, measureBXY));
+        writer.measurementToTimeSeries(descriptorB.getType(), testRegistry, timerB, measureBXY));
   }
 
   @Test
@@ -359,61 +312,6 @@ public class StackdriverWriterTest {
     Counter counterB = registry.counter(idBXY);
     counterA.increment(4);
     counterB.increment(10);
-
-    doNothing().when(descriptorRegistrySpy).initKnownDescriptors();
-    doNothing().when(descriptorRegistrySpy)
-        .createDescriptorInServer(eq(idAXY), eq(registry), any());
-    doNothing().when(descriptorRegistrySpy)
-        .createDescriptorInServer(eq(idBXY), eq(registry), any());
-    doNothing().when(descriptorRegistrySpy)
-        .createDescriptorInServer(
-               eq(idInternalTimerCount), eq(registry), any());
-    doNothing().when(descriptorRegistrySpy)
-        .createDescriptorInServer(
-               eq(idInternalTimerTotal), eq(registry), any());
-
-    // First fetch fails (forcing the create) second fetch succeeds.
-    doThrow(new IOException())
-        .doAnswer(new Answer<MetricDescriptor>() {
-            public MetricDescriptor answer(InvocationOnMock invocation) {
-                descriptorRegistrySpy
-                    .injectDescriptor(descriptorA.getType(), descriptorA);
-                return descriptorA;
-            }})
-        .when(descriptorRegistrySpy)
-        .fetchDescriptorFromService(descriptorA.getName(), descriptorA.getType());
-    doThrow(new IOException())
-        .doAnswer(new Answer<MetricDescriptor>() {
-            public MetricDescriptor answer(InvocationOnMock invocation) {
-                descriptorRegistrySpy
-                    .injectDescriptor(descriptorB.getType(), descriptorB);
-                return descriptorA;
-            }})
-        .when(descriptorRegistrySpy)
-        .fetchDescriptorFromService(descriptorB.getName(), descriptorB.getType());
-    doThrow(new IOException())
-        .doAnswer(new Answer<MetricDescriptor>() {
-            public MetricDescriptor answer(InvocationOnMock invocation) {
-                descriptorRegistrySpy
-                    .injectDescriptor(timerCountDescriptor.getType(),
-                                      timerCountDescriptor);
-                return timerCountDescriptor;
-            }})
-        .when(descriptorRegistrySpy)
-        .fetchDescriptorFromService(
-            timerCountDescriptor.getName(), timerCountDescriptor.getType());
-
-    doThrow(new IOException())
-        .doAnswer(new Answer<MetricDescriptor>() {
-            public MetricDescriptor answer(InvocationOnMock invocation) {
-                descriptorRegistrySpy
-                    .injectDescriptor(timerTimeDescriptor.getType(),
-                                      timerTimeDescriptor);
-                return timerTimeDescriptor;
-            }})
-        .when(descriptorRegistrySpy)
-        .fetchDescriptorFromService(
-            timerTimeDescriptor.getName(), timerTimeDescriptor.getType());
 
     when(timeseriesApi.create(eq("projects/test-project"),
                               any(CreateTimeSeriesRequest.class)))
@@ -451,18 +349,7 @@ public class StackdriverWriterTest {
     }
     tsList.add(new TimeSeries());  // make last one different to test chunking
 
-    doNothing().when(descriptorRegistrySpy).initKnownDescriptors();
     doReturn(tsList).when(spy).registryToTimeSeries(registry);
-
-    // We are bypassing the registry here and never actually created any
-    // meters so there is nothing in the registry. However the writeRegistry
-    // call itself adds some additional metrics. Here we'll throw exceptions
-    // trying to get descriptors for them so they will not be included in the
-    // results. The small registry test already validated their use.
-    doThrow(new IOException()).when(descriptorRegistrySpy)
-        .fetchDescriptorFromService(any(), any());
-    doThrow(new IOException()).when(descriptorRegistrySpy)
-        .createDescriptorInServer(any(), any(), any());
 
     // The Mockito ArgumentCaptor to verify the calls wont work here
     // because each call is referencing the same instance but with
@@ -499,68 +386,9 @@ public class StackdriverWriterTest {
 
   @Test
   public void writeRegistryWithTimer() throws IOException {
-    descriptorRegistrySpy.addCustomDescriptorHints(
-        Arrays.asList(
-            new MetricDescriptorCache.CustomDescriptorHint(
-                    idAXY.name(), Arrays.asList("anotherTag"))));
-
     DefaultRegistry testRegistry = new DefaultRegistry(clock);   
     Timer timer = testRegistry.timer(idAXY);
     timer.record(123, TimeUnit.MILLISECONDS);
-
-    Id countId = testRegistry.createId("idA__count");
-    Id countIdXY = countId.withTag("tagA", "X").withTag("tagB", "Y");
-    String countName = descriptorRegistrySpy.idToDescriptorName(countId);
-    String countType = descriptorRegistrySpy.idToDescriptorType(countId);
-
-    Id timeId = testRegistry.createId("idA__totalTime");
-    Id timeIdXY = timeId.withTag("tagA", "X").withTag("tagB", "Y");
-    String timeName = descriptorRegistrySpy.idToDescriptorName(timeId);
-    String timeType = descriptorRegistrySpy.idToDescriptorType(timeId);
-
-    List<String> testTags = Arrays.asList("tagA", "tagB", "anotherTag");
-    MetricDescriptor descriptorCount = makeDescriptor(countId, testTags);
-    MetricDescriptor descriptorTime = makeDescriptor(timeId, testTags);
-    descriptorCount.setMetricKind("CUMULATIVE");
-    descriptorTime.setMetricKind("CUMULATIVE");
-    descriptorTime.setUnit("ns");
-
-    doNothing().when(descriptorRegistrySpy)
-        .initKnownDescriptors();
-
-    doThrow(new IOException())
-        .doReturn(descriptorCount)
-        .when(descriptorRegistrySpy)
-        .fetchDescriptorFromService(countName, countType);
-
-    Monitoring.Projects.MetricDescriptors.Create countMockCreateMethod
-          = Mockito.mock(Monitoring.Projects.MetricDescriptors.Create.class);
-    when(descriptorsApi.create(eq("projects/test-project"),
-                               eq(descriptorCount)))
-        .thenReturn(countMockCreateMethod);
-    doAnswer(new Answer<MetricDescriptor>() {
-            public MetricDescriptor answer(InvocationOnMock invocation) {
-                descriptorRegistrySpy
-                    .injectDescriptor(descriptorCount.getType(), descriptorCount);
-                return descriptorCount;
-            }}).when(countMockCreateMethod).execute();
-
-    doThrow(new IOException())
-        .doReturn(descriptorTime)
-        .when(descriptorRegistrySpy)
-        .fetchDescriptorFromService(timeName, timeType);
-
-    Monitoring.Projects.MetricDescriptors.Create timeMockCreateMethod
-          = Mockito.mock(Monitoring.Projects.MetricDescriptors.Create.class);
-    when(descriptorsApi.create(eq("projects/test-project"),
-                               eq(descriptorTime)))
-        .thenReturn(timeMockCreateMethod);
-    doAnswer(new Answer<MetricDescriptor>() {
-            public MetricDescriptor answer(InvocationOnMock invocation) {
-                descriptorRegistrySpy
-                    .injectDescriptor(descriptorTime.getType(), descriptorTime);
-                return descriptorTime;
-            }}).when(timeMockCreateMethod).execute();
 
     // If we get the expected result then we matched the expected descriptors,
     // which means the transforms occurred as expected.

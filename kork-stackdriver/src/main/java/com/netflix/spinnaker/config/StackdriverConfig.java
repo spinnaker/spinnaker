@@ -48,7 +48,7 @@ import rx.schedulers.Schedulers;
 
 
 @Configuration
-@EnableConfigurationProperties({StackdriverConfig.SpectatorStackdriverConfigurationProperties.class, StackdriverConfig.StackdriverConfigurationHints.class})
+@EnableConfigurationProperties({StackdriverConfig.SpectatorStackdriverConfigurationProperties.class})
 @ConditionalOnProperty("spectator.stackdriver.enabled")
 public class StackdriverConfig {
 
@@ -156,28 +156,6 @@ public class StackdriverConfig {
 
   private StackdriverWriter stackdriver;
 
-  @ConfigurationProperties("stackdriver")
-  public static class StackdriverConfigurationHints {
-    /**
-     * This class lets spring load from our YAML file into a Hint instance.
-     */
-    public static class MutableHint extends MetricDescriptorCache.CustomDescriptorHint {
-        public void setLabels(List<String> labels) {
-            this.labels = labels;
-        }
-        public void setRedacted(List<String> labels) {
-            this.redacted = labels;
-        }
-        public void setName(String name) {
-            this.name = name;
-        }
-    };
-
-    public List<MutableHint> hints;
-    public void setHints(List<MutableHint> hints) { this.hints = hints; }
-    public List<MutableHint> getHints() { return hints; }
-  };
-
   /**
    * Schedule a thread to flush our registry into stackdriver periodically.
    *
@@ -186,7 +164,6 @@ public class StackdriverConfig {
   @Bean
   public StackdriverWriter defaultStackdriverWriter(Environment environment,
                                                     Registry registry,
-                                                    StackdriverConfigurationHints stackdriverHints,
                                                     SpectatorStackdriverConfigurationProperties spectatorStackdriverConfigurationProperties) throws IOException {
     Logger log = LoggerFactory.getLogger("StackdriverConfig");
     log.info("Creating StackdriverWriter.");
@@ -227,14 +204,6 @@ public class StackdriverConfig {
 
     stackdriver = new StackdriverWriter(params);
 
-    if (stackdriverHints != null && stackdriverHints.hints != null) {
-        log.info("Adding {} custom descriptor hints",
-                 stackdriverHints.hints.size());
-        stackdriver.getDescriptorCache()
-            .addCustomDescriptorHints(stackdriverHints.hints);
-    } else {
-        log.info("No custom descriptor hints");
-    }
     Scheduler scheduler = Schedulers.from(Executors.newFixedThreadPool(1));
 
     Observable.timer(spectatorStackdriverConfigurationProperties.getStackdriver().getPeriod(), TimeUnit.SECONDS)
