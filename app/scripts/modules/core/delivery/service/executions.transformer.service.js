@@ -255,13 +255,19 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       }
     }
 
-    function addBuildInfo(execution) {
-      if (_.get(execution, 'trigger.parentExecution.trigger.buildInfo.number')) {
-        execution.buildInfo = execution.trigger.parentExecution.trigger.buildInfo;
-      }
+    function findNearestBuildInfo(execution) {
       if (_.get(execution, 'trigger.buildInfo.number')) {
-        execution.buildInfo = execution.trigger.buildInfo;
+        return execution.trigger.buildInfo;
       }
+      if (_.get(execution, 'trigger.parentExecution')) {
+        return findNearestBuildInfo(execution.trigger.parentExecution);
+      }
+      return null;
+    }
+
+    function addBuildInfo(execution) {
+      execution.buildInfo = findNearestBuildInfo(execution);
+
       if (_.get(execution, 'trigger.buildInfo.lastBuild.number')) {
         execution.buildInfo = execution.trigger.buildInfo.lastBuild;
       }
