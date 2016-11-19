@@ -133,11 +133,12 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
       return null
     }
 
-    Job job = metricsSupport.readData {
-      titusClient.findJobByName(data.serverGroupName)
+    //TODO(cfieber) - this should just load a single server group and follow the same on-demand caching behaviour as the AWS provider
+    List<Job> jobs = metricsSupport.readData {
+      titusClient.getAllJobs()
     }
 
-    CacheResult result = metricsSupport.transformData { buildCacheResult([job]) }
+    CacheResult result = metricsSupport.transformData { buildCacheResult(jobs) }
     def withOnDemand = new DefaultCacheResult(result.cacheResults + [onDemand: [new DefaultCacheData(
       Keys.getServerGroupKey(data.serverGroupName, data.account, data.region),
       10 * 60, // ttl is 10 minutes
