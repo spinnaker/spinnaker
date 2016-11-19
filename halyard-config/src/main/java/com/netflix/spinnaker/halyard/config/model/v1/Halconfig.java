@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -25,7 +28,7 @@ import java.util.List;
  * Maps the entire contents of ~/.hal/config.
  */
 @Data
-public class Halconfig {
+public class Halconfig implements Node {
   /**
    * Version of Halyard required to manage this deployment.
    */
@@ -70,5 +73,25 @@ public class Halconfig {
     }
 
     return result.toString();
+  }
+
+  @Override
+  public void accept(Validator v) {
+    v.validate(this);
+  }
+
+  @Override
+  public String getNodeName() {
+    return "halconfig";
+  }
+
+  @Override
+  public NodeIterator getIterator() {
+    return NodeIteratorFactory.getReflectiveIterator(this);
+  }
+
+  @Override
+  public NodeType getNodeType() {
+    return NodeType.ROOT;
   }
 }

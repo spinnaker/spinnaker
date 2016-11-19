@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.halyard.config.errors.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem;
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemSet;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import lombok.Getter;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,7 +31,7 @@ import java.util.List;
  */
 public class HalconfigException extends RuntimeException {
   @Getter
-  protected HalconfigProblemSet problems = new HalconfigProblemSet();
+  protected ProblemSet problems = new ProblemSet();
 
   @Getter
   private int responseCode = HttpServletResponse.SC_CONFLICT;
@@ -37,8 +40,13 @@ public class HalconfigException extends RuntimeException {
     super();
   }
 
-  public HalconfigException(List<HalconfigProblem> problems) {
+  public HalconfigException(Problem problem) {
     super();
-    this.problems = new HalconfigProblemSet(problems);
+    this.problems = new ProblemSet(new ArrayList<>(Collections.singletonList(problem)));
+  }
+
+  public HalconfigException(List<Problem> problems) {
+    super();
+    this.problems = new ProblemSet(problems);
   }
 }

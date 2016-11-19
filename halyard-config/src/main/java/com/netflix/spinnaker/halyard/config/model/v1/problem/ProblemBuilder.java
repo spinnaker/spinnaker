@@ -14,19 +14,30 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry;
+package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
-import com.netflix.spinnaker.halyard.config.model.v1.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
+import lombok.Setter;
 
-public class DockerRegistryProvider extends Provider<DockerRegistryAccount> {
-  @Override
-  public String getNodeName() {
-    return "dockerRegistry";
+public class ProblemBuilder {
+  @Setter
+  String message;
+
+  @Setter
+  String remediation;
+
+  @Setter
+  NodeCoordinates coordinates;
+
+  @Setter
+  Problem.Severity severity;
+
+  public ProblemBuilder(Problem.Severity severity, String message) {
+    this.severity = severity;
+    this.message = message;
   }
 
-  @Override
-  public void accept(Validator v) {
-    v.validate(this);
+  public Problem build() {
+    return new Problem(severity, coordinates, message, remediation);
   }
 }

@@ -14,30 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem.Severity;
-import lombok.Setter;
-
-public class HalconfigProblemBuilder {
-  @Setter
-  String message;
-
-  @Setter
-  String remediation;
-
-  @Setter
-  HalconfigCoordinates coordinates;
-
-  @Setter
-  Severity severity;
-
-  public HalconfigProblemBuilder(Severity severity, String message) {
-    this.severity = severity;
-    this.message = message;
-  }
-
-  public HalconfigProblem build() {
-    return new HalconfigProblem(severity, coordinates, message, remediation);
-  }
+public interface NodeIterator {
+  Node getNext(NodeFilter filter);
+  boolean hasNext(NodeFilter filter);
 }

@@ -16,12 +16,21 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
+import com.netflix.spinnaker.halyard.config.model.v1.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class GoogleProvider extends Provider<GoogleAccount> implements Cloneable {
+  @Override
+  public String getNodeName() {
+    return "dockerRegistry";
+  }
+
+  @Override
+  public void accept(Validator v) {
+    v.validate(this);
+  }
 }

@@ -16,9 +16,25 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider;
+import lombok.extern.slf4j.Slf4j;
+
 /**
- * Anything implementing this interface is validatable, meaning after we validate it, we get a non-null list of HalconfigProblems
+ * This validator runs validations that do not need a network connection, trying to infer errors only from reading your
+ * provided config.
  */
-public interface Validatable {
-  void accept(Validator v);
+@Slf4j
+public class StaticValidator extends Validator {
+  @Override
+  public void validate(Object subject) {
+    try {
+      getValidateMethod(subject.getClass()).invoke(this, subject);
+    } catch (Exception e) {
+      log.info("No Static Validator for " + subject.getClass(), e);
+    }
+  }
+
+  public void validateKubernetesProvider(KubernetesProvider kubernetesProvider) {
+    return;
+  }
 }

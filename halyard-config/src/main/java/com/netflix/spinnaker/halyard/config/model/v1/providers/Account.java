@@ -16,12 +16,22 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers;
 
-import com.netflix.spinnaker.halyard.config.model.v1.Validatable;
+import com.netflix.spinnaker.halyard.config.model.v1.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class Account implements Cloneable, Validatable {
+public abstract class Account implements Cloneable, Node {
   String name;
+
+  public void accept(Validator v) {
+    v.validate(this);
+  }
+
+  @Override
+  public String getNodeName() {
+    return name;
+  }
 }

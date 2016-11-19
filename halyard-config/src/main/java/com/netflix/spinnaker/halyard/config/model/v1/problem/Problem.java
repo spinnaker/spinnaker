@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1;
+package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
 import lombok.Getter;
 
 /**
  * This represents a single "problem" with the currently loaded/modified halconfig.
  */
-public class HalconfigProblem {
+public class Problem {
   public enum Severity {
+    /**
+     * Inicates no problem at all. This exists as a point of comparison against the greater severity levels, and
+     * may not be used to instantiate a problem.
+     */
+    NONE,
+
     /**
      * Indicates the deployment of Spinnaker is going against our preferred/recommended practices.
      * For example: using an unauthenticated docker registry.
@@ -46,7 +53,7 @@ public class HalconfigProblem {
    * The location of the problem in the config.
    */
   @Getter
-  final private HalconfigCoordinates coordinates;
+  final private NodeCoordinates coordinates;
 
   /**
    * A human-readable message describing the problem.
@@ -66,7 +73,10 @@ public class HalconfigProblem {
   @Getter
   final private Severity severity;
 
-  public HalconfigProblem(Severity severity, HalconfigCoordinates coordinates, String message, String remediation) {
+  public Problem(Severity severity, NodeCoordinates coordinates, String message, String remediation) {
+    if (severity == Severity.NONE) {
+      throw new RuntimeException("A halconfig problem may not be intialized with \"NONE\" severity");
+    }
     this.severity = severity;
     this.coordinates = coordinates;
     this.message = message;

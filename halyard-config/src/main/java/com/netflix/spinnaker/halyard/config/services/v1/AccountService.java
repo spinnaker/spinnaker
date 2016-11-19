@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
-import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +39,7 @@ public class AccountService {
   @Autowired
   ValidateService validateService;
 
-  public Account getAccount(HalconfigCoordinates coordinates) {
+  public Account getAccount(NodeCoordinates coordinates) {
     Provider provider = providerService.getProvider(coordinates);
 
     String accountName = coordinates.getAccount();
@@ -68,7 +65,7 @@ public class AccountService {
     }
   }
 
-  public void validateAccount(HalconfigCoordinates coordinates) {
+  public void validateAccount(NodeCoordinates coordinates) {
     Account account = getAccount(coordinates);
     validateService.validate(account, coordinates);
   }

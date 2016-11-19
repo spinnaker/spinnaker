@@ -16,24 +16,39 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.Validatable;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
+import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.StaticValidator;
+import com.netflix.spinnaker.halyard.config.model.v1.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ValidateService {
   @Autowired
-  DeploymentService deploymentService;
+  HalconfigParser parser;
 
-  public void validate(Validatable validatable, HalconfigCoordinates coordinates) {
-    DeploymentConfiguration deployment = deploymentService.getDeploymentConfiguration(coordinates);
-    HalconfigProblemSetBuilder builder = new HalconfigProblemSetBuilder().setCoordinates(coordinates);
+  public void validateAll(NodeFilter filter) {
+    StaticValidator v = new StaticValidator();
+    Halconfig halconfig = parser.getConfig();
+    NodeCoordinates coordinates = new NodeCoordinates();
+    recursiveValidate(filter, halconfig, v, coordinates);
+  }
 
-    validatable.validate(builder, deployment);
+  private void recursiveValidate(NodeFilter filter, Node node, Validator v, NodeCoordinates coordinates) {
+    coordinates = coordinates.refine(node);
+    v.getProblemSetBuilder().setCoordinates(coordinates);
+    node.accept(v);
 
-    builder.build().throwIfProblem();
+    NodeIterator iterator = node.getIterator();
+
+    Node recurse = iterator.getNext(filter);
+    while (recurse != null) {
+      recursiveValidate(filter, recurse, v, coordinates);
+    }
   }
 }

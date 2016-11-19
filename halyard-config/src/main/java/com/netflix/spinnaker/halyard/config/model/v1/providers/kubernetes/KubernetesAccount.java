@@ -18,7 +18,11 @@ package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import io.fabric8.kubernetes.api.model.NamedContext;
@@ -36,8 +40,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem.Severity.ERROR;
-import static com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem.Severity.WARNING;
+import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.ERROR;
+import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.WARNING;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -57,7 +61,7 @@ public class KubernetesAccount extends Account implements Cloneable {
     }
   }
 
-  private void validateKubeconfig(HalconfigProblemSetBuilder builder, DeploymentConfiguration deployment) {
+  private void validateKubeconfig(ProblemSetBuilder builder, DeploymentConfiguration deployment) {
     io.fabric8.kubernetes.api.model.Config kubeconfig;
 
     // This indicates if a first pass at the config looks OK. If we don't see any serious problems, we'll do one last check
@@ -109,7 +113,7 @@ public class KubernetesAccount extends Account implements Cloneable {
     }
   }
 
-  public void validateDockerRegistries(HalconfigProblemSetBuilder builder, DeploymentConfiguration deployment) {
+  public void validateDockerRegistries(ProblemSetBuilder builder, DeploymentConfiguration deployment) {
     if (dockerRegistries == null || dockerRegistries.isEmpty()) {
       builder.addProblem(ERROR, "You have not specified any docker registries to deploy to")
           .setRemediation("Add a docker registry that can be found in this deployment's dockerRegistries provider");
@@ -143,8 +147,22 @@ public class KubernetesAccount extends Account implements Cloneable {
     }
   }
 
-  public void validate(HalconfigProblemSetBuilder builder, DeploymentConfiguration deployment) {
+  public void accept(Validator v) {
+    v.validate(this);
+  }
+
+  public void validate(ProblemSetBuilder builder, DeploymentConfiguration deployment) {
     validateDockerRegistries(builder, deployment);
     validateKubeconfig(builder, deployment);
+  }
+
+  @Override
+  public NodeIterator getIterator() {
+    return NodeIteratorFactory.getEmptyIterator();
+  }
+
+  @Override
+  public NodeType getNodeType() {
+    return NodeType.ACCOUNT;
   }
 }

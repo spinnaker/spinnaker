@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Providers;
 import lombok.Data;
 
@@ -29,7 +32,7 @@ import java.util.Map;
  * @see Halconfig
  */
 @Data
-public class DeploymentConfiguration {
+public class DeploymentConfiguration implements Node {
   /**
    * Human-readable name for this deployment of Spinnaker.
    */
@@ -47,9 +50,28 @@ public class DeploymentConfiguration {
    */
   Providers providers;
 
-
   /**
    * Webhooks, e.g. Jenkins, TravisCI, ...
    */
   List<Map> webhooks = new ArrayList<>();
+
+  @Override
+  public String getNodeName() {
+    return name;
+  }
+
+  @Override
+  public NodeIterator getIterator() {
+    return NodeIteratorFactory.getReflectiveIterator(this);
+  }
+
+  @Override
+  public NodeType getNodeType() {
+    return NodeType.LIST;
+  }
+
+  @Override
+  public void accept(Validator v) {
+    v.validate(this);
+  }
 }

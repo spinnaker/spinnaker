@@ -16,14 +16,38 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers;
 
+import com.netflix.spinnaker.halyard.config.model.v1.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
 import lombok.Data;
 
 @Data
-public class Providers implements Cloneable {
+public class Providers implements Cloneable, Node {
   KubernetesProvider kubernetes;
   DockerRegistryProvider dockerRegistry;
   GoogleProvider google;
+
+  @Override
+  public String getNodeName() {
+    return "provider";
+  }
+
+  @Override
+  public NodeIterator getIterator() {
+    return NodeIteratorFactory.getReflectiveIterator(this);
+  }
+
+  @Override
+  public NodeType getNodeType() {
+    return NodeType.LIST;
+  }
+
+  @Override
+  public void accept(Validator v) {
+    v.validate(this);
+  }
 }

@@ -16,13 +16,26 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class Provider<T extends Account> implements Cloneable {
+public abstract class Provider<T extends Account & Node> implements Cloneable, Node {
   boolean enabled;
   List<T> accounts = new ArrayList<>();
+
+  @Override
+  public NodeType getNodeType() {
+    return NodeType.PROVIDER;
+  }
+
+  @Override
+  public NodeIterator getIterator() {
+    return NodeIteratorFactory.getListIterator((List<Node>) accounts);
+  }
 }

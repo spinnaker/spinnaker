@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1;
+package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigProblem.Severity;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
 import lombok.AccessLevel;
 import lombok.Setter;
 
@@ -24,25 +24,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class HalconfigProblemSetBuilder {
-  private List<HalconfigProblemBuilder> builders = new ArrayList<>();
+public class ProblemSetBuilder {
+  private List<ProblemBuilder> builders = new ArrayList<>();
 
   @Setter(AccessLevel.PUBLIC)
-  private HalconfigCoordinates coordinates;
+  private NodeCoordinates coordinates;
 
-  public HalconfigProblemBuilder addProblem(Severity severity, String message) {
-    HalconfigProblemBuilder problemBuilder = new HalconfigProblemBuilder(severity, message);
+  public ProblemBuilder addProblem(Problem.Severity severity, String message) {
+    ProblemBuilder problemBuilder = new ProblemBuilder(severity, message);
     problemBuilder.setCoordinates(coordinates);
     builders.add(problemBuilder);
     return problemBuilder;
   }
 
-  public HalconfigProblemSet build() {
-    List<HalconfigProblem> problems = builders
+  public ProblemSet build() {
+    List<Problem> problems = builders
         .stream()
-        .map(HalconfigProblemBuilder::build)
+        .map(ProblemBuilder::build)
         .collect(Collectors.toList());
 
-    return new HalconfigProblemSet(problems);
+    return new ProblemSet(problems);
   }
 }

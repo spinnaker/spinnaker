@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
 import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.Providers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ public class ProviderService {
   @Autowired
   DeploymentService deploymentService;
 
-  public Provider getProvider(HalconfigCoordinates coordinates) {
+  public Provider getProvider(NodeCoordinates coordinates) {
     Providers providers = getProviders(coordinates);
     String deploymentName = coordinates.getDeployment();
     String providerName = coordinates.getProvider();
@@ -60,7 +60,7 @@ public class ProviderService {
     return provider;
   }
 
-  public Providers getProviders(HalconfigCoordinates coordinates) {
+  public Providers getProviders(NodeCoordinates coordinates) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(coordinates);
 
     Providers providers = deploymentConfiguration.getProviders();

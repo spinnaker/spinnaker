@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
 import com.netflix.spinnaker.halyard.config.model.v1.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +38,7 @@ public class DeploymentService {
   @Autowired
   ConfigService configService;
 
-  public DeploymentConfiguration getDeploymentConfiguration(HalconfigCoordinates coordinates) {
+  public DeploymentConfiguration getDeploymentConfiguration(NodeCoordinates coordinates) {
     String deploymentName = coordinates.getDeployment();
     Halconfig halconfig = configService.getConfig();
     List<DeploymentConfiguration> matching = halconfig.getDeploymentConfigurations()
@@ -46,15 +48,17 @@ public class DeploymentService {
 
     switch (matching.size()) {
       case 0:
-        throw new IllegalRequestException(coordinates,
-            "No matching deployment could be found",
-            "Create a new deployment");
+        throw new IllegalRequestException(new ProblemBuilder(Problem.Severity.FATAL,
+            "No matching deployment could be found")
+            .setCoordinates(coordinates)
+            .setRemediation("Create a new deployment").build());
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException(coordinates,
-            "More than one matching deployment found",
-            "Manually delete or rename matching deployments in your halconfig file");
+        throw new IllegalConfigException(new ProblemBuilder(Problem.Severity.FATAL,
+            "More than one matching deployment found")
+            .setCoordinates(coordinates)
+            .setRemediation("Manually delete or rename matching deployments in your halconfig file").build());
     }
   }
 
