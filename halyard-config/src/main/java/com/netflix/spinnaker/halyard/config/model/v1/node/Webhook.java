@@ -14,24 +14,39 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class KubernetesProvider extends Provider<KubernetesAccount> implements Cloneable {
+public abstract class Webhook<T extends Master> extends Node implements Cloneable {
+  boolean enabled;
+  List<T> masters = new ArrayList<>();
+
   @Override
-  public String getNodeName() {
-    return "kubernetes";
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeListIterator(masters.stream().map(a -> (Node) a).collect(Collectors.toList()));
   }
 
   @Override
   public void accept(ProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
+  }
+
+  @Override
+  public boolean matchesLocally(NodeFilter filter) {
+    return NodeFilter.matches(filter.webhook, getNodeName());
+  }
+
+  @Override
+  public NodeReference getReference() {
+    return parent.getReference().setWebhook(getNodeName());
   }
 }

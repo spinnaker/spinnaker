@@ -59,7 +59,7 @@ public class ProblemSet {
   /**
    * Find the highest severity this problem set stores.
    *
-   * @return Returns the highest severity this problem set stores.
+   * @return the highest severity this problem set stores.
    */
   public Problem.Severity maxSeverity() {
     if (problems.isEmpty()) {

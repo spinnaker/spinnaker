@@ -18,9 +18,12 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,10 +42,10 @@ public class AccountService {
   @Autowired
   ValidateService validateService;
 
-  public Account getAccount(NodeCoordinates coordinates) {
-    Provider provider = providerService.getProvider(coordinates);
+  public Account getAccount(NodeReference reference) {
+    Provider provider = providerService.getProvider(reference);
 
-    String accountName = coordinates.getAccount();
+    String accountName = reference.getAccount();
 
     List<Account> accounts = provider.getAccounts();
 
@@ -53,20 +56,23 @@ public class AccountService {
 
     switch (matchingAccounts.size()) {
       case 0:
-        throw new IllegalRequestException(coordinates,
-            "No matching account found account",
-            "Check if this account was defined in another provider, or create a new one");
+        throw new IllegalRequestException(new ProblemBuilder(
+            Problem.Severity.FATAL, "No matching account found account")
+            .setReference(reference)
+            .setRemediation("Check if this account was defined in another provider, or create a new one").build());
       case 1:
         return matchingAccounts.get(0);
       default:
-        throw new IllegalConfigException(coordinates,
-            "More than one matching account found",
-            "Manually delete/rename duplicate accounts in your halconfig file");
+        throw new IllegalConfigException(new ProblemBuilder(
+            Problem.Severity.FATAL, "More than one matching account found")
+            .setReference(reference)
+            .setRemediation("Manually delete/rename duplicate accounts in your halconfig file").build());
     }
   }
 
-  public void validateAccount(NodeCoordinates coordinates) {
-    Account account = getAccount(coordinates);
-    validateService.validate(account, coordinates);
+  public void validateAccount(NodeReference nodeReference) {
+    NodeFilter filter = new NodeFilter(nodeReference).anyHalconfigFile();
+
+    validateService.validateMatchingFilter(filter).throwIfProblem();
   }
 }

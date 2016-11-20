@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.ParseConfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,6 +125,9 @@ public class HalconfigParser {
     } catch (ScannerException e) {
       throw new ParseConfigException(e);
     }
+
+    res.parentify();
+    res.setPath(halconfigPath);
 
     return res;
   }

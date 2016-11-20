@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,21 +33,21 @@ public class AccountController {
 
   @RequestMapping(value = "/{account:.+}", method = RequestMethod.GET)
   Account account(@PathVariable String deployment, @PathVariable String provider, @PathVariable String account) {
-    HalconfigCoordinates coordinates = new HalconfigCoordinates()
+    NodeReference reference = new NodeReference()
         .setDeployment(deployment)
         .setProvider(provider)
         .setAccount(account);
 
-    return accountService.getAccount(coordinates);
+    return accountService.getAccount(reference);
   }
 
   @RequestMapping(value = "/{account:.+}/validate", method = RequestMethod.GET)
   void validateAccount(@PathVariable String deployment, @PathVariable String provider, @PathVariable String account) {
-    HalconfigCoordinates coordinates = new HalconfigCoordinates()
+    NodeReference reference = new NodeReference()
         .setDeployment(deployment)
         .setProvider(provider)
         .setAccount(account);
 
-    accountService.validateAccount(coordinates);
+    accountService.validateAccount(reference);
   }
 }

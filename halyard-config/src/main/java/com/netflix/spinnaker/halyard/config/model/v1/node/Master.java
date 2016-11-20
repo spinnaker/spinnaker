@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.problem;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
-import lombok.Setter;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-public class ProblemBuilder {
-  @Setter
-  String message;
+@Data
+@EqualsAndHashCode(callSuper = false)
+public abstract class Master extends Node implements Cloneable {
+  String name;
 
-  @Setter
-  String remediation;
-
-  @Setter
-  NodeReference reference;
-
-  @Setter
-  Problem.Severity severity;
-
-  public ProblemBuilder(Problem.Severity severity, String message) {
-    this.severity = severity;
-    this.message = message;
+  @Override
+  public void accept(ProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
   }
 
-  public Problem build() {
-    return new Problem(severity, reference, message, remediation);
+  @Override
+  public String getNodeName() {
+    return name;
+  }
+
+  @Override
+  public NodeReference getReference() {
+    return parent.getReference().setMaster(name);
   }
 }
+

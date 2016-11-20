@@ -17,38 +17,45 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
-import com.netflix.spinnaker.halyard.config.model.v1.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.StaticValidator;
-import com.netflix.spinnaker.halyard.config.model.v1.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.ValidatorCollection;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class ValidateService {
   @Autowired
   HalconfigParser parser;
 
-  public void validateAll(NodeFilter filter) {
-    StaticValidator v = new StaticValidator();
+  @Autowired
+  ValidatorCollection validatorCollection;
+
+  ProblemSet validateMatchingFilter(NodeFilter filter) {
     Halconfig halconfig = parser.getConfig();
-    NodeCoordinates coordinates = new NodeCoordinates();
-    recursiveValidate(filter, halconfig, v, coordinates);
+    ProblemSetBuilder psBuilder = new ProblemSetBuilder();
+    recursiveValidate(psBuilder, halconfig, filter);
+
+    return psBuilder.build();
   }
 
-  private void recursiveValidate(NodeFilter filter, Node node, Validator v, NodeCoordinates coordinates) {
-    coordinates = coordinates.refine(node);
-    v.getProblemSetBuilder().setCoordinates(coordinates);
-    node.accept(v);
+  private void recursiveValidate(ProblemSetBuilder psBuilder, Node node, NodeFilter filter) {
+    log.info("Running all validators for node " + node.getNodeName() + " with class " + node.getClass());
 
-    NodeIterator iterator = node.getIterator();
+    validatorCollection.runAllValidators(psBuilder, node);
 
-    Node recurse = iterator.getNext(filter);
+    NodeIterator children = node.getChildren();
+
+    Node recurse = children.getNext(filter);
     while (recurse != null) {
-      recursiveValidate(filter, recurse, v, coordinates);
+      recursiveValidate(psBuilder, recurse, filter);
+      recurse = children.getNext(filter);
     }
   }
 }

@@ -14,24 +14,39 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.providers;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class Account implements Cloneable, Node {
+public abstract class Account extends Node implements Cloneable {
   String name;
 
-  public void accept(Validator v) {
-    v.validate(this);
+  @Override
+  public void accept(ProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
   }
 
   @Override
   public String getNodeName() {
     return name;
+  }
+
+  @Override
+  boolean matchesLocally(NodeFilter filter) {
+    return NodeFilter.matches(filter.account, name);
+  }
+
+  @Override
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeEmptyIterator();
+  }
+
+  @Override
+  public NodeReference getReference() {
+    return parent.getReference().setAccount(name);
   }
 }

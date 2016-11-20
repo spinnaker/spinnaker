@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import lombok.Getter;
 
 /**
@@ -25,7 +25,7 @@ import lombok.Getter;
 public class Problem {
   public enum Severity {
     /**
-     * Inicates no problem at all. This exists as a point of comparison against the greater severity levels, and
+     * Indicates no problem at all. This exists as a point of comparison against the greater severity levels, and
      * may not be used to instantiate a problem.
      */
     NONE,
@@ -43,7 +43,7 @@ public class Problem {
     ERROR,
 
     /**
-     * Indicates this request cannot hope to be performed
+     * Indicates this request cannot hope to be performed.
      * For example: asking to update an account that doesn't exist.
      */
     FATAL,
@@ -53,7 +53,18 @@ public class Problem {
    * The location of the problem in the config.
    */
   @Getter
-  final private NodeCoordinates coordinates;
+  final private NodeReference reference;
+
+  /**
+   * Provides a human-readable reference interpretation
+   */
+  public String getReferenceTitle() {
+    if (reference != null) {
+      return "In " + reference + ":";
+    } else {
+      return "Global:";
+    }
+  }
 
   /**
    * A human-readable message describing the problem.
@@ -73,12 +84,12 @@ public class Problem {
   @Getter
   final private Severity severity;
 
-  public Problem(Severity severity, NodeCoordinates coordinates, String message, String remediation) {
+  public Problem(Severity severity, NodeReference reference, String message, String remediation) {
     if (severity == Severity.NONE) {
       throw new RuntimeException("A halconfig problem may not be intialized with \"NONE\" severity");
     }
     this.severity = severity;
-    this.coordinates = coordinates;
+    this.reference = reference;
     this.message = message;
     this.remediation = remediation;
   }

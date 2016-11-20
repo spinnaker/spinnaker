@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-/**
- * Anything implementing this interface is validatable, meaning after we validate it, we get a non-null list of HalconfigProblems
- */
-public interface Validatable {
-  void accept(Validator v);
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+
+public abstract class Validator<T extends Node> {
+  abstract public void validate(ProblemSetBuilder p, T n);
 }

@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.providers;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class Providers implements Cloneable, Node {
+@EqualsAndHashCode(callSuper = false)
+public class Providers extends Node implements Cloneable {
   KubernetesProvider kubernetes;
   DockerRegistryProvider dockerRegistry;
   GoogleProvider google;
@@ -37,17 +36,22 @@ public class Providers implements Cloneable, Node {
   }
 
   @Override
-  public NodeIterator getIterator() {
-    return NodeIteratorFactory.getReflectiveIterator(this);
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeReflectiveIterator(this);
   }
 
   @Override
-  public NodeType getNodeType() {
-    return NodeType.LIST;
+  boolean matchesLocally(NodeFilter filter) {
+    return !filter.provider.isEmpty();
   }
 
   @Override
-  public void accept(Validator v) {
-    v.validate(this);
+  public void accept(ProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
+  }
+
+  @Override
+  public NodeReference getReference() {
+    return parent.getReference();
   }
 }

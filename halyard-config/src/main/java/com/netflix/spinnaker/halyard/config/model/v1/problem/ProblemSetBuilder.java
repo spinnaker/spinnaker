@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import lombok.AccessLevel;
 import lombok.Setter;
 
@@ -28,11 +29,13 @@ public class ProblemSetBuilder {
   private List<ProblemBuilder> builders = new ArrayList<>();
 
   @Setter(AccessLevel.PUBLIC)
-  private NodeCoordinates coordinates;
+  private Node node;
 
   public ProblemBuilder addProblem(Problem.Severity severity, String message) {
     ProblemBuilder problemBuilder = new ProblemBuilder(severity, message);
-    problemBuilder.setCoordinates(coordinates);
+    if (node != null) {
+      problemBuilder.setReference(node.getReference());
+    }
     builders.add(problemBuilder);
     return problemBuilder;
   }

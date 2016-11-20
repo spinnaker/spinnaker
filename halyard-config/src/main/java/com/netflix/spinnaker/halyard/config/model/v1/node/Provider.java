@@ -14,28 +14,33 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.providers;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
-public abstract class Provider<T extends Account & Node> implements Cloneable, Node {
+@EqualsAndHashCode(callSuper = false)
+public abstract class Provider<T extends Account> extends Node implements Cloneable {
   boolean enabled;
   List<T> accounts = new ArrayList<>();
 
   @Override
-  public NodeType getNodeType() {
-    return NodeType.PROVIDER;
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeListIterator(accounts.stream().map(a -> (Node) a).collect(Collectors.toList()));
   }
 
   @Override
-  public NodeIterator getIterator() {
-    return NodeIteratorFactory.getListIterator((List<Node>) accounts);
+  public boolean matchesLocally(NodeFilter filter) {
+    return NodeFilter.matches(filter.provider, getNodeName());
+  }
+
+  @Override
+  public NodeReference getReference() {
+    return parent.getReference().setProvider(getNodeName());
   }
 }

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.services.v1;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import retrofit.http.GET;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 
-public interface DaemonService {
-  @GET("/v1/config/")
-  Halconfig getHalconfig();
+/**
+ * Anything implementing this interface is validatable, meaning after we validate it, we get a non-null list of HalconfigProblems
+ */
+public interface Validatable {
+  void accept(ProblemSetBuilder psBuilder, Validator v);
 }

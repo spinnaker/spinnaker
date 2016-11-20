@@ -17,34 +17,63 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.introspect.WithMember;
-import com.netflix.spinnaker.halyard.config.model.v1.Validatable;
+import lombok.Getter;
 
 /**
- * The "Node" class represents effectively a YAML node in our config hierarchy that can be validated. It also provides
- * the name of the node with a small tweak:
- *
- * If a yaml node is an element of a list, we use that nodes "name" field to represent name.
+ * The "Node" class represents a YAML node in our config hierarchy that can be validated.
  *
  * The motivation for this is to allow us to navigate YAML paths in our halconfig, and validate each node (if necessary)
  * along the way.
  */
-public interface Node extends Validatable {
+abstract public class Node implements Validatable {
   @JsonIgnore
-  public String getNodeName();
+  public abstract String getNodeName();
 
   @JsonIgnore
-  public NodeIterator getIterator();
+  public abstract NodeIterator getChildren();
+
+  /**
+   * Checks if the filter matches this node alone.
+   *
+   * @param filter the filter being checked.
+   * @return true iff the filter accepts this node.
+   */
+  @JsonIgnore
+  abstract boolean matchesLocally(NodeFilter filter);
+
+  /**
+   * Checks if the filter matches this node all the way to the root.
+   *
+   * @param filter the filter being checked.
+   * @return true iff the filter accepts this node, as a part of its full context (yaml tree ending at this node).
+   */
+  @JsonIgnore
+  public boolean matchesToRoot(NodeFilter filter) {
+    boolean result = matchesLocally(filter);
+
+    if (parent == null || !result) {
+      return result;
+    }
+
+    return parent.matchesToRoot(filter);
+  }
 
   @JsonIgnore
-  public NodeType getNodeType();
+  public abstract NodeReference getReference();
 
-  enum NodeType {
-    DEPLOYMENT,
-    PROVIDER,
-    ACCOUNT,
-    WEBHOOK,
-    LIST,
-    ROOT,
+  @Getter
+  @JsonIgnore
+  protected Node parent = null;
+
+  @JsonIgnore
+  public void parentify() {
+    NodeIterator children = getChildren();
+
+    Node child = children.getNext();
+    while (child != null) {
+      child.parent = this;
+      child.parentify();
+      child = children.getNext();
+    }
   }
 }

@@ -16,13 +16,28 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import lombok.Setter;
-
 /**
  * A node filter can be used to inform an iterator which elements to return.
  */
-public class NodeFilter extends NodeCoordinates {
+public class NodeFilter extends NodeReference {
   private static final String ANY = "*";
+
+  public static boolean matches(String a, String b) {
+    if (a.isEmpty() || b.isEmpty()) {
+      return false;
+    }
+
+    if (a.equals(ANY) || b.equals(ANY)) {
+      return true;
+    }
+
+    return a.equals(b);
+  }
+
+  public NodeFilter anyHalconfigFile() {
+    halconfigFile = ANY;
+    return this;
+  }
 
   public NodeFilter anyDeployment() {
     deployment = ANY;
@@ -44,24 +59,17 @@ public class NodeFilter extends NodeCoordinates {
     return this;
   }
 
-  public boolean matches(Node node) {
-    switch (node.getNodeType()) {
-      case DEPLOYMENT:
-        return deployment.equals(ANY) || deployment.equals(node.getNodeName());
-      case PROVIDER:
-        return provider.equals(ANY) || provider.equals(node.getNodeName());
-      case ACCOUNT:
-        return account.equals(ANY) || account.equals(node.getNodeName());
-      case WEBHOOK:
-        return webhook.equals(ANY) || webhook.equals(node.getNodeName());
-      case ROOT:
-        // The root node alone doesn't provide enough information to decide what to filter out.
-        return true;
-      case LIST:
-        // We say a list matches to continue our search, since a list alone doesn't give enough information.
-        return true;
-      default:
-        throw new RuntimeException("Unknown node type encountered: " + node.getNodeType());
-    }
+  public NodeFilter anyMaster() {
+    master = ANY;
+    return this;
+  }
+
+  public NodeFilter(NodeReference reference) {
+    this.halconfigFile = reference.halconfigFile;
+    this.deployment = reference.deployment;
+    this.webhook = reference.webhook;
+    this.provider = reference.provider;
+    this.account = reference.account;
+    this.master = reference.master;
   }
 }

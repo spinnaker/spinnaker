@@ -14,21 +14,29 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Maps the entire contents of ~/.hal/config.
  */
 @Data
-public class Halconfig implements Node {
+@EqualsAndHashCode(callSuper = false)
+public class Halconfig extends Node {
+  /**
+   * File path this was found at.
+   */
+  @JsonIgnore
+  private String path;
+
   /**
    * Version of Halyard required to manage this deployment.
    */
@@ -76,8 +84,8 @@ public class Halconfig implements Node {
   }
 
   @Override
-  public void accept(Validator v) {
-    v.validate(this);
+  public void accept(ProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
   }
 
   @Override
@@ -86,12 +94,17 @@ public class Halconfig implements Node {
   }
 
   @Override
-  public NodeIterator getIterator() {
-    return NodeIteratorFactory.getReflectiveIterator(this);
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeListIterator(deploymentConfigurations.stream().map(d -> (Node) d).collect(Collectors.toList()));
   }
 
   @Override
-  public NodeType getNodeType() {
-    return NodeType.ROOT;
+  boolean matchesLocally(NodeFilter filter) {
+    return NodeFilter.matches(filter.halconfigFile, path);
+  }
+
+  @Override
+  public NodeReference getReference() {
+    return new NodeReference().setHalconfigFile(path);
   }
 }

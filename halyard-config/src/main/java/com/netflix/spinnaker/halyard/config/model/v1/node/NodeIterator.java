@@ -18,5 +18,5 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 public interface NodeIterator {
   Node getNext(NodeFilter filter);
-  boolean hasNext(NodeFilter filter);
+  Node getNext();
 }

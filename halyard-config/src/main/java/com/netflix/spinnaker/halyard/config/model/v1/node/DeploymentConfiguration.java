@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Providers;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import lombok.Data;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import lombok.EqualsAndHashCode;
 
 /**
  * A DeploymentConfiguration is an installation of Spinnaker, described in your Halconfig.
@@ -32,7 +26,8 @@ import java.util.Map;
  * @see Halconfig
  */
 @Data
-public class DeploymentConfiguration implements Node {
+@EqualsAndHashCode(callSuper = false)
+public class DeploymentConfiguration extends Node {
   /**
    * Human-readable name for this deployment of Spinnaker.
    */
@@ -53,7 +48,7 @@ public class DeploymentConfiguration implements Node {
   /**
    * Webhooks, e.g. Jenkins, TravisCI, ...
    */
-  List<Map> webhooks = new ArrayList<>();
+  Webhooks webhooks;
 
   @Override
   public String getNodeName() {
@@ -61,17 +56,22 @@ public class DeploymentConfiguration implements Node {
   }
 
   @Override
-  public NodeIterator getIterator() {
-    return NodeIteratorFactory.getReflectiveIterator(this);
+  boolean matchesLocally(NodeFilter filter) {
+    return NodeFilter.matches(filter.deployment, name);
   }
 
   @Override
-  public NodeType getNodeType() {
-    return NodeType.LIST;
+  public NodeReference getReference() {
+    return parent.getReference().setDeployment(name);
   }
 
   @Override
-  public void accept(Validator v) {
-    v.validate(this);
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeReflectiveIterator(this);
+  }
+
+  @Override
+  public void accept(ProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
   }
 }

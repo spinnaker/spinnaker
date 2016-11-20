@@ -30,16 +30,25 @@ import java.util.stream.Collectors;
 @Slf4j
 public class NodeIteratorFactory {
   /**
-   *
-   * Transforms a Node into an iterator that allows us to iterate over all sub-fields with type node.
+   * Creates an iterator from a Node that allows us to iterate over all sub-fields with type node.
    *
    * @param node the node who's fields to iterate over.
    * @return the resulting interator.
    */
-  public static NodeIterator getReflectiveIterator(Node node) {
-    List<Node> nodes = new ArrayList<>(Arrays.asList(node.getClass().getFields()))
+  public static NodeIterator makeReflectiveIterator(Node node) {
+    List<Node> nodes = new ArrayList<>(Arrays.asList(node.getClass().getDeclaredFields()))
         .stream()
-        .filter(f -> f.getType() == Node.class)
+        .filter(f -> {
+          try {
+            f.setAccessible(true);
+            return f.get(node) instanceof Node;
+          } catch (IllegalAccessException e) {
+            log.warn("Could not retrieve field value for " + f.getName(), e);
+            return false;
+          } finally {
+            f.setAccessible(false);
+          }
+        })
         .map(n -> {
           try {
             n.setAccessible(true);
@@ -53,30 +62,28 @@ public class NodeIteratorFactory {
         })
         .filter(n -> n != null).collect(Collectors.toList());
 
+    log.info("Node " + node.getNodeName() + " reflectively collected " + nodes.size() + " children");
+
     return new NodeListIterator(nodes);
   }
 
-  public static NodeIterator getListIterator(List<Node> nodes) {
+  public static NodeIterator makeListIterator(List<Node> nodes) {
     return new NodeListIterator(nodes);
   }
 
-  public static NodeIterator getEmptyIterator() {
+  public static NodeIterator makeEmptyIterator() {
     return new NodeEmptyIterator();
   }
 
   private static class NodeEmptyIterator implements NodeIterator {
-    private Node getNext() {
-      return null;
-    }
-
     @Override
     public Node getNext(NodeFilter filter) {
       return null;
     }
 
     @Override
-    public boolean hasNext() {
-      return false;
+    public Node getNext() {
+      return null;
     }
   }
 
@@ -88,7 +95,8 @@ public class NodeIteratorFactory {
       this.nodes = nodes;
     }
 
-    private Node getNext() {
+    @Override
+    public Node getNext() {
       Node result = null;
       if (hasNext()) {
         result = nodes.get(index);
@@ -101,7 +109,7 @@ public class NodeIteratorFactory {
     public Node getNext(NodeFilter filter) {
       while (hasNext()) {
         Node result = getNext();
-        if (filter.matches(result)) {
+        if (result.matchesToRoot(filter)) {
           return result;
         }
       }
@@ -109,8 +117,7 @@ public class NodeIteratorFactory {
       return null;
     }
 
-    @Override
-    public boolean hasNext() {
+    private boolean hasNext() {
       return index < nodes.size();
     }
   }

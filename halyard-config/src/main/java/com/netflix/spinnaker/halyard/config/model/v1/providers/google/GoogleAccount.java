@@ -16,27 +16,19 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
-import com.netflix.spinnaker.halyard.config.model.v1.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class GoogleAccount extends Account implements Cloneable {
-  public void accept(Validator v) {
-    v.validate(this);
-  }
-
   @Override
-  public NodeIterator getIterator() {
-    return NodeIteratorFactory.getEmptyIterator();
-  }
-
-  @Override
-  public NodeType getNodeType() {
-    return NodeType.ACCOUNT;
+  public void accept(ProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
   }
 }

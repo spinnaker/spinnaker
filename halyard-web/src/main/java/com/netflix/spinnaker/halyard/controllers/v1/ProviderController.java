@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Providers;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.services.v1.ProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,13 +34,13 @@ public class ProviderController {
 
   @RequestMapping(value = "/{provider:.+}", method = RequestMethod.GET)
   Provider provider(@PathVariable String deployment, @PathVariable String provider) {
-    HalconfigCoordinates coordinates = new HalconfigCoordinates().setDeployment(deployment).setProvider(provider);
-    return providerService.getProvider(coordinates);
+    NodeReference reference = new NodeReference().setDeployment(deployment).setProvider(provider);
+    return providerService.getProvider(reference);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   Providers providers(@PathVariable String deployment) {
-    HalconfigCoordinates coordinates = new HalconfigCoordinates().setDeployment(deployment);
-    return providerService.getProviders(coordinates);
+    NodeReference reference = new NodeReference().setDeployment(deployment);
+    return providerService.getProviders(reference);
   }
 }

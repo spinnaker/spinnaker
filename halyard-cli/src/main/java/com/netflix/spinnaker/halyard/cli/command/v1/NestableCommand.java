@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.model.v1.HalconfigCoordinates;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import lombok.AccessLevel;
@@ -30,7 +30,7 @@ import retrofit.RetrofitError;
 import java.net.ConnectException;
 import java.util.Map;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.*;
+import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 
 abstract class NestableCommand {
   @Setter
@@ -74,16 +74,9 @@ abstract class NestableCommand {
         problemSet.sortIncreasingSeverity();
         for (Problem problem : problemSet.getProblems()) {
           Severity severity = problem.getSeverity();
-          HalconfigCoordinates coordinates = problem.getCoordinates();
-          String problemLocation;
+          String problemLocation = problem.getReferenceTitle();
           String message = problem.getMessage();
           String remediation = problem.getRemediation();
-
-          if (coordinates != null) {
-            problemLocation = "In " + coordinates + ":";
-          } else {
-            problemLocation = "Global:";
-          }
 
           switch(severity) {
             case FATAL:

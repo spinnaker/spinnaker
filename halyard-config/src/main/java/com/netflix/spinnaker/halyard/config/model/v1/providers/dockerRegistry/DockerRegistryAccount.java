@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -36,12 +38,7 @@ public class DockerRegistryAccount extends Account {
   private List<String> repositories = new ArrayList<>();
 
   @Override
-  public NodeIterator getIterator() {
-    return NodeIteratorFactory.getEmptyIterator();
-  }
-
-  @Override
-  public NodeType getNodeType() {
-    return NodeType.ACCOUNT;
+  public void accept(ProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
   }
 }
