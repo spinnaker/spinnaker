@@ -8,6 +8,8 @@
     "jasmine": "registry:dt/jasmine#2.5.0+20161003201800",
     "jquery": "registry:dt/jquery#1.10.0+20160929162922",
     "lodash": "registry:dt/lodash#4.14.0+20161004174455",
+    "moment": "registry:dt/moment#2.11.1+20161010105546",
+    "moment-timezone": "registry:dt/moment-timezone#0.2.5+20160329220348",
     "require": "registry:dt/require#2.1.20+20160919185614",
     "rx": "registry:dt/rx#0.0.0+20160317120654",
     "rx-lite": "registry:dt/rx-lite#0.0.0+20160628114230"

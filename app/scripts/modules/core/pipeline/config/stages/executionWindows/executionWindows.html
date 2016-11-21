@@ -16,7 +16,7 @@
         <small>(No days selected implies the stage will execute on any day if triggered)</small>
       </h5>
       <p class="execution-window-days-of-week">
-        <execution-window-day-picker days="stage.restrictedExecutionWindow.days"></execution-window-day-picker>
+        <execution-window-day-picker window-config="stage.restrictedExecutionWindow" on-change="executionWindowsCtrl.windowsUpdated()"></execution-window-day-picker>
       </p>
     </div>
   </div>
@@ -100,4 +100,8 @@
       </button>
     </div>
   </div>
+
+  <execution-window-atlas-graph stage="stage"
+                                windows="timelineWindows"
+                                windows-updated="executionWindowsCtrl.windowsUpdatedStream"></execution-window-atlas-graph>
 </div>

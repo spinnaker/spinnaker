@@ -55,10 +55,10 @@ module.exports = angular.module('spinnaker.core.utils.stickyHeader', [
                   headingWidth = headingRect.width,
                   headingHeight = $heading.outerHeight(true);
               var topBase = containerTop + addedOffsetHeight,
-                  zIndex = 3;
+                  zIndex = 5;
               if (containerTop + headingHeight > bottom) {
                 topBase = bottom - headingHeight + addedOffsetHeight;
-                zIndex = 2;
+                zIndex = 4;
               }
               let newHeaderStyle = {
                 top: topBase,

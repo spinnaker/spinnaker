@@ -1,11 +1,19 @@
 'use strict';
 
+import {EXECUTION_WINDOWS_DAY_PICKER} from './executionWindowDayPicker.component';
+import {EXECUTION_WINDOW_ATLAS_GRAPH} from './atlasGraph.component';
+import {Subject} from 'rxjs/Subject';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.controller', [
-  require('core/utils/timePicker.service.js')
+  require('core/utils/timePicker.service.js'),
+  EXECUTION_WINDOWS_DAY_PICKER,
+  EXECUTION_WINDOW_ATLAS_GRAPH,
 ])
   .controller('ExecutionWindowsCtrl', function($scope, timePickerService) {
+
+    this.windowsUpdatedStream = new Subject();
 
     $scope.hours = timePickerService.getHours();
     $scope.minutes = timePickerService.getMinutes();
@@ -35,7 +43,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
       $scope.stage.restrictedExecutionWindow.whitelist.splice(index, 1);
     };
 
-    this.updateTimelineWindows = function() {
+    this.updateTimelineWindows = () => {
       if (!$scope.stage.restrictedExecutionWindow) {
         return;
       }
@@ -50,7 +58,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
               startMin: window.startMin,
               startHour: window.startHour,
               endMin: 0,
-              endHour: 24
+              endHour: 24,
+              wrapEnd: true,
             },
             secondWindow = {
               startMin: 0,
@@ -65,15 +74,26 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
         }
       });
       $scope.timelineWindows = windows;
+      this.windowsUpdated();
+    };
+
+    this.windowsUpdated = () => {
+      this.windowsUpdatedStream.next($scope.timelineWindows);
     };
 
     function buildTimelineWindow(window, originalWindow) {
       var labelRef = originalWindow || window;
-      return {
+      const timelineWindow = {
         style: getWindowStyle(window),
         start: new Date(2000, 1, 1, labelRef.startHour, labelRef.startMin),
         end: new Date(2000, 1, 1, labelRef.endHour, labelRef.endMin),
+        displayStart: new Date(2000, 1, 1, window.startHour, window.startMin),
+        displayEnd: new Date(2000, 1, 1, window.endHour, window.endMin),
       };
+      if (window.wrapEnd) {
+        timelineWindow.displayEnd = new Date(2000, 1, 1, 23, 59, 59, 999);
+      }
+      return timelineWindow;
     }
 
     function getWindowStyle(window) {
