@@ -425,7 +425,7 @@ function add_apt_repositories() {
   # Java 8
   # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
   add-apt-repository -y ppa:openjdk-r/ppa
-  apt-get update
+  apt-get update ||:
 }
 
 function install_java() {
