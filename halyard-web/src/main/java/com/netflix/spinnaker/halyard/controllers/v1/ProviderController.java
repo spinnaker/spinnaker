@@ -18,13 +18,14 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.services.v1.ProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/config/deployments/{deployment:.+}/providers")
@@ -39,8 +40,8 @@ public class ProviderController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  Providers providers(@PathVariable String deployment) {
+  List<Provider> providers(@PathVariable String deployment) {
     NodeReference reference = new NodeReference().setDeployment(deployment);
-    return providerService.getProviders(reference);
+    return providerService.getAllProviders(reference);
   }
 }

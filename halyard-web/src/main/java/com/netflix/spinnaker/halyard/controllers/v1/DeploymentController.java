@@ -41,6 +41,6 @@ public class DeploymentController {
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   List<DeploymentConfiguration> deploymentConfigurations() {
-    return deploymentService.getDeploymentConfigurations();
+    return deploymentService.getAllDeploymentConfigurations();
   }
 }

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.halyard.config.config.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.ParseConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
@@ -113,7 +113,7 @@ public class HalconfigParser {
       InputStream is = new FileInputStream(new File(halconfigPath));
       res = parseConfig(is);
     } catch (FileNotFoundException e) {
-      throw new IllegalRequestException(
+      throw new ConfigNotFoundException(
           new ProblemBuilder(Problem.Severity.FATAL,
               "No configuration found at path " + halconfigPath)
               .setRemediation("Create a new halconfig").build()

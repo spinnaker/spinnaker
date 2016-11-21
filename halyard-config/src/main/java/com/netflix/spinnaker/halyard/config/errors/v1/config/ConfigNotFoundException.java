@@ -18,13 +18,19 @@ package com.netflix.spinnaker.halyard.config.errors.v1.config;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
+import lombok.Getter;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * This is meant for requests that Halyard cannot figure out how to handle.
  * For example: Asking to load an account that isn't in your config.
  */
-public class IllegalRequestException extends HalconfigException {
-  public IllegalRequestException(Problem problem) {
+public class ConfigNotFoundException extends HalconfigException {
+  @Getter
+  private int responseCode = HttpServletResponse.SC_NOT_FOUND;
+
+  public ConfigNotFoundException(Problem problem) {
     super(problem);
   }
 }

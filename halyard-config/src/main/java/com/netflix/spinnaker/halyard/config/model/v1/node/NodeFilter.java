@@ -34,34 +34,38 @@ public class NodeFilter extends NodeReference {
     return a.equals(b);
   }
 
-  public NodeFilter anyHalconfigFile() {
+  public NodeFilter withAnyHalconfigFile() {
     halconfigFile = ANY;
     return this;
   }
 
-  public NodeFilter anyDeployment() {
+  public NodeFilter withAnyDeployment() {
     deployment = ANY;
     return this;
   }
 
-  public NodeFilter anyWebhook() {
+  public NodeFilter withAnyWebhook() {
     webhook = ANY;
     return this;
   }
 
-  public NodeFilter anyProvider() {
+  public NodeFilter withAnyProvider() {
     provider = ANY;
     return this;
   }
 
-  public NodeFilter anyAccount() {
+  public NodeFilter withAnyAccount() {
     account = ANY;
     return this;
   }
 
-  public NodeFilter anyMaster() {
+  public NodeFilter withAnyMaster() {
     master = ANY;
     return this;
+  }
+
+  public static NodeFilter makeRejectAllFilter() {
+    return new NodeFilter();
   }
 
   public NodeFilter(NodeReference reference) {
@@ -72,4 +76,6 @@ public class NodeFilter extends NodeReference {
     this.account = reference.account;
     this.master = reference.master;
   }
+
+  private NodeFilter() { }
 }

@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
@@ -36,19 +36,20 @@ import java.util.stream.Collectors;
 @Component
 public class DeploymentService {
   @Autowired
-  ConfigService configService;
+  LookupService lookupService;
 
   public DeploymentConfiguration getDeploymentConfiguration(NodeReference reference) {
     String deploymentName = reference.getDeployment();
-    Halconfig halconfig = configService.getConfig();
-    List<DeploymentConfiguration> matching = halconfig.getDeploymentConfigurations()
-        .stream()
-        .filter(d -> d.getName().equals(deploymentName))
-        .collect(Collectors.toList());
+    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile();
+
+    List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class)
+            .stream()
+            .map(n -> (DeploymentConfiguration) n)
+            .collect(Collectors.toList());
 
     switch (matching.size()) {
       case 0:
-        throw new IllegalRequestException(new ProblemBuilder(Problem.Severity.FATAL,
+        throw new ConfigNotFoundException(new ProblemBuilder(Problem.Severity.FATAL,
             "No deployment with name \"" + deploymentName + "\" could be found")
             .setReference(reference)
             .setRemediation("Create a new deployment with name \"" + deploymentName + "\"").build());
@@ -62,7 +63,20 @@ public class DeploymentService {
     }
   }
 
-  public List<DeploymentConfiguration> getDeploymentConfigurations() {
-    return configService.getConfig().getDeploymentConfigurations();
+  public List<DeploymentConfiguration> getAllDeploymentConfigurations() {
+    NodeFilter filter = NodeFilter.makeRejectAllFilter().withAnyHalconfigFile().withAnyDeployment();
+
+    List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class)
+        .stream()
+        .map(n -> (DeploymentConfiguration) n)
+        .collect(Collectors.toList());
+
+    if (matching.size() == 0) {
+      throw new ConfigNotFoundException(
+          new ProblemBuilder(Problem.Severity.FATAL, "No deployments could be found in your currently loaded halconfig")
+              .build());
+    } else {
+      return matching;
+    }
   }
 }
