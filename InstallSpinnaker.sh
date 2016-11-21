@@ -523,9 +523,9 @@ function install_redis_server() {
 function install_apache2() {
   # If apache2 is installed, we want to do as little modification
   # as possible to the existing installation.
-  if ! dpkg -s apache2
+  if ! $(dpkg -s apache2 2>/dev/null >/dev/null)
   then
-    echo "updating apt cache..." && apt-get -q update > /dev/null 2>&1
+    echo "updating apt cache..." && apt-get -q update > /dev/null 2>&1 ||:
     local apt_status=`apt-get -s -y --force-yes install apache2 > /dev/null 2>&1 ; echo $?`
     if [[ $apt_status -eq 0 ]]; then
       echo "apt sources contain apache2; installing using apt-get"
