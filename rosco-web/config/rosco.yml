@@ -7,10 +7,10 @@ rosco:
     local:
       timeoutMinutes: 20
 
-metrics:
-  reporter:
-    jmx:
-      enabled: false
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: false
 
 # If a repository is set here, it will be added by packer as repository when baking images for GCE and AWS.
 # It is safe to leave this out (or blank) if you do not need to configure your own repository.

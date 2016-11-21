@@ -16,8 +16,11 @@ configurations.all {
 
 dependencies {
   compile project(":rosco-core")
-  compile project(":rosco-metrics")
+  compile spinnaker.dependency("kork")
+  compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency('korkStackdriver')
+  compile spinnaker.dependency("korkSwagger")
+  compile spinnaker.dependency("spectatorReg")
   spinnaker.group("bootWeb")
 }
 

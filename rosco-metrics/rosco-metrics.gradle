@@ -1,3 +1,0 @@
-dependencies {
-  compile 'io.dropwizard.metrics:metrics-core:3.1.2'
-}
