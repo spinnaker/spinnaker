@@ -21,52 +21,72 @@ package com.netflix.spinnaker.halyard.cli.ui.v1;
  */
 public class AnsiUi {
   public static void raw(String message) {
-    AnsiPrinter.println(new AnsiMessage(message));
+    AnsiPrinter.println(new AnsiSnippet(message).toString());
   }
 
   public static void info(String message) {
-    AnsiMessage prefix = new AnsiMessage(". ")
+    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
+        .setIndentFirstLine(false);
+
+    builder.addSnippet(". ")
         .setForegroundColor(AnsiForegroundColor.BLUE)
         .addStyle(AnsiStyle.BOLD);
 
-    prefixedPrint(prefix, message);
+    builder.addSnippet(message);
+
+    AnsiPrinter.println(builder.toString());
   }
 
   public static void warning(String message) {
-    AnsiMessage prefix = new AnsiMessage("- ")
+    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
+        .setIndentFirstLine(false);
+
+    builder.addSnippet("- ")
         .setForegroundColor(AnsiForegroundColor.YELLOW)
         .addStyle(AnsiStyle.BOLD);
 
-    prefixedPrint(prefix, message);
+    builder.addSnippet(message);
+
+    AnsiPrinter.println(builder.toString());
   }
 
   public static void error(String message) {
-    AnsiMessage prefix = new AnsiMessage("! ")
+    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
+        .setIndentFirstLine(false);
+
+    builder.addSnippet("! ")
         .setForegroundColor(AnsiForegroundColor.RED)
         .addStyle(AnsiStyle.BOLD);
 
-    prefixedPrint(prefix, message);
+    builder.addSnippet(message);
+
+    AnsiPrinter.println(builder.toString());
   }
 
   public static void remediation(String message) {
-    AnsiMessage prefix = new AnsiMessage("\t? ")
+    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
+        .setIndentFirstLine(false)
+        .setIndentWidth(4);
+
+    builder.addSnippet("  ? ")
         .setForegroundColor(AnsiForegroundColor.MAGENTA)
         .addStyle(AnsiStyle.BOLD);
 
-    prefixedPrint(prefix, message);
+    builder.addSnippet(message);
+
+    AnsiPrinter.println(builder.toString());
   }
 
   public static void success(String message) {
-    AnsiMessage prefix = new AnsiMessage("+ ")
+    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
+        .setIndentFirstLine(false);
+
+    builder.addSnippet("+ ")
         .setForegroundColor(AnsiForegroundColor.GREEN)
         .addStyle(AnsiStyle.BOLD);
 
-    prefixedPrint(prefix, message);
-  }
+    builder.addSnippet(message);
 
-  private static void prefixedPrint(AnsiMessage prefix, String message) {
-    AnsiMessage body = new AnsiMessage(message);
-
-    AnsiPrinter.println(prefix, body);
+    AnsiPrinter.println(builder.toString());
   }
 }

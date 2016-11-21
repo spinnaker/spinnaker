@@ -20,10 +20,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.services.v1.ProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -34,8 +31,15 @@ public class ProviderController {
   ProviderService providerService;
 
   @RequestMapping(value = "/{provider:.+}", method = RequestMethod.GET)
-  Provider provider(@PathVariable String deployment, @PathVariable String provider) {
+  Provider provider(
+      @PathVariable String deployment,
+      @PathVariable String provider,
+      @RequestParam(required = false, defaultValue = "false") boolean validate) {
     NodeReference reference = new NodeReference().setDeployment(deployment).setProvider(provider);
+    if (validate) {
+      providerService.validateProvider(reference);
+    }
+
     return providerService.getProvider(reference);
   }
 

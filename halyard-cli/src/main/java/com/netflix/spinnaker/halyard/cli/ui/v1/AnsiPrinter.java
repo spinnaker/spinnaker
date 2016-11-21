@@ -17,11 +17,9 @@
 package com.netflix.spinnaker.halyard.cli.ui.v1;
 
 public class AnsiPrinter {
-  public static void println(AnsiMessage... messages) {
+  public static void println(String ansiText) {
     try {
-      for (AnsiMessage message : messages) {
-        System.out.print(message.toString());
-      }
+      System.out.print(ansiText);
     } finally {
       System.out.println(AnsiSpecial.RESET.format());
     }

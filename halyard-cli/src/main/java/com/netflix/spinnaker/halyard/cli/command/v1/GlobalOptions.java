@@ -16,23 +16,17 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
 import lombok.Data;
 
 /**
  * This is the collection of general, top-level flags to be interpreted by halyard.
  */
 @Data
-@Parameters(separators = "=")
 public class GlobalOptions {
-  @Parameter(names = { "-v", "--version" }, description = "Display the halyard version.")
   private boolean version = false;
 
-  @Parameter(names = { "-c", "--color" }, description = "Enable terminal color output.", arity = 1)
   private boolean color = true;
 
-  @Parameter(names = { "-d", "--debug" }, description = "Enable debug logging")
   private boolean debug = false;
 
   private static GlobalOptions globalOptions = null;

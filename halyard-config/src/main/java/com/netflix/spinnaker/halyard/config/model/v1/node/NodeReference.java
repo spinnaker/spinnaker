@@ -57,6 +57,6 @@ public class NodeReference implements Cloneable {
       res.add(master);
     }
 
-    return res.stream().reduce("", (a, b) -> a + "." + b);
+    return res.stream().reduce("", (a, b) -> a + "." + b).substring(1);
   }
 }

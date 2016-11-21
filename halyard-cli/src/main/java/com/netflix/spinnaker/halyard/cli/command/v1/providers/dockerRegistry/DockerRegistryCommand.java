@@ -14,46 +14,43 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1;
+package com.netflix.spinnaker.halyard.cli.command.v1.providers.dockerRegistry;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.netflix.spinnaker.halyard.cli.services.v1.Daemon.getService;
-
 /**
- * This command displays its parent's resource.
+ * This is a top-level command for dealing with your kubernetes provider.
  *
- * Usage is `$ hal config show`
+ * Usage is `$ hal config`
  */
-@Slf4j
-@Parameters(commandDescription = "Show the resource in question", separators = "=")
-class ShowCommand extends NestableCommand {
+@Parameters()
+public class DockerRegistryCommand extends AbstractProviderCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
-  @Getter(AccessLevel.PROTECTED)
-  private String commandName = "show";
+  @Getter(AccessLevel.PUBLIC)
+  private String commandName = "dockerRegistry";
 
-  @Parameter(names = "--provider", description = "Select the provider's config to display", arity = 1)
-  protected String provider;
-
-  ShowCommand() {
-    super();
+  @Override
+  public String getDescription() {
+    return "Configure your Docker Registry credentials and repositories";
   }
 
   @Override
   protected void executeThis() {
-    Halconfig config = getService().getHalconfig();
-    AnsiUi.success("Your currently loaded halconfig:");
-    AnsiUi.raw(config.toString());
+    AnsiUi.success(getProvider().toString());
+  }
+
+  @Override
+  protected String getProviderName() {
+    return "dockerRegistry";
   }
 }

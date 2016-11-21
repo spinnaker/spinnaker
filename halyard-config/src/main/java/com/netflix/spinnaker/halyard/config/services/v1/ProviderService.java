@@ -36,6 +36,9 @@ public class ProviderService {
   @Autowired
   LookupService lookupService;
 
+  @Autowired
+  ValidateService validateService;
+
   public Provider getProvider(NodeReference reference) {
     String providerName = reference.getDeployment();
     NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile();
@@ -76,5 +79,11 @@ public class ProviderService {
     } else {
       return matching;
     }
+  }
+
+  public void validateProvider(NodeReference reference) {
+    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile().withAnyAccount();
+
+    validateService.validateMatchingFilter(filter).throwIfProblem();
   }
 }

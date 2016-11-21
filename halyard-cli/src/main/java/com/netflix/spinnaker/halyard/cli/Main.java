@@ -10,21 +10,23 @@ import retrofit.RetrofitError;
 public class Main {
   public static void main(String[] args) {
     GlobalOptions globalOptions = GlobalOptions.getGlobalOptions();
-    JCommander jc = new JCommander(globalOptions);
 
-    HalCommand hal = new HalCommand(jc);
+    HalCommand hal = new HalCommand();
+    JCommander jc = new JCommander(hal);
+    hal.setCommander(jc).configureSubcommands();
 
     try {
       jc.parse(args);
     } catch (ParameterException e) {
       System.out.println(e.getMessage());
-      jc.usage();
+      System.exit(1);
     }
 
     try {
       hal.execute();
     } catch (RetrofitError e) {
       AnsiUi.error(e.getMessage());
+      System.exit(1);
     }
   }
 }

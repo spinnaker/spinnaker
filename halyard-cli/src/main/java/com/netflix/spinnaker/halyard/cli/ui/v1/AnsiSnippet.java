@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class AnsiMessage {
+public class AnsiSnippet {
   private AnsiForegroundColor foregroundColor;
   private AnsiBackgroundColor backgroundColor;
   private List<AnsiStyle> styles = new ArrayList<>();
@@ -53,12 +53,12 @@ public class AnsiMessage {
     return result.toString();
   }
 
-  public AnsiMessage addStyle(AnsiStyle style) {
+  public AnsiSnippet addStyle(AnsiStyle style) {
     styles.add(style);
     return this;
   }
 
-  public AnsiMessage(String message) {
+  public AnsiSnippet(String message) {
     this.message = message;
   }
 }
