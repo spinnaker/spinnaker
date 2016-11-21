@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.core.delivery.states', [])
           children: [
             {
               name: 'execution',
-              url: '/:executionId?stage&step&details',
+              url: '/:executionId?refId&stage&step&details',
               params: {
                 stage: {
                   value: '0',
@@ -78,7 +78,7 @@ module.exports = angular.module('spinnaker.core.delivery.states', [])
           children: [
             {
               name: 'execution',
-              url: '/:executionId?stage&step&details',
+              url: '/:executionId?refId&stage&step&details',
               params: {
                 stage: {
                   value: '0',
