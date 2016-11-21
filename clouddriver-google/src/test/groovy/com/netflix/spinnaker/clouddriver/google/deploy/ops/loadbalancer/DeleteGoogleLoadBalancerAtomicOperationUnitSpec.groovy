@@ -56,7 +56,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-    SafeRetry.SAFE_RETRY_INTERVAL_MILLIS = 1
+    SafeRetry.RETRY_INTERVAL_SEC = 0
   }
 
   void "should delete a Network Load Balancer with health checks"() {

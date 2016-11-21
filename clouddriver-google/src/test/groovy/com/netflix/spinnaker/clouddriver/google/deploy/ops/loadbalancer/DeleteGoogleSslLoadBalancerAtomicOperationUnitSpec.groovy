@@ -54,7 +54,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-    SafeRetry.SAFE_RETRY_INTERVAL_MILLIS = 1
+    SafeRetry.RETRY_INTERVAL_SEC = 0
   }
 
   void "should delete ssl load balancer"() {

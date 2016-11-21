@@ -61,7 +61,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
 
     // Yes this can affect other tests; but only in a good way.
-    SafeRetry.SAFE_RETRY_INTERVAL_MILLIS = 1
+    SafeRetry.RETRY_INTERVAL_SEC = 0
   }
 
   void "should delete managed instance group"() {

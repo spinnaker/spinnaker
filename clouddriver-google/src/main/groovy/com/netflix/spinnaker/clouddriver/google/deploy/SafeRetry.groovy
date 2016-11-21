@@ -26,9 +26,10 @@ import java.util.concurrent.TimeUnit
 
 @Slf4j
 class SafeRetry<T> {
+  private static Long MAX_WAIT_INTERVAL = TimeUnit.SECONDS.toMillis(60)
 
   @VisibleForTesting
-  static long SAFE_RETRY_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(10)
+  static Long RETRY_INTERVAL_SEC = 2
 
   /**
    * Retry a GCP operation if it fails. Treat any error codes in successfulErrorCodes as success.
@@ -58,10 +59,13 @@ class SafeRetry<T> {
 
       int tries = 1
       Exception lastSeenException = null
-      while (tries < 10) { // Retry 10 times.
+      while (tries < 10) {
         try {
           tries++
-          sleep(SAFE_RETRY_INTERVAL_MILLIS) // Sleep for some interval between attempts.
+          // Sleep with exponential backoff based on the number of retries. Add retry jitter with Math.random() to
+          // prevent clients syncing up and bursting at regular intervals. Don't wait longer than a minute.
+          Long thisIntervalWait = TimeUnit.SECONDS.toMillis(Math.pow(RETRY_INTERVAL_SEC, tries) as Integer)
+          sleep(Math.min(thisIntervalWait, MAX_WAIT_INTERVAL) + Math.round(Math.random() * 1000))
           log.warn "$action $resource attempt #$tries..."
           return operation()
         } catch (GoogleJsonResponseException jsonException) {
