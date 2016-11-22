@@ -494,68 +494,6 @@ class Builder(object):
         abs_path = os.path.join(root, filename)
         zip_file.write(abs_path, arcbase + abs_path[rel_offset:])
 
-  def add_python_test_zip(self, test_name):
-    """Build encapsulated python zip file for the given test test_name.
-
-    This allows integration tests to be packaged with the release, at least
-    for the time being. This is useful for testing them, or validating the
-    initial installation and configuration.
-    """
-    test_py = '{test_name}.py'.format(test_name=test_name)
-    testdir = os.path.join(self.__project_dir, 'build/tests')
-    try:
-      os.makedirs(testdir)
-    except OSError:
-      pass
-
-    zip_path = os.path.join(testdir, test_py + '.zip')
-    zip = zipfile.ZipFile(zip_path, 'w')
-
-    try:
-      zip.writestr('__main__.py', """
-from {test_name} import main
-import sys
-
-if __name__ == '__main__':
-  retcode = main()
-  sys.exit(retcode)
-""".format(test_name=test_name))
-
-      # Add citest sources as baseline
-      # TODO(ewiseblatt): 20150810
-      # Eventually this needs to be the transitive closure,
-      # but there are currently no other dependencies.
-      zip.writestr('__init__.py', '')
-      self.__zip_dir(zip, 'citest/citest', 'citest')
-      self.__zip_dir(zip,
-                     'citest/spinnaker/spinnaker_testing', 'spinnaker_testing')
-      self.__zip_dir(zip, 'pylib/yaml', 'yaml')
-
-      zip.write('citest/spinnaker/spinnaker_system/' + test_py, test_py)
-      zip.close()
-
-    finally:
-      pass
-
-
-  def build_tests(self):
-     if not os.path.exists('citest'):
-        print 'Adding citest repository'
-        try:
-          self.refresher.git_clone(
-              refresh_source.SourceRepository('citest', 'google'))
-        except Exception as ex:
-          sys.stderr.write('*** Omitting tests: {0}\n'.format(ex.message))
-          return
-
-     print 'Adding tests...'
-     self.add_python_test_zip('aws_kato_test')
-     self.add_python_test_zip('google_kato_test')
-     self.add_python_test_zip('aws_smoke_test')
-     self.add_python_test_zip('google_smoke_test')
-     self.add_python_test_zip('google_server_group_test')
-     self.add_python_test_zip('bake_and_deploy_test')
-
   @classmethod
   def init_argument_parser(cls, parser):
       refresh_source.Refresher.init_argument_parser(parser)
@@ -624,7 +562,6 @@ if __name__ == '__main__':
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
 
-    builder.build_tests()
     builder.build_packages()
 
     if options.bintray_repo:
