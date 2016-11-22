@@ -4,7 +4,7 @@
       <div class="form-group">
         <div class="col-md-12 well" ng-class="{'alert-danger': locationForm.loadBalancerName.$error.validateUnique, 'alert-info': !locationForm.loadBalancerName.$error.validateUnique}">
           <strong>Your load balancer will be named:</strong>
-          <span>{{ctrl.getName()}}</span>
+          <span>{{ctrl.getName(ctrl.loadBalancer, ctrl.application)}}</span>
           <!-- Angular does not seem to run length validation on hidden inputs, hence the text + display:none -->
           <input type="text"
                  style="display: none"

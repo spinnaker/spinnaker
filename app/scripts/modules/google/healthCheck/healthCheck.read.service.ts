@@ -1,4 +1,5 @@
 import {module} from 'angular';
+
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {IGceHealthCheck} from '../domain';
 
@@ -10,9 +11,9 @@ export class GceHealthCheckReader {
   listHealthChecks (type?: string): ng.IPromise<IGceHealthCheck[]> {
     if (type) {
       return this.listHealthChecks()
-        .then((healthCheckWrappers: any[]) => {
-          return healthCheckWrappers
-            .filter((wrapper) => wrapper.healthCheck.healthCheckType === type);
+        .then((healthChecks: IGceHealthCheck[]) => {
+          return healthChecks
+            .filter((healthCheck) => healthCheck.healthCheckType === type);
         });
     } else {
       return this.API
@@ -21,8 +22,11 @@ export class GceHealthCheckReader {
         .getList({q: '', type: 'healthChecks'})
         .then((searchEndPointWrapper: any[]) => {
           let healthCheckWrappers = searchEndPointWrapper[0].results;
-          healthCheckWrappers.forEach((wrapper: any) => wrapper.healthCheck = JSON.parse(wrapper.healthCheck));
-          return healthCheckWrappers;
+          return healthCheckWrappers.map((wrapper: any) => {
+            wrapper.healthCheck = JSON.parse(wrapper.healthCheck);
+            wrapper.healthCheck.account = wrapper.account;
+            return wrapper.healthCheck as IGceHealthCheck;
+          });
         });
     }
   }

@@ -1,20 +1,21 @@
 import {module} from 'angular';
+import {IStateService} from 'angular-ui-router';
 import * as _ from 'lodash';
+
 import {ICredentials} from 'core/domain/ICredentials';
 import {Application} from 'core/application/application.model';
-import {IGceSubnet, IGceNetwork, IGceHealthCheck} from 'google/domain/index';
-import gceHealthCheckCreate from '../common/healthCheck.component';
-import {IStateService} from 'angular-ui-router';
-import {InternalLoadBalancer,
-        GceInternalLoadBalancerCommandBuilder,
-        GCE_INTERNAL_LOAD_BALANCER_COMMAND_BUILDER} from './commandBuilder.service';
-import {ACCOUNT_SERVICE, AccountService, IRegion} from 'core/account/account.service';
+import {IGceSubnet, IGceNetwork, IGceHealthCheck, IGceBackendService, IGceLoadBalancer} from 'google/domain/index';
+import {GCE_HEALTH_CHECK_SELECTOR_COMPONENT} from '../common/healthCheck.component';
+import {GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
+        GceCommonLoadBalancerCommandBuilder} from '../common/commonLoadBalancerCommandBuilder.service';
+import {ACCOUNT_SERVICE, AccountService, IRegion, IAccount} from 'core/account/account.service';
+import {CommonGceLoadBalancerCtrl} from '../common/commonLoadBalancer.controller';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
 }
 
-interface IKeyedByAccount {
+interface IListKeyedByAccount {
   [account: string]: string[];
 }
 
@@ -22,87 +23,119 @@ interface IPrivateScope extends ng.IScope {
   $$destroyed: boolean;
 }
 
-export interface IHealthCheckMap {
-  [account: string]: { [healthCheckType: string]: IGceHealthCheck[] };
+class InternalLoadBalancer implements IGceLoadBalancer {
+  stack: string;
+  detail: string;
+  loadBalancerName: string;
+  ports: any;
+  ipProtocol: string = 'TCP';
+  loadBalancerType: string = 'INTERNAL';
+  credentials: string;
+  account: string;
+  network: string = 'default';
+  subnet: string;
+  region: string;
+  backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
+
+  constructor (public region: string) {}
 }
 
-class InternalLoadBalancerCtrl implements ng.IComponentController {
-  pages: any = {
+class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.IComponentController {
+  public pages: any = {
     'location': require('./createLoadBalancerProperties.html'),
     'listener': require('./listener.html'),
     'healthCheck': require('./healthCheck.html'),
     'advancedSettings': require('./advancedSettings.html'),
   };
-  viewToModelMap: any = {
+  public sessionAffinityViewToModelMap: any = {
     'None': 'NONE',
     'Client IP': 'CLIENT_IP',
     'Client IP and protocol': 'CLIENT_IP_PROTO',
     'Client IP, port and protocol': 'CLIENT_IP_PORT_PROTO',
   };
-  accounts: ICredentials[];
-  modelToViewMap: any = _.invert(this.viewToModelMap);
-  regions: string[];
-  networks: IGceNetwork[];
-  networkOptions: string[];
-  subnets: IGceSubnet[];
-  subnetOptions: string[];
-  existingHealthCheckMap: IHealthCheckMap;
-  existingHealthCheckNamesMap: { [account: string]: string[] };
-  existingHealthCheckNames: string[];
-  loadBalancerNameMap: IKeyedByAccount;
-  existingLoadBalancerNames: string[];
-  viewState: ViewState = new ViewState('None');
-  taskMonitor: any;
+  public accounts: ICredentials[];
+  public regions: string[];
+  public networks: IGceNetwork[];
+  public networkOptions: string[];
+  public subnets: IGceSubnet[];
+  public subnetOptions: string[];
+  public healthChecksByAccountAndType: {[account: string]: {[healthCheckType: string]: IGceHealthCheck[]}};
 
-  constructor (private $scope: IPrivateScope,
-               private $state: IStateService,
-               private application: Application,
+  // The 'by account' maps populate the corresponding 'existing names' lists below.
+  public existingLoadBalancerNamesByAccount: IListKeyedByAccount;
+  public existingHealthCheckNamesByAccount: IListKeyedByAccount;
+  public existingLoadBalancerNames: string[];
+  public existingHealthCheckNames: string[];
+
+  public viewState: ViewState = new ViewState('None');
+  public taskMonitor: any;
+
+  private sessionAffinityModelToViewMap: any = _.invert(this.sessionAffinityViewToModelMap);
+
+  static get $inject () { return ['$scope',
+                                  'application',
+                                  '$uibModalInstance',
+                                  'loadBalancer',
+                                  'gceCommonLoadBalancerCommandBuilder',
+                                  'isNew',
+                                  'accountService',
+                                  'loadBalancerWriter',
+                                  'wizardSubFormValidation',
+                                  'taskMonitorService',
+                                  'settings',
+                                  '$state',
+                                  'infrastructureCaches']; }
+
+  constructor (public $scope: IPrivateScope,
+               public application: Application,
+               public $uibModalInstance: any,
                private loadBalancer: InternalLoadBalancer,
-               private gceInternalLoadBalancerCommandBuilder: GceInternalLoadBalancerCommandBuilder,
-               private infrastructureCaches: any,
+               private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
                private isNew: boolean,
-               private $uibModalInstance: any,
                private accountService: AccountService,
                private loadBalancerWriter: any,
                private wizardSubFormValidation: any,
-               private taskMonitorService: any) { }
+               private taskMonitorService: any,
+               private settings: any,
+               $state: IStateService,
+               infrastructureCaches: any) {
+    super($scope, application, $uibModalInstance, $state, infrastructureCaches);
+  }
 
-  $onInit (): void {
-    this.gceInternalLoadBalancerCommandBuilder
-      .buildCommand(this.loadBalancer, this.isNew)
-      .then(({ accounts,
-               networks,
-               subnets,
-               loadBalancer,
-               loadBalancerNames,
-               healthCheckMap,
-               healthCheckNamesMap, }: { accounts: ICredentials[],
-                                         networks: IGceNetwork[],
-                                         subnets: IGceSubnet[],
-                                         loadBalancer: InternalLoadBalancer,
-                                         loadBalancerNames: IKeyedByAccount,
-                                         healthCheckMap: IHealthCheckMap,
-                                         healthCheckNamesMap: IKeyedByAccount, }) => {
-        this.loadBalancer = loadBalancer;
+  public $onInit (): void {
+    this.gceCommonLoadBalancerCommandBuilder
+      .getBackingData(['existingLoadBalancerNamesByAccount', 'accounts', 'networks', 'subnets', 'healthChecks'])
+      .then((backingData) => {
         if (!this.isNew) {
           this.initializeEditMode();
+        } else {
+          this.loadBalancer = new InternalLoadBalancer(
+            this.settings.providers.gce
+            ? this.settings.providers.gce.defaults.region
+            : null);
         }
 
-        this.loadBalancer.loadBalancerName = this.getName();
+        this.loadBalancer.loadBalancerName = this.getName(this.loadBalancer, this.application);
 
-        let accountNames: string[] = accounts.map((account) => account.name);
+        let accountNames: string[] = backingData.accounts.map((account: IAccount) => account.name);
         if (accountNames.length && !accountNames.includes(this.loadBalancer.account)) {
           this.loadBalancer.credentials = accountNames[0];
         } else {
           this.loadBalancer.credentials = this.loadBalancer.account;
         }
 
-        this.accounts = accounts;
-        this.networks = networks;
-        this.subnets = subnets;
-        this.existingHealthCheckMap = healthCheckMap;
-        this.existingHealthCheckNamesMap = healthCheckNamesMap;
-        this.loadBalancerNameMap = loadBalancerNames;
+        this.accounts = backingData.accounts;
+        this.networks = backingData.networks;
+        this.subnets = backingData.subnets;
+        this.existingLoadBalancerNamesByAccount = backingData.existingLoadBalancerNamesByAccount;
+        this.healthChecksByAccountAndType = this.gceCommonLoadBalancerCommandBuilder
+          .groupHealthChecksByAccountAndType(backingData.healthChecks as IGceHealthCheck[]);
+
+        // We don't count the load balancer's health check in the existing health checks list.
+        let healthCheckNamesToOmit = this.isNew ? [] : [this.loadBalancer.backendService.healthCheck.name];
+        this.existingHealthCheckNamesByAccount = this.gceCommonLoadBalancerCommandBuilder
+          .groupHealthCheckNamesByAccount(backingData.healthChecks as IGceHealthCheck[], healthCheckNamesToOmit);
+
         this.accountUpdated();
 
         this.wizardSubFormValidation.config({scope: this.$scope, form: 'form'})
@@ -115,60 +148,24 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
           application: this.application,
           title: (this.isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
           modalInstance: this.$uibModalInstance,
-          onTaskComplete: () => this.onTaskComplete(),
+          onTaskComplete: () => this.onTaskComplete(this.loadBalancer),
         });
     });
   }
 
-  initializeEditMode (): void {
-    this.loadBalancer.ports = this.loadBalancer.ports.join(', ');
-    this.loadBalancer.subnet = this.loadBalancer.subnet.split('/').pop();
-    this.loadBalancer.network = this.loadBalancer.network.split('/').pop();
-    this.viewState = new ViewState(this.modelToViewMap[this.loadBalancer.backendService.sessionAffinity]);
+  public onHealthCheckRefresh (): void {
+    this.gceCommonLoadBalancerCommandBuilder.getBackingData(['healthChecks'])
+      .then((data) => {
+        this.healthChecksByAccountAndType = this.gceCommonLoadBalancerCommandBuilder
+          .groupHealthChecksByAccountAndType(data.healthChecks as IGceHealthCheck[]);
+
+        let healthCheckNamesToOmit = this.isNew ? [] : [this.loadBalancer.backendService.healthCheck.name];
+        this.existingHealthCheckNamesByAccount = this.gceCommonLoadBalancerCommandBuilder
+          .groupHealthCheckNamesByAccount(data.healthChecks as IGceHealthCheck[], healthCheckNamesToOmit);
+      });
   }
 
-  onApplicationRefresh (): void {
-    // If the user has already closed the modal, do not navigate to the new details view
-    if (this.$scope.$$destroyed) {
-      return;
-    }
-    this.$uibModalInstance.close();
-
-    let lb = this.loadBalancer;
-    let newStateParams = {
-      name: lb.loadBalancerName,
-      accountId: lb.credentials,
-      region: lb.region,
-      provider: 'gce',
-    };
-
-    if (!this.$state.includes('**.loadBalancerDetails')) {
-      this.$state.go('.loadBalancerDetails', newStateParams);
-    } else {
-      this.$state.go('^.loadBalancerDetails', newStateParams);
-    }
-  }
-
-  onTaskComplete (): void {
-    this.infrastructureCaches.clearCache('healthCheck');
-    this.application.getDataSource('loadBalancers').refresh();
-    this.application.getDataSource('loadBalancers').onNextRefresh(this.$scope, () => this.onApplicationRefresh());
-  }
-
-  onHealthCheckRefresh (): void {
-    let { healthCheckMapPromise, healthCheckNamesByAccountPromise } = this.gceInternalLoadBalancerCommandBuilder
-      .getHealthCheckPromises(this.loadBalancer, this.isNew);
-
-    healthCheckMapPromise.then((existingHealthCheckMap) => {
-      this.existingHealthCheckMap = existingHealthCheckMap;
-    });
-
-    healthCheckNamesByAccountPromise.then((existingHealthCheckNamesMap) => {
-      this.existingHealthCheckNamesMap = existingHealthCheckNamesMap;
-    });
-  }
-
-  networkUpdated (): void {
+  public networkUpdated (): void {
     this.subnetOptions = this.subnets
       .filter((subnet) => {
         return subnet.region === this.loadBalancer.region &&
@@ -181,24 +178,24 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
     }
   }
 
-  protocolUpdated (): void {
+  public protocolUpdated (): void {
     if (this.loadBalancer.ipProtocol === 'UDP') {
       this.viewState = new ViewState('None');
       this.loadBalancer.backendService.sessionAffinity = 'NONE';
     }
   }
 
-  accountUpdated (): void {
+  public accountUpdated (): void {
     let existingHealthCheckNames =
-      _.get<any, string[]>(this, ['existingHealthCheckNamesMap', this.loadBalancer.credentials]);
+      _.get<any, string[]>(this, ['existingHealthCheckNamesByAccount', this.loadBalancer.credentials]);
     this.existingHealthCheckNames = existingHealthCheckNames || [];
 
     let existingLoadBalancerNames =
-      _.get<any, string[]>(this, ['loadBalancerNameMap', this.loadBalancer.credentials]);
+      _.get<any, string[]>(this, ['existingLoadBalancerNamesByAccount', this.loadBalancer.credentials]);
     this.existingLoadBalancerNames = existingLoadBalancerNames || [];
 
     this.networkOptions = this.networks
-      .filter((network) => network.account === this.loadBalancer.credentials)
+      .filter((network: IGceNetwork) => network.account === this.loadBalancer.credentials)
       .map((network) => network.name);
 
     this.accountService.getRegionsForAccount(this.loadBalancer.credentials)
@@ -208,29 +205,19 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
       });
   }
 
-  regionUpdated (): void {
+  public regionUpdated (): void {
     this.networkUpdated();
   }
 
-  getName (): string {
-    let lb = this.loadBalancer;
-    let loadBalancerName = [this.application.name, (lb.stack || ''), (lb.detail || '')].join('-');
-    return _.trimEnd(loadBalancerName, '-');
+  public updateName (): void {
+    this.loadBalancer.loadBalancerName = this.getName(this.loadBalancer, this.application);
   }
 
-  updateName (): void {
-    this.loadBalancer.loadBalancerName = this.getName();
+  public setSessionAffinity (viewState: ViewState): void {
+    this.loadBalancer.backendService.sessionAffinity = this.sessionAffinityViewToModelMap[viewState.sessionAffinity];
   }
 
-  setSessionAffinity (viewState: ViewState): void {
-    this.loadBalancer.backendService.sessionAffinity = this.viewToModelMap[viewState.sessionAffinity];
-  }
-
-  cancel (): void {
-    this.$uibModalInstance.dismiss();
-  }
-
-  submit (): void {
+  public submit (): void {
     let descriptor = this.isNew ? 'Create' : 'Update';
     let toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as any;
     toSubmitLoadBalancer.ports = toSubmitLoadBalancer.ports.split(',').map((port: string) => port.trim());
@@ -244,13 +231,20 @@ class InternalLoadBalancerCtrl implements ng.IComponentController {
                                                                              descriptor,
                                                                              { healthCheck: {} }));
   }
+
+  private initializeEditMode (): void {
+    this.loadBalancer.ports = this.loadBalancer.ports.join(', ');
+    this.loadBalancer.subnet = this.loadBalancer.subnet.split('/').pop();
+    this.loadBalancer.network = this.loadBalancer.network.split('/').pop();
+    this.viewState = new ViewState(this.sessionAffinityModelToViewMap[this.loadBalancer.backendService.sessionAffinity]);
+  }
 }
 
-const gceInternalLoadBalancerCtrl = 'spinnaker.gce.internalLoadBalancer.controller';
+export const GCE_INTERNAL_LOAD_BALANCER_CTRL = 'spinnaker.gce.internalLoadBalancer.controller';
 
-module(gceInternalLoadBalancerCtrl, [
-    gceHealthCheckCreate,
-    GCE_INTERNAL_LOAD_BALANCER_COMMAND_BUILDER,
+module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
+    GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
+    GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
     ACCOUNT_SERVICE,
     require('core/cache/infrastructureCaches.js'),
     require('core/modal/wizard/wizardSubFormValidation.service.js'),
@@ -258,5 +252,3 @@ module(gceInternalLoadBalancerCtrl, [
     require('core/task/monitor/taskMonitorService.js'),
   ])
   .controller('gceInternalLoadBalancerCtrl', InternalLoadBalancerCtrl);
-
-export default gceInternalLoadBalancerCtrl;

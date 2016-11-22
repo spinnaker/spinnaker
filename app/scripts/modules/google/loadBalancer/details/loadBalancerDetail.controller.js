@@ -4,9 +4,10 @@ import _ from 'lodash';
 import gceLoadBalancerDeleteModal from './deleteModal/deleteModal.controller';
 import gceBackendServiceDetailsComponent from './backendService/backendService.component';
 import gceSessionAffinityFilter from './backendService/sessionAffinity.filter';
+import {GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT} from '../configure/choice/loadBalancerTypeToWizardMap.constant';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller', [
   require('angular-ui-router'),
@@ -22,10 +23,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../elSevenUtils.service.js'),
   require('./healthCheck/healthCheck.component.js'),
   require('core/help/helpField.directive.js'),
-  require('../configure/choice/loadBalancerTypeToWizardMap.constant.js'),
   gceBackendServiceDetailsComponent,
   gceLoadBalancerDeleteModal,
   gceSessionAffinityFilter,
+  GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                       confirmationModalService, accountService, elSevenUtils,

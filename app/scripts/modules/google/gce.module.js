@@ -3,7 +3,8 @@
 let angular = require('angular');
 
 import gceLoadBalancerSetTransformer from './loadBalancer/loadBalancer.setTransformer';
-import gceInternalLoadBalancerCtrl from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
+import {GCE_INTERNAL_LOAD_BALANCER_CTRL} from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
+import {GCE_LOAD_BALANCER_CHOICE_MODAL} from './loadBalancer/configure/choice/gceLoadBalancerChoice.modal';
 
 require('./logo/gce.logo.less');
 
@@ -15,8 +16,9 @@ templates.keys().forEach(function(key) {
 
 module.exports = angular.module('spinnaker.gce', [
   require('core/cloudProvider/cloudProvider.registry.js'),
-  gceInternalLoadBalancerCtrl,
   gceLoadBalancerSetTransformer,
+  GCE_INTERNAL_LOAD_BALANCER_CTRL,
+  GCE_LOAD_BALANCER_CHOICE_MODAL,
   require('./serverGroup/details/serverGroup.details.gce.module.js'),
   require('./serverGroup/configure/serverGroupCommandBuilder.service.js'),
   require('./serverGroup/configure/wizard/cloneServerGroup.gce.controller.js'),
@@ -38,7 +40,6 @@ module.exports = angular.module('spinnaker.gce', [
   require('./loadBalancer/loadBalancer.transformer.js'),
   require('./loadBalancer/details/loadBalancerDetail.controller.js'),
   require('./loadBalancer/configure/network/createLoadBalancer.controller.js'),
-  require('./loadBalancer/configure/choice/gceLoadBalancerChoice.modal.js'),
   require('./loadBalancer/configure/http/createHttpLoadBalancer.controller.js'),
   require('./instance/details/instance.details.controller.js'),
   require('./securityGroup/details/securityGroupDetail.controller.js'),

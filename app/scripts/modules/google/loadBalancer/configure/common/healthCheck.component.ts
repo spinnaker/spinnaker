@@ -1,11 +1,10 @@
 import {module} from 'angular';
-import {IGceHealthCheck} from '../../../domain/index';
-import {IHealthCheckMap} from '../internal/gceCreateInternalLoadBalancer.controller';
+import {IGceHealthCheck} from 'google/domain/index';
 
 class HealthCheckCreateCtrl implements ng.IComponentController {
   healthCheck: IGceHealthCheck;
   healthCheckPlaceholder: IGceHealthCheck;
-  existingHealthCheckMap: IHealthCheckMap;
+  healthChecksByAccountAndType: {[account: string]: {[healthCheckType: string]: IGceHealthCheck[]}};
   editExisting: boolean = false;
   existingHealthChecksForProtocol: IGceHealthCheck[];
   existingHealthCheckNames: string[];
@@ -18,10 +17,10 @@ class HealthCheckCreateCtrl implements ng.IComponentController {
     if (this.healthCheck.name) {
       this.healthCheckPlaceholder = this.healthCheck;
       this.existingHealthChecksForProtocol =
-        this.existingHealthCheckMap[this.credentials][this.healthCheck.healthCheckType];
+        this.healthChecksByAccountAndType[this.credentials][this.healthCheck.healthCheckType];
       this.editExisting = true;
     } else {
-      this.existingHealthChecksForProtocol = this.existingHealthCheckMap[this.credentials]['TCP'];
+      this.existingHealthChecksForProtocol = this.healthChecksByAccountAndType[this.credentials]['TCP'];
     }
 
     this.$scope.$watch('$ctrl.credentials', () => this.setExistingHealthChecksForProtocol());
@@ -35,7 +34,12 @@ class HealthCheckCreateCtrl implements ng.IComponentController {
 
   setExistingHealthChecksForProtocol () {
     this.existingHealthChecksForProtocol =
-      _.get<{}, IGceHealthCheck[]>(this, ['existingHealthCheckMap', this.credentials, this.healthCheck.healthCheckType]);
+      _.get<{}, IGceHealthCheck[]>(this, ['healthChecksByAccountAndType', this.credentials, this.healthCheck.healthCheckType]) || [];
+
+    if (!this.existingHealthChecksForProtocol.find((healthCheck) => healthCheck.name === this.healthCheck.name)) {
+      delete this.healthCheck.name;
+      delete this.healthCheckPlaceholder;
+    }
   }
 
   toggleEditExisting (): void {
@@ -57,16 +61,15 @@ class HealthCheckCreateComponent implements ng.IComponentOptions {
   bindings: any = {
     healthCheck: '=',
     credentials: '<',
-    existingHealthCheckMap: '<',
+    healthChecksByAccountAndType: '<',
     existingHealthCheckNames: '<',
   };
   templateUrl: string = require('./healthCheck.component.html');
   controller: ng.IComponentController = HealthCheckCreateCtrl;
 }
 
-const gceHealthCheckCreate = 'spinnaker.gce.healthCheckCreate.component';
+export const GCE_HEALTH_CHECK_SELECTOR_COMPONENT = 'spinnaker.gce.healthCheckSelector.component';
 
-module(gceHealthCheckCreate, [])
-  .component('gceHealthCheckCreate', new HealthCheckCreateComponent());
+module(GCE_HEALTH_CHECK_SELECTOR_COMPONENT, [])
+  .component('gceHealthCheckSelector', new HealthCheckCreateComponent());
 
-export default gceHealthCheckCreate;
