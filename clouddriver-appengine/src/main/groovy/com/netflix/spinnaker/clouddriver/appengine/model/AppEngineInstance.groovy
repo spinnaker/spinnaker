@@ -33,7 +33,10 @@ class AppEngineInstance implements Instance, Serializable {
   AppEngineInstance() {}
 
   AppEngineInstance(AppEngineApiInstance instance) {
-    this.instanceStatus = AppEngineInstanceStatus.valueOf(instance.getAvailability())
+    this.instanceStatus = instance.getAvailability() ?
+      AppEngineInstanceStatus.valueOf(instance.getAvailability()) :
+      null
+
     this.name = instance.getId()
     this.launchTime = AppEngineModelUtil.translateTime(instance.getStartTime())
   }
