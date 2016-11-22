@@ -17,10 +17,13 @@
 package com.netflix.spinnaker.clouddriver.cf.provider.view
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
 import com.netflix.spinnaker.cats.provider.DefaultProviderRegistry
+import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.clouddriver.cf.TestCredential
+import com.netflix.spinnaker.clouddriver.cf.cache.Keys
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
 import com.netflix.spinnaker.clouddriver.cf.provider.CloudFoundryProvider
 import com.netflix.spinnaker.clouddriver.cf.provider.agent.ClusterCachingAgent
@@ -31,6 +34,8 @@ import org.cloudfoundry.client.lib.domain.*
 import spock.lang.Shared
 import spock.lang.Specification
 
+import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.buildNativeApplication
 import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.mapToMeta
 
@@ -45,6 +50,9 @@ class CloudFoundryLoadBalancerProviderSpec extends Specification {
 	ClusterCachingAgent cachingAgent
 
 	ProviderRegistry registry
+
+	@Shared
+	ProviderCache cacheView
 
 	@Shared
 	CloudFoundryAccountCredentials cloudFoundryCredentials = TestCredential.named(ACCOUNT_NAME,
@@ -72,7 +80,25 @@ class CloudFoundryLoadBalancerProviderSpec extends Specification {
 		registry = new DefaultProviderRegistry([cloudFoundryProvider],
 				new InMemoryNamedCacheFactory())
 
-		loadBalancerProvider = new CloudFoundryLoadBalancerProvider(registry.getProviderCache(CloudFoundryProvider.PROVIDER_NAME), cloudFoundryProvider)
+		cacheView = registry.getProviderCache(CloudFoundryProvider.PROVIDER_NAME)
+		cacheView.putCacheData(LOAD_BALANCERS.ns, new DefaultCacheData(
+				Keys.getLoadBalancerKey('production', 'prod', 'my-region'),
+				[
+						'name': 'production',
+						'nativeRoute': new CloudRoute(null, 'production', new CloudDomain(null, 'cfapps.io', null), 1)
+				],
+				[:]
+		))
+		cacheView.putCacheData(LOAD_BALANCERS.ns, new DefaultCacheData(
+				Keys.getLoadBalancerKey('staging', 'staging', 'my-region'),
+				[
+						'name': 'staging',
+						'nativeRoute': new CloudRoute(null, 'staging', new CloudDomain(null, 'cfapps.io', null), 1)
+				],
+				[:]
+		))
+
+		loadBalancerProvider = new CloudFoundryLoadBalancerProvider(cacheView, cloudFoundryProvider)
 	}
 
 	def "should handle an empty cache"() {
@@ -166,4 +192,59 @@ class CloudFoundryLoadBalancerProviderSpec extends Specification {
 
 	}
 
+	void "look up single load balancer's summary"() {
+		when:
+		def summary = loadBalancerProvider.get('production')
+
+		then:
+		summary != null
+		summary.name == 'production'
+
+		def account = summary.getOrCreateAccount('prod')
+		def region = account.getOrCreateRegion('my-region')
+
+		account.name == 'prod'
+		account.byRegions == [region]
+
+		region.name == 'my-region'
+		region.loadBalancers.size() == 1
+		region.loadBalancers[0].name == 'production'
+		region.loadBalancers[0].region == region.name
+		region.loadBalancers[0].account == 'prod'
+		region.loadBalancers[0].type == 'cf'
+
+		summary.byAccounts == [account]
+	}
+
+	void "look up all load balancer accounts"() {
+		when:
+		def summaries = loadBalancerProvider.list()
+
+		then:
+		summaries != null
+		summaries.size() == 2
+		summaries.collect {it.name} == ['production', 'staging']
+	}
+
+	void "look up load balancers by account, region, and name"() {
+		when:
+		def summaries = loadBalancerProvider.byAccountAndRegionAndName('prod', 'my-region', 'production')
+
+		then:
+		summaries != null
+		summaries.size() == 1
+		summaries[0].name == 'production'
+		summaries[0].nativeRoute.host == 'production'
+		summaries[0].nativeRoute.domain.name == 'cfapps.io'
+		summaries[0].nativeRoute.name == 'production.cfapps.io'
+	}
+
+	void "should return an empty list if account doesn't exist"() {
+		when:
+		def summaries = loadBalancerProvider.byAccountAndRegionAndName('not-there', null, 'production')
+
+		then:
+		summaries != null
+		summaries.size() == 0
+	}
 }
