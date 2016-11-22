@@ -60,7 +60,9 @@ class DeployAppEngineAtomicOperation implements AtomicOperation<DeploymentResult
       task.updateStatus BASE_PHASE, "Initializing creation of version..."
       def result = new DeploymentResult()
       def newVersionName = deploy(cloneOrUpdateLocalRepository(directoryName, 1))
-      result.serverGroupNames = [newVersionName]
+      def region = description.credentials.region;
+      result.serverGroupNames = Arrays.asList("$region:$newVersionName".toString())
+      result.serverGroupNameByRegion[region] = newVersionName;
       result
     })
   }
