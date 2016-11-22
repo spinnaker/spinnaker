@@ -31,7 +31,6 @@ import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerH
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,7 +39,7 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Component
-class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancerView>, LoadBalancerProviderTempShim {
+class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancerView> {
 
   final String cloudProvider = GoogleCloudProvider.ID
 
@@ -284,7 +283,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
                                                           ]])]
   }
 
-  static class GoogleLoadBalancerAccountRegionSummary implements LoadBalancerProviderTempShim.Item {
+  static class GoogleLoadBalancerAccountRegionSummary implements LoadBalancerProvider.Item {
 
     String name
 
@@ -299,7 +298,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     }
   }
 
-  static class GoogleLoadBalancerAccount implements LoadBalancerProviderTempShim.ByAccount {
+  static class GoogleLoadBalancerAccount implements LoadBalancerProvider.ByAccount {
 
     String name
 
@@ -314,12 +313,12 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     }
   }
 
-  static class GoogleLoadBalancerAccountRegion implements LoadBalancerProviderTempShim.ByRegion {
+  static class GoogleLoadBalancerAccountRegion implements LoadBalancerProvider.ByRegion {
     String name
     List<GoogleLoadBalancerSummary> loadBalancers = []
   }
 
-  static class GoogleLoadBalancerSummary implements LoadBalancerProviderTempShim.Details {
+  static class GoogleLoadBalancerSummary implements LoadBalancerProvider.Details {
     GoogleLoadBalancerType loadBalancerType
     String account
     String region
@@ -329,7 +328,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     String urlMapName
   }
 
-  static class GoogleLoadBalancerDetails implements LoadBalancerProviderTempShim.Details {
+  static class GoogleLoadBalancerDetails implements LoadBalancerProvider.Details {
     Long createdTime
     String dnsname
     String ipAddress

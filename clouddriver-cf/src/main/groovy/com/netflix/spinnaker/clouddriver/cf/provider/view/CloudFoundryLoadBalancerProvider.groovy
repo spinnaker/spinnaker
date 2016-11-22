@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryServerGroup
 import com.netflix.spinnaker.clouddriver.cf.provider.CloudFoundryProvider
 import com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -36,7 +35,7 @@ import static com.netflix.spinnaker.cats.cache.RelationshipCacheFilter.include
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.*
 
 @Component
-class CloudFoundryLoadBalancerProvider implements LoadBalancerProvider<CloudFoundryLoadBalancer>, LoadBalancerProviderTempShim {
+class CloudFoundryLoadBalancerProvider implements LoadBalancerProvider<CloudFoundryLoadBalancer> {
 
   final String cloudProvider = CloudFoundryCloudProvider.ID
 
@@ -125,7 +124,7 @@ class CloudFoundryLoadBalancerProvider implements LoadBalancerProvider<CloudFoun
     map
   }
 
-  static class CloudFoundryLoadBalancerSummary implements LoadBalancerProviderTempShim.Item {
+  static class CloudFoundryLoadBalancerSummary implements LoadBalancerProvider.Item {
     private Map<String, CloudFoundryLoadBalancerAccount> mappedAccounts = [:]
     String name
 
@@ -142,7 +141,7 @@ class CloudFoundryLoadBalancerProvider implements LoadBalancerProvider<CloudFoun
     }
   }
 
-  static class CloudFoundryLoadBalancerAccount implements LoadBalancerProviderTempShim.ByAccount {
+  static class CloudFoundryLoadBalancerAccount implements LoadBalancerProvider.ByAccount {
     private Map<String, CloudFoundryLoadBalancerAccountRegion> mappedRegions = [:]
     String name
 
@@ -159,12 +158,12 @@ class CloudFoundryLoadBalancerProvider implements LoadBalancerProvider<CloudFoun
     }
   }
 
-  static class CloudFoundryLoadBalancerAccountRegion implements LoadBalancerProviderTempShim.ByRegion {
+  static class CloudFoundryLoadBalancerAccountRegion implements LoadBalancerProvider.ByRegion {
     String name
     List<CloudFoundryLoadBalancerDetail> loadBalancers
   }
 
-  static class CloudFoundryLoadBalancerDetail implements LoadBalancerProviderTempShim.Details {
+  static class CloudFoundryLoadBalancerDetail implements LoadBalancerProvider.Details {
     String account
     String region
     String name

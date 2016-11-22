@@ -22,22 +22,17 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesLoadBalancer
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
-import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.Service
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.naming.OperationNotSupportedException
 
 @Component
-class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesLoadBalancer>, LoadBalancerProviderTempShim {
+class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesLoadBalancer> {
 
   final String cloudProvider = KubernetesCloudProvider.ID
 
@@ -116,7 +111,7 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
   }
 
   // TODO(lwander): Groovy allows this to compile just fine, even though KubernetesLoadBalancer does
-  // not implement the LoadBalancerProviderTempShim.list interface.
+  // not implement the LoadBalancerProvider.list interface.
   @Override
   List<KubernetesLoadBalancer> list() {
     Collection<String> loadBalancers = cacheView.getIdentifiers(Keys.Namespace.LOAD_BALANCERS.ns)
@@ -128,14 +123,14 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
 
   // TODO(lwander): Implement if/when these methods are needed in Deck.
   @Override
-  LoadBalancerProviderTempShim.Item get(String name) {
+  LoadBalancerProvider.Item get(String name) {
     throw new OperationNotSupportedException("Kubernetes is a special snowflake.")
   }
 
   @Override
-  List<LoadBalancerProviderTempShim.Details> byAccountAndRegionAndName(String account,
-                                                                       String region,
-                                                                       String name) {
+  List<LoadBalancerProvider.Details> byAccountAndRegionAndName(String account,
+                                                               String region,
+                                                               String name) {
     throw new OperationNotSupportedException("No balancers for you!")
   }
 }

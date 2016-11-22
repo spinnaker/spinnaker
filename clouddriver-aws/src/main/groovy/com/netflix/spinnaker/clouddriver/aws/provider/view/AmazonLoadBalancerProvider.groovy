@@ -23,13 +23,12 @@ import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonInstance
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancer
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -37,7 +36,7 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
 @Component
-class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalancer>, LoadBalancerProviderTempShim {
+class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalancer> {
 
   final String cloudProvider = AmazonCloudProvider.ID
 
@@ -260,7 +259,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
 
   // view models...
 
-  static class AmazonLoadBalancerSummary implements LoadBalancerProviderTempShim.Item {
+  static class AmazonLoadBalancerSummary implements LoadBalancerProvider.Item {
     private Map<String, AmazonLoadBalancerAccount> mappedAccounts = [:]
     String name
 
@@ -277,7 +276,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     }
   }
 
-  static class AmazonLoadBalancerAccount implements LoadBalancerProviderTempShim.ByAccount {
+  static class AmazonLoadBalancerAccount implements LoadBalancerProvider.ByAccount {
     private Map<String, AmazonLoadBalancerAccountRegion> mappedRegions = [:]
     String name
 
@@ -294,12 +293,12 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     }
   }
 
-  static class AmazonLoadBalancerAccountRegion implements LoadBalancerProviderTempShim.ByRegion {
+  static class AmazonLoadBalancerAccountRegion implements LoadBalancerProvider.ByRegion {
     String name
     List<AmazonLoadBalancerSummary> loadBalancers
   }
 
-  static class AmazonLoadBalancerDetail implements LoadBalancerProviderTempShim.Details {
+  static class AmazonLoadBalancerDetail implements LoadBalancerProvider.Details {
     String account
     String region
     String name

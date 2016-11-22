@@ -27,14 +27,13 @@ import com.netflix.spinnaker.clouddriver.azure.resources.appgateway.model.AzureA
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer>, LoadBalancerProviderTempShim {
+class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer> {
 
   final String cloudProvider = AzureCloudProvider.ID
 
@@ -140,7 +139,7 @@ class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer>
   }
 
   @Override
-  LoadBalancerProviderTempShim.Item get(String name) {
+  LoadBalancerProvider.Item get(String name) {
     throw new UnsupportedOperationException("TODO: Implement single getter.")
   }
 
@@ -180,7 +179,7 @@ class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer>
     return []
   }
 
-  static class AzureAppGatewaySummary implements LoadBalancerProviderTempShim.Item {
+  static class AzureAppGatewaySummary implements LoadBalancerProvider.Item {
     private Map<String, AzureAppGatewayAccount> mappedAccounts = [:]
     String name
 
@@ -197,7 +196,7 @@ class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer>
     }
   }
 
-  static class AzureAppGatewayAccount implements LoadBalancerProviderTempShim.ByAccount {
+  static class AzureAppGatewayAccount implements LoadBalancerProvider.ByAccount {
     private Map<String, AzureAppGatewayAccountRegion> mappedRegions = [:]
     String name
 
@@ -214,12 +213,12 @@ class AzureAppGatewayProvider implements LoadBalancerProvider<AzureLoadBalancer>
     }
   }
 
-  static class AzureAppGatewayAccountRegion implements LoadBalancerProviderTempShim.Details {
+  static class AzureAppGatewayAccountRegion implements LoadBalancerProvider.Details {
     String name
     List<AzureAppGatewayAccountRegionDetail> loadBalancers = []
   }
 
-  static class AzureAppGatewayAccountRegionDetail implements LoadBalancerProviderTempShim.Details {
+  static class AzureAppGatewayAccountRegionDetail implements LoadBalancerProvider.Details {
     String type="azure"
     String account
     String region

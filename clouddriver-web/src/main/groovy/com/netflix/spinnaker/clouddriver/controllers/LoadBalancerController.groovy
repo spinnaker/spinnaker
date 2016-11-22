@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.controllers
 import com.netflix.spinnaker.clouddriver.exceptions.CloudProviderNotFoundException
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
@@ -33,9 +32,6 @@ class LoadBalancerController {
   @Autowired
   List<LoadBalancerProvider> loadBalancerProviders
 
-  @Autowired(required = false)
-  List<LoadBalancerProviderTempShim> tempShims
-
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/loadBalancers", method = RequestMethod.GET)
   List<LoadBalancer> list(@PathVariable String application) {
@@ -47,27 +43,27 @@ class LoadBalancerController {
   }
 
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers", method = RequestMethod.GET)
-  List<LoadBalancerProviderTempShim.Item> listForCloudProvider(@PathVariable String cloudProvider) {
+  List<LoadBalancerProvider.Item> listForCloudProvider(@PathVariable String cloudProvider) {
     return findLoadBalancerProvider(cloudProvider).list()
   }
 
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers/{name:.+}", method = RequestMethod.GET)
-  LoadBalancerProviderTempShim.Item get(@PathVariable String cloudProvider,
-                                        @PathVariable String name) {
+  LoadBalancerProvider.Item get(@PathVariable String cloudProvider,
+                                @PathVariable String name) {
     return findLoadBalancerProvider(cloudProvider).get(name)
   }
 
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers/{account:.+}/{region:.+}/{name:.+}",
                   method = RequestMethod.GET)
-  List<LoadBalancerProviderTempShim.Details> getByAccountRegionName(@PathVariable String cloudProvider,
-                                                                    @PathVariable String account,
-                                                                    @PathVariable String region,
-                                                                    @PathVariable String name) {
+  List<LoadBalancerProvider.Details> getByAccountRegionName(@PathVariable String cloudProvider,
+                                                            @PathVariable String account,
+                                                            @PathVariable String region,
+                                                            @PathVariable String name) {
     return findLoadBalancerProvider(cloudProvider).byAccountAndRegionAndName(account, region, name)
   }
 
-  private LoadBalancerProviderTempShim findLoadBalancerProvider(String cloudProvider) {
-    return tempShims
+  private LoadBalancerProvider findLoadBalancerProvider(String cloudProvider) {
+    return loadBalancerProviders
         .stream()
         .filter({ it.cloudProvider == cloudProvider })
         .findFirst()

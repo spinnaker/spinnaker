@@ -18,6 +18,23 @@ package com.netflix.spinnaker.clouddriver.model
 
 class NoopLoadBalancerProvider implements LoadBalancerProvider<LoadBalancer> {
 
+  final String cloudProvider = "noop"
+
+  @Override
+  List<LoadBalancerProvider.Item> list() {
+    return Collections.emptyList()
+  }
+
+  @Override
+  LoadBalancerProvider.Item get(String name) {
+    return null
+  }
+
+  @Override
+  List<LoadBalancerProvider.Details> byAccountAndRegionAndName(String account, String region, String name) {
+    return Collections.emptyList()
+  }
+
   @Override
   Set<LoadBalancer> getApplicationLoadBalancers(String application) {
     Collections.emptySet()

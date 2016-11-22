@@ -23,7 +23,6 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
@@ -44,7 +43,7 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.S
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.SUBNETS
 
 @Component
-class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoadBalancer.View>, LoadBalancerProviderTempShim {
+class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoadBalancer.View> {
 
   final String cloudProvider = OpenstackCloudProvider.ID
 
@@ -132,7 +131,7 @@ class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoa
     objectMapper.convertValue(cacheData?.attributes, clazz)
   }
 
-  // TODO: OpenstackLoadBalancerSummary is not a LoadBalancerProviderTempShim.Item, but still
+  // TODO: OpenstackLoadBalancerSummary is not a LoadBalancerProvider.Item, but still
   // compiles anyway because of groovy magic.
   List<OpenstackLoadBalancerSummary> list() {
     getLoadBalancers('*', '*', '*').collect { lb ->
@@ -140,7 +139,7 @@ class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoa
     }.sort { it.name }
   }
 
-  LoadBalancerProviderTempShim.Item get(String name) {
+  LoadBalancerProvider.Item get(String name) {
     throw new UnsupportedOperationException("TODO: Support a single getter")
   }
 
