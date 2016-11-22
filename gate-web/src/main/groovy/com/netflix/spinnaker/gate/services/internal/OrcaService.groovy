@@ -53,6 +53,10 @@ interface OrcaService {
   Map cancelTask(@Path("id") String id, @Body String ignored)
 
   @Headers("Accept: application/json")
+  @PUT("/tasks/cancel")
+  Map cancelTasks(@Body List<String> taskIds)
+
+  @Headers("Accept: application/json")
   @GET("/pipelines/{id}")
   Map getPipeline(@Path("id") String id)
 
