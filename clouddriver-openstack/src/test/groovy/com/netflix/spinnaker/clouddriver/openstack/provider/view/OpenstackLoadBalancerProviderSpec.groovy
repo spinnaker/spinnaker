@@ -20,11 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackFloatingIP
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancerSummary
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackNetwork
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackServerGroup
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSubnet
@@ -273,6 +275,101 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
       subnetName: subnet.name, networkId: network.id, networkName: network.name,
       serverGroups: [new LoadBalancerServerGroup(name: 'myapp-teststack-v002')])
 
+  }
+
+  def 'search for all load balancers'() {
+    given:
+    def provider = Spy(OpenstackLoadBalancerProvider, constructorArgs: [cache, objectMapper, clusterProvider])
+
+    when:
+    List<OpenstackLoadBalancerSummary> result = provider.list()
+
+    then:
+    1 * provider.getLoadBalancers('*','*','*') >> lbs
+    result.size() == lbs.size()
+    if (result.size() > 0) {
+      result.each {
+        assert it.name != null
+        assert it.id != null
+        assert it.account != null
+        assert it.region != null
+      }
+    }
+    noExceptionThrown()
+
+    where:
+    lbs << [(0..1).collect { create(it) }.toSet(), [].toSet()]
+  }
+
+  def 'search for all load balancers - throw exception'() {
+    given:
+    def provider = Spy(OpenstackLoadBalancerProvider, constructorArgs: [cache, objectMapper, clusterProvider])
+    Throwable throwable = new JedisException('exception')
+
+    when:
+    provider.list()
+
+    then:
+    1 * provider.getLoadBalancers('*','*','*') >> { throw throwable }
+    Throwable thrownException = thrown(JedisException)
+    thrownException == throwable
+  }
+
+  def 'get load balancer by account, region, name'() {
+    given:
+    def provider = Spy(OpenstackLoadBalancerProvider, constructorArgs: [cache, objectMapper, clusterProvider])
+    String name = 'id0'
+
+    when:
+    List<OpenstackLoadBalancer> result = provider.byAccountAndRegionAndName(account, region, name)
+
+    then:
+    1 * provider.getLoadBalancers(account, region, name) >> lbs
+    result.size() == lbs.size()
+    if (result.size() > 0) {
+      assert result[0] == lbs[0]
+    }
+    noExceptionThrown()
+
+    where:
+    lbs << [[create(0)].toSet(), [].toSet()]
+  }
+
+  def 'get load balancer by account, region, name - throw exception'() {
+    given:
+    def provider = Spy(OpenstackLoadBalancerProvider, constructorArgs: [cache, objectMapper, clusterProvider])
+    String name = 'id0'
+    Throwable throwable = new JedisException('exception')
+
+    when:
+    provider.byAccountAndRegionAndName(account, region, name)
+
+    then:
+    1 * provider.getLoadBalancers(account, region, name) >> { throw throwable }
+    Throwable thrownException = thrown(JedisException)
+    thrownException == throwable
+  }
+
+  OpenstackLoadBalancer.View create(int i) {
+    String account = 'test'
+    String region = 'r1'
+    String id = "id$i"
+    String name = "name$i"
+    String description = 'internal_port=8100'
+    String status = 'up'
+    String protocol = 'http'
+    String algorithm = 'round_robin'
+    String ip = '1.2.3.4'
+    Integer externalPort = 80
+    String subnet = "subnet$i"
+    String network = "network$i"
+    def healthMonitor = new OpenstackLoadBalancer.OpenstackHealthMonitor(id: "health$i", httpMethod: 'GET',
+                                                                         maxRetries: 5, adminStateUp: 'UP', delay: 5, expectedCodes: [200])
+    def serverGroups = [new LoadBalancerServerGroup(name: 'sg1', isDisabled: false,
+                                                    instances: [new LoadBalancerInstance(id: 'id', zone: "zone$i", health: [state:'up', zone: "zone$i"])])]
+    new OpenstackLoadBalancer.View(account: account, region: region, id: id, name: name, description: description,
+                                   status: status, algorithm: algorithm, ip: ip, subnetId: subnet, subnetName: subnet, networkId: network, networkName: network,
+                                   healthMonitor: healthMonitor, serverGroups: serverGroups)
   }
 
 }
