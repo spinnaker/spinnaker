@@ -33,7 +33,9 @@ import static java.time.ZoneOffset.UTC
 import static java.time.temporal.ChronoUnit.DAYS
 import static java.time.temporal.ChronoUnit.HOURS
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 class TaskControllerSpec extends Specification {
 
@@ -69,6 +71,18 @@ class TaskControllerSpec extends Specification {
     1 * executionRepository.retrieveOrchestrations() >> {
       return rx.Observable.empty()
     }
+  }
+
+  void 'should cancel a list of tasks by id'() {
+    when:
+    def response = mockMvc.perform(
+      put('/tasks/cancel').contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(["id1", "id2"]))
+    )
+
+    then:
+    response.andExpect(status().isAccepted())
+    1 * executionRepository.cancel('id2', _)
+    1 * executionRepository.cancel('id1', _)
   }
 
   void 'step names are properly translated'() {

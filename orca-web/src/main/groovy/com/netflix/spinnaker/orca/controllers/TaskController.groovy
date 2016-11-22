@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import org.springframework.security.access.prepost.PreFilter
+
 import java.time.Clock
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -134,6 +136,15 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTask(@PathVariable String id) {
     executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+  }
+
+  @PreFilter("hasPermission(this.getOrchestration(filterObject)?.application, 'APPLICATION', 'WRITE')")
+  @RequestMapping(value = "/tasks/cancel", method = RequestMethod.PUT)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  void cancelTasks(@RequestBody List<String> taskIds) {
+    taskIds.each {
+      executionRepository.cancel(it, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+    }
   }
 
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
