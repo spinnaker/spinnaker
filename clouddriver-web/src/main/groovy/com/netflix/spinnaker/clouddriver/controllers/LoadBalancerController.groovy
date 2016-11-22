@@ -20,6 +20,8 @@ import com.netflix.spinnaker.clouddriver.exceptions.CloudProviderNotFoundExcepti
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.access.prepost.PostAuthorize
+import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -42,17 +44,21 @@ class LoadBalancerController {
     .sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() } as List<LoadBalancer>
   }
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PostAuthorize("@authorizationSupport.filterLoadBalancerProviderItems(returnObject)")
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers", method = RequestMethod.GET)
   List<LoadBalancerProvider.Item> listForCloudProvider(@PathVariable String cloudProvider) {
     return findLoadBalancerProvider(cloudProvider).list()
   }
 
+  @PostAuthorize("@authorizationSupport.filterLoadBalancerProviderItems(returnObject)")
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers/{name:.+}", method = RequestMethod.GET)
   LoadBalancerProvider.Item get(@PathVariable String cloudProvider,
                                 @PathVariable String name) {
     return findLoadBalancerProvider(cloudProvider).get(name)
   }
 
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers/{account:.+}/{region:.+}/{name:.+}",
                   method = RequestMethod.GET)
   List<LoadBalancerProvider.Details> getByAccountRegionName(@PathVariable String cloudProvider,

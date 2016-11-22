@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
@@ -37,7 +39,7 @@ class AuthorizationSupport {
    * @return true always, to conform to Spring Security annotation expectation.
    */
   boolean filterForAccounts(Map<String, Object> map) {
-    if (map == null || map.isEmpty()) {
+    if (!map) {
       return true
     }
 
@@ -47,6 +49,48 @@ class AuthorizationSupport {
       if (!permissionEvaluator.hasPermission(auth, account, 'ACCOUNT', 'READ')) {
         map.remove(account)
       }
+    }
+    return true
+  }
+
+  boolean filterLoadBalancerProviderItems(List<LoadBalancerProvider.Item> lbItems) {
+    if (!lbItems) {
+      return true
+    }
+
+    new ArrayList<>(lbItems).each { LoadBalancerProvider.Item lbItem ->
+      if(!filterLoadBalancerProviderItem(lbItem)) {
+        lbItems.remove(lbItem)
+      }
+    }
+    return true
+  }
+
+  boolean filterLoadBalancerProviderItem(LoadBalancerProvider.Item lbItem) {
+    if (!lbItem) {
+      return false
+    }
+
+    String application = Names.parseName(lbItem.name).app
+    if (!application) {
+      return false
+    }
+
+    Authentication auth = SecurityContextHolder.context.authentication;
+
+    if (!permissionEvaluator.hasPermission(auth, application, 'APPLICATION', 'READ')) {
+      return false
+    }
+
+    new ArrayList<>(lbItem.byAccounts).each { LoadBalancerProvider.ByAccount account ->
+      if (!permissionEvaluator.hasPermission(auth, account.name, 'ACCOUNT', 'READ')) {
+        lbItem.byAccounts.remove(account)
+      }
+    }
+
+    // It'd be weird if there was a load balancer with just name and an empty accounts field.
+    if (!lbItem.byAccounts) {
+      return false
     }
     return true
   }
