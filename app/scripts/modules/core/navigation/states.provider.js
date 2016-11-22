@@ -1,5 +1,7 @@
 'use strict';
 
+import {APPLICATION_READ_SERVICE} from 'core/application/service/applications.read.service';
+
 let angular = require('angular');
 
 require('./navigation.less');
@@ -14,7 +16,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
   require('../projects/dashboard/dashboard.controller.js'),
   require('../projects/service/project.read.service.js'),
   require('../overrideRegistry/override.registry.js'),
-  require('../application/service/applications.read.service.js'),
+  APPLICATION_READ_SERVICE,
 ])
   .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider, deliveryStates, settings) {
 

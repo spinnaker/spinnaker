@@ -3,6 +3,10 @@ import {module} from 'angular';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {Application} from 'core/application/application.model';
+import {
+  APPLICATION_READ_SERVICE, ApplicationReader,
+  IApplicationSummary
+} from 'core/application/service/applications.read.service';
 import {COPY_STAGE_CARD_COMPONENT} from './copyStageCard.component';
 import {IPipeline, IStage} from 'core/domain/index';
 
@@ -14,7 +18,7 @@ interface IStageWrapper {
 }
 
 class CopyStageModalCtrl implements ng.IComponentController {
-  public applications: Application[];
+  public applications: IApplicationSummary[];
   public stages: IStageWrapper[];
   public viewState = { loading: true, error: false };
   public selectedStage: IStageWrapper;
@@ -26,7 +30,7 @@ class CopyStageModalCtrl implements ng.IComponentController {
   constructor (private $q: ng.IQService,
                private API: Api,
                public application: Application,
-               private applicationReader: any,
+               private applicationReader: ApplicationReader,
                private $uibModalInstance: any) { }
 
   public $onInit (): void {
@@ -93,6 +97,6 @@ export const COPY_STAGE_MODAL_CONTROLLER = 'spinnaker.core.copyStage.modal.contr
 module(COPY_STAGE_MODAL_CONTROLLER, [
     API_SERVICE,
     COPY_STAGE_CARD_COMPONENT,
-    require('core/application/service/applications.read.service.js'),
+    APPLICATION_READ_SERVICE,
   ])
   .controller('CopyStageModalCtrl', CopyStageModalCtrl);

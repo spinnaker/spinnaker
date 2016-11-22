@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {APPLICATION_READ_SERVICE} from 'core/application/service/applications.read.service';
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
@@ -8,7 +9,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 module.exports = angular.module('spinnaker.core.cache.initializer', [
   ACCOUNT_SERVICE,
   require('../securityGroup/securityGroup.read.service.js'),
-  require('../application/service/applications.read.service.js'),
+  APPLICATION_READ_SERVICE,
   require('../ci/jenkins/igor.service.js'),
   require('./infrastructureCaches.js'),
   require('./infrastructureCacheConfig.js'),
@@ -21,7 +22,7 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
     var initializers = {
       credentials: [accountService.listAccounts],
       securityGroups: [securityGroupReader.getAllSecurityGroups],
-      applications: [applicationReader.listApplications],
+      applications: [() => applicationReader.listApplications()],
       buildMasters: [igorService.listMasters],
     };
 

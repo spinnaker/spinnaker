@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom', [
   require('core/cache/infrastructureCaches.js'),
   require('core/utils/timeFormatters.js'),
   require('core/pipeline/config/services/pipelineConfigService.js'),
-  require('core/application/service/applications.read.service.js'),
   require('core/config/settings.js'),
 ])
   .config(function(deploymentStrategyConfigProvider, settings) {
