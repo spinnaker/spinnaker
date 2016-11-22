@@ -5,7 +5,7 @@ dependencies {
   spinnaker.group('jackson')
 
   compile spinnaker.dependency('slf4j')
-  testCompile 'ch.qos.logback:logback-classic:1.1.2'
+  compile spinnaker.dependency('logbackClassic')
 }
 
 apply plugin: 'groovy'
