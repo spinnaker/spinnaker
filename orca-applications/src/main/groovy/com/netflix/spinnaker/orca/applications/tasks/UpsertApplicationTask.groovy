@@ -40,7 +40,9 @@ class UpsertApplicationTask extends AbstractFront50Task {
     if (existingApplication) {
       outputs.previousState = existingApplication
 
-      application.updateAccounts((existingApplication.listAccounts() << account) as Set)
+      if (!application.accounts) {
+        application.updateAccounts((existingApplication.listAccounts() << account) as Set)
+      }
 
       log.info("Updating application (name: ${application.name})")
       front50Service.update(application.name, application)

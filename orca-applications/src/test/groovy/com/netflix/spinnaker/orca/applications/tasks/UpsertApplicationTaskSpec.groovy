@@ -32,18 +32,21 @@ class UpsertApplicationTaskSpec extends Specification {
   @Subject
   def task = new UpsertApplicationTask(mapper: new ObjectMapper())
 
-  @Shared
-  def config = [
-    account    : "test",
-    application: [
-      "name" : "application",
-      "owner": "owner",
-      "repoProjectKey" : "project-key",
-      "repoSlug" : "repo-slug",
-      "repoType" : "github"
-    ],
-    user: "testUser"
-  ]
+  def config
+
+  void setup() {
+    config = [
+      account    : "test",
+      application: [
+        "name" : "application",
+        "owner": "owner",
+        "repoProjectKey" : "project-key",
+        "repoSlug" : "repo-slug",
+        "repoType" : "github"
+      ],
+      user: "testUser"
+    ]
+  }
 
   void "should create an application in global registries"() {
     given:
@@ -62,17 +65,21 @@ class UpsertApplicationTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
   }
 
-  void "should update existing application (global)"() {
+  @Unroll
+  void "should update existing application, using existing accounts (#accounts) if not supplied"() {
     given:
-    def app = new Application(config.application + [
-        accounts: [existingApplicationAccount, config.account].join(","),
+    config.application.accounts = accounts
+    Application application = new Application(config.application + [
         user    : config.user
     ])
+    Application existingApplication = new Application(
+      name: "application", owner: "owner", description: "description", accounts: "prod,test"
+    )
     task.front50Service = Mock(Front50Service) {
       1 * get(config.application.name) >> existingApplication
       // assert that the global application is updated w/ new application attributes and merged accounts
-      1 * update("application", app)
-      1 * updatePermission(app.name, app.permission)
+      1 * update("application", {it == application && it.accounts == expectedAccounts })
+      1 * updatePermission(application.name, application.permission)
       0 * _._
     }
 
@@ -83,10 +90,9 @@ class UpsertApplicationTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
 
     where:
-    existingApplicationAccount = "prod"
-    existingApplication = new Application(
-      name: "application", owner: "owner", description: "description", accounts: existingApplicationAccount
-    )
+    accounts   || expectedAccounts
+    null       || "prod,test"
+    "test"     || "test"
   }
 
   @Unroll
