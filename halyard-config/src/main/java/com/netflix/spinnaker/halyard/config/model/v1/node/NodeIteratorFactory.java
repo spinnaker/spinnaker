@@ -62,7 +62,7 @@ public class NodeIteratorFactory {
         })
         .filter(n -> n != null).collect(Collectors.toList());
 
-    log.info("Node " + node.getNodeName() + " reflectively collected " + nodes.size() + " children");
+    log.trace("Node " + node.getNodeName() + " reflectively collected " + nodes.size() + " children");
 
     return new NodeListIterator(nodes);
   }

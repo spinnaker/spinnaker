@@ -25,11 +25,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/v1/config/deployments/{deployment:.+}/providers/{provider:.+}/accounts")
 public class AccountController {
   @Autowired
   AccountService accountService;
+
+  @RequestMapping(value = "/", method = RequestMethod.GET)
+  List<Account> accounts(@PathVariable String deployment, @PathVariable String provider) {
+    NodeReference reference = new NodeReference()
+        .setDeployment(deployment)
+        .setProvider(provider);
+
+    return accountService.getAllAccounts(reference);
+
+  }
 
   @RequestMapping(value = "/{account:.+}", method = RequestMethod.GET)
   Account account(@PathVariable String deployment, @PathVariable String provider, @PathVariable String account) {

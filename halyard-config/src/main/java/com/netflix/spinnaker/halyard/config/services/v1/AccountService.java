@@ -17,13 +17,12 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,41 +36,55 @@ import java.util.stream.Collectors;
 @Component
 public class AccountService {
   @Autowired
-  ProviderService providerService;
+  LookupService lookupService;
 
   @Autowired
   ValidateService validateService;
 
-  public Account getAccount(NodeReference reference) {
-    Provider provider = providerService.getProvider(reference);
+  public List<Account> getAllAccounts(NodeReference reference) {
+    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile().withAnyAccount();
 
-    String accountName = reference.getAccount();
-
-    List<Account> accounts = provider.getAccounts();
-
-    List<Account> matchingAccounts = accounts
+    List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class)
         .stream()
-        .filter(a -> a.getName().equals(accountName))
+        .map(n -> (Account) n)
+        .collect(Collectors.toList());
+
+    if (matchingAccounts.size() == 0) {
+      throw new ConfigNotFoundException(
+          new ProblemBuilder(Problem.Severity.FATAL, "No accounts could be found")
+              .setReference(reference).build());
+    } else {
+      return matchingAccounts;
+    }
+  }
+
+  public Account getAccount(NodeReference reference) {
+    String accountName = reference.getAccount();
+    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile();
+
+    List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class)
+        .stream()
+        .map(n -> (Account) n)
         .collect(Collectors.toList());
 
     switch (matchingAccounts.size()) {
       case 0:
-        throw new IllegalRequestException(new ProblemBuilder(
-            Problem.Severity.FATAL, "No matching account found account")
+        throw new ConfigNotFoundException(new ProblemBuilder(
+            Problem.Severity.FATAL, "No matching account with name \"" + accountName + "\" found")
             .setReference(reference)
             .setRemediation("Check if this account was defined in another provider, or create a new one").build());
       case 1:
         return matchingAccounts.get(0);
       default:
         throw new IllegalConfigException(new ProblemBuilder(
-            Problem.Severity.FATAL, "More than one matching account found")
+            Problem.Severity.FATAL, "More than one matching account with name + \"" + accountName + "\" found")
             .setReference(reference)
-            .setRemediation("Manually delete/rename duplicate accounts in your halconfig file").build());
+            .setRemediation("Manually delete/rename duplicate accounts with name \"" + accountName + "\" in your halconfig file").build());
     }
   }
 
   public void validateAccount(NodeReference nodeReference) {
-    NodeFilter filter = new NodeFilter(nodeReference).anyHalconfigFile();
+    NodeFilter filter = new NodeFilter(nodeReference).withAnyHalconfigFile();
 
     validateService.validateMatchingFilter(filter).throwIfProblem();
   }

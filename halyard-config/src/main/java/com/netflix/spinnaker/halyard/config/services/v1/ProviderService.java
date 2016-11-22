@@ -16,66 +16,65 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalRequestException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.FATAL;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This service is meant to be autowired into any service or controller that needs to inspect the current halconfigs
- * deployments.
+ * providers.
  */
 @Component
 public class ProviderService {
   @Autowired
-  DeploymentService deploymentService;
+  LookupService lookupService;
 
   public Provider getProvider(NodeReference reference) {
-    Providers providers = getProviders(reference);
-    String deploymentName = reference.getDeployment();
-    String providerName = reference.getProvider();
+    String providerName = reference.getDeployment();
+    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile();
 
-    Provider provider = null;
-    if (providerName.toLowerCase().equals("kubernetes")) {
-      provider = providers.getKubernetes();
-    } else if (providerName.toLowerCase().equals("dockerregistry")) {
-      provider = providers.getDockerRegistry();
-    } else if (providerName.toLowerCase().equals("google")) {
-      provider = providers.getGoogle();
-    } else {
-      throw new IllegalRequestException(new ProblemBuilder(
-          FATAL, "There is no support for managing the selected provider using halyard")
-          .setReference(reference)
-          .setRemediation("You either made a typo, or should file a feature request: https://github.com/spinnaker/spinnaker/issues").build());
+    List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class)
+        .stream()
+        .map(n -> (Provider) n)
+        .collect(Collectors.toList());
+
+    switch (matching.size()) {
+      case 0:
+        throw new ConfigNotFoundException(new ProblemBuilder(Problem.Severity.FATAL,
+            "No provider with name \"" + providerName + "\" could be found")
+            .setReference(reference)
+            .setRemediation("Create a new provider with name \"" + providerName + "\"").build());
+      case 1:
+        return matching.get(0);
+      default:
+        throw new IllegalConfigException(new ProblemBuilder(Problem.Severity.FATAL,
+            "More than one provider with name \"" + providerName + "\" found")
+            .setReference(reference)
+            .setRemediation("Manually delete or rename duplicate providers with name \"" + providerName + "\" in your halconfig file").build());
     }
-
-    if (provider == null) {
-      throw new IllegalRequestException(new ProblemBuilder(
-          FATAL, "The selected provider was not configured")
-          .setReference(reference)
-          .setRemediation("Add an account for the selected provider, or pick a different provider").build());
-    }
-
-    return provider;
   }
 
-  public Providers getProviders(NodeReference reference) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(reference);
+  public List<Provider> getAllProviders(NodeReference reference) {
+    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile().withAnyProvider();
 
-    Providers providers = deploymentConfiguration.getProviders();
-    if (providers == null) {
-      throw new IllegalRequestException(new ProblemBuilder(
-          FATAL, "The selected deployment has no providers configured")
-          .setReference(reference)
-          .setRemediation("Add an account for any provider, or pick a different deployment").build());
+    List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class)
+        .stream()
+        .map(n -> (Provider) n)
+        .collect(Collectors.toList());
+
+    if (matching.size() == 0) {
+      throw new ConfigNotFoundException(
+          new ProblemBuilder(Problem.Severity.FATAL, "No providers could be found")
+              .setReference(reference).build());
+    } else {
+      return matching;
     }
-
-    return providers;
   }
 }
