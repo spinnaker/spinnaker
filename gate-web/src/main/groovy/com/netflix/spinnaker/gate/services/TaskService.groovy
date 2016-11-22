@@ -71,6 +71,12 @@ class TaskService {
     } execute()
   }
 
+  Map cancelTasks(List<String> taskIds) {
+    HystrixFactory.newMapCommand(GROUP, "cancelTasks") {
+      orcaService.cancelTasks(taskIds)
+    } execute()
+  }
+
   /**
    * @deprecated  This pipeline operation does not belong here.
    */

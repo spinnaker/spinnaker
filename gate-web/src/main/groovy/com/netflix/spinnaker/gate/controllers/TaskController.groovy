@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @CompileStatic
@@ -50,6 +51,11 @@ class TaskController {
   @RequestMapping(value = "/{id}/cancel", method = RequestMethod.PUT)
   Map cancelTask(@PathVariable("id") String id) {
     taskService.cancelTask(id)
+  }
+
+  @RequestMapping(value = "/cancel", method = RequestMethod.PUT)
+  Map cancelTasks(@RequestParam List<String> ids) {
+    taskService.cancelTasks(ids)
   }
 
   @RequestMapping(value = "/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
