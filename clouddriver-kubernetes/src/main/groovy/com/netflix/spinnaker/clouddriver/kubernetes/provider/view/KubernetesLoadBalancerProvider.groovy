@@ -19,12 +19,14 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesLoadBalancer
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.Service
@@ -32,8 +34,13 @@ import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import javax.naming.OperationNotSupportedException
+
 @Component
-class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesLoadBalancer> {
+class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesLoadBalancer>, LoadBalancerProviderTempShim {
+
+  final String cloudProvider = KubernetesCloudProvider.ID
+
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
@@ -106,5 +113,29 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
     }
 
     return new KubernetesLoadBalancer(service, serverGroups, parts.account, securityGroups)
+  }
+
+  // TODO(lwander): Groovy allows this to compile just fine, even though KubernetesLoadBalancer does
+  // not implement the LoadBalancerProviderTempShim.list interface.
+  @Override
+  List<KubernetesLoadBalancer> list() {
+    Collection<String> loadBalancers = cacheView.getIdentifiers(Keys.Namespace.LOAD_BALANCERS.ns)
+    loadBalancers.findResults {
+      def parse = Keys.parse(it)
+      parse ? new KubernetesLoadBalancer(parse.name, parse.namespace, parse.account) : null
+    }
+  }
+
+  // TODO(lwander): Implement if/when these methods are needed in Deck.
+  @Override
+  LoadBalancerProviderTempShim.Item get(String name) {
+    throw new OperationNotSupportedException("Kubernetes is a special snowflake.")
+  }
+
+  @Override
+  List<LoadBalancerProviderTempShim.Details> byAccountAndRegionAndName(String account,
+                                                                       String region,
+                                                                       String name) {
+    throw new OperationNotSupportedException("No balancers for you!")
   }
 }
