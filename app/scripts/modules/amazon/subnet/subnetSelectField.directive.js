@@ -46,6 +46,9 @@ module.exports = angular.module('spinnaker.subnet.subnetSelectField.directive', 
           if (subnets.length) {
             if (!scope.component[scope.field] && !scope.readOnly) {
               scope.component[scope.field] = subnets[0].purpose;
+              if (scope.onChange) {
+                scope.onChange();
+              }
             }
           }
         }
