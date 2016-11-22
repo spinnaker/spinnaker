@@ -2,12 +2,13 @@
 
 import {ANY_FIELD_FILTER} from '../presentation/anyFieldFilter/anyField.filter';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {APPLICATION_READ_SERVICE} from 'core/application/service/applications.read.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.applications.controller', [
   require('angular-ui-router'),
-  require('./service/applications.read.service.js'),
+  APPLICATION_READ_SERVICE,
   ACCOUNT_SERVICE,
   ANY_FIELD_FILTER,
   require('../cache/viewStateCache.js'),

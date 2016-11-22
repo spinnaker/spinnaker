@@ -1,16 +1,16 @@
 'use strict';
 
 let angular = require('angular');
+
 import _ from 'lodash';
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.controller', [
     require('angular-ui-router'),
-    require('core/application/service/applications.read.service.js'),
     require('../fastProperty.read.service.js'),
     require('core/cache/deckCacheFactory.js')
   ])
-  .controller('FastPropertiesController', function ($scope, $filter, $state, $stateParams, $location, applicationReader, settings, fastPropertyReader) {
+  .controller('FastPropertiesController', function ($scope, $filter, $state, $stateParams, $location, settings, fastPropertyReader) {
     let vm = this;
     let filterNames = ['app','env', 'region', 'stack', 'cluster'];
 

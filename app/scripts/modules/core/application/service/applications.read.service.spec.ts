@@ -1,18 +1,21 @@
+import {IApplicationDataSourceAttribute, ApplicationReader, APPLICATION_READ_SERVICE} from './applications.read.service';
+import {Api} from '../../api/api.service';
+import {ApplicationDataSourceRegistry} from './applicationDataSource.registry';
+import {Application} from '../application.model';
 describe('Service: applicationReader', function () {
 
-  var applicationReader;
-  var securityGroupReader;
-  var loadBalancerReader;
-  var clusterService;
-  var $http;
-  var $q;
-  var $scope;
-  var settings;
-  var applicationDataSourceRegistry;
+  let applicationReader: ApplicationReader;
+  let securityGroupReader: any;
+  let loadBalancerReader: any;
+  let clusterService: any;
+  let API: Api;
+  let $q: ng.IQService;
+  let $scope: ng.IScope;
+  let applicationDataSourceRegistry: ApplicationDataSourceRegistry;
 
   beforeEach(
-    window.module(
-      require('./applications.read.service'),
+    angular.mock.module(
+      APPLICATION_READ_SERVICE,
       require('../../securityGroup/securityGroup.dataSource'),
       require('../../serverGroup/serverGroup.dataSource'),
       require('../../loadBalancer/loadBalancer.dataSource'),
@@ -23,35 +26,36 @@ describe('Service: applicationReader', function () {
   );
 
   beforeEach(
-    window.inject(function (_applicationReader_, _securityGroupReader_, _clusterService_, $httpBackend, _$q_,
-                            _loadBalancerReader_, $rootScope, _settings_, _applicationDataSourceRegistry_) {
+    angular.mock.inject(function (_applicationReader_: ApplicationReader, _securityGroupReader_: any,
+                                  _clusterService_: any, _API_: Api, _$q_: ng.IQService,
+                                  _loadBalancerReader_: any, $rootScope: ng.IRootScopeService,
+                                  _applicationDataSourceRegistry_: ApplicationDataSourceRegistry) {
       applicationReader = _applicationReader_;
       securityGroupReader = _securityGroupReader_;
       clusterService = _clusterService_;
       loadBalancerReader = _loadBalancerReader_;
-      $http = $httpBackend;
       $q = _$q_;
+      API = _API_;
       $scope = $rootScope.$new();
-      settings = _settings_;
       applicationDataSourceRegistry = _applicationDataSourceRegistry_;
     })
   );
 
   describe('load application', function () {
 
-    var application = null;
+    let application: Application = null;
 
-    function loadApplication(dataSources) {
-      let response = {applicationName: 'deck', attributes: {}};
+    function loadApplication(dataSources?: IApplicationDataSourceAttribute) {
+      let response = {applicationName: 'deck', attributes: {} as any};
       if (dataSources !== undefined) {
-        response.attributes.dataSources = dataSources;
+        response.attributes['dataSources'] = dataSources;
       }
-      $http.expectGET(settings.gateUrl + '/applications/deck').respond(200, response);
+      spyOn(API, 'one').and.returnValue({ get: () => $q.when(response) });
       spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue($q.when([]));
       spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue($q.when([]));
       spyOn(clusterService, 'loadServerGroups').and.returnValue($q.when([]));
       spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue($q.when([]));
-      spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function(app, groupsByName) {
+      spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function(app: Application, groupsByName: any) {
         return $q.when(groupsByName || []);
       });
 
@@ -59,7 +63,6 @@ describe('Service: applicationReader', function () {
         application = app;
       });
       $scope.$digest();
-      $http.flush();
     }
 
     it ('loads all data sources if dataSource attribute is missing', function () {
@@ -84,9 +87,9 @@ describe('Service: applicationReader', function () {
       expect(securityGroupReader.getApplicationSecurityGroups.calls.count()).toBe(0);
       expect(loadBalancerReader.loadLoadBalancers.calls.count()).toBe(0);
 
-      expect(application.serverGroups.disabled).toBe(false);
-      expect(application.loadBalancers.disabled).toBe(true);
-      expect(application.securityGroups.disabled).toBe(true);
+      expect(application.getDataSource('serverGroups').disabled).toBe(false);
+      expect(application.getDataSource('loadBalancers').disabled).toBe(true);
+      expect(application.getDataSource('securityGroups').disabled).toBe(true);
     });
 
     describe('opt-in data sources', function () {
@@ -96,17 +99,17 @@ describe('Service: applicationReader', function () {
 
       it('disables opt-in data sources when nothing configured on application dataSources attribute', function () {
         loadApplication();
-        expect(application.optInSource.disabled).toBe(true);
+        expect(application.getDataSource('optInSource').disabled).toBe(true);
       });
 
       it('disables opt-in data sources when nothing configured on application dataSources.disabled attribute', function () {
         loadApplication({enabled: [], disabled: []});
-        expect(application.optInSource.disabled).toBe(true);
+        expect(application.getDataSource('optInSource').disabled).toBe(true);
       });
 
       it('enables opt-in data source when configured on application dataSources.disabled attribute', function () {
         loadApplication({enabled: ['optInSource'], disabled: []});
-        expect(application.optInSource.disabled).toBe(false);
+        expect(application.getDataSource('optInSource').disabled).toBe(false);
       });
     });
 

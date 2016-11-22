@@ -15,7 +15,7 @@ describe('Controller: MultipleServerGroups', function () {
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$q_, _MultiselectModel_, applicationReader, ClusterFilterModel, applicationModelBuilder) {
+    window.inject(function ($rootScope, $controller, _$q_, _MultiselectModel_, ClusterFilterModel, applicationModelBuilder) {
       scope = $rootScope.$new();
       MultiselectModel = _MultiselectModel_;
       ClusterFilterModel.sortFilter.multiselect = true;

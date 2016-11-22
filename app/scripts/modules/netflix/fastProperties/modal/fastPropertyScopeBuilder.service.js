@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {APPLICATION_READ_SERVICE} from 'core/application/service/applications.read.service';
 
 let angular = require('angular');
 
@@ -8,7 +9,7 @@ module.exports = angular
   .module('spinnaker.fastProperty.scopeBuilder.service', [
     require('../fastProperty.read.service'),
     require('core/application/listExtractor/listExtractor.service'),
-    require('core/application/service/applications.read.service.js'),
+    APPLICATION_READ_SERVICE,
     require('core/config/settings.js'),
   ])
   .factory('fastPropertyScopeBuilderService', (appListExtractorService, applicationReader, settings, fastPropertyReader) => {

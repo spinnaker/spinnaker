@@ -11,6 +11,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline', [
   require('core/utils/timeFormatters.js'),
   require('../../services/pipelineConfigService.js'),
   require('./pipelineExecutionDetails.controller.js'),
-  require('core/application/service/applications.read.service.js'),
   require('core/widgets/spelText/spelSelect.component'),
 ]);

@@ -9,13 +9,12 @@ module.exports = angular
     require('../fastProperty.strategy.provider.js'),
     require('../fastProperty.read.service.js'),
     require('core/config/settings.js'),
-    require('core/application/service/applications.read.service.js'),
     require('core/application/listExtractor/listExtractor.service'),
     require('./fastPropertyWizardManagement.service'),
     require('./fastPropertyScopeBuilder.service'),
   ])
   .controller('FastPropertyUpsertController', function ($scope, $controller, $templateCache, $compile, $uibModalInstance, $q,
-                                                        settings, applicationList, applicationReader, fastPropertyReader,
+                                                        settings, applicationList, fastPropertyReader,
                                                         fastPropertyStrategy, clusters, appName, fastProperty, isEditing,
                                                         appListExtractorService, fastPropertyWizardManagementService,
                                                         fastPropertyScopeBuilderService) {

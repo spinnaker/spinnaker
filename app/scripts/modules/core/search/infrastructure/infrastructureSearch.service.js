@@ -5,11 +5,11 @@ import {Observable, Subject} from 'rxjs';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.infrastructure.search.service', [
-  require('../../navigation/urlBuilder.service.js'),
-  require('../../application/service/applications.read.service.js'),
-  require('../../cloudProvider/serviceDelegate.service.js'),
+  require('../../navigation/urlBuilder.service'),
+  require('../../search/search.service'),
+  require('../../cloudProvider/serviceDelegate.service'),
 ])
-  .factory('infrastructureSearchService', function($q, searchService, urlBuilderService, applicationReader, serviceDelegate) {
+  .factory('infrastructureSearchService', function($q, searchService, urlBuilderService, serviceDelegate) {
     return function() {
       var deferred;
 

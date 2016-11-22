@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {APPLICATION_READ_SERVICE} from 'core/application/service/applications.read.service';
 
 let angular = require('angular');
 
@@ -11,7 +12,7 @@ module.exports = angular
     require('./fastProperty.write.service.js'),
     require('core/confirmationModal/confirmationModal.service.js'),
     require('./fastPropertyTransformer.service.js'),
-    require('core/application/service/applications.read.service'),
+    APPLICATION_READ_SERVICE,
   ])
   .controller('ApplicationPropertiesController', function ($scope, $filter, $uibModal, $state, app, applicationReader, $log,
                                                            fastPropertyReader, fastPropertyWriter, fastPropertyTransformer) {
