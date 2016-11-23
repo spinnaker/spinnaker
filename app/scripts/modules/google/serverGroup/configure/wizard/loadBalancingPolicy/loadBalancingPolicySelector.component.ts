@@ -86,9 +86,7 @@ class GceLoadBalancingPolicySelectorComponent implements ng.IComponentOptions {
   public templateUrl: string = require('./loadBalancingPolicySelector.component.html');
 }
 
-const moduleName = 'spinnaker.gce.loadBalancingPolicy.selector.component';
+export const GCE_LOAD_BALANCING_POLICY_SELECTOR = 'spinnaker.gce.loadBalancingPolicy.selector.component';
 
-module(moduleName, [])
+module(GCE_LOAD_BALANCING_POLICY_SELECTOR, [])
   .component('gceLoadBalancingPolicySelector', new GceLoadBalancingPolicySelectorComponent());
-
-export default moduleName;

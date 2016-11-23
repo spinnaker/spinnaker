@@ -28,6 +28,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       instanceType: require('./instanceType/instanceType.html'),
       capacity: require('./capacity/capacity.html'),
       zones: require('./capacity/zones.html'),
+      autoHealingPolicy: require('./autoHealingPolicy/autoHealingPolicy.html'),
       advancedSettings: require('./advancedSettings/advancedSettings.html'),
     };
 
@@ -101,7 +102,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           .register({ page: 'location', subForm: 'basicSettings' })
           .register({ page: 'capacity', subForm: 'capacitySubForm' })
           .register({ page: 'zones', subForm: 'zonesSubForm' })
-          .register({ page: 'load-balancers', subForm: 'loadBalancerSubForm'});
+          .register({ page: 'load-balancers', subForm: 'loadBalancerSubForm' })
+          .register({ page: 'autohealing-policy', subForm: 'autoHealingPolicySubForm' });
       });
     }
 

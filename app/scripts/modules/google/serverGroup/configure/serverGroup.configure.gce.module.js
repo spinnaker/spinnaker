@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-import gceLoadBalancingPolicySelector from './wizard/loadBalancingPolicy/loadBalancingPolicySelector.component';
+import {GCE_LOAD_BALANCING_POLICY_SELECTOR} from './wizard/loadBalancingPolicy/loadBalancingPolicySelector.component';
+import {GCE_AUTOHEALING_POLICY_SELECTOR} from './wizard/autoHealingPolicy/autoHealingPolicySelector.component';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   require('../../autoscalingPolicy/components/basicSettings/basicSettings.component.js'),
@@ -11,8 +12,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   require('core/cache/infrastructureCaches.js'),
   require('core/serverGroup/configure/common/v2instanceArchetypeSelector.directive.js'),
   require('core/serverGroup/configure/common/v2InstanceTypeSelector.directive.js'),
-  gceLoadBalancingPolicySelector,
+  GCE_LOAD_BALANCING_POLICY_SELECTOR,
+  GCE_AUTOHEALING_POLICY_SELECTOR,
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
+  require('google/cache/cacheRefresh.component.js'),
   require('../serverGroup.transformer.js'),
   require('./serverGroupConfiguration.service.js'),
   require('./wizard/advancedSettings/advancedSettingsSelector.directive.js'),
