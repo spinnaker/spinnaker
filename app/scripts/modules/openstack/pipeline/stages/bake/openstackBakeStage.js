@@ -1,13 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
+import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.bakeStage', [
   require('core/pipeline/config/pipelineConfigProvider.js'),
   require('./bakeExecutionDetails.controller.js'),
-  require('core/pipeline/config/stages/bake/bakery.service.js'),
+  BAKERY_SERVICE,
   require('core/pipeline/config/stages/bake/modal/addExtendedAttribute.controller.modal.js'),
 ])
   .config(function(pipelineConfigProvider) {

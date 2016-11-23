@@ -1,9 +1,11 @@
 'use strict';
 
+import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.findImageFromTagsStage', [
-  require('../bake/bakery.service.js'),
+  BAKERY_SERVICE,
 ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
 
 let angular = require('angular');
 
@@ -12,7 +13,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.stage.docker.bakeStage', [
   require('core/pipeline/config/pipelineConfigProvider.js'),
   require('./bakeExecutionDetails.controller.js'),
-  require('core/pipeline/config/stages/bake/bakery.service.js'),
+  BAKERY_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
