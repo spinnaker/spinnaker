@@ -64,25 +64,6 @@ abstract class StrategyControllerTck extends Specification {
 
   abstract PipelineStrategyDAO createPipelineStrategyDAO()
 
-  void 'return 200 for successful rename'() {
-    given:
-    def pipeline = pipelineStrategyDAO.create(null, new Pipeline([name: "old-pipeline-name", application: "test"]))
-    def command = [
-        application: 'test',
-        from       : 'old-pipeline-name',
-        to         : 'new-pipeline-name'
-    ]
-
-    when:
-    def response = mockMvc.perform(post('/strategies/move').
-        contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(command)))
-        .andReturn().response
-
-    then:
-    response.status == OK
-    pipelineStrategyDAO.findById(pipeline.getId()).getName() == "new-pipeline-name"
-  }
-
   @Unroll
   void 'should only (re)generate cron trigger ids for new pipelines'() {
     given:
@@ -207,26 +188,6 @@ abstract class StrategyControllerTck extends Specification {
     def response = mockMvc.perform(post('/strategies')
             .contentType(MediaType.APPLICATION_JSON)
             .content(new ObjectMapper().writeValueAsString([name: "pipeline1", application: "test"])))
-            .andReturn().response
-
-    then:
-    response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A strategy with name pipeline1 already exists in application test","status":"BAD_REQUEST"}'
-  }
-
-  void 'should enforce unique names on rename operations'() {
-    given:
-    pipelineStrategyDAO.create(null, new Pipeline([
-            name: "pipeline1", application: "test"
-    ]))
-    pipelineStrategyDAO.create(null, new Pipeline([
-            name: "pipeline2", application: "test"
-    ]))
-
-    when:
-    def response = mockMvc.perform(post('/strategies/move')
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(new ObjectMapper().writeValueAsString([from: "pipeline2", to: "pipeline1", application: "test"])))
             .andReturn().response
 
     then:

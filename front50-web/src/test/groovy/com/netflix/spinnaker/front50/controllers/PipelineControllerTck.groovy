@@ -76,25 +76,6 @@ abstract class PipelineControllerTck extends Specification {
     response.status == UNPROCESSABLE_ENTITY
   }
 
-  void 'return 200 for successful rename'() {
-    given:
-    def pipeline = pipelineDAO.create(null, new Pipeline([name: "old-pipeline-name", application: "test"]))
-    def command = [
-        application: 'test',
-        from       : 'old-pipeline-name',
-        to         : 'new-pipeline-name'
-    ]
-
-    when:
-    def response = mockMvc.perform(post('/pipelines/move').
-        contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(command)))
-        .andReturn().response
-
-    then:
-    response.status == OK
-    pipelineDAO.findById(pipeline.getId()).getName() == "new-pipeline-name"
-  }
-
   void 'should update a pipeline'() {
     given:
     def pipeline = pipelineDAO.create(null, new Pipeline([name: "test pipeline", application: "test_application"]))
@@ -220,26 +201,6 @@ abstract class PipelineControllerTck extends Specification {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(new ObjectMapper().writeValueAsString([name: "pipeline1", application: "test"])))
                   .andReturn().response
-
-    then:
-    response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A pipeline with name pipeline1 already exists in application test","status":"BAD_REQUEST"}'
-  }
-
-  void 'should enforce unique names on rename operations'() {
-    given:
-    pipelineDAO.create(null, new Pipeline([
-            name: "pipeline1", application: "test"
-    ]))
-    pipelineDAO.create(null, new Pipeline([
-            name: "pipeline2", application: "test"
-    ]))
-
-    when:
-    def response = mockMvc.perform(post('/pipelines/move')
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(new ObjectMapper().writeValueAsString([from: "pipeline2", to: "pipeline1", application: "test"])))
-            .andReturn().response
 
     then:
     response.status == BAD_REQUEST

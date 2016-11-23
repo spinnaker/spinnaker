@@ -22,7 +22,6 @@ import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.AccessDeniedException
-import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -97,6 +96,7 @@ class StrategyController {
         pipelineStrategyDAO.delete(id)
     }
 
+    @PreAuthorize("hasPermission(#strategy.application, 'APPLICATION', 'WRITE')")
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     Pipeline update(@PathVariable String id, @RequestBody Pipeline strategy) {
       Pipeline existingStrategy = pipelineStrategyDAO.findById(id)
@@ -112,17 +112,6 @@ class StrategyController {
       strategy.updateTs = System.currentTimeMillis()
       pipelineStrategyDAO.update(id, strategy)
       return strategy
-    }
-
-    @PreAuthorize("hasPermission(#command.application, 'APPLICATION', 'WRITE')")
-    @RequestMapping(value = 'move', method = RequestMethod.POST)
-    void rename(@RequestBody RenameCommand command) {
-        checkForDuplicatePipeline(command.application, command.to)
-        def pipelineId = pipelineStrategyDAO.getPipelineId(command.application, command.from)
-        def pipeline = pipelineStrategyDAO.findById(pipelineId)
-        pipeline.setName(command.to)
-
-        pipelineStrategyDAO.update(pipelineId, pipeline)
     }
 
     private void checkForDuplicatePipeline(String application, String name) {
@@ -154,10 +143,4 @@ class StrategyController {
 
     @InheritConstructors
     static class DuplicateStrategyException extends RuntimeException {}
-
-    static class RenameCommand {
-        String application
-        String from
-        String to
-    }
 }
