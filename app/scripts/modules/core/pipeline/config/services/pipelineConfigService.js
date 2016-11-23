@@ -76,11 +76,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
 
     function renamePipeline(applicationName, pipeline, currentName, newName) {
       configViewStateCache.remove(buildViewStateCacheKey(applicationName, currentName));
-      return API.one(pipeline.strategy ? 'strategies' : 'pipelines').all('move').data({
-        application: applicationName,
-        from: currentName,
-        to: newName
-      }).post();
+      pipeline.name = newName;
+      return API.one(pipeline.strategy ? 'strategies' : 'pipelines').one(pipeline.id).data(pipeline).put();
     }
 
     function triggerPipeline(applicationName, pipelineName, body) {
