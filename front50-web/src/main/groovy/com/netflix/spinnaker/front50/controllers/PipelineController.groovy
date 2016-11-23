@@ -104,17 +104,7 @@ class PipelineController {
     pipelineDAO.delete(id)
   }
 
-  @PreAuthorize("hasPermission(#command.application, 'APPLICATION', 'WRITE')")
-  @RequestMapping(value = 'move', method = RequestMethod.POST)
-  void rename(@RequestBody RenameCommand command) {
-    checkForDuplicatePipeline(command.application, command.to)
-    def pipelineId = pipelineDAO.getPipelineId(command.application, command.from)
-    def pipeline = pipelineDAO.findById(pipelineId)
-    pipeline.setName(command.to)
-
-    pipelineDAO.update(pipelineId, pipeline)
-  }
-
+  @PreAuthorize("hasPermission(#pipeline.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
   Pipeline update(@PathVariable String id, @RequestBody Pipeline pipeline) {
     Pipeline existingPipeline = pipelineDAO.findById(id)
@@ -130,12 +120,6 @@ class PipelineController {
     pipeline.updateTs = System.currentTimeMillis()
     pipelineDAO.update(id, pipeline)
     return pipeline
-  }
-
-  static class RenameCommand {
-    String application
-    String from
-    String to
   }
 
   private void checkForDuplicatePipeline(String application, String name) {
