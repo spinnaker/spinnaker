@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus.caching.agents
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.ON_DEMAND
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SERVER_GROUPS
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
@@ -133,24 +135,42 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
       return null
     }
 
-    //TODO(cfieber) - this should just load a single server group and follow the same on-demand caching behaviour as the AWS provider
-    List<Job> jobs = metricsSupport.readData {
-      titusClient.getAllJobs()
+    Job job = metricsSupport.readData {
+      titusClient.findJobByName(data.serverGroupName)
     }
 
-    CacheResult result = metricsSupport.transformData { buildCacheResult(jobs) }
-    def withOnDemand = new DefaultCacheResult(result.cacheResults + [onDemand: [new DefaultCacheData(
-      Keys.getServerGroupKey(data.serverGroupName, data.account, data.region),
-      10 * 60, // ttl is 10 minutes
-      [
-        cacheTime     : System.currentTimeMillis(),
-        cacheResults  : "[{}]",
-        processedCount: 1,
-        processedTime : System.currentTimeMillis()
-      ],
-      [:]
-    )]], result.evictions)
-    new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), authoritativeTypes: [SERVER_GROUPS.ns], cacheResult: withOnDemand)
+    CacheResult result = metricsSupport.transformData { buildCacheResult([job], [:], [], System.currentTimeMillis()) }
+
+    def jsonResult = objectMapper.writeValueAsString(result.cacheResults)
+    def serverGroupKey = Keys.getServerGroupKey(job.name, account.name, region)
+
+    if (result.cacheResults.values().flatten().isEmpty()) {
+      providerCache.evictDeletedItems(ON_DEMAND.ns, [serverGroupKey])
+    } else {
+      def cacheData = metricsSupport.onDemandStore {
+        new DefaultCacheData(
+          serverGroupKey,
+          10 * 60, // ttl is 10 minutes,
+          [
+            cacheTime     : System.currentTimeMillis(),
+            cacheResults  : jsonResult,
+            processedCount: 0,
+            processedTime : System.currentTimeMillis()
+          ],
+          [:])
+      }
+      providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+    }
+
+    Map<String, Collection<String>> evictions = job ? [:] : [(SERVER_GROUPS.ns): [serverGroupKey]]
+
+    log.info "On demand cache refresh (data: ${data}) succeeded."
+
+    new OnDemandAgent.OnDemandResult(
+      sourceAgentType: getOnDemandAgentType(),
+      cacheResult: result,
+      evictions: evictions
+    )
   }
 
   @Override
@@ -194,40 +214,90 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
     }
   }
 
-  private Map<String, CacheData> cache() {
+  private Map<String, CacheData> createCache() {
     [:].withDefault { String id -> new MutableCacheData(id) }
+  }
+
+  static void cache(Map<String, List<CacheData>> cacheResults,
+                    String cacheNamespace,
+                    Map<String, CacheData> cacheDataById) {
+    cacheResults[cacheNamespace].each {
+      def existingCacheData = cacheDataById[it.id]
+      if (existingCacheData) {
+        existingCacheData.attributes.putAll(it.attributes)
+        it.relationships.each { String relationshipName, Collection<String> relationships ->
+          existingCacheData.relationships[relationshipName].addAll(relationships)
+        }
+      } else {
+        cacheDataById[it.id] = it
+      }
+    }
   }
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    Long start = System.currentTimeMillis()
     List<Job> jobs = titusClient.getAllJobs()
-    CacheResult result = buildCacheResult(jobs)
+    List<CacheData> evictFromOnDemand = []
+    List<CacheData> keepInOnDemand = []
+
+    def serverGroupKeys = jobs.collect { job -> Keys.getServerGroupKey(job.name, account.name, region) }
+
+    providerCache.getAll(ON_DEMAND.ns, serverGroupKeys).each { CacheData onDemandEntry ->
+      if (onDemandEntry.attributes.cacheTime < start && onDemandEntry.attributes.processedCount > 0) {
+        evictFromOnDemand << onDemandEntry
+      } else {
+        keepInOnDemand << onDemandEntry
+      }
+    }
+
+    def onDemandMap = keepInOnDemand.collectEntries { CacheData onDemandEntry -> [(onDemandEntry.id): onDemandEntry] }
+
+    CacheResult result = buildCacheResult(jobs, onDemandMap, evictFromOnDemand*.id, start)
+
+    result.cacheResults[ON_DEMAND.ns].each { CacheData onDemandEntry ->
+      onDemandEntry.attributes.processedTime = System.currentTimeMillis()
+      onDemandEntry.attributes.processedCount = (onDemandEntry.attributes.processedCount ?: 0) + 1
+    }
     result
   }
 
-  private CacheResult buildCacheResult(List<Job> jobs) {
-    Map<String, CacheData> applications = cache()
-    Map<String, CacheData> clusters = cache()
-    Map<String, CacheData> serverGroups = cache()
-    Map<String, CacheData> instances = cache()
+  private CacheResult buildCacheResult(List<Job> jobs, Map<String, CacheData> onDemandKeep, List<String> onDemandEvict, Long start) {
+    Map<String, CacheData> applications = createCache()
+    Map<String, CacheData> clusters = createCache()
+    Map<String, CacheData> serverGroups = createCache()
+    Map<String, CacheData> instances = createCache()
 
     for (Job job : jobs) {
-      try {
-        ServerGroupData data = new ServerGroupData(job, account.name, region)
-        cacheApplication(data, applications)
-        cacheCluster(data, clusters)
-        cacheServerGroup(data, serverGroups)
-        cacheInstances(data, instances)
-      } catch (Exception ex) {
-        log.error("Failed to cache ${job.name} in ${account.name}", ex)
+      def onDemandData = onDemandKeep ? onDemandKeep[Keys.getServerGroupKey(job.name, account.name, region)] : null
+      if (onDemandData && onDemandData.attributes.cacheTime >= start) {
+        Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandData.attributes.cacheResults as String,
+          new TypeReference<Map<String, List<MutableCacheData>>>() {})
+        cache(cacheResults, APPLICATIONS.ns, applications)
+        cache(cacheResults, CLUSTERS.ns, clusters)
+        cache(cacheResults, SERVER_GROUPS.ns, serverGroups)
+        cache(cacheResults, INSTANCES.ns, instances)
+      } else {
+        try {
+          ServerGroupData data = new ServerGroupData(job, account.name, region)
+          cacheApplication(data, applications)
+          cacheCluster(data, clusters)
+          cacheServerGroup(data, serverGroups)
+          cacheInstances(data, instances)
+        } catch (Exception ex) {
+          log.error("Failed to cache ${job.name} in ${account.name}", ex)
+        }
       }
     }
 
     new DefaultCacheResult(
-      (APPLICATIONS.ns): applications.values(),
-      (CLUSTERS.ns): clusters.values(),
-      (SERVER_GROUPS.ns): serverGroups.values(),
-      (INSTANCES.ns): instances.values()
+      [(APPLICATIONS.ns) : applications.values(),
+       (CLUSTERS.ns)     : clusters.values(),
+       (SERVER_GROUPS.ns): serverGroups.values(),
+       (INSTANCES.ns)    : instances.values(),
+       (ON_DEMAND.ns)    : onDemandKeep.values()
+      ],
+      [(ON_DEMAND.ns): onDemandEvict]
     )
   }
 
@@ -294,7 +364,7 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
           asgNameBuilder.setDetail(job.jobGroupDetail)
           asgNameBuilder.setStack(job.jobGroupStack)
           String version = job.jobGroupSequence
-          asgName = asgNameBuilder.buildGroupName() + ( version ? "-${version}" : '' )
+          asgName = asgNameBuilder.buildGroupName() + (version ? "-${version}" : '')
         }
       }
 

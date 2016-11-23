@@ -28,7 +28,8 @@ class Keys {
     INSTANCES,
     CLUSTERS,
     APPLICATIONS,
-    HEALTH
+    HEALTH,
+    ON_DEMAND
 
     final String ns
 
