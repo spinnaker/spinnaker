@@ -18,9 +18,9 @@
           <dt>Description</dt>
           <dd>{{vm.application.attributes.description}}</dd>
           <dt>Account(s)</dt>
-          <dd>{{vm.application.attributes.accounts}}</dd>
-          <dt ng-if="vm.application.attributes.cloudProviders">Cloud Provider(s)</dt>
-          <dd ng-if="vm.application.attributes.cloudProviders">{{vm.application.attributes.cloudProviders}}</dd>
+          <dd>{{vm.application.attributes.accounts.join(', ')}}</dd>
+          <dt ng-if="vm.application.attributes.cloudProviders.length">Cloud Provider(s)</dt>
+          <dd ng-if="vm.application.attributes.cloudProviders.length">{{vm.application.attributes.cloudProviders.join(', ')}}</dd>
           <dt ng-if="vm.application.attributes.platformHealthOnly || vm.application.attributes.platformHealthOnlyShowOverride">
             Instance health
           </dt>

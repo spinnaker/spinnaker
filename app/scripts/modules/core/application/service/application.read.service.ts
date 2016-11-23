@@ -10,11 +10,11 @@ export interface IApplicationDataSourceAttribute {
 
 export interface IApplicationSummary {
   name: string;
-  email: string;
-  accounts: string;
-  updateTs: string;
-  createTs: string;
-  cloudProviders: string;
+  email?: string;
+  accounts?: string;
+  updateTs?: string;
+  createTs?: string;
+  cloudProviders?: string;
 }
 
 export class ApplicationReader {
@@ -33,9 +33,22 @@ export class ApplicationReader {
     return this.API.one('applications', name).get().then((fromServer: Application) => {
       const application: Application = new Application(name, this.schedulerFactory.createScheduler(), this.$q, this.$log);
       application.attributes = fromServer.attributes;
+      this.splitAttributes(application.attributes, ['accounts', 'cloudProviders']);
       this.addDataSources(application);
       application.refresh();
       return application;
+    });
+  }
+
+  private splitAttributes(attributes: any, fields: string[]) {
+    fields.forEach(field => {
+      if (attributes[field]) {
+        if (!Array.isArray(attributes[field])) {
+          attributes[field] = attributes[field].split(',');
+        }
+      } else {
+        attributes[field] = [];
+      }
     });
   }
 

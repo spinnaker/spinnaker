@@ -182,8 +182,8 @@ export class AccountService {
         const available: string[] = intersection(all, this.cloudProviderRegistry.listRegisteredProviders());
         let result: string[];
         if (application) {
-          if (application.attributes.cloudProviders) {
-            result = application.attributes.cloudProviders.split(',');
+          if (application.attributes.cloudProviders.length) {
+            result = application.attributes.cloudProviders;
           } else {
             if (this.settings.defaultProviders) {
               result = this.settings.defaultProviders;

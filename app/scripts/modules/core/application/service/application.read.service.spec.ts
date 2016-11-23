@@ -1,4 +1,4 @@
-import {IApplicationDataSourceAttribute, ApplicationReader, APPLICATION_READ_SERVICE} from './applications.read.service';
+import {IApplicationDataSourceAttribute, ApplicationReader, APPLICATION_READ_SERVICE} from './application.read.service';
 import {Api} from '../../api/api.service';
 import {ApplicationDataSourceRegistry} from './applicationDataSource.registry';
 import {Application} from '../application.model';

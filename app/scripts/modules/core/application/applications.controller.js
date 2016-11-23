@@ -2,7 +2,7 @@
 
 import {ANY_FIELD_FILTER} from '../presentation/anyFieldFilter/anyField.filter';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {APPLICATION_READ_SERVICE} from 'core/application/service/applications.read.service';
+import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
 
 let angular = require('angular');
 

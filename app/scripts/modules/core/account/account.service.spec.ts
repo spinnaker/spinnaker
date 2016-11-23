@@ -124,7 +124,7 @@ describe('Service: accountService', () => {
 
     it('should fall back to the defaultProviders if none configured for the application', () => {
 
-      const application: any = {attributes: {}};
+      const application: any = {attributes: { cloudProviders: [] }};
       const test: any = (result: string[]) => expect(result).toEqual(['cf', 'gce']);
       settings.defaultProviders = ['gce', 'cf'];
       accountService.listProviders(application).then(test);
@@ -133,7 +133,7 @@ describe('Service: accountService', () => {
 
     it('should return the intersection of those configured for the application and those available from the server', () => {
 
-      const application: any = {attributes: {cloudProviders: 'gce,cf,unicron'}};
+      const application: any = {attributes: {cloudProviders: ['gce', 'cf', 'unicron']}};
       const test: any = (result: string[]) => expect(result).toEqual(['cf', 'gce']);
       settings.defaultProviders = ['aws'];
       accountService.listProviders(application).then(test);
@@ -142,7 +142,7 @@ describe('Service: accountService', () => {
 
     it('should return an empty array if none of the app providers are available from the server', () => {
 
-      const application: any = {attributes: {cloudProviders: 'lamp,ceiling fan'}};
+      const application: any = {attributes: {cloudProviders: ['lamp', 'ceiling', 'fan']}};
       const test: any = (result: string[]) => expect(result).toEqual([]);
       settings.defaultProviders = 'aws';
       accountService.listProviders(application).then(test);
@@ -151,7 +151,7 @@ describe('Service: accountService', () => {
 
     it('should fall back to all registered available providers if no defaults configured and none configured on app', () => {
 
-      const application: any = {attributes: {}};
+      const application: any = {attributes: { cloudProviders: [] }};
       const test: any = (result: string[]) => expect(result).toEqual(['aws', 'cf', 'gce']);
       delete settings.defaultProviders;
       accountService.listProviders(application).then(test);

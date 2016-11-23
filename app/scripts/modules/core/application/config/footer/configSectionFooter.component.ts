@@ -1,5 +1,5 @@
-import {module, copy, toJson} from 'angular';
 import * as _ from 'lodash';
+import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
 
 import {Application} from '../../application.model';
 
@@ -22,16 +22,16 @@ export class ConfigSectionFooterController implements ng.IComponentController {
 
   static get $inject() { return ['applicationWriter']; }
 
-  public constructor(private applicationWriter: any) {}
+  public constructor(private applicationWriter: ApplicationWriter) {}
 
   public revert(): void {
-    copy(this.viewState.originalConfig, this.config);
+    angular.copy(this.viewState.originalConfig, this.config);
     this.viewState.isDirty = false;
   }
 
   private saveSuccess(): void {
     this.viewState.originalConfig = _.cloneDeep(this.config);
-    this.viewState.originalStringVal = toJson(this.config);
+    this.viewState.originalStringVal = angular.toJson(this.config);
     this.viewState.isDirty = false;
     this.viewState.saving = false;
     this.application.attributes[this.configField] = this.config;
@@ -72,7 +72,7 @@ class ConfigSectionFooterComponent implements ng.IComponentOptions {
 
 export const CONFIG_SECTION_FOOTER = 'spinnaker.core.application.config.section.footer.component';
 
-module(CONFIG_SECTION_FOOTER, [
-  require('../../service/applications.write.service.js'),
+angular.module(CONFIG_SECTION_FOOTER, [
+  APPLICATION_WRITE_SERVICE,
 ])
 .component('configSectionFooter', new ConfigSectionFooterComponent());

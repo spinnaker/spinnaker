@@ -1,5 +1,6 @@
 import {Application} from '../../application.model';
 import {ApplicationDataSource} from '../../service/applicationDataSource';
+import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
 
 import './applicationDataSourceEditor.component.less';
 
@@ -19,7 +20,7 @@ export class DataSourceEditorController implements ng.IComponentController {
 
   public dataSources: ApplicationDataSource[];
 
-  constructor(private applicationWriter: any) {}
+  constructor(private applicationWriter: ApplicationWriter) {}
 
   public $onInit() {
     if (this.application.notFound) {
@@ -95,7 +96,7 @@ class ApplicationDataSourceEditorComponent implements ng.IComponentOptions {
 const moduleName = 'spinnaker.core.application.config.applicationDataSourceEditor';
 
 angular.module(moduleName, [
-  require('../../service/applications.write.service.js')
+  APPLICATION_WRITE_SERVICE
 ])
   .component('applicationDataSourceEditor', new ApplicationDataSourceEditorComponent());
 

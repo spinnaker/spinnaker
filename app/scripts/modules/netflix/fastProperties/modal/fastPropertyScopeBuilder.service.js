@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import {APPLICATION_READ_SERVICE} from 'core/application/service/applications.read.service';
+import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
 
 let angular = require('angular');
 

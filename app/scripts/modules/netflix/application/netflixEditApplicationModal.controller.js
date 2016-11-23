@@ -2,15 +2,14 @@
 
 import _ from 'lodash';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
-
-let angular = require('angular');
+import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 import PagerDutyFieldModule from '../pagerDuty/pagerDutySelectField.component';
 import PagerDutyTagModule from '../pagerDuty/pagerDutyTag.component';
 
 module.exports = angular
   .module('spinnaker.netflix.application.edit.modal.controller', [
     require('angular-ui-router'),
-    require('core/application/service/applications.write.service.js'),
+    APPLICATION_WRITE_SERVICE,
     ACCOUNT_SERVICE,
     PagerDutyFieldModule,
     PagerDutyTagModule
