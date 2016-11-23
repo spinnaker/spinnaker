@@ -143,6 +143,9 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
 
   public $onInit(): void {
     this.atlasEnabled = _.has(this.settings, 'executionWindow.atlas');
+    if (!this.atlasEnabled) {
+      return;
+    }
     this.windowsUpdated.subscribe((newWindows) => this.addWindowsToChart(newWindows));
     this.chartData = {
       windows: [],
@@ -281,7 +284,7 @@ class AtlasGraphComponent implements ng.IComponentOptions {
   };
   public controller: ng.IComponentController = ExecutionWindowAtlasGraphController;
   public template: string = `
-    <div class="form-group">
+    <div class="form-group" ng-if="$ctrl.atlasEnabled">
       <div class="col-md-9 col-md-offset-1">
         <div class="checkbox">
           <label>
