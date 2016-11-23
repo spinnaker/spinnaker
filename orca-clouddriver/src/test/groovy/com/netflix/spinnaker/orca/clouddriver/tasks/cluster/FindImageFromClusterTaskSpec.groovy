@@ -286,6 +286,67 @@ class FindImageFromClusterTaskSpec extends Specification {
     ]
   }
 
+  def "should fallback to look up image from default bake account for AWS if not found in target account"() {
+    given:
+    task.defaultBakeAccount = 'bakery'
+    def pipe = new Pipeline.Builder()
+      .withApplication("contextAppName") // Should be ignored.
+      .build()
+    def stage = new PipelineStage(pipe, "findImage", [
+      resolveMissingLocations: true,
+      cloudProvider    : "aws",
+      cluster          : "foo-test",
+      account          : "test",
+      selectionStrategy: "LARGEST",
+      onlyEnabled      : "false",
+      regions          : [location1.value, location2.value]
+    ])
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "aws", location1.value,
+      "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
+    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "aws", location2.value,
+      "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
+      throw RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), null, Map)
+    }
+    1 * oortService.findImage("aws", "ami-012-name-ebs*", "test", null, null) >> null
+    1 * oortService.findImage("aws", "ami-012-name-ebs*", "bakery", null, null) >> imageSearchResult
+    assertNorth(result.globalOutputs?.deploymentDetails?.find { it.region == "north" } as Map, [imageName: "ami-012-name-ebs"])
+    assertSouth(result.globalOutputs?.deploymentDetails?.find { it.region == "south" } as Map, [sourceServerGroup: "foo-test", imageName: "ami-012-name-ebs1", foo: "bar"])
+
+    where:
+    location1 = new Location(type: Location.Type.REGION, value: "north")
+    location2 = new Location(type: Location.Type.REGION, value: "south")
+
+    oortResponse1 = [
+      summaries: [[
+                    serverGroupName: "foo-test-v000",
+                    imageId        : "ami-012",
+                    imageName      : "ami-012-name-ebs",
+                    image          : [imageId: "ami-012", name: "ami-012-name-ebs", foo: "bar"]
+                  ]]
+    ]
+
+    imageSearchResult = [
+      [
+        imageName: "ami-012-name-ebs",
+        amis     : [
+          "north": ["ami-012"]
+        ]
+      ],
+      [
+        imageName: "ami-012-name-ebs1",
+        amis : [
+          "south": ["ami-234"]
+        ]
+      ]
+    ]
+
+  }
+
   def "should parse fail strategy error message"() {
     given:
       def stage = new PipelineStage(new Pipeline(), "whatever", [
