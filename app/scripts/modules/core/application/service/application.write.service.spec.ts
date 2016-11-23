@@ -1,18 +1,18 @@
-'use strict';
+import {APPLICATION_WRITE_SERVICE, ApplicationWriter, IApplicationAttributes, IJob} from './application.write.service';
 
 describe('Service: applicationWriter', function () {
-  var applicationWriter;
-  var taskExecutor;
-  var $q;
+  let applicationWriter: ApplicationWriter;
+  let taskExecutor: any;
+  let $q: ng.IQService;
 
   beforeEach(
-    window.module(
-      require('./applications.write.service')
+    angular.mock.module(
+      APPLICATION_WRITE_SERVICE
     )
   );
 
   beforeEach(
-    window.inject(function(_applicationWriter_, _taskExecutor_, _$q_) {
+    angular.mock.inject(function(_applicationWriter_: ApplicationWriter, _taskExecutor_: any, _$q_: ng.IQService) {
       applicationWriter = _applicationWriter_;
       taskExecutor = _taskExecutor_;
       $q = _$q_;
@@ -24,15 +24,10 @@ describe('Service: applicationWriter', function () {
     it('should execute one task for an application with one account', function () {
       spyOn(taskExecutor, 'executeTask');
 
-      var application = {
-          name: 'foo',
-          accounts: 'test',
-          description: 'foo description',
-          email: 'foo@netflix.com',
-          owner: 'jojo',
-          type: 'test',
-          pdApiKey: '229293',
-          cloudProviders: [],
+      let application: IApplicationAttributes = {
+        name: 'foo',
+        accounts: ['test'],
+        cloudProviders: [],
       };
 
       applicationWriter.updateApplication(application);
@@ -42,17 +37,12 @@ describe('Service: applicationWriter', function () {
     });
 
     it('should execute a single task with multiple jobs for an application with multiple accounts', function () {
-      var jobs = null;
-      spyOn(taskExecutor, 'executeTask').and.callFake((task) => jobs = task.job);
+      let jobs: IJob[] = [];
+      spyOn(taskExecutor, 'executeTask').and.callFake((task: any) => jobs = task.job);
 
-      var application = {
+      let application: IApplicationAttributes = {
         name: 'foo',
-        accounts: 'test,prod',
-        description: 'foo description',
-        email: 'foo@netflix.com',
-        owner: 'jojo',
-        type: 'test',
-        pdApiKey: '229293',
+        accounts: ['test', 'prod'],
         cloudProviders: [],
       };
 
@@ -64,17 +54,12 @@ describe('Service: applicationWriter', function () {
     });
 
     it('should join cloud providers into a single string', function () {
-      var job = null;
-      spyOn(taskExecutor, 'executeTask').and.callFake((task) => job = task.job[0]);
+      let job: IJob = null;
+      spyOn(taskExecutor, 'executeTask').and.callFake((task: any) => job = task.job[0]);
 
-      var application = {
+      let application: IApplicationAttributes = {
         name: 'foo',
-        accounts: 'test',
-        description: 'foo description',
-        email: 'foo@netflix.com',
-        owner: 'jojo',
-        type: 'test',
-        pdApiKey: '229293',
+        accounts: ['test'],
         cloudProviders: ['titus', 'cf'],
       };
 
@@ -90,9 +75,9 @@ describe('Service: applicationWriter', function () {
     it('should execute one task if the application has one account', function () {
       spyOn(taskExecutor, 'executeTask').and.returnValue($q.when({}));
 
-      var application = {
+      let application: IApplicationAttributes = {
         name: 'foo',
-        accounts: 'test',
+        accounts: ['test'],
       };
 
       applicationWriter.deleteApplication(application);
@@ -102,15 +87,15 @@ describe('Service: applicationWriter', function () {
     });
 
     it('should execute a single task with multiple jobs for an application with multiple accounts', function () {
-      var jobs = null;
-      spyOn(taskExecutor, 'executeTask').and.callFake((task) => {
+      let jobs: IJob[] = [];
+      spyOn(taskExecutor, 'executeTask').and.callFake((task: any) => {
         jobs = task.job;
         return $q.when(task);
       });
 
-      var application = {
+      let application: IApplicationAttributes = {
         name: 'foo',
-        accounts: 'test,prod',
+        accounts: ['test', 'prod'],
       };
 
       applicationWriter.deleteApplication(application);
@@ -120,5 +105,6 @@ describe('Service: applicationWriter', function () {
       expect(jobs.length).toBe(2);
     });
   });
+
 
 });

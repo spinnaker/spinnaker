@@ -1,11 +1,13 @@
 'use strict';
 
+import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.delete.directive', [
     require('angular-ui-router'),
-    require('./../service/applications.write.service.js'),
+    APPLICATION_WRITE_SERVICE,
     require('../../confirmationModal/confirmationModal.service.js'),
 
   ])

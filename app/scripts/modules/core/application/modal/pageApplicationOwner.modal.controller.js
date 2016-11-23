@@ -1,9 +1,9 @@
 'use strict';
 
-let angular = require('angular');
+import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 
 module.exports = angular.module('spinnaker.pageApplicationOwner.modal.controller', [
-  require('../service/applications.write.service.js'),
+  APPLICATION_WRITE_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
 ])
   .controller('PageApplicationOwner', function ($scope, $uibModalInstance,

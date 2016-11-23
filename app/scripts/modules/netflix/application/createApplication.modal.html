@@ -110,7 +110,7 @@
       <div class="form-group row">
         <div class="col-md-3 sm-label-right">Account(s) *</div>
         <div class="col-md-9">
-          <account-select-field component="newAppModal.application" field="account" accounts="newAppModal.data.accounts" multiselect="true"></account-select-field>
+          <account-select-field component="newAppModal.application" field="accounts" accounts="newAppModal.data.accounts" multiselect="true"></account-select-field>
         </div>
       </div>
 
@@ -201,7 +201,7 @@
       <button type="submit"
               class="btn btn-primary"
               data-purpose="submit"
-              ng-disabled="newApplicationForm.$invalid || !newAppModal.application.hasOwnProperty('account') || (newAppModal.application.hasOwnProperty('account') && newAppModal.application.account.length < 1)|| newAppModal.state.submitting"
+              ng-disabled="newApplicationForm.$invalid || newAppModal.application.accounts.length < 1 || newAppModal.state.submitting"
               ng-click="newAppModal.submit()">
         <span class="glyphicon glyphicon-ok-circle" ng-if="!newAppModal.state.submitting"></span>
         <button-busy-indicator ng-if="newAppModal.state.submitting"></button-busy-indicator>

@@ -6,7 +6,7 @@ import {Application} from 'core/application/application.model';
 import {
   APPLICATION_READ_SERVICE, ApplicationReader,
   IApplicationSummary
-} from 'core/application/service/applications.read.service';
+} from 'core/application/service/application.read.service';
 import {COPY_STAGE_CARD_COMPONENT} from './copyStageCard.component';
 import {IPipeline, IStage} from 'core/domain/index';
 

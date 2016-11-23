@@ -4,10 +4,11 @@ import _ from 'lodash';
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 
 module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [
-    require('../service/applications.write.service.js'),
+    APPLICATION_WRITE_SERVICE,
     ACCOUNT_SERVICE,
     require('../../task/task.read.service.js'),
     require('./applicationProviderFields.component.js'),
@@ -22,19 +23,11 @@ module.exports = angular
     vm.errorMsgs = [];
     vm.application = application;
     vm.applicationAttributes = _.cloneDeep(application.attributes);
-    vm.applicationAttributes.cloudProviders = application.attributes.cloudProviders ?
-      application.attributes.cloudProviders.split(',') :
-      [];
-    vm.data.applicationAccounts = application.attributes.accounts ?
-      application.attributes.accounts.split(',') :
-      [];
 
     accountService.listProviders().then((providers) => vm.data.cloudProviders = providers);
     accountService.listAccounts().then((accounts) => vm.data.accounts = accounts);
 
     function closeModal() {
-      vm.data.cloudProviders = null; // wha? prevents a fight with the ui-select directive trying to invalidate the selections
-      vm.applicationAttributes.cloudProviders = vm.applicationAttributes.cloudProviders.join(',');
       $uibModalInstance.close(vm.applicationAttributes);
     }
 
@@ -67,10 +60,6 @@ module.exports = angular
     function submitting() {
       vm.state.submitting = true;
     }
-
-    vm.updateAccounts = function() {
-      vm.applicationAttributes.accounts = vm.data.applicationAccounts.join(',');
-    };
 
     vm.updateCloudProviderHealthWarning = (platformHealthOnlyShowOverrideClicked) => {
       if (vm.applicationAttributes.platformHealthOnlyShowOverride
