@@ -3,6 +3,8 @@
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
+import './resizeStage.less';
+
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.resizeStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   ACCOUNT_SERVICE,
