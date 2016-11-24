@@ -69,6 +69,9 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
   @Value('${findImage.defaultResolveMissingLocations:false}')
   boolean defaultResolveMissingLocations = false
 
+  @Value('${default.bake.account:default}')
+  String defaultBakeAccount
+
   @Autowired
   OortService oortService
 
@@ -173,30 +176,23 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
         throw new IllegalStateException("Missing image on ${deploymentDetailTemplate}")
       }
 
-      def mkDeploymentDetail = { String imageName, String imageId ->
-        [
-          imageId        : imageId,
-          imageName      : imageName,
-          serverGroupName: config.cluster,
-          image          : deploymentDetailTemplate.image + [imageId: imageId, name: imageName],
-          buildInfo      : deploymentDetailTemplate.buildInfo ?: [:]
-        ]
-      }
-
       List<Map> images = oortService.findImage(cloudProvider, searchNames[0] + '*', account, null, null)
-      for (Map image : images) {
-        for (Location location : missingLocations) {
-          if (imageSummaries[location] == null && image.amis && image.amis[location.value]) {
-            imageSummaries[location] = [
-              mkDeploymentDetail((String) image.imageName, (String) image.amis[location.value][0])
-            ]
-          }
-        }
-      }
+      resolveFromBaseImageName(images, missingLocations, imageSummaries, deploymentDetailTemplate, config)
 
       def unresolved = imageSummaries.findResults { it.value == null ? it.key : null }
       if (unresolved) {
-        throw new IllegalStateException("Still missing images in $unresolved.value")
+        if (cloudProvider == 'aws') {
+          // fallback to look it default bake account; the deploy operation will execute the allowLaunchOperation to share
+          // the image into the target account
+          List<Map> defaultImages = oortService.findImage(cloudProvider, searchNames[0] + '*', defaultBakeAccount, null, null)
+          resolveFromBaseImageName(defaultImages, missingLocations, imageSummaries, deploymentDetailTemplate, config)
+          def stillUnresolved = imageSummaries.findResults { it.value == null ? it.key : null }
+          if (stillUnresolved) {
+            throw new IllegalStateException("Still missing images in $stillUnresolved.value")
+          }
+        } else {
+          throw new IllegalStateException("Still missing images in $unresolved.value")
+        }
       }
     }
 
@@ -237,6 +233,28 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     ], [
       deploymentDetails: deploymentDetails
     ])
+  }
+
+  private void resolveFromBaseImageName(List<Map> images, ArrayList<Location> missingLocations, Map<Location, List<Map<String, Object>>> imageSummaries, Map<String, Object> deploymentDetailTemplate, FindImageConfiguration config) {
+    for (Map image : images) {
+      for (Location location : missingLocations) {
+        if (imageSummaries[location] == null && image.amis && image.amis[location.value]) {
+          imageSummaries[location] = [
+            mkDeploymentDetail((String) image.imageName, (String) image.amis[location.value][0], deploymentDetailTemplate, config)
+          ]
+        }
+      }
+    }
+  }
+
+  private mkDeploymentDetail(String imageName, String imageId, Map deploymentDetailTemplate, FindImageConfiguration config) {
+    [
+      imageId        : imageId,
+      imageName      : imageName,
+      serverGroupName: config.cluster,
+      image          : deploymentDetailTemplate.image + [imageId: imageId, name: imageName],
+      buildInfo      : deploymentDetailTemplate.buildInfo ?: [:]
+    ]
   }
 
   static Set<String> extractBaseImageNames(Collection<String> imageNames) {
