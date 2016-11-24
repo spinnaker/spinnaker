@@ -1,13 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
 
 let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.snapshot.write.service', [
-    require('../task/taskExecutor.js'),
+    TASK_EXECUTOR,
     ACCOUNT_SERVICE,
     require('../cloudProvider/cloudProvider.registry.js'),
   ])

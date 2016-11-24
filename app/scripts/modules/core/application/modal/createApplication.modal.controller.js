@@ -5,6 +5,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
 import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 import {APPLICATION_NAME_VALIDATION_MESSAGES} from './validation/applicationNameValidationMessages.component';
+import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 import {VALIDATE_APPLICATION_NAME} from './validation/validateApplicationName.directive';
 import chaosMonkeyConfigModule from '../../chaosMonkey/chaosMonkeyNewApplicationConfig.component';
 
@@ -16,7 +17,7 @@ module.exports = angular
     APPLICATION_WRITE_SERVICE,
     APPLICATION_READ_SERVICE,
     ACCOUNT_SERVICE,
-    require('../../task/task.read.service.js'),
+    TASK_READ_SERVICE,
     require('../../config/settings'),
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
@@ -78,7 +79,7 @@ module.exports = angular
 
 
     let waitUntilApplicationIsCreated = (task) => {
-      return taskReader.waitUntilTaskCompletes(this.application.name, task)
+      return taskReader.waitUntilTaskCompletes(task)
         .then(routeToApplication, () => {
           this.state.errorMessages.push('Could not create application: ' + task.failureMessage);
           goIdle();

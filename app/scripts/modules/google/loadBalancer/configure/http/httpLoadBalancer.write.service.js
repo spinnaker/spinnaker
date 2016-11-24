@@ -1,9 +1,11 @@
 'use strict';
 
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.write.service', [
-    require('core/task/taskExecutor.js'),
+    TASK_EXECUTOR,
     require('core/cache/infrastructureCaches.js')
   ])
   .factory('gceHttpLoadBalancerWriter', function (taskExecutor, infrastructureCaches) {

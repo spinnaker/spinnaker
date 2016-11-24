@@ -1,6 +1,7 @@
 'use strict';
 
 import {API_SERVICE} from 'core/api/api.service';
+import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 
 describe('Service: taskReader', function () {
 
@@ -8,7 +9,7 @@ describe('Service: taskReader', function () {
 
   beforeEach(
     window.module(
-      require('./task.read.service'),
+      TASK_READ_SERVICE,
       API_SERVICE
     )
   );
@@ -50,7 +51,7 @@ describe('Service: taskReader', function () {
 
       $http.flush();
 
-      service.waitUntilTaskMatches('deck', task, (task) => task.foo === 3).then(() => completed = true);
+      service.waitUntilTaskMatches(task, (task) => task.foo === 3).then(() => completed = true);
       scope.$digest();
 
       expect(completed).toBe(true);
@@ -70,7 +71,7 @@ describe('Service: taskReader', function () {
 
       $http.flush();
 
-      service.waitUntilTaskMatches('deck', task,
+      service.waitUntilTaskMatches(task,
         (task) => task.foo === 4,
         (task) => task.foo === 3)
         .then(
@@ -90,7 +91,7 @@ describe('Service: taskReader', function () {
 
       $http.flush();
 
-      service.waitUntilTaskMatches('deck', task,
+      service.waitUntilTaskMatches(task,
         (task) => task.isCompleted,
         (task) => task.isFailed)
         .then(
@@ -124,7 +125,7 @@ describe('Service: taskReader', function () {
 
       $http.flush();
 
-      service.waitUntilTaskMatches('deck', task,
+      service.waitUntilTaskMatches(task,
         (task) => task.isCompleted,
         (task) => task.isFailed)
         .then(
@@ -158,7 +159,7 @@ describe('Service: taskReader', function () {
 
       $http.flush();
 
-      service.waitUntilTaskMatches('deck', task,
+      service.waitUntilTaskMatches(task,
         (task) => task.isCompleted,
         (task) => task.isFailed)
         .then(

@@ -1,10 +1,12 @@
 'use strict';
 
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.write.service', [
-    require('core/task/taskExecutor.js')
+    TASK_EXECUTOR,
   ])
   .factory('scalingPolicyWriter', function (taskExecutor) {
 
