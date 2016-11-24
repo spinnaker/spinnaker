@@ -70,12 +70,17 @@ class BakeStage implements BranchingStageDefinitionBuilder, RestartableStage {
         it.type == "deploy"
       }.collect {
         Set<String> regions = it.context?.clusters?.inject([] as Set<String>) { Set<String> accum, Map cluster ->
-          accum.addAll(cluster.availabilityZones?.keySet() ?: [])
+          if (cluster.cloudProvider == stage.context.cloudProviderType) {
+            accum.addAll(cluster.availabilityZones?.keySet() ?: [])
+          }
           return accum
         } ?: []
-        regions.addAll(it.context?.cluster?.availabilityZones?.keySet() ?: [])
+        if (it.context?.cluster?.cloudProvider == stage.context.cloudProviderType) {
+          regions.addAll(it.context?.cluster?.availabilityZones?.keySet() ?: [])
+        }
         return regions
       }.flatten())
+      // TODO(duftler): Also filter added canary regions once canary supports multiple platforms.
       deployRegions.addAll(stage.execution.stages.findAll {
         it.type == "canary"
       }.collect {
