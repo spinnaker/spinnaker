@@ -36,7 +36,7 @@ class GoogleNetworkProvider implements NetworkProvider<GoogleNetwork> {
   private final Cache cacheView
   final ObjectMapper objectMapper
 
-  final String cloudProvider = GoogleCloudProvider.GCE
+  final String cloudProvider = GoogleCloudProvider.ID
 
   @Autowired
   GoogleNetworkProvider(Cache cacheView, ObjectMapper objectMapper) {

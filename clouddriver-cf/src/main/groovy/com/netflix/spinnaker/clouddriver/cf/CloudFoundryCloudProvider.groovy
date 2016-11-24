@@ -23,19 +23,11 @@ import java.lang.annotation.Annotation
 
 /**
  * Cloud Foundry declaration as a {@link CloudProvider}
- *
- *
  */
 @Component
 class CloudFoundryCloudProvider implements CloudProvider {
-
-	static final String ID = 'cf'
-
-	final String displayName = "Cloud Foundry"
-	final Class<Annotation> operationAnnotationType = CloudFoundryOperation.class
-
-	@Override
-	String getId() {
-		ID
-	}
+  static final String ID = 'cf'
+  final String id = ID
+  final String displayName = "Cloud Foundry"
+  final Class<Annotation> operationAnnotationType = CloudFoundryOperation
 }

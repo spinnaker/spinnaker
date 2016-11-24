@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cf.model
 
+import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.CompileStatic
@@ -27,7 +28,8 @@ import org.cloudfoundry.client.lib.domain.CloudRoute
 class CloudFoundryLoadBalancer implements LoadBalancer {
 
   String name
-  String type = 'cf'
+  final String type = CloudFoundryCloudProvider.ID
+  final String cloudProvider = CloudFoundryCloudProvider.ID
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
   String region
   String account

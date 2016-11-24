@@ -68,7 +68,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       }
     }
 
-    Collection<String> keys = serverGroups.collect {Keys.getServerGroupKey(AzureCloudProvider.AZURE, it.name, region, accountName ) }
+    Collection<String> keys = serverGroups.collect {Keys.getServerGroupKey(AzureCloudProvider.ID, it.name, region, accountName ) }
     def onDemandCacheResults = providerCache.getAll(AZURE_ON_DEMAND.ns, keys, RelationshipCacheFilter.none())
 
     def (evictions, usableOnDemandCacheData) = parseOnDemandCache(onDemandCacheResults, start)
@@ -94,7 +94,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
   }
 
   CacheResult removeDeadCacheEntries(CacheResult cacheResult, ProviderCache providerCache) {
-    def sgIdentifiers = providerCache.filterIdentifiers(AZURE_SERVER_GROUPS.ns, Keys.getServerGroupKey(AzureCloudProvider.AZURE, "*", region, accountName))
+    def sgIdentifiers = providerCache.filterIdentifiers(AZURE_SERVER_GROUPS.ns, Keys.getServerGroupKey(AzureCloudProvider.ID, "*", region, accountName))
     def sgCacheResults = providerCache.getAll((AZURE_SERVER_GROUPS.ns), sgIdentifiers, RelationshipCacheFilter.none())
     def evictedSGList = sgCacheResults.collect{ cached ->
       if (!cacheResult.cacheResults[AZURE_SERVER_GROUPS.ns].find {it.id == cached.id}) {
@@ -107,7 +107,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       cacheResult.evictions[AZURE_SERVER_GROUPS.ns] = evictedSGList
     }
 
-    def instanceIdentifiers = providerCache.filterIdentifiers(AZURE_INSTANCES.ns, Keys.getInstanceKey(AzureCloudProvider.AZURE, "*", "*", region, accountName))
+    def instanceIdentifiers = providerCache.filterIdentifiers(AZURE_INSTANCES.ns, Keys.getInstanceKey(AzureCloudProvider.ID, "*", "*", region, accountName))
     def instanceCacheResults = providerCache.getAll((AZURE_INSTANCES.ns), instanceIdentifiers, RelationshipCacheFilter.none())
     def evictedInstanceList = instanceCacheResults.collect{ cached ->
       if (!cacheResult.cacheResults[AZURE_INSTANCES.ns].find {it.id == cached.id}) {
@@ -162,7 +162,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
 
     AzureServerGroupDescription serverGroup = null
     String serverGroupName = data.serverGroupName as String
-    String serverGroupKey = Keys.getServerGroupKey(AzureCloudProvider.AZURE, serverGroupName, region, accountName)
+    String serverGroupKey = Keys.getServerGroupKey(AzureCloudProvider.ID, serverGroupName, region, accountName)
     String resourceGroupName = AzureUtilities.getResourceGroupName(AzureUtilities.getAppNameFromAzureResourceName(serverGroupName), region)
     if (resourceGroupName == null) {
       log.info("handle->Unexpected error retrieving resource group name: null")

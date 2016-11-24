@@ -25,9 +25,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class AppEngineCloudProvider implements CloudProvider {
-  public static final String ID = 'appengine'
-
+  static final String ID = 'appengine'
   final String id = ID
   final String displayName = "App Engine"
-  final Class<Annotation> operationAnnotationType = AppEngineOperation.class
+  final Class<Annotation> operationAnnotationType = AppEngineOperation
 }

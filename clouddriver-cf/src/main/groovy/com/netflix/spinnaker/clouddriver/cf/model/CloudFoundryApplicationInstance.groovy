@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cf.model
 
+import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import groovy.transform.EqualsAndHashCode
@@ -33,6 +34,8 @@ class CloudFoundryApplicationInstance implements Instance, Serializable {
   InstanceInfo nativeInstance
   String consoleLink
   String logsLink
+  final String providerType = CloudFoundryCloudProvider.ID
+  final String cloudProvider = CloudFoundryCloudProvider.ID
 
   @Override
   Long getLaunchTime() {

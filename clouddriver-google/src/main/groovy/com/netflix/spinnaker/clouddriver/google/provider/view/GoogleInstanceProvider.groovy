@@ -51,7 +51,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
   @Autowired
   GoogleSecurityGroupProvider securityGroupProvider
 
-  final String platform = GoogleCloudProvider.GCE
+  final String cloudProvider = GoogleCloudProvider.ID
 
   @Override
   GoogleInstance.View getInstance(String account, String region, String id) {

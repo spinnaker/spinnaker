@@ -67,7 +67,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
     this.region = region
     this.objectMapper = objectMapper
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${AmazonCloudProvider.AWS}:${OnDemandAgent.OnDemandType.SecurityGroup}")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${AmazonCloudProvider.ID}:${OnDemandAgent.OnDemandType.SecurityGroup}")
     this.lastModifiedKey = Keys.getSecurityGroupKey('LAST_MODIFIED', 'LAST_MODIFIED', region, account.name, null)
   }
 
@@ -122,7 +122,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == AmazonCloudProvider.AWS
+    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == AmazonCloudProvider.ID
   }
 
   @Override

@@ -15,6 +15,8 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.model
+
+import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -28,7 +30,8 @@ import org.cloudfoundry.client.lib.domain.CloudApplication
 class CloudFoundryServerGroup implements ServerGroup, Serializable {
 
   String name
-  String type = 'cf'
+  final String type = CloudFoundryCloudProvider.ID
+  final String cloudProvider = CloudFoundryCloudProvider.ID
   CloudApplication nativeApplication
   Boolean disabled = true
   Set<CloudFoundryApplicationInstance> instances = new HashSet<>()

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cf.provider.view
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.cache.CacheUtils
 import com.netflix.spinnaker.clouddriver.cf.cache.Keys
 import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryApplicationInstance
@@ -35,7 +36,7 @@ import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.SERVER_G
 @CompileStatic
 class CloudFoundryInstanceProvider implements InstanceProvider<CloudFoundryApplicationInstance> {
 
-  String platform = 'cf'
+  final String cloudProvider = CloudFoundryCloudProvider.ID
 
   private final Cache cacheView
 

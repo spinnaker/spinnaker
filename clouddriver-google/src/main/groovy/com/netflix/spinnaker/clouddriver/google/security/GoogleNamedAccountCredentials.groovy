@@ -34,7 +34,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final String name // aka accountName
   final String environment
   final String accountType
-  final String cloudProvider = GoogleCloudProvider.GCE // duh.
+  final String cloudProvider = GoogleCloudProvider.ID // duh.
   final List<String> requiredGroupMembership
   final GoogleCredentials credentials
 
@@ -173,7 +173,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
       new GoogleNamedAccountCredentials(name,
                                         environment,
                                         accountType,
-                                        GoogleCloudProvider.GCE,
+                                        GoogleCloudProvider.ID,
                                         requiredGroupMembership,
                                         credentials,
                                         project,

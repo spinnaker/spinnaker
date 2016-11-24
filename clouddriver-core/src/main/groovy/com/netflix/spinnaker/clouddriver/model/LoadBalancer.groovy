@@ -34,10 +34,15 @@ interface LoadBalancer {
 
   /**
    * The type of this load balancer. Can indicate some vendor-specific designation, or cloud provider
-   *
+   * @deprecated use #getCloudProvider
    * @return type
    */
   String getType()
+
+  /**
+   * Provider-specific identifier
+   */
+  String getCloudProvider()
 
   /**
    * The names of the server groups that this load balancer is servicing.

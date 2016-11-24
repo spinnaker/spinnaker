@@ -80,6 +80,7 @@ class OpenstackInstance {
   class View implements Instance {
 
     final String providerType = OpenstackCloudProvider.ID //expected by deck
+    final String cloudProvider = OpenstackCloudProvider.ID //expected by deck
 
     String name = OpenstackInstance.this.instanceId //expected by deck
     String instanceId = OpenstackInstance.this.instanceId

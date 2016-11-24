@@ -17,38 +17,36 @@
 package com.netflix.spinnaker.clouddriver.model
 
 class NoopSecurityGroupProvider implements SecurityGroupProvider {
-    @Override
-    String getType() {
-        'noop'
-    }
 
-    @Override
-    Set<SecurityGroup> getAll(boolean includeRules) {
-        Collections.emptySet()
-    }
+  final String cloudProvider = 'noop'
 
-    @Override
-    Set<SecurityGroup> getAllByRegion(boolean includeRules, String region) {
-        Collections.emptySet()
-    }
+  @Override
+  Set<SecurityGroup> getAll(boolean includeRules) {
+    Collections.emptySet()
+  }
 
-    @Override
-    Set<SecurityGroup> getAllByAccount(boolean includeRules, String account) {
-        Collections.emptySet()
-    }
+  @Override
+  Set<SecurityGroup> getAllByRegion(boolean includeRules, String region) {
+    Collections.emptySet()
+  }
 
-    @Override
-    Set<SecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
-        Collections.emptySet()
-    }
+  @Override
+  Set<SecurityGroup> getAllByAccount(boolean includeRules, String account) {
+    Collections.emptySet()
+  }
 
-    @Override
-    Set<SecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
-        Collections.emptySet()
-    }
+  @Override
+  Set<SecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
+    Collections.emptySet()
+  }
 
-    @Override
-    SecurityGroup get(String account, String region, String name, String vpcId) {
-        null
-    }
+  @Override
+  Set<SecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
+    Collections.emptySet()
+  }
+
+  @Override
+  SecurityGroup get(String account, String region, String name, String vpcId) {
+    null
+  }
 }

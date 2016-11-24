@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 
@@ -28,11 +29,10 @@ class AzureLoadBalancer implements LoadBalancer {
   String region
   String vnet
   String subnet
-  String type = AZURE_LOAD_BALANCER_TYPE
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
   String cluster
-
-  private static final AZURE_LOAD_BALANCER_TYPE = "azure"
+  final String type = AzureCloudProvider.ID
+  final String cloudProvider = AzureCloudProvider.ID
 
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 
@@ -41,17 +41,12 @@ class AzureLoadBalancer implements LoadBalancer {
 
   @JsonAnyGetter
   Map<String,Object> any() {
-    return dynamicProperties;
+    return dynamicProperties
   }
 
   @JsonAnySetter
   void set(String name, Object value) {
-    dynamicProperties.put(name, value);
-  }
-
-  @Override
-  String getType() {
-    return AZURE_LOAD_BALANCER_TYPE
+    dynamicProperties.put(name, value)
   }
 
   @Override
@@ -60,7 +55,7 @@ class AzureLoadBalancer implements LoadBalancer {
       return false
     }
     AzureLoadBalancer a = (AzureLoadBalancer)o;
-    a.getAccount() == this.getAccount() && a.getName() == this.getName() && a.getType() == this.getType() && a.region == this.region;
+    a.getAccount() == this.getAccount() && a.getName() == this.getName() && a.getType() == this.getType() && a.region == this.region
 
     // TODO Implement logic to compare server groups and regions(?)
   }

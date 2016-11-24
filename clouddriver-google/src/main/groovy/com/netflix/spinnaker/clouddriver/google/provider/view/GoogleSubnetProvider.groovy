@@ -37,7 +37,7 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
   private final Cache cacheView
   final ObjectMapper objectMapper
 
-  final String type = GoogleCloudProvider.GCE
+  final String cloudProvider = GoogleCloudProvider.ID
 
   @Autowired
   GoogleSubnetProvider(Cache cacheView, ObjectMapper objectMapper) {
@@ -70,7 +70,7 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
     Map<String, String> parts = Keys.parse(cacheData.id)
 
     new GoogleSubnet(
-      type: this.type,
+      type: this.cloudProvider,
       id: subnet.name,
       name: subnet.name,
       gatewayAddress: subnet.gatewayAddress,

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
@@ -38,7 +39,7 @@ class KubernetesInstanceProvider implements InstanceProvider<KubernetesInstance>
     this.objectMapper = objectMapper
   }
 
-  String platform = Keys.Namespace.provider
+  final String cloudProvider = KubernetesCloudProvider.ID
 
   @Override
   KubernetesInstance getInstance(String account, String namespace, String name) {

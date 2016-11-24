@@ -26,7 +26,8 @@ import groovy.transform.EqualsAndHashCode
 @EqualsAndHashCode(includes = ["name", "account"])
 class AppEngineLoadBalancer implements LoadBalancer, Serializable {
   String name
-  String type = AppEngineCloudProvider.ID
+  final String type = AppEngineCloudProvider.ID
+  final String cloudProvider = AppEngineCloudProvider.ID
   String account
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
 }

@@ -22,9 +22,13 @@ import org.springframework.stereotype.Component
 
 import java.lang.annotation.Annotation
 
+/**
+ * Titus declaration as a {@link CloudProvider}.
+ */
 @Component
 class TitusCloudProvider implements CloudProvider {
-  final String id = Keys.PROVIDER
+  static final String ID = Keys.PROVIDER
+  final String id = ID
   final String displayName = "Titus"
-  final Class<? extends Annotation> operationAnnotationType = TitusOperation
+  final Class<Annotation> operationAnnotationType = TitusOperation
 }

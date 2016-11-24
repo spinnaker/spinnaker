@@ -59,9 +59,9 @@ class OpenstackSecurityGroupProviderSpec extends Specification {
     cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, getAllCacheData())
   }
 
-  def "type is openstack"() {
+  def "cloudProvider is openstack"() {
     when:
-    def type = provider.getType()
+    def type = provider.getCloudProvider()
 
     then:
     type == OpenstackCloudProvider.ID

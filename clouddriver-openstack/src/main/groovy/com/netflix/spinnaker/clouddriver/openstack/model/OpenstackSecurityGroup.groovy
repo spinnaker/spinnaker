@@ -29,6 +29,7 @@ import groovy.transform.Immutable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class OpenstackSecurityGroup implements SecurityGroup {
   final String type = OpenstackCloudProvider.ID
+  final String cloudProvider = OpenstackCloudProvider.ID
   final String id
   final String name
   final String description

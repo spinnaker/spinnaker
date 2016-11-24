@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.CompileStatic
@@ -30,6 +31,8 @@ class AmazonLoadBalancer implements LoadBalancer {
   String region
   String vpcId
   Set<LoadBalancerServerGroup> serverGroups = []
+  final String type = AmazonCloudProvider.ID
+  final String cloudProvider = AmazonCloudProvider.ID
 
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 
@@ -41,11 +44,6 @@ class AmazonLoadBalancer implements LoadBalancer {
   @JsonAnySetter
   public void set(String name, Object value) {
     dynamicProperties.put(name, value);
-  }
-
-  @Override
-  String getType() {
-    return "aws"
   }
 
   @Override

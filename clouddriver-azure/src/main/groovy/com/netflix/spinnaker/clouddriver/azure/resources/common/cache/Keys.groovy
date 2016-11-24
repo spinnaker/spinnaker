@@ -142,7 +142,7 @@ class Keys {
   }
 
   //TODO (scotm) remove all references to the methods that take azureCloudProvider as paramter
-  //TODO (scotm) use the AzureCloudProvider.AZURE static string for the id instead
+  //TODO (scotm) use the AzureCloudProvider.ID static string for the id instead
   //These changes are a stop-gap to enable testing without major refactoring (coming).
   // Long-term we will remove the method that takes the cloud provider and default the other version
   // to use the static member of the cloud provider

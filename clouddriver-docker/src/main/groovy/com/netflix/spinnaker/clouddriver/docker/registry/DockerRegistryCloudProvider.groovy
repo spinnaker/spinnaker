@@ -28,9 +28,8 @@ import java.lang.annotation.Annotation
  */
 @Component
 class DockerRegistryCloudProvider implements CloudProvider {
-  public static final String DOCKER_REGISTRY = "dockerRegistry"
-  final String id = DOCKER_REGISTRY
+  final String id = "dockerRegistry"
   final String displayName = "Docker Registry"
   // The docker registry is only used for caching, so none of the op/ endpoints will be hit.
-  final Class<Annotation> operationAnnotationType = Annotation.class
+  final Class<Annotation> operationAnnotationType = Annotation
 }

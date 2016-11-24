@@ -70,7 +70,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
     this.metricsSupport = new OnDemandMetricsSupport(
         registry,
         this,
-        "${GoogleCloudProvider.GCE}:${OnDemandAgent.OnDemandType.LoadBalancer}")
+        "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.LoadBalancer}")
   }
 
   @Override
@@ -132,7 +132,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.LoadBalancer && cloudProvider == GoogleCloudProvider.GCE
+    type == OnDemandAgent.OnDemandType.LoadBalancer && cloudProvider == GoogleCloudProvider.ID
   }
 
   @Override

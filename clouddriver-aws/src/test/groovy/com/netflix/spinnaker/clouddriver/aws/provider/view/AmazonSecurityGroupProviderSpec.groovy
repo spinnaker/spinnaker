@@ -228,11 +228,10 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     def sg = provider.get(account, region, 'name-b', null)
 
     then:
-    sg == new AmazonSecurityGroup(type: "aws", id: "id-b", name: "name-b", description: "b",
+    sg == new AmazonSecurityGroup(id: "id-b", name: "name-b", description: "b",
       accountName: account, region: region, inboundRules: [
       new SecurityGroupRule(protocol: "TCP",
         securityGroup: new AmazonSecurityGroup(
-          type: 'aws',
           id: 'id-a',
           name: 'name-a',
           accountName: "accountName1",
@@ -245,7 +244,6 @@ class AmazonSecurityGroupProviderSpec extends Specification {
       ),
       new SecurityGroupRule(protocol: "UDP",
         securityGroup: new AmazonSecurityGroup(
-          type: 'aws',
           id: 'id-a',
           name: 'name-a',
           accountName: "accountName1",

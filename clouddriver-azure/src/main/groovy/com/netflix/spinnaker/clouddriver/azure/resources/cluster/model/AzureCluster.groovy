@@ -25,7 +25,7 @@ class AzureCluster implements Cluster {
 
   String name
   String accountName
-  String type = AzureCloudProvider.AZURE
+  String type = AzureCloudProvider.ID
   Set<AzureServerGroupDescription> serverGroups = []
   Set<AzureLoadBalancer> loadBalancers = []
 }

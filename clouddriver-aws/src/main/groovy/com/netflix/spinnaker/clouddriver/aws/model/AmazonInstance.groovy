@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 
@@ -28,6 +29,8 @@ class AmazonInstance implements Instance, Serializable {
   String name
   Long launchTime
   List<Map<String, Object>> health = []
+  final String providerType = AmazonCloudProvider.ID
+  final String cloudProvider = AmazonCloudProvider.ID
 
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 

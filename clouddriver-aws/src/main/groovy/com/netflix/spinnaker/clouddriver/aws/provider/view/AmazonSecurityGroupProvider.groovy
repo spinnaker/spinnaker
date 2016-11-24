@@ -43,6 +43,7 @@ import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURIT
 @Component
 class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurityGroup> {
 
+  final String cloudProvider = AmazonCloudProvider.ID
   final AccountCredentialsProvider accountCredentialsProvider
   final Cache cacheView
   final ObjectMapper objectMapper
@@ -60,11 +61,6 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
       it instanceof AmazonCredentials
     }
     accounts = ImmutableSet.copyOf(allAmazonCredentials)
-  }
-
-  @Override
-  String getType() {
-    return AmazonCloudProvider.AWS
   }
 
   @Override
@@ -134,7 +130,6 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     }
 
     new AmazonSecurityGroup(
-      type: AmazonCloudProvider.AWS,
       id: securityGroup.groupId,
       name: securityGroup.groupName,
       vpcId: securityGroup.vpcId,
@@ -199,7 +194,6 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
           protocol     : permission.ipProtocol,
           securityGroup:
             new AmazonSecurityGroup(
-              type: AmazonCloudProvider.AWS,
               id: sg.groupId,
               name: ingressGroupSummary.name,
               accountId: sg.userId,

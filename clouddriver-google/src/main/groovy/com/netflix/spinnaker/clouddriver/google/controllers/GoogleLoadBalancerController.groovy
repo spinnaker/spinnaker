@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component
 @Component
 class GoogleLoadBalancerController implements LoadBalancerProviderTempShim {
 
-  final String cloudProvider = GoogleCloudProvider.GCE
+  final String cloudProvider = GoogleCloudProvider.ID
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -204,7 +204,7 @@ class GoogleLoadBalancerController implements LoadBalancerProviderTempShim {
     String account
     String region
     String name
-    String type = GoogleCloudProvider.GCE
+    String type = GoogleCloudProvider.ID
     List<String> backendServices
     String urlMapName
   }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
 import com.microsoft.azure.management.compute.models.VirtualMachineScaleSet
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
@@ -27,8 +28,6 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup
 
 class AzureServerGroupDescription extends AzureResourceOpsDescription implements ServerGroup {
 
-  private static final AZURE_SERVER_GROUP_TYPE = "azure"
-
   static enum UpgradePolicy {
     Automatic, Manual
   }
@@ -37,7 +36,8 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   Set<String> loadBalancers
   Set<String> securityGroups
   Set<String> zones
-  String type = AZURE_SERVER_GROUP_TYPE
+  final String type = AzureCloudProvider.ID
+  final String cloudProvider = AzureCloudProvider.ID
   Map<String, Object> launchConfig
   ServerGroup.Capacity capacity
   ServerGroup.ImagesSummary imagesSummary
@@ -147,7 +147,6 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   static AzureServerGroupDescription build(VirtualMachineScaleSet scaleSet) {
     def azureSG = new AzureServerGroupDescription()
     azureSG.name = scaleSet.name
-    azureSG.cloudProvider = "azure"
     def parsedName = Names.parseName(scaleSet.name)
     // Get the values from the tags if they exist
     azureSG.tags = scaleSet.tags ? scaleSet.tags : [:]

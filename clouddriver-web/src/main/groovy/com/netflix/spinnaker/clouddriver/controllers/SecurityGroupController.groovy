@@ -59,13 +59,13 @@ class SecurityGroupController {
       if (!objs.containsKey(obj.accountName)) {
         objs[obj.accountName] = [:]
       }
-      if (!objs[obj.accountName].containsKey(obj.type)) {
-        objs[obj.accountName][obj.type] = [:]
+      if (!objs[obj.accountName].containsKey(obj.cloudProvider)) {
+        objs[obj.accountName][obj.cloudProvider] = [:]
       }
-      if (!objs[obj.accountName][obj.type].containsKey(obj.region)) {
-        objs[obj.accountName][obj.type][obj.region] = sortedTreeSet
+      if (!objs[obj.accountName][obj.cloudProvider].containsKey(obj.region)) {
+        objs[obj.accountName][obj.cloudProvider][obj.region] = sortedTreeSet
       }
-      objs[obj.accountName][obj.type][obj.region] << obj.summary
+      objs[obj.accountName][obj.cloudProvider][obj.region] << obj.summary
       objs
     }) doOnError {
       it.printStackTrace()
@@ -80,13 +80,13 @@ class SecurityGroupController {
     } filter {
       it != null
     } reduce([:], { Map objs, SecurityGroup obj ->
-      if (!objs.containsKey(obj.type)) {
-        objs[obj.type] = [:]
+      if (!objs.containsKey(obj.cloudProvider)) {
+        objs[obj.cloudProvider] = [:]
       }
-      if (!objs[obj.type].containsKey(obj.region)) {
-        objs[obj.type][obj.region] = sortedTreeSet
+      if (!objs[obj.cloudProvider].containsKey(obj.region)) {
+        objs[obj.cloudProvider][obj.region] = sortedTreeSet
       }
-      objs[obj.type][obj.region] << obj.summary
+      objs[obj.cloudProvider][obj.region] << obj.summary
       objs
     }) toBlocking() first()
   }
@@ -100,20 +100,20 @@ class SecurityGroupController {
     } filter {
       it != null
     } reduce([:], { Map objs, SecurityGroup obj ->
-      if (!objs.containsKey(obj.type)) {
-        objs[obj.type] = sortedTreeSet
+      if (!objs.containsKey(obj.cloudProvider)) {
+        objs[obj.cloudProvider] = sortedTreeSet
       }
-      objs[obj.type] << obj.summary
+      objs[obj.cloudProvider] << obj.summary
       objs
     }) toBlocking() first()
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
-  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}")
-  Map<String, Set<SecurityGroupSummary>> listByAccountAndType(@PathVariable String account,
-                                                              @PathVariable String type) {
+  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{cloudProvider}")
+  Map<String, Set<SecurityGroupSummary>> listByAccountAndCloudProvider(@PathVariable String account,
+                                                              @PathVariable String cloudProvider) {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
-      secGrpProv.type == type
+      secGrpProv.cloudProvider == cloudProvider
     } flatMap {
       rx.Observable.from(it.getAllByAccount(false, account))
     } reduce([:], { Map objs, SecurityGroup obj ->
@@ -126,12 +126,12 @@ class SecurityGroupController {
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
-  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}", params = ['region'])
-  Set<SecurityGroupSummary> listByAccountAndTypeAndRegion(@PathVariable String account,
-                                                          @PathVariable String type,
+  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{cloudProvider}", params = ['region'])
+  Set<SecurityGroupSummary> listByAccountAndCloudProviderAndRegion(@PathVariable String account,
+                                                          @PathVariable String cloudProvider,
                                                           @RequestParam("region") String region) {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
-      secGrpProv.type == type
+      secGrpProv.cloudProvider == cloudProvider
     } flatMap {
       rx.Observable.from(it.getAllByAccountAndRegion(false, account, region))
     } reduce(sortedTreeSet, { Set objs, SecurityGroup obj ->
@@ -141,12 +141,12 @@ class SecurityGroupController {
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
-  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{securityGroupName:.+}")
-  Map<String, Set<SecurityGroupSummary>> listByAccountAndTypeAndName(@PathVariable String account,
-                                                                     @PathVariable String type,
+  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{cloudProvider}/{securityGroupName:.+}")
+  Map<String, Set<SecurityGroupSummary>> listByAccountAndCloudProviderAndName(@PathVariable String account,
+                                                                     @PathVariable String cloudProvider,
                                                                      @PathVariable String securityGroupName) {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
-      secGrpProv.type == type
+      secGrpProv.cloudProvider == cloudProvider
     } flatMap {
       rx.Observable.from(it.getAllByAccountAndName(false, account, securityGroupName))
     } reduce([:], { Map objs, SecurityGroup obj ->
@@ -159,14 +159,14 @@ class SecurityGroupController {
     }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
-  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{region}/{securityGroupName:.+}")
+  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{cloudProvider}/{region}/{securityGroupName:.+}")
   SecurityGroup get(@PathVariable String account,
-                    @PathVariable String type,
+                    @PathVariable String cloudProvider,
                     @PathVariable String region,
                     @PathVariable String securityGroupName,
                     @RequestParam(value = "vpcId", required = false) String vpcId) {
     def securityGroup = securityGroupProviders.find { secGrpProv ->
-      secGrpProv.type == type
+      secGrpProv.cloudProvider == cloudProvider
     }.get(account, region, securityGroupName, vpcId)
 
     if (!securityGroup) {

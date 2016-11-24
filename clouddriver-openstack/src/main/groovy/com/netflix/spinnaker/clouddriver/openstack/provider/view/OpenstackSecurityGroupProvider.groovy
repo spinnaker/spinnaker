@@ -38,6 +38,7 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.S
 @Component
 class OpenstackSecurityGroupProvider implements SecurityGroupProvider<OpenstackSecurityGroup> {
 
+  final String cloudProvider = OpenstackCloudProvider.ID
   final Cache cacheView
   final ObjectMapper objectMapper
 
@@ -45,11 +46,6 @@ class OpenstackSecurityGroupProvider implements SecurityGroupProvider<OpenstackS
   OpenstackSecurityGroupProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
-  }
-
-  @Override
-  String getType() {
-    OpenstackCloudProvider.ID
   }
 
   @Override

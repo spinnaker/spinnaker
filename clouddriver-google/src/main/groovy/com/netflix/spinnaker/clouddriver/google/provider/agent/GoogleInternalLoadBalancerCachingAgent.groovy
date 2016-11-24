@@ -66,7 +66,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
                                          Registry registry) {
     super(clouddriverUserAgentApplicationName, credentials, objectMapper)
     this.region = region
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${GoogleCloudProvider.GCE}:${OnDemandAgent.OnDemandType.LoadBalancer}")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.LoadBalancer}")
   }
 
   @Override
@@ -132,7 +132,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.LoadBalancer && cloudProvider == GoogleCloudProvider.GCE
+    type == OnDemandAgent.OnDemandType.LoadBalancer && cloudProvider == GoogleCloudProvider.ID
   }
 
   @Override

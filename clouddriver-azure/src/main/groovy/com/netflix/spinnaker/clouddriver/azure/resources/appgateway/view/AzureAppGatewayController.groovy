@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component
 @Component
 class AzureAppGatewayController implements LoadBalancerProviderTempShim {
 
-  final String cloudProvider = AzureCloudProvider.AZURE
+  final String cloudProvider = AzureCloudProvider.ID
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider

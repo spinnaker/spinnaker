@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
@@ -38,6 +39,8 @@ class AmazonServerGroup implements ServerGroup, Serializable {
   List<Map> scheduledActions
   Map buildInfo
   String vpcId
+  final String type = AmazonCloudProvider.ID
+  final String cloudProvider = AmazonCloudProvider.ID
 
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 
@@ -49,11 +52,6 @@ class AmazonServerGroup implements ServerGroup, Serializable {
   @JsonAnySetter
   public void set(String name, Object value) {
     dynamicProperties.put(name, value);
-  }
-
-  @Override
-  String getType() {
-    return "aws"
   }
 
   @Override
@@ -148,7 +146,7 @@ class AmazonServerGroup implements ServerGroup, Serializable {
     imagesSummary?.summaries?.get(0)
   }
 
-  static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
+  static Collection<Instance> filterInstancesByHealthState(Collection<Instance> instances, HealthState healthState) {
     instances.findAll { Instance it -> it.getHealthState() == healthState }
   }
 

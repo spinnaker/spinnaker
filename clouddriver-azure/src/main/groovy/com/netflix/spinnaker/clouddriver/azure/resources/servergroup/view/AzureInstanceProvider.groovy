@@ -29,8 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class AzureInstanceProvider implements InstanceProvider<AzureInstance>
-{
+class AzureInstanceProvider implements InstanceProvider<AzureInstance> {
+  final String cloudProvider = AzureCloudProvider.ID
   private final AzureCloudProvider azureCloudProvider
   private final Cache cacheView
   final ObjectMapper objectMapper
@@ -42,11 +42,9 @@ class AzureInstanceProvider implements InstanceProvider<AzureInstance>
     this.objectMapper = objectMapper
   }
 
-  String platform = AzureCloudProvider.AZURE
-
   @Override
   AzureInstance getInstance(String account, String region, String id) {
-    String pattern = Keys.getInstanceKey(AzureCloudProvider.AZURE, "*", id, region, account)
+    String pattern = Keys.getInstanceKey(AzureCloudProvider.ID, "*", id, region, account)
     def identifiers = cacheView.filterIdentifiers(AZURE_INSTANCES.ns, pattern)
 
     Set<CacheData> instances = cacheView.getAll(AZURE_INSTANCES.ns, identifiers, RelationshipCacheFilter.none())

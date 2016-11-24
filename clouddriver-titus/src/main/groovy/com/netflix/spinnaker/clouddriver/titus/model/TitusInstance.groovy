@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.titus.model
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
+import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
@@ -41,6 +42,8 @@ class TitusInstance implements Instance {
   TitusInstanceResources resources = new TitusInstanceResources()
   TitusInstancePlacement placement = new TitusInstancePlacement()
   Set<TitusSecurityGroup> securityGroups
+  final String providerType = TitusCloudProvider.ID
+  final String cloudProvider = TitusCloudProvider.ID
 
   TitusInstance(Job job, Job.TaskSummary task) {
     id = task.id

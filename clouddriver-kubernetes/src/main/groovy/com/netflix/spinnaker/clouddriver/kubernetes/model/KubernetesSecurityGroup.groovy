@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup
@@ -25,7 +26,8 @@ import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 
 class KubernetesSecurityGroup implements SecurityGroup, Serializable {
-  String type = "kubernetes"
+  final String type = KubernetesCloudProvider.ID
+  final String cloudProvider = KubernetesCloudProvider.ID
 
   static final private HTTP_PORT = 80
   static final private HTTPS_PORT = 443
