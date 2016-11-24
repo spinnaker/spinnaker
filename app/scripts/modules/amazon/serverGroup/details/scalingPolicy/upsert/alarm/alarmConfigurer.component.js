@@ -2,13 +2,14 @@
 
 import _ from 'lodash';
 import {Subject} from 'rxjs';
+import {CLOUD_METRICS_READ_SERVICE} from 'core/serverGroup/metrics/cloudMetrics.read.service';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.alarm.configurer', [
     require('core/config/settings.js'),
-    require('core/serverGroup/metrics/cloudMetrics.read.service.js'),
+    CLOUD_METRICS_READ_SERVICE,
     require('./dimensionsEditor.component.js'),
   ])
   .component('awsAlarmConfigurer', {
