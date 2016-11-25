@@ -36,7 +36,7 @@ class WaitForNewInstanceLaunchTaskSpec extends Specification {
       application     : application,
       stack           : stack,
       region          : region,
-      providerType    : providerType,
+      cloudProvider   : cloudProvider,
       asgName         : serverGroup,
       knownInstanceIds: knownInstanceIds,
       instanceIds     : terminatedInstanceIds
@@ -52,7 +52,7 @@ class WaitForNewInstanceLaunchTaskSpec extends Specification {
     def response = task.execute(stage)
 
     then:
-    1 * oortService.getServerGroup(application, account, cluster, serverGroup, region, providerType) >> oortResponse
+    1 * oortService.getServerGroup(application, account, cluster, serverGroup, region, cloudProvider) >> oortResponse
     response.status == expectedStatus
 
 
@@ -72,7 +72,7 @@ class WaitForNewInstanceLaunchTaskSpec extends Specification {
     cluster = "$application-$stack".toString()
     serverGroup = "$cluster-v000".toString()
     region = 'us-east-1'
-    providerType = 'aws'
+    cloudProvider = 'aws'
 
   }
 

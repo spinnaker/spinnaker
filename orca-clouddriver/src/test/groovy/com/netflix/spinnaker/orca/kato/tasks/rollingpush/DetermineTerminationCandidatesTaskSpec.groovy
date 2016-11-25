@@ -35,12 +35,12 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
     def termination = buildTermination(order, relaunchAllInstances, totalRelaunches, concurrentRelaunches, instances)
 
     def context = [
-      account     : account,
-      application : application,
-      stack       : stack,
-      region      : region,
-      providerType: providerType,
-      asgName     : serverGroup,
+      account       : account,
+      application   : application,
+      stack         : stack,
+      region        : region,
+      cloudProvider : cloudProvider,
+      asgName       : serverGroup,
     ]
     if (termination) {
       context.termination = termination
@@ -56,7 +56,7 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
     def response = task.execute(stage)
 
     then:
-    1 * oortService.getServerGroup(application, account, cluster, serverGroup, region, providerType) >> oortResponse
+    1 * oortService.getServerGroup(application, account, cluster, serverGroup, region, cloudProvider) >> oortResponse
     response.stageOutputs.terminationInstanceIds == expectedTerminations
     response.stageOutputs.knownInstanceIds.toSet() == knownInstanceIds.toSet()
 
@@ -79,7 +79,7 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
     cluster = "$application-$stack".toString()
     serverGroup = "$cluster-v000".toString()
     region = 'us-east-1'
-    providerType = 'aws'
+    cloudProvider = 'aws'
     knownInstanceIds = ['i-1', 'i-2', 'i-3', 'i-4']
     concurrentRelaunches = totalRelaunches
   }

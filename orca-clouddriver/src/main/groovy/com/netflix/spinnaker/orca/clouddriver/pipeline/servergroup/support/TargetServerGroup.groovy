@@ -79,8 +79,7 @@ class TargetServerGroup {
       accountName    : account,
       serverGroupName: serverGroup.name,
       asgName        : serverGroup.name,
-      cloudProvider  : serverGroup.type,
-      providerType   : serverGroup.type
+      cloudProvider  : serverGroup.cloudProvider ?: serverGroup.type
     ]
 
     def loc = getLocation()
