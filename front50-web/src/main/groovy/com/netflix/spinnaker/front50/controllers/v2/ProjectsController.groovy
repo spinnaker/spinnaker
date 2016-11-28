@@ -19,6 +19,7 @@ package com.netflix.spinnaker.front50.controllers.v2
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.SearchUtils
 import com.netflix.spinnaker.front50.model.project.Project
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import groovy.transform.InheritConstructors
@@ -72,10 +73,16 @@ public class ProjectsController {
     return projects
   }
 
-  @ApiOperation(value = "", notes = "Fetch all projects")
+  @ApiOperation(value = "", notes = """Fetch all projects.
+
+    Support filtering by one or more attributes:
+    - ?name=projectName
+    - ?email=my@email.com""")
   @RequestMapping(method = RequestMethod.GET)
-  Set<Project> projects() {
-    return  projectDAO.all()
+  Set<Project> projects(@RequestParam(value = "pageSize", required = false) Integer pageSize, @RequestParam Map<String, String> params) {
+    params.remove("pageSize")
+    Set<Project> projects = params.isEmpty() ? projectDAO.all() : filter(projectDAO.all(), params)
+    return pageSize ? projects.asList().subList(0, Math.min(pageSize, projects.size())) : projects
   }
 
   @ApiOperation(value = "", notes = "Fetch a single project")
@@ -120,6 +127,48 @@ public class ProjectsController {
     } catch (NotFoundException ignored) {}
 
     return projectDAO.create(project.id, project)
+  }
+
+  Set<Project> filter(Collection<Project> projects, Map<String, String> attributes) {
+    attributes = attributes.collect { k,v -> [ k.toLowerCase(), v ] }.collectEntries()
+    Set<Project> items = new HashSet<>()
+
+    if (attributes.containsKey("applications")) {
+      List<String> applications = attributes.applications.split(",")
+      items = projects.findAll { project ->
+        project.config.applications?.find { app -> applications.any { app.toLowerCase().contains(it.toLowerCase()) } } ||
+          project.config.clusters?.find { cluster ->
+            cluster.applications?.collect { app -> applications.any { app.toLowerCase().contains(it.toLowerCase()) } }
+          }
+      }
+      attributes.remove("applications")
+    }
+
+    items += projects.findAll { project ->
+      boolean test = false
+      attributes.each { k, v ->
+        if (fuzzyPredicate(project, k, v)) {
+          test = true
+        }
+      }
+      return test
+    }
+
+    items.sort { Project a, Project b ->
+      return SearchUtils.score(b, attributes) - SearchUtils.score(a, attributes)
+    }
+
+  }
+
+  def fuzzyPredicate = { Project project, String key, String value  ->
+    boolean matches = SearchUtils.matchesIgnoreCase(project.properties, key, value)
+    if (!matches) {
+      if (project.config.clusters.find { SearchUtils.matchesIgnoreCase(it.properties, key, value) }) {
+        return true
+      }
+    }
+
+    return matches
   }
 
   @ApiOperation(value = "", notes = "Delete a project")

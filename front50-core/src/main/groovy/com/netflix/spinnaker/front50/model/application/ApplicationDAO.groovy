@@ -20,6 +20,7 @@ package com.netflix.spinnaker.front50.model.application
 
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.ItemDAO
+import com.netflix.spinnaker.front50.model.SearchUtils
 
 public interface ApplicationDAO extends ItemDAO<Application> {
   Application findByName(String name) throws NotFoundException
@@ -61,34 +62,8 @@ public interface ApplicationDAO extends ItemDAO<Application> {
       } as Set
 
       return items.sort { Application a, Application b ->
-        return score(b, attributes) - score(a, attributes)
+        return SearchUtils.score(b, attributes) - SearchUtils.score(a, attributes)
       }
-    }
-
-    static int score(Application application, Map<String, String> attributes) {
-      return attributes.collect { key, value ->
-        return score(application, key, value)
-      }?.sum() as Integer ?: 0
-    }
-
-    static int score(Application application, String attributeName, String attributeValue) {
-      if (!application.hasProperty(attributeName)) {
-        return 0
-      }
-
-      def attribute = application[attributeName].toString().toLowerCase()
-      def indexOf = attribute.indexOf(attributeValue.toLowerCase())
-
-      // what percentage of the value matched
-      def coverage = ((double) attributeValue.length() / attribute.length()) * 100
-
-      // where did the match occur, bonus points for it occurring close to the start
-      def boost = attribute.length() - indexOf
-
-      // scale boost based on coverage percentage
-      def scaledBoost = ((double) coverage / 100) * boost
-
-      return indexOf < 0 ? 0 : coverage + scaledBoost
     }
   }
 }

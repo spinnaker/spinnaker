@@ -98,6 +98,102 @@ abstract class ProjectsControllerTck extends Specification {
     ))
   }
 
+  def "should search for projects"() {
+    given:
+    [
+      new Project(
+        name: "Project1",
+        email: "web1@netflix.com",
+        config: new Project.ProjectConfig(
+          applications: ["app1", "app2"],
+          clusters: [ new Project.ClusterConfig(
+            account: "test",
+            stack: "test"
+          ) ],
+          pipelineConfigs: [ new Project.PipelineConfig(
+            pipelineConfigId: "pipelineId",
+            application: "app1"
+          )]
+        )
+      ),
+      new Project(
+        name: "Project",
+        email: "web1@netflix.com",
+        config: new Project.ProjectConfig(
+          applications: ["app3", "app4"],
+          clusters: [ new Project.ClusterConfig(
+            account: "test",
+            stack: "prod"
+          ) ],
+          pipelineConfigs: [ new Project.PipelineConfig(
+            pipelineConfigId: "pipelineId2",
+            application: "app3"
+          )]
+        )
+      )
+    ].each {
+      dao.create(null, it)
+    }
+
+    when:
+    def response = mockMvc.perform(
+      get("/v2/projects?name=Project1")
+    )
+
+    then:
+    response.andExpect status().isOk()
+    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("Project1")]))
+
+    when:
+    response = mockMvc.perform(
+      get("/v2/projects?name=non-existent")
+    )
+
+    then:
+    response.andExpect status().isOk()
+    notThrown(NotFoundException)
+    response.andExpect content().string("[]")
+
+
+    when:
+    response = mockMvc.perform(
+      get("/v2/projects?applications=app3,app4")
+    )
+
+    then:
+    response.andExpect status().isOk()
+    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("Project")]))
+
+    when:
+    response = mockMvc.perform(
+      get("/v2/projects?name=Project&pageSize=2")
+    )
+
+    then:
+    response.andExpect status().isOk()
+    response.andExpect content().string(new ObjectMapper().writeValueAsString([ dao.findByName("Project"), dao.findByName("Project1")]))
+
+
+    when:
+    response = mockMvc.perform(
+      get("/v2/projects?name=Project&pageSize=1")
+    )
+
+    then: "should show the most relevant result"
+    response.andExpect status().isOk()
+    response.andExpect content().string(new ObjectMapper().writeValueAsString([ dao.findByName("Project")]))
+
+
+    when:
+    response = mockMvc.perform(
+      get("/v2/projects?stack=prod")
+    )
+
+    then:
+    response.andExpect status().isOk()
+    response.andExpect content().string(new ObjectMapper().writeValueAsString([ dao.findByName("Project")]))
+  }
+
   void "should fetch all projects"() {
     given:
     [new Project(name: "Project1"), new Project(name: "Project2")].each {

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.front50.model.application
 
+import com.netflix.spinnaker.front50.model.SearchUtils
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -55,7 +56,7 @@ class ApplicationDAOSpec extends Specification {
     def application = new Application(applicationAttributes)
 
     expect:
-    ApplicationDAO.Searcher.score(application, attributeName, attributeValue) == score
+    SearchUtils.score(application, attributeName, attributeValue) == score
 
     where:
     applicationAttributes                   | attributeName | attributeValue   || score
@@ -72,7 +73,7 @@ class ApplicationDAOSpec extends Specification {
     def application = new Application(applicationAttributes)
 
     expect:
-    ApplicationDAO.Searcher.score(application, attributes) == score
+    SearchUtils.score(application, attributes) == score
 
     where:
     applicationAttributes                         | attributes                            || score
