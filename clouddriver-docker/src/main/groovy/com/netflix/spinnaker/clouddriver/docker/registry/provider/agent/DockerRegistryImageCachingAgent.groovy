@@ -110,6 +110,10 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
 
     tagMap.forEach { repository, tags ->
       tags.forEach { tag ->
+        if (!tag) {
+          log.warn("Empty tag encountered for $accountName/$repository, not caching")
+          return
+        }
         def tagKey = Keys.getTaggedImageKey(accountName, repository, tag)
         def imageIdKey = Keys.getImageIdKey(DockerRegistryProviderUtils.imageId(registry, repository, tag))
         def digest = null

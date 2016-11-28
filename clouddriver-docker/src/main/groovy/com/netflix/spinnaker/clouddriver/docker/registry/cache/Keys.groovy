@@ -51,6 +51,9 @@ class Keys {
 
     switch (result.type) {
       case Namespace.TAGGED_IMAGE.ns:
+        if (parts.length < 5) {
+          return null
+        }
         result << [account: parts[2], repository: parts[3], tag: parts[4]]
         break
       case Namespace.IMAGE_ID.ns:
