@@ -49,6 +49,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 abstract class ProjectsControllerTck extends Specification {
+  static final int BAD_REQUEST = 400
+
   @Shared
   ObjectMapper objectMapper = new ObjectMapper()
 
@@ -148,25 +150,26 @@ abstract class ProjectsControllerTck extends Specification {
     project.email = "default@netflix.com"
 
     when:
-    def response1 = mockMvc.perform(
+    def response = mockMvc.perform(
         put("/v2/projects/" + project.id).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(project))
     )
 
     then:
-    response1.andExpect(status().isOk())
+    response.andExpect(status().isOk())
     dao.findByName(project.name).email == project.email
 
     when:
     dao.create(null, new Project(name: "Project2"))
     project.name = "Project2"
 
-    def response2 = mockMvc.perform(
+    response = mockMvc.perform(
         put("/v2/projects/" + project.id).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(project))
-    )
+    ).andReturn().response
 
     then:
-    // should fail when attempting to rename a project and the name is not unique
-    response2.andExpect(status().is4xxClientError())
+    response.status == BAD_REQUEST
+    response.contentAsString == '{"error":"A Project named '+ project.name +' already exists","status":"BAD_REQUEST"}'
+
   }
 
   void "should delete an existing project"() {
