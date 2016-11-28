@@ -67,7 +67,7 @@ trait DeploymentDetailsAware {
       def regions = (it.context.region ? [it.context.region] : it.context.regions) as Set<String>
       def cloudProviderFromContext = it.context.cloudProvider ?: it.context.cloudProviderType
       boolean hasTargetCloudProvider = !cloudProviderFromContext || targetCloudProvider == cloudProviderFromContext
-      boolean hasTargetRegion = !targetRegion || regions?.contains(targetRegion)
+      boolean hasTargetRegion = !targetRegion || regions?.contains(targetRegion) || regions?.contains("global")
       boolean hasImage = it.context.containsKey("ami") || it.context.containsKey("amiDetails")
 
       return hasImage && hasTargetRegion && hasTargetCloudProvider
@@ -158,7 +158,7 @@ trait DeploymentDetailsAware {
 
     if (deploymentDetails) {
       result.amiName = deploymentDetails.find {
-        (!targetRegion || it.region == targetRegion) &&
+        (!targetRegion || it.region == targetRegion || it.region == "global") &&
         (targetCloudProvider == it.cloudProvider || targetCloudProvider == it.cloudProviderType)
       }?.ami
       // docker image ids are not region or cloud provider specific so no need to filter by region
