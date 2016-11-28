@@ -134,8 +134,12 @@ class Builder(object):
                .format(uri=uri))
       raise ValueError(error)
 
-    result = run_quick('gsutil ls {uri}'.format(uri=uri), echo=False)
-    if not result.returncode:
+    retry_count = 3
+    for i in range(0, retry_count):
+      result = run_quick('gsutil ls {uri}'.format(uri=uri), echo=False)
+      if result.returncode:
+        break
+    else:
       error = 'tarball "{uri}" already exists.'.format(uri=uri)
       raise ValueError(error)
 
