@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.health
 
+import com.amazonaws.AmazonClientException
 import com.amazonaws.AmazonServiceException
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -56,7 +57,7 @@ class AmazonHealthIndicator implements HealthIndicator {
     new Health.Builder().up().build()
   }
 
-  @Scheduled(fixedDelay = 300000L)
+  @Scheduled(fixedDelay = 120000L)
   void checkHealth() {
     try {
       Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll {
@@ -65,6 +66,9 @@ class AmazonHealthIndicator implements HealthIndicator {
       for (NetflixAmazonCredentials credentials in amazonCredentials) {
         try {
           def ec2 = amazonClientProvider.getAmazonEC2(credentials, "us-east-1")
+          if (!ec2) {
+            throw new AmazonClientException("Could not create Amazon client for ${credentials.name} in us-east-1")
+          }
           ec2.describeAccountAttributes()
         } catch (AmazonServiceException e) {
           throw new AmazonUnreachableException(e)
@@ -72,7 +76,7 @@ class AmazonHealthIndicator implements HealthIndicator {
       }
       lastException.set(null)
     } catch (Exception ex) {
-      LOG.warn "Unhealthy", ex
+      LOG.error "Unhealthy", ex
       lastException.set(ex)
     }
   }
