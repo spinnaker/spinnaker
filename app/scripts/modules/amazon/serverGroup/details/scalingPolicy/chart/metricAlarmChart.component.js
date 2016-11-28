@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import {Subject} from 'rxjs';
+import {CLOUD_METRICS_READ_SERVICE} from 'core/serverGroup/metrics/cloudMetrics.read.service';
 
 const angular = require('angular');
 
@@ -13,7 +14,7 @@ require('./metricAlarmChart.component.less');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.metricAlarmChart.component', [
-    require('core/serverGroup/metrics/cloudMetrics.read.service.js'),
+    CLOUD_METRICS_READ_SERVICE,
     require('exports?"n3-line-chart"!n3-charts/build/LineChart.js'),
   ])
   .component('metricAlarmChart', {

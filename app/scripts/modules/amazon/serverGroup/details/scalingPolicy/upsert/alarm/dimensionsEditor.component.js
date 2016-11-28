@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import {Observable, Subject} from 'rxjs';
+import {CLOUD_METRICS_READ_SERVICE} from 'core/serverGroup/metrics/cloudMetrics.read.service';
 
 const angular = require('angular');
 
@@ -9,7 +10,7 @@ require('./dimensionsEditor.component.less');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.dimensionEditor', [
-    require('core/serverGroup/metrics/cloudMetrics.read.service.js'),
+    CLOUD_METRICS_READ_SERVICE,
   ])
   .component('dimensionsEditor', {
     bindings: {
