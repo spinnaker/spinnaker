@@ -54,7 +54,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     INFORMATIVE.forType(INSTANCES.ns),
   ] as Set
 
-  String agentType = "${accountName}/global/${GoogleSslCertificateCachingAgent.simpleName}"
+  String agentType = "${accountName}/global/${GoogleSslLoadBalancerCachingAgent.simpleName}"
   String onDemandAgentType = "${agentType}-OnDemand"
   final OnDemandMetricsSupport metricsSupport
 
