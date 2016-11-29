@@ -66,6 +66,11 @@ window.spinnakerSettings = {
         account: 'my-kubernetes-account',
         namespace: 'default'
       },
+    },
+    appengine: {
+      defaults: {
+        account: 'my-appengine-account',
+      }
     }
   },
   whatsNew: {

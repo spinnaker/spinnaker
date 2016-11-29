@@ -6,6 +6,8 @@ global.$ = global.jQuery = require('jquery');
 
 let angular = require('angular');
 
+import {APPENGINE_MODULE} from './modules/appengine/appengine.module.js';
+
 module.exports = angular.module('netflix.spinnaker', [
   require('./modules/netflix/netflix.module.js'),
   require('./modules/core/core.module.js'),
@@ -17,4 +19,5 @@ module.exports = angular.module('netflix.spinnaker', [
   require('./modules/kubernetes/kubernetes.module.js'),
   require('./modules/openstack/openstack.module.js'),
   require('./modules/docker/docker.module.js'),
+  APPENGINE_MODULE,
 ]);

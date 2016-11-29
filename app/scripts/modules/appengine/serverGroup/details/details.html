@@ -1,0 +1,74 @@
+<div class="details-panel"
+     ng-class="{ disabled: ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled}">
+
+  <div class="header" ng-if="ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <cloud-provider-logo provider="ctrl.serverGroup.type" height="36px" width="36px" style="margin-right: 10px"></cloud-provider-logo>
+      <h3 select-on-dbl-click>
+        {{ctrl.serverGroup.name}}
+      </h3>
+    </div>
+  </div>
+
+  <div class="content" ng-if="!ctrl.state.loading">
+    <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled">Disabled</div>
+    <collapsible-section heading="Running Tasks" expanded="true" body-class="details-running-tasks"
+                         ng-if="ctrl.serverGroup.runningTasks.length > 0">
+      <div class="container-fluid no-padding" ng-repeat="task in ctrl.serverGroup.runningTasks | orderBy:'-startTime'">
+        <div class="row">
+          <div class="col-md-12">
+            <strong>
+              {{task.name}}
+            </strong>
+          </div>
+        </div>
+        <div class="row" ng-repeat="step in task.steps | displayableTasks">
+          <div class="col-md-7 col-md-offset-0">
+            <span class="small"><status-glyph item="step"></status-glyph></span> {{step.name | robotToHuman }}
+          </div>
+          <div class="col-md-4 text-right">
+            {{step.runningTimeInMs | duration }}
+          </div>
+        </div>
+      </div>
+    </collapsible-section>
+    <collapsible-section heading="Server Group Information" expanded="true">
+      <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dt>Created</dt>
+        <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd><account-tag account="ctrl.serverGroup.account"></account-tag></dd>
+        <dt>Region</dt>
+        <dd>{{ctrl.serverGroup.region}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Health" expanded="true">
+      <dl class="dl-horizontal"
+          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+          ng-if="ctrl.serverGroup">
+        <dt>Instances</dt>
+        <dd>
+          <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
+        </dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

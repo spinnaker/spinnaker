@@ -4,7 +4,7 @@ export * from './taskStep';
 export * from './trigger';
 export * from './buildInfo';
 export * from './loadBalancer';
-export * from './serverGroupp';
+export * from './serverGroup';
 export * from './health';
 export * from './instanceCounts';
 export * from './ISecurityGroup';
