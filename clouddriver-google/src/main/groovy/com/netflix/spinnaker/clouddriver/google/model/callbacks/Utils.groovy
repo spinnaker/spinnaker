@@ -20,10 +20,12 @@ import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import groovy.util.logging.Slf4j
 import org.springframework.util.ClassUtils
 
 import java.text.SimpleDateFormat
 
+@Slf4j
 class Utils {
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
   public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
@@ -277,7 +279,11 @@ class Utils {
   static boolean determineInternalLoadBalancerDisabledState(GoogleInternalLoadBalancer loadBalancer,
                                                             GoogleServerGroup serverGroup) {
     def regionalLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)
-    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer.backendService.backends
+
+    if (loadBalancer.backendService == null) {
+      log.warn("Malformed internal load balancer encountered: ${loadBalancer}")
+    }
+    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer?.backendService?.backends
     List<String> backendGroupNames = serviceBackends
       .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
       .collect { GCEUtil.getLocalName(it.serverGroupUrl) }
@@ -287,7 +293,11 @@ class Utils {
   static boolean determineSslLoadBalancerDisabledState(GoogleSslLoadBalancer loadBalancer,
                                                        GoogleServerGroup serverGroup) {
     def globalLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)
-    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer.backendService.backends
+
+    if (loadBalancer.backendService == null) {
+      log.warn("Malformed ssl load balancer encountered: ${loadBalancer}")
+    }
+    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer?.backendService?.backends
     List<String> backendGroupNames = serviceBackends
       .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
       .collect { GCEUtil.getLocalName(it.serverGroupUrl) }

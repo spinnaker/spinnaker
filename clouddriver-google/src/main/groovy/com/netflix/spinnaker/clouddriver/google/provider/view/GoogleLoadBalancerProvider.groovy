@@ -29,14 +29,12 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
-import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Component
-@Slf4j
 class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancerView> {
 
   @Autowired
@@ -65,7 +63,6 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
   }
 
   GoogleLoadBalancerView loadBalancersFromCacheData(CacheData loadBalancerCacheData) {
-    log.info("Raw load balancer cache data we are loading the load balancer from: ${loadBalancerCacheData.attributes}")
     def loadBalancer = null
     switch (GoogleLoadBalancerType.valueOf(loadBalancerCacheData.attributes?.type as String)) {
       case GoogleLoadBalancerType.INTERNAL:
@@ -86,7 +83,6 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     }
 
     GoogleLoadBalancerView loadBalancerView = loadBalancer?.view
-    log.info("Load balancer view loaded from the cache: ${loadBalancerView}")
 
     def serverGroupKeys = loadBalancerCacheData.relationships[SERVER_GROUPS.ns]
     if (!serverGroupKeys) {
