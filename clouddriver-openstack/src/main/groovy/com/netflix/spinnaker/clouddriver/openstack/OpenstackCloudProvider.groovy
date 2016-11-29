@@ -21,15 +21,13 @@ import org.springframework.stereotype.Component
 
 import java.lang.annotation.Annotation
 
-
+/**
+ * Openstack declaration as a {@link CloudProvider}.
+ */
 @Component
 class OpenstackCloudProvider implements CloudProvider {
   static final String ID = "openstack"
+  final String id = ID
   final String displayName = "Openstack"
-  final Class<Annotation> operationAnnotationType = OpenstackOperation.class
-
-  @Override
-  String getId() {
-    ID
-  }
+  final Class<Annotation> operationAnnotationType = OpenstackOperation
 }

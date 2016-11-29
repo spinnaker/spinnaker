@@ -36,15 +36,12 @@ class OpenstackSubnetProvider implements SubnetProvider<OpenstackSubnet> {
   final Cache cacheView
   final ObjectMapper objectMapper
 
+  final String cloudProvider = OpenstackCloudProvider.ID
+
   @Autowired
   OpenstackSubnetProvider(final Cache cacheView, final ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
-  }
-
-  @Override
-  String getType() {
-    OpenstackCloudProvider.ID
   }
 
   @Override

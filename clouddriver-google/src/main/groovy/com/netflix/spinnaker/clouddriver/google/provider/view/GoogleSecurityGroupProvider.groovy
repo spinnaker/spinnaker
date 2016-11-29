@@ -41,7 +41,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
   final Cache cacheView
   final ObjectMapper objectMapper
 
-  String type = GoogleCloudProvider.GCE
+  final String cloudProvider = GoogleCloudProvider.ID
 
   @Autowired
   GoogleSecurityGroupProvider(Cache cacheView, ObjectMapper objectMapper) {
@@ -107,7 +107,6 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
     List<Rule> inboundRules = includeRules ? buildInboundIpRangeRules(firewall) : []
 
     new GoogleSecurityGroup(
-      type: this.type,
       id: firewall.name,
       name: firewall.name,
       description: firewall.description,

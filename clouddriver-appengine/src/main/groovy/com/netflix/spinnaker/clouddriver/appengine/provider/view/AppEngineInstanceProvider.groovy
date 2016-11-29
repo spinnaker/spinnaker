@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.appengine.AppEngineCloudProvider
 import com.netflix.spinnaker.clouddriver.appengine.cache.Keys
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
@@ -38,7 +39,7 @@ class AppEngineInstanceProvider implements InstanceProvider<AppEngineInstance> {
   @Autowired
   ObjectMapper objectMapper
 
-  String platform = Keys.Namespace.provider
+  final String cloudProvider = AppEngineCloudProvider.ID
 
   @Override
   AppEngineInstance getInstance(String account, String region, String instanceName) {

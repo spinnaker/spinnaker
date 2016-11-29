@@ -36,6 +36,7 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.L
 
 @Component
 class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance.View> {
+  final String cloudProvider = OpenstackCloudProvider.ID
   final Cache cacheView
   final AccountCredentialsProvider accountCredentialsProvider
   final ObjectMapper objectMapper
@@ -45,11 +46,6 @@ class OpenstackInstanceProvider implements InstanceProvider<OpenstackInstance.Vi
     this.cacheView = cacheView
     this.accountCredentialsProvider = accountCredentialsProvider
     this.objectMapper = objectMapper
-  }
-
-  @Override
-  String getPlatform() {
-    OpenstackCloudProvider.ID
   }
 
   Set<OpenstackInstance.View> getInstances(Collection<String> cacheKeys) {

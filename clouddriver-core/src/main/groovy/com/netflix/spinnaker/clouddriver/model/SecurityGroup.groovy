@@ -27,10 +27,15 @@ interface SecurityGroup {
 
   /**
    * The type of this security group. May reference the cloud provider to which it is associated
-   *
+   * @deprecated use #getCloudProvider
    * @return
    */
   String getType()
+
+  /**
+   * Provider-specific identifier
+   */
+  String getCloudProvider()
 
   /**
    * The ID associated with this security group

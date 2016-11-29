@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component
 @Component
 class AzureSecurityGroupProvider implements SecurityGroupProvider<AzureSecurityGroup> {
 
+  final String cloudProvider = AzureCloudProvider.ID
   private final AzureCloudProvider azureCloudProvider
   private final Cache cacheView
   final ObjectMapper objectMapper
@@ -40,15 +41,6 @@ class AzureSecurityGroupProvider implements SecurityGroupProvider<AzureSecurityG
     this.azureCloudProvider = azureCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
-  }
-
-  String getCloudProvider() {
-    return azureCloudProvider.id
-  }
-
-  @Override
-  String getType() {
-    return azureCloudProvider.id
   }
 
   @Override

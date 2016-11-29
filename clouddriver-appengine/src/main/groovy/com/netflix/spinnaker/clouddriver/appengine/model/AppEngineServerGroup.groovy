@@ -27,7 +27,8 @@ import groovy.transform.EqualsAndHashCode
 @EqualsAndHashCode(includes = ["name", "account"])
 class AppEngineServerGroup implements ServerGroup, Serializable {
   String name
-  String type = AppEngineCloudProvider.ID
+  final String type = AppEngineCloudProvider.ID
+  final String cloudProvider = AppEngineCloudProvider.ID
   String account
   String region
   Set<String> zones = []

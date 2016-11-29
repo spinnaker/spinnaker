@@ -57,4 +57,15 @@ interface Instance {
    * and may include others, depending on the health metric
    */
   List<Map<String, String>> getHealth()
+
+  /**
+   * @deprecated use #getCloudProvider
+   */
+  String getProviderType()
+
+  /**
+   * Cloud-provider key, e.g. "aws", "titus"
+   * @return
+   */
+  String getCloudProvider()
 }

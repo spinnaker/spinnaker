@@ -38,7 +38,7 @@ class GoogleCluster {
   @Canonical
   class View implements Cluster {
 
-    final String type = GoogleCloudProvider.GCE
+    final String type = GoogleCloudProvider.ID
 
     String name = GoogleCluster.this.name
     String accountName = GoogleCluster.this.accountName

@@ -75,6 +75,7 @@ class OpenstackServerGroup {
     Map<String, Object> buildInfo = OpenstackServerGroup.this.buildInfo
     Boolean disabled = OpenstackServerGroup.this.disabled
     String type = OpenstackServerGroup.this.type
+    String cloudProvider = OpenstackServerGroup.this.type
     String subnetId = OpenstackServerGroup.this.subnetId
     Map<String, Object> advancedConfig = OpenstackServerGroup.this.advancedConfig
     Map<String, String> tags = OpenstackServerGroup.this.tags

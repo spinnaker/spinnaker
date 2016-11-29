@@ -54,7 +54,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
     this.metricsSupport = new OnDemandMetricsSupport(
         registry,
         this,
-        "${GoogleCloudProvider.GCE}:${OnDemandAgent.OnDemandType.SecurityGroup}")
+        "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.SecurityGroup}")
   }
 
   @Override
@@ -85,7 +85,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == GoogleCloudProvider.GCE
+    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == GoogleCloudProvider.ID
   }
 
   @Override

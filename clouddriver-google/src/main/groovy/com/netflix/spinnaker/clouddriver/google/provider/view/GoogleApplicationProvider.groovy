@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleApplication
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.APPLICATIONS
@@ -51,7 +50,7 @@ class GoogleApplicationProvider implements ApplicationProvider {
   Set<GoogleApplication.View> getApplications(boolean expand) {
     def filter = expand ? RelationshipCacheFilter.include(CLUSTERS.ns) : RelationshipCacheFilter.none()
     cacheView.getAll(APPLICATIONS.ns,
-                     cacheView.filterIdentifiers(APPLICATIONS.ns, "$GoogleCloudProvider.GCE:*"),
+                     cacheView.filterIdentifiers(APPLICATIONS.ns, "$GoogleCloudProvider.ID:*"),
                      filter).collect { applicationFromCacheData(it) } as Set
   }
 

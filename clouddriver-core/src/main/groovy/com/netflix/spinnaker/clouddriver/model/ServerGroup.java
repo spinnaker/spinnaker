@@ -39,10 +39,15 @@ public interface ServerGroup {
 
   /**
    * Some arbitrary identifying type for this server group. May provide vendor-specific identification or data-center awareness to callers.
-   *
+   * @deprecated use #getCloudProvider
    * @return type
    */
   String getType();
+
+  /**
+   * Provider-specific identifier
+   */
+  String getCloudProvider();
 
   /**
    * The region in which the instances of this server group are known to exist.

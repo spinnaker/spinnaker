@@ -131,6 +131,7 @@ class ServerGroupController {
     String cluster
     String vpcId
     String type
+    String cloudProvider
     String instanceType
     Boolean isDisabled
     Map buildInfo
@@ -144,6 +145,7 @@ class ServerGroupController {
     ServerGroupViewModel(ServerGroup serverGroup, Cluster cluster) {
       this.cluster = cluster.name
       type = serverGroup.type
+      cloudProvider = serverGroup.cloudProvider
       name = serverGroup.name
       account = cluster.accountName
       region = serverGroup.region

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup
 class SimpleServerGroup implements ServerGroup {
   String name
   String type
+  String cloudProvider
   String region
   Long createdTime
   Boolean disabled

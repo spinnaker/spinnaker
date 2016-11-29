@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
@@ -25,7 +26,8 @@ import groovy.transform.Immutable
 @Immutable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class GoogleSecurityGroup implements SecurityGroup {
-  final String type
+  final String type = GoogleCloudProvider.ID
+  final String cloudProvider = GoogleCloudProvider.ID
   final String id
   final String name
   final String description

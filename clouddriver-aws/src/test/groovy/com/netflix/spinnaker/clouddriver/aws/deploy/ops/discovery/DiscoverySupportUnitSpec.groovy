@@ -457,6 +457,7 @@ class DiscoverySupportUnitSpec extends Specification {
   private static class DefaultServerGroup implements ServerGroup {
     String name
     String type
+    String cloudProvider
     String region
     Boolean disabled
     Long createdTime

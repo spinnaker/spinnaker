@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -37,7 +37,8 @@ class KubernetesInstance implements Instance, Serializable {
   Pod pod
   List<String> loadBalancers
   List<KubernetesEvent> events
-  String providerType = "kubernetes"
+  final String providerType = KubernetesCloudProvider.ID
+  final String cloudProvider = KubernetesCloudProvider.ID
   String yaml
 
   boolean isAttached(String serviceName) {

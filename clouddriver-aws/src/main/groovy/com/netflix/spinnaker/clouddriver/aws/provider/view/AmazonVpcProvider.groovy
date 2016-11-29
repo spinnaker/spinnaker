@@ -47,7 +47,7 @@ class AmazonVpcProvider implements NetworkProvider<AmazonVpc> {
 
   @Override
   String getCloudProvider() {
-    return AmazonCloudProvider.AWS
+    return AmazonCloudProvider.ID
   }
 
   @Override
@@ -60,7 +60,7 @@ class AmazonVpcProvider implements NetworkProvider<AmazonVpc> {
     def vpc = objectMapper.convertValue(cacheData.attributes, Vpc)
     def isDeprecated = vpc.tags.find { it.key == DEPRECATED_TAG_KEY }?.value
     new AmazonVpc(
-      cloudProvider: AmazonCloudProvider.AWS,
+      cloudProvider: AmazonCloudProvider.ID,
       id: vpc.vpcId,
       name: getVpcName(vpc),
       account: parts.account,

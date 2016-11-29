@@ -41,7 +41,7 @@ class SubnetController {
   @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}")
   Set<Subnet> listByCloudProvider(@PathVariable String cloudProvider) {
     subnetProviders.findAll { subnetProvider ->
-      subnetProvider.type == cloudProvider
+      subnetProvider.cloudProvider == cloudProvider
     } collectMany {
       it.all
     }

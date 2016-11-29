@@ -31,7 +31,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LO
 @Component
 class AmazonLoadBalancerController implements LoadBalancerProviderTempShim {
 
-  final String cloudProvider = AmazonCloudProvider.AWS
+  final String cloudProvider = AmazonCloudProvider.ID
 
   private final Cache cacheView
 

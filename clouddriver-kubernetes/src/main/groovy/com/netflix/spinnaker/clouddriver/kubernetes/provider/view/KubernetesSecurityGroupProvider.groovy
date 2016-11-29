@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesSecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
@@ -28,6 +29,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class KubernetesSecurityGroupProvider implements SecurityGroupProvider<KubernetesSecurityGroup> {
+
+  final String cloudProvider = KubernetesCloudProvider.ID
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
@@ -36,8 +39,6 @@ class KubernetesSecurityGroupProvider implements SecurityGroupProvider<Kubernete
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
-
-  String type = 'kubernetes'
 
   @Override
   Set<KubernetesSecurityGroup> getAll(boolean includeRules) {

@@ -143,7 +143,6 @@ class GoogleSecurityGroupProviderSpec extends Specification {
 
     then:
       sg == new GoogleSecurityGroup(
-        type: 'gce',
         id: 'name-a',
         name: 'name-a',
         network: 'default',

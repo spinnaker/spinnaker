@@ -28,7 +28,8 @@ class AppEngineInstance implements Instance, Serializable {
   String zone
   String serverGroup
   List<String> loadBalancers
-  String providerType = AppEngineCloudProvider.ID
+  final String providerType = AppEngineCloudProvider.ID
+  final String cloudProvider = AppEngineCloudProvider.ID
 
   AppEngineInstance() {}
 

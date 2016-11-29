@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.model
 
 interface SecurityGroupProvider<T extends SecurityGroup> {
 
-  String getType()
+  String getCloudProvider()
 
   Set<T> getAll(boolean includeRules)
 

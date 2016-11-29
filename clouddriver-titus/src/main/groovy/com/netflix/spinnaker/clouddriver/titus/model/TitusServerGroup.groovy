@@ -20,7 +20,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.clouddriver.titus.caching.Keys
+import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 
@@ -30,11 +30,10 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.Job
  */
 class TitusServerGroup implements ServerGroup, Serializable {
 
-  public static final String TYPE = Keys.PROVIDER
-
   String id
   String name
-  String type = TYPE
+  final String type = TitusCloudProvider.ID
+  final String cloudProvider = TitusCloudProvider.ID
   String entryPoint
   String iamProfile
   List<String> securityGroups

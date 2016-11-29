@@ -35,7 +35,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IN
 
 @Component
 class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
-
+  final String cloudProvider = TitusCloudProvider.ID
   private final Cache cacheView
   private final ObjectMapper objectMapper
   private final TitusCloudProvider titusCloudProvider
@@ -82,11 +82,6 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
       }
     }
     instance
-  }
-
-  @Override
-  String getPlatform() {
-    titusCloudProvider.id
   }
 
   @Override

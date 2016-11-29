@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
 import com.microsoft.azure.management.compute.models.VirtualMachineScaleSetVM
+import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -31,6 +32,8 @@ class AzureInstance implements Instance, Serializable {
   String zone
   String instanceType
   List<Map<String, String>> health
+  final String providerType = AzureCloudProvider.ID
+  final String cloudProvider = AzureCloudProvider.ID
 
   AzureInstance(){
     zone = 'N/A'

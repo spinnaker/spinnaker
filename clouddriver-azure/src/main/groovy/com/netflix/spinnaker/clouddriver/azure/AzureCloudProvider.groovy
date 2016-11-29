@@ -20,11 +20,13 @@ import com.netflix.spinnaker.clouddriver.core.CloudProvider
 import java.lang.annotation.Annotation
 import org.springframework.stereotype.Component
 
+/**
+ * Azure declaration as a {@link CloudProvider}
+ */
 @Component
 class AzureCloudProvider implements CloudProvider {
-  public static final AZURE = "azure"
-
-  final String id = AZURE
+  static final ID = "azure"
+  final String id = ID
   final String displayName = "Azure"
-  final Class<Annotation> operationAnnotationType = AzureOperation.class
+  final Class<Annotation> operationAnnotationType = AzureOperation
 }

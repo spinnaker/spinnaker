@@ -40,15 +40,12 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
   private final Cache cacheView
   private final AmazonObjectMapper objectMapper
 
+  final String cloudProvider = AmazonCloudProvider.ID
+
   @Autowired
   AmazonSubnetProvider(Cache cacheView, AmazonObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
-  }
-
-  @Override
-  String getType() {
-    return AmazonCloudProvider.AWS
   }
 
   @Override
@@ -92,7 +89,7 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
     }
 
     new AmazonSubnet(
-      type: AmazonCloudProvider.AWS,
+      type: AmazonCloudProvider.ID,
       id: subnet.subnetId,
       state: subnet.state,
       vpcId: subnet.vpcId,

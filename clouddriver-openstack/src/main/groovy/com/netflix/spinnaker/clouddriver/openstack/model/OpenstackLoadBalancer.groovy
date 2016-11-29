@@ -31,9 +31,10 @@ import org.openstack4j.model.network.ext.LoadBalancerV2
 
 @Canonical
 @JsonIgnoreProperties(['createdRegex', 'createdPattern'])
-class OpenstackLoadBalancer implements LoadBalancerResolver {
+class OpenstackLoadBalancer implements LoadBalancerResolver, LoadBalancer {
 
-  String type = OpenstackCloudProvider.ID
+  final String type = OpenstackCloudProvider.ID
+  final String cloudProvider = OpenstackCloudProvider.ID
   String account
   String region
   String id
@@ -80,7 +81,7 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
     new View(account: account, region: region, id: id, name: name,
       description: description, status: status, algorithm: algorithm,
       listeners: listeners, healthMonitor: healthMonitor, ip: floatingIP?.floatingIpAddress,
-      subnetId: subnet?.id, subnetName: subnet?.name, healths: healths, type: type,
+      subnetId: subnet?.id, subnetName: subnet?.name, healths: healths,
       networkId: network?.id, networkName: network?.name, serverGroups: serverGroups ?: [].toSet(), securityGroups: securityGroups ?: [].toSet())
   }
 
@@ -111,7 +112,7 @@ class OpenstackLoadBalancer implements LoadBalancerResolver {
 
   @Canonical
   @JsonIgnoreProperties(['createdRegex', 'createdPattern'])
-  static class View extends OpenstackLoadBalancer implements LoadBalancer, LoadBalancerProviderTempShim.Details {
+  static class View extends OpenstackLoadBalancer implements LoadBalancerProviderTempShim.Details {
     String ip = ""
     String subnetId = ""
     String subnetName = ""

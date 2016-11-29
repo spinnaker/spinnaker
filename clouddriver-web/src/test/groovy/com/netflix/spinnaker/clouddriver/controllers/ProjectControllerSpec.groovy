@@ -455,6 +455,7 @@ class ProjectControllerSpec extends Specification {
     Long createdTime
     InstanceCounts instanceCounts
     String type = "test"
+    String cloudProvider = "test"
     String region
     Boolean disabled
     Set<String> instances = []

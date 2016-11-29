@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.cache
 
 import com.netflix.frigga.Names
-import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.AWS
+import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.ID
 
 class Keys {
   static enum Namespace {
@@ -51,7 +51,7 @@ class Keys {
 
     def result = [provider: parts[0], type: parts[1]]
 
-    if (result.provider != AWS) {
+    if (result.provider != ID) {
       return null
     }
 
@@ -88,36 +88,36 @@ class Keys {
                                     String region,
                                     String account,
                                     String vpcId) {
-    "$AWS:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}:${vpcId}"
+    "$ID:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}:${vpcId}"
   }
 
   static String getSubnetKey(String subnetId,
                              String region,
                              String account) {
-    "$AWS:${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
+    "$ID:${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
   }
 
   static String getVpcKey(String vpcId,
                           String region,
                           String account) {
-    "$AWS:${Namespace.VPCS}:${vpcId}:${account}:${region}"
+    "$ID:${Namespace.VPCS}:${vpcId}:${account}:${region}"
   }
 
   static String getKeyPairKey(String keyName,
                               String region,
                               String account) {
-    "$AWS:${Namespace.KEY_PAIRS}:${keyName}:${account}:${region}"
+    "$ID:${Namespace.KEY_PAIRS}:${keyName}:${account}:${region}"
   }
 
   static String getInstanceTypeKey(String instanceType,
                                    String region,
                                    String account) {
-    "$AWS:${Namespace.INSTANCE_TYPES}:${instanceType}:${account}:${region}"
+    "$ID:${Namespace.INSTANCE_TYPES}:${instanceType}:${account}:${region}"
   }
 
   static String getElasticIpKey(String ipAddress,
                                 String region,
                                 String account) {
-    "$AWS:${Namespace.ELASTIC_IPS}:${ipAddress}:${account}:${region}"
+    "$ID:${Namespace.ELASTIC_IPS}:${ipAddress}:${account}:${region}"
   }
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
@@ -34,7 +35,8 @@ import io.fabric8.kubernetes.client.internal.SerializationUtils
 @EqualsAndHashCode(includes = ["name", "namespace"])
 class KubernetesServerGroup implements ServerGroup, Serializable {
   String name
-  String type = "kubernetes"
+  final String type = KubernetesCloudProvider.ID
+  final String cloudProvider = KubernetesCloudProvider.ID
   String region
   String namespace
   String account

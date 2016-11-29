@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.view
 import com.amazonaws.services.ec2.model.GetConsoleOutputRequest
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
@@ -35,6 +36,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IN
 @Component
 class AmazonInstanceProvider implements InstanceProvider<AmazonInstance> {
 
+  final String cloudProvider = AmazonCloudProvider.ID
   private final Cache cacheView
 
   @Autowired(required = false)
@@ -50,8 +52,6 @@ class AmazonInstanceProvider implements InstanceProvider<AmazonInstance> {
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
-
-  String platform = "aws"
 
   @Override
   AmazonInstance getInstance(String account, String region, String id) {

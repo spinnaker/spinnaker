@@ -49,7 +49,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
 
     def applicationServerGroups = cacheView.getAll(
         SERVER_GROUPS.ns,
-        cacheView.filterIdentifiers(SERVER_GROUPS.ns, "${GoogleCloudProvider.GCE}:*:${application}-*")
+        cacheView.filterIdentifiers(SERVER_GROUPS.ns, "${GoogleCloudProvider.ID}:*:${application}-*")
     )
     applicationServerGroups.each { CacheData serverGroup ->
       identifiers.addAll(serverGroup.relationships[LOAD_BALANCERS.ns] ?: [])

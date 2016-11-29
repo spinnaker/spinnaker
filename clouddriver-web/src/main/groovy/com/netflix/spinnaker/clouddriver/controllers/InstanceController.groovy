@@ -57,12 +57,14 @@ class InstanceController {
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "{account}/{region}/{id}/console", method = RequestMethod.GET)
-  Map getConsoleOutput(@RequestParam(value = "provider", required = false) String provider,
+  Map getConsoleOutput(@RequestParam(value = "provider", required = false) String provider, // deprecated
+                       @RequestParam(value = "cloudProvider", required = false) String cloudProvider,
                        @PathVariable String account,
                        @PathVariable String region,
                        @PathVariable String id) {
+    String providerParam = cloudProvider ?: provider
     Collection<String> outputs = instanceProviders.findResults {
-      if (!provider || it.platform == provider) {
+      if (!providerParam || it.cloudProvider == providerParam) {
         return it.getConsoleOutput(account, region, id)
       }
       null

@@ -76,7 +76,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     this.metricsSupport = new OnDemandMetricsSupport(
       registry,
       this,
-      "${GoogleCloudProvider.GCE}:${OnDemandAgent.OnDemandType.ServerGroup}")
+      "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.ServerGroup}")
   }
 
   @Override
@@ -155,7 +155,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.ServerGroup && cloudProvider == GoogleCloudProvider.GCE
+    type == OnDemandAgent.OnDemandType.ServerGroup && cloudProvider == GoogleCloudProvider.ID
   }
 
   @Override

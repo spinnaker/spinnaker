@@ -19,13 +19,9 @@ package com.netflix.spinnaker.clouddriver.azure.cache
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import static com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys.Namespace.*
-import org.springframework.beans.factory.annotation.Autowired
 
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import java.security.Key
-
 
 class KeysSpec extends Specification {
   static final String PROVIDER = 'azure'
@@ -61,10 +57,10 @@ class KeysSpec extends Specification {
 
   def 'key parsing'() {
     expect:
-    Keys.parse(AzureCloudProvider.AZURE, Keys.getApplicationKey(AzureCloudProvider.AZURE, APP_NAME)) == [provider: PROVIDER, type: AZURE_APPLICATIONS.ns, application: APP_NAME]
-    Keys.parse(AzureCloudProvider.AZURE, Keys.getClusterKey(AzureCloudProvider.AZURE, APP_NAME, CLUSTER_NAME, ACCOUNT)) == [provider: PROVIDER, type: AZURE_CLUSTERS.ns, application: APP_NAME, name: CLUSTER_NAME, account: ACCOUNT, stack: STACK_NAME, detail: DETAIL]
-    Keys.parse(AzureCloudProvider.AZURE, Keys.getServerGroupKey(AzureCloudProvider.AZURE, SERVER_GROUP_NAME, REGION, ACCOUNT)) == [provider: PROVIDER, type: AZURE_SERVER_GROUPS.ns, application: APP_NAME, serverGroup: SERVER_GROUP_NAME, account: ACCOUNT, region: REGION, detail: DETAIL, stack: STACK_NAME]
-    Keys.parse(AzureCloudProvider.AZURE, Keys.getLoadBalancerKey(AzureCloudProvider.AZURE, LOAD_BALANCER_NAME , LOAD_BALANCER_ID, APP_NAME, CLUSTER_NAME, REGION, ACCOUNT )) == [provider: PROVIDER, type: AZURE_LOAD_BALANCERS.ns, application: APP_NAME, name: LOAD_BALANCER_NAME, id: LOAD_BALANCER_ID, cluster: CLUSTER_NAME, appname: APP_NAME, account: ACCOUNT, region: REGION]
-    Keys.parse(AzureCloudProvider.AZURE, Keys.getInstanceKey(AzureCloudProvider.AZURE, SERVER_GROUP_NAME, INSTANCE, REGION, ACCOUNT)) == [provider: PROVIDER, type: AZURE_INSTANCES.ns, application: APP_NAME, serverGroup: SERVER_GROUP_NAME, name: INSTANCE, region: REGION, account: ACCOUNT]
+    Keys.parse(AzureCloudProvider.ID, Keys.getApplicationKey(AzureCloudProvider.ID, APP_NAME)) == [provider: PROVIDER, type: AZURE_APPLICATIONS.ns, application: APP_NAME]
+    Keys.parse(AzureCloudProvider.ID, Keys.getClusterKey(AzureCloudProvider.ID, APP_NAME, CLUSTER_NAME, ACCOUNT)) == [provider: PROVIDER, type: AZURE_CLUSTERS.ns, application: APP_NAME, name: CLUSTER_NAME, account: ACCOUNT, stack: STACK_NAME, detail: DETAIL]
+    Keys.parse(AzureCloudProvider.ID, Keys.getServerGroupKey(AzureCloudProvider.ID, SERVER_GROUP_NAME, REGION, ACCOUNT)) == [provider: PROVIDER, type: AZURE_SERVER_GROUPS.ns, application: APP_NAME, serverGroup: SERVER_GROUP_NAME, account: ACCOUNT, region: REGION, detail: DETAIL, stack: STACK_NAME]
+    Keys.parse(AzureCloudProvider.ID, Keys.getLoadBalancerKey(AzureCloudProvider.ID, LOAD_BALANCER_NAME , LOAD_BALANCER_ID, APP_NAME, CLUSTER_NAME, REGION, ACCOUNT )) == [provider: PROVIDER, type: AZURE_LOAD_BALANCERS.ns, application: APP_NAME, name: LOAD_BALANCER_NAME, id: LOAD_BALANCER_ID, cluster: CLUSTER_NAME, appname: APP_NAME, account: ACCOUNT, region: REGION]
+    Keys.parse(AzureCloudProvider.ID, Keys.getInstanceKey(AzureCloudProvider.ID, SERVER_GROUP_NAME, INSTANCE, REGION, ACCOUNT)) == [provider: PROVIDER, type: AZURE_INSTANCES.ns, application: APP_NAME, serverGroup: SERVER_GROUP_NAME, name: INSTANCE, region: REGION, account: ACCOUNT]
   }
 }

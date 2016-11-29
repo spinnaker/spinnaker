@@ -24,8 +24,6 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.controllers.GoogleNamedImageLookupController.ImageProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.IMAGES
@@ -38,7 +36,7 @@ class GoogleImageProvider implements ImageProvider {
   Cache cacheView
 
   Map<String, List<Image>> listImagesByAccount() {
-    def filter = cacheView.filterIdentifiers(IMAGES.ns, "$GoogleCloudProvider.GCE:*")
+    def filter = cacheView.filterIdentifiers(IMAGES.ns, "$GoogleCloudProvider.ID:*")
     def result = [:].withDefault { _ -> []}
 
     cacheView.getAll(IMAGES.ns, filter).each { CacheData cacheData ->

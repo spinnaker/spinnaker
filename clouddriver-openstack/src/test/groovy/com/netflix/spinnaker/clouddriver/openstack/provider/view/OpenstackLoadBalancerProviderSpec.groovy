@@ -268,7 +268,7 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
   @Ignore
   OpenstackLoadBalancer.View buildLoadBalancerView(OpenstackLoadBalancer loadBalancer, OpenstackFloatingIP floatingIP, OpenstackNetwork network, OpenstackSubnet subnet) {
     new OpenstackLoadBalancer.View(id: loadBalancer.id, name: loadBalancer.name, description: loadBalancer.description,
-      account: account, region: region, type: loadBalancer.type,
+      account: account, region: region,
       ip: floatingIP.id, subnetId: subnet.id,
       subnetName: subnet.name, networkId: network.id, networkName: network.name,
       serverGroups: [new LoadBalancerServerGroup(name: 'myapp-teststack-v002')])

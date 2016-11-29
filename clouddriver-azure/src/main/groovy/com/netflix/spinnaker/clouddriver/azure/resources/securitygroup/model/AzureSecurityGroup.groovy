@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
@@ -26,7 +27,8 @@ import groovy.transform.Immutable
 @Immutable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class AzureSecurityGroup implements SecurityGroup {
-  final String type = "azure"
+  final String type = AzureCloudProvider.ID
+  final String cloudProvider = AzureCloudProvider.ID
   final String id
   final String name
   final String provider

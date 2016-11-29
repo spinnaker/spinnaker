@@ -35,15 +35,13 @@ class AzureSubnetProvider implements SubnetProvider<AzureSubnet> {
   private final Cache cacheView
   final ObjectMapper objectMapper
 
+  final String cloudProvider = AzureCloudProvider.ID
+
   @Autowired
   AzureSubnetProvider(AzureCloudProvider azureCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
     this.azureCloudProvider = azureCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
-  }
-
-  String getType() {
-    return azureCloudProvider.id
   }
 
   @Override

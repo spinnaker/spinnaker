@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
@@ -30,7 +31,8 @@ import io.fabric8.kubernetes.client.internal.SerializationUtils
 @EqualsAndHashCode(includes = ["name", "account"])
 class KubernetesLoadBalancer implements LoadBalancer, Serializable {
   String name
-  String type = "kubernetes"
+  final String type = KubernetesCloudProvider.ID
+  final String cloudProvider = KubernetesCloudProvider.ID
   String region
   String namespace
   String account

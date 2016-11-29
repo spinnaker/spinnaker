@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
@@ -25,7 +26,8 @@ import groovy.transform.Immutable
 @Immutable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class AmazonSecurityGroup implements SecurityGroup {
-  final String type
+  final String type = AmazonCloudProvider.ID
+  final String cloudProvider = AmazonCloudProvider.ID
   final String id
   final String name
   final String vpcId
