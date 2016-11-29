@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public abstract class Provider<T extends Account> extends Node implements Cloneable {
-  boolean enabled;
+  boolean enabled = false;
   List<T> accounts = new ArrayList<>();
 
   @Override

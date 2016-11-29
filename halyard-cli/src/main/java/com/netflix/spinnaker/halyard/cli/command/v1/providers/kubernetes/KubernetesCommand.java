@@ -34,22 +34,16 @@ public class KubernetesCommand extends AbstractProviderCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
-  @Getter(AccessLevel.PUBLIC)
-  private String commandName = "kubernetes";
-
-  @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure your Kubernetes provider";
-
   @Getter(AccessLevel.PROTECTED)
   private String providerName = "kubernetes";
 
   public KubernetesCommand() {
     GetKubernetesAccountCommand getKubernetesAccountCommand = new GetKubernetesAccountCommand();
-    this.subcommands.put(getKubernetesAccountCommand.getCommandName(), getKubernetesAccountCommand);
-  }
+    EnableKubernetesCommand enableKubernetesCommand = new EnableKubernetesCommand();
+    DisableKubernetesCommand disableKubernetesCommand = new DisableKubernetesCommand();
 
-  @Override
-  protected void executeThis() {
-    AnsiUi.success(getProvider().toString());
+    this.subcommands.put(getKubernetesAccountCommand.getCommandName(), getKubernetesAccountCommand);
+    this.subcommands.put(enableKubernetesCommand.getCommandName(), enableKubernetesCommand);
+    this.subcommands.put(disableKubernetesCommand.getCommandName(), disableKubernetesCommand);
   }
 }

@@ -42,7 +42,7 @@ public class LookupService {
    * @return
    */
   public List<Node> getMatchingNodesOfType(NodeFilter filter, Class<? extends Node> clazz) {
-    Halconfig halconfig = parser.getConfig();
+    Halconfig halconfig = parser.getConfig(true);
 
     return getMatchingLeafNodes(halconfig, filter)
         .stream()

@@ -23,6 +23,8 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Webhooks extends Node implements Cloneable {
+  String empty = "ignore for now";
+
   @Override
   public void accept(ProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);

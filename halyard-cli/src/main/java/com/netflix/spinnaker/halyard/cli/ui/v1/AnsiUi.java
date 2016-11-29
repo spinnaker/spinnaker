@@ -68,7 +68,7 @@ public class AnsiUi {
         .setIndentFirstLine(false)
         .setIndentWidth(4);
 
-    builder.addSnippet("  ? ")
+    builder.addSnippet("?   ")
         .setForegroundColor(AnsiForegroundColor.MAGENTA)
         .addStyle(AnsiStyle.BOLD);
 

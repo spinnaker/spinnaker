@@ -31,7 +31,7 @@ public class DeploymentConfiguration extends Node {
   /**
    * Human-readable name for this deployment of Spinnaker.
    */
-  String name;
+  String name = "default";
 
   /**
    * Version of Spinnaker being deployed (not to be confused with the halyard version).
@@ -43,12 +43,12 @@ public class DeploymentConfiguration extends Node {
   /**
    * Providers, e.g. Kubernetes, GCE, AWS, ...
    */
-  Providers providers;
+  Providers providers = new Providers();
 
   /**
    * Webhooks, e.g. Jenkins, TravisCI, ...
    */
-  Webhooks webhooks;
+  Webhooks webhooks = new Webhooks();
 
   @Override
   public String getNodeName() {

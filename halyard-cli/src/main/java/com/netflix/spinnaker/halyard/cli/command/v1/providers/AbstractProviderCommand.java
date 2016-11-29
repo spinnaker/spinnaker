@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.DaemonService;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
@@ -31,18 +32,17 @@ public abstract class AbstractProviderCommand extends NestableCommand {
 
   protected abstract String getProviderName();
 
-  public Account getAccount(String accountName) {
-    DaemonService service = Daemon.getService();
-    String currentDeployment = service.getCurrentDeployment();
-    ObjectMapper mapper = new ObjectMapper();
-    String providerName = getProviderName();
-    return mapper.convertValue(
-            service.getAccount(currentDeployment, providerName, accountName, !noValidate),
-            Providers.translateAccountType(providerName)
-    );
+  @Override
+  public String getCommandName() {
+    return getProviderName();
   }
 
-  public Provider getProvider() {
+  @Override
+  public String getDescription() {
+    return "Manage Spinnaker configuration for the " + getProviderName() + " provider";
+  }
+
+  private Provider getProvider() {
     DaemonService service = Daemon.getService();
     String currentDeployment = service.getCurrentDeployment();
     ObjectMapper mapper = new ObjectMapper();
@@ -51,5 +51,10 @@ public abstract class AbstractProviderCommand extends NestableCommand {
         service.getProvider(currentDeployment, providerName, !noValidate),
         Providers.translateProviderType(providerName)
     );
+  }
+
+  @Override
+  protected void executeThis() {
+    AnsiUi.success(getProvider().toString());
   }
 }

@@ -39,16 +39,14 @@ public class ProviderCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "provider";
 
+  @Getter(AccessLevel.PUBLIC)
+  private String description = "Configure, validate, and view your providers";
+
   public ProviderCommand() {
     KubernetesCommand kubernetesCommand = new KubernetesCommand();
     DockerRegistryCommand dockerRegistryCommand = new DockerRegistryCommand();
     this.subcommands.put(kubernetesCommand.getCommandName(), kubernetesCommand);
     this.subcommands.put(dockerRegistryCommand.getCommandName(), dockerRegistryCommand);
-  }
-
-  @Override
-  public String getDescription() {
-    return "Configure, validate, and view your providers";
   }
 
   @Override

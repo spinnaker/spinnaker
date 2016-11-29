@@ -54,6 +54,12 @@ public class Halconfig extends Node {
    */
   private List<DeploymentConfiguration> deploymentConfigurations = new ArrayList<>();
 
+  public Halconfig() {
+    DeploymentConfiguration defaultConfig = new DeploymentConfiguration();
+    currentDeployment = defaultConfig.getName();
+    deploymentConfigurations.add(defaultConfig);
+  }
+
   @Override
   public String toString() {
     StringBuilder result = new StringBuilder();

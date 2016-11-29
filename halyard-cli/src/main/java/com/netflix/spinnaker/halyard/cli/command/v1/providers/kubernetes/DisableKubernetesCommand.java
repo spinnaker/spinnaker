@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,22 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractGetAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderEnableDisableCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-/**
- * Describe a specific kubernetes account
- */
+import java.util.HashMap;
+import java.util.Map;
+
 @Parameters()
-public class GetKubernetesAccountCommand extends AbstractGetAccountCommand {
+public class DisableKubernetesCommand extends AbstractProviderEnableDisableCommand {
   @Getter(AccessLevel.PROTECTED)
   private String providerName = "kubernetes";
+
+  @Getter(AccessLevel.PROTECTED)
+  private boolean enable = false;
+
+  @Getter(AccessLevel.PROTECTED)
+  private Map<String, NestableCommand> subcommands = new HashMap<>();
 }

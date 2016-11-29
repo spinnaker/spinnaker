@@ -30,9 +30,9 @@ import java.util.Optional;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Providers extends Node implements Cloneable {
-  KubernetesProvider kubernetes;
-  DockerRegistryProvider dockerRegistry;
-  GoogleProvider google;
+  KubernetesProvider kubernetes = new KubernetesProvider();
+  DockerRegistryProvider dockerRegistry = new DockerRegistryProvider();
+  GoogleProvider google = new GoogleProvider();
 
   @Override
   public String getNodeName() {

@@ -20,9 +20,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit.http.*;
 
 import java.util.List;
 
@@ -46,6 +44,13 @@ public interface DaemonService {
       @Path("deployment") String deployment,
       @Path("provider") String provider,
       @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deployment}/providers/{provider}/enabled/")
+  Object setProviderEnabled(
+      @Path("deployment") String deployment,
+      @Path("provider") String provider,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
 
   @GET("/v1/config/deployments/{deployment}/providers/{provider}/accounts/{account}/")
   Object getAccount(

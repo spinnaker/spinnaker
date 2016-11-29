@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -17,33 +17,24 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * This class is meant to be autowired into any controller or service that needs to read the current halconfig.
- */
 @Component
-public class ConfigService {
+public class UpdateService {
   @Autowired
   HalconfigParser halconfigParser;
 
-  public Halconfig getConfig() {
-    return halconfigParser.getConfig(true);
-  }
-
-  public String getCurrentDeployment() {
-    String result = getConfig().getCurrentDeployment();
-    if (result == null || result.isEmpty()) {
-      throw new IllegalConfigException(
-          new ProblemBuilder(Problem.Severity.FATAL, "No deployment has been set").build()
-      );
+  public void safeUpdate(Runnable update, Runnable validate) {
+    try {
+      update.run();
+      validate.run();
+    } catch (HalconfigException e) {
+      halconfigParser.undoChanges();
+      throw e;
     }
 
-    return result;
+    halconfigParser.saveConfig();
   }
 }

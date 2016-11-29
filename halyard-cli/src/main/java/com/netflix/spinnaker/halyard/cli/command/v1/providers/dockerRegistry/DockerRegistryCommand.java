@@ -37,20 +37,5 @@ public class DockerRegistryCommand extends AbstractProviderCommand {
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "dockerRegistry";
-
-  @Override
-  public String getDescription() {
-    return "Configure your Docker Registry credentials and repositories";
-  }
-
-  @Override
-  protected void executeThis() {
-    AnsiUi.success(getProvider().toString());
-  }
-
-  @Override
-  protected String getProviderName() {
-    return "dockerRegistry";
-  }
+  private String providerName = "dockerRegistry";
 }
