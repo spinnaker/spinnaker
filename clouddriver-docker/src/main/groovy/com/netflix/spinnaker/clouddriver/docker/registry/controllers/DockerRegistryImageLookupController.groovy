@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.docker.registry.controllers
 
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.Keys
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProviderUtils
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
@@ -63,6 +64,11 @@ class DockerRegistryImageLookupController {
 
       def key = Keys.getTaggedImageKey(account, image, tag)
 
+      // without trackDigests, all information is available in the image keys, so don't bother fetching attributes
+      if (trackDigestsDisabled) {
+        return listAllImagesWithoutDigests(key, lookupOptions)
+      }
+
       images = DockerRegistryProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.TAGGED_IMAGE.ns, key)
     }
 
@@ -70,7 +76,7 @@ class DockerRegistryImageLookupController {
       images = images.take(lookupOptions.count)
     }
 
-    return images.collect {
+    return images.findResults {
       def credentials = (DockerRegistryNamedAccountCredentials) accountCredentialsProvider.getCredentials((String) it.attributes.account)
       if (!credentials) {
         return null
@@ -84,7 +90,37 @@ class DockerRegistryImageLookupController {
             digest    : it.attributes.digest,
         ]
       }
-    } - null
+    }
+  }
+
+  private List<Map> listAllImagesWithoutDigests(String key, LookupOptions lookupOptions) {
+    def images = cacheView.filterIdentifiers(Keys.Namespace.TAGGED_IMAGE.ns, key)
+    if (lookupOptions.count) {
+      images = images.take(lookupOptions.count)
+    }
+    return images.findResults {
+      def parse = Keys.parse(it)
+      if (!parse) {
+        return null
+      }
+      def credentials = (DockerRegistryNamedAccountCredentials) accountCredentialsProvider.getCredentials((String) parse.account)
+      if (!credentials) {
+        return null
+      } else {
+        return [
+          repository: (String) parse.repository,
+          tag       : (String) parse.tag,
+          account   : (String) parse.account,
+          registry  : credentials.registry,
+        ]
+      }
+    }
+  }
+
+  private boolean isTrackDigestsDisabled() {
+    return accountCredentialsProvider.all
+      .findAll { it.cloudProvider == DockerRegistryCloudProvider.DOCKER_REGISTRY }
+      .every { !((DockerRegistryNamedAccountCredentials) it).trackDigests }
   }
 
   private static class LookupOptions {
