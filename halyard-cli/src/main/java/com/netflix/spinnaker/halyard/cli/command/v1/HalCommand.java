@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
-import com.beust.jcommander.JCommander;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -30,21 +29,21 @@ public class HalCommand extends NestableCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
-  @Getter(AccessLevel.PROTECTED)
+  @Getter(AccessLevel.PUBLIC)
   private String commandName = "hal";
 
-  public HalCommand(JCommander commander) {
-    commander.setProgramName(getCommandName());
-    setCommander(commander);
-
+  public HalCommand() {
     ConfigCommand config = new ConfigCommand();
     this.subcommands.put(config.getCommandName(), config);
+  }
 
-    this.configureSubcommands();
+  @Override
+  public String getDescription() {
+    return "Manage Spinnaker's configuration and updates";
   }
 
   @Override
   protected void executeThis() {
-    getCommander().usage();
+    showHelp();
   }
 }

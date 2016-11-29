@@ -20,10 +20,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -44,22 +41,20 @@ public class AccountController {
   }
 
   @RequestMapping(value = "/{account:.+}", method = RequestMethod.GET)
-  Account account(@PathVariable String deployment, @PathVariable String provider, @PathVariable String account) {
+  Account account(
+      @PathVariable String deployment,
+      @PathVariable String provider,
+      @PathVariable String account,
+      @RequestParam(required = false, defaultValue = "false") boolean validate) {
     NodeReference reference = new NodeReference()
         .setDeployment(deployment)
         .setProvider(provider)
         .setAccount(account);
+
+    if (validate) {
+      accountService.validateAccount(reference);
+    }
 
     return accountService.getAccount(reference);
-  }
-
-  @RequestMapping(value = "/{account:.+}/validate", method = RequestMethod.GET)
-  void validateAccount(@PathVariable String deployment, @PathVariable String provider, @PathVariable String account) {
-    NodeReference reference = new NodeReference()
-        .setDeployment(deployment)
-        .setProvider(provider)
-        .setAccount(account);
-
-    accountService.validateAccount(reference);
   }
 }

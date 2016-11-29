@@ -23,6 +23,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.Kubern
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Optional;
+
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Providers extends Node implements Cloneable {
@@ -53,5 +57,29 @@ public class Providers extends Node implements Cloneable {
   @Override
   public NodeReference getReference() {
     return parent.getReference();
+  }
+
+  public static Class<? extends Provider> translateProviderType(String providerName) {
+    Optional<? extends Class<?>> res = Arrays.stream(Providers.class.getDeclaredFields())
+        .filter(f -> f.getName().equals(providerName))
+        .map(Field::getType)
+        .findFirst();
+
+    if (res.isPresent()) {
+      return (Class<? extends Provider>)res.get();
+    } else {
+      throw new IllegalArgumentException("No provider with name \"" + providerName + "\" handled by halyard");
+    }
+  }
+
+  public static Class<? extends Account> translateAccountType(String providerName) {
+    Class<? extends Provider> providerClass = translateProviderType(providerName);
+
+    String accountClassName = providerClass.getName().replaceAll("Provider", "Account");
+    try {
+      return (Class<? extends Account>) Class.forName(accountClassName);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException("No account for class \"" + accountClassName + "\" found", e);
+    }
   }
 }

@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1;
+package com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.ProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -25,30 +27,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This is a top-level command for dealing with your halconfig.
- *
- * Usage is `$ hal config`
+ * Interact with the kubernetes provider
  */
 @Parameters()
-public class ConfigCommand extends NestableCommand {
+public class KubernetesCommand extends AbstractProviderCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "config";
+  private String commandName = "kubernetes";
 
-  ConfigCommand() {
-    ProviderCommand providerCommand = new ProviderCommand();
-    this.subcommands.put(providerCommand.getCommandName(), providerCommand);
-  }
+  @Getter(AccessLevel.PUBLIC)
+  private String description = "Configure your Kubernetes provider";
 
-  @Override
-  public String getDescription() {
-    return "Configure, validate, and view your halconfig";
+  @Getter(AccessLevel.PROTECTED)
+  private String providerName = "kubernetes";
+
+  public KubernetesCommand() {
+    GetKubernetesAccountCommand getKubernetesAccountCommand = new GetKubernetesAccountCommand();
+    this.subcommands.put(getKubernetesAccountCommand.getCommandName(), getKubernetesAccountCommand);
   }
 
   @Override
   protected void executeThis() {
-    showHelp();
+    AnsiUi.success(getProvider().toString());
   }
 }

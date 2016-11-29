@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1;
+package com.netflix.spinnaker.halyard.cli.command.v1.providers;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.ProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.dockerRegistry.DockerRegistryCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes.KubernetesCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -30,21 +32,23 @@ import java.util.Map;
  * Usage is `$ hal config`
  */
 @Parameters()
-public class ConfigCommand extends NestableCommand {
+public class ProviderCommand extends NestableCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "config";
+  private String commandName = "provider";
 
-  ConfigCommand() {
-    ProviderCommand providerCommand = new ProviderCommand();
-    this.subcommands.put(providerCommand.getCommandName(), providerCommand);
+  public ProviderCommand() {
+    KubernetesCommand kubernetesCommand = new KubernetesCommand();
+    DockerRegistryCommand dockerRegistryCommand = new DockerRegistryCommand();
+    this.subcommands.put(kubernetesCommand.getCommandName(), kubernetesCommand);
+    this.subcommands.put(dockerRegistryCommand.getCommandName(), dockerRegistryCommand);
   }
 
   @Override
   public String getDescription() {
-    return "Configure, validate, and view your halconfig";
+    return "Configure, validate, and view your providers";
   }
 
   @Override
