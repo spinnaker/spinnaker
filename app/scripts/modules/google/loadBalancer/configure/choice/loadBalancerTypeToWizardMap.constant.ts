@@ -26,10 +26,16 @@ const loadBalancerTypeToWizardMap: IGceLoadBalancerToWizardMap = {
   },
   'INTERNAL': {
     label: 'Internal',
-    createTemplateUrl: require('../internal/createInternalLoadBalancer.html'),
-    editTemplateUrl: require('../internal/editInternalLoadBalancer.html'),
+    createTemplateUrl: require('../common/commonCreateLoadBalancer.html'),
+    editTemplateUrl: require('../common/commonEditLoadBalancer.html'),
     controller: 'gceInternalLoadBalancerCtrl'
-  }
+  },
+  'SSL': {
+    label: 'SSL',
+    createTemplateUrl: require('../common/commonCreateLoadBalancer.html'),
+    editTemplateUrl: require('../common/commonEditLoadBalancer.html'),
+    controller: 'gceSslLoadBalancerCtrl'
+  },
 };
 
 export const GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT = 'spinnaker.gce.loadBalancerTypeToWizard.constant';

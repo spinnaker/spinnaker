@@ -30,6 +30,7 @@ export class GceCommonLoadBalancerCommandBuilder {
     networks: (): IPromise<INetwork[]> => this.networkReader.listNetworksByProvider('gce'),
     subnets: (): IPromise<ISubnet[]> => this.subnetReader.listSubnetsByProvider('gce'),
     healthChecks: (): IPromise<IGceHealthCheck[]> => this.gceHealthCheckReader.listHealthChecks(),
+    certificates: (): IPromise<any[]> => this.gceCertificateReader.listCertificates().then(([response]: any) => response.results),
   };
 
   static get $inject() { return ['$q',
@@ -37,14 +38,16 @@ export class GceCommonLoadBalancerCommandBuilder {
                                  'accountService',
                                  'subnetReader',
                                  'gceHealthCheckReader',
-                                 'networkReader']; }
+                                 'networkReader',
+                                 'gceCertificateReader']; }
 
   constructor(private $q: ng.IQService,
               private loadBalancerReader: any,
               private accountService: AccountService,
               private subnetReader: SubnetReader,
               private gceHealthCheckReader: GceHealthCheckReader,
-              private networkReader: any) { }
+              private networkReader: any,
+              private gceCertificateReader: any) { }
 
   public getBackingData(dataTypes: string[]): IPromise<any> {
     let promises = dataTypes.reduce((promisesByDataType: { [dataType: string]: IPromise<any> }, dataType: string) => {
@@ -77,6 +80,7 @@ export const GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER = 'spinnaker.gce.commonLoa
 module(GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER, [
   ACCOUNT_SERVICE,
   require('core/loadBalancer/loadBalancer.read.service.js'),
+  require('google/certificate/certificate.reader.js'),
   SUBNET_READ_SERVICE,
   GCE_HEALTH_CHECK_READER,
 ]).service('gceCommonLoadBalancerCommandBuilder', GceCommonLoadBalancerCommandBuilder);

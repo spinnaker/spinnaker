@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 
 import {ICredentials} from 'core/domain/ICredentials';
 import {Application} from 'core/application/application.model';
-import {IGceSubnet, IGceNetwork, IGceHealthCheck, IGceBackendService, IGceLoadBalancer} from 'google/domain/index';
+import {IGceHealthCheck, IGceBackendService, IGceLoadBalancer} from 'google/domain/index';
 import {GCE_HEALTH_CHECK_SELECTOR_COMPONENT} from '../common/healthCheck.component';
 import {GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
         GceCommonLoadBalancerCommandBuilder} from '../common/commonLoadBalancerCommandBuilder.service';
@@ -23,24 +23,23 @@ interface IPrivateScope extends ng.IScope {
   $$destroyed: boolean;
 }
 
-class InternalLoadBalancer implements IGceLoadBalancer {
+class SslLoadBalancer implements IGceLoadBalancer {
   stack: string;
   detail: string;
   loadBalancerName: string;
-  ports: any;
+  portRange: string = '443';
   ipProtocol: string = 'TCP';
-  loadBalancerType: string = 'INTERNAL';
+  loadBalancerType: string = 'SSL';
   credentials: string;
   account: string;
-  network: string = 'default';
-  subnet: string;
-  region: string;
+  region: string = 'global';
+  certificate: string;
   backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
 
   constructor (public region: string) {}
 }
 
-class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.IComponentController {
+class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.IComponentController {
   public pages: any = {
     'location': require('./createLoadBalancerProperties.html'),
     'listener': require('./listener.html'),
@@ -50,15 +49,11 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
   public sessionAffinityViewToModelMap: any = {
     'None': 'NONE',
     'Client IP': 'CLIENT_IP',
-    'Client IP and protocol': 'CLIENT_IP_PROTO',
-    'Client IP, port and protocol': 'CLIENT_IP_PORT_PROTO',
+    'Generated Cookie': 'GENERATED_COOKIE',
   };
   public accounts: ICredentials[];
   public regions: string[];
-  public networks: IGceNetwork[];
-  public networkOptions: string[];
-  public subnets: IGceSubnet[];
-  public subnetOptions: string[];
+  public certificateWrappers: any[];
   public healthChecksByAccountAndType: {[account: string]: {[healthCheckType: string]: IGceHealthCheck[]}};
 
   // The 'by account' maps populate the corresponding 'existing names' lists below.
@@ -68,6 +63,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
   public existingHealthCheckNames: string[];
 
   public viewState: ViewState = new ViewState('None');
+  public maxCookieTtl: number = 60 * 60 * 24; // One day.
   public taskMonitor: any;
 
   private sessionAffinityModelToViewMap: any = _.invert(this.sessionAffinityViewToModelMap);
@@ -89,7 +85,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
   constructor (public $scope: IPrivateScope,
                public application: Application,
                public $uibModalInstance: any,
-               private loadBalancer: InternalLoadBalancer,
+               private loadBalancer: SslLoadBalancer,
                private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
                private isNew: boolean,
                private accountService: AccountService,
@@ -104,12 +100,12 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
 
   public $onInit (): void {
     this.gceCommonLoadBalancerCommandBuilder
-      .getBackingData(['existingLoadBalancerNamesByAccount', 'accounts', 'networks', 'subnets', 'healthChecks'])
+      .getBackingData(['existingLoadBalancerNamesByAccount', 'accounts', 'healthChecks', 'certificates'])
       .then((backingData) => {
         if (!this.isNew) {
           this.initializeEditMode();
         } else {
-          this.loadBalancer = new InternalLoadBalancer(
+          this.loadBalancer = new SslLoadBalancer(
             this.settings.providers.gce
             ? this.settings.providers.gce.defaults.region
             : null);
@@ -125,8 +121,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
         }
 
         this.accounts = backingData.accounts;
-        this.networks = backingData.networks;
-        this.subnets = backingData.subnets;
+        this.certificateWrappers = backingData.certificates as any[];
         this.existingLoadBalancerNamesByAccount = backingData.existingLoadBalancerNamesByAccount;
         this.healthChecksByAccountAndType = this.gceCommonLoadBalancerCommandBuilder
           .groupHealthChecksByAccountAndType(backingData.healthChecks as IGceHealthCheck[]);
@@ -150,7 +145,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
           modalInstance: this.$uibModalInstance,
           onTaskComplete: () => this.onTaskComplete(this.loadBalancer),
         });
-    });
+      });
   }
 
   public onHealthCheckRefresh (): void {
@@ -165,24 +160,11 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
       });
   }
 
-  public networkUpdated (): void {
-    this.subnetOptions = this.subnets
-      .filter((subnet) => {
-        return subnet.region === this.loadBalancer.region &&
-               (subnet.account === this.loadBalancer.credentials || subnet.account === this.loadBalancer.account) &&
-               subnet.network === this.loadBalancer.network;
-      }).map((subnet) => subnet.name);
-
-    if (!this.subnetOptions.includes(this.loadBalancer.subnet)) {
-      this.loadBalancer.subnet = this.subnetOptions[0];
-    }
-  }
-
-  public protocolUpdated (): void {
-    if (this.loadBalancer.ipProtocol === 'UDP') {
-      this.viewState = new ViewState('None');
-      this.loadBalancer.backendService.sessionAffinity = 'NONE';
-    }
+  public onCertificateRefresh (): void {
+    this.gceCommonLoadBalancerCommandBuilder.getBackingData(['certificates'])
+      .then((data) => {
+        this.certificateWrappers = data.certificates as any[];
+      });
   }
 
   public accountUpdated (): void {
@@ -194,19 +176,10 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
       _.get<any, string[]>(this, ['existingLoadBalancerNamesByAccount', this.loadBalancer.credentials]);
     this.existingLoadBalancerNames = existingLoadBalancerNames || [];
 
-    this.networkOptions = this.networks
-      .filter((network: IGceNetwork) => network.account === this.loadBalancer.credentials)
-      .map((network) => network.name);
-
     this.accountService.getRegionsForAccount(this.loadBalancer.credentials)
       .then((regions: IRegion[]) => {
         this.regions = regions.map((region: IRegion) => region.name);
-        this.networkUpdated();
       });
-  }
-
-  public regionUpdated (): void {
-    this.networkUpdated();
   }
 
   public updateName (): void {
@@ -220,7 +193,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
   public submit (): void {
     let descriptor = this.isNew ? 'Create' : 'Update';
     let toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as any;
-    toSubmitLoadBalancer.ports = toSubmitLoadBalancer.ports.split(',').map((port: string) => port.trim());
     toSubmitLoadBalancer.provider = 'gce';
     toSubmitLoadBalancer.name = toSubmitLoadBalancer.loadBalancerName;
     toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.loadBalancerName;
@@ -233,22 +205,20 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
   }
 
   private initializeEditMode (): void {
-    this.loadBalancer.ports = this.loadBalancer.ports.join(', ');
-    this.loadBalancer.subnet = this.loadBalancer.subnet.split('/').pop();
-    this.loadBalancer.network = this.loadBalancer.network.split('/').pop();
+    this.loadBalancer.portRange = this.loadBalancer.portRange.split('-')[0];
+    this.loadBalancer.certificate = this.loadBalancer.certificate.split('/').pop();
     this.viewState = new ViewState(this.sessionAffinityModelToViewMap[this.loadBalancer.backendService.sessionAffinity]);
   }
 }
 
-export const GCE_INTERNAL_LOAD_BALANCER_CTRL = 'spinnaker.gce.internalLoadBalancer.controller';
+export const GCE_SSL_LOAD_BALANCER_CTRL = 'spinnaker.gce.sslLoadBalancer.controller';
 
-module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
-    GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
-    GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
-    ACCOUNT_SERVICE,
-    require('core/cache/infrastructureCaches.js'),
-    require('core/modal/wizard/wizardSubFormValidation.service.js'),
-    require('core/loadBalancer/loadBalancer.write.service.js'),
-    require('core/task/monitor/taskMonitorService.js'),
-  ])
-  .controller('gceInternalLoadBalancerCtrl', InternalLoadBalancerCtrl);
+module(GCE_SSL_LOAD_BALANCER_CTRL, [
+  GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
+  GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
+  ACCOUNT_SERVICE,
+  require('core/cache/infrastructureCaches.js'),
+  require('core/modal/wizard/wizardSubFormValidation.service.js'),
+  require('core/loadBalancer/loadBalancer.write.service.js'),
+  require('core/task/monitor/taskMonitorService.js'),
+]).controller('gceSslLoadBalancerCtrl', SslLoadBalancerCtrl);
