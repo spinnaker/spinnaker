@@ -28,7 +28,7 @@ spec:
               name: orca-config
           readinessProbe:
             httpGet:
-              path: /env
+              path: /health
               port: 8083
             initialDelaySeconds: 20
             timeoutSeconds: 1
