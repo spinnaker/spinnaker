@@ -101,6 +101,12 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   }
 
   @Bean
+  @ConditionalOnBean(ServiceAccountDAO)
+  ItemDAOHealthIndicator serviceAccountDAOHealthIndicator(ServiceAccountDAO serviceAccountDAO) {
+    return new ItemDAOHealthIndicator(itemDAO: serviceAccountDAO)
+  }
+
+  @Bean
   HystrixRuntimeExceptionHandler hystrixRuntimeExceptionHandler() {
     return new HystrixRuntimeExceptionHandler()
   }
