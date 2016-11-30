@@ -27,23 +27,23 @@
     <div class="form-group" ng-if="stage.action === 'scale_exact'">
       <div class="col-md-9 col-md-offset-3 small">
         <div class="col-md-9">
-          <div class="col-md-2 col-md-offset-3">Instances</div>
-          <div class="col-md-2">Memory (MB)</div>
-          <div class="col-md-2">Disk Limit (MB)</div>
+          <div class="col-md-3 col-md-offset-3">Instances</div>
+          <div class="col-md-3">Memory (MB)</div>
+          <div class="col-md-3">Disk Limit (MB)</div>
         </div>
       </div>
       <div class="col-md-9 col-md-offset-3">
         <label class="col-md-2 sm-label-right small" style="margin-left:0;padding-left:0">Match Capacity</label>
         <div class="col-md-9">
-          <div class="col-md-2">
+          <div class="col-md-3">
             <input type="number" ng-model="stage.newSize"
                    class="form-control input-sm" />
           </div>
-          <div class="col-md-2">
+          <div class="col-md-3">
             <input type="number" ng-model="stage.memory"
                    class="form-control input-sm" />
           </div>
-          <div class="col-md-2">
+          <div class="col-md-3">
             <input type="number" ng-model="stage.disk"
                    class="form-control input-sm" />
           </div>
