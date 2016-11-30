@@ -18,11 +18,13 @@ package com.netflix.spinnaker.halyard.config.config.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.ParseConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -31,10 +33,8 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.Map;
 
 /**
  * A parser for all Config read by Halyard at runtime.
@@ -44,6 +44,7 @@ import java.io.InputStream;
  * Since we aren't relying on SpringBoot to configure Halyard's ~/.hal/config, we instead use this class as a utility
  * method to read ~/.hal/config's contents.
  */
+@Slf4j
 @Component
 public class HalconfigParser {
   /**
@@ -84,6 +85,8 @@ public class HalconfigParser {
   @Autowired
   Yaml yamlParser;
 
+  static Halconfig halconfig;
+
   /**
    * Parse Halyard's config.
    *
@@ -105,19 +108,19 @@ public class HalconfigParser {
    *
    * @see HalconfigParser#halconfigPath(String)
    * @see Halconfig
+   * @param reload if we should check the disk for the halconfig.
    * @return the fully parsed halconfig.
    */
-  public Halconfig getConfig() {
+  public Halconfig getConfig(boolean reload) {
+    if (!reload && halconfig != null) {
+      return halconfig;
+    }
+
     Halconfig res = null;
     try {
       InputStream is = new FileInputStream(new File(halconfigPath));
       res = parseConfig(is);
     } catch (FileNotFoundException e) {
-      throw new ConfigNotFoundException(
-          new ProblemBuilder(Problem.Severity.FATAL,
-              "No configuration found at path " + halconfigPath)
-              .setRemediation("Create a new halconfig").build()
-      );
     } catch (UnrecognizedPropertyException e) {
       throw new ParseConfigException(e);
     } catch (ParserException e) {
@@ -126,9 +129,62 @@ public class HalconfigParser {
       throw new ParseConfigException(e);
     }
 
+    if (res == null) {
+      log.info("No halconfig found generating a new one...");
+      res = new Halconfig();
+    }
+
     res.parentify();
     res.setPath(halconfigPath);
 
-    return res;
+    halconfig = res;
+
+    return halconfig;
+  }
+
+  /**
+   * Undoes changes to the staged in-memory halconfig.
+   */
+  public void undoChanges() {
+    halconfig = null;
+  }
+
+  /**
+   * Write your halconfig object to the halconfigPath.
+   */
+  public void saveConfig() {
+    if (halconfig == null) {
+      throw new HalconfigException(
+          new ProblemBuilder(Problem.Severity.WARNING,
+              "No halconfig changes have been made, nothing to write")
+          .build()
+      );
+    }
+
+    Writer writer = null;
+    try {
+      writer = new BufferedWriter(
+          new OutputStreamWriter(new FileOutputStream(halconfigPath), "utf-8"));
+      writer.write(yamlParser.dump(objectMapper.convertValue(halconfig, Map.class)));
+    } catch (Exception e) {
+      throw new HalconfigException(
+          new ProblemBuilder(Problem.Severity.FATAL,
+          "Failure to write your halconfig to path \"" + halconfigPath + "\": " + e.getMessage())
+          .build()
+      );
+    } finally {
+      halconfig = null;
+      if (writer != null) {
+        try {
+          writer.close();
+        } catch (IOException e) {
+          throw new HalconfigException(
+              new ProblemBuilder(Problem.Severity.FATAL,
+              "Failure to close your halconfig to path \"" + halconfigPath + "\": " + e.getMessage())
+              .build()
+          );
+        }
+      }
+    }
   }
 }

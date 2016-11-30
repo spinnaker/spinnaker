@@ -26,7 +26,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang.StringUtils;
 import retrofit.RetrofitError;
 
 import java.net.ConnectException;
@@ -107,20 +106,23 @@ public abstract class NestableCommand {
               throw new RuntimeException("Unknown severity level " + severity);
           }
 
-          if (!remediation.isEmpty()) {
+          if (remediation != null && !remediation.isEmpty()) {
             AnsiUi.remediation(remediation);
           }
 
           // Newline between errors
           AnsiUi.raw("");
         }
+
+        System.exit(1);
       }
     } catch (Exception e) {
       if (GlobalOptions.getGlobalOptions().isDebug()) {
-        throw e;
+        e.printStackTrace();
       } else {
         AnsiUi.error(e.getMessage());
       }
+      System.exit(1);
     }
   }
 
@@ -160,13 +162,24 @@ public abstract class NestableCommand {
       paragraph.addSnippet("PARAMETERS").addStyle(AnsiStyle.BOLD);
       story.addNewline();
 
+
+      ParameterDescription mainParameter = commander.getMainParameter();
+      if (mainParameter != null) {
+        paragraph = story.addParagraph().setIndentWidth(indentWidth);
+        paragraph.addSnippet(getMainParameter().toUpperCase()).addStyle(AnsiStyle.UNDERLINE);
+
+        paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
+        paragraph.addSnippet(mainParameter.getDescription());
+        story.addNewline();
+      }
+
       for (ParameterDescription parameter : commander.getParameters()) {
         paragraph = story.addParagraph().setIndentWidth(indentWidth);
         paragraph.addSnippet(parameter.getNames()).addStyle(AnsiStyle.BOLD);
 
         if (parameter.getDefault() != null) {
           paragraph.addSnippet("=");
-          paragraph.addSnippet(parameter.getDefault().toString());
+          paragraph.addSnippet(parameter.getDefault().toString().toUpperCase()).addStyle(AnsiStyle.UNDERLINE);
         }
 
         paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
@@ -225,5 +238,9 @@ public abstract class NestableCommand {
       subCommand.setCommander(subCommander);
       subCommand.configureSubcommands();
     }
+  }
+
+  public String getMainParameter() {
+    throw new RuntimeException("This command has no main-command.");
   }
 }

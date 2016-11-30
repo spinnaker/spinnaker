@@ -81,6 +81,11 @@ public class ProviderService {
     }
   }
 
+  public void setEnabled(NodeReference reference, boolean enabled) {
+    Provider provider = getProvider(reference);
+    provider.setEnabled(enabled);
+  }
+
   public void validateProvider(NodeReference reference) {
     NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile().withAnyAccount();
 

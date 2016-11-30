@@ -24,8 +24,9 @@ public class Main {
 
     try {
       hal.execute();
-    } catch (RetrofitError e) {
+    } catch (Exception e) {
       AnsiUi.error(e.getMessage());
+      AnsiUi.remediation("That wasn't supposed to happen.\nPlease report an issue on https://github.com/spinnaker/spinnaker/issues");
       System.exit(1);
     }
   }

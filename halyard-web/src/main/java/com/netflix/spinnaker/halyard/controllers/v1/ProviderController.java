@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.services.v1.ProviderService;
+import com.netflix.spinnaker.halyard.config.services.v1.UpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,9 @@ import java.util.List;
 @RequestMapping("/v1/config/deployments/{deployment:.+}/providers")
 public class ProviderController {
   @Autowired
+  UpdateService updateService;
+
+  @Autowired
   ProviderService providerService;
 
   @RequestMapping(value = "/{provider:.+}", method = RequestMethod.GET)
@@ -36,11 +40,31 @@ public class ProviderController {
       @PathVariable String provider,
       @RequestParam(required = false, defaultValue = "false") boolean validate) {
     NodeReference reference = new NodeReference().setDeployment(deployment).setProvider(provider);
+    Provider result = providerService.getProvider(reference);
+
     if (validate) {
       providerService.validateProvider(reference);
     }
 
-    return providerService.getProvider(reference);
+    return result;
+  }
+
+  @RequestMapping(value = "/{provider:.+}/enabled", method = RequestMethod.PUT)
+  void setEnabled(
+      @PathVariable String deployment,
+      @PathVariable String provider,
+      @RequestParam(required = false, defaultValue = "false") boolean validate,
+      @RequestBody boolean enabled) {
+    NodeReference reference = new NodeReference().setDeployment(deployment).setProvider(provider);
+    Runnable doUpdate = () -> { providerService.setEnabled(reference, enabled); };
+
+    Runnable doValidate = () -> { };
+
+    if (validate) {
+      doValidate = () -> { providerService.validateProvider(reference); };
+    }
+
+    updateService.safeUpdate(doUpdate, doValidate);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)

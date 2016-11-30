@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.config.config.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 @Component
@@ -30,6 +31,8 @@ public class ResourceConfig {
 
   @Bean
   Yaml yamlParser() {
-    return new Yaml();
+    DumperOptions options = new DumperOptions();
+    options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+    return new Yaml(options);
   }
 }

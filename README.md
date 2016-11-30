@@ -49,3 +49,10 @@ If you want to examine only a particular account's configuration, run:
 ```
 $ hal config provider PROVIDER get-account ACCOUNT
 ```
+
+You can also enable/disable providers:
+
+```
+$ hal config provider PROVIDER enable
+$ hal config provider PROVIDER disable
+```

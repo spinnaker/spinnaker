@@ -51,10 +51,12 @@ public class AccountController {
         .setProvider(provider)
         .setAccount(account);
 
+    Account result = accountService.getAccount(reference);
+
     if (validate) {
       accountService.validateAccount(reference);
     }
 
-    return accountService.getAccount(reference);
+    return result;
   }
 }
