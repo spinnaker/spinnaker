@@ -14,3 +14,4 @@ bash gate/startup-config.sh
 bash deck/startup-config.sh
 bash igor/startup-config.sh
 bash rosco/startup-config.sh
+bash fiat/startup-config.sh

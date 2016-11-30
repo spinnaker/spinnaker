@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-fiat-mutate
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: fiat
+    detail: mutate
+spec:
+  ports:
+    - port: 7003
+  selector:
+    load-balancer-spin-fiat-mutate: "true"

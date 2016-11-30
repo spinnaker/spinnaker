@@ -107,7 +107,7 @@ services:
   fiat:
     enabled: false
     address: 0.0.0.0
-    host: spin-fiat.${services.default.dnsSuffix}
+    host: spin-fiat-ro.${services.default.dnsSuffix}
     port: 7003
     baseUrl: ${services.default.protocol}://${services.fiat.host}:${services.fiat.port}
 
@@ -219,6 +219,10 @@ services:
       master:
         host: redis-gate-master.${services.default.dnsSuffix}
         connection: redis://${services.redis.gate.master.host}:${services.redis.port}
+    fiat:
+      master:
+        host: redis-fiat-master.${services.default.dnsSuffix}
+        connection: redis://${services.redis.fiat.master.host}:${services.redis.port}
 
 providers:
   aws:

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-fiat-master
+  namespace: spinnaker
+  labels:
+    app: redis
+    stack: fiat
+    detail: master
+spec:
+  ports:
+    - port: 6379
+  selector:
+    load-balancer-redis-fiat-master: "true"

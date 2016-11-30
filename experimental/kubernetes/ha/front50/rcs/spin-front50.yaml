@@ -32,7 +32,7 @@ spec:
               name: aws-config
           readinessProbe:
             httpGet:
-              path: /env
+              path: /info # This should be /health, see https://github.com/spinnaker/spinnaker/issues/1018
               port: 8080
             initialDelaySeconds: 20
             timeoutSeconds: 1

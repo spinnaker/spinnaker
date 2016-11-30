@@ -30,6 +30,10 @@ spec:
               value: 0.0.0.0
             - name: DECK_PORT
               value: "9000"
+            # - name: AUTH_ENABLED
+            #   value: "true"
+            # - name: FIAT_ENABLED
+            #   value: "true"
           ports:
             - containerPort: 9000
               name: deck

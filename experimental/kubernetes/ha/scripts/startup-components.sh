@@ -15,3 +15,4 @@ bash gate/startup-components.sh
 bash deck/startup-components.sh
 bash igor/startup-components.sh
 bash rosco/startup-components.sh
+bash fiat/startup-components.sh

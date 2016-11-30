@@ -28,7 +28,7 @@ spec:
               name: rosco-config
           readinessProbe:
             httpGet:
-              path: /env
+              path: /health
               port: 8087
             initialDelaySeconds: 20
             timeoutSeconds: 1
