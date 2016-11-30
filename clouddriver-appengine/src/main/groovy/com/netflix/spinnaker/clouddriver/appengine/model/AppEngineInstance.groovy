@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.appengine.model
 
 import com.google.api.services.appengine.v1.model.Instance as AppEngineApiInstance
+import com.google.api.services.appengine.v1.model.Service
+import com.google.api.services.appengine.v1.model.Version
 import com.netflix.spinnaker.clouddriver.appengine.AppEngineCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -28,12 +30,14 @@ class AppEngineInstance implements Instance, Serializable {
   String zone
   String serverGroup
   List<String> loadBalancers
+  HealthState healthState
   final String providerType = AppEngineCloudProvider.ID
   final String cloudProvider = AppEngineCloudProvider.ID
 
   AppEngineInstance() {}
 
-  AppEngineInstance(AppEngineApiInstance instance) {
+  AppEngineInstance(AppEngineApiInstance instance, Version version, Service service) {
+    this.healthState = AppEngineModelUtil.getInstanceHealthState(version, service)
     this.instanceStatus = instance.getAvailability() ?
       AppEngineInstanceStatus.valueOf(instance.getAvailability()) :
       null
@@ -42,12 +46,8 @@ class AppEngineInstance implements Instance, Serializable {
     this.launchTime = AppEngineModelUtil.translateTime(instance.getStartTime())
   }
 
-  HealthState getHealthState() {
-    HealthState.Up
-  }
-
   List<Map<String, String>> getHealth() {
-    null
+    [['appengine': healthState.toString()]]
   }
 
   enum AppEngineInstanceStatus {

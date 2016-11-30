@@ -16,10 +16,38 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.model
 
+import com.google.api.services.appengine.v1.model.Service
+import com.google.api.services.appengine.v1.model.Version
+import com.netflix.spinnaker.clouddriver.model.HealthState
+
 import java.text.SimpleDateFormat
 
 class AppEngineModelUtil {
+  private static final dateFormats = ["yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'"]
+    .collect { new SimpleDateFormat(it) }
+
   static Long translateTime(String time) {
-    time ? (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'").parse(time)).getTime() : 0
+    for (SimpleDateFormat dateFormat: dateFormats) {
+      try {
+        return dateFormat.parse(time).getTime()
+      } catch (e) { }
+    }
+
+    null
+  }
+
+  static AppEngineScalingPolicy getScalingPolicy(Version version) {
+    if (version.getAutomaticScaling()) {
+      return new AppEngineScalingPolicy(version.getAutomaticScaling())
+    } else if (version.getBasicScaling()) {
+      return new AppEngineScalingPolicy(version.getBasicScaling())
+    } else if (version.getManualScaling()) {
+      return new AppEngineScalingPolicy(version.getManualScaling())
+    }
+  }
+
+  static getInstanceHealthState(Version version, Service service) {
+    def allocations = service.getSplit()?.getAllocations()
+    allocations?.containsKey(version.getId()) ? HealthState.Up : HealthState.OutOfService
   }
 }
