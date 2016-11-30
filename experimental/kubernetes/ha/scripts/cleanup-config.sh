@@ -6,3 +6,4 @@ bash gate/cleanup-config.sh
 bash deck/cleanup-config.sh
 bash igor/cleanup-config.sh
 bash rosco/cleanup-config.sh
+bash fiat/cleanup-config.sh

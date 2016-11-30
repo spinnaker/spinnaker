@@ -1,0 +1,4 @@
+# Uncomment below iff Fiat is enabled.
+# services:
+#   fiat:
+#     host: spin-fiat-mutate.${services.default.dnsSuffix}

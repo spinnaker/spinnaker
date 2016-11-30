@@ -1,13 +1,17 @@
 'use strict';
 
 var feedbackUrl = 'http://localhost';
-var gateHost = 'http://localhost:8084';
+var gateHost = process.env.API_HOST || 'http://localhost:8084';
 var bakeryDetailUrl = gateHost + '/bakery/logs/global/{{context.status.id}}';
+var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
+var authEnabled = process.env.AUTH_ENABLED === 'true' ? true : false;
+var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 
 window.spinnakerSettings = {
   defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'titan'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
+  authEndpoint: authEndpoint,
   bakeryDetailUrl: bakeryDetailUrl,
   pollSchedule: 30000,
   defaultTimeZone: 'America/New_York', // see http://momentjs.com/timezone/docs/#/data-utilities/
@@ -70,7 +74,9 @@ window.spinnakerSettings = {
     gistId: '32526cd608db3d811b38',
     fileName: 'news.md',
   },
+  authEnabled: authEnabled,
   feature: {
+    fiatEnabled: fiatEnabled,
     pipelines: true,
     jobs: true,
     notifications: false,
