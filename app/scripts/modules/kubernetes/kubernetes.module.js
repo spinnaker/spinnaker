@@ -47,6 +47,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./serverGroup/configure/CommandBuilder.js'),
   require('./serverGroup/configure/configure.kubernetes.module.js'),
   require('./serverGroup/details/details.kubernetes.module.js'),
+  require('./serverGroup/paramsMixin.js'),
   require('./serverGroup/transformer.js'),
   require('./validation/applicationName.validator.js'),
 ])
@@ -93,6 +94,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/wizard.html'),
         commandBuilder: 'kubernetesServerGroupCommandBuilder',
         configurationService: 'kubernetesServerGroupConfigurationService',
+        paramsMixin: 'kubernetesServerGroupParamsMixin',
       },
     });
   });
