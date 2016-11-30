@@ -144,10 +144,12 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
           }
           command.amiName = namedImage.imageName;
 
-          var packageBase = namedImage.imageName.split('_')[0];
-          var parts = packageBase.split('-');
+          let addDashToQuery = false;
+          let packageBase = namedImage.imageName.split('_')[0];
+          const parts = packageBase.split('-');
           if (parts.length > 3) {
             packageBase = parts.slice(0, -3).join('-');
+            addDashToQuery = true;
           }
           if (!packageBase || packageBase.length < 3) {
             return [namedImage];
@@ -155,7 +157,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
           return awsImageReader.findImages({
             provider: command.selectedProvider,
-            q: packageBase + '-*',
+            q: packageBase + (addDashToQuery ? '-*' : '*'),
           });
         },
         function() {
