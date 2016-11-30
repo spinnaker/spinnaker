@@ -108,13 +108,18 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
       return this
     }
 
+    Builder appengine(Appengine appengine) {
+      this.appengine = appengine
+      return this
+    }
+
     AppEngineNamedAccountCredentials build() {
       credentials = credentials ?:
         jsonKey ?
         new AppEngineJsonCredentials(project, jsonKey) :
         new AppEngineCredentials(project)
 
-      appengine = credentials.getAppEngine(applicationName)
+      appengine = appengine ?: credentials.getAppEngine(applicationName)
 
       if (liveLookupsEnabled) {
         region = appengine.apps().get(project).execute().getLocationId()
