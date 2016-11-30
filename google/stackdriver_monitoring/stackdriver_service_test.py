@@ -34,7 +34,8 @@ class StackdriverMetricsServiceTest(unittest.TestCase):
   def setUp(self):
     project = 'test-project'
     instance = 'test-instance'
-    options = {'project': project, 'zone': 'us-central1-f', 'instance_id': instance,
+    options = {'project': project, 'zone': 'us-central1-f',
+               'instance_id': instance,
                'fix_stackdriver_labels_unsafe': True}
 
     self.mockStub = mock.create_autospec(['projects'])
@@ -48,6 +49,7 @@ class StackdriverMetricsServiceTest(unittest.TestCase):
         return_value=self.mockMetricDescriptors)
     self.mockProjects.timeSeries = Mock(return_value=self.mockTimeSeries)
 
+    # pylint: disable=invalid-name
     self.mockCreateTimeSeries = Mock(spec=['execute'])
     self.mockCreateDescriptor = Mock(spec=['execute'])
     self.mockGetDescriptor = Mock(spec=['execute'])
@@ -59,7 +61,7 @@ class StackdriverMetricsServiceTest(unittest.TestCase):
     self.mockMetricDescriptors.get = Mock(
         return_value=self.mockGetDescriptor)
     self.mockTimeSeries.create = Mock(return_value=self.mockCreateTimeSeries)
-    self.service = StackdriverMetricsService(self.mockStub, options)
+    self.service = StackdriverMetricsService(lambda: self.mockStub, options)
 
   def test_find_problematic_elements(self):
     content = """{
@@ -88,39 +90,39 @@ class StackdriverMetricsServiceTest(unittest.TestCase):
 
     found = self.service.find_problematic_elements(error, all_ts)
     self.assertEquals([(self.service.add_label_and_retry,
-                        'application', 
+                        'application',
                         'FOUND-TYPE', all_ts[1])], found)
 
   def test_add_label_and_retry_no_descriptor(self):
-    ts = 'OPAQUE'
+    timeseries = 'OPAQUE'
 
     status = ResponseStatus(404, 'Not Found')
     self.mockMetricDescriptors.get.side_effect = HttpError(
         status, 'Not Found')
 
-    self.service.add_label_and_retry('NewLabel', 'ExistingType', ts)
+    self.service.add_label_and_retry('NewLabel', 'ExistingType', timeseries)
     self.assertEquals(0, self.mockStub.projects.list.call_count)
     self.assertEquals(1, self.mockMetricDescriptors.get.call_count)
     self.assertEquals(0, self.mockMetricDescriptors.delete.call_count)
     self.assertEquals(0, self.mockMetricDescriptors.create.call_count)
     self.assertEquals(0, self.mockTimeSeries.create.call_count)
 
-  def test_add_label_and_retry_cannot_delete(self):
-    ts = 'OPAQUE'
+  def test_add_label_already_present(self):
+    timeseries = 'OPAQUE'
 
     original_descriptor = {'type': 'TYPE',
                            'labels': [{'key': 'TestLabel'}]}
-    self.mockMetricDescriptors.get.side_effect = original_descriptor
+    self.mockGetDescriptor.execute.side_effect = [original_descriptor]
 
-    self.service.add_label_and_retry('TestLabel', 'ExistingType', ts)
+    self.service.add_label_and_retry('TestLabel', 'ExistingType', timeseries)
     self.assertEquals(0, self.mockStub.projects.list.call_count)
     self.assertEquals(1, self.mockMetricDescriptors.get.call_count)
     self.assertEquals(0, self.mockMetricDescriptors.delete.call_count)
     self.assertEquals(0, self.mockMetricDescriptors.create.call_count)
-    self.assertEquals(0, self.mockTimeSeries.create.call_count)
+    self.assertEquals(1, self.mockTimeSeries.create.call_count)
 
   def test_add_label_and_retry_cannot_delete(self):
-    ts = 'OPAQUE'
+    timeseries = 'OPAQUE'
 
     original_descriptor = {'labels': [{'key': 'TestLabel'}],
                            'type': 'TYPE'
@@ -134,7 +136,7 @@ class StackdriverMetricsServiceTest(unittest.TestCase):
         ResponseStatus(404, 'Not Found'), 'Not Found')
     self.mockCreateDescriptor.execute.side_effect = [new_descriptor]
 
-    self.service.add_label_and_retry('NewLabel', 'ExistingType', ts)
+    self.service.add_label_and_retry('NewLabel', 'ExistingType', timeseries)
     self.assertEquals(0, self.mockStub.projects.list.call_count)
     self.assertEquals(2, self.mockMetricDescriptors.get.call_count)
     self.assertEquals(1, self.mockMetricDescriptors.delete.call_count)
@@ -142,7 +144,7 @@ class StackdriverMetricsServiceTest(unittest.TestCase):
     self.assertEquals(1, self.mockTimeSeries.create.call_count)
 
   def test_add_label_and_retry_cannot_create(self):
-    ts = 'OPAQUE'
+    timeseries = 'OPAQUE'
 
     original_descriptor = {'labels': [{'key': 'TestLabel'}],
                            'type': 'TYPE'
@@ -154,7 +156,7 @@ class StackdriverMetricsServiceTest(unittest.TestCase):
     self.mockCreateDescriptor.execute.side_effect = HttpError(
         ResponseStatus(404, 'Not Found'), 'Not Found')
 
-    self.service.add_label_and_retry('NewLabel', 'ExistingType', ts)
+    self.service.add_label_and_retry('NewLabel', 'ExistingType', timeseries)
     self.assertEquals(0, self.mockStub.projects.list.call_count)
     self.assertEquals(1, self.mockMetricDescriptors.get.call_count)
     self.assertEquals(1, self.mockMetricDescriptors.delete.call_count)

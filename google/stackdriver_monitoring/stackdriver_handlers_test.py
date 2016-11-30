@@ -1,4 +1,5 @@
 import mock
+from mock import patch
 from mock import Mock
 
 import collections
@@ -37,9 +38,9 @@ class UpsertHandlerTest(unittest.TestCase):
     mockStub.new_batch_http_request = Mock()
     self.fake_batch_list = []
 
-    stackdriver = StackdriverMetricsService(mockStub, options)
+    stackdriver = StackdriverMetricsService(lambda: mockStub, options)
     self.upsertHandler = stackdriver_handlers.UpsertCustomDescriptorsHandler(
-        options, stackdriver)
+        None, options, None)
 
     self.mockProjects = mock.create_autospec(['metricDescriptors'])
     self.mockMetricDescriptors = mock.create_autospec(
@@ -68,20 +69,18 @@ class UpsertHandlerTest(unittest.TestCase):
 
   def do_upsert_handler(
         self, have_descriptors, want_descriptors, batch_responses=None):
-    request = command_processor.CommandRequest(options=self.options)
-    path = '/'
-    params = {}
-    fragment = ''
-
     for batch_response in batch_responses or []:
       self.fake_batch_list.append(FakeBatch(batch_response))
       self.mockStub.new_batch_http_request.side_effect = self.fake_batch_list
 
+    params = {'source_path': 'IgnoreThis', 'project': self.options['project']}
     execute = Mock(return_value={'metricDescriptors': have_descriptors})
     self.mockListDescriptors.execute = execute
-    self.upsertHandler(request, path, params, fragment, want_descriptors)
+    self.upsertHandler.process_commandline_request(params, want_descriptors)
 
-  def test_keep_existing(self):
+  @patch('stackdriver_service.make_service')
+  def test_keep_existing(self, mockMakeService):
+    mockMakeService.side_effect = [self.stackdriver]
     typeA = 'custom.googleapis.com/spinnaker/rosco/a'
     typeB = 'custom.googleapis.com/spinnaker/rosco/b'
     descriptors = [
@@ -100,7 +99,9 @@ class UpsertHandlerTest(unittest.TestCase):
     self.mockMetricDescriptors.list.assert_called_once_with(
         name='projects/{0}'.format(self.project))
 
-  def test_create_new(self):
+  @patch('stackdriver_service.make_service')
+  def test_create_new(self, mockMakeService):
+    mockMakeService.side_effect = [self.stackdriver]
     typeA = 'custom.googleapis.com/spinnaker/rosco/a'
     typeB = 'custom.googleapis.com/spinnaker/rosco/b'
     typeC = 'custom.googleapis.com/spinnaker/rosco/c'
@@ -131,7 +132,9 @@ class UpsertHandlerTest(unittest.TestCase):
          mock.call(name='projects/{0}'.format(self.project),
                    body=descriptors[2])])
 
-  def test_update_existing(self):
+  @patch('stackdriver_service.make_service')
+  def test_update_existing(self, mockMakeService):
+    mockMakeService.side_effect = [self.stackdriver]
     typeA = 'custom.googleapis.com/spinnaker/rosco/a'
     typeB = 'custom.googleapis.com/spinnaker/rosco/b'
     typeC = 'custom.googleapis.com/spinnaker/rosco/c'
@@ -179,7 +182,9 @@ class UpsertHandlerTest(unittest.TestCase):
          mock.call(name='projects/{0}'.format(self.project),
                    body=updated_descriptors[1])])
 
-  def test_update_failure_and_restore(self):
+  @patch('stackdriver_service.make_service')
+  def test_update_failure_and_restore(self, mockMakeService):
+    mockMakeService.side_effect = [self.stackdriver]
     typeA = 'custom.googleapis.com/spinnaker/rosco/a'
     typeB = 'custom.googleapis.com/spinnaker/rosco/b'
     typeC = 'custom.googleapis.com/spinnaker/rosco/c'

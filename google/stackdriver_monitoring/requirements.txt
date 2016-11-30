@@ -1,0 +1,10 @@
+--index-url https://pypi.python.org/simple/
+
+datadog
+google-api-python-client
+oauth2client
+urllib3[secure]
+pyopenssl
+
+mock
+

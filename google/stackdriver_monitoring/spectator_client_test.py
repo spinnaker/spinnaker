@@ -100,6 +100,7 @@ class SpectatorClientTest(unittest.TestCase):
   def setUp(self):
     options = {'prototype_path': None, 'host': TEST_HOST}
     self.spectator = spectator_client.SpectatorClient(options)
+    self.default_query_params = '?tagNameRegex=.%2B'  # tagNameRegex=.+
 
   @patch('spectator_client.urllib2.urlopen')
   def test_collect_metrics_no_params(self, mock_urlopen):
@@ -112,7 +113,8 @@ class SpectatorClientTest(unittest.TestCase):
 
     response = self.spectator.collect_metrics(TEST_HOST, port)
     mock_urlopen.assert_called_with(
-        'http://{0}:{1}/spectator/metrics'.format(TEST_HOST, port))
+        'http://{0}:{1}/spectator/metrics{2}'.format(
+          TEST_HOST, port, self.default_query_params))
     self.assertEqual(expect, response)
 
   @patch('spectator_client.urllib2.urlopen')
@@ -120,8 +122,9 @@ class SpectatorClientTest(unittest.TestCase):
     expect = {'bogus': 'Hello, World'}
 
     port = 13246
-    params = {'one': 'First', 'two': 'Second+Part&Third'}
-    encoded_params = {'one': 'First', 'two': 'Second%2BPart%26Third'}
+    params = {'tagNameRegex': 'someName', 'tagValueRegex': 'Second+Part&Third'}
+    encoded_params = {'tagNameRegex': 'someName',
+                      'tagValueRegex': 'Second%2BPart%26Third'}
 
     expected_query = ''
     for key, value in params.items():
@@ -150,7 +153,8 @@ class SpectatorClientTest(unittest.TestCase):
 
     response = self.spectator.scan_by_service(['clouddriver'])
     mock_urlopen.assert_called_with(
-        'http://{0}:7002/spectator/metrics'.format(TEST_HOST))
+        'http://{0}:7002/spectator/metrics{1}'.format(
+          TEST_HOST, self.default_query_params))
     self.assertEqual({'clouddriver': expect}, response)
 
   @patch('spectator_client.urllib2.urlopen')
@@ -167,8 +171,10 @@ class SpectatorClientTest(unittest.TestCase):
                                 mock_gate_response]
 
     response = self.spectator.scan_by_service(['clouddriver', 'gate'])
-    clouddriver_url = 'http://{0}:7002/spectator/metrics'.format(TEST_HOST)
-    gate_url = 'http://{0}:8084/spectator/metrics'.format(TEST_HOST)
+    clouddriver_url = 'http://{0}:7002/spectator/metrics{1}'.format(
+        TEST_HOST, self.default_query_params)
+    gate_url = 'http://{0}:8084/spectator/metrics{1}'.format(
+        TEST_HOST, self.default_query_params)
     self.assertEquals([mock.call(clouddriver_url), mock.call(gate_url)],
                       mock_urlopen.call_args_list)
 
@@ -205,7 +211,8 @@ class SpectatorClientTest(unittest.TestCase):
 
     response = self.spectator.scan_by_type(['clouddriver'])
     mock_urlopen.assert_called_with(
-        'http://{0}:7002/spectator/metrics'.format(TEST_HOST))
+        'http://{0}:7002/spectator/metrics{1}'.format(
+            TEST_HOST, self.default_query_params))
     self.assertEqual(expect, response)
 
   @patch('spectator_client.urllib2.urlopen')
@@ -223,8 +230,10 @@ class SpectatorClientTest(unittest.TestCase):
                                 mock_gate_response]
 
     response = self.spectator.scan_by_type(['clouddriver', 'gate'])
-    clouddriver_url = 'http://{0}:7002/spectator/metrics'.format(TEST_HOST)
-    gate_url = 'http://{0}:8084/spectator/metrics'.format(TEST_HOST)
+    clouddriver_url = 'http://{0}:7002/spectator/metrics{1}'.format(
+        TEST_HOST, self.default_query_params)
+    gate_url = 'http://{0}:8084/spectator/metrics{1}'.format(
+        TEST_HOST, self.default_query_params)
     self.assertEquals([mock.call(clouddriver_url), mock.call(gate_url)],
                       mock_urlopen.call_args_list)
     self.assertEqual(expect, response)
@@ -261,7 +270,8 @@ class SpectatorClientTest(unittest.TestCase):
   def test_filter_name(self):
     prototype = {'metrics': {'tasks': {}}}
     expect = {'applicationName': 'clouddriver',
-              'metrics': {'tasks': CLOUDDRIVER_RESPONSE_OBJ['metrics']['tasks']}}
+              'metrics': {
+                  'tasks': CLOUDDRIVER_RESPONSE_OBJ['metrics']['tasks']}}
     got = self.spectator.filter_metrics(CLOUDDRIVER_RESPONSE_OBJ, prototype)
     self.assertEqual(expect, got)
 

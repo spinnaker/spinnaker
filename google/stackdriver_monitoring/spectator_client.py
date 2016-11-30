@@ -16,9 +16,13 @@
 
 import json
 import logging
+import os
 import threading
 import time
+import socket
 import urllib2
+
+import spinnaker.yaml_util as yaml_util
 
 
 def __foreach_metric_tag_binding(
@@ -58,7 +62,7 @@ def normalize_name_and_tags(name, metric_instance, metric_metadata):
 class SpectatorClient(object):
   """Helper class for pulling data from Spectator servers."""
 
-  SERVICE_PORT_MAP = {
+  DEFAULT_SERVICE_PORT_MAP = {
     'clouddriver': 7002,
     'echo': 8089,
     'fiat': 7003,
@@ -69,10 +73,25 @@ class SpectatorClient(object):
     'rosco': 8087,
   }
 
+  @staticmethod
+  def add_standard_parser_arguments(parser):
+    parser.add_argument('--host', default='localhost',
+                        help='The hostname of the spectator services '
+                        ' containing the services.')
+    parser.add_argument('--prototype_path', default='',
+                        help='Optional filter to restrict metrics of interst.')
+    parser.add_argument('services', nargs='*', default=['all'],
+                        help='The list of services to include, or "all"')
+
   def __init__(self, options):
     self.__host = options['host']
     self.__prototype = None
-    self.__default_scan_params = {}
+    self.__default_scan_params = {'tagNameRegex': '.+'}
+    install_config_dir = os.path.join(
+        os.path.join(os.path.dirname(__file__)), '../../config')
+    user_config_dir = os.path.join(os.environ['HOME'], '.spinnaker')
+    self.__bindings = yaml_util.load_bindings(
+        install_config_dir, user_config_dir)
 
     if options['prototype_path']:
       with open(options['prototype_path']) as fd:
@@ -83,7 +102,15 @@ class SpectatorClient(object):
     sep = '?'
     query = ''
     query_params = dict(self.__default_scan_params)
-    query_params.update(params or {})
+    if params is None:
+      params = {}
+    keys_to_copy = [key
+                    for key in ['tagNameRegex', 'tagValueRegex',
+                                'meterNameRegex']
+                    if key in params]
+    for key in keys_to_copy:
+      query_params[key] = params[key]
+
     for key, value in query_params.items():
       query += sep + key + "=" + urllib2.quote(value)
       sep = "&"
@@ -91,6 +118,10 @@ class SpectatorClient(object):
         host=host, port=port, query=query)
     response = urllib2.urlopen(url)
     all_metrics = json.JSONDecoder(encoding='utf-8').decode(response.read())
+    all_metrics['port'] = port
+    all_metrics['host'] = (socket.getfqdn()
+                           if host in ['localhost', '127.0.0.1', None, '']
+                           else host)
     return (self.filter_metrics(all_metrics, self.__prototype)
             if self.__prototype else all_metrics)
 
@@ -148,18 +179,23 @@ class SpectatorClient(object):
   def scan_by_service(self, service_list, params=None):
     result = {}
     if service_list == ['all']:
-      service_list = self.SERVICE_PORT_MAP.keys()
+      service_list = self.DEFAULT_SERVICE_PORT_MAP.keys()
 
     start = time.time()
     service_time = {service: 0 for service in service_list}
     result = {service: None for service in service_list}
     threads = {}
 
-    def timed_collect(self, service): #, params, service_time, result):
+    def timed_collect(self, service):
       now = time.time()
       try:
-        port = self.SERVICE_PORT_MAP[service]
-        result[service] = self.collect_metrics(self.__host, port, params=params)
+        default_host = self.__bindings.get('services.default.host', self.__host)
+        service_host = self.__bindings.get('services.{0}.host'.format(service),
+                                           default_host)
+        service_port = self.__bindings.get('services.{0}.port'.format(service),
+                                           self.DEFAULT_SERVICE_PORT_MAP[service])
+        result[service] = self.collect_metrics(
+            service_host, service_port, params=params)
       except IOError as ioex:
         logging.getLogger(__name__).error('%s failed: %s', service, ioex)
       service_time[service] = int((time.time() - now) * 1000)
@@ -167,7 +203,7 @@ class SpectatorClient(object):
     for service in service_list:
       threads[service] = threading.Thread(
           target=timed_collect,
-          args=(self, service))#, params, service_time, result))
+          args=(self, service))
       threads[service].start()
     for service in service_list:
       threads[service].join()
@@ -193,5 +229,6 @@ class SpectatorClient(object):
   def service_map_to_type_map(service_map):
     type_map = {}
     for service, got in service_map.items():
-      SpectatorClient.ingest_metrics(service, got, type_map)
+      if got is not None:
+        SpectatorClient.ingest_metrics(service, got, type_map)
     return type_map
