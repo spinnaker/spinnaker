@@ -16,13 +16,17 @@
 
 package com.netflix.spinnaker.igor.travis.client.logparser
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @CompileStatic
 @Slf4j
 class PropertyParser {
+
     static final String MAGIC_SEARCH_STRING = "SPINNAKER_PROPERTY_"
+    static final String MAGIC_JSON_SEARCH_STRING = "SPINNAKER_CONFIG_JSON="
+
     static Map<String, Object> extractPropertiesFromLog(String buildLog) {
         Map<String, Object> map = new HashMap<String, Object>()
         buildLog.split('\n').each { String line ->
@@ -33,6 +37,17 @@ class PropertyParser {
                 String value = splittedLine[1].trim()
                 log.info "${key}:${value}"
                 map.put(key,value)
+            }
+            if (line =~ /^\s*${MAGIC_JSON_SEARCH_STRING}/) {
+                log.debug "Identified Spinnaker JSON properties magic string: ${line}"
+                def jsonContent = line.replaceFirst(MAGIC_JSON_SEARCH_STRING, "")
+                def objectMapper = new ObjectMapper()
+                try {
+                    map.putAll(objectMapper.readValue(jsonContent, Map))
+                } catch (e) {
+                    log.error("Unable to parse content from ${MAGIC_JSON_SEARCH_STRING}. Content is: ${jsonContent}")
+                    throw e
+                }
             }
         }
         map
