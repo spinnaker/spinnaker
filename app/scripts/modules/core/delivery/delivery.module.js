@@ -1,7 +1,7 @@
 'use strict';
 
 import {BUILD_DISPLAY_NAME_FILTER} from './executionBuild/buildDisplayName.filter';
-
+import {STAGE_FAILURE_MESSAGE_COMPONENT} from './stageFailureMessage/stageFailureMessage.component';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.delivery', [
@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.delivery', [
 
   require('./manualExecution/manualPipelineExecution.controller.js'),
 
-  require('./stageFailureMessage/stageFailureMessage.directive.js'),
+  STAGE_FAILURE_MESSAGE_COMPONENT,
   require('./states.js'),
   require('./status/executionStatus.directive.js'),
 

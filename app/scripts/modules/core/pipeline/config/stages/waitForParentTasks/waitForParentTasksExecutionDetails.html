@@ -13,6 +13,6 @@
         <span class="label label-default label-{{task.status.toLowerCase()}}">{{task.status}}</span>
       </div>
     </div>
-    <stage-failure-message is-failed="stage.isFailed" message="stage.failureMessage"></stage-failure-message>
+    <stage-failure-message stage="stage" message="stage.failureMessage"></stage-failure-message>
   </div>
 </div>
