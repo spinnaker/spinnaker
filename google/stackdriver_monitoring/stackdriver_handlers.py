@@ -107,7 +107,7 @@ class BatchProcessor(object):
                    for i in range(self.__num_data)]
       html_body = '{0} {1} of {2}:\n<table>\n{3}\n</table>'.format(
           action, self.num_ok, self.__num_data, '\n'.join(html_rows))
-      html_doc = html_server.build_html_document(
+      html_doc = http_server.build_html_document(
           html_body, title=title)
       return {'ContentType': 'text/html'}, html_doc
 
@@ -286,7 +286,7 @@ class UpsertCustomDescriptorsProcessor(object):
       delete_list: [list of descriptor] The types to delete.
       success_list: [list of descriptor] The types that were actually deleted.
       failed_list: [list of descriptor] The types for which DELETE failed.
-      failed_errors: [list of string] The error messages from the failures.   
+      failed_errors: [list of string] The error messages from the failures.
     """
     get_descriptor_name = lambda descriptor: descriptor['name']
     delete_method = (self.__stackdriver.stub.projects()
@@ -320,7 +320,7 @@ class UpsertCustomDescriptorsProcessor(object):
       delete_list: [list of descriptor] The types to create.
       success_list: [list of descriptor] The types that were actually created.
       failed_list: [list of descriptor] The types for which PUT failed.
-      failed_errors: [list of string] The error messages from the failures.   
+      failed_errors: [list of string] The error messages from the failures.
     """
     get_descriptor_name = lambda descriptor: descriptor['name']
     create_method = (self.__stackdriver.stub.projects()

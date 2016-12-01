@@ -19,7 +19,7 @@ import logging
 import threading
 import time
 import traceback
-from http_server import HttpServer
+import http_server
 
 import command_processor
 import spectator_client
@@ -54,7 +54,7 @@ class HomePageHandler(command_processor.CommandHandler):
                 for row in rows if row[0] is not None]
 
     html_body = '<table>\n{0}\n</table>'.format('\n'.join(row_html))
-    html_doc = request.build_html_document(
+    html_doc = http_server.build_html_document(
         html_body, title='Spinnaker Metrics Administration')
     request.respond(200, {'ContentType': 'application/html'}, html_doc)
 
@@ -82,7 +82,7 @@ class WebserverCommandHandler(command_processor.CommandHandler):
     logging.info('Starting HTTP server on port %d', options['port'])
     url_path_to_handler = {handler.url_path: handler.process_web_request
                            for handler in self.__handler_list}
-    httpd = HttpServer(options['port'], url_path_to_handler)
+    httpd = http_server.HttpServer(options['port'], url_path_to_handler)
     httpd.serve_forever()
 
   def add_argparser(self, subparsers):
@@ -164,6 +164,8 @@ class MonitorCommandHandler(WebserverCommandHandler):
       # There is still going to be jitter on the collection end but we'll at
       # least always start with a steady rhythm.
       delta_time = (period - (int(done) - time_offset)) % period
+      if delta_time == 0 and int(done) == time_offset:
+        delta_time = period
       time.sleep(delta_time)
 
   def add_argparser(self, subparsers):
