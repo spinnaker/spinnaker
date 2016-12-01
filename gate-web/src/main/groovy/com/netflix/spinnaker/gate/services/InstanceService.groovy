@@ -45,7 +45,7 @@ class InstanceService {
         return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
       } as Map<String, String>
 
-      def context = instanceContext + getContext(account, region, instanceId)
+      def context = getContext(account, region, instanceId) + instanceContext
       return instanceDetails + [
           "insightActions": insightConfiguration.instance.findResults { it.applyContext(context) }
       ]
