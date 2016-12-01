@@ -16,9 +16,15 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.providers;
 
+import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.DaemonService;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import lombok.AccessLevel;
+import lombok.Getter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractProviderEnableDisableCommand extends AbstractProviderCommand {
   @Override
@@ -26,15 +32,22 @@ public abstract class AbstractProviderEnableDisableCommand extends AbstractProvi
     return isEnable() ? "enable" : "disable";
   }
 
-  private String futurePerfectAction() {
+  private String subjunctivePerfectAction() {
+    return isEnable() ? "enabled" : "disabled";
+  }
+
+  private String indicativePastPerfectAction() {
     return isEnable() ? "enabled" : "disabled";
   }
 
   protected abstract boolean isEnable();
 
+  @Getter(AccessLevel.PROTECTED)
+  private Map<String, NestableCommand> subcommands = new HashMap<>();
+
   @Override
   public String getDescription() {
-    return "Set the " + getProviderName() + " provider as " + getCommandName() + "d";
+    return "Set the " + getProviderName() + " provider as " + subjunctivePerfectAction();
   }
 
   private void setEnable() {
@@ -46,6 +59,6 @@ public abstract class AbstractProviderEnableDisableCommand extends AbstractProvi
   @Override
   protected void executeThis() {
     setEnable();
-    AnsiUi.success("Successfully " + futurePerfectAction() + getProviderName());
+    AnsiUi.success("Successfully " + indicativePastPerfectAction() + " " + getProviderName());
   }
 }

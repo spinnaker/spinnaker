@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.BaseProviderSubcommandBuilder;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -37,12 +38,7 @@ public class GoogleCommand extends AbstractProviderCommand {
   private String providerName = "google";
 
   public GoogleCommand() {
-    GetGoogleAccountCommand getGoogleAccountCommand = new GetGoogleAccountCommand();
-    EnableGoogleCommand enableGoogleCommand = new EnableGoogleCommand();
-    DisableGoogleCommand disableGoogleCommand = new DisableGoogleCommand();
-
-    this.subcommands.put(getGoogleAccountCommand.getCommandName(), getGoogleAccountCommand);
-    this.subcommands.put(enableGoogleCommand.getCommandName(), enableGoogleCommand);
-    this.subcommands.put(disableGoogleCommand.getCommandName(), disableGoogleCommand);
+    this.subcommands = new BaseProviderSubcommandBuilder().setProviderCommand(this).build();
   }
 }
+

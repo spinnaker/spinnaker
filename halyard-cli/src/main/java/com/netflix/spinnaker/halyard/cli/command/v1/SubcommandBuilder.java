@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
+package com.netflix.spinnaker.halyard.cli.command.v1;
 
-import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractGetAccountCommand;
-import lombok.AccessLevel;
-import lombok.Getter;
+import java.util.Map;
 
-/**
- * Describe a specific kubernetes account
- */
-@Parameters()
-public class GetGoogleAccountCommand extends AbstractGetAccountCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private String providerName = "google";
+public interface SubcommandBuilder {
+  Map<String, NestableCommand> build();
 }

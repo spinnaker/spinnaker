@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers.dockerRegistry;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.dockerRegistry.DisableDockerRegistryCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.dockerRegistry.EnableDockerRegistryCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.dockerRegistry.GetDockerRegistryAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.BaseProviderSubcommandBuilder;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -29,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Interact with the dockerRegistry provider
+ * Describe a specific dockerRegistry account
  */
 @Parameters()
 public class DockerRegistryCommand extends AbstractProviderCommand {
@@ -40,12 +38,6 @@ public class DockerRegistryCommand extends AbstractProviderCommand {
   private String providerName = "dockerRegistry";
 
   public DockerRegistryCommand() {
-    GetDockerRegistryAccountCommand getDockerRegistryAccountCommand = new GetDockerRegistryAccountCommand();
-    EnableDockerRegistryCommand enableDockerRegistryCommand = new EnableDockerRegistryCommand();
-    DisableDockerRegistryCommand disableDockerRegistryCommand = new DisableDockerRegistryCommand();
-
-    this.subcommands.put(getDockerRegistryAccountCommand.getCommandName(), getDockerRegistryAccountCommand);
-    this.subcommands.put(enableDockerRegistryCommand.getCommandName(), enableDockerRegistryCommand);
-    this.subcommands.put(disableDockerRegistryCommand.getCommandName(), disableDockerRegistryCommand);
+    this.subcommands = new BaseProviderSubcommandBuilder().setProviderCommand(this).build();
   }
 }
