@@ -47,7 +47,7 @@ class InstanceService {
 
       def context = instanceContext + getContext(account, region, instanceId)
       return instanceDetails + [
-          "insightActions": insightConfiguration.instance.collect { it.applyContext(context) }
+          "insightActions": insightConfiguration.instance.findResults { it.applyContext(context) }
       ]
     } execute()
   }

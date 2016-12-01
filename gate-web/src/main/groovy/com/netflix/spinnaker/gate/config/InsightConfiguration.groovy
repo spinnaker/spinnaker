@@ -39,8 +39,12 @@ class InsightConfiguration {
 
     String url
     String label
+    String cloudProvider
 
     Map applyContext(Map<String, String> context) {
+      if (cloudProvider && cloudProvider != context.cloudProvider) {
+        return null
+      }
       try {
         return [
           url  : template.make(context.withDefault { null }).toString(),

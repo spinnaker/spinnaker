@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.internal.config
+package com.netflix.spinnaker.gate.config
 
-import com.netflix.spinnaker.gate.config.InsightConfiguration
 import spock.lang.Specification
 
 class InsightConfigurationSpec extends Specification {
@@ -47,5 +46,15 @@ class InsightConfigurationSpec extends Specification {
     new InsightConfiguration.Link(
       url: 'http://${if (publicDnsName) publicDnsName else ""}${if (!publicDnsName) privateDnsName else ""}'
     ).applyContext([privateDnsName: "foobar"]).url == 'http://foobar'
+  }
+
+  void "should filter on cloudProvider"() {
+    setup:
+    def link = new InsightConfiguration.Link(url: 'http://providerLink', cloudProvider: 'aws')
+
+    expect:
+    link.applyContext([:]) == null
+    link.applyContext([cloudProvider: 'titus']) == null
+    link.applyContext([cloudProvider: 'aws']).url == 'http://providerLink'
   }
 }
