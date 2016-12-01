@@ -43,6 +43,11 @@ public class Halconfig extends Node {
   private String halyardVersion;
 
   /**
+   * Version of Spinnaker to deploy.
+   */
+  private String spinnakerVersion;
+
+  /**
    * Current deployment being managed.
    *
    * @see DeploymentConfiguration#getName()

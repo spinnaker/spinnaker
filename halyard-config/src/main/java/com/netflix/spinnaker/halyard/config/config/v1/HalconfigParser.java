@@ -73,6 +73,11 @@ public class HalconfigParser {
     return version;
   }
 
+  @Bean
+  String spinconfigBucket(@Value("${spinnaker.config.bucket:halconfig}") String spinconfigBucket) {
+    return spinconfigBucket;
+  }
+
   @Autowired
   String halconfigPath;
 
