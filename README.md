@@ -11,23 +11,22 @@ the source all configuration for your Spinnaker deployment.
 
 ## halconfig
 
-The halconfig file is central to how Halyard configures your Spinnaker
+The __halconfig__ is a file is central to how Halyard configures your Spinnaker
 deployment. Its goal is to centralize all configuration for your Spinnaker 
 deployment (how to authenticate against your cloud providers, which CI system 
-is in use, Spinnaker monitoring, etc...). It's consumed by the __daemon__ to 
-generate config files for each Spinnaker subcomponent, after it's heavily 
-validated.
+is in use, Spinnaker monitoring, etc...). 
 
 For a detailed description, please read the [design doc](docs/design.md)
 
 ## daemon
 
-The Halyard Daemon runs on a machine that has credentials for your cloud
-provider, and will create/read a halconfig on that machine.
+The __daemon__ validates and generates Spinnaker config using your
+__halconfig__. It must run on a machine that has any credentials needed by
+Spinnaker in order to validate your configuration.
 
 ## hal
 
-__hal__ is a CLI for making changes to your halconfig via the halyard daemon.
+__hal__ is a CLI for making changes to your __halconfig__ via the __daemon__.
 
 ### hal config
 
