@@ -147,7 +147,7 @@ module.exports = angular
     let dryRunStarted = (task) => {
       this.task = task;
       this.state = 'dryRun';
-      taskReader.waitUntilTaskCompletes(application.name, task).then(dryRunComplete, errorMode);
+      taskReader.waitUntilTaskCompletes(task).then(dryRunComplete, errorMode);
     };
 
     let migrationComplete = (task) => {
@@ -158,7 +158,7 @@ module.exports = angular
 
     let migrationStarted = (task) => {
       this.task = task;
-      taskReader.waitUntilTaskCompletes(application.name, task).then(migrationComplete, errorMode);
+      taskReader.waitUntilTaskCompletes(task).then(migrationComplete, errorMode);
     };
 
     let buildMigrationConfig = () => {

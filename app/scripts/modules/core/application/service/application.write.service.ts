@@ -1,10 +1,13 @@
 import * as _ from 'lodash';
 import {Application} from '../application.model';
+import {TASK_EXECUTOR, TaskExecutor} from 'core/task/taskExecutor';
 
 export interface IJob {
   type: string;
-  account: string;
   application: any;
+  account?: string;
+  user?: string;
+  providerType?: string;
 }
 
 export interface IApplicationAttributes {
@@ -18,7 +21,7 @@ export class ApplicationWriter {
 
   static get $inject() { return ['$q', 'taskExecutor', 'recentHistoryService']; }
 
-  public constructor(private $q: ng.IQService, private taskExecutor: any, private recentHistoryService: any) {}
+  public constructor(private $q: ng.IQService, private taskExecutor: TaskExecutor, private recentHistoryService: any) {}
 
   public createApplication(application: IApplicationAttributes): ng.IPromise<any> {
     const jobs: IJob[] = this.buildJobs(application, 'createApplication', _.cloneDeep);
@@ -59,7 +62,7 @@ export class ApplicationWriter {
           type: 'pageApplicationOwner',
           application: application.name,
           message: reason,
-        }
+        } as IJob
       ],
       application: application,
       description: 'Page Application Owner'
@@ -86,6 +89,6 @@ export class ApplicationWriter {
 export const APPLICATION_WRITE_SERVICE = 'spinnaker.core.application.write.service';
 
 angular.module(APPLICATION_WRITE_SERVICE, [
-  require('../../task/taskExecutor.js'),
+  TASK_EXECUTOR,
   require('../../history/recentHistory.service.js'),
 ]).service('applicationWriter', ApplicationWriter);

@@ -1,11 +1,12 @@
 import {Application} from '../application/application.model';
 import modelBuilderModule from '../application/applicationModel.builder';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
+import {TASK_READ_SERVICE, TaskReader} from 'core/task/task.read.service';
 
 describe('Task Data Source', function () {
 
   let application: Application,
-      taskReader: any,
+      taskReader: TaskReader,
       $scope: any,
       applicationModelBuilder: any,
       applicationDataSourceRegistry: any,
@@ -14,13 +15,13 @@ describe('Task Data Source', function () {
   beforeEach(
     angular.mock.module(
       require('./task.dataSource'),
-      require('./task.read.service'),
+      TASK_READ_SERVICE,
       APPLICATION_DATA_SOURCE_REGISTRY,
       modelBuilderModule
     ));
 
   beforeEach(
-    angular.mock.inject(function (_taskReader_: any, _$q_: any, $rootScope: any,
+    angular.mock.inject(function (_taskReader_: TaskReader, _$q_: any, $rootScope: any,
                             _applicationModelBuilder_: any, _applicationDataSourceRegistry_: any) {
       $q = _$q_;
       $scope = $rootScope.$new();

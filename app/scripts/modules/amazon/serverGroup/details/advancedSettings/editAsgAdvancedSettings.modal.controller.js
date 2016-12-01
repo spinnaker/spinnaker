@@ -1,10 +1,12 @@
 'use strict';
 
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.advancedSettings.editAsgAdvancedSettings.modal.controller', [
   require('core/task/monitor/taskMonitor.module.js'),
-  require('core/task/taskExecutor.js'),
+  TASK_EXECUTOR,
   require('../../configure/serverGroupCommandBuilder.service.js'),
 ])
   .controller('EditAsgAdvancedSettingsCtrl', function($scope, $uibModalInstance, taskMonitorService, taskExecutor,

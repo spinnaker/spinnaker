@@ -1,12 +1,13 @@
 import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
+import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.task.dataSource', [
     APPLICATION_DATA_SOURCE_REGISTRY,
-    require('./task.read.service'),
+    TASK_READ_SERVICE,
     require('../cluster/cluster.service'),
   ])
   .run(function($q, applicationDataSourceRegistry, taskReader, clusterService) {

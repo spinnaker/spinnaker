@@ -1,16 +1,17 @@
 'use strict';
 
 import _ from 'lodash';
-
-let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
+import {TASK_READ_SERVICE} from 'core/task/task.read.service';
+
+let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [
     APPLICATION_WRITE_SERVICE,
     ACCOUNT_SERVICE,
-    require('../../task/task.read.service.js'),
+    TASK_READ_SERVICE,
     require('./applicationProviderFields.component.js'),
   ])
   .controller('EditApplicationController', function ($window, $state, $uibModalInstance, application, applicationWriter,
@@ -86,7 +87,7 @@ module.exports = angular
 
       applicationWriter.updateApplication(vm.applicationAttributes)
         .then(
-          (task) => taskReader.waitUntilTaskCompletes(application.name, task).then(closeModal, extractErrorMsg),
+          (task) => taskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),
           () => vm.errorMsgs.push('Could not update application')
         );
     };

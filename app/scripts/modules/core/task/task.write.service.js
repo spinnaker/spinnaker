@@ -1,13 +1,14 @@
 'use strict';
 
 import {API_SERVICE} from 'core/api/api.service';
+import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.task.write.service', [
     API_SERVICE,
-    require('./task.read.service.js'),
+    TASK_READ_SERVICE,
   ])
   .factory('taskWriter', function(API, taskReader, $q, $timeout) {
 
@@ -22,7 +23,7 @@ module.exports = angular
     function cancelTask(application, taskId) {
       return getEndpoint(application).one(taskId).one('cancel').put().then(() =>
         taskReader.getTask(taskId).then((task) =>
-          taskReader.waitUntilTaskMatches(application, task, (task) => task.status === 'CANCELED')
+          taskReader.waitUntilTaskMatches(task, (task) => task.status === 'CANCELED')
         )
       );
     }

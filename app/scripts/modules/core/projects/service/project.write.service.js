@@ -1,10 +1,12 @@
 'use strict';
 
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.projects.write.service', [
-    require('../../task/taskExecutor.js'),
+    TASK_EXECUTOR,
   ])
   .factory('projectWriter', function($q, taskExecutor) {
 

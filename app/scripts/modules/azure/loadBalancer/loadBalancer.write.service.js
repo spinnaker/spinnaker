@@ -1,12 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.azure.loadBalancer.write.service', [
-    require('core/task/taskExecutor.js'),
+    TASK_EXECUTOR,
     require('core/cache/infrastructureCaches.js'),
   ])
   .factory('azureLoadBalancerWriter', function(infrastructureCaches, taskExecutor) {

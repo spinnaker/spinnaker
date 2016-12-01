@@ -1,12 +1,12 @@
 'use strict';
 
+import _ from 'lodash';
 import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
 import {SCROLL_TO_SERVICE} from 'core/utils/scrollTo/scrollTo.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
+import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 
 require('../migrator.less');
-
-import _ from 'lodash';
 
 let angular = require('angular');
 
@@ -21,7 +21,7 @@ module.exports = angular
     require('core/pipeline/config/services/pipelineConfigService.js'),
     SCROLL_TO_SERVICE,
     require('core/cache/cacheInitializer.js'),
-    require('core/task/task.read.service.js'),
+    TASK_READ_SERVICE,
     require('amazon/keyPairs/keyPairs.read.service'),
     require('amazon/vpc/vpc.read.service'),
     require('../migrationWarnings.component'),
@@ -193,7 +193,7 @@ module.exports = angular
     let dryRunStarted = (task) => {
       this.task = task;
       this.state = 'dryRun';
-      taskReader.waitUntilTaskCompletes(application.name, task).then(dryRunComplete, errorMode);
+      taskReader.waitUntilTaskCompletes(task).then(dryRunComplete, errorMode);
     };
 
     let migrationComplete = (task) => {
@@ -215,7 +215,7 @@ module.exports = angular
 
     let migrationStarted = (task) => {
       this.task = task;
-      taskReader.waitUntilTaskCompletes(application.name, task).then(migrationComplete, errorMode);
+      taskReader.waitUntilTaskCompletes(task).then(migrationComplete, errorMode);
     };
 
     this.targetSubnet = 'internal (vpc0)';
