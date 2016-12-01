@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers.dockerRegistry;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -27,15 +26,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This is a top-level command for dealing with your kubernetes provider.
- *
- * Usage is `$ hal config`
+ * Describe a specific dockerRegistry account
  */
 @Parameters()
 public class DockerRegistryCommand extends AbstractProviderCommand {
   @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
-
-  @Getter(AccessLevel.PUBLIC)
   private String providerName = "dockerRegistry";
+
+  public DockerRegistryCommand() {
+    super();
+  }
 }

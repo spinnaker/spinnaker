@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes;
+package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderEnableDisableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Interact with the google provider
+ */
 @Parameters()
-public class DisableKubernetesCommand extends AbstractProviderEnableDisableCommand {
+public class GoogleCommand extends AbstractProviderCommand {
   @Getter(AccessLevel.PROTECTED)
-  private String providerName = "kubernetes";
+  private String providerName = "google";
 
-  @Getter(AccessLevel.PROTECTED)
-  private boolean enable = false;
-
-  @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
+  public GoogleCommand() {
+    super();
+  }
 }
+

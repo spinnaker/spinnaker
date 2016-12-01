@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -38,12 +37,6 @@ public class KubernetesCommand extends AbstractProviderCommand {
   private String providerName = "kubernetes";
 
   public KubernetesCommand() {
-    GetKubernetesAccountCommand getKubernetesAccountCommand = new GetKubernetesAccountCommand();
-    EnableKubernetesCommand enableKubernetesCommand = new EnableKubernetesCommand();
-    DisableKubernetesCommand disableKubernetesCommand = new DisableKubernetesCommand();
-
-    this.subcommands.put(getKubernetesAccountCommand.getCommandName(), getKubernetesAccountCommand);
-    this.subcommands.put(enableKubernetesCommand.getCommandName(), enableKubernetesCommand);
-    this.subcommands.put(disableKubernetesCommand.getCommandName(), disableKubernetesCommand);
+    super();
   }
 }

@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes;
+package com.netflix.spinnaker.halyard.cli.command.v1;
 
-import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractGetAccountCommand;
-import lombok.AccessLevel;
-import lombok.Getter;
-
-/**
- * Describe a specific kubernetes account
- */
-@Parameters()
-public class GetKubernetesAccountCommand extends AbstractGetAccountCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private String providerName = "kubernetes";
+public interface CommandBuilder {
+  NestableCommand build();
 }

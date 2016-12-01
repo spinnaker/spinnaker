@@ -14,25 +14,31 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes;
+package com.netflix.spinnaker.halyard.cli.command.v1.providers;
 
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderEnableDisableCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 
-import java.util.HashMap;
-import java.util.Map;
+public class GetAccountCommandBuilder implements CommandBuilder {
+  @Setter
+  String providerName;
 
-@Parameters()
-public class EnableKubernetesCommand extends AbstractProviderEnableDisableCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private String providerName = "kubernetes";
+  @Override
+  public NestableCommand build() {
+    return new GetAccountCommand(providerName);
+  }
 
-  @Getter(AccessLevel.PROTECTED)
-  private boolean enable = true;
+  @Parameters()
+  private static class GetAccountCommand extends AbstractGetAccountCommand {
+    private GetAccountCommand(String providerName) {
+      this.providerName = providerName;
+    }
 
-  @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
+    @Getter(AccessLevel.PROTECTED)
+    String providerName;
+  }
 }

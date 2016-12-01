@@ -33,8 +33,7 @@ public class HalCommand extends NestableCommand {
   private String commandName = "hal";
 
   public HalCommand() {
-    ConfigCommand config = new ConfigCommand();
-    this.subcommands.put(config.getCommandName(), config);
+    registerSubcommand(new ConfigCommand());
   }
 
   @Override
