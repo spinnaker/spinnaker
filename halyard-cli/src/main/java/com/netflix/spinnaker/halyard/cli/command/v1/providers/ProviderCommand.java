@@ -34,9 +34,6 @@ import java.util.Map;
  */
 @Parameters()
 public class ProviderCommand extends NestableCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
-
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "provider";
 
@@ -44,12 +41,9 @@ public class ProviderCommand extends NestableCommand {
   private String description = "Configure, validate, and view your providers";
 
   public ProviderCommand() {
-    KubernetesCommand kubernetesCommand = new KubernetesCommand();
-    DockerRegistryCommand dockerRegistryCommand = new DockerRegistryCommand();
-    GoogleCommand googleCommand = new GoogleCommand();
-    this.subcommands.put(kubernetesCommand.getCommandName(), kubernetesCommand);
-    this.subcommands.put(dockerRegistryCommand.getCommandName(), dockerRegistryCommand);
-    this.subcommands.put(googleCommand.getCommandName(), googleCommand);
+    registerSubcommand(new KubernetesCommand());
+    registerSubcommand(new DockerRegistryCommand());
+    registerSubcommand(new GoogleCommand());
   }
 
   @Override

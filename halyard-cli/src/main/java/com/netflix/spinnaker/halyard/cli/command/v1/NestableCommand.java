@@ -29,6 +29,7 @@ import lombok.Setter;
 import retrofit.RetrofitError;
 
 import java.net.ConnectException;
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
@@ -68,7 +69,7 @@ public abstract class NestableCommand {
         safeExecuteThis();
       }
     } else {
-      getSubcommands().get(subCommand).execute();
+      subcommands.get(subCommand).execute();
     }
   }
 
@@ -144,7 +145,7 @@ public abstract class NestableCommand {
       usage += " [parameters]";
     }
 
-    if (!getSubcommands().isEmpty()) {
+    if (!subcommands.isEmpty()) {
       usage += " [subcommands]";
     }
 
@@ -188,9 +189,9 @@ public abstract class NestableCommand {
       }
     }
 
-    if (!getSubcommands().isEmpty()) {
+    if (!subcommands.isEmpty()) {
       int maxLen = -1;
-      for (String key : getSubcommands().keySet()) {
+      for (String key : subcommands.keySet()) {
         if (key.length() > maxLen) {
           maxLen = key.length();
         }
@@ -200,12 +201,12 @@ public abstract class NestableCommand {
       paragraph.addSnippet("SUBCOMMANDS").addStyle(AnsiStyle.BOLD);
       story.addNewline();
 
-      for (String key : getSubcommands().keySet()) {
+      for (String key : subcommands.keySet()) {
         paragraph = story.addParagraph().setIndentWidth(indentWidth);
         paragraph.addSnippet(key).addStyle(AnsiStyle.BOLD);
 
         paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
-        paragraph.addSnippet(getSubcommands().get(key).getDescription());
+        paragraph.addSnippet(subcommands.get(key).getDescription());
         story.addNewline();
       }
     }
@@ -215,8 +216,17 @@ public abstract class NestableCommand {
 
   abstract public String getDescription();
   abstract public String getCommandName();
-  abstract protected Map<String, NestableCommand> getSubcommands();
   abstract protected void executeThis();
+
+  private Map<String, NestableCommand> subcommands = new HashMap<>();
+
+  protected void registerSubcommand(NestableCommand subcommand) {
+    String subcommandName = subcommand.getCommandName();
+    if (subcommands.containsKey(subcommandName)) {
+      throw new RuntimeException("Unable to register duplicate subcommand " + subcommandName + " for command " + getCommandName());
+    }
+    subcommands.put(subcommandName, subcommand);
+  }
 
   /**
    * Register all subcommands with this class's commander, and then recursively set the subcommands, configuring their
@@ -227,7 +237,7 @@ public abstract class NestableCommand {
       fullCommandName = getCommandName();
     }
 
-    for (NestableCommand subCommand: getSubcommands().values()) {
+    for (NestableCommand subCommand: subcommands.values()) {
       subCommand.fullCommandName = fullCommandName + " " + subCommand.getCommandName();
 
       commander.addCommand(subCommand.getCommandName(), subCommand);

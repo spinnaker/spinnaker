@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.BaseProviderSubcommandBuilder;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -32,13 +31,10 @@ import java.util.Map;
 @Parameters()
 public class GoogleCommand extends AbstractProviderCommand {
   @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
-
-  @Getter(AccessLevel.PROTECTED)
   private String providerName = "google";
 
   public GoogleCommand() {
-    this.subcommands = new BaseProviderSubcommandBuilder().setProviderCommand(this).build();
+    super();
   }
 }
 

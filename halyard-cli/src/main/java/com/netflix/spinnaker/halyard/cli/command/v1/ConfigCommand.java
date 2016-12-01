@@ -31,15 +31,11 @@ import java.util.Map;
  */
 @Parameters()
 public class ConfigCommand extends NestableCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
-
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "config";
 
   ConfigCommand() {
-    ProviderCommand providerCommand = new ProviderCommand();
-    this.subcommands.put(providerCommand.getCommandName(), providerCommand);
+    registerSubcommand(new ProviderCommand());
   }
 
   @Override

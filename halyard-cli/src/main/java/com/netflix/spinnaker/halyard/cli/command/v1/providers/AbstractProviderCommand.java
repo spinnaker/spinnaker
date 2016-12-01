@@ -42,6 +42,27 @@ public abstract class AbstractProviderCommand extends NestableCommand {
     return "Manage Spinnaker configuration for the " + getProviderName() + " provider";
   }
 
+  protected AbstractProviderCommand() {
+    String providerName = getProviderName();
+
+    registerSubcommand(new GetAccountCommandBuilder()
+        .setProviderName(providerName)
+        .build()
+    );
+
+    registerSubcommand(new ProviderEnableDisableCommandBuilder()
+        .setProviderName(providerName)
+        .setEnable(false)
+        .build()
+    );
+
+    registerSubcommand(new ProviderEnableDisableCommandBuilder()
+        .setProviderName(providerName)
+        .setEnable(false)
+        .build()
+    );
+  }
+
   private Provider getProvider() {
     DaemonService service = Daemon.getService();
     String currentDeployment = service.getCurrentDeployment();

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers.dockerRegistry;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.BaseProviderSubcommandBuilder;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -32,12 +31,9 @@ import java.util.Map;
 @Parameters()
 public class DockerRegistryCommand extends AbstractProviderCommand {
   @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
-
-  @Getter(AccessLevel.PROTECTED)
   private String providerName = "dockerRegistry";
 
   public DockerRegistryCommand() {
-    this.subcommands = new BaseProviderSubcommandBuilder().setProviderCommand(this).build();
+    super();
   }
 }
