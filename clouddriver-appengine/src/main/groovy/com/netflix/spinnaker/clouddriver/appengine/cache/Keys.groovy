@@ -81,9 +81,8 @@ class Keys {
       case Namespace.LOAD_BALANCERS.ns:
         result << [
           account: parts[2],
-          application: parts[3],
-          name: parts[4],
-          loadBalancer: parts[4]
+          name: parts[3],
+          loadBalancer: parts[3]
         ]
         break
       case Namespace.SERVER_GROUPS.ns:
@@ -118,8 +117,8 @@ class Keys {
   static String getInstanceKey(String account, String instanceName) {
     "$AppEngineCloudProvider.ID:${Namespace.INSTANCES}:${account}:${instanceName}"
   }
-  static String getLoadBalancerKey(String account, String application, String loadBalancerName) {
-    "$AppEngineCloudProvider.ID:${Namespace.LOAD_BALANCERS}:${account}:${application}:${loadBalancerName}"
+  static String getLoadBalancerKey(String account, String loadBalancerName) {
+    "$AppEngineCloudProvider.ID:${Namespace.LOAD_BALANCERS}:${account}:${loadBalancerName}"
   }
 
   static String getServerGroupKey(String account, String serverGroupName, String region) {

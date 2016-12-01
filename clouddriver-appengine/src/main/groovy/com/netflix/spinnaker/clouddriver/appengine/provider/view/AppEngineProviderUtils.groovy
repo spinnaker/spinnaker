@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.clouddriver.appengine.cache.Keys
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
+import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineLoadBalancer
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineServerGroup
 
 class AppEngineProviderUtils {
@@ -42,6 +43,18 @@ class AppEngineProviderUtils {
     instance.serverGroup = serverGroup
 
     instance
+  }
+
+  static AppEngineLoadBalancer loadBalancerFromCacheData(ObjectMapper objectMapper,
+                                                         CacheData loadBalancerData,
+                                                         Set<AppEngineServerGroup> serverGroups) {
+    def loadBalancer = objectMapper.convertValue(loadBalancerData.attributes.loadBalancer, AppEngineLoadBalancer)
+    loadBalancer.setLoadBalancerServerGroups(serverGroups)
+    loadBalancer
+  }
+
+  static Collection<CacheData> resolveRelationshipData(Cache cacheView, CacheData source, String relationship) {
+    cacheView.getAll(relationship, source?.relationships?.get(relationship) ?: [])
   }
 
   static Collection<CacheData> resolveRelationshipDataForCollection(Cache cacheView,

@@ -228,7 +228,7 @@ class AppEngineServerGroupCachingAgent extends AbstractAppEngineCachingAgent imp
           def serverGroupKey = Keys.getServerGroupKey(accountName, serverGroupName, credentials.region)
           def applicationKey = Keys.getApplicationKey(applicationName)
           def clusterKey = Keys.getClusterKey(accountName, applicationName, clusterName)
-          def loadBalancerKey = Keys.getLoadBalancerKey(accountName, applicationName, loadBalancerName)
+          def loadBalancerKey = Keys.getLoadBalancerKey(accountName, loadBalancerName)
 
           cachedApplications[applicationKey].with {
             attributes.name = applicationName
@@ -274,7 +274,7 @@ class AppEngineServerGroupCachingAgent extends AbstractAppEngineCachingAgent imp
 
           cachedLoadBalancers[loadBalancerKey].with {
             attributes.name = loadBalancerName
-            attributes.loadBalancer = new AppEngineLoadBalancer(name: loadBalancerName, account: accountName)
+            attributes.loadBalancer = new AppEngineLoadBalancer(loadBalancer, accountName)
             relationships[SERVER_GROUPS.ns].add(serverGroupKey)
             relationships[INSTANCES.ns].addAll(instanceKeys)
           }

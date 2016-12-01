@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.model
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.appengine.v1.model.Service
 import com.netflix.spinnaker.clouddriver.appengine.AppEngineCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
@@ -30,4 +33,46 @@ class AppEngineLoadBalancer implements LoadBalancer, Serializable {
   final String cloudProvider = AppEngineCloudProvider.ID
   String account
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
+  TrafficSplit split
+
+  AppEngineLoadBalancer() { }
+
+  AppEngineLoadBalancer(Service service, String account) {
+    this.name = service.getId()
+    this.account = account
+    this.split = new ObjectMapper().convertValue(service.getSplit(), TrafficSplit)
+  }
+
+  Void setLoadBalancerServerGroups(Set<AppEngineServerGroup> serverGroups) {
+    this.serverGroups = serverGroups?.collect { serverGroup ->
+      def instances = serverGroup.isDisabled() ? [] : serverGroup.instances?.collect { instance ->
+          new LoadBalancerInstance(id: instance.name, health: [state: instance.healthState.toString()])
+        } ?: []
+
+      def detachedInstances = serverGroup.isDisabled() ? serverGroup.instances?.collect { it.name } ?: [] : []
+
+      new LoadBalancerServerGroup(
+        name: serverGroup.name,
+        region: serverGroup.region,
+        isDisabled: serverGroup.isDisabled(),
+        instances: instances as Set,
+        detachedInstances: detachedInstances as Set
+      )
+    } as Set
+    null
+  }
+}
+
+class TrafficSplit {
+  Map<String, Double> allocations
+  ShardBy shardBy
+}
+
+enum ShardBy {
+  /*
+  * See https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services#ShardBy
+  * */
+  UNSPECIFIED,
+  COOKIE,
+  IP,
 }
