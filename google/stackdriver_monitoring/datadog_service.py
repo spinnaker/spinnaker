@@ -99,7 +99,5 @@ def make_datadog_service(options):
   """Create a datadog service instance for interacting with Datadog."""
   app_key = os.environ['DATADOG_APP_KEY']
   api_key = os.environ['DATADOG_API_KEY']
-  host = options['host']
-  if host in ['localhost', '127.0.0.1', None, '']:
-    host = socket.getfqdn()
+  host = socket.getfqdn(options['host'] or '')
   return DatadogMetricsService(api_key=api_key, app_key=app_key, host=host)

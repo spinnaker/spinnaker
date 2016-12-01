@@ -35,6 +35,18 @@ import spectator_client
 logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
 
+def get_aws_identity_document():
+  url = 'http://169.254.169.254/latest/dynamic/instance-identity/document'
+  request = urllib2.Request(url)
+  try:
+    response = urllib2.urlopen(request)
+  except IOError as ioex:
+    logging.info('Cannot read AWS Identity Document, probably not on Amazon Web Services.'
+                 ' url=%s: %s', url, ioex)
+    raise ioex
+  return json.JSONDecoder().decode(response.read())
+
+
 def get_google_metadata(attribute):
   url = os.path.join('http://169.254.169.254/computeMetadata/v1', attribute)
   request = urllib2.Request(url)
@@ -42,8 +54,8 @@ def get_google_metadata(attribute):
   try:
     response = urllib2.urlopen(request)
   except IOError as ioex:
-    print 'CAUGHT ' + str(ioex)
-    print 'request {0}'.format(url)
+    logging.info('Cannot read google metadata, probably not on Google Cloud Platform.'
+                 ' url=%s: %s', url, ioex)
     raise ioex
 
   return response.read()
@@ -68,11 +80,46 @@ class StackdriverMetricsService(object):
 
   @property
   def monitored_resource(self):
-    if self.__monitored_resource is None:
-      project = self.__project
-      zone = self.__options.get('zone', None)
-      instance_id = self.__options.get('instance_id', None)
+    if self.__monitored_resource is not None:
+      return self.__monitored_resource
 
+    if self.__monitored_resource is None:
+      self.__monitored_resource = self.__google_monitored_resource_or_none()
+
+    if self.__monitored_resource is None:
+      self.__monitored_resource = self.__ec2_monitored_resource_or_none()
+
+    if self.__monitored_resource is None:
+      self.__add_source_tag = True
+      self.__monitored_resource = {
+        'type': 'global',
+        'project_id': self.__project
+      }
+
+    logging.info('Monitoring {0}'.format(self.__monitored_resource))
+    return self.__monitored_resource
+
+  def __ec2_monitored_resource_or_none(self):
+    """If deployed on EC2, return the monitored resource, else None."""
+    try:
+      doc = get_aws_identity_document()
+
+      return {
+        'instance_id': doc['instanceId'],
+        'region': doc['region'],
+        'aws_account': doc['accountId'],
+        'project_id': self.__project
+       }
+    except (IOError, ValueError, KeyError) as ioex:
+      return None
+
+  def __google_monitored_resource_or_none(self):
+    """If deployed on GCE, return the monitored resource, else None."""
+    project = self.__project
+    zone = self.__options.get('zone', None)
+    instance_id = self.__options.get('instance_id', None)
+
+    try:
       if not project:
         project = get_google_metadata('project/project-id')
       if not zone:
@@ -80,17 +127,16 @@ class StackdriverMetricsService(object):
       if not instance_id:
         instance_id = int(get_google_metadata('instance/id'))
 
-      self.__monitored_resource = {
-          'type': 'gce_instance',
-          'labels': {
-              'zone': zone,
-              'instance_id': str(instance_id)
-          }
+      return {
+        'type': 'gce_instance',
+        'labels': {
+            'zone': zone,
+            'instance_id': str(instance_id)
+        }
       }
-      logging.info('Monitoring {0}'.format(self.__monitored_resource))
-
-    return self.__monitored_resource
-
+    except IOError as ioex:
+      return None
+    
   def __init__(self, stub_factory, options):
     """Constructor.
 
@@ -116,6 +162,7 @@ class StackdriverMetricsService(object):
     self.__fix_stackdriver_labels_unsafe = options.get(
         'fix_stackdriver_labels_unsafe', False)
     self.__monitored_resource = None
+    self.__add_source_tag = False
 
   @staticmethod
   def add_parser_arguments(parser):
@@ -292,6 +339,9 @@ class StackdriverMetricsService(object):
       'type': self.metric_type(service, name),
       'labels': {tag['key']: tag['value'] for tag in tags}
     }
+    if self.__add_source_tag:
+      metric['labels']['InstanceSrc'] = '{host}:{port}'.format(
+          host=service_metadata['host'], port=service_metadata['port'])
 
     points = [{'interval': {'endTime': self.millis_to_time(e['t'])},
                'value': {'doubleValue': e['v']}}
