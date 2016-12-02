@@ -274,7 +274,7 @@ class AppEngineServerGroupCachingAgent extends AbstractAppEngineCachingAgent imp
 
           cachedLoadBalancers[loadBalancerKey].with {
             attributes.name = loadBalancerName
-            attributes.loadBalancer = new AppEngineLoadBalancer(loadBalancer, accountName)
+            attributes.loadBalancer = new AppEngineLoadBalancer(loadBalancer, accountName, credentials.region)
             relationships[SERVER_GROUPS.ns].add(serverGroupKey)
             relationships[INSTANCES.ns].addAll(instanceKeys)
           }

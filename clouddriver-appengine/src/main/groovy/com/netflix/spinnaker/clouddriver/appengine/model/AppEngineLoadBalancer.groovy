@@ -29,6 +29,7 @@ import groovy.transform.EqualsAndHashCode
 @EqualsAndHashCode(includes = ["name", "account"])
 class AppEngineLoadBalancer implements LoadBalancer, Serializable {
   String name
+  String region
   final String type = AppEngineCloudProvider.ID
   final String cloudProvider = AppEngineCloudProvider.ID
   String account
@@ -37,9 +38,10 @@ class AppEngineLoadBalancer implements LoadBalancer, Serializable {
 
   AppEngineLoadBalancer() { }
 
-  AppEngineLoadBalancer(Service service, String account) {
+  AppEngineLoadBalancer(Service service, String account, String region) {
     this.name = service.getId()
     this.account = account
+    this.region = region;
     this.split = new ObjectMapper().convertValue(service.getSplit(), TrafficSplit)
   }
 
