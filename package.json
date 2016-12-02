@@ -50,9 +50,10 @@
   },
   "scripts": {
     "build": "webpack --bail",
-    "start": "sh ./start.sh",
-    "start-dev-server": "webpack-dev-server",
+    "prestart": "sh ./update_node.sh",
+    "start": "webpack-dev-server",
     "test": "karma start",
+    "clean-install": "rm -rf ./node_modules && sh ./update_node.sh && npm install",
     "postinstall": "typings install",
     "int": "protractor protractor.conf.js"
   },

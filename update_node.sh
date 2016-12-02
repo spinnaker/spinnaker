@@ -13,8 +13,7 @@ if [[ $NODE_VERSION != $npm_package_engines_node ]]; then
       nvm install $npm_package_engines_node
     fi
   else
-    echo "Trying to start Deck with node $NODE_VERSION, nvm not found..."
+    echo "WARNING: could not update to node $NODE_VERSION, nvm not found..."
   fi
 fi
 
-npm run start-dev-server
