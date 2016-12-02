@@ -34,7 +34,8 @@ module.exports = angular
         fallback: '@',
         content: '@',
         placement: '@',
-        expand: '='
+        expand: '=',
+        trigger: '@'
       },
       link: {
         pre: function (scope) {
@@ -42,9 +43,10 @@ module.exports = angular
             if (!scope.content && scope.key) {
               scope.content = helpContentsRegistry.getHelpField(scope.key) || helpContents[scope.key] || scope.fallback;
             }
+            scope.trigger = scope.trigger || 'mouseenter focus';
             scope.contents = {
               content: scope.content,
-              placement: scope.placement || 'top'
+              placement: scope.placement || 'top',
             };
           }
           applyContents();
