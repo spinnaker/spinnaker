@@ -32,6 +32,11 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     return true
   }
 
+  @Override
+  Map getAdditionalRunningStageContext(Stage stage, Map serverGroup) {
+    [ targetDesiredSize: calculateTargetDesiredSize(stage, serverGroup) ]
+  }
+
   static boolean allInstancesMatch(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     if (!(serverGroup?.capacity)) {
       return false
@@ -66,7 +71,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     return healthyCount >= targetDesiredSize
   }
 
-  private static int calculateTargetDesiredSize(Stage stage, Map serverGroup) {
+  static int calculateTargetDesiredSize(Stage stage, Map serverGroup) {
     // favor using configured target capacity whenever available (rather than in-progress server group's desiredCapacity)
     Map capacity = (Map) serverGroup.capacity
     Integer targetDesiredSize = capacity.desired as Integer

@@ -25,9 +25,17 @@ import org.springframework.stereotype.Component
 @Slf4j
 @Component
 class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
+
   @Override
   protected Map<String, List<String>> getServerGroups(Stage stage) {
     (Map<String, List<String>>) stage.context."deploy.server.groups"
+  }
+
+  @Override
+  Map getAdditionalRunningStageContext(Stage stage, Map serverGroup) {
+    return serverGroup.disabled ?
+      [:] :
+      [ targetDesiredSize: WaitForUpInstancesTask.calculateTargetDesiredSize(stage, serverGroup) ]
   }
 
   @Override
