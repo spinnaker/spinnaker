@@ -53,6 +53,10 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
 
       execution.stages.forEach(function(stage) {
         if (!stage.syntheticStageOwner && !hiddenStageTypes.includes(stage.type)) {
+          // HACK: Orca sometimes (always?) incorrectly reports a parent stage as running when a child stage has stopped
+          if (stage.status === 'RUNNING' && stage.after.some(s => s.status === 'STOPPED')) {
+            stage.status = 'STOPPED';
+          }
           let context = stage.context || {};
           stageSummaries.push({
             name: stage.name,
@@ -185,7 +189,13 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
           }
         );
 
-        var currentStage = lastRunningStage || lastFailedStage || lastCanceledStage || lastNotStartedStage || lastStage;
+        var lastStoppedStage = _.findLast(stages,
+          function (childStage) {
+            return childStage.isStopped;
+          }
+        );
+
+        var currentStage = lastRunningStage || lastFailedStage || lastStoppedStage || lastCanceledStage || lastNotStartedStage || lastStage;
         stage.status = currentStage.status;
         // if a stage is running, ignore the endTime of the parent stage
         if (!currentStage.endTime) {

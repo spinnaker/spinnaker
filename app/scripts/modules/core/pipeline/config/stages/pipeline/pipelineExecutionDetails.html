@@ -13,7 +13,7 @@
           <dd ng-if="stage.context.status">{{stage.context.status}}</dd>
         </dl>
       </div>
-      <stage-failure-message is-failed="stage.isFailed" message="stage.failureMessage"></stage-failure-message>
+      <stage-failure-message stage="stage" message="stage.failureMessage"></stage-failure-message>
       <div class="col-md-12">
         <div class="well alert alert-info">
           <a ng-if="stage.context.executionId"

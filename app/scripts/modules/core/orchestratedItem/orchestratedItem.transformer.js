@@ -92,6 +92,11 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
             return item.status === 'TERMINAL';
           },
         },
+        isStopped: {
+          get: function() {
+            return item.status === 'STOPPED';
+          }
+        },
         isActive: {
           get: function() {
             return item.status === 'RUNNING' || item.status === 'SUSPENDED' || item.status === 'NOT_STARTED' || item.status === 'PAUSED';
