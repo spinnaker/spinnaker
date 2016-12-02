@@ -43,9 +43,9 @@ public class ProviderEnableDisableCommandBuilder implements CommandBuilder {
     }
 
     @Getter(AccessLevel.PROTECTED)
-    String providerName;
+    boolean enable;
 
     @Getter(AccessLevel.PROTECTED)
-    boolean enable;
+    private String providerName;
   }
 }

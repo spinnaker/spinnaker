@@ -17,24 +17,17 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractNamedProviderCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Interact with the google provider
  */
 @Parameters()
-public class GoogleCommand extends AbstractProviderCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private String providerName = "google";
-
-  public GoogleCommand() {
-    super();
+public class GoogleCommand extends AbstractNamedProviderCommand {
+  protected String getProviderName() {
+    return "google";
   }
 }
 

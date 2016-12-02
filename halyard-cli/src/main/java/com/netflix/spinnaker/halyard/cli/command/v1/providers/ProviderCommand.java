@@ -24,9 +24,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes.Kuberne
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * This is a top-level command for dealing with your halconfig.
  *

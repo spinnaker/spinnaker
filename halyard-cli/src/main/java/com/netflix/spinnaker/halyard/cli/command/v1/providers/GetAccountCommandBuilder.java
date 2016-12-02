@@ -39,6 +39,6 @@ public class GetAccountCommandBuilder implements CommandBuilder {
     }
 
     @Getter(AccessLevel.PROTECTED)
-    String providerName;
+    private String providerName;
   }
 }
