@@ -7,7 +7,6 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.read.service', [
     API_SERVICE,
-    require('core/cache/deckCacheFactory.js'),
     require('../canary/canary.read.service')
   ])
   .factory('fastPropertyReader', function (API, canaryReadService, $q, $log) {

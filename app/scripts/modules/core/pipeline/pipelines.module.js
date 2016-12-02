@@ -14,5 +14,4 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   AUTHENTICATION,
   COPY_STAGE_MODAL_CONTROLLER,
   require('../notification/notifications.module.js'),
-  require('../cache/deckCacheFactory.js'),
 ]);

@@ -173,6 +173,9 @@ module.exports = angular
       });
     });
   })
+  .run(function (cacheInitializer) {
+    cacheInitializer.initialize();
+  })
   .config(function ($logProvider, statesProvider) {
     statesProvider.setStates();
     $logProvider.debugEnabled(true);

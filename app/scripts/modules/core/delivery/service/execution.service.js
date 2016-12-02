@@ -6,7 +6,6 @@ import {API_SERVICE} from 'core/api/api.service';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.executions.service', [
-  require('core/cache/deckCacheFactory.js'),
   require('../../utils/appendTransform.js'),
   require('../../config/settings.js'),
   require('../filter/executionFilter.model.js'),

@@ -2,9 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.search.service', [
-  require('../cache/deckCacheFactory.js')
-])
+module.exports = angular.module('spinnaker.core.search.service', [])
   .factory('searchService', function($q, $http, $log, settings) {
 
     var defaultPageSize = 500;

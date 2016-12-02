@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.core.task.controller', [
   require('./task.write.service.js'),
   require('../confirmationModal/confirmationModal.service.js'),
   DISPLAYABLE_TASKS_FILTER,
-  require('../cache/deckCacheFactory.js'),
   require('../config/settings.js'),
 ])
   .controller('TasksCtrl', function ($scope, $state, $q, settings, app, viewStateCache, taskWriter, confirmationModalService) {

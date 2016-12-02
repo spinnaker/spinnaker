@@ -1,10 +1,10 @@
 'use strict';
 
+import {DECK_CACHE_FACTORY} from 'core/cache/deckCacheFactory';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.cache.infrastructure', [
-  require('./deckCacheFactory.js')
-])
+module.exports = angular.module('spinnaker.core.cache.infrastructure', [DECK_CACHE_FACTORY])
   .factory('infrastructureCaches', function(deckCacheFactory) {
 
     var caches = Object.create(null);

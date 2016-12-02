@@ -4,9 +4,7 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.cf.instanceType.service', [
-  require('core/cache/deckCacheFactory.js'),
-])
+module.exports = angular.module('spinnaker.cf.instanceType.service', [])
   .factory('cfInstanceTypeService', function ($http, $q) {
 
     var cachedResult = null;
