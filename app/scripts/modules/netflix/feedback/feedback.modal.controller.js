@@ -5,7 +5,6 @@ import {AUTHENTICATION_SERVICE} from '../../core/authentication/authentication.s
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.feedback.modal.controller', [
-  require('core/cache/deckCacheFactory.js'),
   AUTHENTICATION_SERVICE,
   require('core/config/settings.js'),
 ])

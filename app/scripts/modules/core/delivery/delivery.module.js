@@ -23,7 +23,6 @@ module.exports = angular.module('spinnaker.delivery', [
   require('./states.js'),
   require('./status/executionStatus.directive.js'),
 
-  require('../cache/deckCacheFactory.js'),
   require('../utils/appendTransform.js'),
   require('../utils/moment.js'),
 

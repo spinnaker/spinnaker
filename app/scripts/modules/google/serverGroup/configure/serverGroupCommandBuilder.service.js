@@ -7,7 +7,6 @@ let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
-  require('core/cache/deckCacheFactory.js'),
   ACCOUNT_SERVICE,
   require('core/instance/instanceTypeService.js'),
   NAMING_SERVICE,

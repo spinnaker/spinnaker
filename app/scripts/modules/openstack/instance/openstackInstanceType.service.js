@@ -7,7 +7,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.instanceType.service', [
   API_SERVICE,
-  require('core/cache/deckCacheFactory.js'),
   require('core/config/settings.js'),
   require('core/cache/infrastructureCaches.js'),
 ])

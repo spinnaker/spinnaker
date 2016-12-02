@@ -5,7 +5,6 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instanceType.service', [
-  require('../cache/deckCacheFactory.js'),
   require('../cloudProvider/serviceDelegate.service.js'),
 ])
   .factory('instanceTypeService', function ($http, $q, $window, serviceDelegate) {

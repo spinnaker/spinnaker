@@ -1,5 +1,7 @@
 'use strict';
 
+import {DeckCacheService} from 'core/cache/deckCacheFactory';
+
 describe('spinnaker.core.cache.infrastructure', function() {
 
   var infrastructureCaches, deckCacheFactory;
@@ -71,9 +73,9 @@ describe('spinnaker.core.cache.infrastructure', function() {
       infrastructureCaches.createCache('myCache', config);
 
       expect(this.cacheInstantiations.length).toBe(3);
-      expect(this.cacheInstantiations[0].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 0));
-      expect(this.cacheInstantiations[1].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 1));
-      expect(this.cacheInstantiations[2].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 2));
+      expect(this.cacheInstantiations[0].config.storagePrefix).toBe(DeckCacheService.getStoragePrefix('infrastructure:myCache', 0));
+      expect(this.cacheInstantiations[1].config.storagePrefix).toBe(DeckCacheService.getStoragePrefix('infrastructure:myCache', 1));
+      expect(this.cacheInstantiations[2].config.storagePrefix).toBe(DeckCacheService.getStoragePrefix('infrastructure:myCache', 2));
       expect(this.removalCalls.length).toBe(2);
       expect(this.removalCalls).toEqual(['infrastructure:myCache', 'infrastructure:myCache']);
 
@@ -85,8 +87,8 @@ describe('spinnaker.core.cache.infrastructure', function() {
       });
 
       expect(this.cacheInstantiations.length).toBe(2);
-      expect(this.cacheInstantiations[0].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 0));
-      expect(this.cacheInstantiations[1].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 1));
+      expect(this.cacheInstantiations[0].config.storagePrefix).toBe(DeckCacheService.getStoragePrefix('infrastructure:myCache', 0));
+      expect(this.cacheInstantiations[1].config.storagePrefix).toBe(DeckCacheService.getStoragePrefix('infrastructure:myCache', 1));
       expect(this.removalCalls.length).toBe(1);
       expect(this.removalCalls).toEqual(['infrastructure:myCache']);
     });

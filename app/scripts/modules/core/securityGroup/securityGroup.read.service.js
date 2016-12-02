@@ -7,7 +7,6 @@ import {NAMING_SERVICE} from 'core/naming/naming.service';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
-  require('../cache/deckCacheFactory.js'),
   require('../search/search.service.js'),
   NAMING_SERVICE,
   require('../cache/infrastructureCaches.js'),

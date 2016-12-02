@@ -7,7 +7,6 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
   require('../cloudProvider/providerSelection/providerSelection.service.js'),
   require('./filter/loadBalancer.filter.service.js'),
   require('./filter/loadBalancer.filter.model.js'),
-  require('../cache/deckCacheFactory.js'),
   require('../filterModel/filter.tags.directive.js'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
