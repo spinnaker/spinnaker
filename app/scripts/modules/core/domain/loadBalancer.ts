@@ -1,4 +1,5 @@
 import { InstanceCounts } from './instanceCounts';
+import { Instance } from './instance';
 
 export class LoadBalancer {
 
@@ -11,5 +12,7 @@ export class LoadBalancer {
     public serverGroups?: any[],
     public healthState?: string,
     public instanceCounts?: InstanceCounts,
+    public provider?: string,
+    public instances?: Instance[]
   ) { }
 }

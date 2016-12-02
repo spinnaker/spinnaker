@@ -12,3 +12,4 @@ export * from './ICredentials';
 export * from './IVpc';
 export * from './IStage';
 export * from './IPipeline';
+export * from './instance';

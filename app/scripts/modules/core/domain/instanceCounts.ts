@@ -6,4 +6,5 @@ export interface InstanceCounts {
   succeeded: number;
   failed: number;
   unknown: number;
+  outOfService: number;
 }
