@@ -25,6 +25,10 @@ public class Main {
     try {
       hal.execute();
     } catch (Exception e) {
+      if (globalOptions.isDebug()) {
+        e.printStackTrace();
+      }
+
       AnsiUi.error(e.getMessage());
       AnsiUi.remediation("That wasn't supposed to happen.\nPlease report an issue on https://github.com/spinnaker/spinnaker/issues");
       System.exit(1);

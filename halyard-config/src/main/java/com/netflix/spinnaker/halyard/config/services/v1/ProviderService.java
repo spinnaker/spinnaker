@@ -41,7 +41,9 @@ public class ProviderService {
 
   public Provider getProvider(NodeReference reference) {
     String providerName = reference.getDeployment();
-    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile();
+    NodeFilter filter = NodeFilter.makeEmptyFilter()
+        .refineWithReference(reference)
+        .withAnyHalconfigFile();
 
     List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class)
         .stream()
@@ -65,7 +67,9 @@ public class ProviderService {
   }
 
   public List<Provider> getAllProviders(NodeReference reference) {
-    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile().withAnyProvider();
+    NodeFilter filter = NodeFilter.makeEmptyFilter().refineWithReference(reference)
+        .withAnyHalconfigFile()
+        .withAnyProvider();
 
     List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class)
         .stream()
@@ -87,7 +91,10 @@ public class ProviderService {
   }
 
   public void validateProvider(NodeReference reference) {
-    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile().withAnyAccount();
+    NodeFilter filter = NodeFilter.makeEmptyFilter()
+        .refineWithReference(reference)
+        .withAnyHalconfigFile()
+        .withAnyAccount();
 
     validateService.validateMatchingFilter(filter).throwIfProblem();
   }

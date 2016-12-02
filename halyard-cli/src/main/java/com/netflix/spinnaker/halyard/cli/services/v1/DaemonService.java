@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import retrofit.http.*;
 
 import java.util.List;
@@ -37,6 +35,12 @@ public interface DaemonService {
   @GET("/v1/config/deployments/{deployment}/")
   DeploymentConfiguration getDeployment(
       @Path("deployment") String deployment,
+      @Query("validate") boolean validate);
+
+  @POST("/v1/config/deployments/{deployment}/generate/")
+  Void generateDeployment(
+      @Path("deployment") String deployment,
+      @Body String _ignore,
       @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deployment}/providers/{provider}/")

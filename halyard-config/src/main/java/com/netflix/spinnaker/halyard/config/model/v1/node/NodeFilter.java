@@ -64,18 +64,42 @@ public class NodeFilter extends NodeReference {
     return this;
   }
 
-  public static NodeFilter makeRejectAllFilter() {
+  /**
+   * Modifies the current filter to accept anything the reference does.
+   *
+   * @param reference is the reference to accept.
+   */
+  public NodeFilter refineWithReference(NodeReference reference) {
+    halconfigFile = definedOrDefault(reference.halconfigFile, halconfigFile);
+    deployment = definedOrDefault(reference.deployment, deployment);
+    webhook = definedOrDefault(reference.webhook, webhook);
+    provider = definedOrDefault(reference.provider, provider);
+    account = definedOrDefault(reference.account, account);
+    master = definedOrDefault(reference.master, master);
+
+    return this;
+  }
+
+  public static NodeFilter makeAcceptAllFilter() {
+    NodeFilter result = new NodeFilter();
+
+    result.halconfigFile = ANY;
+    result.deployment = ANY;
+    result.webhook = ANY;
+    result.provider = ANY;
+    result.account = ANY;
+    result.master = ANY;
+
+    return result;
+  }
+
+  public static NodeFilter makeEmptyFilter() {
     return new NodeFilter();
   }
 
-  public NodeFilter(NodeReference reference) {
-    this.halconfigFile = reference.halconfigFile;
-    this.deployment = reference.deployment;
-    this.webhook = reference.webhook;
-    this.provider = reference.provider;
-    this.account = reference.account;
-    this.master = reference.master;
-  }
-
   private NodeFilter() { }
+
+  private static String definedOrDefault(String a, String b) {
+    return a != null && !a.isEmpty() ? a : b;
+  }
 }

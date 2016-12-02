@@ -21,9 +21,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.providers.ProviderCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * This is a top-level command for dealing with your halconfig.
  *
@@ -34,13 +31,12 @@ public class ConfigCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "config";
 
+  @Getter(AccessLevel.PUBLIC)
+  private String description = "Configure, validate, and view your halconfig";
+
   ConfigCommand() {
     registerSubcommand(new ProviderCommand());
-  }
-
-  @Override
-  public String getDescription() {
-    return "Configure, validate, and view your halconfig";
+    registerSubcommand(new GenerateCommand());
   }
 
   @Override

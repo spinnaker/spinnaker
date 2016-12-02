@@ -42,7 +42,10 @@ public class AccountService {
   ValidateService validateService;
 
   public List<Account> getAllAccounts(NodeReference reference) {
-    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile().withAnyAccount();
+    NodeFilter filter = NodeFilter.makeEmptyFilter()
+        .refineWithReference(reference)
+        .withAnyHalconfigFile()
+        .withAnyAccount();
 
     List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class)
         .stream()
@@ -60,7 +63,9 @@ public class AccountService {
 
   public Account getAccount(NodeReference reference) {
     String accountName = reference.getAccount();
-    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile();
+    NodeFilter filter = NodeFilter.makeEmptyFilter()
+        .refineWithReference(reference)
+        .withAnyHalconfigFile();
 
     List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class)
         .stream()
@@ -84,7 +89,9 @@ public class AccountService {
   }
 
   public void validateAccount(NodeReference nodeReference) {
-    NodeFilter filter = new NodeFilter(nodeReference).withAnyHalconfigFile();
+    NodeFilter filter = NodeFilter.makeEmptyFilter()
+        .refineWithReference(nodeReference)
+        .withAnyHalconfigFile();
 
     validateService.validateMatchingFilter(filter).throwIfProblem();
   }

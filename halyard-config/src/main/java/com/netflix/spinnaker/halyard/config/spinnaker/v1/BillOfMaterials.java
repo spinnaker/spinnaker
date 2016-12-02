@@ -37,6 +37,7 @@ public class BillOfMaterials {
     Component gate;
     Component igor;
     Component rosco;
+    Component spinnaker;
 
     public String getComponentVersion(ComponentName name) {
       Optional<Field> field = Arrays.stream(SpinnakerComponents.class.getDeclaredFields())
@@ -51,6 +52,8 @@ public class BillOfMaterials {
         return ((Component) field.get().get(this)).getVersion();
       } catch (IllegalAccessException e) {
         throw new RuntimeException(e);
+      } catch (NullPointerException e) {
+        throw new RuntimeException("Spinnaker component " + name.getId() + " is not listed in the BOM");
       }
     }
 
