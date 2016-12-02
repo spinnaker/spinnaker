@@ -43,8 +43,7 @@ class HealthHelper {
 
   /**
    * Return true if platform health was specified in interestingHealthProviderNames, and its state is not 'Down'.
-   * Otherwise, return the value of someAreUp. This method is only intended to be called from
-   * WaitForUpInstancesTask.allInstancesMatch().
+   * Otherwise, return the value of someAreUp.
    */
   static boolean areSomeUpConsideringPlatformHealth(List<Map> healths,
                                                     Collection<String> interestingHealthProviderNames,
@@ -61,8 +60,8 @@ class HealthHelper {
  }
 
   /**
-   * Return true if there is exactly one (filtered) health, it is a platform health, and its state is 'Unknown'. This
-   * method is only intended to be called from WaitForAllInstancesDownTask.hasSucceeded(). Otherwise, return false.
+   * Return true if there is exactly one (filtered) health, it is a platform health, and its state is 'Unknown'.
+   * Otherwise, return false.
    */
   static boolean isDownConsideringPlatformHealth(List<Map> healths) {
     Map platformHealth = findPlatformHealth(healths)
@@ -112,4 +111,38 @@ class HealthHelper {
     boolean noneAreDown = !healths.any { Map health -> health.state == 'Down' }
     return someAreUp && noneAreDown
   }
+
+  static HealthCountSnapshot getHealthCountSnapshot(List<Map> instances, Collection<String> interestingHealthProviderNames) {
+    HealthCountSnapshot snapshot = new HealthCountSnapshot()
+    instances.each { instance ->
+      List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
+      if (areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, healths.any { Map health -> health.state == 'Up' } )) {
+        snapshot.up++
+      } else if (isDownConsideringPlatformHealth(healths) || healths.every { it.state == 'Down' } ) {
+        snapshot.down++
+      } else if (healths.any { it.state == 'OutOfService' } ) {
+        snapshot.outOfService++
+      } else if (healths.any { it.state == 'Starting' } ) {
+        snapshot.starting++
+      } else if (healths.every { it.state == 'Succeeded' } ) {
+        snapshot.succeeded++
+      } else if (healths.any { it.state == 'Failed' } ) {
+        snapshot.failed++
+      } else {
+        snapshot.unknown++
+      }
+    }
+    return snapshot
+  }
+
+  static class HealthCountSnapshot {
+    int up
+    int down
+    int outOfService
+    int starting
+    int succeeded
+    int failed
+    int unknown
+  }
+
 }

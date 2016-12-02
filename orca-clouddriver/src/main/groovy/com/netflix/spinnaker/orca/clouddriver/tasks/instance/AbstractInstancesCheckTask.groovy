@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -26,9 +25,11 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
@@ -61,6 +62,10 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   abstract protected Map<String, List<String>> getServerGroups(Stage stage)
 
   abstract protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames)
+
+  protected Map getAdditionalRunningStageContext(Stage stage, Map serverGroup) {
+    [:]
+  }
 
   // When waiting for up instances during a "Deploy" stage, it is OK for the server group to not exist coming into this
   // task. Instead of failing on a missing server group, we retry the stage until it either succeeds, fails, or times out.
@@ -104,15 +109,13 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
         Collection<String> interestingHealthProviderNames = stage.context.interestingHealthProviderNames as Collection
         def isComplete = hasSucceeded(stage, serverGroup, serverGroup.instances ?: [], interestingHealthProviderNames)
         if (!isComplete) {
-          Map newContext = [:]
+          Map newContext = getAdditionalRunningStageContext(stage, serverGroup)
           if (seenServerGroup && !stage.context.capacitySnapshot) {
-            newContext = [
-              zeroDesiredCapacityCount: 0,
-              capacitySnapshot        : [
+            newContext.zeroDesiredCapacityCount = 0
+            newContext.capacitySnapshot = [
                 minSize        : serverGroup.capacity.min,
                 desiredCapacity: serverGroup.capacity.desired,
                 maxSize        : serverGroup.capacity.max
-              ]
             ]
           }
           if (seenServerGroup) {
@@ -122,6 +125,9 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
               newContext.zeroDesiredCapacityCount = 0
             }
           }
+          newContext.lastCapacityCheck =
+            HealthHelper.getHealthCountSnapshot(serverGroup.instances ?: [], interestingHealthProviderNames)
+
           return new DefaultTaskResult(ExecutionStatus.RUNNING, newContext)
         }
       }
