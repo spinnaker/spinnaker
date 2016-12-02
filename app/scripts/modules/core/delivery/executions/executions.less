@@ -105,4 +105,14 @@ executions {
     fill: @stage-succeeded;
     background-color: @stage-succeeded;
   }
+  &.execution-marker-stopped {
+    fill: @stage-stopped;
+    background-color: @stage-stopped;
+  }
+  &.execution-marker-stopped {
+    &.stage-type-checkpreconditions, &.stage-type-manualjudgment {
+      fill: @stage-stopped-intentional;
+      background-color: @stage-stopped-intentional;
+    }
+  }
 }

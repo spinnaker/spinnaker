@@ -1,18 +1,6 @@
 @import "../../../presentation/less/imports/commonImports.less";
 
 execution {
-  .label-succeeded {
-    background-color: @healthy_green_border;
-  }
-  .label-terminal, .label-terminated {
-    background-color: @unhealthy_red;
-  }
-  .label-failed_continue {
-    background-color: @stage-failed_continue;
-  }
-  .label-running, .label-launched {
-    background-color: @spinnaker-blue;
-  }
   .label {
     text-transform: uppercase;
     border-radius: 0;
@@ -21,6 +9,24 @@ execution {
     .glyphicon {
       color: #ffffff;
     }
+    &.label-succeeded {
+      background-color: @healthy_green_border;
+    }
+    &.label-terminal, &.label-terminated {
+      background-color: @unhealthy_red;
+    }
+    &.label-failed_continue {
+      background-color: @stage-failed_continue;
+      color: @text-color;
+    }
+    &.label-running, &.label-launched {
+      background-color: @spinnaker-blue;
+    }
+    &.label-stopped {
+      background-color: @stage-stopped;
+      color: @text-color;
+    }
+
   }
   .timestamp {
     color: @mid_grey;
