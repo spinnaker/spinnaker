@@ -36,9 +36,7 @@ module.exports = angular
         let regions;
 
         let setRegionList = () => {
-          let accountFilter = (cluster) => {
-            return cluster ? cluster.account === vm.component.credentials : true;
-          };
+          let accountFilter = (cluster) => cluster ? cluster.account === vm.component.credentials : true;
           let regionList = appListExtractorService.getRegions([vm.application], accountFilter);
           vm.regions = showAllRegions ? regions : regionList.length ? regionList : regions;
         };

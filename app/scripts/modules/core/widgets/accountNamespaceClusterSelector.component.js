@@ -33,7 +33,7 @@ module.exports = angular
         let namespaces;
 
         let setNamespaceList = () => {
-          let accountFilter = (cluster) => cluster.account === vm.component.credentials;
+          let accountFilter = (cluster) => cluster ? cluster.account === vm.component.credentials : true;
           // TODO(lwander): Move away from regions to namespaces here.
           let namespaceList = appListExtractorService.getRegions([vm.application], accountFilter);
           vm.namespaces = namespaceList.length ? namespaceList : namespaces;
