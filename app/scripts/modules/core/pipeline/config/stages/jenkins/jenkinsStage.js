@@ -18,6 +18,13 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
       templateUrl: require('./jenkinsStage.html'),
       executionDetailsUrl: require('./jenkinsExecutionDetails.html'),
       executionLabelTemplateUrl: require('./jenkinsExecutionLabel.html'),
+      extraLabelLines: (stage) => {
+        if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
+          return 0;
+        }
+        let lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
+        return lines + (stage.masterStage.context.buildInfo.testResults || []).length;
+      },
       defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
       validators: [
         { type: 'requiredField', fieldName: 'job', },
