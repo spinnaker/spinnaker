@@ -16,12 +16,12 @@ module.exports = angular
       return API.one('applications').one(application).all('clusters').all(account).all(clusterName).one('serverGroups', serverGroupName);
     }
 
-    function getScalingActivities(application, account, clusterName, serverGroupName, region, provider) {
-      return getServerGroupEndpoint(application, account, clusterName, serverGroupName)
+    function getScalingActivities(serverGroup) {
+      return getServerGroupEndpoint(serverGroup.app, serverGroup.account, serverGroup.cluster, serverGroup.name)
         .all('scalingActivities')
         .withParams({
-          region: region,
-          provider: provider
+          region: serverGroup.region,
+          provider: serverGroup.provider
         })
         .getList()
         .then(function(activities) {

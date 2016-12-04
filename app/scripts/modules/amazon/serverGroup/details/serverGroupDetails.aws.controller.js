@@ -1,11 +1,11 @@
 'use strict';
 
 import _ from 'lodash';
-
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {VIEW_SCALING_ACTIVITIES_LINK} from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
 require('../configure/serverGroup.configure.aws.module.js');
 
 let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
   require('angular-ui-router'),
@@ -15,6 +15,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('core/overrideRegistry/override.registry.js'),
   ACCOUNT_SERVICE,
+  VIEW_SCALING_ACTIVITIES_LINK,
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
   require('core/serverGroup/serverGroup.read.service.js'),
@@ -24,7 +25,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('./scalingPolicy/scalingPolicySummary.component.js'),
   require('./scheduledAction/scheduledAction.directive.js'),
   require('core/insight/insightFilterState.model.js'),
-  require('./scalingActivities/scalingActivities.controller.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('core/utils/selectOnDblClick.directive.js'),
@@ -350,19 +350,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
           title: () => 'Clone ' + serverGroup.name,
           application: () => app,
           serverGroupCommand: () => awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup),
-        }
-      });
-    };
-
-    this.showScalingActivities = () => {
-      $uibModal.open({
-        templateUrl: require('./scalingActivities/scalingActivities.html'),
-        controller: 'ScalingActivitiesCtrl as ctrl',
-        resolve: {
-          applicationName: () => app.name,
-          account: () => this.serverGroup.account,
-          clusterName: () => this.serverGroup.cluster,
-          serverGroup: () => this.serverGroup
         }
       });
     };
