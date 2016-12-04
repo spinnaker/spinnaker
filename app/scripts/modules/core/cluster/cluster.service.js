@@ -34,6 +34,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
 
     function parseName(serverGroup) {
       var nameParts = namingService.parseServerGroupName(serverGroup.name);
+      serverGroup.app = nameParts.application;
       serverGroup.stack = nameParts.stack;
       serverGroup.detail = nameParts.freeFormDetails;
     }
