@@ -262,7 +262,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
           scope.graphHeight = 0;
           scope.nodes.forEach(function(nodes) {
             nodes.forEach(function(node) {
-              placeholderNode.html('<a href>' + node.name + '</a>');
+              const extraLines = node.extraLabelLines ? '<div>x</div>'.repeat(node.extraLabelLines) : '';
+              placeholderNode.html('<a href>' + node.name + extraLines + '</a>');
               node.height = placeholderNode.height() + scope.rowPadding;
             });
             scope.graphHeight = Math.max(_.sumBy(nodes, 'height'), scope.graphHeight);

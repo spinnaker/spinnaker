@@ -24,6 +24,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.docker.bakeStage'
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       executionLabelTemplateUrl: require('core/pipeline/config/stages/bake/bakeExecutionLabel.html'),
+      extraLabelLines: (stage) => {
+        return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
+      },
       defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
       validators: [
         { type: 'requiredField', fieldName: 'package', },

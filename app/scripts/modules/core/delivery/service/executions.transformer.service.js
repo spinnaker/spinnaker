@@ -262,6 +262,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       var stageConfig = pipelineConfig.getStageConfig(stage);
       if (stageConfig) {
         stage.labelTemplateUrl = stageConfig.executionLabelTemplateUrl || executionBarLabelTemplate;
+        stage.extraLabelLines = stageConfig.extraLabelLines;
       }
     }
 

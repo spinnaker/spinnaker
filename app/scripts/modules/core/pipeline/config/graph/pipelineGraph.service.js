@@ -21,6 +21,7 @@ module.exports = angular
           stage: stage,
           masterStage: stage.masterStage,
           labelTemplateUrl: stage.labelTemplateUrl,
+          extraLabelLines: stage.extraLabelLines ? stage.extraLabelLines(stage) : 0,
           parents: [],
           children: [],
           parentLinks: [],
