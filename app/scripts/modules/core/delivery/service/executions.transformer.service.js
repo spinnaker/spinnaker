@@ -309,9 +309,29 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       summary.stages.forEach(transformStage);
       summary.stages.forEach((stage) => delete stage.stages);
       summary.masterStageIndex = summary.stages.includes(summary.masterStage) ? summary.stages.indexOf(summary.masterStage) : 0;
+      filterStages(summary);
+      setFirstActiveStage(summary);
       transformStage(summary);
       styleStage(summary);
       orchestratedItemTransformer.defineProperties(summary);
+    }
+
+    function filterStages(summary) {
+      const stageConfig = pipelineConfig.getStageConfig(summary.masterStage);
+      if (stageConfig && stageConfig.stageFilter) {
+        summary.stages = summary.stages.filter(stageConfig.stageFilter);
+      }
+    }
+
+    function setFirstActiveStage(summary) {
+      summary.firstActiveStage = 0;
+      let steps = summary.stages || [];
+      if (steps.find(s => s.isRunning)) {
+        summary.firstActiveStage = steps.findIndex(s => s.isRunning);
+      }
+      if (steps.find(s => s.isFailed)) {
+        summary.firstActiveStage = steps.findIndex(s => s.isFailed);
+      }
     }
 
     return {

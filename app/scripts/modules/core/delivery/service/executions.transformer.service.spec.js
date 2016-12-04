@@ -206,6 +206,47 @@ describe('executionTransformerService', function() {
     });
   });
 
+  describe('firstActiveStage', function () {
+    it('should set the active stage to the first running stage', function () {
+      var execution = {
+        stages: [
+          { id: '2', name: 'deploy', status: 'RUNNING', startTime: null, endTime: 8 },
+          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED'},
+          { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'RUNNING'},
+          { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'RUNNING'},
+        ]
+      };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.stageSummaries[0].firstActiveStage).toBe(1);
+    });
+
+    it('should set the active stage to zero if none found', function () {
+      var execution = {
+        stages: [
+          { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: null, endTime: 8 },
+          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED'},
+          { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED'},
+          { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'SUCCEEDED'},
+        ]
+      };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.stageSummaries[0].firstActiveStage).toBe(0);
+    });
+
+    it('should set the active stage to the first failed stage if one found', function () {
+      var execution = {
+        stages: [
+          { id: '2', name: 'deploy', status: 'TERMINAL', startTime: null, endTime: 8 },
+          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED'},
+          { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED'},
+          { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'TERMINAL'},
+        ]
+      };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.stageSummaries[0].firstActiveStage).toBe(2);
+    });
+  });
+
   describe('buildInfo', function () {
     let deployStage, lastBuild, parentBuild, triggerBuild;
 

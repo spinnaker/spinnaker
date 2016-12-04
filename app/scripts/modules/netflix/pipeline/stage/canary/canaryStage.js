@@ -19,6 +19,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
         executionDetailsUrl: require('./canaryExecutionDetails.html'),
         executionSummaryUrl: require('./canaryExecutionSummary.html'),
         executionLabelTemplateUrl: require('./canaryExecutionLabel.html'),
+        stageFilter: (stage) => ['canaryDeployment', 'canary'].includes(stage.type),
         controller: 'CanaryStageCtrl',
         controllerAs: 'canaryStageCtrl',
         validators: [

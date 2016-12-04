@@ -45,7 +45,12 @@ module.exports = angular
         $state.go('^');
         return;
       }
-      const params = { executionId: node.executionId, stage: node.index};
+      const params = {
+        executionId: node.executionId,
+        stage: node.index,
+        step: this.execution.stageSummaries[node.index].firstActiveStage
+      };
+
       if ($state.includes('**.execution', params)) {
         if (!this.standalone) {
           $state.go('^');
