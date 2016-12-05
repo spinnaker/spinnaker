@@ -31,13 +31,14 @@ class AzureCredentials {
   final String subscriptionId
   final String defaultKeyVault
   final String defaultResourceGroup
+  final String userAgentApplicationName
 
   final AzureResourceManagerClient resourceManagerClient
   final AzureNetworkClient networkClient
   final AzureComputeClient computeClient
   final AzureStorageClient storageClient
 
-  AzureCredentials(String tenantId, String clientId, String appKey, String subscriptionId, String defaultKeyVault, String defaultResourceGroup) {
+  AzureCredentials(String tenantId, String clientId, String appKey, String subscriptionId, String defaultKeyVault, String defaultResourceGroup, String userAgentApplicationName) {
     this.tenantId = tenantId
     this.clientId = clientId
     this.appKey = appKey
@@ -45,16 +46,17 @@ class AzureCredentials {
     this.project = "AzureProject"
     this.defaultKeyVault = defaultKeyVault
     this.defaultResourceGroup = defaultResourceGroup
+    this.userAgentApplicationName = userAgentApplicationName
 
     def token = AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey)
 
-    resourceManagerClient = new AzureResourceManagerClient(this.subscriptionId, token)
+    resourceManagerClient = new AzureResourceManagerClient(this.subscriptionId, token, userAgentApplicationName)
 
-    networkClient = new AzureNetworkClient(this.subscriptionId, token)
+    networkClient = new AzureNetworkClient(this.subscriptionId, token, userAgentApplicationName)
 
-    computeClient = new AzureComputeClient(this.subscriptionId, token)
+    computeClient = new AzureComputeClient(this.subscriptionId, token, userAgentApplicationName)
 
-    storageClient = new AzureStorageClient(this.subscriptionId, token)
+    storageClient = new AzureStorageClient(this.subscriptionId, token, userAgentApplicationName)
     registerProviders()
   }
 

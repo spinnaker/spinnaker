@@ -19,12 +19,16 @@ package com.netflix.spinnaker.clouddriver.azure.client
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.microsoft.azure.AzureServiceClient
 import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
 import com.microsoft.azure.credentials.AzureEnvironment
 import com.microsoft.rest.ServiceResponse
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 
 @Slf4j
 @CompileStatic
@@ -32,15 +36,17 @@ public abstract class AzureBaseClient {
   final String subscriptionId
   final static long AZURE_ATOMICOPERATION_RETRY = 5
   static ObjectMapper mapper
+  final String userAgentApplicationName
 
   /**
    * Constructor
    * @param subscriptionId - the Azure subscription to use
    */
-  protected AzureBaseClient(String subscriptionId) {
+  protected AzureBaseClient(String subscriptionId, String userAgentAppName) {
     this.subscriptionId = subscriptionId
     mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    this.userAgentApplicationName = userAgentAppName
   }
 
   /**
@@ -189,5 +195,22 @@ public abstract class AzureBaseClient {
    * @return namespace of the resource provider
    */
   protected abstract String getProviderNamespace()
+
+  protected static void setUserAgent(AzureServiceClient client, String userAgentString, boolean useUniqueID = false) {
+    client.getClientInterceptors().add(new Interceptor() {
+      @Override
+      Response intercept(Interceptor.Chain chain) throws IOException {
+        Request.Builder builder = chain.request().newBuilder()
+        def oldHeaderValue = chain.request().header("User-Agent")
+        def userAgentValue = oldHeaderValue ? "${userAgentString} ${oldHeaderValue}" : "${userAgentString}"
+        builder.header("User-Agent", userAgentValue)
+        // TODO: work around for SDK issue; not all the API's will accept the same client-request-id
+        if (useUniqueID) {
+          builder.header("x-ms-client-request-id", UUID.randomUUID().toString())
+        }
+        return chain.proceed(builder.build())
+      }
+    })
+  }
 
 }

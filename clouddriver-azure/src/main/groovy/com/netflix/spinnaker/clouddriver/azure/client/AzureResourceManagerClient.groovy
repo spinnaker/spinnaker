@@ -37,6 +37,9 @@ import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 
 @Slf4j
@@ -49,8 +52,8 @@ class AzureResourceManagerClient extends AzureBaseClient {
    * @param subscriptionId - Azure Subscription ID
    * @param credentials - Token Credentials to use for communication with Auzre
    */
-  AzureResourceManagerClient(String subscriptionId, ApplicationTokenCredentials credentials) {
-    super(subscriptionId)
+  AzureResourceManagerClient(String subscriptionId, ApplicationTokenCredentials credentials, String userAgentApplicationName = "") {
+    super(subscriptionId, userAgentApplicationName)
     this.client = initializeClient(credentials)
   }
 
@@ -280,6 +283,10 @@ class AzureResourceManagerClient extends AzureBaseClient {
     ResourceManagementClient resourceManagementClient = new ResourceManagementClientImpl(credentials)
     resourceManagementClient.setSubscriptionId(this.subscriptionId)
     resourceManagementClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
+
+    // Add Azure Spinnaker telemetry capturing
+    setUserAgent(resourceManagementClient, userAgentApplicationName)
+
     resourceManagementClient
   }
 

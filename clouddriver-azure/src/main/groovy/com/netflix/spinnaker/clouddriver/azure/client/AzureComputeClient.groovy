@@ -37,12 +37,12 @@ public class AzureComputeClient extends AzureBaseClient {
   private final ComputeManagementClient client
 
   AzureComputeClient(String subscriptionId, ComputeManagementClient client) {
-    super(subscriptionId)
+    super(subscriptionId, "")
     this.client = client
   }
 
-  AzureComputeClient(String subscriptionId, ApplicationTokenCredentials credentials) {
-    super(subscriptionId)
+  AzureComputeClient(String subscriptionId, ApplicationTokenCredentials credentials, String userAgentApplicationName) {
+    super(subscriptionId, userAgentApplicationName)
     this.client = this.initialize(credentials)
   }
 
@@ -65,6 +65,10 @@ public class AzureComputeClient extends AzureBaseClient {
     ComputeManagementClient computeClient = new ComputeManagementClientImpl(tokenCredentials)
     computeClient.setSubscriptionId(this.subscriptionId)
     computeClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
+
+    // Add Azure Spinnaker telemetry capturing
+    setUserAgent(computeClient, userAgentApplicationName)
+
     computeClient
   }
 

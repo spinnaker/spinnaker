@@ -39,8 +39,8 @@ class AzureStorageClient extends AzureBaseClient {
 
   private final StorageManagementClient client
 
-  AzureStorageClient(String subscriptionId, ApplicationTokenCredentials credentials) {
-    super(subscriptionId)
+  AzureStorageClient(String subscriptionId, ApplicationTokenCredentials credentials, String userAgentApplicationName) {
+    super(subscriptionId, userAgentApplicationName)
     this.client = this.initialize(credentials)
   }
 

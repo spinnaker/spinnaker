@@ -90,7 +90,7 @@ class AzureComputeClientSpec extends Specification{
     setup:
 
     when:
-    def azureComputeClient = new AzureComputeClient("subscriptionId", credentials)
+    def azureComputeClient = new AzureComputeClient("subscriptionId", credentials, "")
 
     then:
     azureComputeClient instanceof AzureComputeClient

@@ -44,9 +44,6 @@ import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.Azu
 import com.netflix.spinnaker.clouddriver.azure.resources.subnet.model.AzureSubnetDescription
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureAppGatewayResourceTemplate
 import groovy.util.logging.Slf4j
-import okhttp3.Interceptor
-import okhttp3.Request
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 
 @Slf4j
@@ -54,8 +51,8 @@ class AzureNetworkClient extends AzureBaseClient {
 
   private final NetworkManagementClient client
 
-  AzureNetworkClient(String subscriptionId, ApplicationTokenCredentials credentials) {
-    super(subscriptionId)
+  AzureNetworkClient(String subscriptionId, ApplicationTokenCredentials credentials, String userAgentApplicationName) {
+    super(subscriptionId, userAgentApplicationName)
     this.client = initializeClient(credentials)
   }
 
@@ -785,15 +782,7 @@ class AzureNetworkClient extends AzureBaseClient {
     networkManagementClient.setSubscriptionId(this.subscriptionId)
     networkManagementClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
 
-    // TODO: work around for SDK issue; not all the API's will accept same client-request-id
-    networkManagementClient.getClientInterceptors().add(new Interceptor() {
-      @Override
-      Response intercept(Interceptor.Chain chain) throws IOException {
-        Request.Builder builder = chain.request().newBuilder()
-        builder.header("x-ms-client-request-id", UUID.randomUUID().toString())
-        return chain.proceed(builder.build())
-      }
-    })
+    setUserAgent(networkManagementClient, userAgentApplicationName, true)
 
     networkManagementClient
   }
