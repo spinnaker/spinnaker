@@ -45,10 +45,11 @@ module.exports = angular
         $state.go('^');
         return;
       }
+      let index = node.index || 0;
       const params = {
         executionId: node.executionId,
-        stage: node.index,
-        step: this.execution.stageSummaries[node.index].firstActiveStage
+        stage: index,
+        step: this.execution.stageSummaries[index].firstActiveStage
       };
 
       if ($state.includes('**.execution', params)) {
