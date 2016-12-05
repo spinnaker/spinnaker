@@ -52,6 +52,16 @@ export class NamingService {
     return clusterName;
   }
 
+  public getClusterNameFromServerGroupName(serverGroupName: string): string {
+    const split = serverGroupName.split('-'),
+      isVersioned = this.VERSION_PATTERN.test(split[split.length - 1]);
+
+    if (isVersioned) {
+      split.pop();
+    }
+    return split.join('-');
+  }
+
   public getSequence(serverGroupName: string): string {
     const split = serverGroupName.split('-'),
       isVersioned = this.VERSION_PATTERN.test(split[split.length - 1]);

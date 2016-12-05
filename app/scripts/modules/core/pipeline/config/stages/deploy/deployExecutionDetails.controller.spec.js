@@ -10,29 +10,27 @@ describe('DeployExecutionDetailsCtrl', function() {
 
   beforeEach(window.inject(function ($controller, $rootScope, $timeout) {
     this.$controller = $controller;
-    this._ = _;
     this.$timeout = $timeout;
     this.$scope = $rootScope.$new();
     this.urlBuilderService = { buildFromMetadata: function() { return '#'; }};
 
   }));
 
-  describe('deployment results', function() {
-    beforeEach(function() {
-      var $scope = this.$scope,
-        _ = this._;
-      $scope.stage = {};
-      this.initializeController = function () {
-        this.controller = this.$controller('DeployExecutionDetailsCtrl', {
-          $scope: $scope,
-          _: _,
-          $stateParams: { details: 'deploymentConfig' },
-          executionDetailsSectionService: { synchronizeSection: (a, fn) => fn(), },
-          urlBuilderService: this.urlBuilderService,
-        });
-      };
+  beforeEach(function () {
+    this.$scope.stage = {};
+    this.$scope.application = {};
+    this.initializeController = function () {
+      this.controller = this.$controller('DeployExecutionDetailsCtrl', {
+        $scope: this.$scope,
+        $stateParams: { details: 'deploymentConfig' },
+        executionDetailsSectionService: { synchronizeSection: (a, fn) => fn(), },
+        urlBuilderService: this.urlBuilderService,
+        cloudProviderRegistry: { getValue: (cp) => cp === 'withScalingActivities' }
+      });
+    };
+  });
 
-    });
+  describe('deployment results', function() {
     it('sets empty list when no context or empty context', function() {
 
       var stage = this.$scope.stage;
@@ -137,6 +135,78 @@ describe('DeployExecutionDetailsCtrl', function() {
 
     });
 
+  });
+
+  describe('running warnings', function () {
+    beforeEach(function () {
+      this.$scope.stage = {
+        isRunning: true,
+        context: {
+          cloudProvider: 'aws',
+          'kato.tasks': [ { resultObjects: [ { serverGroupNameByRegion: { 'us-west-1': 'deployedWest' } } ] } ]
+        },
+        tasks: [
+          { name: 'forceCacheRefresh', status: 'RUNNING' },
+          { name: 'waitForUpInstances', status: 'NOT_STARTED' },
+        ]
+      };
+    });
+
+    it('sets waitingForUpInstances flag when waitForUpInstances is running and lastCapacityCheck reported', function () {
+      this.initializeController();
+      expect(this.$scope.waitingForUpInstances).toBe(false);
+
+      this.$scope.stage.tasks[0].status = 'COMPLETED';
+      this.$scope.stage.tasks[1].status = 'RUNNING';
+
+      this.initializeController();
+      expect(this.$scope.waitingForUpInstances).toBe(false);
+
+      this.$scope.stage.context.lastCapacityCheck = {};
+
+      this.initializeController();
+      expect(this.$scope.waitingForUpInstances).toBe(true);
+    });
+
+    it('sets showScalingActivitiesLink if configured for cloud provider and three minutes have passed', function () {
+      this.$scope.stage.context.lastCapacityCheck = { up: 1, down: 0, outOfService: 0, unknown: 0, succeeded: 0, failed: 0 };
+      this.$scope.stage.context.capacity = { desired: 2 };
+      this.$scope.stage.tasks[0].status = 'COMPLETED';
+      this.$scope.stage.tasks[1].status = 'RUNNING';
+      this.initializeController();
+      expect(this.$scope.showScalingActivitiesLink).toBe(false);
+
+      this.$scope.stage.context.cloudProvider = 'withScalingActivities';
+      this.initializeController();
+      expect(this.$scope.showScalingActivitiesLink).toBe(false);
+
+      this.$scope.stage.tasks[1].runningTimeInMs = 3 * 60 * 1000 + 1;
+      this.initializeController();
+      expect(this.$scope.showScalingActivitiesLink).toBe(true);
+    });
+
+    it('sets showPlatformHealthOverrideMessage after three minutes if unknown status detected and platformHealthOverride not configured', function () {
+      this.$scope.stage.context.lastCapacityCheck = { up: 0, down: 0, outOfService: 0, unknown: 1, succeeded: 0, failed: 0 };
+      this.$scope.stage.context.capacity = { desired: 1 };
+      this.$scope.stage.tasks[0].status = 'COMPLETED';
+      this.$scope.stage.tasks[1].status = 'RUNNING';
+      this.$scope.stage.tasks[1].runningTimeInMs = 3 * 60 * 1000 + 1;
+      this.$scope.application.attributes = {};
+      this.initializeController();
+      expect(this.$scope.showPlatformHealthOverrideMessage).toBe(true);
+
+      // do not show the message if platformHealthOverride is configured
+      this.$scope.application.attributes.platformHealthOverride = true;
+      this.initializeController();
+      expect(this.$scope.showPlatformHealthOverrideMessage).toBe(false);
+
+      // do not show the message if interestingHealthProviderNames are present
+      this.$scope.application.attributes.platformHealthOverride = false;
+      this.$scope.stage.context.interestingHealthProviderNames = ['Amazon'];
+      this.initializeController();
+      expect(this.$scope.showPlatformHealthOverrideMessage).toBe(false);
+
+    });
   });
 
 });

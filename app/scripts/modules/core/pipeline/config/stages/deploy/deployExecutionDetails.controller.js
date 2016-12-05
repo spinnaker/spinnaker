@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
+import moment from 'moment';
 
 let angular = require('angular');
 
@@ -11,8 +13,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
   detailsSectionModule,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('core/navigation/urlBuilder.service.js'),
+  require('core/cloudProvider/cloudProvider.registry'),
+  NAMING_SERVICE,
 ])
-  .controller('DeployExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, urlBuilderService, clusterFilterService) {
+  .controller('DeployExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,
+                                                      urlBuilderService, clusterFilterService, cloudProviderRegistry, namingService) {
 
     $scope.configSections = ['deploymentConfig', 'taskStatus'];
 
@@ -42,6 +47,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
               account: context.account,
               region: region,
               provider: context.providerType || context.cloudProvider || 'aws',
+              cloudProvider: context.providerType || context.cloudProvider || 'aws',
               project: $stateParams.project,
             };
             result.href = urlBuilderService.buildFromMetadata(result);
@@ -58,10 +64,56 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
         }
       }
       $scope.deployed = results;
+      configureWaitingMessages(results);
       $scope.provider = context.cloudProvider || context.providerType || 'aws';
     };
 
-    this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
+    function configureWaitingMessages(deployedArtifacts) {
+      $scope.showWaitingMessage = false;
+      $scope.waitingForUpInstances = false;
+      $scope.showScalingActivitiesLink = false;
+      $scope.showPlatformHealthOverrideMessage = false;
+
+      if (!deployedArtifacts.length) {
+        return;
+      }
+      const deployed = deployedArtifacts[0];
+      const stage = $scope.stage;
+
+      const activeWaitTask = (stage.tasks || []).find(t => ['RUNNING', 'TERMINAL'].includes(t.status) && t.name === 'waitForUpInstances');
+
+      if (activeWaitTask && stage.context.lastCapacityCheck) {
+        $scope.showWaitingMessage = true;
+        $scope.waitingForUpInstances = activeWaitTask.status === 'RUNNING';
+        const lastCapacity = stage.context.lastCapacityCheck;
+        const waitDurationExceeded = activeWaitTask.runningTimeInMs > moment.duration(3, 'minutes').asMilliseconds();
+        lastCapacity.total = lastCapacity.up + lastCapacity.down + lastCapacity.outOfService + lastCapacity.unknown + lastCapacity.succeeded + lastCapacity.failed;
+
+        if (cloudProviderRegistry.getValue(stage.context.cloudProvider, 'serverGroup.scalingActivitiesEnabled')) {
+          // after three minutes, if desired capacity is less than total number of instances,
+          // show the scaling activities link
+          if (waitDurationExceeded && lastCapacity.total < stage.context.capacity.desired) {
+            $scope.showScalingActivitiesLink = true;
+            $scope.scalingActivitiesTarget = {
+              name: deployed.serverGroup,
+              app: deployed.application,
+              account: deployed.account,
+              region: deployed.region,
+              cluster: namingService.getClusterNameFromServerGroupName(deployed.serverGroup),
+              cloudProvider: deployed.cloudProvider,
+            };
+          }
+        }
+        // Also show platform health warning after three minutes if instances are in an unknown state
+        if (waitDurationExceeded &&
+          stage.context.lastCapacityCheck.unknown > 0 &&
+          stage.context.lastCapacityCheck.unknown === stage.context.lastCapacityCheck.total &&
+          !stage.context.interestingHealthProviderNames &&
+          !_.get($scope.application.attributes, 'platformHealthOverride', false)) {
+            $scope.showPlatformHealthOverrideMessage = true;
+        }
+      }
+    }
 
     this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
 
@@ -70,5 +122,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
+    if (_.has($scope.application, 'executions.onRefresh')) {
+      $scope.application.executions.onRefresh($scope, initialize);
+    }
 
   });

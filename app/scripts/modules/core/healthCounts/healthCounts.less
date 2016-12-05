@@ -28,22 +28,29 @@
   }
 }
 
-.instance-health-counts, .securityGroup-counts {
-  .pull-right;
-  padding-left: 5px;
-}
-.instance-health-counts {
-  .glyphicon {
-    top: 0;
+health-counts {
+  .instance-health-counts {
+    float: right;
+    padding-left: 5px;
   }
-  .healthy {
-    color: #8cad6e;
+  &.no-float {
+    .instance-health-counts {
+      float: none;
+    }
   }
-  .unhealthy {
-    color: @unhealthy_orange;
-  }
-  .dead {
-    color: #D9534F;
+  .instance-health-counts {
+    .glyphicon {
+      top: 0;
+    }
+    .healthy {
+      color: #8cad6e;
+    }
+    .unhealthy {
+      color: @unhealthy_orange;
+    }
+    .dead {
+      color: #D9534F;
+    }
   }
 }
 
