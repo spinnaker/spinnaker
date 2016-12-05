@@ -32,11 +32,10 @@ class SslLoadBalancer implements IGceLoadBalancer {
   loadBalancerType: string = 'SSL';
   credentials: string;
   account: string;
-  region: string = 'global';
   certificate: string;
   backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
 
-  constructor (public region: string) {}
+  constructor (public region = 'global') {}
 }
 
 class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.IComponentController {
