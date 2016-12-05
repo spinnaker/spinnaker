@@ -21,7 +21,7 @@ module.exports = angular
         .all('scalingActivities')
         .withParams({
           region: serverGroup.region,
-          provider: serverGroup.provider
+          provider: serverGroup.cloudProvider
         })
         .getList()
         .then(function(activities) {

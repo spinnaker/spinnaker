@@ -67,6 +67,7 @@ module.exports = angular.module('spinnaker.aws', [
         cloneServerGroupController: 'awsCloneServerGroupCtrl',
         commandBuilder: 'awsServerGroupCommandBuilder',
         configurationService: 'awsServerGroupConfigurationService',
+        scalingActivitiesEnabled: true,
       },
       instance: {
         instanceTypeService: 'awsInstanceTypeService',

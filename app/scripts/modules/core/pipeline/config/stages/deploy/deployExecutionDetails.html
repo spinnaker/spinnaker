@@ -41,6 +41,44 @@
     </div>
     <stage-failure-message stage="stage" message="stage.failureMessage"></stage-failure-message>
 
+    <div class="well alert-info" ng-if="showWaitingMessage">
+      <p ng-if="waitingForUpInstances">
+        <strong>
+          Waiting for {{stage.context.targetDesiredSize}} instance<span ng-if="stage.context.targetDesiredSize !== 1">s</span> to appear healthy.
+        </strong>
+        <br/>
+        <span ng-if="stage.context.lastCapacityCheck.total === 0">
+            (no instances found yet)
+        </span>
+        <span ng-if="stage.context.lastCapacityCheck.total !== 0">
+          ( current status: <health-counts container="stage.context.lastCapacityCheck" class="no-float"></health-counts>)
+        </span>
+      </p>
+      <div ng-if="showScalingActivitiesLink">
+        <p>
+          If your instances are not launching, there might be a problem with your configuration.
+        </p>
+        <p>
+          <strong>
+            <view-scaling-activities-link server-group="scalingActivitiesTarget"></view-scaling-activities-link>
+          </strong>
+          to troubleshoot common configuration issues.
+        </p>
+      </div>
+      <div ng-if="showPlatformHealthOverrideMessage">
+        <p>
+          By default, Spinnaker does not consider cloud provider health (i.e. whether your instances have launched and are running)
+          as a reliable indicator of instance health.
+        </p>
+        <p>
+          If your instances do not provide a health indicator known to Spinnaker
+          (e.g. a discovery service or load balancers), you should configure your application to
+          consider only cloud provider health when executing tasks. This option is available under Application Attributes
+          in the <a ui-sref="home.applications.application.config({application: application.name})">Config tab</a>.
+        </p>
+      </div>
+    </div>
+
     <div class="row" ng-if="deployed.length">
       <div class="col-md-12">
         <div class="well alert alert-info">
