@@ -32,6 +32,8 @@ import retrofit.client.Response
 import retrofit.converter.GsonConverter
 import retrofit.http.*
 
+import java.net.*
+import java.io.*
 import java.util.concurrent.TimeUnit
 
 @Slf4j
@@ -180,16 +182,6 @@ class DockerRegistryClient {
     Response checkVersion(@Header("Authorization") String token, @Header("User-Agent") String agent)
   }
 
-  public DockerRegistryTags getTags(String repository) {
-    def response = request({
-      registryService.getTags(repository, tokenService.basicAuthHeader, clouddriverUserAgentApplicationName)
-    }, { token ->
-      registryService.getTags(repository, token, clouddriverUserAgentApplicationName)
-    }, repository)
-
-    (DockerRegistryTags) converter.fromBody(response.body, DockerRegistryTags)
-  }
-
   public String getDigest(String name, String tag) {
     def response = request({
       registryService.getManifest(name, tag, tokenService.basicAuthHeader, clouddriverUserAgentApplicationName)
@@ -223,7 +215,18 @@ class DockerRegistryClient {
       tok && tok.getAt(0) == "<" && tok.getAt(tok.length() - 1) == ">"
     }
 
-    return path?.substring(1, path.length() - 1)
+    def link = path?.substring(1, path.length() - 1)
+
+    try {
+      def url = new URL(link)
+      link = url.getFile().substring(1)
+    } catch (Exception e) {
+      // In the case where the link isn't a valid URL, we were passed just the
+      // relative path[1]
+      // [1] https://tools.ietf.org/html/rfc3986#section-5
+    }
+
+    return link
   }
 
   private static String findNextLink(List<retrofit.client.Header> headers) {
@@ -273,6 +276,26 @@ class DockerRegistryClient {
     }
 
     return catalog
+  }
+
+  public DockerRegistryTags getTags(String repository, String path = null) {
+    def response = request({
+      path ? registryService.get(path, tokenService.basicAuthHeader, clouddriverUserAgentApplicationName) :
+        registryService.getTags(repository, tokenService.basicAuthHeader, clouddriverUserAgentApplicationName)
+    }, { token ->
+      path ? registryService.get(path, token, clouddriverUserAgentApplicationName) :
+        registryService.getTags(repository, token, clouddriverUserAgentApplicationName)
+    }, repository)
+
+    def nextPath = findNextLink(response?.headers)
+    def tags = (DockerRegistryTags) converter.fromBody(response.body, DockerRegistryTags)
+
+    if (nextPath) {
+      def nextTags = getTags(repository, nextPath)
+      tags.tags.addAll(nextTags.tags)
+    }
+
+    return tags
   }
 
   /*
