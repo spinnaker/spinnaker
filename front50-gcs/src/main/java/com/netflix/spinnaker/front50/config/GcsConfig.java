@@ -109,42 +109,42 @@ public class GcsConfig {
 
   @Bean
   public ApplicationDAO applicationDAO(GcsStorageService service) {
-    return new DefaultApplicationDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), APPLICATION_REFRESH_MS);
+    return new DefaultApplicationDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), APPLICATION_REFRESH_MS);
   }
 
   @Bean
   public ApplicationPermissionDAO applicationPermissionDAO() {
     GcsStorageService service = googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME);
-    return new DefaultApplicationPermissionDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), APPLICATION_REFRESH_MS);
+    return new DefaultApplicationPermissionDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), APPLICATION_REFRESH_MS);
   }
 
   @Bean
   public ServiceAccountDAO serviceAccountDAO(GcsStorageService service) {
-    return new DefaultServiceAccountDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), SERVICE_ACCOUNT_REFRESH_MS);
+    return new DefaultServiceAccountDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), SERVICE_ACCOUNT_REFRESH_MS);
   }
 
   @Bean
   public ProjectDAO projectDAO(GcsStorageService service) {
-    return new DefaultProjectDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), PROJECT_REFRESH_MS);
+    return new DefaultProjectDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PROJECT_REFRESH_MS);
   }
 
   @Bean
   public NotificationDAO notificationDAO(GcsStorageService service) {
-    return new DefaultNotificationDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), NOTIFICATION_REFRESH_MS);
+    return new DefaultNotificationDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), NOTIFICATION_REFRESH_MS);
   }
 
   @Bean
   public PipelineStrategyDAO pipelineStrategyDAO(GcsStorageService service) {
-    return new DefaultPipelineStrategyDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), PIPELINE_STRATEGY_REFRESH_MS);
+    return new DefaultPipelineStrategyDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PIPELINE_STRATEGY_REFRESH_MS);
   }
 
   @Bean
   public PipelineDAO pipelineDAO(GcsStorageService service) {
-    return new DefaultPipelineDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), PIPELINE_REFRESH_MS);
+    return new DefaultPipelineDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PIPELINE_REFRESH_MS);
   }
 
   @Bean
   public SnapshotDAO snapshotDAO(GcsStorageService service) {
-    return new DefaultSnapshotDAO(service, Schedulers.from(Executors.newFixedThreadPool(5)), PIPELINE_REFRESH_MS);
+    return new DefaultSnapshotDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PIPELINE_REFRESH_MS);
   }
 }

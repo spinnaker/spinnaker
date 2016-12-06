@@ -134,27 +134,27 @@ public class S3Config {
 
   @Bean
   public ApplicationPermissionDAO applicationPermissionDAO(StorageService storageService) {
-    return new DefaultApplicationPermissionDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(1)), 45000);
+    return new DefaultApplicationPermissionDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 45000);
   }
 
   @Bean
   public ServiceAccountDAO serviceAccountDAO(StorageService storageService) {
-    return new DefaultServiceAccountDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(1)), 30000);
+    return new DefaultServiceAccountDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 30000);
   }
 
   @Bean
   public ProjectDAO projectDAO(StorageService storageService) {
-    return new DefaultProjectDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(2)), 30000);
+    return new DefaultProjectDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 30000);
   }
 
   @Bean
   public NotificationDAO notificationDAO(StorageService storageService) {
-    return new DefaultNotificationDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(5)), 30000);
+    return new DefaultNotificationDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 30000);
   }
 
   @Bean
   public PipelineStrategyDAO pipelineStrategyDAO(StorageService storageService) {
-    return new DefaultPipelineStrategyDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(5)), 20000);
+    return new DefaultPipelineStrategyDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 20000);
   }
 
   @Bean
@@ -164,7 +164,7 @@ public class S3Config {
 
   @Bean
   public SnapshotDAO snapshotDAO(StorageService storageService) {
-    return new DefaultSnapshotDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(1)), 60000);
+    return new DefaultSnapshotDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 60000);
   }
 
   @Bean
