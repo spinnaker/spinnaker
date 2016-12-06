@@ -36,7 +36,7 @@ class KubernetesHealth implements Health {
     state = HealthState.Unknown
     if (phase == "Pending") {
       if (!pod.status.containerStatuses) {
-        description = pod.status?.conditions?.get(0)?.reason ?: "No containers scheduled"
+        description = pod.status?.conditions?.getAt(0)?.reason ?: "No containers scheduled"
         state = HealthState.Down
       } else {
         state = HealthState.Unknown
