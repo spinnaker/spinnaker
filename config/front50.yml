@@ -5,6 +5,13 @@ server:
 hystrix:
   command:
     default.execution.isolation.thread.timeoutInMilliseconds: 15000
+  threadpool:
+    DefaultNotificationDAO:
+      coreSize: 25
+      maxQueueSize: 100
+    DefaultPipelineDAO:
+      coreSize: 25
+      maxQueueSize: 100
 
 cassandra:
   enabled: ${services.front50.cassandra.enabled:true}
