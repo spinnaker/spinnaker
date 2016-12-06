@@ -1,3 +1,5 @@
+import {module} from 'angular';
+
 import {Application} from 'core/application/application.model';
 import {LoadBalancer} from 'core/domain/index';
 
@@ -17,5 +19,5 @@ class AppengineLoadBalancerWizardController {
 
 export const APPENGINE_LOAD_BALANCER_WIZARD_CTRL = 'spinnaker.appengine.loadBalancer.wizard.controller';
 
-angular.module(APPENGINE_LOAD_BALANCER_WIZARD_CTRL, [])
+module(APPENGINE_LOAD_BALANCER_WIZARD_CTRL, [])
   .controller('appengineLoadBalancerWizardCtrl', AppengineLoadBalancerWizardController);

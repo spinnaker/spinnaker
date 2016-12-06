@@ -46,7 +46,7 @@ class ChaosMonkeyExceptionsComponent implements ng.IComponentOptions {
     config: '=',
     configChanged: '&',
   };
-  public controller: ng.IComponentController = ChaosMonkeyExceptionsController;
+  public controller: any = ChaosMonkeyExceptionsController;
   public templateUrl: string = require('./chaosMonkeyExceptions.component.html');
 }
 

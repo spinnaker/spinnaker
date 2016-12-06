@@ -40,7 +40,7 @@ class CapabilitiesSelectorComponent implements ng.IComponentOptions {
     component: '=',
   };
   templateUrl: string = require('./capabilitiesSelector.component.html');
-  controller: ng.IComponentController = CapabilitiesSelector;
+  controller: any = CapabilitiesSelector;
 }
 
 export const KUBERNETES_CAPABILITIES_SELECTOR = 'spinnaker.kubernetes.securityContext.capabilitiesSelector.component';

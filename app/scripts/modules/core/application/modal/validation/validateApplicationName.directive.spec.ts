@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {
   EXAMPLE_APPLICATION_NAME_VALIDATOR, ExampleApplicationNameValidator,
   ExampleApplicationNameValidator2
@@ -10,13 +12,13 @@ describe('Validator: validateApplicationName', function () {
       validator2: ExampleApplicationNameValidator2;
 
   beforeEach(
-    angular.mock.module(
+    mock.module(
       EXAMPLE_APPLICATION_NAME_VALIDATOR,
       VALIDATE_APPLICATION_NAME
     )
   );
 
-  beforeEach(angular.mock.inject(function ($rootScope: ng.IRootScopeService, $compile: ng.ICompileService,
+  beforeEach(mock.inject(function ($rootScope: ng.IRootScopeService, $compile: ng.ICompileService,
                                            exampleApplicationNameValidator: ExampleApplicationNameValidator,
                                            exampleApplicationNameValidator2: ExampleApplicationNameValidator2) {
     this.$rootScope = $rootScope;

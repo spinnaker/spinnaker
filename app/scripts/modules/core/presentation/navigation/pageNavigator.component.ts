@@ -1,12 +1,11 @@
 import {module} from 'angular';
 import {PageNavigationState, PAGE_NAVIGATION_STATE} from './pageNavigationState';
 import {throttle} from 'lodash';
-import {ScrollToService, SCROLL_TO_SERVICE} from '../../utils/scrollTo/scrollTo.service';
+import {ScrollToService, SCROLL_TO_SERVICE} from 'core/utils/scrollTo/scrollTo.service';
 import {PAGE_SECTION_COMPONENT} from './pageSection.component';
 import './pageNavigation.less';
 
 class PageNavigatorController implements ng.IComponentController {
-  public pageNavigationState: PageNavigationState;
   public scrollableContainer: string;
   private container: JQuery;
   private navigator: JQuery;
@@ -72,7 +71,7 @@ class PageNavigatorComponent implements ng.IComponentOptions {
   public bindings: any = {
     scrollableContainer: '@',
   };
-  public controller: ng.IComponentController = PageNavigatorController;
+  public controller: any = PageNavigatorController;
   public transclude: boolean = true;
   public template: string = `
     <div class="row">

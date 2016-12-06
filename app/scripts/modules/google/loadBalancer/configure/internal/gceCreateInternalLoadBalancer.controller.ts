@@ -34,7 +34,6 @@ class InternalLoadBalancer implements IGceLoadBalancer {
   account: string;
   network: string = 'default';
   subnet: string;
-  region: string;
   backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
 
   constructor (public region: string) {}

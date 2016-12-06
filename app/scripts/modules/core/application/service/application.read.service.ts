@@ -1,3 +1,4 @@
+import {module} from 'angular';
 import {APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry} from './applicationDataSource.registry';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {ApplicationDataSource, DataSourceConfig} from '../service/applicationDataSource';
@@ -92,7 +93,7 @@ export class ApplicationReader {
 
 export const APPLICATION_READ_SERVICE = 'spinnaker.core.application.read.service';
 
-angular.module(APPLICATION_READ_SERVICE, [
+module(APPLICATION_READ_SERVICE, [
   require('../../scheduler/scheduler.factory'),
   require('../../presentation/robotToHumanFilter/robotToHuman.filter'),
   API_SERVICE,

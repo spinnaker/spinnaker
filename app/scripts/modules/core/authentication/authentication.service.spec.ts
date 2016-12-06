@@ -1,10 +1,12 @@
+import {mock} from 'angular';
+
 import {AUTHENTICATION_SERVICE, AuthenticationService} from './authentication.service';
 
 describe('authenticationService', function() {
 
-  beforeEach(angular.mock.module(AUTHENTICATION_SERVICE));
+  beforeEach(mock.module(AUTHENTICATION_SERVICE));
 
-  beforeEach(angular.mock.inject(function(authenticationService: AuthenticationService) {
+  beforeEach(mock.inject(function(authenticationService: AuthenticationService) {
     this.authenticationService = authenticationService;
   }));
 

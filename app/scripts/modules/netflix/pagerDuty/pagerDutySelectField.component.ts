@@ -21,7 +21,7 @@ class PagerDutySelectFieldComponent implements ng.IComponentOptions {
   public bindings: any = {
     component: '='
   };
-  public controller: ng.IComponentController = PagerDutySelectFieldController;
+  public controller: any = PagerDutySelectFieldController;
   public template: string = `
   <div class="form-group row">
     <div class="col-sm-3 sm-label-right">PagerDuty *</div>

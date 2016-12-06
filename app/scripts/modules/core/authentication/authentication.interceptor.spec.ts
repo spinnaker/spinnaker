@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {AUTHENTICATION_INTERCEPTOR_SERVICE, AuthenticationInterceptor} from './authentication.interceptor.service';
 import {AuthenticationService} from './authentication.service';
 
@@ -8,10 +10,10 @@ describe('authenticationInterceptor', function() {
     authenticationService: AuthenticationService,
     $rootScope: ng.IRootScopeService;
 
-  beforeEach(angular.mock.module(require('../config/settings'), AUTHENTICATION_INTERCEPTOR_SERVICE));
+  beforeEach(mock.module(require('../config/settings'), AUTHENTICATION_INTERCEPTOR_SERVICE));
 
   beforeEach(
-    angular.mock.inject(
+    mock.inject(
       function (_$q_: ng.IQService,
                 _settings_: any,
                 _authenticationService_: AuthenticationService,

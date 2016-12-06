@@ -1,4 +1,5 @@
 import {chain, get, has, camelCase, filter} from 'lodash';
+import {module} from 'angular';
 
 import {InstanceCounts, LoadBalancer, ServerGroup, Instance} from 'core/domain/index';
 
@@ -54,5 +55,5 @@ class AppengineLoadBalancerTransformer {
 
 export const APPENGINE_LOAD_BALANCER_TRANSFORMER = 'spinnaker.appengine.loadBalancer.transformer.service';
 
-angular.module(APPENGINE_LOAD_BALANCER_TRANSFORMER, [])
+module(APPENGINE_LOAD_BALANCER_TRANSFORMER, [])
   .service('appengineLoadBalancerTransformer', AppengineLoadBalancerTransformer);

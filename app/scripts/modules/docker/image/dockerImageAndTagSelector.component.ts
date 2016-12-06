@@ -15,7 +15,7 @@ interface IImageConfig {
 }
 
 interface IOnDockerBindingsChanges extends ng.IOnChangesObject {
-  registry: ng.IChangesObject;
+  registry: ng.IChangesObject<string>;
 }
 
 class DockerImageAndTagSelectorController implements ng.IComponentController {
@@ -244,7 +244,7 @@ class DockerImageAndTagSelectorComponent implements ng.IComponentOptions {
     onChange: '=?',
     deferInitialization: '=?'
   };
-  public controller: ng.IComponentController = DockerImageAndTagSelectorController;
+  public controller: any = DockerImageAndTagSelectorController;
   public templateUrl: string = require('./dockerImageAndTagSelector.component.html');
 }
 

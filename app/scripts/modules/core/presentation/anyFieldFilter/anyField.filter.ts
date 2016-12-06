@@ -14,7 +14,7 @@ export function anyFieldFilter() {
   return function(items: any, props: any): any[] {
     let out: any[] = [];
 
-    if (angular.isArray(items)) {
+    if (Array.isArray(items)) {
       items.forEach(function (item) {
         let itemMatches = false;
 

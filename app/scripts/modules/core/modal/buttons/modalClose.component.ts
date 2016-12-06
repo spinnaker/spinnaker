@@ -1,10 +1,9 @@
-import {module, noop} from 'angular';
+import {module} from 'angular';
 
 class ModalCloseComponent implements ng.IComponentOptions {
   public bindings: any = {
     dismiss: '&'
   };
-  public controller: ng.IComponentController = noop;
   public template: string = `
     <div class="close-button pull-right">
       <a href class="btn btn-link" ng-click="$ctrl.dismiss()" >

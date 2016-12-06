@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {Application} from '../application/application.model';
 import modelBuilderModule from '../application/applicationModel.builder';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
@@ -13,7 +15,7 @@ describe('Delivery Data Source', function () {
       $q: ng.IQService;
 
   beforeEach(
-    angular.mock.module(
+    mock.module(
       require('./delivery.dataSource'),
       require('./service/execution.service'),
       require('../pipeline/config/services/pipelineConfigService'),
@@ -22,7 +24,7 @@ describe('Delivery Data Source', function () {
   ));
 
   beforeEach(
-    angular.mock.inject(function (_executionService_: any, _pipelineConfigService_: any, _$q_: any, $rootScope: any,
+    mock.inject(function (_executionService_: any, _pipelineConfigService_: any, _$q_: any, $rootScope: any,
                             _applicationModelBuilder_: any, _applicationDataSourceRegistry_: any) {
       $q = _$q_;
       $scope = $rootScope.$new();

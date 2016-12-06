@@ -56,9 +56,9 @@ export class AutoScrollController implements ng.IComponentController {
 @DirectiveFactory('$timeout')
 class AutoScrollDirective implements ng.IDirective {
   restrict: string = 'A';
-  controller: ng.IComponentController = AutoScrollController;
+  controller: any = AutoScrollController;
   controllerAs: string = '$ctrl';
-  bindToController: Object = {
+  bindToController: any = {
     autoScrollParent: '@?',
     autoScrollEnabled: '@?',
     onScroll: '=?',

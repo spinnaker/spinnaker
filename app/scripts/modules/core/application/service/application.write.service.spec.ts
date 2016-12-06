@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {APPLICATION_WRITE_SERVICE, ApplicationWriter, IApplicationAttributes, IJob} from './application.write.service';
 
 describe('Service: applicationWriter', function () {
@@ -6,13 +8,13 @@ describe('Service: applicationWriter', function () {
   let $q: ng.IQService;
 
   beforeEach(
-    angular.mock.module(
+    mock.module(
       APPLICATION_WRITE_SERVICE
     )
   );
 
   beforeEach(
-    angular.mock.inject(function(_applicationWriter_: ApplicationWriter, _taskExecutor_: any, _$q_: ng.IQService) {
+    mock.inject(function(_applicationWriter_: ApplicationWriter, _taskExecutor_: any, _$q_: ng.IQService) {
       applicationWriter = _applicationWriter_;
       taskExecutor = _taskExecutor_;
       $q = _$q_;

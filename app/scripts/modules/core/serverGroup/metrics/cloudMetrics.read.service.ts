@@ -1,3 +1,4 @@
+import {module} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
 
 export interface ICloudMetricDescriptor {
@@ -29,7 +30,7 @@ export class CloudMetricsReader {
 
 export const CLOUD_METRICS_READ_SERVICE = 'spinnaker.core.serverGroup.metrics.read.service';
 
-angular.module(CLOUD_METRICS_READ_SERVICE, [
+module(CLOUD_METRICS_READ_SERVICE, [
   require('core/config/settings'),
   API_SERVICE,
 ]).service('cloudMetricsReader', CloudMetricsReader);

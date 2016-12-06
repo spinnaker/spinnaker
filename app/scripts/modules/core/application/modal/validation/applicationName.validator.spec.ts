@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {ApplicationNameValidator, IApplicationNameValidationResult, APPLICATION_NAME_VALIDATOR} from './applicationName.validator';
 import {ExampleApplicationNameValidator, ExampleApplicationNameValidator2, EXAMPLE_APPLICATION_NAME_VALIDATOR} from './exampleApplicationName.validator';
 
@@ -8,13 +10,13 @@ describe('Validator: applicationName', () => {
       validator2: ExampleApplicationNameValidator2;
 
   beforeEach(
-    angular.mock.module(
+    mock.module(
       APPLICATION_NAME_VALIDATOR,
       EXAMPLE_APPLICATION_NAME_VALIDATOR
     )
   );
 
-  beforeEach(angular.mock.inject((applicationNameValidator: ApplicationNameValidator,
+  beforeEach(mock.inject((applicationNameValidator: ApplicationNameValidator,
                                   exampleApplicationNameValidator: ExampleApplicationNameValidator,
                                   exampleApplicationNameValidator2: ExampleApplicationNameValidator2) => {
     validator = applicationNameValidator;

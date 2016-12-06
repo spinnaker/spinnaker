@@ -1,12 +1,13 @@
+import {mock} from 'angular';
 import helpRegistryModule, {HelpContentsRegistry} from './helpContents.registry';
 
 describe('Help contents registry', () => {
 
   let registry: HelpContentsRegistry;
 
-  beforeEach(angular.mock.module(helpRegistryModule));
+  beforeEach(mock.module(helpRegistryModule));
 
-  beforeEach(angular.mock.inject((helpContentsRegistry: HelpContentsRegistry) => registry = helpContentsRegistry));
+  beforeEach(mock.inject((helpContentsRegistry: HelpContentsRegistry) => registry = helpContentsRegistry));
 
   describe('Override functionality', () => {
     it('overrides existing value', () => {

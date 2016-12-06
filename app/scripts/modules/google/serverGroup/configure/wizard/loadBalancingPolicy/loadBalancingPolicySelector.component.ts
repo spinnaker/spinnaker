@@ -82,7 +82,7 @@ class GceLoadBalancingPolicySelectorComponent implements ng.IComponentOptions {
   public bindings: any = {
     command: '='
   };
-  public controller: ng.IComponentController = GceLoadBalancingPolicySelectorController;
+  public controller: any = GceLoadBalancingPolicySelectorController;
   public templateUrl: string = require('./loadBalancingPolicySelector.component.html');
 }
 

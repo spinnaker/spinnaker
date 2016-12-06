@@ -1,3 +1,4 @@
+import {get} from 'lodash';
 import {module} from 'angular';
 import {IGceHealthCheck} from 'google/domain/index';
 
@@ -34,7 +35,7 @@ class HealthCheckCreateCtrl implements ng.IComponentController {
 
   setExistingHealthChecksForProtocol () {
     this.existingHealthChecksForProtocol =
-      _.get<{}, IGceHealthCheck[]>(this, ['healthChecksByAccountAndType', this.credentials, this.healthCheck.healthCheckType]) || [];
+      get<{}, IGceHealthCheck[]>(this, ['healthChecksByAccountAndType', this.credentials, this.healthCheck.healthCheckType]) || [];
 
     if (!this.existingHealthChecksForProtocol.find((healthCheck) => healthCheck.name === this.healthCheck.name)) {
       delete this.healthCheck.name;
@@ -65,7 +66,7 @@ class HealthCheckCreateComponent implements ng.IComponentOptions {
     existingHealthCheckNames: '<',
   };
   templateUrl: string = require('./healthCheck.component.html');
-  controller: ng.IComponentController = HealthCheckCreateCtrl;
+  controller: any = HealthCheckCreateCtrl;
 }
 
 export const GCE_HEALTH_CHECK_SELECTOR_COMPONENT = 'spinnaker.gce.healthCheckSelector.component';

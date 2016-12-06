@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import {copy, module} from 'angular';
 
 import {ServerGroup} from 'core/domain/serverGroup';
 import {Application} from 'core/application/application.model';
@@ -52,7 +52,7 @@ class AppengineCloneServerGroupCtrl {
   }
 
   public submit(): void {
-    let submitMethod = () => this.serverGroupWriter.cloneServerGroup(angular.copy(this.$scope.command), this.$scope.application);
+    let submitMethod = () => this.serverGroupWriter.cloneServerGroup(copy(this.$scope.command), this.$scope.application);
     this.taskMonitor.submit(submitMethod);
   }
 }

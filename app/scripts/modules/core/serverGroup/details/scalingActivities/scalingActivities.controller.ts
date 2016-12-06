@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
-import IModalServiceInstance = angular.ui.bootstrap.IModalServiceInstance;
+import {module} from 'angular';
+import {IModalServiceInstance} from '../../../../../../types/angular-ui-bootstrap';
 
 interface IViewState {
   loading: boolean;
@@ -90,6 +91,6 @@ export class ScalingActivitiesCtrl implements ng.IComponentController {
 }
 
 export const SCALING_ACTIVITIES_CTRL = 'spinnaker.core.serverGroup.scalingActivities.controller';
-angular.module(SCALING_ACTIVITIES_CTRL, [
+module(SCALING_ACTIVITIES_CTRL, [
   require('core/serverGroup/serverGroup.read.service.js'),
 ]).controller('ScalingActivitiesCtrl', ScalingActivitiesCtrl);

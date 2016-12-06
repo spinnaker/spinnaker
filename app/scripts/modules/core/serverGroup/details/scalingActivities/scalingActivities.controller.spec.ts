@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {
   SCALING_ACTIVITIES_CTRL, ScalingActivitiesCtrl, IScalingEventSummary,
   IRawScalingActivity
@@ -13,13 +15,13 @@ describe('Controller: ScalingActivitiesCtrl', () => {
 
 
   beforeEach(
-    angular.mock.module(
+    mock.module(
       SCALING_ACTIVITIES_CTRL
     )
   );
 
   beforeEach(function () {
-    angular.mock.inject(function ($controller: ng.IControllerService, $rootScope: ng.IRootScopeService, _serverGroupReader_: any, _$q_: ng.IQService) {
+    mock.inject(function ($controller: ng.IControllerService, $rootScope: ng.IRootScopeService, _serverGroupReader_: any, _$q_: ng.IQService) {
       $scope = $rootScope.$new();
       $q = _$q_;
       serverGroupReader = _serverGroupReader_;

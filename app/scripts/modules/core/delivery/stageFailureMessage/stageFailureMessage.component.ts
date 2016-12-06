@@ -1,9 +1,11 @@
-import {IStageStep} from '../../domain/IStageStep';
-import {IExecutionStage} from '../../domain/IExecutionStage';
+import {module} from 'angular';
+
+import {IStageStep} from 'core/domain/IStageStep';
+import {IExecutionStage} from 'core/domain/IExecutionStage';
 
 interface IFailureOnChanges extends ng.IOnChangesObject {
-  isFailed: ng.IChangesObject;
-  stage: ng.IChangesObject;
+  isFailed: ng.IChangesObject<boolean>;
+  stage: ng.IChangesObject<IExecutionStage>;
 }
 
 class StageFailureMessageCtrl implements ng.IComponentController {
@@ -36,7 +38,7 @@ class StageFailureMessageComponent implements ng.IComponentOptions {
     messages: '<',
     stage: '<',
   };
-  public controller: ng.IComponentController = StageFailureMessageCtrl;
+  public controller: any = StageFailureMessageCtrl;
   public template: string = `
     <div class="row" ng-if="$ctrl.isFailed">
       <div class="col-md-12">
@@ -62,5 +64,5 @@ class StageFailureMessageComponent implements ng.IComponentOptions {
 
 export const STAGE_FAILURE_MESSAGE_COMPONENT = 'spinnaker.core.delivery.stageFailureMessage.component';
 
-angular.module(STAGE_FAILURE_MESSAGE_COMPONENT, [])
+module(STAGE_FAILURE_MESSAGE_COMPONENT, [])
   .component('stageFailureMessage', new StageFailureMessageComponent());

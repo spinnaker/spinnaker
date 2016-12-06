@@ -1,3 +1,4 @@
+import {mock} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {ACCOUNT_SERVICE, AccountService, IAccount} from 'core/account/account.service';
 
@@ -9,10 +10,10 @@ describe('Service: accountService', () => {
   let API: Api;
   let accountService: AccountService;
 
-  beforeEach((angular.mock.module(API_SERVICE, ACCOUNT_SERVICE)));
+  beforeEach((mock.module(API_SERVICE, ACCOUNT_SERVICE)));
 
   beforeEach(
-    angular.mock.inject(
+    mock.inject(
       function ($httpBackend: ng.IHttpBackendService,
                 _settings_: any,
                 _cloudProviderRegistry_: any,

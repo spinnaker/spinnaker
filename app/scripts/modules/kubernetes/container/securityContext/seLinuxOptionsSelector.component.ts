@@ -32,7 +32,7 @@ class SeLinuxOptionsComponent implements ng.IComponentOptions {
     component: '=',
   };
   templateUrl: string = require('./seLinuxOptionsSelector.component.html');
-  controller: ng.IComponentController = SeLinuxOptions;
+  controller: any = SeLinuxOptions;
 }
 
 export const KUBERNETES_SE_LINUX_OPTIONS_SELECTOR = 'spinnaker.kubernetes.securityContext.seLinuxOptionsSelector';

@@ -1,3 +1,5 @@
+import {module} from 'angular';
+
 import {Application} from '../../application.model';
 import {ApplicationDataSource} from '../../service/applicationDataSource';
 import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
@@ -88,14 +90,13 @@ class ApplicationDataSourceEditorComponent implements ng.IComponentOptions {
   public bindings: any = {
     application: '='
   };
-  public controller: ng.IComponentController = DataSourceEditorController;
+  public controller: any = DataSourceEditorController;
   public templateUrl: string = require('./applicationDataSourceEditor.component.html');
-
 }
 
 const moduleName = 'spinnaker.core.application.config.applicationDataSourceEditor';
 
-angular.module(moduleName, [
+module(moduleName, [
   APPLICATION_WRITE_SERVICE
 ])
   .component('applicationDataSourceEditor', new ApplicationDataSourceEditorComponent());

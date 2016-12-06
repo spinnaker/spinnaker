@@ -1,5 +1,4 @@
-'use strict';
-
+import {module} from 'angular';
 import {AUTHENTICATION_SERVICE, AuthenticationService} from '../authentication/authentication.service';
 import {TASK_READ_SERVICE, TaskReader, ITask} from 'core/task/task.read.service';
 import {IJob} from '../application/service/application.write.service';
@@ -60,7 +59,7 @@ export class TaskExecutor {
 
 export const TASK_EXECUTOR = 'spinnaker.core.task.executor';
 
-angular.module(TASK_EXECUTOR, [
+module(TASK_EXECUTOR, [
   AUTHENTICATION_SERVICE,
   TASK_READ_SERVICE,
   require('./task.write.service.js'),

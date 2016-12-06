@@ -66,7 +66,7 @@ class ChaosMonkeyConfigComponent implements ng.IComponentOptions {
   public bindings: any = {
     application: '=',
   };
-  public controller: ng.IComponentController = ChaosMonkeyConfigController;
+  public controller: any = ChaosMonkeyConfigController;
   public templateUrl: string = require('./chaosMonkeyConfig.component.html');
 }
 

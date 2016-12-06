@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {Application} from '../application/application.model';
 import modelBuilderModule, {ApplicationModelBuilder} from '../application/applicationModel.builder';
 import tagModule, {LoadBalancersTagController} from './loadBalancersTag.component';
@@ -29,12 +31,12 @@ describe('Component: loadBalancersTag', () => {
     ctrl.$onInit();
   };
 
-  beforeEach(angular.mock.module(
+  beforeEach(mock.module(
     tagModule,
     modelBuilderModule
   ));
 
-  beforeEach(angular.mock.inject(
+  beforeEach(mock.inject(
     (_applicationModelBuilder_: ApplicationModelBuilder, _$componentController_: ng.IComponentControllerService,
      _$q_: ng.IQService, $rootScope: ng.IRootScopeService) => {
       applicationModelBuilder = _applicationModelBuilder_;

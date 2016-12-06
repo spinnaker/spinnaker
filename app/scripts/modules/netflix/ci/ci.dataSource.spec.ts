@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {Application} from 'core/application/application.model';
 import APPLICATION_MODEL_BUILDER, {ApplicationModelBuilder} from '../../core/application/applicationModel.builder';
 import IProvideService = angular.auto.IProvideService;
@@ -5,7 +7,7 @@ import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applica
 
 describe('CI Data Source', function () {
   beforeEach(
-    angular.mock.module(
+    mock.module(
       require('./ci.dataSource'),
       APPLICATION_MODEL_BUILDER,
       APPLICATION_DATA_SOURCE_REGISTRY,
@@ -18,7 +20,7 @@ describe('CI Data Source', function () {
   );
 
   beforeEach(
-    angular.mock.inject(
+    mock.inject(
       function(buildService: any, $httpBackend: ng.IHttpBackendService, settings: any, $q: ng.IQService,
                applicationModelBuilder: ApplicationModelBuilder, $rootScope: ng.IRootScopeService,
                applicationDataSourceRegistry: any) {

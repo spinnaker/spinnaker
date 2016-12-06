@@ -1,5 +1,4 @@
-'use strict';
-
+import {module} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {TaskStep} from '../domain/taskStep';
 import {IOrchestratedItem} from '../domain/IOrchestratedItem';
@@ -107,7 +106,7 @@ export class TaskReader {
 
 export const TASK_READ_SERVICE = 'spinnaker.core.task.read.service';
 
-angular.module(TASK_READ_SERVICE, [
+module(TASK_READ_SERVICE, [
   API_SERVICE,
   require('../orchestratedItem/orchestratedItem.transformer.js'),
 ]).service('taskReader', TaskReader);

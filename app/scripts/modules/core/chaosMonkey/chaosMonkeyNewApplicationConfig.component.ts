@@ -26,7 +26,7 @@ class ChaosMonkeyNewApplicationConfigComponent implements ng.IComponentOptions {
   public bindings: any = {
     applicationConfig: '='
   };
-  public controller: ng.IComponentController = ChaosMonkeyNewApplicationConfigController;
+  public controller: any = ChaosMonkeyNewApplicationConfigController;
   public template: string = `
     <div class="form-group row" ng-if="$ctrl.enabled">
       <div class="col-sm-3 sm-label-right">

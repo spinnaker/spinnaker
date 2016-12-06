@@ -1,3 +1,4 @@
+import {map, union, uniq} from 'lodash';
 import {ApplicationDataSource} from './service/applicationDataSource';
 import {Subject} from 'rxjs';
 
@@ -153,7 +154,7 @@ export class Application {
       .filter(ds => ds.credentialsField !== undefined)
       .forEach(ds => accounts = accounts.concat(ds.data.map(d => d[ds.credentialsField])));
 
-    this.accounts = _.uniq(accounts);
+    this.accounts = uniq(accounts);
   }
 
   private extractProviderDefault(field: string): Map<string, string> {
@@ -161,12 +162,12 @@ export class Application {
     let sources = this.dataSources.filter(d => d[field] !== undefined);
     let providers = sources.map(ds => ds.data.map(d => d[ds.providerField])).filter(p => p.length > 0);
     let allProviders: any; // typescript made me do it this way
-    allProviders = _.union<string[]>(...providers);
+    allProviders = union<string[]>(...providers);
     allProviders.forEach((provider: string) => {
       let vals = sources
-        .map(ds => _.map(ds.data.filter(d => d[ds.providerField] === provider), ds[field]))
+        .map(ds => map(ds.data.filter(d => d[ds.providerField] === provider), ds[field]))
         .filter(v => v.length > 0);
-      let allRegions = _.union(...vals);
+      let allRegions = union(...vals);
       if (allRegions.length === 1) {
         (<any>results)[provider] = allRegions[0];
       }

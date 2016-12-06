@@ -1,3 +1,4 @@
+import {module} from 'angular';
 import { Application } from '../application/application.model';
 import {
   LoadBalancer,
@@ -58,14 +59,14 @@ class LoadBalancersTagComponent implements ng.IComponentOptions {
     serverGroup: '='
   };
 
-  public controller: ng.IComponentController = LoadBalancersTagController;
+  public controller: any = LoadBalancersTagController;
   public templateUrl: string = require('./loadBalancer/loadBalancersTag.html');
 
 }
 
 const moduleName = 'spinnaker.core.loadBalancer.tag.directive';
 
-angular.module(moduleName, [])
+module(moduleName, [])
   .component('loadBalancersTag', new LoadBalancersTagComponent());
 
 export default moduleName;

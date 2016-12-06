@@ -1,30 +1,44 @@
 {
+  "buildOnSave": false,
+  "compileOnSave": true,
   "compilerOptions": {
     "allowJs": false,
+    "baseUrl": "app/scripts/modules",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "lib": ["es2016", "dom"],
     "moduleResolution": "node",
     "module": "commonjs",
-    "target": "es5",
     "noImplicitAny": true,
+    "outDir": "transpiled",
     "pretty": true,
     "removeComments": true,
-    "rootDirs": [
-      "app/scripts/modules"
-    ],
+    "rootDir": ".",
+    "skipLibCheck": true,
     "sourceMap": true,
-    "outDir": "transpiled"
+    "target": "es5",
+    "typeRoots": [
+      "node_modules/@types/"
+    ],
+    "types": [
+      "angular",
+      "angular-mocks",
+      "angular-ui-router",
+      "jasmine",
+      "jquery",
+      "lodash",
+      "moment-timezone",
+      "node"
+    ]
   },
-  "files": [
-    "typings/index.d.ts",
-    "test/helpers/customMatchers.d.ts"
-  ],
   "exclude": [
+    "**/*.spec.ts",
     "build",
     "node",
     "node_modules",
     "transpiled"
   ],
-  "compileOnSave": true,
-  "buildOnSave": false
+  "include": [
+    "app/scripts/modules/**/*.ts"
+  ]
 }
