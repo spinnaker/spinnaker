@@ -68,12 +68,22 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
 
   @Override
   Map buildParameterMap(String region, def dockerVirtualizationSettings, String imageName, BakeRequest bakeRequest, String appVersionStr) {
-    return [
+    def parameterMap = [
       docker_source_image     : dockerVirtualizationSettings.sourceImage,
       docker_target_image     : imageName,
       docker_target_image_tag : bakeRequest.request_id,
       docker_target_repository: dockerBakeryDefaults.targetRepository
     ]
+
+    if (bakeRequest.build_info_url) {
+      parameterMap.build_info_url = bakeRequest.build_info_url
+    }
+
+    if (appVersionStr) {
+      parameterMap.appversion = appVersionStr
+    }
+
+    return parameterMap
 
   }
 

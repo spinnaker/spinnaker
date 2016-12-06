@@ -150,10 +150,13 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                         package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
                                         request_id: SOME_UUID,
+                                        build_info_url: SOME_BUILD_INFO_URL,
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
+        appversion: SOME_MILLISECONDS,
+        build_info_url: SOME_BUILD_INFO_URL,
         docker_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_image_tag: SOME_UUID,
@@ -189,10 +192,13 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                         package_name: PACKAGES_NAME,
                                         base_os: "trusty",
                                         request_id: SOME_UUID,
+                                        build_info_url: SOME_BUILD_INFO_URL,
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
+        appversion: SOME_MILLISECONDS,
+        build_info_url: SOME_BUILD_INFO_URL,
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_image_tag: SOME_UUID,
@@ -228,10 +234,13 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                         package_name: PACKAGES_NAME,
                                         base_os: "centos",
                                         request_id: SOME_UUID,
+                                        build_info_url: SOME_BUILD_INFO_URL,
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-centos"
       def osPackages = parseRpmOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
+        appversion: SOME_MILLISECONDS,
+        build_info_url: SOME_BUILD_INFO_URL,
         docker_source_image: SOURCE_CENTOS_HVM_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_image_tag: SOME_UUID,
@@ -269,11 +278,14 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                         package_name: fullyQualifiedPackageName,
                                         base_os: "trusty",
                                         build_host: buildHost,
+                                        build_info_url: SOME_BUILD_INFO_URL,
                                         request_id: SOME_UUID,
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def osPackage = PackageNameConverter.parseDebPackageName(bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
+        appversion: SOME_MILLISECONDS,
+        build_info_url: SOME_BUILD_INFO_URL,
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_image_tag: SOME_UUID,
@@ -318,12 +330,15 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         build_number: "12",
         commit_hash: "170cdbd",
         organization: targetOrganization,
+        build_info_url: SOME_BUILD_INFO_URL,
         ami_name: targetImageName,
         base_os: "ubuntu",
         cloud_provider_type: BakeRequest.CloudProviderType.docker
       )
       def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
+        appversion: targetImageTag,
+        build_info_url: SOME_BUILD_INFO_URL,
         docker_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         docker_target_image: targetQualifiedImageName,
         docker_target_image_tag: SOME_UUID,

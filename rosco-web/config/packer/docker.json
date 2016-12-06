@@ -4,6 +4,8 @@
     "docker_target_image": null,
     "docker_target_image_tag": "latest",
     "docker_target_repository": null,
+    "appversion": "",
+    "build_info_url": "",
     "repository": "",
     "package_type": "",
     "packages": "",
@@ -12,7 +14,11 @@
   "builders": [{
     "type": "docker",
     "image": "{{user `docker_source_image`}}",
-    "export_path": "image.tar"
+    "commit": true,
+    "run_command": ["-d", "-i", "-t",
+      "--label", "appversion={{user `appversion`}}",
+      "--label", "build_info_url={{user `build_info_url`}}",
+      "{{.Image}}", "/bin/bash"]
   }],
   "provisioners": [{
     "type": "shell",
@@ -21,12 +27,11 @@
       "repository={{user `repository`}}",
       "package_type={{user `package_type`}}",
       "packages={{user `packages`}}"
-    ],
-    "pause_before": "30s"
+    ]
   }],
   "post-processors": [[
     {
-      "type": "docker-import",
+      "type": "docker-tag",
       "repository": "{{user `docker_target_repository`}}/{{user `docker_target_image`}}",
       "tag": "{{user `docker_target_image_tag`}}"
     },
