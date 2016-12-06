@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,37 +14,25 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.front50.config
 
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
-import com.squareup.okhttp.ConnectionPool
 import com.squareup.okhttp.Interceptor
 import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
-import retrofit.RestAdapter
 import retrofit.client.OkClient
 
 @Configuration
 @CompileStatic
 @Import(OkHttpClientConfiguration)
 @EnableConfigurationProperties
-class RetrofitConfiguration {
-
-  @Value('${okHttpClient.connectionPool.maxIdleConnections:5}')
-  int maxIdleConnections
-
-  @Value('${okHttpClient.connectionPool.keepAliveDurationMs:300000}')
-  int keepAliveDurationMs
-
-  @Value('${okHttpClient.retryOnConnectionFailure:true}')
-  boolean retryOnConnectionFailure
+class RetrofitConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -58,13 +46,7 @@ class RetrofitConfiguration {
         chain.proceed(req)
       }
     })
-    cfg.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs))
-    cfg.retryOnConnectionFailure = retryOnConnectionFailure
 
     new OkClient(cfg)
-  }
-
-  @Bean RestAdapter.LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {
-    return RestAdapter.LogLevel.valueOf(retrofitLogLevel)
   }
 }

@@ -20,6 +20,7 @@ package com.netflix.spinnaker.front50.controllers.v2
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.front50.config.CassandraConfigProps
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.project.CassandraProjectDAO
@@ -210,7 +211,7 @@ class CassandraProjectsControllerTck extends ProjectsControllerTck {
 
   @Override
   ProjectDAO createProjectDAO() {
-    projectDAO = new CassandraProjectDAO(keyspace: cassandraHelper.keyspace, objectMapper: objectMapper)
+    projectDAO = new CassandraProjectDAO(keyspace: cassandraHelper.keyspace, objectMapper: objectMapper, cassandraConfigProps: new CassandraConfigProps())
     projectDAO.init()
 
     projectDAO.runQuery('''TRUNCATE project''')

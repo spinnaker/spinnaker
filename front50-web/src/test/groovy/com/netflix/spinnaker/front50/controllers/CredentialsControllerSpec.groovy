@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.front50.config.CassandraConfigProps
 import org.springframework.http.MediaType
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
@@ -33,7 +34,7 @@ class CredentialsControllerSpec extends Specification {
   CredentialsController controller
 
   void setup() {
-    controller = new CredentialsController(globalName: "default")
+    controller = new CredentialsController(cassandraConfigProps: new CassandraConfigProps(name: 'default'))
     mvc = MockMvcBuilders.standaloneSetup(controller).setMessageConverters(new MappingJackson2HttpMessageConverter()).build()
   }
 

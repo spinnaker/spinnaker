@@ -35,21 +35,21 @@ import com.netflix.spinnaker.front50.model.snapshot.DefaultSnapshotDAO;
 import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.client.RestTemplate;
 import rx.schedulers.Schedulers;
 
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
 @ConditionalOnExpression("${spinnaker.gcs.enabled:false}")
-@PropertySource(value = "classpath:META-INF/front50-core.properties", ignoreResourceNotFound = true)
+@EnableConfigurationProperties(GcsProperties.class)
 public class GcsConfig {
   // Refresh every 10 minutes. In practice this either doesnt matter because refreshes are fast enough,
   // or should be finer tuned. But it seems silly to refresh at a fast rate when changes are generally infrequent.
@@ -63,39 +63,22 @@ public class GcsConfig {
   private static int PIPELINE_STRATEGY_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
   private static int SERVICE_ACCOUNT_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
 
-  @Value("${spinnaker.gcs.bucket}")
-  private String bucket;
-
-  @Value("${spinnaker.gcs.bucketLocation}")
-  private String bucketLocation;
-
-  @Value("${spinnaker.gcs.rootFolder}")
-  private String rootFolder;
-
-  @Value("${spinnaker.gcs.jsonPath:}")
-  private String jsonPath;
-
-  @Value("${spinnaker.gcs.project:}")
-  private String project;
-
-  @Value("${Implementation-Version:Unknown}")
-  private String applicationVersion;
-
   @Bean
-  public GcsStorageService defaultGoogleCloudStorageService() {
-    return googleCloudStorageService(null /*dataFilename*/);
+  public GcsStorageService defaultGoogleCloudStorageService(GcsProperties gcsProperties) {
+    return googleCloudStorageService(null /*dataFilename*/, gcsProperties);
   }
 
-  private GcsStorageService googleCloudStorageService(String dataFilename) {
+  private GcsStorageService googleCloudStorageService(String dataFilename, GcsProperties gcsProperties) {
+    String applicationVersion = Optional.ofNullable(getClass().getPackage().getImplementationVersion()).orElse("Unknown");
     GcsStorageService service;
     if (dataFilename == null || dataFilename.isEmpty()) {
-      service = new GcsStorageService(bucket, bucketLocation, rootFolder, project, jsonPath, applicationVersion);
+      service = new GcsStorageService(gcsProperties.getBucket(), gcsProperties.getBucketLocation(), gcsProperties.getRootFolder(), gcsProperties.getProject(), gcsProperties.getJsonPath(), applicationVersion);
     } else {
-      service = new GcsStorageService(bucket, bucketLocation, rootFolder, project, jsonPath, applicationVersion, dataFilename);
+      service = new GcsStorageService(gcsProperties.getBucket(), gcsProperties.getBucketLocation(), gcsProperties.getRootFolder(), gcsProperties.getProject(), gcsProperties.getJsonPath(), applicationVersion, dataFilename);
     }
     service.ensureBucketExists();
     log.info("Using Google Cloud Storage bucket={} in project={}",
-      bucket, project);
+      gcsProperties.getBucket(), gcsProperties.getProject());
     log.info("Bucket versioning is {}.",
       service.supportsVersioning() ? "enabled" : "DISABLED");
     return service;
@@ -113,8 +96,8 @@ public class GcsConfig {
   }
 
   @Bean
-  public ApplicationPermissionDAO applicationPermissionDAO() {
-    GcsStorageService service = googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME);
+  public ApplicationPermissionDAO applicationPermissionDAO(GcsProperties gcsProperties) {
+    GcsStorageService service = googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME, gcsProperties);
     return new DefaultApplicationPermissionDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), APPLICATION_REFRESH_MS);
   }
 

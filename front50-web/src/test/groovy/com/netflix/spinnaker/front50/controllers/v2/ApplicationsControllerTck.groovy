@@ -20,6 +20,7 @@ package com.netflix.spinnaker.front50.controllers.v2
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.front50.config.CassandraConfigProps
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.application.Application
@@ -371,7 +372,7 @@ class CassandraApplicationsControllerTck extends ApplicationsControllerTck {
 
   @Override
   ApplicationDAO createApplicationDAO() {
-    applicationDAO = new CassandraApplicationDAO(keyspace: cassandraHelper.keyspace, objectMapper: objectMapper)
+    applicationDAO = new CassandraApplicationDAO(keyspace: cassandraHelper.keyspace, objectMapper: objectMapper, cassandraConfigProps: new CassandraConfigProps())
     applicationDAO.init()
 
     applicationDAO.runQuery('''TRUNCATE application''')
@@ -394,7 +395,7 @@ class S3ApplicationsControllerTck extends ApplicationsControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test")
+    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false)
     applicationDAO = new DefaultApplicationDAO(storageService, scheduler, 0)
     return applicationDAO
   }

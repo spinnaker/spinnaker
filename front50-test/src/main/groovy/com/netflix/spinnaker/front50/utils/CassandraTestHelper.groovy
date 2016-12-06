@@ -3,6 +3,7 @@ package com.netflix.spinnaker.front50.utils
 import com.netflix.astyanax.Keyspace
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl
 import com.netflix.spinnaker.kork.astyanax.AstyanaxComponents
+import com.netflix.spinnaker.kork.astyanax.CassandraConfigurationProperties
 
 
 public class CassandraTestHelper {
@@ -24,12 +25,13 @@ public class CassandraTestHelper {
     }
 
     AstyanaxComponents components = new AstyanaxComponents()
-    ConnectionPoolConfigurationImpl poolCfg = components.connectionPoolConfiguration()
+    def ccp = new CassandraConfigurationProperties(host: host, port: port, storagePort: storagePort)
+    ConnectionPoolConfigurationImpl poolCfg = components.connectionPoolConfiguration(ccp)
     poolCfg.setPort(port)
     poolCfg.setSeeds(host)
 
     keyspace = components.keyspaceFactory(
-        components.astyanaxConfiguration(components.cassandraAsyncExecutor(5)),
+        components.astyanaxConfiguration(components.cassandraAsyncExecutor(ccp)),
         poolCfg,
         components.countingConnectionPoolMonitor(),
         components.clusterHostSupplierFactory(),

@@ -29,11 +29,11 @@ import com.netflix.astyanax.serializers.IntegerSerializer
 import com.netflix.astyanax.serializers.ListSerializer
 import com.netflix.astyanax.serializers.MapSerializer
 import com.netflix.astyanax.serializers.StringSerializer
+import com.netflix.spinnaker.front50.config.CassandraConfigProps
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import groovy.util.logging.Slf4j
 import org.apache.cassandra.db.marshal.UTF8Type
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 
@@ -59,11 +59,8 @@ class CassandraApplicationDAO implements ApplicationDAO {
 
   private static final Integer VERSION = 2
 
-  @Value('${spinnaker.cassandra.exponentialBaseSleepTimeMs:250}')
-  long exponentialBaseSleepTimeMs
-
-  @Value('${spinnaker.cassandra.exponentialMaxAttempts:10}')
-  int exponentialMaxAttempts
+  @Autowired
+  CassandraConfigProps cassandraConfigProps
 
   @Autowired
   Keyspace keyspace
@@ -213,7 +210,7 @@ class CassandraApplicationDAO implements ApplicationDAO {
   private OperationResult runQuery(String query) {
     return keyspace
         .prepareQuery(CF_APPLICATION)
-        .withRetryPolicy(new ExponentialBackoff(exponentialBaseSleepTimeMs, exponentialMaxAttempts))
+        .withRetryPolicy(new ExponentialBackoff(cassandraConfigProps.exponentialBaseSleepTimeMs, cassandraConfigProps.exponentialMaxAttempts))
         .withCql(query)
         .execute()
   }
@@ -221,7 +218,7 @@ class CassandraApplicationDAO implements ApplicationDAO {
   private OperationResult runQuery(Query query) {
     def preparedQuery = keyspace
         .prepareQuery(CF_APPLICATION)
-        .withRetryPolicy(new ExponentialBackoff(exponentialBaseSleepTimeMs, exponentialMaxAttempts))
+        .withRetryPolicy(new ExponentialBackoff(cassandraConfigProps.exponentialBaseSleepTimeMs, cassandraConfigProps.exponentialMaxAttempts))
         .withCql(query.cql)
         .asPreparedStatement()
     query.values.each {

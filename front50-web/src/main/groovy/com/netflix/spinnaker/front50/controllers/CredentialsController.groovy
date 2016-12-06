@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.front50.config.CassandraConfigProps
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -27,14 +28,15 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @Api(value = "credential", description = "Credential API")
 class CredentialsController {
-  @Value('${spinnaker.cassandra.name:default}')
-  String globalName
+
+  @Autowired
+  CassandraConfigProps cassandraConfigProps
 
   @ApiOperation(value = "", notes = "Fetch all account details")
   @RequestMapping(method = RequestMethod.GET)
   List<Map> list() {
     [
-        [name: globalName, global: true]
+        [name: cassandraConfigProps.name, global: true]
     ]
   }
 }

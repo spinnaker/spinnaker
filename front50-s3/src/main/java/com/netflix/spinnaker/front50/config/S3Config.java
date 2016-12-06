@@ -31,9 +31,9 @@ import com.netflix.spinnaker.front50.model.snapshot.DefaultSnapshotDAO;
 import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
 import com.netflix.spinnaker.front50.model.tag.DefaultEntityTagsDAO;
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -46,67 +46,31 @@ import java.util.concurrent.Executors;
 @Configuration
 @ConditionalOnExpression("${spinnaker.s3.enabled:false}")
 @Import(BastionConfig.class)
+@EnableConfigurationProperties(S3Properties.class)
 public class S3Config {
-
-  @Value("${spinnaker.s3.bucket}")
-  private String bucket;
-
-  @Value("${spinnaker.s3.rootFolder}")
-  private String rootFolder;
-
-  @Value("${spinnaker.s3.region:#{null}}")
-  private String s3Region;
-
-  @Value("${spinnaker.s3.proxyHost:#{null}}")
-  private String proxyHost;
-
-  @Value("${spinnaker.s3.proxyPort:#{null}}")
-  private String proxyPort;
-
-  @Value("${spinnaker.s3.proxyProtocol:#{null}}")
-  private String proxyProtocol;
-
-  @Value("${spinnaker.s3.failover.enabled:false}")
-  private Boolean failoverEnabled;
-
-  @Value("${spinnaker.s3.failover.bucket:#{null}}")
-  private String failoverBucket;
-
-  @Value("${spinnaker.s3.failover.proxyHost:#{null}}")
-  private String failoverProxyHost;
-
-  @Value("${spinnaker.s3.failover.proxyPort:#{null}}")
-  private String failoverProxyPort;
-
-  @Value("${spinnaker.s3.failover.proxyProtocol:#{null}}")
-  private String failoverProxyProtocol;
-
-  @Value("${spinnaker.s3.failover.region:#{null}}")
-  private String failoverS3Region;
-
   @Bean
   public AmazonClientProvider amazonClientProvider() {
     return new AmazonClientProvider();
   }
 
   @Bean
-  public AmazonS3 awsS3Client(AWSCredentialsProvider awsCredentialsProvider) {
+  public AmazonS3 awsS3Client(AWSCredentialsProvider awsCredentialsProvider, S3Properties s3Properties) {
     ClientConfiguration clientConfiguration = new ClientConfiguration();
-    if (getProxyProtocol() != null) {
-      if (getProxyProtocol().equalsIgnoreCase("HTTPS")) {
+    if (s3Properties.getProxyProtocol() != null) {
+      if (s3Properties.getProxyProtocol().equalsIgnoreCase("HTTPS")) {
         clientConfiguration.setProtocol(Protocol.HTTPS);
       } else {
         clientConfiguration.setProtocol(Protocol.HTTP);
       }
-      Optional.ofNullable(getProxyHost())
+      Optional.ofNullable(s3Properties.getProxyHost())
         .ifPresent(clientConfiguration::setProxyHost);
-      Optional.ofNullable(getProxyPort())
+      Optional.ofNullable(s3Properties.getProxyPort())
         .map(Integer::parseInt)
         .ifPresent(clientConfiguration::setProxyPort);
     }
 
     AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
-    Optional.ofNullable(getS3Region())
+    Optional.ofNullable(s3Properties.getRegion())
       .map(Regions::fromName)
       .map(Region::getRegion)
       .ifPresent(client::setRegion);
@@ -120,11 +84,11 @@ public class S3Config {
   }
 
   @Bean
-  public S3StorageService s3StorageService(AmazonS3 amazonS3) {
+  public S3StorageService s3StorageService(AmazonS3 amazonS3, S3Properties s3Properties) {
     ObjectMapper awsObjectMapper = new ObjectMapper();
     AmazonObjectMapperConfigurer.configure(awsObjectMapper);
 
-    return new S3StorageService(awsObjectMapper, amazonS3, getBucket(), rootFolder, failoverEnabled);
+    return new S3StorageService(awsObjectMapper, amazonS3, s3Properties.getBucket(), s3Properties.getRootFolder(), s3Properties.isFailoverEnabled());
   }
 
   @Bean
@@ -170,40 +134,5 @@ public class S3Config {
   @Bean
   public EntityTagsDAO entityTagsDAO(StorageService storageService) {
     return new DefaultEntityTagsDAO(storageService, null, -1);
-  }
-
-  private String getProxyProtocol() {
-    if (failoverEnabled) {
-      return failoverProxyProtocol;
-    }
-    return proxyProtocol;
-  }
-
-  private String getProxyHost() {
-    if (failoverEnabled) {
-      return failoverProxyHost;
-    }
-    return proxyHost;
-  }
-
-  private String getProxyPort() {
-    if (failoverEnabled) {
-      return failoverProxyPort;
-    }
-    return proxyPort;
-  }
-
-  private String getS3Region() {
-    if (failoverEnabled) {
-      return failoverS3Region;
-    }
-    return s3Region;
-  }
-
-  private String getBucket() {
-    if (failoverEnabled) {
-      return failoverBucket;
-    }
-    return bucket;
   }
 }

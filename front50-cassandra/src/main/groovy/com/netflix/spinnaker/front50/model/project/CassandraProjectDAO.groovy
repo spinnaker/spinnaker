@@ -27,10 +27,10 @@ import com.netflix.astyanax.model.Row
 import com.netflix.astyanax.retry.ExponentialBackoff
 import com.netflix.astyanax.serializers.IntegerSerializer
 import com.netflix.astyanax.serializers.StringSerializer
+import com.netflix.spinnaker.front50.config.CassandraConfigProps
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 
@@ -46,11 +46,8 @@ class CassandraProjectDAO implements ProjectDAO {
       CF_NAME, IntegerSerializer.get(), StringSerializer.get()
   )
 
-  @Value('${spinnaker.cassandra.exponentialBaseSleepTimeMs:250}')
-  long exponentialBaseSleepTimeMs
-
-  @Value('${spinnaker.cassandra.exponentialMaxAttempts:10}')
-  int exponentialMaxAttempts
+  @Autowired
+  CassandraConfigProps cassandraConfigProps
 
   @Autowired
   Keyspace keyspace
@@ -171,7 +168,7 @@ class CassandraProjectDAO implements ProjectDAO {
   private OperationResult runQuery(String query) {
     return keyspace
         .prepareQuery(CF_PROJECT)
-        .withRetryPolicy(new ExponentialBackoff(exponentialBaseSleepTimeMs, exponentialMaxAttempts))
+        .withRetryPolicy(new ExponentialBackoff(cassandraConfigProps.exponentialBaseSleepTimeMs, cassandraConfigProps.exponentialMaxAttempts))
         .withCql(query)
         .execute()
   }
@@ -179,7 +176,7 @@ class CassandraProjectDAO implements ProjectDAO {
   private OperationResult runQuery(Query query) {
     def preparedQuery = keyspace
         .prepareQuery(CF_PROJECT)
-        .withRetryPolicy(new ExponentialBackoff(exponentialBaseSleepTimeMs, exponentialMaxAttempts))
+        .withRetryPolicy(new ExponentialBackoff(cassandraConfigProps.exponentialBaseSleepTimeMs, cassandraConfigProps.exponentialMaxAttempts))
         .withCql(query.cql)
         .asPreparedStatement()
     query.values.each {
