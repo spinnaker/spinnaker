@@ -1,0 +1,69 @@
+  <div class="details-panel">
+  <div ng-if="ctrl.state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div ng-if="!ctrl.state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="icon icon-elb"></span>
+      <h3 select-on-dbl-click>
+        {{ctrl.loadBalancer.name}}
+      </h3>
+    </div>
+  </div>
+
+  <div ng-if="!ctrl.state.loading" class="content">
+    <collapsible-section heading="Load Balancer Details" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>In</dt>
+        <dd><account-tag account="ctrl.loadBalancer.account" pad="right"></account-tag></dd>
+        <dt>Region</dt>
+        <dd>{{ctrl.loadBalancer.region}}</dd>
+        <dt ng-if="ctrl.loadBalancer.serverGroups.length">Server Groups</dt>
+        <dd ng-if="ctrl.loadBalancer.serverGroups.length">
+          <ul>
+            <li ng-repeat="serverGroup in ctrl.loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
+              <a ui-sref="^.serverGroup({region: serverGroup.region,
+                                         accountId: serverGroup.account,
+                                         serverGroup: serverGroup.name,
+                                         provider: 'appengine'})">
+                {{serverGroup.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
+    </collapsible-section>
+    <collapsible-section heading="Traffic Split" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt ng-if="ctrl.loadBalancer.split.shardBy">Shard By</dt>
+        <dd ng-if="ctrl.loadBalancer.split.shardBy">{{ctrl.loadBalancer.split.shardBy}}
+          <help-field key="appengine.loadBalancer.shardBy.{{ctrl.loadBalancer.split.shardBy.toLowerCase()}}"></help-field>
+        </dd>
+        <hr ng-if="ctrl.loadBalancer.split.shardBy">
+        <ul>
+          <li ng-repeat="(serverGroup, percent) in ctrl.loadBalancer.split.allocations">
+            {{serverGroup}}:<span class="pull-right">{{percent | decimalToPercent}}</span>
+          </li>
+        </ul>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

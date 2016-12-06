@@ -44,6 +44,8 @@ module(APPENGINE_MODULE, [
         transformer: 'appengineLoadBalancerTransformer',
         createLoadBalancerTemplateUrl: require('./loadBalancer/configure/wizard/wizard.html'),
         createLoadBalancerController: 'appengineLoadBalancerWizardCtrl',
+        detailsTemplateUrl: require('./loadBalancer/details/details.html'),
+        detailsController: 'appengineLoadBalancerDetailsCtrl',
       },
     });
   });
