@@ -31,7 +31,7 @@ These scripts are tested on:
 #export SPINNAKER_HOME=/path/to/your/Spinnaker/workspace
 mkdir -p $SPINNAKER_HOME
 cd $SPINNAKER_HOME
-git clone git@github.com:spinnaker/spinnaker.git
+git clone https://github.com/spinnaker/spinnaker.git
 ----
 
 == Configure your environment
