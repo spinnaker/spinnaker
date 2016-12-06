@@ -25,6 +25,12 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
 
     function getException (stage) {
       orchestratedItemTransformer.defineProperties(stage);
+      if (stage.isFailed && _.has(stage, 'context.canary.canaryResult')) {
+        let result = stage.context.canary.canaryResult;
+        if (result.overallResult === 'FAILURE' && result.message) {
+          return `Canary terminated by user. Reason: ${result.message}`;
+        }
+      }
       return stage.isFailed ? stage.failureMessage : null;
     }
 
