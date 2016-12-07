@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ModifyGoogleServerGroupInstanceTemplateDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
@@ -72,9 +73,12 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
   @Shared
   def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+  @Shared
+  SafeRetry safeRetry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
   }
 
   void "should not make any changes if no properties are overridden"() {
@@ -112,8 +116,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                credentials: credentials)
       @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                    threadSleeper: threadSleeperMock)
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
+            safeRetry: safeRetry
+          )
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -182,8 +189,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                credentials: credentials)
       @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                    threadSleeper: threadSleeperMock)
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
+            safeRetry: safeRetry
+          )
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -246,8 +256,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                credentials: credentials)
       @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                    threadSleeper: threadSleeperMock)
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
+            safeRetry: safeRetry
+          )
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -304,8 +317,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                credentials: credentials)
       @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                    threadSleeper: threadSleeperMock)
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
+            safeRetry: safeRetry
+          )
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -364,8 +380,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                credentials: credentials)
       @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                    threadSleeper: threadSleeperMock)
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
+            safeRetry: safeRetry
+          )
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:

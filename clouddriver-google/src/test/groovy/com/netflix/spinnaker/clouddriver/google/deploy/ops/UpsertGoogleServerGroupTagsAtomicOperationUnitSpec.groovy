@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleServerGroupTagsDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
@@ -62,9 +63,12 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
 
   @Shared
   def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+  @Shared
+  SafeRetry safeRetry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
   }
 
   void "should set tags on new instance template and on instances"() {
@@ -124,8 +128,11 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
                                                                    credentials: credentials)
       @Subject def operation = new UpsertGoogleServerGroupTagsAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                    threadSleeper: threadSleeperMock)
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
+            safeRetry: safeRetry
+          )
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -233,8 +240,11 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
                                                                    credentials: credentials)
       @Subject def operation = new UpsertGoogleServerGroupTagsAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                    threadSleeper: threadSleeperMock)
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
+            safeRetry: safeRetry
+          )
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:

@@ -56,12 +56,14 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   @Shared
   def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+  @Shared
+  SafeRetry safeRetry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
 
     // Yes this can affect other tests; but only in a good way.
-    SafeRetry.RETRY_INTERVAL_SEC = 0
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
   }
 
   void "should delete managed instance group"() {
@@ -94,8 +96,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                                 credentials: credentials)
       @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                  threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
 
@@ -170,8 +176,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       googleLoadBalancerProviderMock.getApplicationLoadBalancers(APPLICATION_NAME) >> []
       @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                  threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
 
@@ -290,8 +300,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                                 credentials: credentials)
       @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                    threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
 
@@ -328,84 +342,88 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   @Unroll
   void "should delete internal loadbalancer backend if associated"() {
     setup:
-    def googleClusterProviderMock = Mock(GoogleClusterProvider)
-    def loadBalancerNameList = lbNames
-    def serverGroup =
-      new GoogleServerGroup(
-        name: SERVER_GROUP_NAME,
-        region: REGION,
-        regional: isRegional,
-        zone: ZONE,
-        asg: [
-          (GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES): loadBalancerNameList,
-        ],
-        launchConfig: [
-          instanceTemplate: new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
-            properties: [
-              'metadata': new Metadata(items: [
-                new Metadata.Items(
-                  key: (GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES),
-                  value: 'spinnaker-int-load-balancer'
-                )
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def loadBalancerNameList = lbNames
+      def serverGroup =
+        new GoogleServerGroup(
+          name: SERVER_GROUP_NAME,
+          region: REGION,
+          regional: isRegional,
+          zone: ZONE,
+          asg: [
+            (GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES): loadBalancerNameList,
+          ],
+          launchConfig: [
+            instanceTemplate: new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
+              properties: [
+                'metadata': new Metadata(items: [
+                  new Metadata.Items(
+                    key: (GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES),
+                    value: 'spinnaker-int-load-balancer'
+                  )
+                ])
               ])
-            ])
-        ]).view
-    def computeMock = Mock(Compute)
-    def backendServicesMock = Mock(Compute.RegionBackendServices)
-    def backendSvcGetMock = Mock(Compute.RegionBackendServices.Get)
-    def backendUpdateMock = Mock(Compute.RegionBackendServices.Update)
-    def googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
+          ]).view
+      def computeMock = Mock(Compute)
+      def backendServicesMock = Mock(Compute.RegionBackendServices)
+      def backendSvcGetMock = Mock(Compute.RegionBackendServices.Get)
+      def backendUpdateMock = Mock(Compute.RegionBackendServices.Update)
+      def googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
 
-    def forwardingRules = Mock(Compute.ForwardingRules)
-    def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-    def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
-    def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
+      def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
 
-    googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
-    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
-    def bs = isRegional ?
-      new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildZonalServerGroupUrl(PROJECT_NAME, ZONE, serverGroup.name)) }) :
-      new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, serverGroup.name)) })
+      googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def bs = isRegional ?
+        new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildZonalServerGroupUrl(PROJECT_NAME, ZONE, serverGroup.name)) }) :
+        new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, serverGroup.name)) })
 
-    def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
-      region: REGION,
-      accountName: ACCOUNT_NAME,
-      credentials: credentials)
-    @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
-    operation.googleOperationPoller =
-      new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-        threadSleeper: threadSleeperMock)
-    operation.googleClusterProvider = googleClusterProviderMock
-    operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
+      def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
+        region: REGION,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials)
+      @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
 
     when:
-    def closure = operation.destroyInternalLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock)
-    closure()
+      def closure = operation.destroyInternalLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock)
+      closure()
 
     then:
-    _ * computeMock.regionBackendServices() >> backendServicesMock
-    _ * backendServicesMock.get(PROJECT_NAME, REGION, 'backend-service') >> backendSvcGetMock
-    _ * backendSvcGetMock.execute() >> bs
-    _ * backendServicesMock.update(PROJECT_NAME, REGION, 'backend-service', bs) >> backendUpdateMock
-    _ * backendUpdateMock.execute()
+      _ * computeMock.regionBackendServices() >> backendServicesMock
+      _ * backendServicesMock.get(PROJECT_NAME, REGION, 'backend-service') >> backendSvcGetMock
+      _ * backendSvcGetMock.execute() >> bs
+      _ * backendServicesMock.update(PROJECT_NAME, REGION, 'backend-service', bs) >> backendUpdateMock
+      _ * backendUpdateMock.execute()
 
-    _ * computeMock.globalForwardingRules() >> globalForwardingRules
-    _ * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
-    _ * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+      _ * computeMock.globalForwardingRules() >> globalForwardingRules
+      _ * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      _ * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
-    _ * computeMock.forwardingRules() >> forwardingRules
-    _ * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
-    _ * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
-    bs.backends.size == 0
+      _ * computeMock.forwardingRules() >> forwardingRules
+      _ * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
+      _ * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+      bs.backends.size == 0
 
     where:
-    isRegional | location | loadBalancerList                                                                                                                               | lbNames
-    false      | ZONE     | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
-    true       | REGION   | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
-    false      | ZONE     | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
-    true       | REGION   | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
-    false      | ZONE     | []                                                                                                                                             | []
-    true       | REGION   | []                                                                                                                                             | []
+      isRegional | location | loadBalancerList                                                                                                                               | lbNames
+      false      | ZONE     | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
+      true       | REGION   | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
+      false      | ZONE     | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
+      true       | REGION   | [new GoogleInternalLoadBalancer(name: 'spinnaker-int-load-balancer', backendService: new GoogleBackendService(name: 'backend-service')).view] | ['spinnaker-int-load-balancer']
+      false      | ZONE     | []                                                                                                                                             | []
+      true       | REGION   | []                                                                                                                                             | []
   }
 
   @Unroll
@@ -496,7 +514,9 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           new BackendService(backends: lbNames.collect { new Backend(group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, serverGroup.name)) })
 
     when:
-      DestroyGoogleServerGroupAtomicOperation.destroy(
+      def destroy = new DestroyGoogleServerGroupAtomicOperation()
+      destroy.safeRetry = safeRetry
+      destroy.destroy(
           DestroyGoogleServerGroupAtomicOperation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
           "Http load balancer backends"
       )
@@ -530,9 +550,10 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
 
     when:
-      DestroyGoogleServerGroupAtomicOperation.destroy(
-          DestroyGoogleServerGroupAtomicOperation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
-          "Http load balancer backends"
+      destroy.safeRetry = safeRetry
+      destroy.destroy(
+        DestroyGoogleServerGroupAtomicOperation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
+        "Http load balancer backends"
       )
 
     then:

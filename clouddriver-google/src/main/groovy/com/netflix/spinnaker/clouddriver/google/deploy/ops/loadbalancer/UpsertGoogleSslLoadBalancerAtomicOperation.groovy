@@ -42,6 +42,9 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
   @Autowired
   private GoogleOperationPoller googleOperationPoller
 
+  @Autowired
+  SafeRetry safeRetry
+
   UpsertGoogleSslLoadBalancerAtomicOperation(UpsertGoogleLoadBalancerDescription description) {
     this.description = description
   }
@@ -80,8 +83,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     boolean needToUpdateHealthCheck = false
 
     // Check if there already exists a forwarding rule with the requested name.
-    SafeRetry<ForwardingRule> ruleRetry = new SafeRetry<ForwardingRule>()
-    existingForwardingRule = ruleRetry.doRetry(
+    existingForwardingRule = safeRetry.doRetry(
       { compute.globalForwardingRules().get(project, description.loadBalancerName).execute() },
       'Get',
       "Global forwarding rule ${description.loadBalancerName}",
@@ -89,7 +91,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
       BASE_PHASE,
       [400, 403, 412],
       [404]
-    )
+    ) as ForwardingRule
     String targetProxyName = "${description.loadBalancerName}-${TARGET_SSL_PROXY_NAME_SUFFIX}"
     if (existingForwardingRule) {
       needToUpdateForwardingRule = (description.ipAddress ? existingForwardingRule.getIPAddress() != description.ipAddress : false) ||
@@ -98,8 +100,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
 
       // If a forwarding rule exists, fetch the target proxy as well.
       targetProxyName = GCEUtil.getLocalName(existingForwardingRule.target)
-      SafeRetry<TargetSslProxy> proxyRetry = new SafeRetry<TargetSslProxy>()
-      existingTargetProxy = proxyRetry.doRetry(
+      existingTargetProxy = safeRetry.doRetry(
         { compute.targetSslProxies().get(project, targetProxyName).execute() },
         'Get',
         "Target ssl proxy ${targetProxyName}",
@@ -107,7 +108,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         BASE_PHASE,
         [400, 403, 412],
         [404]
-      )
+      ) as TargetSslProxy
     }
 
     if (existingTargetProxy) {
@@ -115,8 +116,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         description.certificate != GCEUtil.getLocalName(existingTargetProxy.getSslCertificates()[0])
     }
 
-    SafeRetry<BackendService> serviceRetry = new SafeRetry<BackendService>()
-    existingBackendService = serviceRetry.doRetry(
+    existingBackendService = safeRetry.doRetry(
       { compute.backendServices().get(project, backendServiceName).execute() },
       'Get',
       "Global backend service $backendServiceName",
@@ -124,7 +124,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
       BASE_PHASE,
       [400, 403, 412],
       [404]
-    )
+    ) as BackendService
     if (existingBackendService) {
       Boolean differentHealthChecks = existingBackendService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [healthCheckName]
       Boolean differentSessionAffinity = GoogleSessionAffinity.valueOf(existingBackendService.getSessionAffinity()) != description.backendService.sessionAffinity ||
@@ -134,8 +134,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
 
     // Note: SSL LBs only use HealthCheck objects, _not_ Http(s)HealthChecks. The actual check (i.e. Ssl, Tcp, Http(s))
     // is nested in a field inside the HealthCheck object.
-    SafeRetry<HealthCheck> hcSafeRetry = new SafeRetry<HealthCheck>()
-    existingHealthCheck = hcSafeRetry.doRetry(
+    existingHealthCheck = safeRetry.doRetry(
       { compute.healthChecks().get(project, healthCheckName).execute() },
       'Get',
       "Health check $healthCheckName",
@@ -143,7 +142,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
       BASE_PHASE,
       [400, 403, 412],
       [404]
-    )
+    ) as HealthCheck
 
     needToUpdateHealthCheck = existingHealthCheck && GCEUtil.healthCheckShouldBeUpdated(existingHealthCheck, descriptionHealthCheck)
 
@@ -152,8 +151,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     if (!existingHealthCheck) {
       task.updateStatus BASE_PHASE, "Creating health check $healthCheckName..."
       def newHealthCheck = GCEUtil.createNewHealthCheck(descriptionHealthCheck)
-      SafeRetry<Operation> insertRetry = new SafeRetry<Operation>()
-      healthCheckOp = insertRetry.doRetry(
+      healthCheckOp = safeRetry.doRetry(
         { compute.healthChecks().insert(project, newHealthCheck as HealthCheck).execute() },
         'Insert',
         "Health check $healthCheckName",
@@ -165,8 +163,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     } else if (existingHealthCheck && needToUpdateHealthCheck) {
       task.updateStatus BASE_PHASE, "Updating health check $healthCheckName..."
       GCEUtil.updateExistingHealthCheck(existingHealthCheck, descriptionHealthCheck)
-      SafeRetry<Operation> updateRetry = new SafeRetry<Operation>()
-      healthCheckOp = updateRetry.doRetry(
+      healthCheckOp = safeRetry.doRetry(
         { compute.healthChecks().update(project, healthCheckName, existingHealthCheck as HealthCheck).execute() },
         'Update',
         "Health check $healthCheckName",
@@ -182,7 +179,6 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     }
 
     def backendServiceOp = null
-    SafeRetry<Operation> bsRetry = new SafeRetry<Operation>()
     if (!existingBackendService) {
       task.updateStatus BASE_PHASE, "Creating backend service ${description.backendService.name}..."
       BackendService bs = new BackendService(
@@ -193,7 +189,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         loadBalancingScheme: 'EXTERNAL',
         protocol: description.ipProtocol
       )
-      backendServiceOp = bsRetry.doRetry(
+      backendServiceOp = safeRetry.doRetry(
         { compute.backendServices().insert(project, bs).execute() },
         'Insert',
         "Backend service $description.backendService.name",
@@ -209,7 +205,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
       existingBackendService.affinityCookieTtlSec = description.backendService.affinityCookieTtlSec
       existingBackendService.loadBalancingScheme = 'EXTERNAL'
       existingBackendService.protocol = description.ipProtocol
-      backendServiceOp = bsRetry.doRetry(
+      backendServiceOp = safeRetry.doRetry(
         { compute.backendServices().update(project, existingBackendService.getName(), existingBackendService).execute() },
         'Update',
         "Backend service $description.backendService.name",
@@ -224,7 +220,6 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         null, task, "backend service " + backendServiceName, BASE_PHASE)
     }
 
-    SafeRetry<Operation> proxyRetry = new SafeRetry<Operation>()
     String targetProxyUrl = null
     Operation proxyOp
     if (!existingTargetProxy) {
@@ -234,7 +229,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         service: GCEUtil.buildBackendServiceUrl(project, backendServiceName),
         sslCertificates: [GCEUtil.buildCertificateUrl(project, description.certificate)]
       )
-      proxyOp = proxyRetry.doRetry(
+      proxyOp = safeRetry.doRetry(
         { compute.targetSslProxies().insert(project, targetProxy).execute() },
         'Insert',
         "Target ssl proxy ${targetProxyName}",
@@ -242,19 +237,19 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         BASE_PHASE,
         [400, 403, 412],
         []
-      )
+      ) as Operation
     } else if (existingTargetProxy && needToUpdateTargetProxy) {
       task.updateStatus BASE_PHASE, "Updating target ssl proxy ${targetProxyName}..."
       // We have to delete the previous listener and recreate it...
       // Delete old. NOTE: The forwarding rule is also deleted here. We recreate it later in this case.
-      def deleteOp = GCEUtil.deleteGlobalListener(compute, project, description.loadBalancerName)
+      def deleteOp = GCEUtil.deleteGlobalListener(compute, project, description.loadBalancerName, safeRetry)
       // Wait...
       googleOperationPoller.waitForGlobalOperation(compute, project, deleteOp.getName(),
         null, task, "target ssl proxy " + targetProxyName, BASE_PHASE)
       // Insert after setting attributes.
       existingTargetProxy.sslCertificates = [GCEUtil.buildCertificateUrl(project, description.certificate)]
       existingTargetProxy.service = GCEUtil.buildBackendServiceUrl(project, backendServiceName)
-      proxyOp = proxyRetry.doRetry(
+      proxyOp = safeRetry.doRetry(
         { compute.targetSslProxies().insert(project, existingTargetProxy).execute() },
         'Insert',
         "Target ssl proxy ${targetProxyName}",
@@ -262,7 +257,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         BASE_PHASE,
         [400, 403, 412],
         []
-      )
+      ) as Operation
     }
     if (proxyOp) {
       targetProxyUrl = proxyOp.getTargetLink()
@@ -270,7 +265,6 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         null, task, "target ssl proxy " + targetProxyName, BASE_PHASE)
     }
 
-    SafeRetry<Operation> ruleOpRetry = new SafeRetry<Operation>()
     Operation ruleOp
     if (!existingForwardingRule || (existingTargetProxy && needToUpdateTargetProxy)) {
       // NOTE: if we needed to update the proxy, the forwarding rule is also deleted so we should recreate it.
@@ -285,7 +279,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         portRange: description.certificate ? "443" : description.portRange,
         target: targetProxyUrl,
       )
-      ruleOp = ruleOpRetry.doRetry(
+      ruleOp = safeRetry.doRetry(
         { compute.globalForwardingRules().insert(project, forwardingRule).execute() },
         'Insert',
         "Global forwarding rule ${description.loadBalancerName}",
@@ -293,7 +287,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         BASE_PHASE,
         [400, 403, 412],
         []
-      )
+      ) as Operation
     } else if (existingForwardingRule && needToUpdateForwardingRule) {
       task.updateStatus BASE_PHASE, "Updating forwarding rule $description.loadBalancerName..."
       def forwardingRule = new ForwardingRule(
@@ -304,7 +298,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         portRange: description.certificate ? "443" : description.portRange,
         target: targetProxyUrl,
       )
-      def deleteRuleOp = ruleOpRetry.doRetry(
+      def deleteRuleOp = safeRetry.doRetry(
         { compute.globalForwardingRules().delete(project, description.loadBalancerName).execute() },
         'Delete',
         "Global forwarding rule ${description.loadBalancerName}",
@@ -312,10 +306,10 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         BASE_PHASE,
         [400, 403, 412],
         [404]
-      )
+      ) as Operation
       googleOperationPoller.waitForGlobalOperation(compute, project, deleteRuleOp.getName(),
         null, task, "forwarding rule " + description.loadBalancerName, BASE_PHASE)
-      ruleOpRetry.doRetry(
+      ruleOp = safeRetry.doRetry(
         { compute.globalForwardingRules().insert(project, forwardingRule).execute() },
         'Insert',
         "Global forwarding rule ${description.loadBalancerName}",
@@ -323,7 +317,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         BASE_PHASE,
         [400, 403, 412],
         []
-      )
+      ) as Operation
     }
     if (ruleOp) {
       googleOperationPoller.waitForGlobalOperation(compute, project, ruleOp.getName(),
@@ -333,7 +327,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     // Delete extraneous listeners.
     description.listenersToDelete?.each { String forwardingRuleName ->
       task.updateStatus BASE_PHASE, "Deleting listener ${forwardingRuleName}..."
-      GCEUtil.deleteGlobalListener(compute, project, forwardingRuleName)
+      GCEUtil.deleteGlobalListener(compute, project, forwardingRuleName, safeRetry)
     }
 
     task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName."

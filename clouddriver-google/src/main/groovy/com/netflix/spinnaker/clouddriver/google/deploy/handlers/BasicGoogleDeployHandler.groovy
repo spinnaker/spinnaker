@@ -87,6 +87,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   @Autowired
   ObjectMapper objectMapper
 
+  @Autowired
+  SafeRetry safeRetry
+
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
@@ -118,7 +121,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def location = isRegional ? region : zone
     def instanceMetadata = description.instanceMetadata
 
-    def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials)
+    def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials, safeRetry)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
     task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster $clusterName in $location..."
@@ -411,10 +414,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in $location."
 
     // Actually update the backend services.
-    def retry = new SafeRetry<Void>()
     if (willUpdateBackendServices) {
       backendServicesToUpdate.each { BackendService backendService ->
-        retry.doRetry(
+        safeRetry.doRetry(
           updateBackendServices(compute, project, backendService.name, backendService),
           "update",
           "Load balancer backend service",
@@ -429,7 +431,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     if (willUpdateIlbs) {
       regionBackendServicesToUpdate.each { BackendService backendService ->
-        retry.doRetry(
+        safeRetry.doRetry(
           updateRegionBackendServices(compute, project, region, backendService.name, backendService),
           "update",
           "Internal load balancer backend service",

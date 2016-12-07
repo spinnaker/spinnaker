@@ -44,6 +44,9 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   @Autowired
   private GoogleOperationPoller googleOperationPoller
 
+  @Autowired
+  SafeRetry safeRetry
+
   private DeleteGoogleLoadBalancerDescription description
 
   @VisibleForTesting
@@ -74,8 +77,7 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Retrieving forwarding rule $forwardingRuleName in $region..."
 
-    SafeRetry<ForwardingRule> ruleRetry = new SafeRetry<ForwardingRule>()
-    ForwardingRule forwardingRule = ruleRetry.doRetry(
+    ForwardingRule forwardingRule = safeRetry.doRetry(
       { compute.forwardingRules().get(project, region, forwardingRuleName).execute() },
       'Get',
       "Regional forwarding rule $forwardingRuleName",
@@ -83,7 +85,7 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
       BASE_PHASE,
       [400, 403, 412],
       []
-    )
+    ) as ForwardingRule
     if (forwardingRule == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
           task, BASE_PHASE)
@@ -92,8 +94,7 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Retrieving target pool $targetPoolName in $region..."
 
-    SafeRetry<TargetPool> poolRetry = new SafeRetry<TargetPool>()
-    TargetPool targetPool = poolRetry.doRetry(
+    TargetPool targetPool = safeRetry.doRetry(
       { compute.targetPools().get(project, region, targetPoolName).execute() },
       'Get',
       "Target pool $targetPoolName",
@@ -101,7 +102,7 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
       BASE_PHASE,
       [400, 403, 412],
       []
-    )
+    ) as TargetPool
     if (targetPool == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Target pool $targetPoolName not found in $region for $project",
           task, BASE_PHASE)
@@ -117,10 +118,8 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
     // Start deleting these objects. Wait between each delete operation for it to complete before continuing on to
     // delete its dependencies.
-    SafeRetry<Operation> deleteRetry = new SafeRetry<Operation>()
-
     task.updateStatus BASE_PHASE, "Deleting forwarding rule $forwardingRuleName in $region..."
-    Operation deleteForwardingRuleOperation = deleteRetry.doRetry(
+    Operation deleteForwardingRuleOperation = safeRetry.doRetry(
       { compute.forwardingRules().delete(project, region, forwardingRuleName).execute() },
       'Delete',
       "Regional forwarding rule $forwardingRuleName",
@@ -128,13 +127,13 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
       BASE_PHASE,
       [400, 403, 412],
       [404]
-    )
+    ) as Operation
 
     googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOperation.getName(),
         timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting target pool $targetPoolName in $region..."
-    Operation deleteTargetPoolOperation = deleteRetry.doRetry(
+    Operation deleteTargetPoolOperation = safeRetry.doRetry(
       { compute.targetPools().delete(project, region, targetPoolName).execute() },
       'Delete',
       "Target pool $targetPoolName",
@@ -142,7 +141,7 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
       BASE_PHASE,
       [400, 403, 412],
       [404]
-    )
+    ) as Operation
 
     googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
       timeoutSeconds, task, "target pool " + targetPoolName, BASE_PHASE)
@@ -158,7 +157,8 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
           "Http health check $healthCheckName",
           project,
           task,
-          BASE_PHASE
+          BASE_PHASE,
+          safeRetry
         )
         if (deleteHealthCheckOp) {
           deleteHealthCheckAsyncOperations.add(new HealthCheckAsyncDeleteOperation(

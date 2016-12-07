@@ -23,12 +23,13 @@ import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPools
 import com.google.api.services.compute.model.TargetPool
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -67,8 +68,12 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   def credentials
   def description
 
+  @Shared
+  SafeRetry safeRetry
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
   }
 
   def setup() {
@@ -104,6 +109,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       @Subject def operation = new DisableGoogleServerGroupAtomicOperation(description)
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])

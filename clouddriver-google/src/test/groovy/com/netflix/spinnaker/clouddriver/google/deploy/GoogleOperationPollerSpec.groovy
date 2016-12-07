@@ -18,17 +18,26 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 
 import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import spock.lang.Shared
 import spock.lang.Specification
 
 class GoogleOperationPollerSpec extends Specification {
+
+  @Shared SafeRetry safeRetry
+
+  def setupSpec() {
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
+  }
 
   void "waitForOperation should query the operation at least once"() {
     setup:
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
         new GoogleOperationPoller(
-            googleConfigurationProperties: new GoogleConfigurationProperties(),
-            threadSleeper: threadSleeperMock)
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
 
     expect:
       googleOperationPoller.waitForOperation({return new Operation(status: "DONE")}, 0) == new Operation(status: "DONE")
@@ -39,8 +48,10 @@ class GoogleOperationPollerSpec extends Specification {
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
         new GoogleOperationPoller(
-            googleConfigurationProperties: new GoogleConfigurationProperties(),
-            threadSleeper: threadSleeperMock)
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
 
     expect:
       googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 0) == null
@@ -51,8 +62,10 @@ class GoogleOperationPollerSpec extends Specification {
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
         new GoogleOperationPoller(
-            googleConfigurationProperties: new GoogleConfigurationProperties(),
-            threadSleeper: threadSleeperMock)
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
 
     when:
       // Even though the timeout is set to 10 seconds, it will poll for 12 seconds.
@@ -79,9 +92,10 @@ class GoogleOperationPollerSpec extends Specification {
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
         new GoogleOperationPoller(
-            googleConfigurationProperties: new GoogleConfigurationProperties(
-                asyncOperationMaxPollingIntervalSeconds: 3),
-            threadSleeper: threadSleeperMock)
+          googleConfigurationProperties: new GoogleConfigurationProperties(asyncOperationMaxPollingIntervalSeconds: 3),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
 
     when:
       // Even though the timeout is set to 10 seconds, it will poll for 13 seconds.
@@ -108,14 +122,14 @@ class GoogleOperationPollerSpec extends Specification {
 
   void "waitForOperation should retry on SocketTimeoutException"() {
     setup:
-      SafeRetry.RETRY_INTERVAL_SEC = 0
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def closure = Mock(Closure)
       def googleOperationPoller =
         new GoogleOperationPoller(
-          googleConfigurationProperties: new GoogleConfigurationProperties(
-            asyncOperationMaxPollingIntervalSeconds: 3),
-          threadSleeper: threadSleeperMock)
+          googleConfigurationProperties: new GoogleConfigurationProperties(asyncOperationMaxPollingIntervalSeconds: 3),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
 
     when:
       googleOperationPoller.waitForOperation(closure, 10)

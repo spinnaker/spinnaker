@@ -51,10 +51,12 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
 
   @Shared
   def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+  @Shared
+  SafeRetry safeRetry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-    SafeRetry.RETRY_INTERVAL_SEC = 0
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
   }
 
   void "should delete ssl load balancer"() {
@@ -107,8 +109,12 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new DeleteGoogleSslLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-          threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -170,8 +176,12 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new DeleteGoogleSslLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-          threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -212,7 +222,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetSslProxiesDeleteOp = new Operation(
         name: TARGET_SSL_PROXY_DELETE_OP_NAME,
         status: PENDING)
-      GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, SSL_LOAD_BALANCER_NAME) >> targetSslProxiesDeleteOp
+      GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, SSL_LOAD_BALANCER_NAME, safeRetry) >> targetSslProxiesDeleteOp
 
       def globalOperations = Mock(Compute.GlobalOperations)
       def targetSslProxiesOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -225,8 +235,12 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new DeleteGoogleSslLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-          threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -286,8 +300,12 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new DeleteGoogleSslLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-          threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])

@@ -50,10 +50,10 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final TARGET_PROXY_NAME = "$LOAD_BALANCER_NAME-${UpsertGoogleSslLoadBalancerAtomicOperation.TARGET_SSL_PROXY_NAME_SUFFIX}"
 
   @Shared GoogleHealthCheck hc
+  @Shared SafeRetry safeRetry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-    SafeRetry.RETRY_INTERVAL_SEC = 0
     hc = [
       "name"              : "basic-check",
       "healthCheckType"   : "HTTP",
@@ -64,6 +64,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
       "healthyThreshold"  : 1,
       "unhealthyThreshold": 1
     ]
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
   }
 
   void "should create ssl load balancer if no infrastructure present."() {
@@ -134,7 +135,11 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
     def description = converter.convertDescription(input)
     @Subject def operation = new UpsertGoogleSslLoadBalancerAtomicOperation(description)
     operation.googleOperationPoller =
-      new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+      new GoogleOperationPoller(
+        googleConfigurationProperties: new GoogleConfigurationProperties(),
+        safeRetry: safeRetry
+      )
+    operation.safeRetry = safeRetry
 
     when:
     operation.operate([])
@@ -241,7 +246,11 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
     def description = converter.convertDescription(input)
     @Subject def operation = new UpsertGoogleSslLoadBalancerAtomicOperation(description)
     operation.googleOperationPoller =
-      new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+      new GoogleOperationPoller(
+        googleConfigurationProperties: new GoogleConfigurationProperties(),
+        safeRetry: safeRetry
+      )
+    operation.safeRetry = safeRetry
 
     when:
     operation.operate([])
@@ -348,7 +357,11 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
     def description = converter.convertDescription(input)
     @Subject def operation = new UpsertGoogleSslLoadBalancerAtomicOperation(description)
     operation.googleOperationPoller =
-      new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+      new GoogleOperationPoller(
+        googleConfigurationProperties: new GoogleConfigurationProperties(),
+        safeRetry: safeRetry
+      )
+    operation.safeRetry = safeRetry
 
     when:
     operation.operate([])

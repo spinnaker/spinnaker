@@ -44,10 +44,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
   private static final REGION = "us-central1"
 
   @Shared GoogleHealthCheck hc
+  @Shared SafeRetry safeRetry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-    SafeRetry.RETRY_INTERVAL_SEC = 0
     hc = [
       "name"              : "basic-check",
       "healthCheckType"   : "HTTP",
@@ -58,6 +58,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       "healthyThreshold"  : 1,
       "unhealthyThreshold": 1
     ]
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
   }
 
   void "should create Internal load balancer if no infrastructure present."() {
@@ -122,7 +123,11 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
     def description = converter.convertDescription(input)
     @Subject def operation = new UpsertGoogleInternalLoadBalancerAtomicOperation(description)
     operation.googleOperationPoller =
-      new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+      new GoogleOperationPoller(
+        googleConfigurationProperties: new GoogleConfigurationProperties(),
+        safeRetry: safeRetry
+      )
+    operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -221,41 +226,45 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
     def description = converter.convertDescription(input)
     @Subject def operation = new UpsertGoogleInternalLoadBalancerAtomicOperation(description)
     operation.googleOperationPoller =
-      new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+      new GoogleOperationPoller(
+        googleConfigurationProperties: new GoogleConfigurationProperties(),
+        safeRetry: safeRetry
+      )
+    operation.safeRetry = safeRetry
 
     when:
-    operation.operate([])
+      operation.operate([])
 
     then:
-    1 * computeMock.regions() >> regions
-    1 * regions.list(PROJECT_NAME) >> regionsList
-    1 * regionsList.execute() >> regionList
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionList
 
-    2 * computeMock.forwardingRules() >> forwardingRules
-    1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
-    1 * forwardingRulesGet.execute() >> null
-    1 * forwardingRules.insert(PROJECT_NAME, REGION, _) >> forwardingRulesInsert
-    1 * forwardingRulesInsert.execute()
+      2 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> null
+      1 * forwardingRules.insert(PROJECT_NAME, REGION, _) >> forwardingRulesInsert
+      1 * forwardingRulesInsert.execute()
 
-    2 * computeMock.healthChecks() >> healthChecks
-    1 * healthChecks.get(PROJECT_NAME, "basic-check") >> healthChecksGet
-    1 * healthChecksGet.execute() >> null
-    1 * healthChecks.insert(PROJECT_NAME, _) >> healthChecksInsert
-    1 * healthChecksInsert.execute() >> healthChecksInsertOp
+      2 * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT_NAME, "basic-check") >> healthChecksGet
+      1 * healthChecksGet.execute() >> null
+      1 * healthChecks.insert(PROJECT_NAME, _) >> healthChecksInsert
+      1 * healthChecksInsert.execute() >> healthChecksInsertOp
 
-    2 * computeMock.regionBackendServices() >> backendServices
-    1 * backendServices.get(PROJECT_NAME, REGION, DEFAULT_SERVICE) >> backendServicesGet
-    1 * backendServicesGet.execute() >> new BackendService(name: DEFAULT_SERVICE, healthChecks: [], sessionAffinity: 'NONE')
-    1 * backendServices.update(PROJECT_NAME, REGION, DEFAULT_SERVICE, _) >> backendServicesUpdate
-    1 * backendServicesUpdate.execute() >> backendServicesInsertOp
+      2 * computeMock.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, DEFAULT_SERVICE) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(name: DEFAULT_SERVICE, healthChecks: [], sessionAffinity: 'NONE')
+      1 * backendServices.update(PROJECT_NAME, REGION, DEFAULT_SERVICE, _) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> backendServicesInsertOp
 
-    1 * computeMock.globalOperations() >> globalOperations
-    1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
-    1 * globalHealthCheckOperationGet.execute() >> healthChecksInsertOp
+      1 * computeMock.globalOperations() >> globalOperations
+      1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
+      1 * globalHealthCheckOperationGet.execute() >> healthChecksInsertOp
 
-    1 * computeMock.regionOperations() >> regionalOperations
-    1 * regionalOperations.get(PROJECT_NAME, REGION, BACKEND_SERVICE_OP_NAME) >> regionalBackendServiceOperationGet
-    1 * regionalBackendServiceOperationGet.execute() >> backendServicesInsertOp
+      1 * computeMock.regionOperations() >> regionalOperations
+      1 * regionalOperations.get(PROJECT_NAME, REGION, BACKEND_SERVICE_OP_NAME) >> regionalBackendServiceOperationGet
+      1 * regionalBackendServiceOperationGet.execute() >> backendServicesInsertOp
   }
 
   void "should update health check if it exists."() {
@@ -320,40 +329,44 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
     def description = converter.convertDescription(input)
     @Subject def operation = new UpsertGoogleInternalLoadBalancerAtomicOperation(description)
     operation.googleOperationPoller =
-      new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+      new GoogleOperationPoller(
+        googleConfigurationProperties: new GoogleConfigurationProperties(),
+        safeRetry: safeRetry
+      )
+    operation.safeRetry = safeRetry
 
     when:
-    operation.operate([])
+      operation.operate([])
 
     then:
-    1 * computeMock.regions() >> regions
-    1 * regions.list(PROJECT_NAME) >> regionsList
-    1 * regionsList.execute() >> regionList
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionList
 
-    2 * computeMock.forwardingRules() >> forwardingRules
-    1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
-    1 * forwardingRulesGet.execute() >> null
-    1 * forwardingRules.insert(PROJECT_NAME, REGION, _) >> forwardingRulesInsert
-    1 * forwardingRulesInsert.execute()
+      2 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> null
+      1 * forwardingRules.insert(PROJECT_NAME, REGION, _) >> forwardingRulesInsert
+      1 * forwardingRulesInsert.execute()
 
-    2 * computeMock.healthChecks() >> healthChecks
-    1 * healthChecks.get(PROJECT_NAME, "basic-check") >> healthChecksGet
-    1 * healthChecksGet.execute() >> new HealthCheck(name: 'basic-check', checkIntervalSec: 11, httpHealthCheck: new HTTPHealthCheck(port: 80, requestPath: '/'))
-    1 * healthChecks.update(PROJECT_NAME, "basic-check", _) >> healthChecksUpdate
-    1 * healthChecksUpdate.execute() >> healthChecksInsertOp
+      2 * computeMock.healthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT_NAME, "basic-check") >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HealthCheck(name: 'basic-check', checkIntervalSec: 11, httpHealthCheck: new HTTPHealthCheck(port: 80, requestPath: '/'))
+      1 * healthChecks.update(PROJECT_NAME, "basic-check", _) >> healthChecksUpdate
+      1 * healthChecksUpdate.execute() >> healthChecksInsertOp
 
-    2 * computeMock.regionBackendServices() >> backendServices
-    1 * backendServices.get(PROJECT_NAME, REGION, DEFAULT_SERVICE) >> backendServicesGet
-    1 * backendServicesGet.execute() >> new BackendService(name: DEFAULT_SERVICE, healthChecks: [], sessionAffinity: 'NONE')
-    1 * backendServices.update(PROJECT_NAME, REGION, DEFAULT_SERVICE, _) >> backendServicesUpdate
-    1 * backendServicesUpdate.execute() >> backendServicesInsertOp
+      2 * computeMock.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, DEFAULT_SERVICE) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(name: DEFAULT_SERVICE, healthChecks: [], sessionAffinity: 'NONE')
+      1 * backendServices.update(PROJECT_NAME, REGION, DEFAULT_SERVICE, _) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> backendServicesInsertOp
 
-    1 * computeMock.globalOperations() >> globalOperations
-    1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
-    1 * globalHealthCheckOperationGet.execute() >> healthChecksInsertOp
+      1 * computeMock.globalOperations() >> globalOperations
+      1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
+      1 * globalHealthCheckOperationGet.execute() >> healthChecksInsertOp
 
-    1 * computeMock.regionOperations() >> regionalOperations
-    1 * regionalOperations.get(PROJECT_NAME, REGION, BACKEND_SERVICE_OP_NAME) >> regionalBackendServiceOperationGet
-    1 * regionalBackendServiceOperationGet.execute() >> backendServicesInsertOp
+      1 * computeMock.regionOperations() >> regionalOperations
+      1 * regionalOperations.get(PROJECT_NAME, REGION, BACKEND_SERVICE_OP_NAME) >> regionalBackendServiceOperationGet
+      1 * regionalBackendServiceOperationGet.execute() >> backendServicesInsertOp
   }
 }

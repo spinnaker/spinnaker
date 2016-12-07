@@ -225,11 +225,16 @@ class GCEUtil {
     }
   }
 
-  static List<ForwardingRule> queryRegionalForwardingRules(
-          String projectName, String region, List<String> forwardingRuleNames, Compute compute, Task task, String phase) {
+  static List<ForwardingRule> queryRegionalForwardingRules(String projectName,
+                                                           String region,
+                                                           List<String> forwardingRuleNames,
+                                                           Compute compute,
+                                                           Task task,
+                                                           String phase,
+                                                           SafeRetry safeRetry) {
     task.updateStatus phase, "Looking up regional load balancers $forwardingRuleNames..."
 
-    def forwardingRules = new SafeRetry<List<ForwardingRule>>().doRetry(
+    def forwardingRules = safeRetry.doRetry(
       { return compute.forwardingRules().list(projectName, region).execute().items },
       "list",
       "regional forwarding rules",
@@ -237,7 +242,7 @@ class GCEUtil {
       phase,
       RETRY_ERROR_CODES,
       []
-    )
+    ) as List<ForwardingRule>
     def foundForwardingRules = forwardingRules.findAll {
       it.name in forwardingRuleNames
     }
@@ -303,8 +308,9 @@ class GCEUtil {
                                                                 String serverGroupName,
                                                                 GoogleNamedAccountCredentials credentials,
                                                                 Task task,
-                                                                String phase) {
-    return new SafeRetry<InstanceGroupManager>().doRetry(
+                                                                String phase,
+                                                                SafeRetry safeRetry) {
+    return safeRetry.doRetry(
       { return credentials.compute.regionInstanceGroupManagers().get(projectName, region, serverGroupName).execute() },
       "get",
       "regional managed instance group",
@@ -312,7 +318,7 @@ class GCEUtil {
       phase,
       RETRY_ERROR_CODES,
       []
-    )
+    ) as InstanceGroupManager
   }
 
   static InstanceGroupManager queryZonalManagedInstanceGroup(String projectName,
@@ -320,8 +326,9 @@ class GCEUtil {
                                                              String serverGroupName,
                                                              GoogleNamedAccountCredentials credentials,
                                                              Task task,
-                                                             String phase) {
-    return new SafeRetry<InstanceGroupManager>().doRetry(
+                                                             String phase,
+                                                             SafeRetry safeRetry) {
+    return safeRetry.doRetry(
       { return credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName).execute() },
       "get",
       "zonal managed instance group",
@@ -329,15 +336,16 @@ class GCEUtil {
       phase,
       RETRY_ERROR_CODES,
       []
-    )
+    ) as InstanceGroupManager
   }
 
   static List<InstanceGroupManager> queryAllManagedInstanceGroups(String projectName,
                                                                   String region,
                                                                   GoogleNamedAccountCredentials credentials,
                                                                   Task task,
-                                                                  String phase) {
-    Map<String, InstanceGroupManagersScopedList> aggregatedList = new SafeRetry<AggregatedList>().doRetry(
+                                                                  String phase,
+                                                                  SafeRetry safeRetry) {
+    Map<String, InstanceGroupManagersScopedList> aggregatedList = safeRetry.doRetry(
       { return credentials.compute.instanceGroupManagers().aggregatedList(projectName).execute().getItems() },
       "list",
       "aggregated managed instance groups",
@@ -345,7 +353,7 @@ class GCEUtil {
       phase,
       RETRY_ERROR_CODES,
       []
-    )
+    ) as Map<String, InstanceGroupManagersScopedList>
 
     def zonesInRegion = credentials.getZonesFromRegion(region)
 
@@ -1064,7 +1072,7 @@ class GCEUtil {
     return loadBalancerNames
   }
 
-  def static getTargetProxyFromRule(Compute compute, String project, ForwardingRule forwardingRule) {
+  def static getTargetProxyFromRule(Compute compute, String project, ForwardingRule forwardingRule, SafeRetry safeRetry) {
     String target = forwardingRule.getTarget()
     GoogleTargetProxyType targetProxyType = Utils.getTargetProxyType(target)
     String targetProxyName = getLocalName(target)
@@ -1085,8 +1093,7 @@ class GCEUtil {
         return null
         break
     }
-    SafeRetry<GenericJson> proxyRetry = new SafeRetry<GenericJson>()
-    def retrievedTargetProxy = proxyRetry.doRetry(
+    def retrievedTargetProxy = safeRetry.doRetry(
       proxyGet,
       'Get',
       "Target proxy $targetProxyName",
@@ -1104,10 +1111,11 @@ class GCEUtil {
    * @param project
    * @param forwardingRuleName - Name of global forwarding rule to delete (along with its target proxy).
    */
-  static Operation deleteGlobalListener(Compute compute, String project, String forwardingRuleName) {
-    SafeRetry<ForwardingRule> ruleGetRetry = new SafeRetry<ForwardingRule>()
-    SafeRetry<Operation> proxyDeleteRetry = new SafeRetry<Operation>()
-    ForwardingRule ruleToDelete = ruleGetRetry.doRetry(
+  static Operation deleteGlobalListener(Compute compute,
+                                        String project,
+                                        String forwardingRuleName,
+                                        SafeRetry safeRetry) {
+    ForwardingRule ruleToDelete = safeRetry.doRetry(
       { compute.globalForwardingRules().get(project, forwardingRuleName).execute() },
       'get',
       "global forwarding rule ${forwardingRuleName}",
@@ -1115,7 +1123,7 @@ class GCEUtil {
       null,
       [400, 412],
       [404]
-    )
+    ) as ForwardingRule
     if (ruleToDelete) {
       compute.globalForwardingRules().delete(project, ruleToDelete.getName()).execute()
       String targetProxyLink = ruleToDelete.getTarget()
@@ -1143,7 +1151,7 @@ class GCEUtil {
           break
       }
 
-      Operation result = proxyDeleteRetry.doRetry(
+      Operation result = safeRetry.doRetry(
         deleteProxyClosure,
         'delete',
         "target proxy ${targetProxyName}",
@@ -1151,17 +1159,21 @@ class GCEUtil {
         null,
         [400, 412],
         [404]
-      )
+      ) as Operation
       return result
     }
   }
 
-  static Operation deleteIfNotInUse(Closure<Operation> closure, String component, String project, Task task, String phase) {
+  static Operation deleteIfNotInUse(Closure<Operation> closure,
+                                    String component,
+                                    String project,
+                                    Task task,
+                                    String phase,
+                                    SafeRetry safeRetry) {
     task.updateStatus phase, "Deleting $component for $project..."
     Operation deleteOp
     try {
-      SafeRetry<Operation> deleteRetry = new SafeRetry<Operation>()
-      deleteOp = deleteRetry.doRetry(
+      deleteOp = safeRetry.doRetry(
         closure,
         'Delete',
         component,
@@ -1169,7 +1181,7 @@ class GCEUtil {
         phase,
         [400, 412],
         [404]
-      )
+      ) as Operation
     } catch (GoogleJsonResponseException e) {
       if (e.details?.code == 400 && e.details?.errors?.getAt(0)?.reason == "resourceInUseByAnotherResource") {
         log.warn("Could not delete $component for $project, it was in use by another resource.")

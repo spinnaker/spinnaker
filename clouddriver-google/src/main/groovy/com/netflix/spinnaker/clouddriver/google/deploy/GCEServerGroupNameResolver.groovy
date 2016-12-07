@@ -30,10 +30,13 @@ class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
   private final String region
   private final GoogleNamedAccountCredentials credentials
 
-  GCEServerGroupNameResolver(String project, String region, GoogleNamedAccountCredentials credentials) {
+  private SafeRetry safeRetry
+
+  GCEServerGroupNameResolver(String project, String region, GoogleNamedAccountCredentials credentials, SafeRetry safeRetry) {
     this.project = project
     this.region = region
     this.credentials = credentials
+    this.safeRetry = safeRetry
   }
 
   @Override
@@ -48,7 +51,7 @@ class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
   @Override
   List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
-    def managedInstanceGroups = GCEUtil.queryAllManagedInstanceGroups(project, region, credentials, task, phase)
+    def managedInstanceGroups = GCEUtil.queryAllManagedInstanceGroups(project, region, credentials, task, phase, safeRetry)
 
     return findMatchingManagedInstanceGroups(managedInstanceGroups, clusterName)
   }

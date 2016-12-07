@@ -51,6 +51,9 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
   @Autowired
   GoogleLoadBalancerProvider googleLoadBalancerProvider
 
+  @Autowired
+  SafeRetry safeRetry
+
   DestroyGoogleServerGroupAtomicOperation(DestroyGoogleServerGroupDescription description) {
     this.description = description
   }
@@ -110,9 +113,8 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     null
   }
 
-  static void destroy(Closure operation, String resource) {
-    def retry = new SafeRetry<Void>()
-    retry.doRetry(operation, "destroy", resource, task, BASE_PHASE, RETRY_ERROR_CODES, SUCCESSFUL_ERROR_CODES)
+  void destroy(Closure operation, String resource) {
+    safeRetry.doRetry(operation, "destroy", resource, task, BASE_PHASE, RETRY_ERROR_CODES, SUCCESSFUL_ERROR_CODES)
   }
 
   Closure destroyInstanceTemplate(Compute compute, String instanceTemplateName, String project) {

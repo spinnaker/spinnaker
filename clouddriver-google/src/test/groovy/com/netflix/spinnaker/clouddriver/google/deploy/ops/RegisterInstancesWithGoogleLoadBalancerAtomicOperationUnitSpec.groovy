@@ -26,9 +26,11 @@ import com.google.api.services.compute.model.InstancesScopedList
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RegisterInstancesWithGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -51,8 +53,11 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperationUnitSpec extends Spe
   private static final INSTANCE_IDS = [INSTANCE_ID1, INSTANCE_ID2]
   private static final INSTANCE_URLS = [INSTANCE_URL1, INSTANCE_URL2]
 
+  @Shared SafeRetry safeRetry
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
   }
 
   void "should register instances"() {
@@ -89,6 +94,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperationUnitSpec extends Spe
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new RegisterInstancesWithGoogleLoadBalancerAtomicOperation(description)
+      operation.safeRetry = safeRetry
 
       def request = new TargetPoolsAddInstanceRequest()
       request.instances = INSTANCE_URLS.collect { url -> new InstanceReference(instance: url) }
@@ -134,6 +140,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperationUnitSpec extends Spe
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new RegisterInstancesWithGoogleLoadBalancerAtomicOperation(description)
+      operation.safeRetry = safeRetry
 
       def request = new TargetPoolsAddInstanceRequest()
       request.instances = INSTANCE_URLS.collect { url -> new InstanceReference(instance: url) }

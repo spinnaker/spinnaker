@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.UpsertGoogleLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
@@ -44,6 +45,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
   private static final DONE = "DONE"
 
   @Shared GoogleHealthCheck hc
+  @Shared SafeRetry safeRetry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -56,6 +58,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         "healthyThreshold"  : 1,
         "unhealthyThreshold": 1
     ]
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
   }
 
   void "should create an HTTP Load Balancer with host rule, path matcher, path rules, etc with no existing infrastructure"() {
@@ -160,7 +163,11 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new UpsertGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
      operation.operate([])
@@ -277,7 +284,11 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new UpsertGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            safeRetry: safeRetry
+          )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -394,7 +405,11 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new UpsertGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+          new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
+            safeRetry: safeRetry
+          )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -541,7 +556,11 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new UpsertGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -693,7 +712,11 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new UpsertGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -850,7 +873,11 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new UpsertGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -1020,7 +1047,11 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def description = converter.convertDescription(input)
       @Subject def operation = new UpsertGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])

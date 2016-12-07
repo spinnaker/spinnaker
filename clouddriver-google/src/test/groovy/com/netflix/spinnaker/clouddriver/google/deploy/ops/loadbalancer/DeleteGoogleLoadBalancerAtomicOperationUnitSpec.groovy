@@ -53,10 +53,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
 
   @Shared
   def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+  @Shared
+  SafeRetry safeRetry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-    SafeRetry.RETRY_INTERVAL_SEC = 0
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
   }
 
   void "should delete a Network Load Balancer with health checks"() {
@@ -94,8 +96,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                  threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -152,8 +158,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                  threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -189,6 +199,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -227,8 +238,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                  threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -272,8 +287,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                  threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -324,8 +343,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                  threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -401,8 +424,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.threadSleeper = operationRetryThreadSleeperMock
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                  threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -484,8 +511,12 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
       operation.threadSleeper = operationRetryThreadSleeperMock
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties(),
-                                  threadSleeper: threadSleeperMock)
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])

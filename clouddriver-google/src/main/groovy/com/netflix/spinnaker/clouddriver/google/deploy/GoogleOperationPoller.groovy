@@ -37,6 +37,9 @@ class GoogleOperationPoller {
   @Autowired
   GoogleConfigurationProperties googleConfigurationProperties
 
+  @Autowired
+  SafeRetry safeRetry
+
   @VisibleForTesting
   ThreadSleeper threadSleeper = new ThreadSleeper()
 
@@ -105,8 +108,7 @@ class GoogleOperationPoller {
 
       totalTimePollingSeconds += pollInterval
 
-      def retry = new SafeRetry<Operation>()
-      Operation operation = retry.doRetry(getOperation, "wait", "operation", null, null, [], [])
+      Operation operation = safeRetry.doRetry(getOperation, "wait", "operation", null, null, [], []) as Operation
 
       if (operation.getStatus() == "DONE") {
         return operation

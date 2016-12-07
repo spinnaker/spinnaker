@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
@@ -26,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
@@ -50,6 +52,9 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
   @Autowired
   GoogleClusterProvider googleClusterProvider
 
+  @Autowired
+  SafeRetry safeRetry
+
   CopyLastGoogleServerGroupAtomicOperation(BasicGoogleDeployDescription description) {
     this.description = description
   }
@@ -68,7 +73,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
     def isRegional = newDescription.regional
     def zone = newDescription.zone
     def region = newDescription.region ?: credentials.regionFromZone(zone)
-    def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials)
+    def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials, safeRetry)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(newDescription.application, newDescription.stack, newDescription.freeFormDetails)
 
     task.updateStatus BASE_PHASE, "Initializing copy of server group for cluster $clusterName in ${isRegional ? region : zone}..."

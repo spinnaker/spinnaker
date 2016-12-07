@@ -43,6 +43,9 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
   @Autowired
   private GoogleOperationPoller googleOperationPoller
 
+  @Autowired
+  SafeRetry safeRetry
+
   private DeleteGoogleLoadBalancerDescription description
 
   @VisibleForTesting
@@ -73,8 +76,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
 
     task.updateStatus BASE_PHASE, "Retrieving forwarding rule $forwardingRuleName in $region..."
 
-    SafeRetry<ForwardingRule> ruleRetry = new SafeRetry<ForwardingRule>()
-    ForwardingRule forwardingRule = ruleRetry.doRetry(
+    ForwardingRule forwardingRule = safeRetry.doRetry(
       { compute.forwardingRules().get(project, region, forwardingRuleName).execute() },
       'Get',
       "Regional forwarding rule $forwardingRuleName",
@@ -82,7 +84,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       BASE_PHASE,
       [400, 403, 412],
       []
-    )
+    ) as ForwardingRule
     if (forwardingRule == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
         task, BASE_PHASE)
@@ -92,8 +94,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
 
     task.updateStatus BASE_PHASE, "Retrieving backend service $backendServiceName in $region..."
 
-    SafeRetry<BackendService> serviceRetry = new SafeRetry<BackendService>()
-    BackendService backendService = serviceRetry.doRetry(
+    BackendService backendService = safeRetry.doRetry(
       { compute.regionBackendServices().get(project, region, backendServiceName).execute() },
       'Get',
       "Region backend service $backendServiceName",
@@ -101,7 +102,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       BASE_PHASE,
       [400, 403, 412],
       []
-    )
+    ) as BackendService
     if (backendService == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Backend service $backendServiceName not found in $region for $project",
         task, BASE_PHASE)
@@ -126,8 +127,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
         break
     }
 
-    SafeRetry<GenericJson> hcRetry = new SafeRetry<GenericJson>() // GenericJson is the only base class the health checks share...
-    def healthCheck = hcRetry.doRetry(
+    // GenericJson is the only base class the health checks share...
+    def healthCheck = safeRetry.doRetry(
       healthCheckGet,
       'Get',
       "Health check $healthCheckName",
@@ -144,8 +145,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     // Now delete all the components, waiting for each delete operation to finish.
     def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
-    SafeRetry<Operation> deleteRetry = new SafeRetry<Operation>()
-    Operation deleteForwardingRuleOp = deleteRetry.doRetry(
+    Operation deleteForwardingRuleOp = safeRetry.doRetry(
       { compute.forwardingRules().delete(project, region, forwardingRuleName).execute() },
       'Delete',
       "Regional forwarding rule $forwardingRuleName",
@@ -153,7 +153,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       BASE_PHASE,
       [400, 412],
       [404]
-    )
+    ) as Operation
 
     if (deleteForwardingRuleOp) {
       googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOp.getName(),
@@ -165,7 +165,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       "Region backend service $backendServiceName",
       project,
       task,
-      BASE_PHASE
+      BASE_PHASE,
+      safeRetry
     )
     if (deleteBackendServiceOp) {
       googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteBackendServiceOp.getName(),
@@ -192,7 +193,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       "Health check $healthCheckName",
       project,
       task,
-      BASE_PHASE
+      BASE_PHASE,
+      safeRetry
     )
     if (deleteHealthCheckOp) {
       googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),

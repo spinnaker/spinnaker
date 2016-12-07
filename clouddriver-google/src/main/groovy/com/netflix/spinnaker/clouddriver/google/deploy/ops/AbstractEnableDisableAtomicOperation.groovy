@@ -49,6 +49,9 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   @Autowired
   GoogleLoadBalancerProvider googleLoadBalancerProvider
 
+  @Autowired
+  SafeRetry safeRetry
+
   AbstractEnableDisableAtomicOperation(EnableDisableGoogleServerGroupDescription description) {
     this.description = description
   }
@@ -73,8 +76,8 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     def zone = serverGroup.zone
     def managedInstanceGroup =
       isRegional
-      ? GCEUtil.queryRegionalManagedInstanceGroup(project, region, serverGroupName, credentials, task, phaseName)
-      : GCEUtil.queryZonalManagedInstanceGroup(project, zone, serverGroupName, credentials, task, phaseName)
+      ? GCEUtil.queryRegionalManagedInstanceGroup(project, region, serverGroupName, credentials, task, phaseName, safeRetry)
+      : GCEUtil.queryZonalManagedInstanceGroup(project, zone, serverGroupName, credentials, task, phaseName, safeRetry)
     def currentTargetPoolUrls = managedInstanceGroup.getTargetPools()
     def newTargetPoolUrls = []
 
@@ -98,12 +101,10 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
     }
 
-    def voidRetry = new SafeRetry<Void>()
-
     if (disable) {
       task.updateStatus phaseName, "Deregistering server group from Http(s) load balancers..."
 
-      voidRetry.doRetry(
+      safeRetry.doRetry(
         destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
         "destroy",
         "Http load balancer backends",
@@ -115,7 +116,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
       task.updateStatus phaseName, "Deregistering server group from internal load balancers..."
 
-      voidRetry.doRetry(
+      safeRetry.doRetry(
         destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
         "destroy",
         "Internal load balancer backends",
@@ -127,7 +128,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
       task.updateStatus phaseName, "Deregistering server group from ssl load balancers..."
 
-      voidRetry.doRetry(
+      safeRetry.doRetry(
         destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
         "destroy",
         "Ssl load balancer backends",
@@ -144,7 +145,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
         task.updateStatus phaseName, "Deregistering instances from $targetPoolLocalName..."
 
-        def targetPool = new SafeRetry<TargetPool>().doRetry(
+        def targetPool = safeRetry.doRetry(
           getTargetPool(compute, project, region, targetPoolLocalName),
           "get",
           "target pool",
@@ -152,7 +153,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
           phaseName,
           RETRY_ERROR_CODES,
           []
-        )
+        ) as TargetPool
 
         def instanceUrls = targetPool.getInstances()
         def instanceReferencesToRemove = instanceUrls?.findResults { instanceUrl ->
@@ -162,7 +163,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         if (instanceReferencesToRemove) {
           def targetPoolsRemoveInstanceRequest = new TargetPoolsRemoveInstanceRequest(instances: instanceReferencesToRemove)
 
-          voidRetry.doRetry(
+          safeRetry.doRetry(
             removeInstancesFromTargetPool(compute, project, region, targetPoolLocalName, targetPoolsRemoveInstanceRequest),
             "deregister",
             "instances",
@@ -176,7 +177,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     } else {
       task.updateStatus phaseName, "Registering server group with Http(s) load balancers..."
 
-      voidRetry.doRetry(
+      safeRetry.doRetry(
         addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
         "add",
         "Http load balancer backends",
@@ -188,7 +189,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
       task.updateStatus phaseName, "Registering server group with Internal load balancers..."
 
-      voidRetry.doRetry(
+      safeRetry.doRetry(
         addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
         "add",
         "Internal load balancer backends",
@@ -200,7 +201,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
       task.updateStatus phaseName, "Registering server group with Ssl load balancers..."
 
-      voidRetry.doRetry(
+      safeRetry.doRetry(
         addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
         "add",
         "Ssl load balancer backends",
@@ -212,10 +213,9 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
       task.updateStatus phaseName, "Registering instances with network load balancers..."
 
-      def instanceListRetry = new SafeRetry<List<InstanceWithNamedPorts>>()
       def groupInstances =
         isRegional
-        ? instanceListRetry.doRetry(
+        ? safeRetry.doRetry(
             listInstancesInRegionalGroup(compute, project, region, serverGroupName, new RegionInstanceGroupsListInstancesRequest()),
             "list",
             "instances in regional group",
@@ -224,7 +224,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
             RETRY_ERROR_CODES,
             []
           )
-        : instanceListRetry.doRetry(
+        : safeRetry.doRetry(
             listInstancesInZonalGroup(compute, project, zone, serverGroupName, new InstanceGroupsListInstancesRequest()),
             "list",
             "instances in zonal group",
@@ -239,7 +239,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
 
       def instanceTemplateUrl = managedInstanceGroup.getInstanceTemplate()
-      def instanceTemplate = new SafeRetry<InstanceTemplate>().doRetry(
+      def instanceTemplate = safeRetry.doRetry(
         getInstanceTemplate(compute, project, instanceTemplateUrl),
         "get",
         "instance template",
@@ -247,7 +247,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         phaseName,
         RETRY_ERROR_CODES,
         []
-      )
+      ) as InstanceTemplate
       def metadataItems = instanceTemplate?.properties?.metadata?.items
       def newForwardingRuleNames = []
 
@@ -257,7 +257,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         }
       }
 
-      def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, newForwardingRuleNames, compute, task, phaseName)
+      def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, newForwardingRuleNames, compute, task, phaseName, safeRetry)
 
       newTargetPoolUrls = forwardingRules.collect { forwardingRule ->
         forwardingRule.target
@@ -271,7 +271,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         if (instanceReferencesToAdd) {
           def targetPoolsAddInstanceRequest = new TargetPoolsAddInstanceRequest(instances: instanceReferencesToAdd)
 
-          voidRetry.doRetry(
+          safeRetry.doRetry(
             addInstancesToTargetPool(compute, project, region, targetPoolLocalName, targetPoolsAddInstanceRequest),
             "register",
             "instances",

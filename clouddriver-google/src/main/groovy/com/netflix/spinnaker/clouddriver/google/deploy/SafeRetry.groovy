@@ -17,19 +17,27 @@
 package com.netflix.spinnaker.clouddriver.google.deploy
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
-import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 
 import java.util.concurrent.TimeUnit
 
+// TODO(jacobkiefer): This used to have a generic return type associated with 'doRetry'. Find a way to reincorporate while still making this a Bean.
 @Slf4j
-class SafeRetry<T> {
-  private static Long MAX_WAIT_INTERVAL = TimeUnit.SECONDS.toMillis(60)
+@Component
+class SafeRetry {
 
-  @VisibleForTesting
-  static Long RETRY_INTERVAL_SEC = 2
+  @Value('${google.safeRetryMaxWaitIntervalMs:60000}')
+  Long maxWaitInterval
+
+  @Value('${google.safeRetryRetryIntervalBaseSec:2}')
+  Long retryIntervalBase
+
+  @Value('${google.safeRetryMaxRetries:10}')
+  Long maxRetries
 
   /**
    * Retry a GCP operation if it fails. Treat any error codes in successfulErrorCodes as success.
@@ -42,9 +50,9 @@ class SafeRetry<T> {
    * @param retryCodes - GoogleJsonResponseException codes we retry on.
    * @param successfulErrorCodes - GoogleJsonException codes we treat as success.
    *
-   * @return Object of type T returned from the operation.
+   * @return Object returned from the operation.
    */
-  public T doRetry(Closure<T> operation,
+  public Object doRetry(Closure operation,
                    String action,
                    String resource,
                    Task task,
@@ -59,13 +67,13 @@ class SafeRetry<T> {
 
       int tries = 1
       Exception lastSeenException = null
-      while (tries < 10) {
+      while (tries < maxRetries) {
         try {
           tries++
           // Sleep with exponential backoff based on the number of retries. Add retry jitter with Math.random() to
           // prevent clients syncing up and bursting at regular intervals. Don't wait longer than a minute.
-          Long thisIntervalWait = TimeUnit.SECONDS.toMillis(Math.pow(RETRY_INTERVAL_SEC, tries) as Integer)
-          sleep(Math.min(thisIntervalWait, MAX_WAIT_INTERVAL) + Math.round(Math.random() * 1000))
+          Long thisIntervalWait = TimeUnit.SECONDS.toMillis(Math.pow(retryIntervalBase, tries) as Integer)
+          sleep(Math.min(thisIntervalWait, maxWaitInterval) + Math.round(Math.random() * 1000))
           log.warn "$action $resource attempt #$tries..."
           return operation()
         } catch (GoogleJsonResponseException jsonException) {

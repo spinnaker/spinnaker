@@ -21,8 +21,10 @@ import com.google.api.services.compute.model.TargetPoolsRemoveInstanceRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeregisterInstancesFromGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Remove specified instances from an existing NetworkLoadBalancer.
@@ -37,6 +39,9 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperation implements Atomic
   }
 
   private final DeregisterInstancesFromGoogleLoadBalancerDescription description
+
+  @Autowired
+  SafeRetry safeRetry
 
   DeregisterInstancesFromGoogleLoadBalancerAtomicOperation(
     DeregisterInstancesFromGoogleLoadBalancerDescription description) {
@@ -57,7 +62,7 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperation implements Atomic
     def region = description.region
     def compute = description.credentials.compute
 
-    def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, loadBalancerNames, compute, task, BASE_PHASE)
+    def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, loadBalancerNames, compute, task, BASE_PHASE, safeRetry)
     def instanceUrls = GCEUtil.queryInstanceUrls(project, region, instanceIds, compute, task, BASE_PHASE)
 
     loadBalancerNames.each { lbName ->
