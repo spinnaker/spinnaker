@@ -55,7 +55,7 @@
         </div>
       </stage-config-field>
     </div>
-    <div ng-if="stage.action === 'scale_up'">
+    <div ng-if="stage.action === 'scale_up' || stage.action === 'scale_to_cluster'">
       <stage-config-field>
         <aws-target-healthy-percentage-selector command="stage"></aws-target-healthy-percentage-selector>
       </stage-config-field>
