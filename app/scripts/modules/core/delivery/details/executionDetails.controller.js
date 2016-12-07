@@ -69,9 +69,10 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
           $scope.stageSummary = stageSummary;
           $scope.stage = step;
           var stageConfig = pipelineConfig.getStageConfig(step);
-          if (stageConfig) {
-            return stageConfig.executionDetailsUrl || null;
+          if (stageConfig && stageConfig.executionDetailsUrl) {
+            return stageConfig.executionDetailsUrl;
           }
+          return require('./defaultExecutionDetails.html');
         }
       }
       return null;
