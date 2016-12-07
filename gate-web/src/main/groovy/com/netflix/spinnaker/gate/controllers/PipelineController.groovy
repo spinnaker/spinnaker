@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.PipelineService.PipelineConfigNotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
+import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
@@ -31,7 +32,9 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import retrofit.RetrofitError
 
 @Slf4j
 @CompileStatic
@@ -58,7 +61,13 @@ class PipelineController {
 
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
   Map getPipeline(@PathVariable("id") String id) {
-    pipelineService.getPipeline(id);
+    try {
+      pipelineService.getPipeline(id)
+    } catch (RetrofitError e) {
+      if (e.response?.status == 404) {
+        throw new PipelineNotFoundException()
+      }
+    }
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
@@ -120,4 +129,8 @@ class PipelineController {
       new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
     }
   }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @InheritConstructors
+  static class PipelineNotFoundException extends RuntimeException {}
 }
