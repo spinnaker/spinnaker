@@ -1,6 +1,6 @@
 import {flatten, uniq, uniqWith} from 'lodash';
 import {module} from 'angular';
-import { DirectiveFactory } from '../../../core/utils/tsDecorators/directiveFactoryDecorator';
+import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
 
 @DirectiveFactory()
 class FastPropertyFilterDirective implements ng.IDirective {

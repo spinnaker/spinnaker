@@ -1,0 +1,143 @@
+@import "../../../core/presentation/less/imports/commonImports.less";
+
+.fp-scope-search {
+  margin-top: 6px;
+  list-style: none;
+  .dropdown-menu {
+    min-width: 206px;
+    top: 33px;
+    z-index: 10000;
+    margin-left: 15px;
+    li {
+      color: #999;
+      max-width: 300px;
+      strong {
+        font-weight: 600;
+      }
+      a, .category-heading {
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+      a {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-variant: normal;
+        color: #000;
+        transition: background-color 0.2s, outline-width 0.2s;
+        .expand-results {
+          font-weight: bold;
+        }
+        &.sublinked, &.sublink {
+          display: inline-block;
+          padding-right: 5px;
+        }
+        &.sublink {
+          padding: 3px 4px;
+        }
+      }
+      .sublink-label {
+        display: inline-block;
+        padding: 3px 0;
+        overflow: hidden;
+      }
+      &.category-heading {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #f1f1f1;
+        text-transform: uppercase;
+      }
+      &:first-child {
+        margin-top: 0;
+        border: none;
+      }
+    }
+  }
+  .glyphicon-search {
+    pointer-events: initial;
+  }
+}
+
+
+.scope-category-container .category-heading {
+  font-weight: 600;
+  color: @text-color;
+  margin: 10px 0;
+}
+
+
+.scope-button-container {
+  display: inline-flex;
+}
+
+.scope-button-container .badge-impact-count {
+  position: absolute;
+  left: -7px;
+  top: -8px;
+}
+
+.scope-button-container .badge-impact-count.positive {
+  background: @unhealthy_red;
+}
+
+.scope-button-container .fast-property-scope-button div {
+  margin: 5px 0;
+}
+
+.scope-button-container .fast-property-scope-button div span:not(:first-of-type):before {
+  content: "\27A1" ;
+  margin-right: 0.5em;
+  margin-left: 0.5em;
+  color: @spinnaker-blue;
+}
+
+button.fast-property-scope-button {
+  position: relative;
+  border: 1px solid #c4c4c4;
+  border-radius: 3px;
+  color: @text-color;
+  background-color: transparent;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: 0 10px 10px 0;
+}
+
+.fast-property-scope-button:hover, .fast-property-scope-button:focus {
+  cursor: pointer;
+  box-shadow: 0 0 8px 2px @spinnaker-blue;
+}
+
+.fast-property-scope-button dl {
+  flex: 0 1 auto;
+  margin: 10px;
+}
+
+.fast-property-scope-button dl.scope-dl dt {
+  width: 15px;
+}
+
+.fast-property-scope-button dl.scope-dl dd {
+  margin-left: 20px;
+  text-align: left;
+}
+
+.fast-property-scope-button .global-label {
+  color: @unhealthy_red;
+  margin: 10px;
+}
+
+.noticeText {
+  color: @unhealthy_red;
+}
+
+
+.keyboard-key {
+  color: @code-yellow;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.searching {
+  color: @text-color;
+  text-align: center;
+  margin-top: 30px;
+}

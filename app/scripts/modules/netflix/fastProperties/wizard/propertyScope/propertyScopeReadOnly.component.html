@@ -1,0 +1,55 @@
+<form role="form" novalidate name="fastPropertyScopeForm">
+  <div class="modal-body">
+    <div class="row" style="display: flex; flex-wrap: wrap">
+
+      <p>Setting the <b>scope</b> of a property determines what instances will have access to a given property</p>
+
+      <div class="col-md-12">
+        <h4 ng-if="$ctrl.command.scope.instanceCounts">
+          Impact Count:
+          <span style="color:red;">{{$ctrl.command.scope.instanceCounts.up}}</span>
+        </h4>
+
+        <div>
+          <table class="table table-hover">
+            <tbody>
+            <tr ng-if="$ctrl.command.scope.env">
+              <td><b>Env</b></td>
+              <td>{{$ctrl.command.scope.env}}</td>
+            </tr>
+            <tr ng-if="$ctrl.command.scope.appId">
+              <td><b>Apps</b></td>
+              <td>{{$ctrl.command.scope.appId}}</td>
+            </tr>
+            <tr ng-if="$ctrl.command.scope.region">
+              <td><b>Region</b></td>
+              <td>{{$ctrl.command.scope.region}}</td>
+            </tr>
+            <tr ng-if="$ctrl.command.scope.stack">
+              <td><b>Stack</b></td>
+              <td>{{$ctrl.command.scope.stack}}</td>
+            </tr>
+            <tr ng-if="$ctrl.command.scope.cluster">
+              <td><b>Cluster</></td>
+              <td>{{$ctrl.command.scope.cluster}}</td>
+            </tr>
+            <tr ng-if="$ctrl.command.scope.asg">
+              <td><b>ASG</b></td>
+              <td>{{$ctrl.command.scope.asg}}</td>
+            </tr>
+            <tr ng-if="$ctrl.command.scope.zone">
+              <td><b>Zone</b></td>
+              <td>{{$ctrl.command.scope.zone}}</td>
+            </tr>
+            <tr ng-if="$ctrl.command.scope.serverId">
+              <td><b>Instance</b></td>
+              <td>{{$ctrl.command.scope.serverId}}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>

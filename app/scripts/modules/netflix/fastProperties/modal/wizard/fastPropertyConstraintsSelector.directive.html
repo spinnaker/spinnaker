@@ -4,6 +4,7 @@
     <select
         name="constraints"
         class="form-control input-sm"
+        ng-disabled="con.isDisabled"
         ng-model="con.constraint"
         ng-change="con.onChange()">
 

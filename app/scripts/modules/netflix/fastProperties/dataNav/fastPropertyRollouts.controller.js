@@ -1,6 +1,8 @@
 'use strict';
 
-import _ from 'lodash';
+import './fpRollout.less';
+
+import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
 
 let angular = require('angular');
 
@@ -10,68 +12,55 @@ module.exports = angular
     require('./../fastProperty.write.service.js'),
     require('./../fastPropertyTransformer.service.js'),
     require('./../fastPropertyScope.service.js'),
+    require('core/delivery/executionGroup/executionGroup.directive'),
+    APPLICATION_READ_SERVICE
   ])
   .controller('FastPropertyRolloutController', function ($scope, $log, fastPropertyReader, fastPropertyWriter,
-                                                         fastPropertyTransformer, FastPropertyScopeService) {
+                                                         fastPropertyTransformer, FastPropertyScopeService, applicationReader) {
     var vm = this;
 
-    vm.applicationFilter = '';
-    vm.promotionStateFilter = 'Running';
+    vm.application = undefined;
 
-    vm.filter = function() {
-      if (!_.chain(vm.applicationFilter).isEmpty().value()) {
-        vm.filteredPromotions = vm.promotions.filter(function(promotion) {
-          return promotion.scopes.from.appId.includes(vm.applicationFilter);
-        });
-      } else {
-        vm.filteredPromotions = vm.promotions;
-      }
-    };
-
-    vm.continue = function(promotionId) {
-      fastPropertyWriter.continuePromotion(promotionId).then(vm.loadPromotions);
-    };
-
-    vm.stop = function(promotionId) {
-      $log.warn('Stop with: ' + promotionId);
-    };
-
-    vm.extractScopeFromHistoryMessage = FastPropertyScopeService.extractScopeFromHistoryMessage;
-
-    vm.getLastMessage = function(promotion) {
-      return FastPropertyScopeService.extractScopeFromHistoryMessage(_.chain(promotion.history).last().value().message);
-    };
-
-
-    vm.updateStateFilter = function(state) {
-      if(state) {
-        vm.filteredPromotions = vm.promotions.filter(function(promotion) {
-          return promotion.state === state;
-        });
-      } else {
-        vm.filteredPromotions = vm.promotions;
-      }
-    };
-
-    vm.loadPromotions = function loadPromotions() {
-      fastPropertyReader.loadPromotions()
-        .then(function(promotionList) {
-          vm.promotions = vm.filteredPromotions = promotionList;
-          vm.filter();
-          return vm.promotions;
+    vm.fetchApplication = () => {
+      applicationReader.getApplication('spinnakerfp')
+        .then((application) => {
+          vm.application = application;
+          return vm.application;
         })
-        .then(fastPropertyTransformer.sortRunningPromotionsFirst)
-        .then(function(sortedPromotions) {
-          vm.promotions = sortedPromotions;
-          return vm.promotions;
+        .then((application) => {
+          application.executions.activate();
+          return application;
         })
-        .then(function() {
-          return vm.updateStateFilter(vm.promotionStateFilter);
-        }).catch(function(error) {
-          $log.warn(error);
+        .then((application) => {
+          application.executions.onRefresh($scope, normalizeExecutionNames, dataInitializationFailure);
+
         });
     };
 
-    vm.loadPromotions();
+    vm.fetchApplication();
+
+    let dataInitializationFailure = () => {
+      this.viewState.loading = false;
+      this.viewState.initializationError = true;
+    };
+
+    function normalizeExecutionNames() {
+      if (vm.application.executions.loadFailure) {
+        dataInitializationFailure();
+      }
+      let executions = vm.application.executions.data || [];
+      var configurations = vm.application.pipelineConfigs.data || [];
+      executions.forEach(function(execution) {
+        if (execution.pipelineConfigId) {
+          var configMatches = configurations.filter(function(configuration) {
+            return configuration.id === execution.pipelineConfigId;
+          });
+          if (configMatches.length) {
+            execution.name = configMatches[0].name;
+          }
+        }
+      });
+      $scope.application = vm.application;
+    }
     return vm;
   });

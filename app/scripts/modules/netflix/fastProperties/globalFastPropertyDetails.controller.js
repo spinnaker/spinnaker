@@ -2,14 +2,18 @@
 
 let angular = require('angular');
 
+import { UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER } from './wizard/updateFastPropertyWizard.controller';
+import { DELETE_FAST_PROPERTY_WIZARD_CONTROLLER } from './wizard/deleteFastPropertyWizard.controller';
+
 module.exports = angular
   .module('spinnaker.netflix.globalFastProperties.details.controller', [
     require('angular-ui-router'),
     require('./fastProperty.read.service'),
     require('./fastProperty.write.service'),
-
+    UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER,
+    DELETE_FAST_PROPERTY_WIZARD_CONTROLLER
   ])
-  .controller('GlobalFastPropertiesDetailsController', function($scope, $state, $uibModal, fastProperty, fastPropertyReader, fastPropertyWriter) {
+  .controller('GlobalFastPropertiesDetailsController', function($scope, $state, $uibModal, fastProperty, fastPropertyReader) {
 
     let vm = this;
 
@@ -30,33 +34,34 @@ module.exports = angular
         });
     };
 
-    vm.editFastProperty = function() {
+    vm.editFastProperty = function(property) {
       $uibModal.open({
-        templateUrl: require('./modal/wizard/fastPropertyWizard.html'),
-        controller: 'FastPropertyUpsertController',
-        controllerAs: 'newFP',
+        templateUrl: require('./wizard/updateFastPropertyWizard.html'),
+        controller:  'updateFastPropertyWizardController',
+        controllerAs: 'ctrl',
+        size: 'lg',
         resolve: {
-          clusters: function() {return vm.application.clusters; },
-          appName: function() {return vm.application.name; },
-          isEditing: function() {return true; },
-          applicationList: function(applicationReader) {
-            return applicationReader.listApplications();
-          },
-          fastProperty: function() {
-            var propertyWithScope = fastPropertyWriter.extractScopeIntoSelectedScope(vm.property);
-            return fastPropertyReader.fetchImpactCountForScope(propertyWithScope.selectedScope)
-              .then( function(impact) {
-                propertyWithScope.impactCount = impact.count;
-                return propertyWithScope;
-              }, function() {
-                propertyWithScope.impactCount = '?';
-                return propertyWithScope;
-              });
-          },
+          title: () => 'Update Fast Property',
+          property: property,
+          applicationName: () => 'spinnakerfp'
         }
-
       });
     };
+
+    vm.delete = function(property) {
+      $uibModal.open({
+        templateUrl: require('./wizard/deleteFastPropertyWizard.html'),
+        controller:  'deleteFastPropertyWizardController',
+        controllerAs: 'ctrl',
+        size: 'lg',
+        resolve: {
+          title: () => 'Delete Fast Property',
+          property: property,
+          applicationName: () => 'spinnakerfp'
+        }
+      });
+    };
+
 
     getProperty();
   });

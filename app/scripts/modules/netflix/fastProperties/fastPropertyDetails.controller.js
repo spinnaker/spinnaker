@@ -2,12 +2,16 @@
 
 let angular = require('angular');
 
+import { UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER } from './wizard/updateFastPropertyWizard.controller';
+import { DELETE_FAST_PROPERTY_WIZARD_CONTROLLER } from './wizard/deleteFastPropertyWizard.controller';
+
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.details.controller', [
     require('angular-ui-router'),
     require('./fastProperty.read.service'),
     require('./fastProperty.write.service'),
-
+    UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER,
+    DELETE_FAST_PROPERTY_WIZARD_CONTROLLER
   ])
   .controller('FastPropertiesDetailsController', function($scope, $state, $uibModal, fastProperty, fastPropertyReader, fastPropertyWriter) {
 
@@ -59,6 +63,35 @@ module.exports = angular
       }).result.then(refreshApp);
     };
 
+
+    vm.editFastPropertyBeta = function(property) {
+      $uibModal.open({
+        templateUrl: require('./wizard/updateFastPropertyWizard.html'),
+        controller:  'updateFastPropertyWizardController',
+        controllerAs: 'ctrl',
+        size: 'lg',
+        resolve: {
+          title: () => 'Update Fast Property',
+          property: property,
+          applicationName: () => vm.application.applicationName,
+        }
+      });
+    };
+
+    vm.deleteBeta = function(property) {
+      $uibModal.open({
+        templateUrl: require('./wizard/deleteFastPropertyWizard.html'),
+        controller:  'deleteFastPropertyWizardController',
+        controllerAs: 'ctrl',
+        size: 'lg',
+        resolve: {
+          title: () => 'Delete Fast Property',
+          property: property,
+          applicationName: () => vm.application.applicationName,
+        }
+      });
+    };
+
     function routeToApplication() {
       $state.go(
         'home.applications.application.propInsights.properties', {
@@ -75,9 +108,7 @@ module.exports = angular
         controller: 'DeleteFastPropertyModalController',
         controllerAs: 'delete',
         resolve: {
-          fastProperty: function() {
-            return vm.property;
-          }
+          fastProperty: () => vm.property
         }
       }).result.then(routeToApplication);
     };
