@@ -9,7 +9,7 @@ export function displayableTaskFilter() {
   return function (input: TaskStep[]): TaskStep[] {
     if (input) {
       return input.filter((test: TaskStep) => {
-        return !blacklist.includes(test.name);
+        return !blacklist.includes(test.name) || test.status === 'TERMINAL';
       });
     }
   };
