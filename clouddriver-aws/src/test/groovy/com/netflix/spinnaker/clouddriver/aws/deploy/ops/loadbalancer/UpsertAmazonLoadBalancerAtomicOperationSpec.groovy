@@ -130,6 +130,43 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
     0 * _
   }
 
+  void "should fail updating a load balancer with no security groups in VPC"() {
+    given:
+    def existingLoadBalancers = [
+      new LoadBalancerDescription(loadBalancerName: "kato-main-frontend", vPCId: "test-vpc").withListenerDescriptions(
+        new ListenerDescription().withListener(new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501))
+      )
+    ]
+
+    and:
+    loadBalancing.describeLoadBalancers(
+      new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])
+    ) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
+
+    description.securityGroups = []
+
+    when:
+    operation.operate([])
+
+    then:
+    thrown(IllegalArgumentException)
+
+    when: "in EC2 classic"
+    existingLoadBalancers = [
+      new LoadBalancerDescription(loadBalancerName: "kato-main-frontend").withListenerDescriptions(
+        new ListenerDescription().withListener(new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501))
+      )
+    ]
+
+    and:
+    loadBalancing.describeLoadBalancers(
+      new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])
+    ) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
+
+    then:
+    notThrown(IllegalArgumentException)
+  }
+
   void "should update existing load balancer"() {
     def existingLoadBalancers = [
       new LoadBalancerDescription(loadBalancerName: "kato-main-frontend")
