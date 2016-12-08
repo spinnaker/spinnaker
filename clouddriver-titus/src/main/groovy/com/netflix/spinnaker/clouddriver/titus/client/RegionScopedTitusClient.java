@@ -224,8 +224,11 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     @Override
-    public void terminateJob(String jobId) {
-        execute("killJob", titusRestAdapter.killJob(RequestBody.create(MediaType.parse("text/plain"), jobId)));
+    public void terminateJob(TerminateJobRequest terminateJobRequest) {
+        if (terminateJobRequest.getUser() == null) {
+           terminateJobRequest.withUser("spinnaker");
+        }
+        execute("killJob", titusRestAdapter.killJob(terminateJobRequest));
     }
 
     @Override

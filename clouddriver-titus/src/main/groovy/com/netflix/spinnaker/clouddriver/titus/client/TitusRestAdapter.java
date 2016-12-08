@@ -36,7 +36,7 @@ public interface TitusRestAdapter {
     Call<Void> updateJob(@Path("jobId") String jobId, @Body Map<String, Object>jobAttributes);
 
     @POST("/v2/jobs/kill")
-    Call<Void> killJob(@Body RequestBody requestBody); //String jobId (but specifying that triggers the JSON converter..)
+    Call<Void> killJob(@Body TerminateJobRequest terminateJobRequest);
 
     @GET("/v2/tasks/{taskId}")
     Call<Task> getTask(@Path("taskId") String taskId);

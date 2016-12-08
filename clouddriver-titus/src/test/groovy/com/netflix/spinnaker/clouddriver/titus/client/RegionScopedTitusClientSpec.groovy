@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.ResizeJobRequest
 import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
+import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateJobRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Ignore
@@ -163,7 +164,7 @@ class RegionScopedTitusClientSpec extends Specification {
     when:
 
     logger.info("Terminating Job {}", jobId);
-    titusClient.terminateJob(jobId);
+    titusClient.terminateJob(new TerminateJobRequest().withJobId(jobId));
 
     int j = 14;
     boolean terminated = false;
