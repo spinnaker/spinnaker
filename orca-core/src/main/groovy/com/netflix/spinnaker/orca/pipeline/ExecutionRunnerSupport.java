@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskDefinition;
@@ -145,21 +148,12 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
   }
 
   private <T extends Execution<T>> void planExecutionWindow(Stage<T> stage, Consumer<Stage<T>> callback) {
-    Optional<Stage<T>> parentStage = stage
-      .getExecution()
-      .getStages()
-      .stream()
-      .filter(it -> it.getId().equals(stage.getParentStageId()))
-      .findFirst();
     boolean hasExecutionWindow = (Boolean) stage
       .getContext()
       .getOrDefault("restrictExecutionDuringTimeWindow", false);
     boolean isNonSynthetic = stage.getSyntheticStageOwner() == null &&
       stage.getParentStageId() == null;
-    boolean parentIsInitializingStage = parentStage
-      .map(Stage::isInitializationStage)
-      .orElse(false);
-    if (hasExecutionWindow && (isNonSynthetic || parentIsInitializingStage)) {
+    if (hasExecutionWindow && isNonSynthetic) {
       Stage<T> syntheticStage = newStage(
         stage.getExecution(),
         RestrictExecutionDuringTimeWindow.TYPE,
