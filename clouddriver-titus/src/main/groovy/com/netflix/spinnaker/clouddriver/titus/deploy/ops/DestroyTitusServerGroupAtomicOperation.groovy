@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateJobRequest
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusServerGroupDescription
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
@@ -48,7 +49,7 @@ class DestroyTitusServerGroupAtomicOperation implements AtomicOperation<Void> {
       throw new IllegalArgumentException("No titus server group named '${description.serverGroupName}' found")
     }
 
-    titusClient.terminateJob(job.id)
+    titusClient.terminateJob(new TerminateJobRequest().withJobId(job.id).withUser(description.user))
     task.updateStatus PHASE, "Successfully issued terminate job request to titus for ${job.id} which corresponds to ${description.serverGroupName}"
 
     task.updateStatus PHASE, "Completed destroy server group operation for ${description.serverGroupName}"

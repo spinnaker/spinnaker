@@ -76,9 +76,9 @@ public interface TitusClient {
 
     /**
      *
-     * @param jobId
+     * @param terminateJobRequest
      */
-    public void terminateJob(String jobId);
+    public void terminateJob(TerminateJobRequest terminateJobRequest);
 
     /**
      *

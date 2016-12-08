@@ -15,10 +15,12 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops
+
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateJobRequest
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusServerGroupDescription
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
@@ -59,6 +61,6 @@ class DestroyTitusServerGroupAtomicOperationSpec extends Specification {
     atomicOperation.operate([])
 
     then:
-    titusClient.terminateJob('1234')
+    titusClient.terminateJob(new TerminateJobRequest().withJobId('1234'))
   }
 }
