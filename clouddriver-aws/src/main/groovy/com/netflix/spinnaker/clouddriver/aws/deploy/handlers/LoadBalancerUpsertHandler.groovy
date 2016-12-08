@@ -42,14 +42,16 @@ class LoadBalancerUpsertHandler {
                                   List<Listener> listeners, Collection<String> securityGroups) {
     def amazonErrors = []
     def loadBalancerName = loadBalancer.loadBalancerName
-
-    if (securityGroups) {
-      loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
-        loadBalancerName: loadBalancerName,
-        securityGroups: securityGroups
-      ))
-      task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
+    if (loadBalancer.getVPCId() && !securityGroups) {
+      throw new IllegalArgumentException("Load balancer ${loadBalancerName} must have at least one security group")
     }
+
+    loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
+      loadBalancerName: loadBalancerName,
+      securityGroups: securityGroups
+    ))
+
+    task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
 
     if (listeners) {
       // ignore all references to :0 => :0 listeners - leave them alone if they're there, do not add them if they're not
