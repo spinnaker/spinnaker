@@ -1,4 +1,5 @@
 import {set} from 'lodash';
+import {module} from 'angular';
 
 class GceAutoHealingPolicySelector implements ng.IComponentController {
   public command: any;
@@ -34,12 +35,12 @@ class GceAutoHealingPolicySelectorComponent implements ng.IComponentOptions {
     command: '=',
   };
   public templateUrl: string = require('./autoHealingPolicySelector.component.html');
-  public controller: ng.IComponentController = GceAutoHealingPolicySelector;
+  public controller: any = GceAutoHealingPolicySelector;
 }
 
 export const GCE_AUTOHEALING_POLICY_SELECTOR = 'spinnaker.gce.autoHealingPolicy.selector.component';
 
-angular.module(GCE_AUTOHEALING_POLICY_SELECTOR, [
+module(GCE_AUTOHEALING_POLICY_SELECTOR, [
   require('../../serverGroupConfiguration.service.js'),
 ]).component('gceAutoHealingPolicySelector', new GceAutoHealingPolicySelectorComponent());
 

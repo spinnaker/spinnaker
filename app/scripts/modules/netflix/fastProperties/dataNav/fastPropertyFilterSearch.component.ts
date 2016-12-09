@@ -1,4 +1,5 @@
-import * as _ from 'lodash';
+import {compact, findIndex, uniqWith} from 'lodash';
+import {module} from 'angular';
 
 interface IFastProperty {
   scope: IFastPropertyScope;
@@ -74,7 +75,7 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
     let copy = this.filters.list.splice(0);
     let tagBody = {label: category, value: result};
     copy.push(this.createFilterTag(tagBody));
-    this.filters.list = _.uniqWith(copy, (a: any, b: any) => a.label === b.label && a.value === b.value);
+    this.filters.list = uniqWith(copy, (a: any, b: any) => a.label === b.label && a.value === b.value);
     this.$element.find('input').val('');
     this.showSearchResults = false;
   }
@@ -150,7 +151,7 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
   private executeQuery() {
     if (this.query) {
       this.querying = true;
-      this.filteredCategories = _.compact(this.categories.map((category: any) => {
+      this.filteredCategories = compact(this.categories.map((category: any) => {
         let results = category.results.filter((result: string) => result.toLowerCase().includes(this.query.toLowerCase()));
         if (results.length > 0) {
           return {category: category.category, results: results};
@@ -177,7 +178,7 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
 
   private addToList(acc: any[], scopeKey: string, scopeValue: string): any {
     if (scopeValue) {
-      let categoryIndex = _.findIndex(acc, ['category', scopeKey]);
+      let categoryIndex = findIndex(acc, ['category', scopeKey]);
       if (categoryIndex > -1) {
         acc[categoryIndex].results = Array.from(new Set(acc[categoryIndex].results).add(scopeValue));
       } else {
@@ -197,7 +198,7 @@ class FastPropertyFilterSearchComponent implements ng.IComponentOptions {
     'filters': '=',
     'createFilterTag': '='
   };
-  public controller: ng.IComponentController = FastPropertyFilterSearchController;
+  public controller: any = FastPropertyFilterSearchController;
   public controllerAs: string = 'fpFilter';
   public templateUrl: string = require('./fastPropertyFilterSearch.component.html');
 
@@ -205,7 +206,6 @@ class FastPropertyFilterSearchComponent implements ng.IComponentOptions {
 
 export const FAST_PROPERTY_SEARCH_COMPONENT = 'spinnaker.netflix.fastPropertyFilterSearch.component';
 
-angular
-  .module(FAST_PROPERTY_SEARCH_COMPONENT, [])
+module(FAST_PROPERTY_SEARCH_COMPONENT, [])
   .component('fastPropertyFilterSearch', new FastPropertyFilterSearchComponent());
 

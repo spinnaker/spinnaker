@@ -65,7 +65,7 @@ class ExecutionWindowDayPickerComponent implements ng.IComponentOptions {
     windowConfig: '<',
     onChange: '&',
   };
-  public controller: ng.IComponentController = ExecutionWindowDayPickerController;
+  public controller: any = ExecutionWindowDayPickerController;
   public templateUrl: string = require('./executionWindowDayPicker.component.html');
 }
 

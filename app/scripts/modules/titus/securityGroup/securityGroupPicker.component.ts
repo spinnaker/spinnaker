@@ -138,7 +138,7 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
     groupsToEdit: '=',
     hideLabel: '<',
   };
-  public controller: ng.IComponentController = SecurityGroupPickerController;
+  public controller: any = SecurityGroupPickerController;
   public template: string = `
     <div class="clearfix" ng-if="$ctrl.loaded">
       <server-group-security-groups-removed removed="$ctrl.removedGroups"></server-group-security-groups-removed>

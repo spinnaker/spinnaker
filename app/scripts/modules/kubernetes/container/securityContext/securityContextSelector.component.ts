@@ -45,7 +45,7 @@ class SecurityContextSelectorComponent implements ng.IComponentOptions {
     component: '='
   };
   templateUrl: string = require('./securityContextSelector.component.html');
-  controller: ng.IComponentController = SecurityContextSelector;
+  controller: any = SecurityContextSelector;
 }
 
 export const KUBERNETES_SECURITY_CONTEXT_SELECTOR = 'spinnaker.kubernetes.securityContextSelector.component';

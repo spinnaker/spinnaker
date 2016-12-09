@@ -122,7 +122,7 @@ class TitusMigrationConfigurerComponent implements ng.IComponentOptions {
     config: '<',
     configChanged: '&',
   };
-  public controller: ng.IComponentController = TitusMigrationConfigurerController;
+  public controller: any = TitusMigrationConfigurerController;
   public templateUrl: string = require('./titusMigrationConfigurer.component.html');
 }
 

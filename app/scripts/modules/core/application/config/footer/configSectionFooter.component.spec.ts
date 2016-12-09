@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {CONFIG_SECTION_FOOTER, ConfigSectionFooterController} from './configSectionFooter.component';
 
 describe('Component: ConfigSectionFooter', () => {
@@ -16,9 +18,9 @@ describe('Component: ConfigSectionFooter', () => {
     );
   };
 
-  beforeEach(angular.mock.module(CONFIG_SECTION_FOOTER));
+  beforeEach(mock.module(CONFIG_SECTION_FOOTER));
 
-  beforeEach(angular.mock.inject((
+  beforeEach(mock.inject((
     _$componentController_: ng.IComponentControllerService,
     _$q_: ng.IQService,
     $rootScope: ng.IRootScopeService,

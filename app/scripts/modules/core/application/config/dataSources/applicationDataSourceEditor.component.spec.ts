@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {Application} from '../../application.model';
 import modelBuilderModule, {ApplicationModelBuilder} from '../../applicationModel.builder';
 import editorModule, {DataSourceEditorController} from './applicationDataSourceEditor.component';
@@ -21,12 +23,12 @@ describe('Component: Application Data Source Editor', () => {
     ctrl.$onInit();
   };
 
-  beforeEach(angular.mock.module(
+  beforeEach(mock.module(
     editorModule,
     modelBuilderModule
   ));
 
-  beforeEach(angular.mock.inject(
+  beforeEach(mock.inject(
     (_applicationWriter_: any, _applicationModelBuilder_: ApplicationModelBuilder,
      _$componentController_: ng.IComponentControllerService, _$q_: ng.IQService, $rootScope: ng.IRootScopeService) => {
       applicationWriter = _applicationWriter_;

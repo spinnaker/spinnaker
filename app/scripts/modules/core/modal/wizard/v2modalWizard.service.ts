@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {SCROLL_TO_SERVICE, ScrollToService} from '../../utils/scrollTo/scrollTo.service';
+import {SCROLL_TO_SERVICE, ScrollToService} from 'core/utils/scrollTo/scrollTo.service';
 
 export interface WizardPageState {
   done: boolean;

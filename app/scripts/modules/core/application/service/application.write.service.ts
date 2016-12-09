@@ -1,4 +1,5 @@
-import * as _ from 'lodash';
+import {cloneDeep} from 'lodash';
+import {module} from 'angular';
 import {Application} from '../application.model';
 import {TASK_EXECUTOR, TaskExecutor} from 'core/task/taskExecutor';
 
@@ -24,7 +25,7 @@ export class ApplicationWriter {
   public constructor(private $q: ng.IQService, private taskExecutor: TaskExecutor, private recentHistoryService: any) {}
 
   public createApplication(application: IApplicationAttributes): ng.IPromise<any> {
-    const jobs: IJob[] = this.buildJobs(application, 'createApplication', _.cloneDeep);
+    const jobs: IJob[] = this.buildJobs(application, 'createApplication', cloneDeep);
     return this.taskExecutor.executeTask({
       job: jobs,
       application: application,
@@ -33,7 +34,7 @@ export class ApplicationWriter {
   }
 
   public updateApplication(application: IApplicationAttributes): ng.IPromise<any> {
-    const jobs: IJob[] = this.buildJobs(application, 'updateApplication', _.cloneDeep);
+    const jobs: IJob[] = this.buildJobs(application, 'updateApplication', cloneDeep);
     return this.taskExecutor.executeTask({
       job: jobs,
       application: application,
@@ -88,7 +89,7 @@ export class ApplicationWriter {
 
 export const APPLICATION_WRITE_SERVICE = 'spinnaker.core.application.write.service';
 
-angular.module(APPLICATION_WRITE_SERVICE, [
+module(APPLICATION_WRITE_SERVICE, [
   TASK_EXECUTOR,
   require('../../history/recentHistory.service.js'),
 ]).service('applicationWriter', ApplicationWriter);

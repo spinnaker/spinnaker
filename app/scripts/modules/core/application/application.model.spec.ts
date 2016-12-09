@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {Application} from './application.model';
 import modelBuilderModule, {ApplicationModelBuilder} from './applicationModel.builder';
 import {ApplicationDataSourceRegistry} from './service/applicationDataSource.registry';
@@ -20,7 +22,7 @@ describe ('Application Model', function () {
       applicationDataSourceRegistry: ApplicationDataSourceRegistry;
 
   beforeEach(
-    angular.mock.module(
+    mock.module(
       require('../securityGroup/securityGroup.dataSource'),
       require('../serverGroup/serverGroup.dataSource'),
       require('../loadBalancer/loadBalancer.dataSource'),
@@ -28,7 +30,7 @@ describe ('Application Model', function () {
   ));
 
   beforeEach(
-    angular.mock.inject(function (_securityGroupReader_: any, _clusterService_: any, _$q_: ng.IQService, _loadBalancerReader_: any, $rootScope: any,
+    mock.inject(function (_securityGroupReader_: any, _clusterService_: any, _$q_: ng.IQService, _loadBalancerReader_: any, $rootScope: any,
                             _applicationModelBuilder_: ApplicationModelBuilder, _applicationDataSourceRegistry_: ApplicationDataSourceRegistry) {
       securityGroupReader = _securityGroupReader_;
       clusterService = _clusterService_;

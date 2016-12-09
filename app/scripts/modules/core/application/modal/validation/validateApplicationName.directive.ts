@@ -36,10 +36,10 @@ class ValidateApplicationNameController implements ng.IComponentController {
 @DirectiveFactory('applicationNameValidator')
 class ValidateApplicationNameDirective implements ng.IDirective {
   restrict: string = 'A';
-  controller: ng.IComponentController =  ValidateApplicationNameController;
+  controller: any =  ValidateApplicationNameController;
   controllerAs: string = '$ctrl';
   require: string = 'ngModel';
-  bindToController: Object = {
+  bindToController: any = {
     cloudProviders: '<',
   };
 

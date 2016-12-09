@@ -49,7 +49,7 @@ class V2ModalWizardComponent implements ng.IComponentOptions {
 
   public transclude: boolean = true;
   public templateUrl: string = require('./v2modalWizard.component.html');
-  public controller: ng.IComponentController = V2ModalWizard;
+  public controller: any = V2ModalWizard;
 }
 
 const moduleName = 'spinnaker.core.modal.wizard.wizard.component';

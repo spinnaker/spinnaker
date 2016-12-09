@@ -1,13 +1,15 @@
+import {mock} from 'angular';
+
 import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
 
 describe('namingService', function () {
   beforeEach(function () {
-    angular.mock.module(
+    mock.module(
       NAMING_SERVICE
     );
   });
 
-  beforeEach(angular.mock.inject(function (namingService: NamingService) {
+  beforeEach(mock.inject(function (namingService: NamingService) {
     this.namingService = namingService;
   }));
 

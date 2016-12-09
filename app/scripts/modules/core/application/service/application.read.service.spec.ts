@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {IApplicationDataSourceAttribute, ApplicationReader, APPLICATION_READ_SERVICE} from './application.read.service';
 import {Api} from '../../api/api.service';
 import {ApplicationDataSourceRegistry} from './applicationDataSource.registry';
@@ -14,7 +16,7 @@ describe('Service: applicationReader', function () {
   let applicationDataSourceRegistry: ApplicationDataSourceRegistry;
 
   beforeEach(
-    angular.mock.module(
+    mock.module(
       APPLICATION_READ_SERVICE,
       require('../../securityGroup/securityGroup.dataSource'),
       require('../../serverGroup/serverGroup.dataSource'),
@@ -26,7 +28,7 @@ describe('Service: applicationReader', function () {
   );
 
   beforeEach(
-    angular.mock.inject(function (_applicationReader_: ApplicationReader, _securityGroupReader_: any,
+    mock.inject(function (_applicationReader_: ApplicationReader, _securityGroupReader_: any,
                                   _clusterService_: any, _API_: Api, _$q_: ng.IQService,
                                   _loadBalancerReader_: any, $rootScope: ng.IRootScopeService,
                                   _applicationDataSourceRegistry_: ApplicationDataSourceRegistry) {

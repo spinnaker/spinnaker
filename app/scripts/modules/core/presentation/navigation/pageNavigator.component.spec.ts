@@ -1,7 +1,11 @@
+/// <reference path="../../../../../../test/helpers/custom-matchers.d.ts" />
+
+import * as $ from 'jquery';
+import {mock} from 'angular';
+
+import {matchers} from '../../../../../../test/helpers/customMatchers';
 import {PAGE_NAVIGATOR_COMPONENT} from './pageNavigator.component';
 import {INavigationPage} from './pageNavigationState';
-import {matchers} from '../../../../../../test/helpers/customMatchers';
-import * as $ from 'jquery';
 import {ScrollToService} from '../../utils/scrollTo/scrollTo.service';
 
 describe('Component: Page Navigator', () => {
@@ -12,9 +16,9 @@ describe('Component: Page Navigator', () => {
       elem: JQuery,
       scrollToService: ScrollToService;
 
-  beforeEach(angular.mock.module(PAGE_NAVIGATOR_COMPONENT));
+  beforeEach(mock.module(PAGE_NAVIGATOR_COMPONENT));
 
-  beforeEach(angular.mock.inject((_$compile_: ng.ICompileService, $rootScope: ng.IScope,
+  beforeEach(mock.inject((_$compile_: ng.ICompileService, $rootScope: ng.IScope,
                                   _$timeout_: ng.ITimeoutService, _scrollToService_: ScrollToService) => {
     $compile = _$compile_;
     $scope = $rootScope.$new();

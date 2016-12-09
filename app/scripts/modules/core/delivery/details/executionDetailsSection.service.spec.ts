@@ -1,3 +1,5 @@
+import {mock, noop} from 'angular';
+
 import {ExecutionDetailsSectionService} from './executionDetailsSection.service';
 
 describe('executionDetailsSectionService', function() {
@@ -7,9 +9,9 @@ describe('executionDetailsSectionService', function() {
       $timeout: ng.ITimeoutService,
       service: ExecutionDetailsSectionService;
 
-  beforeEach(angular.mock.module('spinnaker.executionDetails.section.service'));
+  beforeEach(mock.module('spinnaker.executionDetails.section.service'));
 
-  beforeEach(angular.mock.inject((
+  beforeEach(mock.inject((
     executionDetailsSectionService: ExecutionDetailsSectionService,
     _$state_: angular.ui.IStateService,
     _$stateParams_: angular.ui.IStateParamsService,
@@ -92,7 +94,7 @@ describe('executionDetailsSectionService', function() {
       spyOn($state, 'go');
 
       service.synchronizeSection(['a', 'b'], init);
-      service.synchronizeSection(['a', 'b'], angular.noop);
+      service.synchronizeSection(['a', 'b'], noop);
       $timeout.flush();
       expect(completed).toBe(false);
     });

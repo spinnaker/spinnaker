@@ -2,9 +2,9 @@ import {module} from 'angular';
 import {PageNavigationState, INavigationPage} from './pageNavigationState';
 
 interface IPageSectionOnChanges extends ng.IOnChangesObject {
-  visible: ng.IChangesObject;
-  label: ng.IChangesObject;
-  badge: ng.IChangesObject;
+  visible: ng.IChangesObject<boolean>;
+  label: ng.IChangesObject<string>;
+  badge: ng.IChangesObject<string>;
 }
 
 class PageSectionController implements ng.IComponentController {
@@ -18,7 +18,7 @@ class PageSectionController implements ng.IComponentController {
   public constructor(private pageNavigationState: PageNavigationState) {}
 
   public $onInit(): void {
-    this.visible = this.visible === false ? false : true;
+    this.visible = this.visible !== false;
     this.pageConfig = {
       key: this.key,
       label: this.label,
@@ -49,7 +49,7 @@ class PageSectionComponent implements ng.IComponentOptions {
     visible: '<',
     noWrapper: '<',
   };
-  public controller: ng.IComponentController = PageSectionController;
+  public controller: any = PageSectionController;
   public transclude: boolean = true;
   public template: string = `
     <div ng-if="$ctrl.pageConfig.visible" class="page-subheading" data-page-id="{{$ctrl.pageConfig.key}}">

@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {Application} from '../application/application.model';
 import modelBuilderModule from '../application/applicationModel.builder';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
@@ -13,7 +15,7 @@ describe('Task Data Source', function () {
       $q: ng.IQService;
 
   beforeEach(
-    angular.mock.module(
+    mock.module(
       require('./task.dataSource'),
       TASK_READ_SERVICE,
       APPLICATION_DATA_SOURCE_REGISTRY,
@@ -21,7 +23,7 @@ describe('Task Data Source', function () {
     ));
 
   beforeEach(
-    angular.mock.inject(function (_taskReader_: TaskReader, _$q_: any, $rootScope: any,
+    mock.inject(function (_taskReader_: TaskReader, _$q_: any, $rootScope: any,
                             _applicationModelBuilder_: any, _applicationDataSourceRegistry_: any) {
       $q = _$q_;
       $scope = $rootScope.$new();

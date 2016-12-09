@@ -1,3 +1,4 @@
+import {cloneDeep} from 'lodash';
 import {module, toJson} from 'angular';
 import {Application} from 'core/application/application.model';
 import {TITUS_MIGRATION_CONFIGURER_COMPONENT} from './titusMigrationConfigurer.component';
@@ -88,7 +89,7 @@ export class TitusMigrationConfigController implements ng.IComponentController {
       defaultStrategy: { type: RollingPushStrategy.type, config: new RollingPushStrategy() },
       overrides: [],
     };
-    this.viewState.originalConfig = _.cloneDeep(this.config);
+    this.viewState.originalConfig = cloneDeep(this.config);
     this.viewState.originalStringVal = toJson(this.viewState.originalConfig);
 
     this.initializeOptions();
@@ -129,7 +130,7 @@ class TitusMigrationConfigComponent implements ng.IComponentOptions {
   public bindings: any = {
     application: '=',
   };
-  public controller: ng.IComponentController = TitusMigrationConfigController;
+  public controller: any = TitusMigrationConfigController;
   public templateUrl: string = require('./titusMigrationConfig.component.html');
 }
 

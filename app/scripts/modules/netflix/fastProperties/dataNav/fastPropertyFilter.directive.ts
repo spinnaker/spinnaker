@@ -1,4 +1,5 @@
-import * as _ from 'lodash';
+import {flatten, uniq, uniqWith} from 'lodash';
+import {module} from 'angular';
 import { DirectiveFactory } from '../../../core/utils/tsDecorators/directiveFactoryDecorator';
 
 @DirectiveFactory()
@@ -17,8 +18,7 @@ class FastPropertyFilterDirective implements ng.IDirective {
     let input = el.children('input');
 
     let getScopeAttributeList = (scopeName: string) => {
-      let results = ['none'].concat(<string[]> _.uniq(scope.properties.map((prop: any) => prop.scope[scopeName])));
-      return results;
+      return ['none'].concat(<string[]> uniq(scope.properties.map((prop: any) => prop.scope[scopeName])));
     };
 
     let textcompleteComponents = this.fields.map((field) => {
@@ -35,14 +35,14 @@ class FastPropertyFilterDirective implements ng.IDirective {
           let copy = scope.filters.list.splice(0);
           let tagBody = {label: field, value: attr};
           copy.push(scope.createFilterTag(tagBody));
-          scope.filters.list = _.uniqWith(copy, (a: any, b: any) => a.label === b.label && a.value === b.value);
+          scope.filters.list = uniqWith(copy, (a: any, b: any) => a.label === b.label && a.value === b.value);
           scope.$apply();
           return '';
         }
       };
     });
 
-    input.textcomplete(_.flatten([
+    input.textcomplete(flatten([
       textcompleteComponents,
       {
         match: /(\s*|\w*)\?(\s*|\w*|')$/,
@@ -74,7 +74,6 @@ class FastPropertyFilterDirective implements ng.IDirective {
 
 export const FAST_PROPERTY_FILTER_DIRECTIVE = 'spinnaker.netflix.fastPropertyFilter.directive';
 
-angular
-  .module(FAST_PROPERTY_FILTER_DIRECTIVE, [])
+module(FAST_PROPERTY_FILTER_DIRECTIVE, [])
   .directive('fastPropertyFilter', <any>FastPropertyFilterDirective);
 

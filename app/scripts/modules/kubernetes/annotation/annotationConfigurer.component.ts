@@ -47,7 +47,7 @@ class KubernetesAnnotationConfigurerComponent implements ng.IComponentOptions {
     label: '@'
   };
   templateUrl: string = require('./annotationConfigurer.component.html');
-  controller: ng.IComponentController = KubernetesAnnotationConfigurer;
+  controller: any = KubernetesAnnotationConfigurer;
 }
 
 export const KUBERNETES_ANNOTATION_CONFIGURER = 'spinnaker.kubernetes.annotation.configurer.component';

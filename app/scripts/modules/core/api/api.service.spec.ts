@@ -1,5 +1,5 @@
 import Spy = jasmine.Spy;
-
+import {mock, noop} from 'angular';
 import {AuthenticationInitializer} from '../authentication/authentication.initializer.service';
 import {API_SERVICE, Api} from './api.service';
 
@@ -10,14 +10,14 @@ describe('API Service', function () {
   let authenticationInitializer: AuthenticationInitializer;
 
   beforeEach(
-    angular.mock.module(
+    mock.module(
       API_SERVICE,
       require('../config/settings')
     )
   );
 
   beforeEach(
-    angular.mock.inject(
+    mock.inject(
       function (_API_: Api,
                 _$httpBackend_: ng.IHttpBackendService,
                 settings: any,
@@ -35,11 +35,11 @@ describe('API Service', function () {
 
   describe('validate response content-type header', function () {
     it('responses with non-"application/json" content types should trigger a reauthentication request and reject', function () {
-      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(angular.noop);
+      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(noop);
       $httpBackend.expectGET(`${baseUrl}/bad`).respond(200, '<html>this is the authentication page</html>', {'content-type': 'text/html'});
 
       let rejected = false;
-      API.one('bad').get().then(angular.noop, () => rejected = true);
+      API.one('bad').get().then(noop, () => rejected = true);
 
       $httpBackend.flush();
       expect((<Spy>authenticationInitializer.reauthenticateUser).calls.count()).toBe(1);
@@ -47,7 +47,7 @@ describe('API Service', function () {
     });
 
     it('string responses starting with <html should trigger a reauthentication request and reject', function () {
-      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(angular.noop);
+      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(noop);
       $httpBackend.expectGET(`${baseUrl}/fine`).respond(200, 'this is fine');
 
       let rejected = false;
@@ -61,7 +61,7 @@ describe('API Service', function () {
     });
 
     it('object and array responses should pass through', function () {
-      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(angular.noop);
+      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(noop);
 
       let rejected = false;
       let succeeded = false;

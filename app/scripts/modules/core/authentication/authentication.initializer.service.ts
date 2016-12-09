@@ -1,9 +1,7 @@
-import IModalService = angular.ui.bootstrap.IModalService;
-import IModalStackService = angular.ui.bootstrap.IModalStackService;
-
-import {module} from 'angular';
 import {Observable} from 'rxjs/Observable';
 import {Subscription} from 'rxjs/Subscription';
+import {module} from 'angular';
+import {IModalService, IModalStackService} from '../../../../types/angular-ui-bootstrap';
 
 import {IDeckRootScope} from '../domain/deckRootScope';
 import {REDIRECT_SERVICE} from './redirect.service';

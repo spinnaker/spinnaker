@@ -1,3 +1,5 @@
+import {mock} from 'angular';
+
 import {IDeckRootScope} from 'core/domain/deckRootScope';
 import {RedirectService} from './redirect.service';
 import {AuthenticationService} from './authentication.service';
@@ -10,7 +12,7 @@ describe('authenticationProvider: application startup', function () {
     window.spinnakerSettings.authEnabled = true;
   });
 
-  beforeEach(angular.mock.module(AUTHENTICATION));
+  beforeEach(mock.module(AUTHENTICATION));
 
   let authenticationService: AuthenticationService,
     $timeout: ng.ITimeoutService,
@@ -21,7 +23,7 @@ describe('authenticationProvider: application startup', function () {
     $rootScope: IDeckRootScope;
 
   beforeEach(
-    angular.mock.inject(
+    mock.inject(
       (_authenticationService_: AuthenticationService,
        _$timeout_: ng.ITimeoutService,
        _$httpBackend_: ng.IHttpBackendService,

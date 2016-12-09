@@ -108,7 +108,7 @@ class WizardPageComponent implements ng.IComponentOptions {
   };
   public transclude: boolean = true;
   public templateUrl: string = require('./v2wizardPage.component.html');
-  public controller: ng.IComponentController = WizardPageController;
+  public controller: any = WizardPageController;
 }
 
 const moduleName = 'spinnaker.core.modal.wizard.wizardPage.component';

@@ -1,3 +1,5 @@
+import {module} from 'angular';
+
 import {Application} from 'core/application/application.model';
 import {LoadBalancer} from 'core/domain/index';
 
@@ -48,5 +50,5 @@ class AppengineLoadBalancerDetailsController {
 
 export const APPENGINE_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.appengine.loadBalancerDetails.controller';
 
-angular.module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [])
+module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [])
   .controller('appengineLoadBalancerDetailsCtrl', AppengineLoadBalancerDetailsController);

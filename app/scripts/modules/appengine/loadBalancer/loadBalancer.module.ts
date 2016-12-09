@@ -1,3 +1,5 @@
+import {module} from 'angular';
+
 import {APPENGINE_LOAD_BALANCER_CREATE_MESSAGE} from './configure/wizard/createLoadBalancerMessage.component';
 import {APPENGINE_LOAD_BALANCER_DETAILS_CTRL} from './details/details.controller';
 import {APPENGINE_LOAD_BALANCER_TRANSFORMER} from './transformer';
@@ -5,7 +7,7 @@ import {APPENGINE_LOAD_BALANCER_WIZARD_CTRL} from './configure/wizard/wizard.con
 
 export const APPENGINE_LOAD_BALANCER_MODULE = 'spinnaker.appengine.loadBalancer.module';
 
-angular.module(APPENGINE_LOAD_BALANCER_MODULE, [
+module(APPENGINE_LOAD_BALANCER_MODULE, [
   APPENGINE_LOAD_BALANCER_CREATE_MESSAGE,
   APPENGINE_LOAD_BALANCER_TRANSFORMER,
   APPENGINE_LOAD_BALANCER_WIZARD_CTRL,

@@ -98,7 +98,7 @@ class NumberListComponent implements ng.IComponentOptions {
     onChange: '&',
   };
 
-  public controller: ng.IComponentController = NumberListController;
+  public controller: any = NumberListController;
   public template: string = `
     <div ng-if="$ctrl.parameterized">
       <input type="text" class="form-control input-sm" ng-model="$ctrl.model"/>

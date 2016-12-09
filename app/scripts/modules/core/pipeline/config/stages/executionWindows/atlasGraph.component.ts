@@ -1,6 +1,7 @@
-import * as _ from 'lodash';
-import * as moment from 'moment-timezone';
-import Subject = Rx.Subject;
+import * as momentTimezone from 'moment-timezone';
+import {has} from 'lodash';
+import {module} from 'angular';
+import {Subject} from 'rxjs';
 
 interface IExecutionWindow {
   displayStart: Date;
@@ -142,11 +143,11 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
   }
 
   public $onInit(): void {
-    this.atlasEnabled = _.has(this.settings, 'executionWindow.atlas');
+    this.atlasEnabled = has(this.settings, 'executionWindow.atlas');
     if (!this.atlasEnabled) {
       return;
     }
-    this.windowsUpdated.subscribe((newWindows) => this.addWindowsToChart(newWindows));
+    this.windowsUpdated.subscribe((newWindows: IExecutionWindow[]) => this.addWindowsToChart(newWindows));
     this.chartData = {
       windows: [],
       SPS: [],
@@ -252,14 +253,14 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
     const today = new Date();
     const zone: string = this.settings.defaultTimeZone || 'America/Los_Angeles';
 
-    const start = moment.tz(today, zone)
+    const start = momentTimezone.tz(today, zone)
         .hour(window.displayStart.getHours())
         .minute(window.displayStart.getMinutes())
         .seconds(window.displayStart.getSeconds())
         .milliseconds(window.displayStart.getMilliseconds())
         .subtract(dayOffset, 'days').toDate().getTime(),
 
-      end = moment.tz(today, zone)
+      end = momentTimezone.tz(today, zone)
         .hour(window.displayEnd.getHours())
         .minute(window.displayEnd.getMinutes())
         .seconds(window.displayEnd.getSeconds())
@@ -282,7 +283,7 @@ class AtlasGraphComponent implements ng.IComponentOptions {
     windowsUpdated: '<',
     stage: '<',
   };
-  public controller: ng.IComponentController = ExecutionWindowAtlasGraphController;
+  public controller: any = ExecutionWindowAtlasGraphController;
   public template: string = `
     <div class="form-group" ng-if="$ctrl.atlasEnabled">
       <div class="col-md-9 col-md-offset-1">
@@ -329,5 +330,5 @@ class AtlasGraphComponent implements ng.IComponentOptions {
 
 export const EXECUTION_WINDOW_ATLAS_GRAPH = 'spinnaker.core.pipeline.config.executionWindow.atlas.graph';
 
-angular.module(EXECUTION_WINDOW_ATLAS_GRAPH, [])
+module(EXECUTION_WINDOW_ATLAS_GRAPH, [])
   .component('executionWindowAtlasGraph', new AtlasGraphComponent());
