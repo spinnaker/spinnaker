@@ -1,4 +1,5 @@
 import {module} from 'angular';
+import {cloneDeep} from 'lodash';
 
 import {Application} from 'core/application/application.model';
 import {LoadBalancer} from 'core/domain/index';
@@ -13,15 +14,30 @@ class AppengineLoadBalancerDetailsController {
   public state = { loading: true };
   public loadBalancer: LoadBalancer;
 
-  static get $inject() { return ['$state', '$scope', 'loadBalancer', 'app']; }
+  static get $inject() { return ['$uibModal', '$state', '$scope', 'loadBalancer', 'app']; }
 
-  constructor(private $state: any,
+  constructor(private $uibModal: any,
+              private $state: any,
               private $scope: any,
               private loadBalancerFromParams: ILoadBalancerFromStateParams,
               private app: Application) {
     this.app.getDataSource('loadBalancers')
       .ready()
       .then(() => this.extractLoadBalancer());
+  }
+
+  public editLoadBalancer(): void {
+    this.$uibModal.open({
+      templateUrl: require('../configure/wizard/wizard.html'),
+      controller: 'appengineLoadBalancerWizardCtrl as ctrl',
+      size: 'lg',
+      resolve: {
+        application: () => this.app,
+        loadBalancer: () => cloneDeep(this.loadBalancer),
+        isNew: () => false,
+        forPipelineConfig: () => false,
+      }
+    });
   }
 
   private extractLoadBalancer(): void {

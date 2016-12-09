@@ -1,9 +1,29 @@
-import {chain, get, has, camelCase, filter} from 'lodash';
 import {module} from 'angular';
+import {chain, get, has, camelCase, filter, mapValues, cloneDeep} from 'lodash';
 
 import {InstanceCounts, LoadBalancer, ServerGroup, Instance} from 'core/domain/index';
+import {IAppengineLoadBalancer, IAppengineTrafficSplit} from 'appengine/domain/index';
 
-class AppengineLoadBalancerTransformer {
+export class AppengineLoadBalancerUpsertDescription {
+  public credentials: string;
+  public loadBalancerName: string;
+  public name: string;
+  public split: IAppengineTrafficSplit;
+  public migrateTraffic: boolean;
+  public region: string;
+
+  constructor(loadBalancer: IAppengineLoadBalancer) {
+    this.credentials = loadBalancer.account;
+    this.loadBalancerName = loadBalancer.name;
+    this.name = loadBalancer.name;
+    this.split = cloneDeep(loadBalancer.split);
+    this.split.allocations = mapValues(this.split.allocations, (percent: number) => percent / 100);
+    this.region = loadBalancer.region;
+    this.migrateTraffic = loadBalancer.migrateTraffic || false;
+  }
+}
+
+export class AppengineLoadBalancerTransformer {
   public normalizeLoadBalancer(loadBalancer: LoadBalancer): LoadBalancer {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
@@ -23,6 +43,15 @@ class AppengineLoadBalancerTransformer {
     let activeServerGroups = filter(loadBalancer.serverGroups, {isDisabled: false});
     loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as Instance[];
     return loadBalancer;
+  }
+
+  public convertLoadBalancerForEditing(loadBalancer: IAppengineLoadBalancer): IAppengineLoadBalancer {
+    loadBalancer.split.allocations = mapValues(loadBalancer.split.allocations, (decimal: number) => decimal * 100);
+    return loadBalancer;
+  }
+
+  public convertLoadBalancerToUpsertDescription(loadBalancer: IAppengineLoadBalancer): AppengineLoadBalancerUpsertDescription {
+    return new AppengineLoadBalancerUpsertDescription(loadBalancer);
   }
 
   private buildInstanceCounts(serverGroups: ServerGroup[]): InstanceCounts {

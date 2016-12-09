@@ -1,6 +1,20 @@
-<v2-modal-wizard heading="Create New Load Balancer" dismiss="$dismiss()">
-</v2-modal-wizard>
-<appengine-load-balancer-create-message ng-if="ctrl.isNew"></appengine-load-balancer-create-message>
-<div class="modal-footer">
-  <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-</div>
+<form name="form">
+  <v2-modal-wizard heading="{{::ctrl.heading}}" task-monitor="ctrl.taskMonitor" dismiss="$dismiss()">
+    <div ng-if="!ctrl.isNew">
+      <v2-wizard-page key="basic-settings" label="Basic Settings" mark-complete-on-view="false">
+        <appengine-load-balancer-basic-settings load-balancer="ctrl.loadBalancer"></appengine-load-balancer-basic-settings>
+      </v2-wizard-page>
+      <v2-wizard-page key="advanced-settings" label="Advanced Settings" mark-complete-on-view="false">
+        <appengine-load-balancer-advanced-settings load-balancer="ctrl.loadBalancer"></appengine-load-balancer-advanced-settings>
+      </v2-wizard-page>
+    </div>
+  </v2-modal-wizard>
+  <appengine-load-balancer-create-message ng-if="ctrl.isNew"></appengine-load-balancer-create-message>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button ng-if="!ctrl.isNew && ctrl.showSubmitButton()"
+                   is-disabled="appengineLoadBalancerForm.$invalid || ctrl.taskMonitor.submitting"
+                   submitting="ctrl.taskMonitor.submitting" on-click="ctrl.submit()" is-new="ctrl.isNew">
+    </submit-button>
+  </div>
+</form>

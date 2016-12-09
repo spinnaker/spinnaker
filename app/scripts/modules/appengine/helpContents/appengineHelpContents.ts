@@ -39,6 +39,18 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [
       {
         key: 'appengine.loadBalancer.shardBy.ip',
         value: 'Diversion based on applying the modulus operation to a fingerprint of the IP address.'
+      },
+      {
+        key: 'appengine.loadBalancer.migrateTraffic',
+        value: `If selected, traffic will be gradually shifted from one version to another single version.
+                By default, traffic is shifted immediately. For gradual traffic migration, 
+                the target version must be located within instances that are configured for 
+                both warmup requests and automatic scaling. You must specify the <b>shard by</b> field in this form. 
+                Gradual traffic migration is not supported in the App Engine flexible environment.`
+      },
+      {
+        key: 'appengine.loadBalancer.allocations',
+        value: 'An allocation is the percent of traffic directed to a server group.'
       }
     ];
 

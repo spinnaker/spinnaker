@@ -48,7 +48,7 @@ module.exports = angular.module('spinnaker.core.modalWizard.subFormValidation.se
     };
 
     class Validator {
-      constructor({ watchString, validator, collection }, scope, page, state = { valid: false }) {
+      constructor({ watchString, validator, collection, watchDeep }, scope, page, state = { valid: false }) {
         this.state = state;
         this.page = page;
 
@@ -64,7 +64,7 @@ module.exports = angular.module('spinnaker.core.modalWizard.subFormValidation.se
               this.emitInvalid();
             }
           }
-        });
+        }, watchDeep || false);
       }
 
       emitValid() {
