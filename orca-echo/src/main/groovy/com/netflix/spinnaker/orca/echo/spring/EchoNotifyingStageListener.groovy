@@ -1,16 +1,15 @@
 package com.netflix.spinnaker.orca.echo.spring
 
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.listeners.StageListener
 import com.netflix.spinnaker.orca.pipeline.model.*
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static java.lang.System.currentTimeMillis
 
 /**
@@ -96,7 +95,10 @@ class EchoNotifyingStageListener implements StageListener {
       }
       persister.save(stage)
 
-      if (stage.status.successful) {
+      // STOPPED stages are "successful" because they allow the pipeline to
+      // proceed but they are still failures in terms of the stage and should
+      // send failure notifications
+      if (stage.status in [SUCCEEDED, SKIPPED]) {
         log.debug("***** $stage.execution.id Echo stage $stage.name complete v2")
         recordEvent('stage', 'complete', stage)
       } else {
