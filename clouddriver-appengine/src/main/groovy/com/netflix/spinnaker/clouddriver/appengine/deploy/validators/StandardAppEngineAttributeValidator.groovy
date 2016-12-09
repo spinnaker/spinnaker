@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
+import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineClusterProvider
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineCredentials
+import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.validation.Errors
 
@@ -83,6 +86,53 @@ class StandardAppEngineAttributeValidator {
     } else {
       errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Must match ${regex})")
       return false
+    }
+  }
+
+  def validateTrafficSplit(AppEngineTrafficSplit trafficSplit, String attribute) {
+    if (validateNotEmpty(trafficSplit, attribute)) {
+      if (trafficSplit.allocations) {
+        return validateAllocations(trafficSplit.allocations, attribute + ".allocations")
+      } else if (trafficSplit.shardBy) {
+        return true
+      } else {
+        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.empty")
+        return false
+      }
+    } else {
+      return false
+    }
+  }
+
+  def validateAllocations(Map<String, Double> allocations, String attribute) {
+    if (allocations.collect { k, v -> v }.sum() != 1) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Allocations must sum to 1)")
+      return false
+    } else {
+      return true
+    }
+  }
+
+  def validateServerGroupsCanBeEnabled(Map<String, Double> allocations,
+                                       String loadBalancerName,
+                                       AppEngineNamedAccountCredentials credentials,
+                                       AppEngineClusterProvider appEngineClusterProvider,
+                                       String attribute) {
+    def serverGroupNames = allocations.keySet()
+    def unknownServerGroups = serverGroupNames.inject([] as List, { List unknown, serverGroupName ->
+      def serverGroup = appEngineClusterProvider.getServerGroup(credentials.name, credentials.region, serverGroupName)
+      if (!serverGroup || serverGroup?.loadBalancers[0] != loadBalancerName) {
+        unknown << serverGroupName
+      }
+      unknown
+    })
+
+    if (unknownServerGroups) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Server group${unknownServerGroups.size() > 1 ? "s " : " "}"
+        + unknownServerGroups.join(", ") + " cannot be enabled for load balancer $loadBalancerName.")
+      return false
+    } else {
+      return true
     }
   }
 }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.appengine.AppEngineCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
+import groovy.transform.AutoClone
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 
@@ -29,20 +30,22 @@ import groovy.transform.EqualsAndHashCode
 @EqualsAndHashCode(includes = ["name", "account"])
 class AppEngineLoadBalancer implements LoadBalancer, Serializable {
   String name
+  String selfLink
   String region
   final String type = AppEngineCloudProvider.ID
   final String cloudProvider = AppEngineCloudProvider.ID
   String account
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
-  TrafficSplit split
+  AppEngineTrafficSplit split
 
   AppEngineLoadBalancer() { }
 
   AppEngineLoadBalancer(Service service, String account, String region) {
     this.name = service.getId()
+    this.selfLink = service.getName()
     this.account = account
-    this.region = region;
-    this.split = new ObjectMapper().convertValue(service.getSplit(), TrafficSplit)
+    this.region = region
+    this.split = new ObjectMapper().convertValue(service.getSplit(), AppEngineTrafficSplit)
   }
 
   Void setLoadBalancerServerGroups(Set<AppEngineServerGroup> serverGroups) {
@@ -65,7 +68,8 @@ class AppEngineLoadBalancer implements LoadBalancer, Serializable {
   }
 }
 
-class TrafficSplit {
+@AutoClone
+class AppEngineTrafficSplit {
   Map<String, Double> allocations
   ShardBy shardBy
 }

@@ -62,4 +62,12 @@ class AppEngineLoadBalancerProvider implements LoadBalancerProvider<AppEngineLoa
       AppEngineProviderUtils.loadBalancerFromCacheData(objectMapper, loadBalancerData, serverGroups)
     }
   }
+
+  AppEngineLoadBalancer getLoadBalancer(String account, String loadBalancerName) {
+    String loadBalancerKey = Keys.getLoadBalancerKey(account, loadBalancerName)
+    CacheData loadBalancerData = cacheView.get(Namespace.LOAD_BALANCERS.ns, loadBalancerKey)
+    Set<AppEngineLoadBalancer> loadBalancerSet = translateLoadBalancers([loadBalancerData] - null)
+
+    loadBalancerSet ? loadBalancerSet.first() : null
+  }
 }
