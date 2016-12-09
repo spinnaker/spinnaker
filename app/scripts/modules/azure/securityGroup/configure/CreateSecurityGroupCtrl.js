@@ -11,12 +11,10 @@ module.exports = angular
     require('core/region/regionSelectField.directive.js'),
     ACCOUNT_SERVICE,
     require('core/securityGroup/securityGroup.read.service.js'),
-    require('core/cache/infrastructureCaches.js'),
-    require('core/cache/cacheInitializer.js'),
   ])
 
   .controller('azureCreateSecurityGroupCtrl', function ($scope, $uibModalInstance, $state, $controller, accountService, securityGroupReader,
-    taskMonitorService, cacheInitializer, infrastructureCaches, application, securityGroup, azureSecurityGroupWriter) {
+    taskMonitorService, application, securityGroup, azureSecurityGroupWriter) {
 
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),

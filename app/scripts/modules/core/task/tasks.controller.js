@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 import {DISPLAYABLE_TASKS_FILTER} from './displayableTasks.filter';
 
 let angular = require('angular');
@@ -8,7 +9,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.task.controller', [
   require('angular-ui-router'),
   require('./taskProgressBar.directive.js'),
-  require('../cache/viewStateCache.js'),
+  VIEW_STATE_CACHE_SERVICE,
   require('./task.write.service.js'),
   require('../confirmationModal/confirmationModal.service.js'),
   DISPLAYABLE_TASKS_FILTER,
@@ -25,7 +26,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
 
     $scope.$state = $state;
 
-    var tasksViewStateCache = viewStateCache.tasks || viewStateCache.createCache('tasks', { version: 1 });
+    var tasksViewStateCache = viewStateCache.get('tasks') || viewStateCache.createCache('tasks', { version: 1 });
 
     function cacheViewState() {
       tasksViewStateCache.put(application.name, $scope.viewState);

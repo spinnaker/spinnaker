@@ -1,15 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
+let angular = require('angular');
+
 import {API_SERVICE} from 'core/api/api.service';
 import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
-
-let angular = require('angular');
+import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.services.configService', [
   API_SERVICE,
   AUTHENTICATION_SERVICE,
-  require('core/cache/viewStateCache.js'),
+  VIEW_STATE_CACHE_SERVICE
 ])
   .factory('pipelineConfigService', function ($q, API, authenticationService, viewStateCache) {
 

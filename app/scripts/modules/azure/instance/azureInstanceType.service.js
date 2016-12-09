@@ -4,11 +4,12 @@ import _ from 'lodash';
 import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular.module('spinnaker.azure.instanceType.service', [
   API_SERVICE,
   require('core/config/settings.js'),
-  require('core/cache/infrastructureCaches.js'),
+  INFRASTRUCTURE_CACHE_SERVICE,
 ])
   .factory('azureInstanceTypeService', function ($http, $q, settings, API, infrastructureCaches) {
 
@@ -257,7 +258,7 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
     }
 
     var getAllTypesByRegion = function getAllTypesByRegion() {
-      var cached = infrastructureCaches.instanceTypes.get('azure');
+      var cached = infrastructureCaches.get('instanceTypes').get('azure');
       if (cached) {
         return $q.when(cached);
       }
@@ -272,7 +273,7 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
             .uniqBy('key')
             .groupBy('region')
             .value();
-          infrastructureCaches.instanceTypes.put('azure', result);
+          infrastructureCaches.get('instanceTypes').put('azure', result);
           return result;
         });
     };

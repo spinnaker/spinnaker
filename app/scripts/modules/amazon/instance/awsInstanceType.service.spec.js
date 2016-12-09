@@ -38,8 +38,8 @@ describe('Service: InstanceType', function () {
     ];
 
     infrastructureCaches.createCache('instanceTypes', {});
-    if (infrastructureCaches.instanceTypes) {
-      infrastructureCaches.instanceTypes.removeAll();
+    if (infrastructureCaches.get('instanceTypes')) {
+      infrastructureCaches.get('instanceTypes').removeAll();
     }
   }));
 

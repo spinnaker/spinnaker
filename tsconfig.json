@@ -32,7 +32,6 @@
     ]
   },
   "exclude": [
-    "**/*.spec.ts",
     "build",
     "node",
     "node_modules",

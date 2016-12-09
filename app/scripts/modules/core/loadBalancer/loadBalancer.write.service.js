@@ -4,12 +4,10 @@ import _ from 'lodash';
 import {TASK_EXECUTOR} from 'core/task/taskExecutor';
 
 let angular = require('angular');
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular
-  .module('spinnaker.core.loadBalancer.write.service', [
-    TASK_EXECUTOR,
-    require('../cache/infrastructureCaches.js'),
-  ])
+  .module('spinnaker.core.loadBalancer.write.service', [TASK_EXECUTOR, INFRASTRUCTURE_CACHE_SERVICE])
   .factory('loadBalancerWriter', function(infrastructureCaches, taskExecutor) {
 
     function deleteLoadBalancer(loadBalancer, application, params = {}) {

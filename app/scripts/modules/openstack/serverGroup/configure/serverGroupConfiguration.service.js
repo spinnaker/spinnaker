@@ -1,11 +1,11 @@
 'use strict';
 
 import _ from 'lodash';
+let angular = require('angular');
 
 import {NAMING_SERVICE} from 'core/naming/naming.service';
-
-let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.configuration.service', [
   require('../../image/image.reader.js'),
@@ -14,13 +14,12 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
   NAMING_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/cache/cacheInitializer.js'),
+  CACHE_INITIALIZER_SERVICE
 ])
-  .factory('openstackServerGroupConfigurationService', function($q, openstackImageReader, accountService, securityGroupReader,
-                                                          cacheInitializer,
+  .factory('openstackServerGroupConfigurationService', function($q, openstackImageReader, accountService,
+                                                          securityGroupReader, cacheInitializer,
                                                           diffService, namingService,
                                                           loadBalancerReader) {
-
 
     var healthCheckTypes = [],
       terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'],

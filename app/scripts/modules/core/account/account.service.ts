@@ -46,13 +46,12 @@ export interface IAccountZone {
 export class AccountService {
 
   static get $inject() {
-    return ['$log', '$q', 'settings', 'infrastructureCaches', 'cloudProviderRegistry', 'API'];
+    return ['$log', '$q', 'settings', 'cloudProviderRegistry', 'API'];
   }
 
   constructor(private $log: ng.ILogService,
               private $q: ng.IQService,
               private settings: any,
-              private infrastructureCaches: any,
               private cloudProviderRegistry: any,
               private API: Api) {
   }
@@ -205,7 +204,6 @@ export class AccountService {
 export const ACCOUNT_SERVICE = 'spinnaker.core.account.service';
 module(ACCOUNT_SERVICE, [
   require('core/config/settings'),
-  require('core/cache/infrastructureCaches'),
   require('core/cloudProvider/cloudProvider.registry'),
   API_SERVICE
 ])

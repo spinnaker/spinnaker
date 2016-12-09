@@ -1,11 +1,13 @@
 'use strict';
 
 let angular = require('angular');
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
 module.exports = angular.module('spinnaker.amazon.securityGroup.create.controller', [
   require('angular-ui-router'),
-  require('core/cache/infrastructureCaches.js'),
-  require('core/cache/cacheInitializer.js'),
+  INFRASTRUCTURE_CACHE_SERVICE,
+  CACHE_INITIALIZER_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/config/settings.js'),

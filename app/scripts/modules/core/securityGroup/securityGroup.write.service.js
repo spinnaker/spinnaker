@@ -1,15 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
-
 let angular = require('angular');
 
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+
 module.exports = angular
-  .module('spinnaker.core.securityGroup.write.service', [
-    require('../cache/infrastructureCaches.js'),
-    TASK_EXECUTOR,
-  ])
+  .module('spinnaker.core.securityGroup.write.service', [INFRASTRUCTURE_CACHE_SERVICE,TASK_EXECUTOR])
   .factory('securityGroupWriter', function (taskExecutor, infrastructureCaches) {
 
     function upsertSecurityGroup(command, application, descriptor, params = {}) {

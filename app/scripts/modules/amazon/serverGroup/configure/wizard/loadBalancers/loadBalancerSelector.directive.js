@@ -1,10 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.configure.wizard.loadBalancers.selector.directive', [
-    require('core/cache/infrastructureCaches.js'),
+    INFRASTRUCTURE_CACHE_SERVICE,
     require('../../serverGroupConfiguration.service.js'),
   ])
   .directive('awsServerGroupLoadBalancerSelector', function () {
@@ -20,7 +21,7 @@ module.exports = angular
     };
   }).controller('awsServerGroupLoadBalancerSelectorCtrl', function (awsServerGroupConfigurationService, infrastructureCaches) {
     this.getLoadBalancerRefreshTime = () => {
-      return infrastructureCaches.loadBalancers.getStats().ageMax;
+      return infrastructureCaches.get('loadBalancers').getStats().ageMax;
     };
 
     this.refreshLoadBalancers = () => {

@@ -1,11 +1,13 @@
 'use strict';
 
-let angular = require('angular');
 import _ from 'lodash';
+let angular = require('angular');
+
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive', [
-    require('core/cache/infrastructureCaches.js'),
+    INFRASTRUCTURE_CACHE_SERVICE,
     require('google/loadBalancer/elSevenUtils.service.js'),
     require('./elSevenOptions/elSevenOptionsGenerator.component.js'),
     require('../../serverGroupConfiguration.service.js'),
@@ -25,7 +27,7 @@ module.exports = angular
                                                                     gceServerGroupConfigurationService,
                                                                     infrastructureCaches) {
     this.getLoadBalancerRefreshTime = () => {
-      return infrastructureCaches.loadBalancers.getStats().ageMax;
+      return infrastructureCaches.get('loadBalancers').getStats().ageMax;
     };
 
     this.refreshLoadBalancers = () => {

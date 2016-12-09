@@ -5,7 +5,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.azure.serverGroup.configure', [
   require('core/account/account.module.js'),
   require('./wizard/deployInitializer.controller.js'),
-  require('core/cache/infrastructureCaches.js'),
   require('./wizard/basicSettings/ServerGroupBasicSettings.controller.js'),
   require('./wizard/loadBalancers/ServerGroupLoadBalancers.controller.js'),
   require('./wizard/ServerGroupInstanceArchetype.controller.js'),

@@ -1,4 +1,5 @@
 import {module} from 'angular';
+import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 import {API_SERVICE, Api} from 'core/api/api.service';
 
 export interface ISubnet {
@@ -14,13 +15,15 @@ export interface ISubnet {
 
 export class SubnetReader {
 
+  private static NAMESPACE = 'subnets';
+
   static get $inject() { return ['$q', 'API', 'infrastructureCaches']; }
 
-  public constructor(private $q: ng.IQService, private API: Api, private infrastructureCaches: any) {}
+  public constructor(private $q: ng.IQService, private API: Api, private infrastructureCaches: InfrastructureCacheService) {}
 
   public listSubnets(): ng.IPromise<ISubnet[]> {
     return this.API.one('subnets')
-      .useCache(this.infrastructureCaches.subnets)
+      .useCache(this.infrastructureCaches.get(SubnetReader.NAMESPACE))
       .getList()
       .then((subnets: ISubnet[]) => {
         subnets.forEach((subnet: ISubnet) => {
@@ -36,7 +39,7 @@ export class SubnetReader {
 
   public listSubnetsByProvider(cloudProvider: string): ng.IPromise<ISubnet[]> {
     return this.API.one('subnets', cloudProvider)
-      .useCache(this.infrastructureCaches.subnets)
+      .useCache(this.infrastructureCaches.get(SubnetReader.NAMESPACE))
       .getList();
   }
 
@@ -56,8 +59,5 @@ export class SubnetReader {
 }
 
 export const SUBNET_READ_SERVICE = 'spinnaker.core.subnet.read.service';
-
-module(SUBNET_READ_SERVICE, [
-  API_SERVICE,
-  require('../cache/infrastructureCaches')
-]).service('subnetReader', SubnetReader);
+module(SUBNET_READ_SERVICE, [API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE])
+  .service('subnetReader', SubnetReader);

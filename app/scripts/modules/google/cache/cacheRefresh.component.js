@@ -1,10 +1,12 @@
 'use strict';
 
 let angular = require('angular');
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
 module.exports = angular.module('spinnaker.deck.gce.cacheRefresh.component', [
-    require('core/cache/cacheInitializer.js'),
-    require('core/cache/infrastructureCaches.js'),
+    CACHE_INITIALIZER_SERVICE,
+    INFRASTRUCTURE_CACHE_SERVICE
   ])
   .component('gceCacheRefresh', {
     bindings: {
@@ -18,7 +20,7 @@ module.exports = angular.module('spinnaker.deck.gce.cacheRefresh.component', [
 
       this.capitalizedKey = cacheKeyAlias[0].toUpperCase() + cacheKeyAlias.substring(1);
       this.depluralizedKey = cacheKeyAlias.substring(0, cacheKeyAlias.length - 1);
-      this.getRefreshTime = () => infrastructureCaches[this.cacheKey].getStats().ageMax;
+      this.getRefreshTime = () => infrastructureCaches.get(this.cacheKey).getStats().ageMax;
 
       this.refresh = () => {
         this.refreshing = true;

@@ -2,11 +2,11 @@
 
 import _ from 'lodash';
 import {UUIDGenerator} from 'core/utils/uuid.service';
-import {DECK_CACHE_FACTORY} from 'core/cache/deckCacheFactory';
+import {DECK_CACHE_SERVICE} from 'core/cache/deckCache.service';
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.history.service', [DECK_CACHE_FACTORY])
+module.exports = angular.module('spinnaker.core.history.service', [DECK_CACHE_SERVICE])
   .factory('recentHistoryService', function (deckCacheFactory) {
     const maxItems = 5;
 

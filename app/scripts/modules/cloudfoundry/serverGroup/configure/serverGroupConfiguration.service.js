@@ -1,20 +1,20 @@
 'use strict';
 
 import _ from 'lodash';
-
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuration.service', [
   ACCOUNT_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
-  require('core/cache/cacheInitializer.js'),
+  CACHE_INITIALIZER_SERVICE,
   require('../../image/image.reader.js'),
   require('../../instance/cfInstanceTypeService.js'),
 ])
   .factory('cfServerGroupConfigurationService', function(cfImageReader, accountService, securityGroupReader,
-                                                         cfInstanceTypeService, cacheInitializer,
-                                                         $q) {
+                                                         cfInstanceTypeService, cacheInitializer, $q) {
 
 
     function configureCommand(command) {

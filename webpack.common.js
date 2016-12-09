@@ -72,11 +72,6 @@ function configure(IS_TEST) {
         {
           test: /\.ts$/,
           loader: 'ts',
-          query: {
-            ignoreDiagnostics: [
-              2300 // 2300 -> Duplicate identifier, needed or it'll barf on typings files
-            ]
-          },
           exclude: /node_modules/
         },
         {

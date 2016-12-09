@@ -1,5 +1,7 @@
 'use strict';
 
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+
 describe('Controller: Instance Archetype Selector', function() {
 
   var categories = [
@@ -14,7 +16,7 @@ describe('Controller: Instance Archetype Selector', function() {
   beforeEach(
     window.module(
       require('./instanceArchetypeSelector.js'),
-      require('core/cache/infrastructureCaches.js'),
+      INFRASTRUCTURE_CACHE_SERVICE,
       require('../../../instance/instanceTypeService.js'),
       require('./serverGroupConfiguration.service.js')
     )

@@ -4,6 +4,7 @@ import {trimEnd} from 'lodash';
 
 import {Application} from 'core/application/application.model';
 import {IGceLoadBalancer} from 'google/domain/loadBalancer';
+import {InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 
 interface IPrivateScope extends IScope {
   $$destroyed: boolean;
@@ -14,7 +15,7 @@ export class CommonGceLoadBalancerCtrl {
                public application: Application,
                public $uibModalInstance: any,
                private $state: IStateService,
-               private infrastructureCaches: any) { }
+               private infrastructureCaches: InfrastructureCacheService) { }
 
   public onTaskComplete (loadBalancer: IGceLoadBalancer): void {
     this.infrastructureCaches.clearCache('healthCheck');

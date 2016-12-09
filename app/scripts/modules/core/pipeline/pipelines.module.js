@@ -10,7 +10,6 @@ require('./pipelines.less');
 module.exports = angular.module('spinnaker.core.pipeline', [
   require('exports?"ui.sortable"!angular-ui-sortable'),
   require('./config/pipelineConfig.module.js'),
-  require('../cache/viewStateCache.js'),
   AUTHENTICATION,
   COPY_STAGE_MODAL_CONTROLLER,
   require('../notification/notifications.module.js'),

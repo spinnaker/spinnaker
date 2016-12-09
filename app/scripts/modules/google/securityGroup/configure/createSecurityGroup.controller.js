@@ -2,18 +2,18 @@
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular.module('spinnaker.gce.securityGroup.create.controller', [
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
-  require('core/cache/infrastructureCaches.js'),
-  require('core/cache/cacheInitializer.js'),
+  INFRASTRUCTURE_CACHE_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
   require('core/securityGroup/securityGroup.read.service.js'),
 ])
   .controller('gceCreateSecurityGroupCtrl', function($scope, $uibModalInstance, $state, $controller,
                                                   accountService, securityGroupReader,
-                                                  taskMonitorService, cacheInitializer, infrastructureCaches,
+                                                  taskMonitorService, infrastructureCaches,
                                                   application, securityGroup ) {
 
     $scope.pages = {
@@ -42,7 +42,7 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
     });
 
     this.getSecurityGroupRefreshTime = function() {
-      return infrastructureCaches.securityGroups.getStats().ageMax;
+      return infrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
 

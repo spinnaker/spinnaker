@@ -1,5 +1,3 @@
-import {mock} from 'angular';
-
 import {isString, range} from 'lodash';
 import {UUIDGenerator} from './uuid.service';
 

@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.securityG
       link: function(scope) {
 
         scope.getSecurityGroupRefreshTime = function() {
-          return infrastructureCaches.securityGroups.getStats().ageMax;
+          return infrastructureCaches.get('securityGroups').getStats().ageMax;
         };
 
         scope.refreshSecurityGroups = function() {

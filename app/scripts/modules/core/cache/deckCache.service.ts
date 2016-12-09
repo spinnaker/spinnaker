@@ -77,24 +77,30 @@ export interface ICacheConfigOptions {
 }
 
 export interface ICacheFactory {
-  createCache: (key: string, options: ICacheConfigOptions) => void;
+  createCache: (key: string, options: ICacheConfig | ICacheConfigOptions) => void;
   get: (key: string) => ICache;
 }
 
 export interface ICacheConfig {
   cacheFactory: ICacheFactory;
-  disabled: boolean;
-  get: (key: string) => any;
-  maxAge: number;
-  version: number;
+  disabled?: boolean;
+  get?: (key: string) => string;
+  initializers?: Function[];
+  maxAge?: number;
+  onReset?: Function[];
+  version?: number;
 }
 
 export interface ICache {
-  config: ICacheConfig;
+  config?: ICacheConfig;
   destroy: () => void;
-  getStats: () => IStats;
-  info: (key: string) => IInfo;
+  get?: (key: string) => string;
+  getStats?: () => IStats;
+  info?: (key: string) => IInfo;
   keys: () => string[];
+  onReset?: Function[];
+  put?: (key: string, value: string) => string;
+  remove: (key: string) => void;
   removeAll: () => void;
 }
 
@@ -194,7 +200,7 @@ export class DeckCacheService {
       deleteOnExpire: 'aggressive',
       disabled: cacheConfig.disabled,
       maxAge: cacheConfig.maxAge || moment.duration(2, 'days').asMilliseconds(),
-      recycleFreq: 5000, // ms
+      recycleFreq: moment.duration(5, 'seconds').asMilliseconds(),
       storageImpl: new SelfClearingLocalStorage(this.$log, this.settings, this.cacheProxy),
       storageMode: 'localStorage',
       storagePrefix: DeckCacheService.getStoragePrefix(key, currentVersion)
@@ -224,8 +230,8 @@ export class DeckCacheService {
   }
 }
 
-export const DECK_CACHE_FACTORY = 'spinnaker.core.cache.deckCacheFactory';
-module(DECK_CACHE_FACTORY, [
+export const DECK_CACHE_SERVICE = 'spinnaker.core.cache.deckCacheService';
+module(DECK_CACHE_SERVICE, [
   require('angular-cache'),
   require('core/config/settings')
 ])

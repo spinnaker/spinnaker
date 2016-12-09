@@ -1,12 +1,13 @@
 'use strict';
 
 let angular = require('angular');
+import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 
 module.exports = angular
   .module('spinnaker.core.delivery.filter.executionFilter.model', [
     require('../../filterModel/filter.model.service.js'),
     require('../../navigation/urlParser.service.js'),
-    require('core/cache/viewStateCache.js')
+    VIEW_STATE_CACHE_SERVICE
   ])
   .factory('ExecutionFilterModel', function($rootScope, filterModelService, urlParser, viewStateCache) {
 
