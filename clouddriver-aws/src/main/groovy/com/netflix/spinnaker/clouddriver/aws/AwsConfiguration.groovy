@@ -20,6 +20,7 @@ import com.amazonaws.retry.RetryPolicy.BackoffStrategy
 import com.amazonaws.retry.RetryPolicy.RetryCondition
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupAlarmsAgent
@@ -50,6 +51,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig.Builder
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.kork.aws.AwsComponents
@@ -90,7 +92,7 @@ class AwsConfiguration {
   }
 
   @Bean
-  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, RetryCondition instrumentedRetryCondition, BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, EddaTimeoutConfig eddaTimeoutConfig) {
+  AmazonClientProvider amazonClientProvider(AwsConfigurationProperties awsConfigurationProperties, RetryCondition instrumentedRetryCondition, BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, EddaTimeoutConfig eddaTimeoutConfig, ServiceLimitConfiguration serviceLimitConfiguration, Registry registry) {
     new AmazonClientProvider.Builder()
       .backoffStrategy(instrumentedBackoffStrategy)
       .retryCondition(instrumentedRetryCondition)
@@ -101,12 +103,14 @@ class AwsConfiguration {
       .proxy(proxy)
       .eddaTimeoutConfig(eddaTimeoutConfig)
       .useGzip(awsConfigurationProperties.client.useGzip)
+      .serviceLimitConfiguration(serviceLimitConfiguration)
+      .registry(registry)
       .build()
   }
 
   @Bean
   ObjectMapper amazonObjectMapper() {
-    new AmazonObjectMapper()
+    return new AmazonObjectMapper()
   }
 
   @Bean
