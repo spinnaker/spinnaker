@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipeline
 
 import java.util.function.BiFunction
 import java.util.function.Consumer
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.listeners.StageListener
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionSt
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionTask
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
+import groovy.transform.CompileStatic
 import org.spockframework.spring.xml.SpockMockFactoryBean
 import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
@@ -410,7 +410,8 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
       getType() >> endStage.type
       buildTaskGraph(_) >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("test", TestTask)])
     }
-    @Subject runner = create(startStageDefinitionBuilder, branchAStageDefinitionBuilder, branchBStageDefinitionBuilder, endStageDefinitionBuilder)
+    @Subject
+      runner = create(startStageDefinitionBuilder, branchAStageDefinitionBuilder, branchBStageDefinitionBuilder, endStageDefinitionBuilder)
 
     and:
     def executedStageTypes = []
@@ -666,6 +667,47 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
       !last().stageStart
       last().stageEnd
     }
+
+    where:
+    execution = Pipeline.builder().withId("1").withParallel(true).build()
+    contexts = [[region: "a"], [region: "b"]]
+  }
+
+  def "applies execution windows correctly to internal parallel stages"() {
+    given:
+    def stage = new PipelineStage(execution, "branching")
+    stage.initializationStage = true
+    stage.context.restrictExecutionDuringTimeWindow = true
+    stage.context.restrictedExecutionWindow = [
+      whitelist        : [[startHour: 0, startMin: 0, endHour: 23, endMin: 59]],
+      days             : [1, 2, 3, 4, 5, 6, 7],
+      skipRemainingWait: true
+    ]
+    execution.stages << stage
+
+    executionRepository.retrievePipeline(execution.id) >> execution
+
+    and:
+    def stageDefinitionBuilder = stageDefinition("branching", contexts, { builder ->
+      builder.withTask("start", StartLoopTask)
+    }, { builder ->
+      builder.withTask("branch", TestTask)
+    }, { builder ->
+      builder.withTask("end", EndLoopTask)
+    })
+
+    @Subject runner = create(stageDefinitionBuilder)
+
+    and:
+    startLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    endLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+
+    when:
+    runner.start(execution)
+
+    then:
+    execution.stages.findAll { it.type == RestrictExecutionDuringTimeWindow.TYPE }.size() == 1
 
     where:
     execution = Pipeline.builder().withId("1").withParallel(true).build()
