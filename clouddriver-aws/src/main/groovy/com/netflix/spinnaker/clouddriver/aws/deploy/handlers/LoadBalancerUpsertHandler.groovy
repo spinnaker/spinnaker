@@ -46,10 +46,12 @@ class LoadBalancerUpsertHandler {
       throw new IllegalArgumentException("Load balancer ${loadBalancerName} must have at least one security group")
     }
 
-    loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
-      loadBalancerName: loadBalancerName,
-      securityGroups: securityGroups
-    ))
+    if (securityGroups) {
+      loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
+        loadBalancerName: loadBalancerName,
+        securityGroups: securityGroups
+      ))
+    }
 
     task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
 
