@@ -427,11 +427,10 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         package='vim', providerType='gce', region='global')
     deploy_stage = self.make_deploy_google_stage(requisiteStages=['BAKE'])
     disable_stage = self.make_disable_group_stage(
-      cloudProvider='gce', zones=[self.bindings['TEST_GCE_ZONE']],
+      cloudProvider='gce', regions=[self.bindings['TEST_GCE_REGION']],
       requisiteStages=['DEPLOY'])
     destroy_stage = self.make_destroy_group_stage(
-      cloudProvider='gce', zones=[self.bindings['TEST_GCE_ZONE']],
-      requisiteStages=['DISABLE'])
+      cloudProvider='gce', requisiteStages=['DISABLE'])
 
     pipeline_spec = dict(
       name=name,
