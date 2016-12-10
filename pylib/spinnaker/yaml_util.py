@@ -58,8 +58,9 @@ class YamlBindings(object):
       return default
 
   def import_dict(self, d):
-    for name,value in d.items():
-      self.__update_field(name, value, self.__map)
+    if dict is not None:
+      for name,value in d.items():
+        self.__update_field(name, value, self.__map)
 
   def import_string(self, s):
     self.import_dict(yaml.load(s, Loader=yaml.Loader))
@@ -221,6 +222,15 @@ class YamlBindings(object):
     offset -= match.start(0)
     value_start = match.start(1) + offset
     value_end = match.end(0) + offset
+
+    if isinstance(value, basestring) and re.search('{[^}]*{', value):
+      # Quote strings with nested {} yaml flows
+      value = '"{0}"'.format(value)
+
+    # yaml doesn't understand capital letter boolean values.
+    if isinstance(value, bool):
+      value = str(value).lower()
+
     return ''.join([
         source[0:value_start],
         ' {value}'.format(value=value),

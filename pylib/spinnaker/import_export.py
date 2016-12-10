@@ -10,8 +10,6 @@ Python cli tool that imports and exports the following Spinnaker items:
   * Pipelines
   * Deployment Strategies
   * Task Logs
-* Rush
-  * Executions
 * Echo
   * Triggers
   * Executions
@@ -74,7 +72,6 @@ exportFile = 'spinnaker_export_' + str(time.time()) + '.tgz'
 
 keyspaces = {}
 keyspaces['front50'] = ['project', 'application', 'pipeline', 'strategy', 'notifications']
-keyspaces['rush'] = ['execution']
 keyspaces['echo'] = ['trigger', 'execution', 'action_instance']
 
 commands = {

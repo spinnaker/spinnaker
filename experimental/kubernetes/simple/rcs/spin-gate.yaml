@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: spin-gate-v000
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: gate
+    version: v000
+spec:
+  replicas: 1
+  selector:
+    replication-controller: spin-gate-v000
+  template:
+    metadata:
+      labels:
+        replication-controller: spin-gate-v000
+        load-balancer-spin-gate: "true"
+    spec:
+      containers:
+        - image: quay.io/spinnaker/gate:master
+          name: gate
+          ports:
+            - containerPort: 8084
+              name: gate
+          volumeMounts:
+            - mountPath: /opt/spinnaker/config
+              name: spinnaker-config
+          readinessProbe:
+            httpGet:
+              path: /env
+              port: 8084
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
+      volumes:
+        - name: spinnaker-config
+          secret:
+            secretName: spinnaker-config

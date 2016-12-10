@@ -45,7 +45,6 @@ Usage:
 import argparse
 import base64
 import collections
-import fnmatch
 import os
 import multiprocessing
 import multiprocessing.pool
@@ -64,7 +63,7 @@ from spinnaker.run import run_quick
 
 
 SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50',
-                  'rush', 'echo', 'rosco', 'gate', 'igor', 'deck', 'spinnaker']
+                  'echo', 'rosco', 'gate', 'igor', 'fiat', 'deck', 'spinnaker']
 
 def ensure_gcs_bucket(name, project=''):
   """Ensure that the desired GCS bucket exists, creating it if needed.
@@ -222,13 +221,18 @@ class Builder(object):
       Returns:
         BackgroundProcess
       """
+      extra_args = []
+      if name == 'deck' and not 'CHROME_BIN' in os.environ:
+        extra_args.append('-PskipTests')
+
       # Currently spinnaker is in a separate location
       gradle_root = self.determine_gradle_root(name)
       print 'Building {name}...'.format(name=name)
       return BackgroundProcess.spawn(
           'Building {name}'.format(name=name),
-          'cd "{gradle_root}"; ./gradlew {target}'.format(
-              gradle_root=gradle_root, target=target))
+          'cd "{gradle_root}"; ./gradlew {target} {extra}'.format(
+              gradle_root=gradle_root, target=target,
+              extra=' '.join(extra_args)))
 
   def publish_to_bintray(self, source, package, version, path, debian_tags=''):
     bintray_key = os.environ['BINTRAY_KEY']
@@ -295,7 +299,6 @@ class Builder(object):
               except HTTPError as ex:
                 # Maybe it didn't exist. Try again anyway.
                 print 'Delete {url} got {ex}. Try again anyway.'.format(url=url, ex=ex)
-                pass
               print 'Retrying {url}'.format(url=url)
               result = urllib2.urlopen(put_request, data)
               print 'SUCCESS'
@@ -339,7 +342,6 @@ class Builder(object):
     print 'Wrote {source} to {url}'.format(source=source, url=url)
 
   def publish_install_script(self, source):
-    path = 'InstallSpinnaker.sh'
     gradle_root = self.determine_gradle_root('spinnaker')
     version = determine_package_version(gradle_root, '.')
 
@@ -492,68 +494,6 @@ class Builder(object):
         abs_path = os.path.join(root, filename)
         zip_file.write(abs_path, arcbase + abs_path[rel_offset:])
 
-  def add_python_test_zip(self, test_name):
-    """Build encapsulated python zip file for the given test test_name.
-
-    This allows integration tests to be packaged with the release, at least
-    for the time being. This is useful for testing them, or validating the
-    initial installation and configuration.
-    """
-    test_py = '{test_name}.py'.format(test_name=test_name)
-    testdir = os.path.join(self.__project_dir, 'build/tests')
-    try:
-      os.makedirs(testdir)
-    except OSError:
-      pass
-
-    zip_path = os.path.join(testdir, test_py + '.zip')
-    zip = zipfile.ZipFile(zip_path, 'w')
-
-    try:
-      zip.writestr('__main__.py', """
-from {test_name} import main
-import sys
-
-if __name__ == '__main__':
-  retcode = main()
-  sys.exit(retcode)
-""".format(test_name=test_name))
-
-      # Add citest sources as baseline
-      # TODO(ewiseblatt): 20150810
-      # Eventually this needs to be the transitive closure,
-      # but there are currently no other dependencies.
-      zip.writestr('__init__.py', '')
-      self.__zip_dir(zip, 'citest/citest', 'citest')
-      self.__zip_dir(zip,
-                     'citest/spinnaker/spinnaker_testing', 'spinnaker_testing')
-      self.__zip_dir(zip, 'pylib/yaml', 'yaml')
-
-      zip.write('citest/spinnaker/spinnaker_system/' + test_py, test_py)
-      zip.close()
-
-    finally:
-      pass
-
-
-  def build_tests(self):
-     if not os.path.exists('citest'):
-        print 'Adding citest repository'
-        try:
-          self.refresher.git_clone(
-              refresh_source.SourceRepository('citest', 'google'))
-        except Exception as ex:
-          sys.stderr.write('*** Omitting tests: {0}\n'.format(ex.message))
-          return
-
-     print 'Adding tests...'
-     self.add_python_test_zip('aws_kato_test')
-     self.add_python_test_zip('google_kato_test')
-     self.add_python_test_zip('aws_smoke_test')
-     self.add_python_test_zip('google_smoke_test')
-     self.add_python_test_zip('google_server_group_test')
-     self.add_python_test_zip('bake_and_deploy_test')
-
   @classmethod
   def init_argument_parser(cls, parser):
       refresh_source.Refresher.init_argument_parser(parser)
@@ -592,10 +532,12 @@ if __name__ == '__main__':
 
       parser.add_argument(
         '--wipe_package_on_409', default=False, action='store_true',
-        help='Work around BinTray conflict errors by deleting the entire package and'
-             ' retrying. Removes all prior versions so only intended for dev repos.\n')
+        help='Work around BinTray conflict errors by deleting the entire package'
+             ' and retrying. Removes all prior versions so only intended for dev'
+             ' repos.\n')
       parser.add_argument(
-        '--nowipe_package_on_409', dest='wipe_package_on_409', action='store_false')
+        '--nowipe_package_on_409', dest='wipe_package_on_409',
+        action='store_false')
 
 
   def __verify_bintray(self):
@@ -620,7 +562,6 @@ if __name__ == '__main__':
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
 
-    builder.build_tests()
     builder.build_packages()
 
     if options.bintray_repo:

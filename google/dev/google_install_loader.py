@@ -20,8 +20,9 @@ If this is run as a startup script, it will extract files from the
 instance metadata, then run another startup script. This makes it convienent
 to write startup scripts that use existing modules that may span multiple
 files so that setting up a Google Compute Engine instance (such as an image)
-can use the same basic scripts and procedures as non-GCE instances. Thisjbootloader is specific to GCE in that it "bootloads" off GCE metadata. However, once
-it does that (thus preparing the filesystem with the files that are needed
+can use the same basic scripts and procedures as non-GCE instances. This
+bootloader is specific to GCE in that it "bootloads" off GCE metadata. However,
+once it does that (thus preparing the filesystem with the files that are needed
 for the "real" startup script), it forks the specified standard script.
 If additional GCE specific initialization is required, the standard script
 can still conditionally perform that.
@@ -34,16 +35,32 @@ To use this as a bootloader:
       the suffix. So ext_basename will be extracted as basename.ext.
       Additional underscores are left as is. A leading '_' (or no '_' at all)
       indicates no extension.
+  example: in your gcloud command, add the flag
+    --metadata-from-file py_setup=setup.py,yml_gate-local=gate-local.yml
 
   set the "startup_loader_files" metadata value to the keys of the attached
-      files that should be extracted into /opt/spinnaker/install.
+      files that should be extracted into /opt/spinnaker/install. This should
+      be a '+'-delimited list of metadata keys.
+  example: in your gcloud command, add the flag
+    --metadata startup_loader_files='py_setup+yml_clouddriver-local+yml_gate-local'
 
-  set the "startup_py_command" metadata value to the command to execute after
+  set the "startup_command" metadata value to the shell command to execute after
       the bootloader extracts the files. This can include commandline
-      arguments. The command will be run with an implied "python". The
-      filename to run is the literal name, not the encoded name.
+      arguments.
+  example: in your gcloud command, add the flag (or append to the metadata flag)
+    --metadata startup_command='python+/opt/spinnaker/install/setup.py'
+    The '+' characters will be converted to spaces.
 
-  set the "startup-script" metadata key to install_loader.py
+  set the "startup-script" metadata key to google_install_loader.py
+      This is most easily done by adding to the '--metadata-from-file' flag.
+
+  A full example of a command:
+  gcloud compute instances create $INSTANCE_NAME \
+  --project $MY_PROJECT --zone $ZONE --image $IMAGE_NAME \
+  --image-project $IMAGE_PROJECT --machine-type n1-highmem-8 \
+  --scopes "compute-rw,storage-rw" \
+  --metadata startup_loader_files='py_setup+yml_clouddriver-local+yml_gate-local',startup_command='python+/opt/spinnaker/install/setup.py' \
+  --metadata-from-file py_setup=setup.py,yml_clouddriver-local=clouddriver-local.yml,yml_gate-local=gate-local.yml,startup-script=spinnaker/google/dev/google_install_loader.py
 
 The attached files will be extracted to /opt/spinnaker/install.
 The attached file metadata and startup command will be cleared,
@@ -107,9 +124,9 @@ def get_instance_metadata_attribute(name):
 def clear_metadata_to_file(name, path):
     value = get_instance_metadata_attribute(name)
     if value != None:
-        with open(path, 'w') as f:
-            f.write(value)
-        clear_instance_metadata(name)
+      with open(os.path.join('/opt/spinnaker/install', path), 'w') as f:
+        f.write(value)
+      clear_instance_metadata(name)
 
 
 def clear_instance_metadata(name):
@@ -162,7 +179,7 @@ def unpack_files(key_list):
 def __unpack_and_run():
     """Unpack the files from metadata, and run the main script.
 
-    This is intended to be used where a startup [python] script needs a bunch
+    This is intended to be used where a startup script needs a bunch
     of different files for a startup script that is passed through metadata
     in a GCE instance.
 
@@ -176,7 +193,7 @@ def __unpack_and_run():
     filenames as <ext>_<basename> using the leading '_' to separate the
     extension, whichi s added as a prefix.
 
-    The true startup script is denoted by the 'startup_py_command' attribute,
+    The true startup script is denoted by the 'startup_command' attribute,
     which specifies the name of a python script to run (presumably packed
     into the startup_loader_files). The script uses the unencoded name once
     unpacked. The python command itself is ommited and will be added here.
@@ -202,6 +219,7 @@ def __unpack_and_run():
     with open('__startup_script__.sh', 'w') as f:
         f.write('#!/bin/bash\ncd /opt/spinnaker/install\n{command}\n'
                 .format(command=command))
+
     os.chmod('__startup_script__.sh', 0555)
     write_instance_metadata('startup-script',
                             '/opt/spinnaker/install/__startup_script__.sh')
@@ -209,7 +227,7 @@ def __unpack_and_run():
 
     # Now run the command (which is also the future startup script).
     p = subprocess.Popen(command, shell=True, close_fds=True)
-    p.communicate()
+    p.wait()
     return p.returncode
 
 
@@ -221,12 +239,15 @@ if __name__ == '__main__':
     try:
       os.makedirs('/opt/spinnaker/install')
       os.chdir('/opt/spinnaker/install')
-    except OSError:
-      pass
-
+    except OSError as e:
+      sys.stderr.write('Startup mkdir failed: {e}'.format(e=e))
 
     # Copy this script to /opt/spinnaker/install as install_loader.py
     # since other scripts will reference it that way.
-    shutil.copyfile('/var/run/google.startup.script',
-                    '/opt/spinnaker/install/google_install_loader.py')
+    try :
+      shutil.copyfile('/var/run/google.startup.script',
+                      '/opt/spinnaker/install/google_install_loader.py')
+    except IOError as e:
+      sys.stderr.write('Startup script copy failed: {e}'.format(e=e))
+
     sys.exit(__unpack_and_run())

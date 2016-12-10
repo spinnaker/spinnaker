@@ -35,8 +35,7 @@ To finish the installation, follow these steps:
 
   gcloud compute ssh --project {project} --zone {zone} {instance}\
  --ssh-flag="-L 9000:localhost:9000"\
- --ssh-flag="-L 8084:localhost:8084"\
- --ssh-flag="-L 8087:localhost:8087"
+ --ssh-flag="-L 8084:localhost:8084"
 
 
 (2) Wait for the installation to complete:
@@ -154,7 +153,7 @@ def init_argument_parser(parser):
         help='The IP address to assign to the new instance. The address may'
              ' be an IP address or the name or URI of an address resource.')
     parser.add_argument(
-        '--scopes', default='compute-rw,storage-rw,monitoring-write,logging-write',
+        '--scopes', default='compute-rw,storage-full,monitoring-write,logging-write',
         help='Create the instance with these scopes.'
         'The default are the minimal scopes needed to run the development'
         ' scripts. This is currently "compute-rw,storage-rw,monitoring-write,logging-write".')

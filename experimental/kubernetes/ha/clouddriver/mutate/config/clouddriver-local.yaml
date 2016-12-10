@@ -1,0 +1,11 @@
+server:
+  port: ${services.clouddriver.port}
+  address: ${services.clouddriver.address}
+
+redis:
+  connection: ${services.redis.clouddriver.master.connection}
+
+caching:
+  writeEnabled: false
+  redis:
+    hashingEnabled: true

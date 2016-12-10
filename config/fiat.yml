@@ -1,0 +1,18 @@
+server:
+  port: ${services.fiat.port:7003}
+  address: ${services.fiat.host:localhost}
+
+redis:
+  connection: ${services.redis.connection:redis://localhost:6379}
+
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: ${services.spectator.webEndpoint.enabled:false}
+    prototypeFilter:
+      path: ${services.spectator.webEndpoint.prototypeFilter.path:}
+
+  stackdriver:
+    enabled: ${services.stackdriver.enabled}
+    projectName: ${services.stackdriver.projectName}
+    credentialsPath: ${services.stackdriver.credentialsPath}

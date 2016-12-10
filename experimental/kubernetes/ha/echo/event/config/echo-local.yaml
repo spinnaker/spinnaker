@@ -1,0 +1,9 @@
+scheduler:
+  enabled: ${services.echo.cron.enabled:true}
+  threadPoolSize: 20
+  triggeringEnabled: true
+  pipelineConfigsPoller:
+    enabled: true
+    pollingIntervalMs: 30000
+  cron:
+    timezone: ${services.echo.cron.timezone}

@@ -10,7 +10,8 @@
     "base_srcdir": null,
     "target_image": "{{env `USER`}}-spinnaker-{{timestamp}}",
     "google_cloud_logging": "true",
-    "google_cloud_monitoring": "true"
+    "google_cloud_monitoring": "true",
+    "enable_cassandra": "false"
  },
 
  "builders": [{
@@ -32,8 +33,9 @@
     "type": "shell",
     "inline": [
         "flags=\"--cloud_provider google --google_region us-central1 --quiet\"",
-        "if \"{{ user `google_cloud_logging` }}\" == \"true\"; then flags=\"$flags --google_cloud_logging\"; fi",
-        "if \"{{ user `google_cloud_monitoring` }}\" == \"true\"; then flags=\"$flags --google_cloud_monitoring\"; fi",
+        "if [ '{{ user `google_cloud_logging` }}' = 'true' ]; then flags=\"$flags --google_cloud_logging\"; fi",
+        "if [ '{{ user `google_cloud_monitoring` }}' = 'true' ]; then flags=\"$flags --google_cloud_monitoring\"; fi",
+        "if [ '{{ user `enable_cassandra` }}' = 'true' ]; then flags=\"$flags --install_cassandra\"; fi",
         "chmod +x /tmp/install_spinnaker.sh",
         "/tmp/install_spinnaker.sh --repository {{user `debian_repo`}} $flags",
         "service spinnaker stop"
@@ -43,8 +45,15 @@
   {
     "type": "shell",
     "inline": [
+        "if [ '{{ user `enable_cassandra` }}' != 'true' ]; then /opt/spinnaker/install/change_cassandra.sh --echo=inMemory --front50=gcs --change_defaults=true --change_local=false; fi"
+    ]
+  },
+
+  {
+    "type": "shell",
+    "inline": [
         "dpkg --list | grep linux-image | awk '{ print $2 }' | sort -V | sed -n '/'`uname -r`'/q;p' | xargs sudo apt-get -y purge",
-        "if [ '{{user `update_os`}}' = 'true' ]; then apt-get update -y; apt-get -y dist-upgrade; sed -i 's/start_rpc: false/start_rpc: true/' /etc/cassandra/cassandra.yaml; fi",
+        "if [ '{{user `update_os`}}' = 'true' ]; then apt-get update -y; DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade; if [ -f /etc/cassandra/cassandra.yaml ]; then sed -i 's/start_rpc: false/start_rpc: true/' /etc/cassandra/cassandra.yaml; fi; fi",
         "apt-get autoremove -y"
      ]
   }

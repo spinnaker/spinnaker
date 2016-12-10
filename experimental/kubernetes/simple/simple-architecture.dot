@@ -1,0 +1,33 @@
+digraph spinnaker {
+    redis [shape=box3d];
+
+    clouddriver-> redis;
+
+    accounts [shape=folder];
+
+    clouddriver -> accounts [style=dotted];
+
+    user [shape=plaintext];
+
+    user -> deck;
+
+    deck -> gate;
+
+    gate -> clouddriver;
+    gate -> orca;
+    gate -> redis;
+
+    orca -> clouddriver;
+    orca -> front50;
+    orca -> rosco;
+    orca -> redis;
+
+    igor -> echo;
+    igor -> clouddriver [style=dashed];
+    igor -> redis;
+
+    echo -> orca;
+    echo -> front50;
+
+    rosco -> redis;
+}

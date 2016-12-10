@@ -1,0 +1,4 @@
+fiat:
+  getAllEnabled: true
+  writeMode:
+    enabled: false

@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: spin-clouddriver-ro-v000
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: clouddriver
+    detail: ro
+    version: v000
+spec:
+  replicas: 3
+  selector:
+    replication-controller: spin-clouddriver-ro-v000
+  template:
+    metadata:
+      labels:
+        replication-controller: spin-clouddriver-ro-v000
+        load-balancer-spin-clouddriver-ro: "true"
+    spec:
+      containers:
+        - image: quay.io/spinnaker/clouddriver:master
+          name: clouddriver
+          ports:
+            - containerPort: 7002
+              name: clouddriver
+          volumeMounts:
+            - mountPath: /opt/spinnaker/config
+              name: clouddriver-ro-config
+            - mountPath: /root/.kube
+              name: kube-config
+            - mountPath: /root/.gcp
+              name: gcp-config
+          readinessProbe:
+            httpGet:
+              path: /credentials
+              port: 7002
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
+      volumes:
+        - name: clouddriver-ro-config
+          secret:
+            secretName: clouddriver-ro-config
+        - name: kube-config
+          secret:
+            secretName: kube-config
+        - name: gcp-config
+          secret:
+            secretName: gcp-config

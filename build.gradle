@@ -102,12 +102,12 @@ buildDeb {
   requires('spinnaker-clouddriver')
   requires('spinnaker-deck')
   requires('spinnaker-echo')
+  requires('spinnaker-fiat')
   requires('spinnaker-front50')
   requires('spinnaker-gate')
   requires('spinnaker-igor')
   requires('spinnaker-orca')
   requires('spinnaker-rosco')
-  requires('spinnaker-rush')
   requires('apache2')
   
 }
@@ -118,3 +118,31 @@ buildRpm {
   arch = NOARCH
   os = LINUX
 }
+
+task publishInstallSpinnaker {
+  onlyIf { project.hasProperty('bintrayUser') && project.hasProperty('bintrayKey') }
+
+  doLast {
+    def url = "https://api.bintray.com/content/spinnaker/scripts/SpinnakerBootstrap/1.0/InstallSpinnaker.sh?publish=1&override=1".toURL()
+    def conn = url.openConnection()
+
+    conn.setRequestMethod('PUT')
+    conn.setDoOutput(true)
+    conn.addRequestProperty('Authorization', 'Basic ' + ("${project.property('bintrayUser')}:${project.property('bintrayKey')}".bytes.encodeBase64().toString()))
+    conn.getOutputStream().withCloseable {
+      it.write(project.file('InstallSpinnaker.sh').text.bytes)
+      it.flush()
+    }
+    int code = conn.getResponseCode()
+
+    if (code != 201) {
+      logger.warn "Unexpected response code from InstallSpinnaker.sh publish: $code"
+    } else {
+      logger.info "Uploaded InstallSpinnaker.sh"
+    }
+
+    conn.disconnect()
+  }
+}
+
+tasks.release.dependsOn('publishInstallSpinnaker')

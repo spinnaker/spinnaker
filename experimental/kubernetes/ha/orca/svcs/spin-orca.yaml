@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-orca
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: orca
+spec:
+  ports:
+    - port: 8083
+  selector:
+    load-balancer-spin-orca: "true"

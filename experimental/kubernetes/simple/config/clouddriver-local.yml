@@ -1,0 +1,36 @@
+server:
+  port: ${services.clouddriver.port:7002}
+  address: 0.0.0.0
+
+redis:
+  connection: ${services.redis.connection:redis://localhost:6379}
+
+default:
+  account:
+    env: ${providers.kubernetes.primaryCredentials.name}
+
+kubernetes:
+  enabled: true
+  accounts:
+    - name: my-kubernetes-account
+      dockerRegistries: # WARNING! only include configured accounts here
+        - accountName: my-gcr-account
+        - accountName: my-docker-account 
+
+dockerRegistry:
+  enabled: true
+  accounts:
+    - name: my-gcr-account
+      address: https://gcr.io
+      username: _json_key # Don't edit
+      passwordFile: /root/.kube/account.json # Don't edit
+      repositories:
+        - # the names of your GCR images (<project>/<image>)
+    - name: my-docker-account
+      address: https://index.docker.io
+      repositories:
+        - library/nginx
+
+credentials:
+  primaryAccountTypes: ${providers.kubernetes.primaryCredentials.name}
+  challengeDestructiveActionsEnvironments: ${providers.kubernetes.primaryCredentials.name}

@@ -11,21 +11,18 @@ our development, so are not necessarily generalized or applicable outside GCE.
 General layout is this:
 
 google/
-   cassandra   Cassandra schemas, perhaps these could go to config.
-
-   config      Our *-local.yml overrides and default master configuration.
-               These are installed as "config_templates".
+   codelab     (Ignore) Supporting script for building codelab image
 
    dev         Scripts meant for development support, not operational usage.
                These are not included in a typical deployment, though are
                still open source for developers.
 
-   install     These are release installation scripts. They are kept separate
-               from the runtime admin scripts for convenience.
+   google_cloud_logging
+               (Optional) Script to install Google Cloud Logging integration.
 
-   pylib       A python package containing modules used by the runtime scripts
-               All these are part of the runtime environment. The developer
-               scripts and tools put their python in the dev directory.
+   stackdriver_monitoring
+               (Optional) Administrative support for Spinnaker Stackdriver
+               integration.
 
    runtime     Scripts that are released as part of the spinnaker runtime
                These include management and administrative things.
@@ -69,7 +66,7 @@ To stop spinnaker in a development environment:
 
 
 To reconfigure spinnaker in a development environment:
-   (1) Edit the $HOME/.spinnaker/spinnaker_config.cfg file
+   (1) Edit the $HOME/.spinnaker/spinnaker-local.yml file
    (2) ../spinnaker/google/dev/stop_dev.sh
    (3) ../spinnaker/google/dev/run_dev.sh
       The environment is always reconfigured within run_dev.sh.

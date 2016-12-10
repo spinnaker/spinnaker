@@ -23,6 +23,23 @@ google:
     bakeryDefaults:
       zone: ${providers.google.defaultZone}
 
-rush:
-  baseUrl: ${services.rush.baseUrl:localhost:8085}
-  configDir: ${services.rush.configDir}
+rosco:
+  configDir: ${services.rosco.configDir}
+
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: ${services.spectator.webEndpoint.enabled:false}
+    prototypeFilter:
+      path: ${services.spectator.webEndpoint.prototypeFilter.path:}
+
+  stackdriver:
+    enabled: ${services.stackdriver.enabled}
+    projectName: ${services.stackdriver.projectName}
+    credentialsPath: ${services.stackdriver.credentialsPath}
+
+stackdriver:
+  hints:
+    - name: bakes
+      labels:
+      - success

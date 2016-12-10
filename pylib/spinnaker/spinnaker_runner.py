@@ -70,7 +70,7 @@ class Runner(object):
   # These are all the standard spinnaker subsystems that can be started
   # independent of one another.
   INDEPENDENT_SUBSYSTEM_LIST=['clouddriver', 'front50', 'orca', 'rosco',
-                              'echo', 'rush']
+                              'echo']
 
   # Denotes a process running on an external host
   EXTERNAL_PID = -123
@@ -150,6 +150,7 @@ class Runner(object):
 
     # These are additional, optional subsystems.
     result.extend(['igor'])
+    result.extend(['fiat'])
 
     # Gate is started after everything else is up and available.
     result.append('gate')
@@ -240,32 +241,6 @@ class Runner(object):
                      .format(command=command, log=base_log_path)],
                      environ=environ)
 
-  def start_dependencies(self):
-    """Start all the external dependencies running on this host."""
-    run_dir = self.__installation.EXTERNAL_DEPENDENCY_SCRIPT_DIR
-
-    cassandra_host = self.__bindings.get('services.cassandra.host')
-    redis_host = self.__bindings.get('services.redis.host')
-
-    print 'Starting external dependencies...'
-    check_run_quick(
-        'REDIS_HOST={host}'
-        ' LOG_DIR="{log_dir}"'
-        ' "{run_dir}/start_redis.sh"'
-        .format(host=redis_host,
-                log_dir=self.__installation.LOG_DIR,
-                run_dir=run_dir),
-        echo=True)
-
-    check_run_quick(
-        'CASSANDRA_HOST={host}'
-        ' CASSANDRA_DIR="{install_dir}/cassandra"'
-        ' "{run_dir}/start_cassandra.sh"'
-        .format(host=cassandra_host,
-                install_dir=self.__installation.SPINNAKER_INSTALL_DIR,
-                run_dir=run_dir),
-         echo=True)
-
   def get_subsystem_environ(self, subsystem):
     if self.__bindings and subsystem != 'clouddriver':
        return os.environ
@@ -309,6 +284,12 @@ class Runner(object):
         pid = self.maybe_start_job(jobs, subsys)
         if pid:
           started_list.append((subsys, pid))
+
+    fiat_enabled = self.__bindings.get('services.fiat.enabled')
+    if fiat_enabled:
+      pid = self.maybe_start_job(jobs, 'fiat')
+      if pid:
+        started_list.append(('fiat', pid))
 
     jenkins_address = self.__bindings.get(
         'services.jenkins.defaultMaster.baseUrl')
@@ -506,7 +487,7 @@ class Runner(object):
        sys.stderr.write("""
 To fix this run the following:
    sudo {script_dir}/stop_spinnaker.sh
-   sudo {script_dir}/reconfigure_spinnaker_instance.sh
+   sudo {script_dir}/reconfigure_spinnaker.sh
    sudo {script_dir}/start_spinnaker.sh
 
 Proceeding anyway.
@@ -528,7 +509,6 @@ Proceeding anyway.
       os.makedirs(self.__installation.LOG_DIR)
     except OSError:
       pass
-    self.start_dependencies()
 
     google_enabled = self.__bindings.get('providers.google.enabled')
 

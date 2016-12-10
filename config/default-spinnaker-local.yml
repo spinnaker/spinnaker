@@ -3,7 +3,13 @@
 # configuration parameters to be changed.
 #
 # In order for Spinnaker to discover it, it must be copied to a file named
-# "spinnaker-local.yml" and placed in the $HOME/.spinnaker directory.
+# "spinnaker-local.yml" and placed in /opt/spinnaker/config
+# (or when running from source code, in the $HOME/.spinnaker directory.)
+#
+# A better practice could be to create the spinnaker-local.yml file by
+# hand with only the particular attributes that you want to override
+# and use the spinnaker.yml file as your guide since it is spinnaker.yml
+# that we are overriding here in the first place.
 
 global:
   spinnaker:
@@ -34,6 +40,9 @@ providers:
       name: my-aws-account
       # Store actual credentials in $HOME/.aws/credentials. See spinnaker.yml
       # for more information, including alternatives.
+
+    # {{name}} will be interpolated with the aws account name (e.g. "my-aws-account-keypair").
+    defaultKeyPairTemplate: "{{name}}-keypair"
 
   azure:
     # For more information on configuring Microsoft Azure (azure), see
@@ -67,6 +76,8 @@ providers:
       # from the Google Developer's Console.
       project: ${SPINNAKER_GOOGLE_PROJECT_ID:}
       jsonPath: ${SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH:}
+      consul:
+        enabled: ${SPINNAKER_GOOGLE_CONSUL_ENABLED:false}
 
   cf:
     # For more information on configuring Cloud Foundry (cf) support, see
@@ -96,12 +107,11 @@ providers:
       # These credentials use authentication information at ~/.kube/config
       # by default.
       name: my-kubernetes-account
-      namespace: default
       dockerRegistryAccount: ${providers.dockerRegistry.primaryCredentials.name}
 
   dockerRegistry:
-    # If you want to deploy containers to a container management solution,
-    # you must specifiy where these container images exist first.
+    # For more information on configuring Docker registries, see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-docker-registry
 
     # NOTE: Enabling dockerRegistry is independent of other providers.
     # However, for convienience, we tie docker and kubernetes together
@@ -110,9 +120,25 @@ providers:
     enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
 
     primaryCredentials:
-      name: my-docker-registry-account
-      address: https://index.docker.io/
-      repository: library/nginx
+      name: my-docker-registry
+      address: ${SPINNAKER_DOCKER_REGISTRY:https://index.docker.io/}
+      repository: ${SPINNAKER_DOCKER_REPOSITORY:library/nginx}
+      username: ${SPINNAKER_DOCKER_USERNAME}
+      # A path to a plain text file containing the user's password
+      passwordFile: ${SPINNAKER_DOCKER_PASSWORD_FILE}
+
+  openstack:
+    # For more information on configuring Openstack clusters, see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-openstack
+
+    enabled: ${SPINNAKER_OPENSTACK_ENABLED:false}
+    primaryCredentials:
+      name: my-openstack-account
+      authUrl: ${OS_AUTH_URL}
+      username: ${OS_USERNAME}
+      password: ${OS_PASSWORD}
+      projectName: ${OS_PROJECT_NAME}
+      regions: ${OS_REGION_NAME:RegionOne}
 
 services:
   default:
@@ -122,7 +148,6 @@ services:
     # directly under 'services'.
     protocol: http    # Assume all spinnaker subsystems are using http
     host: localhost   # Assume all spinnaker subsystems are on localhost
-    primaryAccountName: ${providers.google.primaryCredentials.name}
 
   redis:
     # If you are using a remote redis server, you can set the host here.
@@ -177,6 +202,13 @@ services:
       githubToken: # GitHub scopes currently required by Travis is required.
 
 
+  spectator:
+    webEndpoint:
+      enabled: false
+
+  stackdriver:
+    enabled: false
+
   clouddriver:
     aws:
       udf:
@@ -202,14 +234,37 @@ services:
     auth:
       enabled: false
 
-  rush:
-    # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
+  rosco:
     # You need to provide the fully-qualified path to the directory containing
     # the packer templates.
     # They typically live in rosco's config/packer directory.
     configDir: /opt/rosco/config/packer
 
+  fiat:
+    enabled: false
+
+  front50:
+    cassandra:
+      enabled: true
+    redis:
+      enabled: false
+
+    # To use a cloud storage bucket on Amazon S3 or Google Cloud Storage instead
+    # of cassandra, set the storage_bucket, disable cassandra, and enable one of
+    # the service providers.
+    storage_bucket: ${SPINNAKER_DEFAULT_STORAGE_BUCKET:}
+    gcs:
+      enabled: false
+    s3:
+      enabled: false
+
   echo:
+    # Persistence mechanism to use
+    cassandra:
+      enabled: false
+    inMemory:
+      enabled: true
+
     cron:
       # Allow pipeline triggers to run periodically via cron expressions.
       enabled: true

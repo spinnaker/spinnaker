@@ -20,7 +20,6 @@ services:
     # directly under 'services'.
     host: localhost
     protocol: http
-    primaryAccountName: service-default-primaryAccountName-not-defined
 
   clouddriver:
     host: ${services.default.host}
@@ -40,6 +39,13 @@ services:
     host: ${services.default.host}
     port: 8089
     baseUrl: ${services.default.protocol}://${services.echo.host}:${services.echo.port}
+
+    # Persistence mechanism to use
+    cassandra:
+      enabled: false
+    inMemory:
+      enabled: true
+
     cron:
       # Allow pipeline triggers to run periodically via cron expressions.
       enabled: true
@@ -65,11 +71,16 @@ services:
         token: # twilio auth token
         from: # phone number by which sms messages are sent
       slack:
+        # See https://api.slack.com/bot-users for details about using bots
+        # and how to create your own bot user.
         enabled: false
         token: # the API token for the bot
         botName: # the username of the bot
 
   deck:
+    # Frontend configuration.
+    # If you are proxying Spinnaker behind a single host, you may want to
+    # override these values. Remember to run `reconfigure_spinnaker.sh` after.
     host: ${services.default.host}
     port: 9000
     baseUrl: ${services.default.protocol}://${services.deck.host}:${services.deck.port}
@@ -79,10 +90,33 @@ services:
     auth:
       enabled: false
 
+  fiat:
+    enabled: false
+    host: ${services.default.host}
+    port: 7003
+    baseUrl: ${services.default.protocol}://${services.fiat.host}:${services.fiat.port}
+
   front50:
     host: ${services.default.host}
     port: 8080
     baseUrl: ${services.default.protocol}://${services.front50.host}:${services.front50.port}
+
+    # To use a cloud storage bucket on Amazon S3 or Google Cloud Storage instead
+    # of cassandra, set the storage_bucket, disable cassandra, and enable one of
+    # the service providers.
+    storage_bucket: ${SPINNAKER_DEFAULT_STORAGE_BUCKET:}
+    # (GCS Only) Location for bucket.
+    bucket_location:
+    bucket_root: front50
+
+    cassandra:
+      enabled: true
+    redis:
+      enabled: false
+    gcs:
+      enabled: false
+    s3:
+      enabled: false
 
   gate:
     host: ${services.default.host}
@@ -123,13 +157,8 @@ services:
     host: ${services.default.host}
     port: 8087
     baseUrl: ${services.default.protocol}://${services.rosco.host}:${services.rosco.port}
-
-  rush:
-    # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
-    host: ${services.default.host}
-    port: 8085
-    baseUrl: ${services.default.protocol}://${services.rush.host}:${services.rush.port}
-    # You need to provide the fully-qualified path to the directory containing the packer templates.
+    # You need to provide the fully-qualified path to the directory containing
+    # the packer templates.
     # They typically live in rosco's config/packer directory.
     configDir: /opt/rosco/config/packer
 
@@ -138,7 +167,7 @@ services:
     port: ${services.rosco.port}
     baseUrl: ${services.rosco.baseUrl}
     extractBuildDetails: true
-    propagateCloudProviderType: true
+    allowMissingPackageInstallation: false
 
   docker:
     # This target repository is used by the bakery to publish baked docker images.
@@ -146,8 +175,11 @@ services:
     targetRepository: # Optional, but expected in spinnaker-local.yml if specified.
 
   jenkins:
+    # If you are integrating Jenkins, set its location here using the baseUrl
+    # field and provide the username/password credentials.
+    # You must also enable the "igor" service listed separately.
     # The "name" entry is used for the display name when selecting
-    # this server. You must set `enabled` to true when enabling igor.
+    # this server.
     #
     # If you have multiple jenkins servers, you will need to list
     # them in an igor-local.yml. See jenkins.masters in config/igor.yml.
@@ -167,20 +199,51 @@ services:
     connection: redis://${services.redis.host}:${services.redis.port}
 
   cassandra:
-    enabled: true
+    # cassandra.enabled is no longer used
+    # cassandra is enabled or disabled on a per-service basis
+    # where the alternative persistence mechanism for that service
+    # can be enabled.
     host: ${services.default.host}
     port: 9042
     embedded: false
     cluster: CASS_SPINNAKER
+
+  travis:
+    # If you are integrating Travis, set its location here using the baseUrl
+    # and adress fields and provide the githubToken for authentication.
+    # You must also enable the "igor" service listed separately.
+    #
+    # If you have multiple travis servers, you will need to list
+    # them in an igor-local.yml. See travis.masters in config/igor.yml.
+    #
+    # Note that travis is not installed with Spinnaker so you must obtain this
+    # on your own if you are interested.
+    enabled: false
+    defaultMaster:
+      name: ci # The display name for this server. Gets prefixed with "travis-"
+      baseUrl: https://travis-ci.com
+      address: https://api.travis-ci.org
+      githubToken: # GitHub scopes currently required by Travis is required.
+
+  spectator:
+    webEndpoint:
+      enabled: false
+
+  stackdriver:
+    enabled: ${SPINNAKER_STACKDRIVER_ENABLED:false}
+    projectName: ${SPINNAKER_STACKDRIVER_PROJECT_NAME:${providers.google.primaryCredentials.project}}
+    credentialsPath: ${SPINNAKER_STACKDRIVER_CREDENTIALS_PATH:${providers.google.primaryCredentials.jsonPath}}   
+
 
 providers:
   aws:
     # For more information on configuring Amazon Web Services (aws), see
     # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-amazon-web-services-setup
 
-    enabled: false
+    enabled: ${SPINNAKER_AWS_ENABLED:false}
     simpleDBEnabled: false
-    defaultRegion: us-east-1
+    defaultRegion: ${SPINNAKER_AWS_DEFAULT_REGION:us-west-2}
+    defaultIAMRole: BaseIAMRole
     defaultSimpleDBDomain: CLOUD_APPLICATIONS
     primaryCredentials:
       name: default
@@ -191,20 +254,26 @@ providers:
       # /home/spinnaker). The primaryCredentials.name will identify which profile
       # to use (for .aws/credentials).
 
+    # {{name}} will be interpolated with the aws account name (e.g. "my-aws-account-keypair").
+    defaultKeyPairTemplate: "{{name}}-keypair"
+
   google:
     # For more information on configuring Google Cloud Platform (google), see
     # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-google-cloud-platform-setup
 
-    enabled: false
-    defaultRegion: us-central1
-    defaultZone: us-central1-f
+    enabled: ${SPINNAKER_GOOGLE_ENABLED:false}
+    defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION:us-central1}
+    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_ZONE:us-central1-f}
+
     primaryCredentials:
       name: my-account-name
       # The project is the Google Project ID for the project to manage with
       # Spinnaker. The jsonPath is a path to the JSON service credentials
       # downloaded from the Google Developer's Console.
-      project:
-      jsonPath:
+      project: ${SPINNAKER_GOOGLE_PROJECT_ID:}
+      jsonPath: ${SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH:}
+      consul:
+        enabled: ${SPINNAKER_GOOGLE_CONSUL_ENABLED:false}
 
   cf:
     # For more information on configuring Cloud Foundry (cf) support, see
@@ -223,8 +292,8 @@ providers:
     # For more information on configuring Microsoft Azure (azure), see
     # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-azure-cloud-platform-setup
 
-    enabled: false
-    defaultRegion: westus
+    enabled: ${SPINNAKER_AZURE_ENABLED:false}
+    defaultRegion: ${SPINNAKER_AZURE_DEFAULT_REGION:westus}
     primaryCredentials:
       name: my-azure-account
 
@@ -249,7 +318,7 @@ providers:
     # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-kubernetes-cluster-setup
 
     # NOTE: enabling kubernetes also requires enabling dockerRegistry.
-    enabled: false
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
     primaryCredentials:
       name: my-kubernetes-account
       namespace: default
@@ -258,8 +327,28 @@ providers:
   dockerRegistry:
     # If you want to use a container based provider, you need to configure and
     # enable this provider to cache images.
-    enabled: false
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
+
     primaryCredentials:
       name: my-docker-registry-account
-      address: https://index.docker.io/
-      repository: library/nginx
+      address: ${SPINNAKER_DOCKER_REGISTRY:https://index.docker.io/}
+      repository: ${SPINNAKER_DOCKER_REPOSITORY:library/nginx}
+      username: ${SPINNAKER_DOCKER_USERNAME}
+      # A path to a plain text file containing the user's password
+      passwordFile: ${SPINNAKER_DOCKER_PASSWORD_FILE}
+
+  openstack:
+    # This default configuration uses the same environment variable names set in
+    # the OpenStack RC file. See
+    # http://docs.openstack.org/user-guide/common/cli-set-environment-variables-using-openstack-rc.html
+    # for details on the OpenStack RC file.
+    enabled: false
+    primaryCredentials:
+      name: my-openstack-account
+      authUrl: ${OS_AUTH_URL}
+      username: ${OS_USERNAME}
+      password: ${OS_PASSWORD}
+      projectName: ${OS_PROJECT_NAME}
+      domainName: ${OS_USER_DOMAIN_NAME:Default}
+      regions: ${OS_REGION_NAME:RegionOne}
+      insecure: false

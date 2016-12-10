@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-clouddriver-master
+  namespace: spinnaker
+  labels:
+    app: redis
+    stack: clouddriver
+    detail: master
+spec:
+  ports:
+    - port: 6379
+  selector:
+    load-balancer-redis-clouddriver-master: "true"

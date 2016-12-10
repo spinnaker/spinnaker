@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: spin-fiat-ro-v000
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: fiat
+    detail: ro
+    version: v000
+spec:
+  replicas: 2
+  selector:
+    replication-controller: spin-fiat-ro-v000
+  template:
+    metadata:
+      labels:
+        replication-controller: spin-fiat-ro-v000
+        load-balancer-spin-fiat-ro: "true"
+    spec:
+      containers:
+        - image: quay.io/spinnaker/fiat:master
+          name: fiat
+          ports:
+            - containerPort: 7003
+              name: fiat
+          volumeMounts:
+            - mountPath: /opt/spinnaker/config
+              name: fiat-ro-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 7003
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
+      volumes:
+        - name: fiat-ro-config
+          secret:
+            secretName: fiat-ro-config

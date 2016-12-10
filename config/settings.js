@@ -10,7 +10,6 @@
 // BEGIN reconfigure_spinnaker
 
 // var gateUrl = ${services.deck.gateUrl};
-// var bakeryBaseUrl = ${services.deck.bakeryUrl};
 // var authEnabled = ${services.deck.auth.enabled};
 // var defaultTimeZone = ${services.deck.timezone};
 // var awsDefaultRegion = ${providers.aws.defaultRegion};
@@ -33,6 +32,7 @@
 // var smsEnabled = ${services.echo.notifications.sms.enabled};
 // var slackEnabled = ${services.echo.notifications.slack.enabled};
 // var slackBotName = ${services.echo.notifications.slack.botName};
+// var fiatEnabled = ${services.fiat.enabled}
 
 // END reconfigure_spinnaker
 /**
@@ -42,7 +42,7 @@
 
 window.spinnakerSettings = {
   gateUrl: gateUrl,
-  bakeryDetailUrl: bakeryBaseUrl + '/api/v1/global/logs/{{context.status.id}}?html=true',
+  bakeryDetailUrl: gateUrl + '/bakery/logs/global/{{context.status.id}}',
   authEndpoint: gateUrl + '/auth/user',
   pollSchedule: 30000,
   defaultTimeZone: defaultTimeZone, // see http://momentjs.com/timezone/docs/#/data-utilities/
@@ -64,7 +64,8 @@ window.spinnakerSettings = {
       defaults: {
         account: awsPrimaryAccount,
         region: awsDefaultRegion
-      }
+      },
+      useAmiBlockDeviceMappings: false,
     },
     cf: {
       defaults: {
@@ -110,5 +111,6 @@ window.spinnakerSettings = {
     clusterDiff: false,
     roscoMode: true,
     netflixMode: false,
+    fiatEnabled: fiatEnabled,
   },
 };

@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: spin-rosco-v000
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: rosco
+    version: v000
+spec:
+  replicas: 3
+  selector:
+    replication-controller: spin-rosco-v000
+  template:
+    metadata:
+      labels:
+        replication-controller: spin-rosco-v000
+        load-balancer-spin-rosco: "true"
+    spec:
+      containers:
+        - image: quay.io/spinnaker/rosco:master
+          name: rosco
+          ports:
+            - containerPort: 8087
+              name: rosco
+          volumeMounts:
+            - mountPath: /opt/spinnaker/config
+              name: rosco-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8087
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
+      volumes:
+        - name: rosco-config
+          secret:
+            secretName: rosco-config

@@ -315,6 +315,24 @@ a:
                       bindings.get('root'))
      self.assertEqual(bindings.get('root'), bindings.get('copy'))
 
+  def test_write_bool(self):
+    yaml = 'a: false'
+
+    update_dict = {
+      'a': True
+    }
+    expected = 'a: true'
+
+    fd, temp_path = tempfile.mkstemp()
+    os.write(fd, yaml)
+    os.close(fd)
+    YamlBindings.update_yml_source(temp_path, update_dict)
+
+    with open(temp_path, 'r') as f:
+      self.assertEqual(expected, f.read())
+
+    os.remove(temp_path)
+
   def test_update_yml_source(self):
     yaml = """
 a: A

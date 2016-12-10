@@ -1,0 +1,10 @@
+server:
+  port: ${services.gate.port:8084}
+  address: ${services.gate.address}
+
+services:
+  clouddriver:
+    baseUrl: ${services.clouddriver.ro.baseUrl}
+
+redis:
+  connection: ${services.redis.gate.master.connection}

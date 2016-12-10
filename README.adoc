@@ -7,7 +7,7 @@ image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker
 If you are only interested in using Spinnaker, please refer to the main
 Spinnaker site and http://www.spinnaker.io/docs/target-deployment-setup[Installation] guide.
 
-If you want more more information on how Spinnaker is designed, see the http://www.spinnaker.io/docs/overview[Documentation Overview].
+If you want more information on how Spinnaker is designed, see the http://www.spinnaker.io/docs/overview[Documentation Overview].
 
 = Setting Up Spinnaker For Development
 
@@ -49,7 +49,8 @@ You need to have http://brew.sh/[homebrew] installed and ensure your version of 
 
 [source,bash]
 ----
-brew install caskroom/cask/brew-cask
+brew tap caskroom/cask
+brew install brew-cask
 brew install redis homebrew/versions/cassandra21 packer
 brew cask install java
 cd $SPINNAKER_HOME
@@ -76,16 +77,23 @@ so is performed here.
 
 == Configure Spinnaker
 
-We will create a directory for Spinnaker configuration overrides, copy the
-default configuration template there, and edit to select the appropriate cloud
-provider(s).
+We will create a directory for Spinnaker configuration overrides and
+create an override to select the appropriate cloud provider(s).
 
 [source,bash]
 ----
 cd $SPINNAKER_HOME
 mkdir -p $HOME/.spinnaker
-cp spinnaker/config/default-spinnaker-local.yml $HOME/.spinnaker/spinnaker-local.yml
+touch $HOME/.spinnaker/spinnaker-local.yml
 chmod 600 $HOME/.spinnaker/spinnaker-local.yml
+
+# Ideally you only need to add the properties you want to override.
+# However if you are not comfortable editing yml, you can copy the
+# entire file. The difference is that you may be overriding future
+# changes to default values that you otherwise would not care about.
+cp spinnaker/config/spinnaker.yml $HOME/spinnaker/spinnaker-local.yml
+
+$EDITOR $HOME/.emacs/spinnaker-local.yml
 ----
 
 If you are deployed onto a supported cloud provider (e.g., AWS or Google) and

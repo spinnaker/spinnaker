@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-gate-master
+  namespace: spinnaker
+  labels:
+    app: redis
+    stack: gate
+    detail: master
+spec:
+  ports:
+    - port: 6379
+  selector:
+    load-balancer-redis-gate-master: "true"

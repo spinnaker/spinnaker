@@ -24,6 +24,6 @@ orca:
 rosco: 
   volumes: 
     - "/root/spinnakerconfig:/opt/spinnaker/config"
-rush: 
-  volumes: 
-    - "/root/spinnakerconfig:/opt/spinnaker/config"
+rosco:
+  volumes:
+    - "/root/spinnakerconfig:/opt/spinnaker/fiat"

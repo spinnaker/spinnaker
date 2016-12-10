@@ -3,8 +3,16 @@ server:
   address: ${services.echo.host:localhost}
 
 cassandra:
+  enabled: ${services.echo.cassandra.enabled:false}
   embedded: ${services.cassandra.embedded:false}
   host: ${services.cassandra.host:localhost}
+
+spinnaker:
+  baseUrl: ${services.deck.baseUrl}
+  cassandra:
+     enabled: ${services.echo.cassandra.enabled:false}
+  inMemory:
+     enabled: ${services.echo.inMemory.enabled:true}
 
 front50:
   baseUrl: ${services.front50.baseUrl:http://localhost:8080}
@@ -48,3 +56,15 @@ scheduler:
     pollingIntervalMs: 30000
   cron:
     timezone: ${services.echo.cron.timezone}
+
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: ${services.spectator.webEndpoint.enabled:false}
+    prototypeFilter:
+      path: ${services.spectator.webEndpoint.prototypeFilter.path:}
+
+  stackdriver:
+    enabled: ${services.stackdriver.enabled}
+    projectName: ${services.stackdriver.projectName}
+    credentialsPath: ${services.stackdriver.credentialsPath}

@@ -130,8 +130,6 @@ gem install bundler
 
 #deb-s3 upload --bucket my-bucket my-deb-package-1.0.0_amd64.deb
 
-docker run -d -p 5000:5000 --name registry registry:2
-
 rm /var/www/settings.js
 touch /var/www/settings.js
 
@@ -202,38 +200,6 @@ webpackJsonp([1,2],[
 ]);
 EOT
 
-service docker start
-docker run -d -p 5000:5000 --restart=always --name registry registry:2
-
-#build image
-
-cd /opt/rosco/docker
-
-rm Dockerfile
-touch Dockerfile
-
-cat <<EOT >> Dockerfile
-FROM jpetazzo/dind
-# There is a known issue with later versions of docker requiring us to stick with this version for now: https://github.com/mitchellh/packer/issues/1752
-RUN sudo apt-get update -y
-#RUN sudo apt-get install -q -y lxc-docker-1.3.3
-# The REPLACE_THIS_WITH_DOCKER_REGISTRY_HOST token on the next line should be replaced prior to running docker build.
-##RUN echo 'DOCKER_OPTS="$DOCKER_OPTS --insecure-registry 172.30.0.179:5000"' >> /etc/default/docker
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
-RUN sudo apt-get update -q -y
-RUN sudo apt-get install -q -y wget
-RUN sudo apt-get install -q -y unzip
-WORKDIR /tmp
-RUN sudo wget -q https://releases.hashicorp.com/packer/0.7.5/packer_0.7.5_linux_amd64.zip
-RUN sudo mkdir /usr/local/packer
-WORKDIR /usr/local/packer
-RUN sudo unzip /tmp/packer_0.7.5_linux_amd64.zip
-ENV PATH /usr/local/packer/:$PATH
-RUN mkdir /usr/local/rosco
-COPY *.json /usr/local/rosco/
-WORKDIR /usr/local/rosco
-EOT
-
 rm aws-ebs.json
 touch aws-ebs.json
 
@@ -276,16 +242,6 @@ cat <<EOT >> aws-ebs.json
   }]
 }
 EOT
-
-DOCKER_IMAGE_NAME=spinnaker/rosco
-DOCKER_REGISTRY=localhost:5000
-
-docker build -t $DOCKER_IMAGE_NAME .
-docker tag -f $DOCKER_IMAGE_NAME $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME
-docker push $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME
-
-service rush stop
-service rush stop
 
 rm /opt/spinnaker/config/spinnaker-local.yml
 touch /opt/spinnaker/config/spinnaker-local.yml
@@ -334,7 +290,6 @@ services:
     # directly under 'services'.
     protocol: http    # Assume all spinnaker subsystems are using http
     host: localhost   # Assume all spinnaker subsystems are on localhost
-    primaryAccountName: \${providers.google.primaryCredentials.name}
     igor_enabled: true
 
   redis:
@@ -351,29 +306,10 @@ services:
     host: localhost
 
   docker:
-    # Spinnaker's "rush" subsystem uses docker to run internal jobs.
-    # Note that docker is not installed with Spinnaker so you must obtain this
-    # on your own if you are interested.
-    enabled: true
-    baseUrl: http://127.0.0.1:7104
     # This target repository is used by the bakery to publish baked docker images.
     # Do not include http://.
     targetRepository: 127.0.0.1:5000
     # Optional, but expected in spinnaker-local.yml if specified.
-
-    # You'll need to provide it a Spinnaker account to use.
-    # Here we are assuming the default primary account.
-    #
-    # If you have multiple accounts using docker then you will need to
-    # provide a rush-local.yml.
-    # For more info see docker.accounts in config/rush.yml.
-    primaryAccount:
-      name: \${services.default.primaryAccountName}
-      url:  \${services.docker.baseUrl}
-      registry: \${services.dockerRegistry.baseUrl}
-
-  dockerRegistry:
-      baseUrl: http://127.0.0.1:5000
 
   jenkins:
     # If you are integrating Jenkins, set its location here using the baseUrl
@@ -395,12 +331,6 @@ services:
     # If you are integrating Jenkins then you must also enable Spinnaker's
     # "igor" subsystem.
     enabled: true
-
-  rush:
-    # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
-    # You'll need to provide it a Spinnaker account to use.
-    # Here we are assuming the default primary account.
-    primaryAccount: \${services.default.primaryAccountName}
 EOT
 
 rm /opt/rosco/config/rosco.yml
@@ -409,11 +339,6 @@ touch /opt/rosco/config/rosco.yml
 cat <<EOT >> /opt/rosco/config/rosco.yml
 server:
   port: 8087
-
-rush:
-  baseUrl: http://localhost:8085
-  credentials: my-account-name
-  image: spinnaker/rosco
 
 executionStatusToBakeStates:
   associations:
@@ -507,9 +432,6 @@ google:
         virtualizationSettings:
           sourceImage: ubuntu-1404-trusty-v20141212
 EOT
-
-service rush start
-service rush start
 
 #add jenkins just for example purposes
 

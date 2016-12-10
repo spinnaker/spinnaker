@@ -151,7 +151,7 @@ EOF
 # Start script
 
 # Install node
-NODE_VERSION=0.12
+NODE_VERSION=4.4.1
 . /etc/profile.d/nvm.sh
 nvm install $NODE_VERSION
 nvm alias default $NODE_VERSION
@@ -190,6 +190,9 @@ if prompt_YN "Y" "Install (or update) Google Cloud Platform SDK?"; then
    pushd $HOME
    echo "*** BEGIN installing gcloud..."
    curl https://sdk.cloud.google.com | bash
+   echo "Adding kubectl..."
+   gcloud components install kubectl -q || true
+
    if [[ ! -f $HOME/.config/gcloud/credentials ]]; then
       echo "Running gcloud authentication..."
       gcloud auth login
@@ -207,7 +210,6 @@ fi
 if ! aws --version >& /dev/null && prompt_YN "Y" "Install AWS Platform SDK?"; then
     sudo apt-get install -y awscli
 fi
-
 
 # Setup source code
 if [[ "$CONFIRMED_GITHUB_REPOSITORY_OWNER" != "none" ]]; then
@@ -230,6 +232,34 @@ fi
 # Some dependencies of Deck rely on Bower to manage their dependencies. Bower
 # annoyingly prompts the user to collect some stats, so this disables that.
 echo "{\"interactive\":false}" > ~/.bowerrc
+
+
+if [[ -f $HOME/.spinnaker/spinnaker-local.yml ]]; then
+  echo "Forcing cassandra off."
+  ./spinnaker/install/change_cassandra.sh --echo=inMemory --front50=gcs --change_defaults=false --change_local=true
+else
+  echo "Adding a default spinnaker-local that disables cassandra."
+  mkdir -p $HOME/.spinnaker
+  project=$(curl -L -s -f -H "Metadata-Flavor: Google" \
+            http://169.254.169.254/computeMetadata/v1/project/project-id)
+  cat > $HOME/.spinnaker/spinnaker-local.yml <<EOF
+services:
+  echo:
+    cassandra:
+      enabled: false
+    inMemory:
+      enabled: true
+
+  front50:
+    storage_bucket: spinnaker-${project}
+    bucket_location: \${providers.google.defaultRegion}
+    cassandra:
+      enabled: false
+    gcs:
+      enabled: true
+EOF
+  chmod 600 $HOME/.spinnaker/spinnaker-local.yml
+fi
 
 
 # If this script was run in a different shell then we

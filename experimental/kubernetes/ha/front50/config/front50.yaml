@@ -1,0 +1,32 @@
+server:
+  port: ${services.front50.port:8080}
+  address: ${services.front50.address}
+
+cassandra:
+  enabled: false
+  embedded: false
+
+aws:
+  simpleDBEnabled: false
+  defaultSimpleDBDomain: 
+
+spinnaker:
+  cassandra:
+    enabled: false
+
+  redis:
+    enabled: false
+
+  gcs:
+    enabled: ${services.front50.gcs.enabled:false}
+    bucket: ${services.front50.storage_bucket:}
+    # See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location
+    bucketLocation: ${services.front50.gcs.bucket_location:}
+    rootFolder: ${services.front50.bucket_root:front50}
+    project: ${services.front50.gcs.project:}
+    jsonPath: /root/.gcp/account.json # Don't change me
+
+  aws:
+    enabled: ${services.front50.s3.enabled:false}
+    bucket: ${services.front50.storage_bucket:}
+    rootFolder: ${services.front50.bucket_root:front50}

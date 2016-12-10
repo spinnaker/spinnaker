@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-rosco
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: rosco
+spec:
+  ports:
+    - port: 8087
+  selector:
+    load-balancer-spin-rosco: "true"

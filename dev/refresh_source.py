@@ -94,10 +94,10 @@ class Refresher(object):
       SourceRepository('clouddriver', 'spinnaker'),
       SourceRepository('orca', 'spinnaker'),
       SourceRepository('front50', 'spinnaker'),
-      SourceRepository('rush', 'spinnaker'),
       SourceRepository('echo', 'spinnaker'),
       SourceRepository('rosco', 'spinnaker'),
       SourceRepository('gate', 'spinnaker'),
+      SourceRepository('fiat', 'spinnaker'),
       SourceRepository('igor', 'spinnaker'),
       SourceRepository('deck', 'spinnaker')]
 
@@ -269,9 +269,16 @@ class Refresher(object):
       print 'Updating {name} from origin'.format(name=name)
       branch = self.get_local_branch_name(name)
       if branch != self.pull_branch:
+        if self.__options.force_pull:
           sys.stderr.write(
               'WARNING: Updating {name} branch={branch}, *NOT* "{want}"\n'
                   .format(name=name, branch=branch, want=self.pull_branch))
+        else:
+          sys.stderr.write(
+              'WARNING: Skipping {name} because branch={branch},'
+              ' *NOT* "{want}"\n'
+              .format(name=name, branch=branch, want=self.pull_branch))
+          return
       try:
         check_run_and_monitor('git -C "{dir}" pull origin {branch} --tags'
                                   .format(dir=repository_dir, branch=branch),
@@ -515,6 +522,10 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
                                ' it is in the specified branch,'
                                ' otherwise skip it.'
                                ' If cloning, then clone this branch.')
+
+      parser.add_argument('--force_pull', default=False,
+                          help='Force pulls, even if the current branch'
+                          ' differs from the pulled branch.')
 
       parser.add_argument(
         '--extra_repos', default=None,

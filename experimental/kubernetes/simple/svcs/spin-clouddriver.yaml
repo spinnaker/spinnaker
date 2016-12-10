@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-clouddriver
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: clouddriver
+spec:
+  ports:
+    - port: 7002
+  selector:
+    load-balancer-spin-clouddriver: "true"

@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import os
+import pwd
 import re
 import sys
 
@@ -290,14 +291,35 @@ class ValidateConfig(object):
     """
     if not path or not os.path.exists(path):
       return True
+    ok = True
     stat = os.stat(path)
     if stat.st_mode & 077:
       self.__errors.append('"{path}" should not have non-owner access.'
                            ' Mode is {mode}.'
                            .format(path=path,
                                    mode='%03o' % (stat.st_mode & 0xfff)))
-      return False
-    return True
+      ok = False
+
+    owned_by = pwd.getpwuid(stat.st_uid).pw_name
+    run_by = pwd.getpwuid(os.getuid()).pw_name
+    if not os.geteuid():
+      # Special case handling to accomodate administrative tasks using sudo.
+      if owned_by != 'spinnaker':
+        self.__errors.append('"{path}" should be owned by "spinnaker" assuming'
+                             ' you run Spinnaker as user "spinnaker". Otherwise'
+                             ' rerun this command as the user you run Spinnaker'
+                             ' as.')
+    elif owned_by != run_by:
+      # The python scripts are often forked by shell scripts, so we dont know
+      # the original command name. We'll just refer to it as "this command".
+      self.__errors.append('"{path}" should be owned by user "{run_by}"'
+                           ' since you are running as {run_by}.'
+                           ' It could also be that you intended to run'
+                           ' this command as user "{owned_by}".'
+                           .format(path=path, run_by=run_by, owned_by=owned_by))
+      ok = False
+
+    return ok
 
   def verify_security(self):
     """Verify the permissions on the sensitive configuration files."""

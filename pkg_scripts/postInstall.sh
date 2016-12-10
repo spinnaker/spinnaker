@@ -17,25 +17,15 @@ fi
 # deck settings
 /opt/spinnaker/bin/reconfigure_spinnaker.sh
 
-# vhosts
-rm -rf /etc/apache2/sites-enabled/*.conf
-
+# enable deck and reverse proxy in apache
 /usr/sbin/a2ensite spinnaker
 /usr/sbin/a2enmod proxy_http
-
-sed -i "s/Listen\ 80/Listen 127.0.0.1:9000/" /etc/apache2/ports.conf
-
 service apache2 restart
-
-# Install cassandra keyspaces
-cqlsh -f "/opt/spinnaker/cassandra/create_echo_keyspace.cql"
-cqlsh -f "/opt/spinnaker/cassandra/create_front50_keyspace.cql"
-cqlsh -f "/opt/spinnaker/cassandra/create_rush_keyspace.cql"
 
 # Disable auto upstart of the services.
 # We'll have spinnaker auto start, and start them as it does.
-for s in clouddriver orca front50 rush rosco echo gate igor; do
-    echo manual | sudo tee /etc/init/$s.override
+for s in clouddriver orca front50 rosco echo fiat gate igor; do
+    if [ ! -e /etc/init/$s.override ]; then
+        /bin/echo -e "limit nofile 32768 32768\nmanual" | sudo tee /etc/init/$s.override;
+    fi
 done
-
-
