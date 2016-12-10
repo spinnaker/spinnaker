@@ -16,7 +16,8 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
       triggers: [],
       application: application.name,
       limitConcurrent: true,
-      keepWaitingPipelines: false
+      keepWaitingPipelines: false,
+      executionEngine: 'v2'
     };
 
     $scope.viewState = {};
