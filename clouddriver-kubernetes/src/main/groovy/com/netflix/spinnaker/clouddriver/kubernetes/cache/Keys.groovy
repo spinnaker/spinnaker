@@ -27,6 +27,7 @@ class Keys {
     LOAD_BALANCERS,
     SECURITY_GROUPS,
     EVENTS,
+    DEPLOYMENTS,
     ON_DEMAND,
 
     static String provider = "kubernetes"
@@ -124,6 +125,19 @@ class Keys {
             application: names.app,
         ]
         break
+      case Namespace.DEPLOYMENTS.ns:
+        def names = Names.parseName(parts[4])
+        result << [
+          account: parts[2],
+          namespace: parts[3],
+          region: parts[3],
+          name: parts[4],
+          cluster: names.cluster,
+          application: names.app,
+          stack: names.stack,
+          detail: names.detail,
+        ]
+        break
       default:
         return null
         break
@@ -154,5 +168,9 @@ class Keys {
 
   static String getSecurityGroupKey(String account, String namespace, String ingressName) {
     "${Namespace.provider}:${Namespace.SECURITY_GROUPS}:${account}:${namespace}:${ingressName}"
+  }
+
+  static String getDeploymentKey(String account, String namespace, String deploymentName) {
+    "${Namespace.provider}:${Namespace.DEPLOYMENTS}:${account}:${namespace}:${deploymentName}"
   }
 }

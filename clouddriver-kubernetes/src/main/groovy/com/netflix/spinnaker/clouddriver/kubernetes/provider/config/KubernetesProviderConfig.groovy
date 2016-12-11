@@ -103,6 +103,7 @@ class KubernetesProviderConfig implements Runnable {
         newlyAddedAgents << new KubernetesSecurityGroupCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
         newlyAddedAgents << new KubernetesServerGroupCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads, registry)
         newlyAddedAgents << new KubernetesInstanceCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
+        newlyAddedAgents << new KubernetesDeploymentCachingAgent(credentials.name, credentials.credentials, objectMapper, index, credentials.cacheThreads)
       }
 
       // If there is an agent scheduler, then this provider has been through the AgentController in the past.

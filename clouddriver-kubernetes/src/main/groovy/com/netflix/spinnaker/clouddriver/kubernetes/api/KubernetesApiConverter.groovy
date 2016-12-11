@@ -824,6 +824,39 @@ class KubernetesApiConverter {
     return builder.endSpec()
   }
 
+  static KubernetesDeployment fromDeployment(Deployment deployment) {
+    if (!deployment) {
+      return null
+    }
+
+    def kubernetesDeployment = new KubernetesDeployment()
+
+    kubernetesDeployment.enabled = true
+    kubernetesDeployment.minReadySeconds = deployment.spec.minReadySeconds ?: 0
+    kubernetesDeployment.revisionHistoryLimit = deployment.spec.revisionHistoryLimit
+
+    if (deployment.spec.strategy) {
+      def strategy = deployment.spec.strategy
+      def deploymentStrategy = new KubernetesStrategy()
+
+      deploymentStrategy.type = strategy.type
+
+      if (strategy.rollingUpdate) {
+        def update = strategy.rollingUpdate
+        def rollingUpdate = new KubernetesRollingUpdate()
+
+        rollingUpdate.maxSurge = update.maxSurge.getStrVal()
+        rollingUpdate.maxUnavailable = update.maxUnavailable.getStrVal()
+
+        deploymentStrategy.rollingUpdate = rollingUpdate
+      }
+
+      kubernetesDeployment.deploymentStrategy = deploymentStrategy
+    }
+
+    return kubernetesDeployment
+  }
+
   static PodTemplateSpec toPodTemplateSpec(DeployKubernetesAtomicOperationDescription description, String name) {
     def podTemplateSpecBuilder = new PodTemplateSpecBuilder()
       .withNewMetadata()

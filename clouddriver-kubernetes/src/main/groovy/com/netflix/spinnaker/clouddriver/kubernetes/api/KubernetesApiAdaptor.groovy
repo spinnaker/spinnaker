@@ -160,6 +160,12 @@ class KubernetesApiAdaptor {
     }
   }
 
+  List<ReplicaSet> getReplicaSets(String namespace, Map<String, String> labels) {
+    exceptionWrapper("Get Replica Sets", namespace) {
+      client.extensions().replicaSets().inNamespace(namespace).withLabels(labels).list().items
+    }
+  }
+
   boolean hardDestroyReplicaSet(String namespace, String name) {
     exceptionWrapper("Hard Destroy Replica Set $name", namespace) {
       client.extensions().replicaSets().inNamespace(namespace).withName(name).delete()
@@ -425,6 +431,12 @@ class KubernetesApiAdaptor {
     }
   }
 
+  List<Deployment> getDeployments(String namespace) {
+    exceptionWrapper("Get Deployments", namespace) {
+      client.extensions().deployments().inNamespace(namespace).list().items
+    }
+  }
+
   Deployment createDeployment(String namespace, Deployment deployment) {
     exceptionWrapper("Create Deployment $deployment.metadata.name", namespace) {
       client.extensions().deployments().inNamespace(namespace).create(deployment)
@@ -443,22 +455,11 @@ class KubernetesApiAdaptor {
     }
   }
 
-  List<Pod> getPodsForDeployment(String namespace, Deployment deployment) {
-    def labels = deployment.spec.selector.matchLabels
-    return getPods(namespace, labels)
+  static String getDeploymentRevision(Deployment deployment) {
+    return deployment?.metadata?.annotations?.get("$DEPLOYMENT_ANNOTATION/revision")
   }
 
-  List<Pod> getPodsForReplicaSet(String namespace, ReplicaSet replicaSet) {
-    def labels = replicaSet.spec.selector.matchLabels
-    return getPods(namespace, labels)
+  static String getDeploymentRevision(ReplicaSet replicaSet) {
+    return replicaSet?.metadata?.annotations?.get("$DEPLOYMENT_ANNOTATION/revision")
   }
-
-  String getDeploymentRevision(Deployment deployment) {
-    return deployment.metadata.annotations["$DEPLOYMENT_ANNOTATION/revision"]
-  }
-  
-  String getDeploymentRevision(ReplicaSet replicaSet) {
-    return replicaSet.metadata.annotations["$DEPLOYMENT_ANNOTATION/revision"]
-  }
-
 }

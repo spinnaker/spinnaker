@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
@@ -50,8 +51,10 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   Map<String, String> labels = [:]
   DeployKubernetesAtomicOperationDescription deployDescription
   KubernetesAutoscalerStatus autoscalerStatus
+  KubernetesDeploymentStatus deploymentStatus
   String kind // Kubernetes resource-type
   String yaml
+  String revision
   Map buildInfo
   List<KubernetesEvent> events
 
@@ -89,6 +92,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
       KubernetesApiConverter.attachAutoscaler(this.deployDescription, autoscaler)
       this.autoscalerStatus = new KubernetesAutoscalerStatus(autoscaler)
     }
+    this.revision = KubernetesApiAdaptor.getDeploymentRevision(replicaSet)
   }
 
   KubernetesServerGroup(ReplicationController replicationController, String account, List<Event> events, HorizontalPodAutoscaler autoscaler) {
