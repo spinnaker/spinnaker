@@ -74,7 +74,7 @@ class KubernetesInstance implements Instance, Serializable {
 
     this.health << (Map<String, String>) mapper.convertValue(new KubernetesHealth(pod), new TypeReference<Map<String, String>>() {})
 
-    this.controllerName = pod.metadata?.labels?.get(KubernetesUtil.REPLICATION_CONTROLLER_LABEL) ?:
+    this.controllerName = pod.metadata?.labels?.get(KubernetesUtil.SERVER_GROUP_LABEL) ?:
         pod.metadata?.labels?.get(KubernetesUtil.JOB_LABEL) ?: null
   }
 

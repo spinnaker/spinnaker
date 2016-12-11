@@ -25,10 +25,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.autoscaler.KubernetesAutoscalerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import io.fabric8.kubernetes.api.model.Capabilities
-import io.fabric8.kubernetes.api.model.SELinuxOptions
-import io.fabric8.kubernetes.api.model.SecurityContext
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
+import io.fabric8.kubernetes.api.builder.BaseFluent
+import io.fabric8.kubernetes.api.model.HasMetadata
+import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder
+import io.fabric8.kubernetes.api.model.extensions.DeploymentFluentImpl
+import io.fabric8.kubernetes.api.model.extensions.DoneableDeployment
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder
 
 class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResult> {
@@ -42,7 +43,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     TaskRepository.threadLocalTask.get()
   }
 
-  DeployKubernetesAtomicOperationDescription description
+  final DeployKubernetesAtomicOperationDescription description
 
   /*
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx" } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
@@ -50,24 +51,27 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx", "tag": "latest", "registry": "index.docker.io" }, "livenessProbe": { "handler": { "type": "EXEC", "execAction": { "commands": [ "ls" ] } } } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "volumeSources": [ { "name": "storage", "type": "EMPTYDIR", "emptyDir": {} } ], "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx", "tag": "latest", "registry": "index.docker.io" }, "volumeMounts": [ { "name": "storage", "mountPath": "/storage", "readOnly": false } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx" } } ], "capacity": { "min": 1, "max": 5 }, "scalingPolicy": { "cpuUtilization": { "target": 40 } }, "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx" } } ], "account":  "my-kubernetes-account", "deployment": { "enabled": "true" } } } ]' localhost:7002/kubernetes/ops
    */
 
   @Override
   DeploymentResult operate(List priorOutputs) {
 
-    ReplicaSet replicaSet = deployDescription()
+    HasMetadata serverGroup = deployDescription()
     DeploymentResult deploymentResult = new DeploymentResult()
-    deploymentResult.serverGroupNames = Arrays.asList("${replicaSet.metadata.namespace}:${replicaSet.metadata.name}".toString())
-    deploymentResult.serverGroupNameByRegion[replicaSet.metadata.namespace] = replicaSet.metadata.name
+    deploymentResult.serverGroupNames = Arrays.asList("${serverGroup.metadata.namespace}:${serverGroup.metadata.name}".toString())
+    deploymentResult.serverGroupNameByRegion[serverGroup.metadata.namespace] = serverGroup.metadata.name
     return deploymentResult
   }
 
-  ReplicaSet deployDescription() {
+  HasMetadata deployDescription() {
     task.updateStatus BASE_PHASE, "Initializing creation of replica set."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
     def credentials = description.credentials.credentials
+
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
+    description.imagePullSecrets = credentials.imagePullSecrets[namespace]
 
     def serverGroupNameResolver = new KubernetesServerGroupNameResolver(namespace, credentials)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
@@ -76,62 +80,29 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     def replicaSetName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
     task.updateStatus BASE_PHASE, "Replica set name chosen to be ${replicaSetName}."
 
-    def replicaSetBuilder = new ReplicaSetBuilder().withNewMetadata().withName(replicaSetName)
+    task.updateStatus BASE_PHASE, "Building replica set..."
+    def replicaSet = KubernetesApiConverter.toReplicaSet(new ReplicaSetBuilder(), description, replicaSetName)
 
-    replicaSetBuilder = replicaSetBuilder.withAnnotations(description.replicaSetAnnotations).endMetadata()
-
-    replicaSetBuilder = replicaSetBuilder.withNewSpec().withNewSelector().withMatchLabels(
-      [(KubernetesUtil.REPLICATION_CONTROLLER_LABEL): replicaSetName]).endSelector()
-
-    def targetSize = description.targetSize ?: description.capacity?.desired
-
-    task.updateStatus BASE_PHASE, "Setting target size to ${targetSize}..."
-
-    replicaSetBuilder = replicaSetBuilder.withReplicas(targetSize)
-      .withNewTemplate()
-      .withNewMetadata()
-
-    task.updateStatus BASE_PHASE, "Setting replica set spec labels & annotations..."
-
-    replicaSetBuilder = replicaSetBuilder.addToLabels(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicaSetName)
-
-    for (def loadBalancer : description.loadBalancers) {
-      replicaSetBuilder = replicaSetBuilder.addToLabels(KubernetesUtil.loadBalancerKey(loadBalancer), "true")
+    if (KubernetesApiConverter.hasDeployment(description)) {
+      replicaSet.spec.replicas = 0
     }
 
-    replicaSetBuilder = replicaSetBuilder.withAnnotations(description.podAnnotations)
+    replicaSet = credentials.apiAdaptor.createReplicaSet(namespace, replicaSet)
 
-    replicaSetBuilder = replicaSetBuilder.endMetadata().withNewSpec()
-
-    if (description.restartPolicy) {
-      replicaSetBuilder.withRestartPolicy(description.restartPolicy)
-    }
-
-    task.updateStatus BASE_PHASE, "Adding image pull secrets... "
-    replicaSetBuilder = replicaSetBuilder.withImagePullSecrets()
-
-    for (def imagePullSecret : credentials.imagePullSecrets[namespace]) {
-      replicaSetBuilder = replicaSetBuilder.addNewImagePullSecret(imagePullSecret)
-    }
-
-    if (description.volumeSources) {
-      def volumeSources = description.volumeSources.findResults { volumeSource ->
-        KubernetesApiConverter.toVolumeSource(volumeSource)
+    if (KubernetesApiConverter.hasDeployment(description)) {
+      if (!credentials.apiAdaptor.getDeployment(namespace, clusterName)) {
+        task.updateStatus BASE_PHASE, "Building deployment..."
+        credentials.apiAdaptor.createDeployment(namespace, ((DeploymentBuilder) KubernetesApiConverter.toDeployment((DeploymentFluentImpl) new DeploymentBuilder(), description, replicaSetName)).build())
+      } else {
+        task.updateStatus BASE_PHASE, "Updating deployment..."
+        ((DoneableDeployment) KubernetesApiConverter.toDeployment((DeploymentFluentImpl) credentials.apiAdaptor.editDeployment(namespace, clusterName),
+          description,
+          replicaSetName)).done()
       }
-
-      replicaSetBuilder = replicaSetBuilder.withVolumes(volumeSources)
     }
 
-    def containers = description.containers.collect { container ->
-      KubernetesApiConverter.toContainer(container)
-    }
-
-    replicaSetBuilder = replicaSetBuilder.withContainers(containers)
-
-    replicaSetBuilder = replicaSetBuilder.endSpec().endTemplate().endSpec()
 
     task.updateStatus BASE_PHASE, "Sending replica set spec to the Kubernetes master."
-    ReplicaSet replicaSet = credentials.apiAdaptor.createReplicaSet(namespace, replicaSetBuilder.build())
 
     task.updateStatus BASE_PHASE, "Finished creating replica set ${replicaSet.metadata.name}."
 

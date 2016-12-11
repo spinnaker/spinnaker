@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.api
 
+import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.autoscaler.KubernetesAutoscalerDescription
@@ -23,11 +24,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalan
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesNamedServicePort
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.*
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
+import io.fabric8.kubernetes.api.builder.BaseFluent
 import io.fabric8.kubernetes.api.model.*
-import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscaler
-import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscalerBuilder
-import io.fabric8.kubernetes.api.model.extensions.Ingress
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
+import io.fabric8.kubernetes.api.model.extensions.*
 
 class KubernetesApiConverter {
   static KubernetesSecurityGroupDescription fromIngress(Ingress ingress) {
@@ -755,5 +754,148 @@ class KubernetesApiConverter {
       new KeyValuePair(name: it.name, value: it.value)
     }
     return kubernetesHttpGetAction
+  }
+
+  static ReplicaSet toReplicaSet(ReplicaSetBuilder serverGroupBuilder,
+                                 DeployKubernetesAtomicOperationDescription description,
+                                 String replicaSetName) {
+
+    def targetSize = description.targetSize ?: description.capacity?.desired
+
+    return serverGroupBuilder.withNewMetadata()
+      .withName(replicaSetName)
+      .withAnnotations(description.replicaSetAnnotations)
+      .endMetadata()
+      .withNewSpec()
+      .withNewSelector()
+      .withMatchLabels(baseServerGroupLabels(description, replicaSetName) + restrictedServerGroupLabels(replicaSetName))
+      .endSelector()
+      .withReplicas(targetSize)
+      .withNewTemplateLike(toPodTemplateSpec(description, replicaSetName))
+      .endTemplate()
+      .endSpec()
+      .build()
+  }
+
+  static DeploymentFluentImpl toDeployment(DeploymentFluentImpl serverGroupBuilder,
+                                        DeployKubernetesAtomicOperationDescription description,
+                                        String replicaSetName) {
+    def parsedName = Names.parseName(replicaSetName)
+    def targetSize = description.targetSize ?: description.capacity?.desired
+
+    def builder = serverGroupBuilder.withNewMetadata()
+      .withName(parsedName.cluster)
+      .withAnnotations(description.replicaSetAnnotations)
+      .endMetadata()
+      .withNewSpec()
+      .withNewSelector()
+      .withMatchLabels(baseServerGroupLabels(description, replicaSetName))
+      .endSelector()
+      .withReplicas(targetSize)
+      .withNewTemplateLike(toPodTemplateSpec(description, replicaSetName))
+      .endTemplate()
+      .withMinReadySeconds(description.deployment.minReadySeconds)
+      .withRevisionHistoryLimit(description.deployment.revisionHistoryLimit)
+
+    if (description.deployment.deploymentStrategy) {
+      def strategy = description.deployment.deploymentStrategy
+      builder = builder.withNewStrategy()
+        .withType(strategy.type.toString())
+
+      if (strategy.rollingUpdate) {
+        def rollingUpdate = strategy.rollingUpdate
+
+        builder = builder.withNewRollingUpdate()
+
+        if (rollingUpdate.maxSurge) {
+          builder = builder.withNewMaxSurge(rollingUpdate.maxSurge)
+        }
+
+        if (rollingUpdate.maxUnavailable) {
+          builder = builder.withNewMaxUnavailable(rollingUpdate.maxUnavailable)
+        }
+
+        builder = builder.endRollingUpdate()
+      }
+
+      builder = builder.endStrategy()
+    }
+
+    return builder.endSpec()
+  }
+
+  static PodTemplateSpec toPodTemplateSpec(DeployKubernetesAtomicOperationDescription description, String name) {
+    def podTemplateSpecBuilder = new PodTemplateSpecBuilder()
+      .withNewMetadata()
+      .addToLabels(baseServerGroupLabels(description, name) + restrictedServerGroupLabels(name))
+
+    for (def loadBalancer : description.loadBalancers) {
+      podTemplateSpecBuilder = podTemplateSpecBuilder.addToLabels(KubernetesUtil.loadBalancerKey(loadBalancer), "true")
+    }
+
+    podTemplateSpecBuilder = podTemplateSpecBuilder.withAnnotations(description.podAnnotations)
+      .endMetadata()
+      .withNewSpec()
+
+    if (description.restartPolicy) {
+      podTemplateSpecBuilder.withRestartPolicy(description.restartPolicy)
+    }
+
+    podTemplateSpecBuilder = podTemplateSpecBuilder.withImagePullSecrets()
+
+    for (def imagePullSecret : description.imagePullSecrets) {
+      podTemplateSpecBuilder = podTemplateSpecBuilder.addNewImagePullSecret(imagePullSecret)
+    }
+
+    if (description.volumeSources) {
+      def volumeSources = description.volumeSources.findResults { volumeSource ->
+        toVolumeSource(volumeSource)
+      }
+
+      podTemplateSpecBuilder = podTemplateSpecBuilder.withVolumes(volumeSources)
+    }
+
+    def containers = description.containers.collect { container ->
+      toContainer(container)
+    }
+
+    podTemplateSpecBuilder = podTemplateSpecBuilder.withContainers(containers)
+
+    return podTemplateSpecBuilder.endSpec().build()
+  }
+
+  static boolean hasDeployment(DeployKubernetesAtomicOperationDescription description) {
+    return description.deployment?.enabled
+  }
+
+  /*
+   * This represents the set of labels that ties deployments, replica sets, and pods together
+   */
+  static Map<String, String> baseServerGroupLabels(DeployKubernetesAtomicOperationDescription description, String name) {
+    def parsedName = Names.parseName(name)
+    return hasDeployment(description) ? [(parsedName.cluster): "true"] : [(name): "true"]
+  }
+
+  /*
+   * This represents the set of labels that differentiate replica sets from deployments - these are needed so
+   * different replica sets under the same deployment don't apply to the same pods
+   */
+  static Map<String, String> restrictedServerGroupLabels(String name) {
+    def parsedName = Names.parseName(name)
+    def labels = [
+      "version": parsedName.sequence?.toString() ?: "na",
+      "app": parsedName.app,
+      "cluster": parsedName.cluster,
+    ]
+
+    if (parsedName.stack) {
+      labels += ["stack": parsedName.stack]
+    }
+
+    if (parsedName.detail) {
+      labels += ["detail": parsedName.detail]
+    }
+
+    return labels
   }
 }

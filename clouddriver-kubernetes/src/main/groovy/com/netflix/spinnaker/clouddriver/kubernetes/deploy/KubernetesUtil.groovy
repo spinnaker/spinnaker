@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Value
 class KubernetesUtil {
   static String SECURITY_GROUP_LABEL_PREFIX = "security-group-"
   static String LOAD_BALANCER_LABEL_PREFIX = "load-balancer-"
-  static String REPLICATION_CONTROLLER_LABEL = "replication-controller"
+  static String SERVER_GROUP_LABEL = "replication-controller"
   static String SERVER_GROUP_KIND = "replicaSet"
   static String JOB_LABEL = "job"
   @Value("kubernetes.defaultRegistry:gcr.io")

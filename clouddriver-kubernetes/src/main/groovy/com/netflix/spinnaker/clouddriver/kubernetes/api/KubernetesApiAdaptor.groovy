@@ -20,6 +20,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesOperationException
 import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.*
+import io.fabric8.kubernetes.api.model.extensions.Deployment
+import io.fabric8.kubernetes.api.model.extensions.DoneableDeployment
 import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 import io.fabric8.kubernetes.api.model.extensions.Job
@@ -165,7 +167,7 @@ class KubernetesApiAdaptor {
 
   List<Pod> getReplicaSetPods(String namespace, String replicaSetName) {
     exceptionWrapper("Get Replica Set Pods for $replicaSetName", namespace) {
-      client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicaSetName).list().items
+      client.pods().inNamespace(namespace).withLabel(KubernetesUtil.SERVER_GROUP_LABEL, replicaSetName).list().items
     }
   }
 
@@ -225,7 +227,7 @@ class KubernetesApiAdaptor {
 
   List<Pod> getReplicationControllerPods(String namespace, String replicationControllerName) {
     exceptionWrapper("Get Replication Controller Pods for $replicationControllerName", namespace) {
-      client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName).list().items
+      client.pods().inNamespace(namespace).withLabel(KubernetesUtil.SERVER_GROUP_LABEL, replicationControllerName).list().items
     }
   }
 
@@ -413,6 +415,30 @@ class KubernetesApiAdaptor {
   boolean deleteAutoscaler(String namespace, String name) {
     exceptionWrapper("Destroy Autoscaler $name", namespace) {
       client.extensions().horizontalPodAutoscalers().inNamespace(namespace).withName(name).delete()
+    }
+  }
+
+  Deployment getDeployment(String namespace, String name) {
+    exceptionWrapper("Get Deployment $name", namespace) {
+      client.extensions().deployments().inNamespace(namespace).withName(name).get()
+    }
+  }
+
+  Deployment createDeployment(String namespace, Deployment deployment) {
+    exceptionWrapper("Create Deployment $deployment.metadata.name", namespace) {
+      client.extensions().deployments().inNamespace(namespace).create(deployment)
+    }
+  }
+
+  DoneableDeployment editDeployment(String namespace, String name) {
+    exceptionWrapper("Edit deployment $name", namespace) {
+      client.extensions().deployments().inNamespace(namespace).withName(name).edit()
+    }
+  }
+
+  boolean deleteDeployment(String namespace, String name) {
+    exceptionWrapper("Delete Deployment $name", namespace) {
+      client.extensions().deployments().inNamespace(namespace).withName(name).delete()
     }
   }
 }

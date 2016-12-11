@@ -155,7 +155,7 @@ class KubernetesInstanceSpec extends Specification {
 
   void "Should report pod controller"() {
     setup:
-      metadataMock.getLabels() >> ["foo": "bar", (KubernetesUtil.REPLICATION_CONTROLLER_LABEL): REPLICATION_CONTROLLER]
+      metadataMock.getLabels() >> ["foo": "bar", (KubernetesUtil.SERVER_GROUP_LABEL): REPLICATION_CONTROLLER]
 
     when:
       def instance = new KubernetesInstance(podMock, [])

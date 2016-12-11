@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription
@@ -40,6 +41,10 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   Map<String, String> replicaSetAnnotations
   Map<String, String> podAnnotations
   KubernetesSecurityContext securityContext
+  KubernetesDeployment deployment
+
+  @JsonIgnore
+  Set<String> imagePullSecrets
 }
 
 @AutoClone
@@ -92,6 +97,37 @@ class KubernetesContainerDescription {
   List<String> args
 
   KubernetesSecurityContext securityContext
+}
+
+@AutoClone
+@Canonical
+class KubernetesDeployment {
+  boolean enabled
+  KubernetesStrategy deploymentStrategy
+  int minReadySeconds
+  Integer revisionHistoryLimit     // May be null
+  boolean paused
+  Integer rollbackRevision         // May be null
+  Integer progressRollbackSeconds  // May be null
+}
+
+@AutoClone
+@Canonical
+class KubernetesStrategy {
+  KubernetesStrategyType type
+  KubernetesRollingUpdate rollingUpdate
+}
+
+@AutoClone
+@Canonical
+class KubernetesRollingUpdate {
+  String maxUnavailable
+  String maxSurge
+}
+
+enum KubernetesStrategyType {
+  Recreate,
+  RollingUpdate
 }
 
 @AutoClone
