@@ -8,6 +8,17 @@ redis:
 aws:
   enabled: ${providers.aws.enabled:false}
 
+azure:
+  enabled: ${providers.azure.enabled:false}
+  accounts:
+    - name: ${providers.azure.primaryCredentials.name}
+      clientId: ${providers.azure.primaryCredentials.clientId}
+      appKey: ${providers.azure.primaryCredentials.appKey}
+      tenantId: ${providers.azure.primaryCredentials.tenantId}
+      subscriptionId: ${providers.azure.primaryCredentials.subscriptionId}
+      packerResourceGroup: ${providers.azure.primaryCredentials.packerResourceGroup}
+      storageAccount: ${providers.azure.primaryCredentials.packerStorageAccount}
+
 docker:
   enabled: ${services.docker.enabled:false}
   bakeryDefaults:
