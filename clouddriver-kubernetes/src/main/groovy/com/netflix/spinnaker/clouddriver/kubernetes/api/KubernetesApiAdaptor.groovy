@@ -40,6 +40,7 @@ class KubernetesApiAdaptor {
   static final int RETRY_COUNT = 20
   static final long RETRY_MAX_WAIT_MILLIS = TimeUnit.SECONDS.toMillis(10)
   static final long RETRY_INITIAL_WAIT_MILLIS = 100
+  static final String DEPLOYMENT_ANNOTATION = "deployment.kubernetes.io"
   final KubernetesClient client
 
   KubernetesApiAdaptor(String account, io.fabric8.kubernetes.client.Config config) {
@@ -441,4 +442,23 @@ class KubernetesApiAdaptor {
       client.extensions().deployments().inNamespace(namespace).withName(name).delete()
     }
   }
+
+  List<Pod> getPodsForDeployment(String namespace, Deployment deployment) {
+    def labels = deployment.spec.selector.matchLabels
+    return getPods(namespace, labels)
+  }
+
+  List<Pod> getPodsForReplicaSet(String namespace, ReplicaSet replicaSet) {
+    def labels = replicaSet.spec.selector.matchLabels
+    return getPods(namespace, labels)
+  }
+
+  String getDeploymentRevision(Deployment deployment) {
+    return deployment.metadata.annotations["$DEPLOYMENT_ANNOTATION/revision"]
+  }
+  
+  String getDeploymentRevision(ReplicaSet replicaSet) {
+    return replicaSet.metadata.annotations["$DEPLOYMENT_ANNOTATION/revision"]
+  }
+
 }
