@@ -59,6 +59,8 @@ providers:
       appKey:
       tenantId:
       subscriptionId:
+      packerResourceGroup:
+      packerStorageAccount:
 
   google:
     # For more information on configuring Google Cloud Platform (google), see
