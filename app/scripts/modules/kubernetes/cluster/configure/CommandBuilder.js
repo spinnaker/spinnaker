@@ -64,6 +64,17 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
             target: 40,
           },
         },
+        deployment: {
+          enabled: false,
+          minReadySeconds: 0,
+          deploymentStrategy: {
+            type: 'RollingUpdate',
+            rollingUpdate: {
+              maxUnavailable: 1,
+              maxSurge: 1
+            }
+          }
+        }
       };
 
       applyHealthProviders(application, command);

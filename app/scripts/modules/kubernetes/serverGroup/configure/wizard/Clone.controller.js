@@ -21,6 +21,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
+      deployment: require('./deployment.html'),
       loadBalancers: require('./loadBalancers.html'),
       replicas: require('./replicas.html'),
       volumes: require('./volumes.html'),
@@ -67,6 +68,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
         v2modalWizardService.markComplete('location');
+        v2modalWizardService.markComplete('deployment');
         v2modalWizardService.markComplete('load-balancers');
         v2modalWizardService.markComplete('replicas');
         v2modalWizardService.markComplete('volumes');

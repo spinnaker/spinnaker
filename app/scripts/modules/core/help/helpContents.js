@@ -358,6 +358,13 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.serverGroup.autoscaling.max': 'The largest number of pods to be deployed.',
     'kubernetes.serverGroup.autoscaling.desired': 'The initial number of pods to be deployed.',
     'kubernetes.serverGroup.autoscaling.cpuTarget': 'The target CPU utilization to be achieved by the autoscaler.',
+    'kubernetes.serverGroup.deployment.enabled': 'Check this box if you want to spawn a deployment for this replica set.',
+    'kubernetes.serverGroup.deployment.strategy': '<p><b>RollingUpdate</b> Deploy new pods in groups while killing old ones off.</p>' +
+      '<p><b>Recreate</b> Recreate the entire replica set.</p>',
+    'kubernetes.serverGroup.deployment.minReadySeconds': 'The minimum time the deployment object will wait after a pod becomes healthy.',
+    'kubernetes.serverGroup.deployment.revisionHistoryLimit': '(Optional) How many old replica sets to keep around. Leave empty if you don\'t want any to be deleted.',
+    'kubernetes.serverGroup.deployment.maxSurge': '(Optional) Either a number or a percentage (1 vs. 10%) representing the maximum number of new pods to deploy during a rollout.',
+    'kubernetes.serverGroup.deployment.maxUnavailable': '(Optional) Either a number or a percentage (1 vs. 10%) representing the maximum number of pods to destroy during a rollout.',
     'kubernetes.job.parallelism': '(Required) The number of concurrent pods to run.',
     'kubernetes.job.completions': '(Required) The number of sucessful completions required for the job to be considered a success.',
     'kubernetes.job.deadlineSeconds': '(Optional) The number of seconds until the job is considered a failure.',
