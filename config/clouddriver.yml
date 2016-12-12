@@ -39,6 +39,8 @@ azure:
       appKey: ${providers.azure.primaryCredentials.appKey}
       tenantId: ${providers.azure.primaryCredentials.tenantId}
       subscriptionId: ${providers.azure.primaryCredentials.subscriptionId}
+      defaultResourceGroup: ${providers.azure.primaryCredentials.defaultResourceGroup}
+      defaultKeyVault: ${providers.azure.primaryCredentials.defaultKeyVault}
 
 google:
   enabled: ${providers.google.enabled:false}
