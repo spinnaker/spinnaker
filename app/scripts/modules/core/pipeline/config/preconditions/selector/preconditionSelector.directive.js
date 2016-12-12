@@ -59,7 +59,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
         return;
       }
 
-      let accountFilter = (cluster) => cluster.account === $scope.precondition.context.credentials;
+      let accountFilter = (cluster) => cluster ? cluster.account === $scope.precondition.context.credentials : true;
       $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter);
 
       //Setting cloudProvider when account is updated

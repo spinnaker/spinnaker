@@ -32,7 +32,7 @@ module.exports = angular
         let namespaces;
 
         let setNamespaceList = () => {
-          let accountFilter = (cluster) => cluster.account === vm.component.credentials;
+          let accountFilter = (cluster) => cluster ? cluster.account === vm.component.credentials : true;
           let namespaceList = appListExtractorService.getRegions([vm.application], accountFilter);
           vm.namespaces = namespaceList.length ? namespaceList : namespaces;
         };

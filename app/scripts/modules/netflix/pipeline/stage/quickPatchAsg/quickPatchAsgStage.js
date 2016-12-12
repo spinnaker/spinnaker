@@ -46,7 +46,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgS
     });
 
     $scope.accountUpdated = function() {
-      let accountFilter = (cluster) => cluster.account === $scope.stage.credentials;
+      let accountFilter = (cluster) => cluster ? cluster.account === $scope.stage.credentials : true;
 
       $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter)
         .map((region) => ({name: region}));
