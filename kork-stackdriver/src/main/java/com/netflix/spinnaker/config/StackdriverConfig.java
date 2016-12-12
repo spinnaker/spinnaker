@@ -26,7 +26,9 @@ import com.netflix.spectator.api.Registry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -35,6 +37,7 @@ import org.springframework.context.annotation.Configuration;
 
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -52,12 +55,14 @@ import rx.schedulers.Schedulers;
 @ConditionalOnProperty("spectator.stackdriver.enabled")
 public class StackdriverConfig {
 
+  @Autowired
+  ServerProperties serverProperties;
+
   @ConfigurationProperties("spectator")
   public static class SpectatorStackdriverConfigurationProperties {
     public static class StackdriverProperties {
       private String credentialsPath = "";
       private String projectName = "";
-      private boolean uniqueMetricsPerApplication = true;
       private int period = 60;
 
       public String getCredentialsPath() {
@@ -74,14 +79,6 @@ public class StackdriverConfig {
 
       public void setProjectName(String projectName) {
         this.projectName = projectName;
-      }
-
-      public boolean isUniqueMetricsPerApplication() {
-        return uniqueMetricsPerApplication;
-      }
-
-      public void setUniqueMetricsPerApplication(boolean uniqueMetricsPerApplication) {
-        this.uniqueMetricsPerApplication = uniqueMetricsPerApplication;
       }
 
       public int getPeriod() {
@@ -192,14 +189,22 @@ public class StackdriverConfig {
       measurementFilter = filterNotSpring;
     }
 
+    InetAddress hostaddr = serverProperties.getAddress();
+    if (hostaddr.equals(InetAddress.getLoopbackAddress())) {
+        hostaddr = InetAddress.getLocalHost();
+    }
+
+    String host = hostaddr.getCanonicalHostName();
+    String hostPort = host + ":" + serverProperties.getPort();
+
     ConfigParams params = new ConfigParams.Builder()
         .setCounterStartTime(new Date().getTime())
-        .setUniqueMetricsPerApplication(spectatorStackdriverConfigurationProperties.getStackdriver().isUniqueMetricsPerApplication())
         .setCustomTypeNamespace("spinnaker")
         .setProjectName(spectatorStackdriverConfigurationProperties.getStackdriver().getProjectName())
         .setApplicationName(spectatorStackdriverConfigurationProperties.getApplicationName(environment.getProperty("spring.application.name")))
         .setCredentialsPath(spectatorStackdriverConfigurationProperties.getStackdriver().getCredentialsPath())
         .setMeasurementFilter(measurementFilter)
+        .setInstanceId(hostPort)
         .build();
 
     stackdriver = new StackdriverWriter(params);

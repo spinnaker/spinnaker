@@ -151,12 +151,6 @@ public class StackdriverWriter {
   private Predicate<Measurement> measurementFilter;
 
   /**
-   * Whether to add an APPLICATION_LABEL tag to time series data.
-   * (otherwise the application is presumed to have been captured elsewhere).
-   */
-  private boolean addApplicationLabelToTimeSeriesData;
-
-  /**
    * Constructs a writer instance.
    *
    * @param configParams
@@ -170,8 +164,6 @@ public class StackdriverWriter {
     applicationName = configParams.getApplicationName();
     instanceId = configParams.getInstanceId();
     measurementFilter = configParams.getMeasurementFilter();
-    addApplicationLabelToTimeSeriesData
-        = !configParams.isMetricUniquePerApplication();
 
     rfc3339 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'000000Z'");
     rfc3339.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -400,10 +392,6 @@ public class StackdriverWriter {
           monitoredResource = new MonitoredResourceBuilder()
               .setStackdriverProject(project)
               .build();
-          if (addApplicationLabelToTimeSeriesData) {
-            cache.addExtraTimeSeriesLabel(
-                MetricDescriptorCache.APPLICATION_LABEL, applicationName);
-          }
           if (monitoredResource.getType().equals("global")) {
             cache.addExtraTimeSeriesLabel(
               MetricDescriptorCache.INSTANCE_LABEL, instanceId);

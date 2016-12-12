@@ -226,7 +226,6 @@ public class StackdriverWriterTest {
     point.setInterval(timeInterval);
 
     HashMap<String, String> labels = new HashMap<String, String>();
-    labels.put(MetricDescriptorCache.APPLICATION_LABEL, applicationName);
     labels.put(MetricDescriptorCache.INSTANCE_LABEL, INSTANCE_ID);
     for (Tag tag : id.tags()) {
       labels.put(tag.key(), tag.value());
@@ -287,8 +286,6 @@ public class StackdriverWriterTest {
     Measurement measureAXY = new Measurement(idAXY, millisA, 1);
     Measurement measureBXY = new Measurement(idBXY, millisB, 20.1);
 
-    descriptorRegistrySpy.addExtraTimeSeriesLabel(
-        MetricDescriptorCache.APPLICATION_LABEL, applicationName);
     descriptorRegistrySpy.addExtraTimeSeriesLabel(
         MetricDescriptorCache.INSTANCE_LABEL, INSTANCE_ID);
     

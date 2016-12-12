@@ -129,8 +129,6 @@ public class MetricDescriptorCacheTest {
 
     List<LabelDescriptor> labels = new ArrayList<LabelDescriptor>();
     LabelDescriptor labelDescriptor = new LabelDescriptor();
-    labelDescriptor.setKey(MetricDescriptorCache.APPLICATION_LABEL);
-    labelDescriptor.setValueType("STRING");
     labelDescriptor.setKey(MetricDescriptorCache.INSTANCE_LABEL);
     labelDescriptor.setValueType("STRING");
     labels.add(labelDescriptor);

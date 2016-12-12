@@ -89,11 +89,6 @@ public class ConfigParams {
   protected long counterStartTime;
 
   /**
-   * Optional.
-   */
-  protected boolean uniqueMetricsPerApplication = true;
-
-  /**
    * Builds an instance of ConfigParams.
    */
   public static class Builder extends ConfigParams {
@@ -122,7 +117,6 @@ public class ConfigParams {
       result.customTypeNamespace
           = validateString(customTypeNamespace, "stackdriver customTypeNamespace");
 
-      result.uniqueMetricsPerApplication = uniqueMetricsPerApplication;
       result.counterStartTime = counterStartTime;
       result.measurementFilter = measurementFilter;
 
@@ -213,7 +207,6 @@ public class ConfigParams {
     /**
      * Sets the application name that we are associating these metrics with.
      *
-     * This will be the APPLICATION_LABEL value for the metrics we store.
      * It distinguishes similar metrics within a system that are coming from
      * different services.
      * (e.g. "clouddriver")
@@ -256,14 +249,6 @@ public class ConfigParams {
      */
     public Builder setDescriptorCache(MetricDescriptorCache cache) {
       descriptorCache = cache;
-      return this;
-    }
-
-    /**
-     * Distinguish application using a distinct metric type, or a Time Series label.
-     */
-    public Builder setUniqueMetricsPerApplication(boolean distinctTypes) {
-      uniqueMetricsPerApplication = distinctTypes;
       return this;
     }
 
@@ -362,13 +347,6 @@ public class ConfigParams {
    */
   public MetricDescriptorCache getDescriptorCache() {
       return descriptorCache;
-  }
-
-  /**
-   * Whether metric type specifies the application, or Time Series data should.
-   */
-  public boolean isMetricUniquePerApplication() {
-      return uniqueMetricsPerApplication;
   }
 
   /**

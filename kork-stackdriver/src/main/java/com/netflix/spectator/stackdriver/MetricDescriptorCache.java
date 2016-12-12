@@ -49,13 +49,6 @@ import java.util.Map;
  */
 public class MetricDescriptorCache {
   /**
-   * Stackdriver Label identifying the application reporting the values.
-   *
-   * This is used when not configured for uniqueMetricsPerApplication
-   */
-  public static final String APPLICATION_LABEL = "MicroserviceSrc";
-
-  /**
    * Stackdriver Label identifying the replica instance reporting the values.
    */
   public static final String INSTANCE_LABEL = "InstanceSrc";
@@ -104,12 +97,9 @@ public class MetricDescriptorCache {
     projectResourceName = "projects/" + configParams.getProjectName();
 
     baseStackdriverMetricTypeName
-        = String.format("custom.googleapis.com/%s/",
-                        configParams.getCustomTypeNamespace());
-    if (configParams.isMetricUniquePerApplication()) {
-        baseStackdriverMetricTypeName
-            += String.format("%s/", configParams.getApplicationName());
-    }
+        = String.format("custom.googleapis.com/%s/%s/",
+                        configParams.getCustomTypeNamespace(),
+                        configParams.getApplicationName());
   }
 
   /**
