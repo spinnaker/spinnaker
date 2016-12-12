@@ -180,7 +180,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       this.initializeController();
       expect(this.$scope.showScalingActivitiesLink).toBe(false);
 
-      this.$scope.stage.tasks[1].runningTimeInMs = 3 * 60 * 1000 + 1;
+      this.$scope.stage.tasks[1].runningTimeInMs = 5 * 60 * 1000 + 1;
       this.initializeController();
       expect(this.$scope.showScalingActivitiesLink).toBe(true);
     });
@@ -190,7 +190,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       this.$scope.stage.context.capacity = { desired: 1 };
       this.$scope.stage.tasks[0].status = 'COMPLETED';
       this.$scope.stage.tasks[1].status = 'RUNNING';
-      this.$scope.stage.tasks[1].runningTimeInMs = 3 * 60 * 1000 + 1;
+      this.$scope.stage.tasks[1].runningTimeInMs = 5 * 60 * 1000 + 1;
       this.$scope.application.attributes = {};
       this.initializeController();
       expect(this.$scope.showPlatformHealthOverrideMessage).toBe(true);
