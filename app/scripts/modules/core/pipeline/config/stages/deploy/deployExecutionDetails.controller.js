@@ -86,7 +86,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
         $scope.showWaitingMessage = true;
         $scope.waitingForUpInstances = activeWaitTask.status === 'RUNNING';
         const lastCapacity = stage.context.lastCapacityCheck;
-        const waitDurationExceeded = activeWaitTask.runningTimeInMs > moment.duration(3, 'minutes').asMilliseconds();
+        const waitDurationExceeded = activeWaitTask.runningTimeInMs > moment.duration(5, 'minutes').asMilliseconds();
         lastCapacity.total = lastCapacity.up + lastCapacity.down + lastCapacity.outOfService + lastCapacity.unknown + lastCapacity.succeeded + lastCapacity.failed;
 
         if (cloudProviderRegistry.getValue(stage.context.cloudProvider, 'serverGroup.scalingActivitiesEnabled')) {
