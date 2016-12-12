@@ -118,6 +118,12 @@ describe('Service: InstanceType', function () {
       expect(service.filterInstanceTypes(types, 'paravirtual', false)).toEqual(['c3.a', 'c1.a']);
     });
 
+    it('assumes HVM is supported for unknown families', function () {
+      let types = ['c400.a', 'c300.a', 'c3.a', 'c1.a'];
+      let service = this.awsInstanceTypeService;
+      expect(service.filterInstanceTypes(types, 'hvm', true)).toEqual(['c400.a', 'c300.a', 'c3.a']);
+    });
+
     it('sorts instance types by family then class size', function() {
       this.$httpBackend.expectGET(API.baseUrl + '/instanceTypes').respond(200, this.allTypes);
 

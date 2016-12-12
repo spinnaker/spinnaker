@@ -299,6 +299,9 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
         if (!vpcOnly && families.vpcOnly.includes(family)) {
           return false;
         }
+        if (!families.paravirtual.includes(family) && virtualizationType === 'hvm') {
+          return true;
+        }
         return families[virtualizationType].includes(family);
       });
     }
