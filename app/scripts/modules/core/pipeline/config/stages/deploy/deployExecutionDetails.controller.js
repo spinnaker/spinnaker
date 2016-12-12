@@ -122,7 +122,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-    if (_.has($scope.application, 'executions.onRefresh')) {
+    if (_.hasIn($scope.application, 'executions.onRefresh')) {
       $scope.application.executions.onRefresh($scope, initialize);
     }
 
