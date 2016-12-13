@@ -63,21 +63,58 @@ class ManualJudgmentStageSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.notifications.findAll { it.lastNotified }*.type == ["email", "hipchat", "sms"]
+    result.stageOutputs.notifications.findAll { it.lastNotifiedByNotificationState[NotificationState.manualJudgment] }*.type == ["email", "hipchat", "sms"]
   }
 
   @Unroll
-  void "should notify if `notifyEveryMs` duration has been exceeded"() {
-    expect:
-    notification.shouldNotify(now) == shouldNotify
+  void "if deprecated notification configuration is in use, only send notifications for awaiting judgment state"() {
+    given:
+    def task = new WaitForManualJudgmentTask(echoService: Mock(EchoService))
+
+    when:
+    def result = task.execute(new PipelineStage(new Pipeline(), "", [
+      sendNotifications: sendNotifications,
+      notifications: [
+        new Notification(type: "email", address: "test@netflix.com", when: [ notificationState ])
+      ],
+      judgmentStatus: judgmentStatus
+    ]))
+
+    then:
+    result.status == executionStatus
+    if (sent) result.stageOutputs.notifications?.getAt(0)?.lastNotifiedByNotificationState?.containsKey(notificationState)
 
     where:
-    notification                                                      | now             || shouldNotify
-    new Notification()                                                | new Date()      || true
-    new Notification(lastNotified: new Date(1))                       | new Date()      || false
-    new Notification(lastNotified: new Date(1), notifyEveryMs: 60000) | new Date(60001) || true
+    sendNotifications | notificationState                        | judgmentStatus | executionStatus           || sent
+    true              | NotificationState.manualJudgment         | null           | ExecutionStatus.RUNNING   || true
+    false             | NotificationState.manualJudgment         | null           | ExecutionStatus.RUNNING   || true
+    true              | NotificationState.manualJudgmentContinue | "continue"     | ExecutionStatus.SUCCEEDED || true
+    false             | NotificationState.manualJudgmentContinue | "continue"     | ExecutionStatus.SUCCEEDED || false
+    true              | NotificationState.manualJudgmentStop     | "stop"         | ExecutionStatus.TERMINAL  || true
+    false             | NotificationState.manualJudgmentStop     | "stop"         | ExecutionStatus.TERMINAL  || false
   }
 
+  @Unroll
+  void "should notify if `notifyEveryMs` duration has been exceeded for the specified notification state"() {
+    expect:
+    notification.shouldNotify(notificationState, now) == shouldNotify
+
+    where:
+    notification                                                                                  | notificationState                        | now             || shouldNotify
+    new Notification()                                                                            | NotificationState.manualJudgment         | new Date()      || true
+    new Notification(
+      lastNotifiedByNotificationState: [(NotificationState.manualJudgment): new Date(1)])         | NotificationState.manualJudgment         | new Date()      || false
+    new Notification(
+      lastNotifiedByNotificationState: [(NotificationState.manualJudgment): new Date(1)])         | NotificationState.manualJudgmentContinue | new Date()      || true
+    new Notification(
+      lastNotifiedByNotificationState: [(NotificationState.manualJudgment): new Date(1),
+                                        (NotificationState.manualJudgmentContinue): new Date(1)]) | NotificationState.manualJudgmentContinue | new Date()      || false
+    new Notification(
+      lastNotifiedByNotificationState: [(NotificationState.manualJudgment): new Date(1)],
+      notifyEveryMs: 60000)                                                                       | NotificationState.manualJudgment         | new Date(60001) || true
+  }
+
+  @Unroll
   void "should update `lastNotified` whenever a notification is sent"() {
     given:
     def echoService = Mock(EchoService)
@@ -88,15 +125,15 @@ class ManualJudgmentStageSpec extends Specification {
     stage.execution.application = "APPLICATION"
 
     when:
-    notification.notify(echoService, stage)
+    notification.notify(echoService, stage, notificationState)
 
     then:
-    notification.lastNotified != null
+    notification.lastNotifiedByNotificationState[notificationState] != null
 
     1 * echoService.create({ EchoService.Notification n ->
       assert n.notificationType == EchoService.Notification.Type.SMS
       assert n.to == ["111-222-3333"]
-      assert n.templateGroup == "manualJudgment"
+      assert n.templateGroup == notificationState.toString()
       assert n.severity == EchoService.Notification.Severity.HIGH
 
       assert n.source.executionId == "ID"
@@ -105,6 +142,13 @@ class ManualJudgmentStageSpec extends Specification {
       true
     } as EchoService.Notification)
     0 * _
+
+    where:
+    notificationState << [
+                           NotificationState.manualJudgment,
+                           NotificationState.manualJudgmentContinue,
+                           NotificationState.manualJudgmentStop
+                         ]
   }
 
   @Unroll
