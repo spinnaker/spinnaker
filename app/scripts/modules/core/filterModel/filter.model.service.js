@@ -67,7 +67,8 @@ module.exports = angular
             _.includes(checkedStatus, 'Down') && target.instanceCounts.down > 0 ||
             _.includes(checkedStatus, 'OutOfService') && target.instanceCounts.outOfService > 0 ||
             _.includes(checkedStatus, 'Starting') && target.instanceCounts.starting > 0 ||
-            _.includes(checkedStatus, 'Disabled') && target.isDisabled;
+            _.includes(checkedStatus, 'Disabled') && target.isDisabled ||
+            _.includes(checkedStatus, 'Unknown') && target.instanceCounts.unknown > 0;
         }
         return true;
       };

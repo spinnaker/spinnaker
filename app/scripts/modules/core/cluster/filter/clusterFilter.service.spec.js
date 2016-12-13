@@ -333,6 +333,29 @@ describe('Service: clusterFilterService', function () {
     });
   });
 
+  describe('filter by unknown status', function() {
+    it('should filter by unknown status if checked', function() {
+      var appCopy = _.cloneDeep(applicationJSON);
+      var starting = { healthState: 'Up' },
+        serverGroup = appCopy.serverGroups.data[0];
+      serverGroup.instances.push(starting);
+
+      ClusterFilterModel.sortFilter.status = {Unknown: true};
+      service.updateClusterGroups(appCopy);
+      $timeout.flush();
+      expect(ClusterFilterModel.groups).toEqual([]);
+
+      starting.healthState = 'Unknown';
+      serverGroup.instanceCounts.unknown = 1;
+      service.updateClusterGroups(appCopy);
+      $timeout.flush();
+      expect(ClusterFilterModel.groups.length).toBe(1);
+      this.verifyTags([
+        { key: 'status', label: 'status', value: 'Unknown' },
+      ]);
+    });
+  });
+
   describe('filtered by provider type', function () {
     it('should filter by aws if checked', function () {
       ClusterFilterModel.sortFilter.providerType = {aws : true};
