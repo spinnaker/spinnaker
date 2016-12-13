@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.config.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
@@ -42,6 +43,9 @@ public class ServiceAccountsController {
   @Autowired(required = false)
   FiatService fiatService
 
+  @Autowired
+  FiatClientConfigurationProperties fiatClientConfigurationProperties
+
   @RequestMapping(method = RequestMethod.GET)
   Set<ServiceAccount> getAllServiceAccounts() {
     serviceAccountDAO.all();
@@ -62,7 +66,7 @@ public class ServiceAccountsController {
   }
 
   private void syncUsers(ServiceAccount serviceAccount) {
-    if (!fiatService || !serviceAccount) {
+    if (!fiatClientConfigurationProperties.enabled || !fiatService || !serviceAccount) {
       return
     }
 

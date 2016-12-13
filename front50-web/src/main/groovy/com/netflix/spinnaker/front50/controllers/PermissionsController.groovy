@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.config.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
@@ -45,6 +46,9 @@ public class PermissionsController {
 
   @Autowired(required = false)
   FiatService fiatService
+
+  @Autowired
+  FiatClientConfigurationProperties fiatClientConfigurationProperties
 
   @ApiOperation(value = "", notes = "Get all application permissions. Internal use only.")
   @RequestMapping(method = RequestMethod.GET, value = "/applications")
@@ -92,7 +96,7 @@ public class PermissionsController {
   }
 
   private void syncUsers(Application.Permission permission) {
-    if (!fiatService || !permission) {
+    if (!fiatClientConfigurationProperties.enabled || !fiatService || !permission) {
       return
     }
 
