@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.servergro
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.EnableDisableKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup.DisableKubernetesAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -33,6 +34,6 @@ class DisableKubernetesAtomicOperationConverter extends AbstractAtomicOperations
   }
 
   KubernetesServerGroupDescription convertDescription(Map input) {
-    KubernetesAtomicOperationConverterHelper.convertDescription(input, this, KubernetesServerGroupDescription)
+    KubernetesAtomicOperationConverterHelper.convertDescription(input, this, EnableDisableKubernetesAtomicOperationDescription)
   }
 }

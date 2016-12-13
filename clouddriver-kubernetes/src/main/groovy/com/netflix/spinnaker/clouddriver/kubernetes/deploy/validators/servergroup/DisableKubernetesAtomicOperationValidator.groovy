@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergro
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.EnableDisableKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -28,14 +28,15 @@ import org.springframework.validation.Errors
 
 @KubernetesOperation(AtomicOperations.DISABLE_SERVER_GROUP)
 @Component
-class DisableKubernetesAtomicOperationValidator extends DescriptionValidator<KubernetesServerGroupDescription> {
+class DisableKubernetesAtomicOperationValidator extends DescriptionValidator<EnableDisableKubernetesAtomicOperationDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, KubernetesServerGroupDescription description, Errors errors) {
+  void validate(List priorDescriptions, EnableDisableKubernetesAtomicOperationDescription description, Errors errors) {
     def helper = new StandardKubernetesAttributeValidator("disableKubernetesAtomicOperationDescription", errors)
 
+    EnableDisableKubernetesAtomicOperationValidator.validate(description, helper)
     KubernetesServerGroupDescriptionValidator.validate(description, helper, accountCredentialsProvider)
   }
 }

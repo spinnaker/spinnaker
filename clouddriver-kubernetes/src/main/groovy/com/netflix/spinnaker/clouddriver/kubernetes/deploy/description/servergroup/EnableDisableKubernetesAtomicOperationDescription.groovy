@@ -16,6 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup
 
-class ResizeKubernetesAtomicOperationDescription extends KubernetesServerGroupDescription {
-  Capacity capacity
+class EnableDisableKubernetesAtomicOperationDescription extends KubernetesServerGroupDescription {
+  Integer desiredPercent
 }

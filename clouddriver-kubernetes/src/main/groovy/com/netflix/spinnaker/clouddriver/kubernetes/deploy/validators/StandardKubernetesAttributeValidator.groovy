@@ -258,4 +258,14 @@ class StandardKubernetesAttributeValidator {
       errors.rejectValue("${context}.${attribute1}", "${context}.${attribute1}.lessThan ${context}.${attribute2}")
     }
   }
+
+  def validateInRangeInclusive(Integer value, int min, int max, String attribute) {
+    if (min > value) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.greaterThan $min")
+    }
+
+    if (max < value) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.lessThan $max")
+    }
+  }
 }
