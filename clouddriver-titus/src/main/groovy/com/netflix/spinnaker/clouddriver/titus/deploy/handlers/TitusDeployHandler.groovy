@@ -118,7 +118,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
       }
 
-      if (description.jobType != 'batch' && deployDefaults.addAppGroupToServerGroup && securityGroups.size() < deployDefaults.maxSecurityGroups) {
+      if (description.jobType != 'batch' && deployDefaults.addAppGroupToServerGroup && securityGroups.size() < deployDefaults.maxSecurityGroups && description.useApplicationDefaultSecurityGroup != false) {
         String applicationSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, description.application)
         if (!applicationSecurityGroup) {
           applicationSecurityGroup = OperationPoller.retryWithBackoff({ o -> awsLookupUtil.createSecurityGroupForApplication(account, region, description.application) }, 1000, 5 )
