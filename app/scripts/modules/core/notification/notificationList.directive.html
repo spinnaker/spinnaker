@@ -31,7 +31,7 @@
                     {{notification.address}}
                 </td>
                 <td>
-                    <div ng-repeat="when in notification.when">{{when|notificationWhen:level}}</div>
+                    <div ng-repeat="when in notification.when">{{when|notificationWhen:level:parent.type}}</div>
                 </td>
                 <td>
                     <a class="btn btn-xs btn-link" href ng-click="notificationListCtrl.editNotification(notification)">Edit</a>

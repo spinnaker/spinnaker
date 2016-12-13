@@ -26,23 +26,66 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
     $scope.stage.judgmentInputs = $scope.stage.judgmentInputs || [];
     $scope.stage.failPipeline = ($scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline);
 
-    this.addNotification = function() {
-      $uibModal.open({
-        templateUrl: require('./modal/editNotification.html'),
-        controller: 'ManualJudgmentEditNotificationController',
+    this.transformToNewStyleIfNecessary = function (notifications) {
+      // If there is at least one notification, and sendNotifications is not enabled, this must be the old style; transform it.
+      if (notifications.length && !$scope.stage.sendNotifications) {
+        _.each(notifications, function (notification) {
+          notification.level = 'stage';
+          notification.when = ['manualJudgment'];
+        });
+
+        $scope.stage.sendNotifications = true;
+      }
+    };
+
+    this.transformToNewStyleIfNecessary($scope.stage.notifications);
+
+    this.editNotification = function (notification) {
+      var modalInstance = $uibModal.open({
+        templateUrl: require('../../../../notification/modal/editNotification.html'),
+        controller: 'EditNotificationController',
         controllerAs: 'editNotification',
         resolve: {
           notification: function () {
-            return {};
+            return notification;
+          },
+          level: function() {
+            return 'stage';
+          },
+          stageType: function() {
+            return 'manualJudgment';
           }
         }
-      }).result.then(function(notification) {
-          $scope.stage.notifications.push(notification);
       });
+
+      modalInstance.result.then(function (newNotification) {
+        if (!notification) {
+          $scope.stage.notifications.push(newNotification);
+        } else {
+          $scope.stage.notifications[$scope.stage.notifications.indexOf(notification)] = newNotification;
+        }
+      });
+
     };
 
-    this.removeNotification = function (idx) {
-      $scope.stage.notifications.splice(idx, 1);
+    this.addNotification = function () {
+      if ($scope.parent && !$scope.parent.notifications) {
+        $scope.parent.notifications = [];
+      }
+      this.editNotification(undefined);
+    };
+
+    this.removeNotification = function (notification) {
+      $scope.stage.notifications = $scope.stage.notifications.filter(function (el) {
+          return el !== notification;
+        }
+      );
+    };
+
+    this.manageStateOnToggle = function () {
+      if (!$scope.stage.sendNotifications) {
+        $scope.stage.notifications.length = 0;
+      }
     };
 
     this.addJudgmentInput = function() {

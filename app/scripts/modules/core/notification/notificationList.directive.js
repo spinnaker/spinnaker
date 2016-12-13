@@ -87,8 +87,15 @@ module.exports = angular.module('spinnaker.core.notifications.notificationList',
                     notification: function () {
                         return notification;
                     },
-                    level : function() {
+                    level: function() {
                         return $scope.level;
+                    },
+                    stageType: function() {
+                        if ($scope.parent) {
+                          return $scope.parent.type;
+                        } else {
+                          return null;
+                        }
                     }
                 }
             });

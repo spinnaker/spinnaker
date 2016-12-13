@@ -19,10 +19,10 @@
                 value="{{wo}}"
                 ng-model="selectedWhenOptions[wo]"
                 ng-checked="editNotification.notification.when.includes(wo)">
-              {{wo|notificationWhen:level}}
+              {{wo|notificationWhen:level:editNotification.stageType()}}
             </label>
           </div>
-          <div class="form-group" ng-if="selectedWhenOptions[wo] && editNotification.supportsCustomMessage(editNotification.notification)">
+          <div class="form-group" ng-if="selectedWhenOptions[wo] && editNotification.supportsCustomMessage(editNotification.notification, wo)">
             <textarea
               name="message"
               class="form-control input-sm"

@@ -8,19 +8,26 @@ require('./editNotification.html');
 
 module.exports = angular
   .module('spinnaker.core.notification.modal.editNotification.modal.controller', [])
-  .controller('EditNotificationController', function ($scope, $uibModalInstance, notification, level) {
+  .controller('EditNotificationController', function ($scope, $uibModalInstance, notification, level, stageType) {
     var vm = this;
 
     vm.notification = angular.copy(notification);
     vm.hasSelectedWhen = false;
     $scope.selectedWhenOptions = {};
     $scope.level = level;
+    $scope.stageType = stageType;
 
     if(level === 'application' || level === 'pipeline') {
       vm.whenOptions = [
         'pipeline.starting',
         'pipeline.complete',
         'pipeline.failed'
+      ];
+    } else if (stageType === 'manualJudgment') {
+      vm.whenOptions = [
+        'manualJudgment',
+        'manualJudgmentContinue',
+        'manualJudgmentStop'
       ];
     } else {
       vm.whenOptions = [
@@ -63,8 +70,12 @@ module.exports = angular
       $uibModalInstance.close(vm.notification);
     };
 
-    vm.supportsCustomMessage = function(notification) {
-      return ['email', 'slack'].includes(notification.type);
+    vm.supportsCustomMessage = function(notification, whenOption) {
+      return whenOption !== 'manualJudgment' && ['email', 'slack'].includes(notification.type);
+    };
+
+    vm.stageType = function() {
+      return $scope.stageType;
     };
 
     $scope.$watch('selectedWhenOptions', function (a, b) {
