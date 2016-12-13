@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.depl
 ])
   .controller('kubernetesServerGroupDeploymentController', function($scope, namingService) {
     this.strategyTypes = ['RollingUpdate', 'Recreate'];
-    console.log($scope.application);
 
     this.deploymentConfigWarning = function() {
       var command = $scope.command;
@@ -35,13 +34,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.depl
       }
 
       var managedByDeployment = serverGroups.find((serverGroup) => serverGroup.buildInfo.createdBy);
-      
+
       if (managedByDeployment && !command.deployment.enabled) {
-        return 'The cluster ' + name + ' is already managed by a deployment. ' + 
+        return 'The cluster ' + name + ' is already managed by a deployment. ' +
           'It\'s recommended that you enable it for all server groups in the cluster.';
       } else if (!managedByDeployment && command.deployment.enabled) {
-        return 'The cluster ' + name + ' is not already managed by a deployment. ' + 
-          'If you deploy this server group with a deployment enabled, old server groups won\'t be scaled down.' ;
+        return 'The cluster ' + name + ' is not already managed by a deployment. ' +
+          'If you deploy this server group with a deployment enabled, old server groups won\'t be scaled down.';
       } else {
         return undefined;
       }
