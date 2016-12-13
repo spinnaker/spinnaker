@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.client.internal.SerializationUtils
 
 @CompileStatic
-@EqualsAndHashCode(includes = ["name", "account"])
+@EqualsAndHashCode(includes = ["name", "namespace", "account"])
 class KubernetesLoadBalancer implements LoadBalancer, Serializable {
   String name
   final String type = KubernetesCloudProvider.ID

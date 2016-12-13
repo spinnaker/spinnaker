@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
@@ -33,7 +34,7 @@ import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import io.fabric8.kubernetes.client.internal.SerializationUtils
 
 @CompileStatic
-@EqualsAndHashCode(includes = ["name", "namespace"])
+@EqualsAndHashCode(includes = ["name", "namespace", "account"])
 class KubernetesServerGroup implements ServerGroup, Serializable {
   String name
   final String type = KubernetesCloudProvider.ID
@@ -57,6 +58,22 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   String revision
   Map buildInfo
   List<KubernetesEvent> events
+
+  Map<String, Object> getBuildInfo() {
+    def imageList = []
+    def buildInfo = [:]
+    for (def container : this.deployDescription.containers) {
+      imageList.add(KubernetesUtil.getImageIdWithoutRegistry(container.imageDescription))
+    }
+
+    buildInfo.images = imageList
+
+    def parsedName = Names.parseName(name)
+
+    buildInfo.createdBy = this.deployDescription?.deployment?.enabled ? parsedName.cluster : null
+
+    return buildInfo
+  }
 
   Boolean isDisabled() {
     this.labels ? !(this.labels.any { key, value -> KubernetesUtil.isLoadBalancerLabel(key) && value == "true" }) : false

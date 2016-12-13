@@ -23,8 +23,10 @@ import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.model.securitygroups.HttpRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
+import groovy.transform.EqualsAndHashCode
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 
+@EqualsAndHashCode(includes = ["name", "namespace", "accountName"])
 class KubernetesSecurityGroup implements SecurityGroup, Serializable {
   final String type = KubernetesCloudProvider.ID
   final String cloudProvider = KubernetesCloudProvider.ID

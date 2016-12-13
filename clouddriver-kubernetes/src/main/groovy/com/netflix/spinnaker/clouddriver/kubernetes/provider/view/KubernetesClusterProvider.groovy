@@ -168,13 +168,6 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
         serverGroup.securityGroups.addAll(securityGroups[it])
       }
 
-      def imageList = []
-      for (def container : serverGroup.deployDescription.containers) {
-        imageList.add(KubernetesUtil.getImageIdWithoutRegistry(container.imageDescription))
-      }
-
-      Map buildInfo = [images: imageList]
-      serverGroup.buildInfo = buildInfo
       serverGroups[Names.parseName(serverGroup.name).cluster].add(serverGroup)
     }
 

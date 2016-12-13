@@ -286,8 +286,8 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implement
     Map<String, Map<String, HorizontalPodAutoscaler>> rsAutoscalers = [:].withDefault { _ -> [:] }
     try {
       namespaces.each { String namespace ->
-        rcAutoscalers[namespace] == credentials.apiAdaptor.getAutoscalers(namespace, "replicationController")
-        rsAutoscalers[namespace] == credentials.apiAdaptor.getAutoscalers(namespace, "replicaSet")
+        rcAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, "replicationController")
+        rsAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, "replicaSet")
       }
     } catch (Exception e) {
       log.warn "Failure fetching autoscalers for all server groups in $namespaces", e
