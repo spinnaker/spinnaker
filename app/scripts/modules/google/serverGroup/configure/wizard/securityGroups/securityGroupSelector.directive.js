@@ -1,10 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.securityGroups.selector.directive', [
-    require('core/cache/infrastructureCaches.js'),
+    INFRASTRUCTURE_CACHE_SERVICE,
     require('../../serverGroupConfiguration.service.js'),
     require('./tagSelectorGenerator.component.js'),
     require('./tagManager.service.js'),
@@ -24,7 +25,7 @@ module.exports = angular
                                                                       gceTagManager,
                                                                       infrastructureCaches) {
     this.getSecurityGroupRefreshTime = () => {
-      return infrastructureCaches.securityGroups.getStats().ageMax;
+      return infrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
     this.refreshSecurityGroups = () => {

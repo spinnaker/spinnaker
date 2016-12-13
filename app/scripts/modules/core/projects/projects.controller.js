@@ -3,6 +3,7 @@ let angular = require('angular');
 
 import {ANY_FIELD_FILTER} from '../presentation/anyFieldFilter/anyField.filter';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 
 module.exports = angular.module('spinnaker.projects.controller', [
   require('angular-ui-router'),
@@ -10,14 +11,14 @@ module.exports = angular.module('spinnaker.projects.controller', [
   require('./service/project.read.service.js'),
   ACCOUNT_SERVICE,
   ANY_FIELD_FILTER,
-  require('../cache/viewStateCache.js'),
+  VIEW_STATE_CACHE_SERVICE,
   require('../presentation/sortToggle/sorttoggle.directive.js'),
   require('../insight/insightmenu.directive.js'),
 ])
   .controller('ProjectsCtrl', function($scope, $uibModal, $log, $filter,
                                            $state, projectWriter, projectReader, viewStateCache) {
 
-    var projectsViewStateCache = viewStateCache.projects || viewStateCache.createCache('projects', { version: 1 });
+    var projectsViewStateCache = viewStateCache.get('projects') || viewStateCache.createCache('projects', { version: 1 });
 
     function cacheViewState() {
       projectsViewStateCache.put('#global', $scope.viewState);

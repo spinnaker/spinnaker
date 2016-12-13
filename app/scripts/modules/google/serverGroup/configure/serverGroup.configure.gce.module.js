@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   require('../../autoscalingPolicy/components/basicSettings/basicSettings.component.js'),
   require('../../autoscalingPolicy/components/metricSettings/metricSettings.component.js'),
   require('core/account/account.module.js'),
-  require('core/cache/infrastructureCaches.js'),
   require('core/serverGroup/configure/common/v2instanceArchetypeSelector.directive.js'),
   require('core/serverGroup/configure/common/v2InstanceTypeSelector.directive.js'),
   GCE_LOAD_BALANCING_POLICY_SELECTOR,

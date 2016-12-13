@@ -1,13 +1,13 @@
 'use strict';
 
-import {API_SERVICE} from 'core/api/api.service';
-
 let angular = require('angular');
+import {API_SERVICE} from 'core/api/api.service';
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular.module('spinnaker.deck.gce.backendService.reader.service', [
-    API_SERVICE,
-    require('core/cache/infrastructureCaches.js'),
-  ])
+  API_SERVICE,
+  INFRASTRUCTURE_CACHE_SERVICE
+])
   .factory('gceBackendServiceReader', function (API, infrastructureCaches) {
 
     function listBackendServices (kind) {
@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.deck.gce.backendService.reader.servic
       } else {
         return API
           .all('search')
-          .useCache(infrastructureCaches.backendServices)
+          .useCache(infrastructureCaches.get('backendServices'))
           .getList({q:'', type: 'backendServices'});
       }
     }

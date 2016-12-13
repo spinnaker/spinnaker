@@ -1,12 +1,13 @@
 'use strict';
 
 const angular = require('angular');
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
 module.exports = angular
   .module('spinnaker.core.application.config.cache.management.directive', [
-    require('core/cache/cacheInitializer.js'),
-    require('core/cache/infrastructureCaches.js'),
-
+    CACHE_INITIALIZER_SERVICE,
+    INFRASTRUCTURE_CACHE_SERVICE
   ])
   .directive('applicationCacheManagement', function (overrideRegistry) {
     return {
@@ -34,7 +35,7 @@ module.exports = angular
     };
 
     this.getCacheInfo = (cache) => {
-      return infrastructureCaches[cache].getStats();
+      return infrastructureCaches.get(cache).getStats();
     };
 
     this.refreshCache = function (key) {

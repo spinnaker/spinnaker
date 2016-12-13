@@ -1,12 +1,13 @@
 import {module} from 'angular';
 
+import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {IGceHealthCheck} from '../domain';
 
 export class GceHealthCheckReader {
   static get $inject () { return ['API', 'infrastructureCaches']; }
 
-  constructor (public API: Api, public infrastructureCaches: any) {}
+  constructor (public API: Api, public infrastructureCaches: InfrastructureCacheService) {}
 
   listHealthChecks (type?: string): ng.IPromise<IGceHealthCheck[]> {
     if (type) {
@@ -18,7 +19,7 @@ export class GceHealthCheckReader {
     } else {
       return this.API
         .all('search')
-        .useCache(this.infrastructureCaches.healthChecks)
+        .useCache(this.infrastructureCaches.get('healthChecks'))
         .getList({q: '', type: 'healthChecks'})
         .then((searchEndPointWrapper: any[]) => {
           let healthCheckWrappers = searchEndPointWrapper[0].results;
@@ -33,8 +34,5 @@ export class GceHealthCheckReader {
 }
 
 export const GCE_HEALTH_CHECK_READER = 'spinnaker.gce.healthCheck.reader';
-
-module(GCE_HEALTH_CHECK_READER, [
-  API_SERVICE,
-  require('core/cache/infrastructureCaches.js'),
-]).service('gceHealthCheckReader', GceHealthCheckReader);
+module(GCE_HEALTH_CHECK_READER, [API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE])
+  .service('gceHealthCheckReader', GceHealthCheckReader);

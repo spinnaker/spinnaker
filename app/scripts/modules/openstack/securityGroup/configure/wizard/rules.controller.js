@@ -28,7 +28,7 @@ module.exports = angular.module('spinnaker.securityGroup.configure.openstack.por
     };
 
     this.getSecurityGroupRefreshTime = function() {
-       return infrastructureCaches.securityGroups.getStats().ageMax;
+       return infrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
 

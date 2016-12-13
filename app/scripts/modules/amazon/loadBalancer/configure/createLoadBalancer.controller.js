@@ -1,13 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
+let angular = require('angular');
 
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
-
-let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
+import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
   require('angular-ui-router'),
@@ -19,8 +20,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   modalWizardServiceModule,
   require('core/task/monitor/taskMonitorService.js'),
   SUBNET_READ_SERVICE,
-  require('core/cache/cacheInitializer.js'),
-  require('core/cache/infrastructureCaches.js'),
+  CACHE_INITIALIZER_SERVICE,
+  INFRASTRUCTURE_CACHE_SERVICE,
   NAMING_SERVICE,
   require('./loadBalancerAvailabilityZoneSelector.directive.js'),
   require('core/region/regionSelectField.directive.js'),
@@ -326,7 +327,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     };
 
     this.getSecurityGroupRefreshTime = function() {
-      return infrastructureCaches.securityGroups.getStats().ageMax;
+      return infrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
     this.requiresHealthCheckPath = function () {

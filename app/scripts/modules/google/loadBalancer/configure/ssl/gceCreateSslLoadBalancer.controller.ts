@@ -10,6 +10,7 @@ import {GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
         GceCommonLoadBalancerCommandBuilder} from '../common/commonLoadBalancerCommandBuilder.service';
 import {ACCOUNT_SERVICE, AccountService, IRegion, IAccount} from 'core/account/account.service';
 import {CommonGceLoadBalancerCtrl} from '../common/commonLoadBalancer.controller';
+import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
@@ -93,7 +94,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
                private taskMonitorService: any,
                private settings: any,
                $state: IStateService,
-               infrastructureCaches: any) {
+               infrastructureCaches: InfrastructureCacheService) {
     super($scope, application, $uibModalInstance, $state, infrastructureCaches);
   }
 
@@ -216,7 +217,7 @@ module(GCE_SSL_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
   ACCOUNT_SERVICE,
-  require('core/cache/infrastructureCaches.js'),
+  INFRASTRUCTURE_CACHE_SERVICE,
   require('core/modal/wizard/wizardSubFormValidation.service.js'),
   require('core/loadBalancer/loadBalancer.write.service.js'),
   require('core/task/monitor/taskMonitorService.js'),

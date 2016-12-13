@@ -2,12 +2,14 @@
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
 module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.controller', [
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
-  require('core/cache/infrastructureCaches.js'),
-  require('core/cache/cacheInitializer.js'),
+  INFRASTRUCTURE_CACHE_SERVICE,
+  CACHE_INITIALIZER_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
     require('../securityGroup.write.service.js'),
 ])
@@ -41,7 +43,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
     });
 
     this.getSecurityGroupRefreshTime = function() {
-      return infrastructureCaches.securityGroups.getStats().ageMax;
+      return infrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
     this.refreshSecurityGroups = function() {

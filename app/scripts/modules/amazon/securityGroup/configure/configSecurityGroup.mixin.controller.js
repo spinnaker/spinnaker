@@ -250,7 +250,7 @@ module.exports = angular
     };
 
     this.getSecurityGroupRefreshTime = function () {
-      return infrastructureCaches.securityGroups.getStats().ageMax;
+      return infrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
     var allSecurityGroups = {};

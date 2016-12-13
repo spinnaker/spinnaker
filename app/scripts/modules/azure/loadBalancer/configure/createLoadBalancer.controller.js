@@ -1,6 +1,7 @@
 'use strict';
 
 import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 
@@ -15,8 +16,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
   require('../loadBalancer.transformer.js'),
   modalWizardServiceModule,
   require('core/task/monitor/taskMonitorService.js'),
-  require('core/cache/cacheInitializer.js'),
-  require('core/cache/infrastructureCaches.js'),
+  INFRASTRUCTURE_CACHE_SERVICE,
   NAMING_SERVICE,
   require('core/region/regionSelectField.directive.js'),
   require('core/account/accountSelectField.directive.js'),
@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
 ])
   .controller('azureCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, azureLoadBalancerTransformer,
-                                                    cacheInitializer, infrastructureCaches, loadBalancerReader, networkReader,
+                                                    infrastructureCaches, loadBalancerReader, networkReader,
                                                     v2modalWizardService, azureLoadBalancerWriter, taskMonitorService,
                                                     namingService, application, loadBalancer, isNew) {
 

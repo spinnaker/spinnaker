@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 import {API_SERVICE} from 'core/api/api.service';
 
 let angular = require('angular');
@@ -8,7 +9,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.aws.instanceType.service', [
   API_SERVICE,
   require('core/config/settings.js'),
-  require('core/cache/infrastructureCaches.js'),
+  INFRASTRUCTURE_CACHE_SERVICE
 ])
   .factory('awsInstanceTypeService', function ($http, $q, settings, API, infrastructureCaches) {
 
@@ -196,7 +197,7 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
     }
 
     var getAllTypesByRegion = function getAllTypesByRegion() {
-      var cached = infrastructureCaches.instanceTypes.get('aws');
+      var cached = infrastructureCaches.get('instanceTypes').get('aws');
       if (cached) {
         return $q.when(cached);
       }
@@ -209,7 +210,7 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
             .uniqBy('key')
             .groupBy('region')
             .value();
-          infrastructureCaches.instanceTypes.put('aws', result);
+          infrastructureCaches.get('instanceTypes').put('aws', result);
           return result;
         });
     };

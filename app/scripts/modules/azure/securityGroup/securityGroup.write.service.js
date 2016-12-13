@@ -1,15 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
-
 let angular = require('angular');
+
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.write.service', [
     require('angular-ui-router'),
     TASK_EXECUTOR,
-    require('core/cache/infrastructureCaches.js'),
+    INFRASTRUCTURE_CACHE_SERVICE
   ])
   .factory('azureSecurityGroupWriter', function (infrastructureCaches, taskExecutor) {
 

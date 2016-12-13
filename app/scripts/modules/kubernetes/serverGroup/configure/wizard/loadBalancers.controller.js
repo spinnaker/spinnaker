@@ -11,6 +11,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.load
     };
 
     this.getLoadBalancerRefreshTime = function() {
-      return infrastructureCaches.loadBalancers.getStats().ageMax;
+      return infrastructureCaches.get('loadBalancers').getStats().ageMax;
     };
   });

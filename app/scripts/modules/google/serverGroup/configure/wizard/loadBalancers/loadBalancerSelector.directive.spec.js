@@ -1,5 +1,6 @@
 'use strict';
 
+import * as moment from 'moment';
 let angular = require('angular');
 require('./loadBalancerSelector.directive.html');
 
@@ -17,18 +18,18 @@ describe('Directive: GCE Load Balancers Selector', function() {
 
   var selector, element, gceServerGroupConfigurationService, expectedTime;
 
-  beforeEach(window.inject(function(_gceServerGroupConfigurationService_, _infrastructureCaches_, _momentService_,
+  beforeEach(window.inject(function(_gceServerGroupConfigurationService_,
+                                    _cacheInitializer_,
+                                    _infrastructureCaches_,
+                                    _momentService_,
                                     settings) {
     gceServerGroupConfigurationService = _gceServerGroupConfigurationService_;
 
 
-    var lastRefreshed = '2015-01-01T00:00:00';
-    var d = new Date(lastRefreshed);
-    var t = d.getTime();
-    _infrastructureCaches_.loadBalancers = {
-      getStats: function() { return {ageMax: t}; }
-    };
-    var m = _momentService_.tz(t, settings.defaultTimeZone);
+    const lastRefreshed = (new Date('2015-01-01T00:00:00')).getTime();
+    _cacheInitializer_.refreshCache('loadBalancers');
+    _infrastructureCaches_.get('loadBalancers').getStats = function() { return {ageMax: lastRefreshed}; };
+    var m = _momentService_.tz(lastRefreshed, settings.defaultTimeZone);
     expectedTime = m.format('YYYY-MM-DD HH:mm:ss z');
 
     selector = angular.element('<gce-server-group-load-balancer-selector command="command" />');
@@ -46,7 +47,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
   it('should render the last refreshed time', function() {
     var refreshedSpan = element.find('span:contains("last refreshed")');
     expect(refreshedSpan.length).toEqual(1);
-    expect(refreshedSpan.html()).toEqual('last refreshed ' + expectedTime);
+    expect(refreshedSpan.html()).toEqual(`last refreshed ${expectedTime}`);
   });
 
   it('should refresh the load balancer cache', function() {

@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       }
     });
 
-    var configViewStateCache = viewStateCache.pipelineConfig;
+    var configViewStateCache = viewStateCache.get('pipelineConfig');
 
     function buildCacheKey() {
       return pipelineConfigService.buildViewStateCacheKey($scope.application.name, $scope.pipeline.id);

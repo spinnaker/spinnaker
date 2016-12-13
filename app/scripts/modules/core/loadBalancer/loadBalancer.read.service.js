@@ -4,11 +4,12 @@ import {API_SERVICE} from 'core/api/api.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular
   .module('spinnaker.core.loadBalancer.read.service', [
     NAMING_SERVICE,
-    require('../cache/infrastructureCaches.js'),
+    INFRASTRUCTURE_CACHE_SERVICE,
     require('./loadBalancer.transformer.js'),
     API_SERVICE
   ])
@@ -37,7 +38,7 @@ module.exports = angular
     function listLoadBalancers(provider) {
       return API
         .one('loadBalancers')
-        .useCache(infrastructureCaches.loadBalancers)
+        .useCache(infrastructureCaches.get('loadBalancers'))
         .withParams({provider: provider})
         .get();
     }

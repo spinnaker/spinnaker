@@ -4,10 +4,7 @@ let angular = require('angular');
 import {HealthCheckTemplate} from '../templates';
 import * as _ from 'lodash';
 
-module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.component', [
-    require('core/cache/cacheInitializer.js'),
-    require('core/cache/infrastructureCaches.js'),
-  ])
+module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.component', [])
   .component('gceHttpLoadBalancerHealthCheck', {
     bindings: {
       command: '=',

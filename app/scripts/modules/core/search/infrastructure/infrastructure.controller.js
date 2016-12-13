@@ -1,8 +1,9 @@
 'use strict';
 
 import _ from 'lodash';
-
 let angular = require('angular');
+
+import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./infrastructureSearch.service.js'),
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./project/infrastructureProject.directive.js'),
   require('../searchRank.filter.js'),
   require('core/cluster/filter/clusterFilter.service.js'),
-  require('core/cache/cacheInitializer.js'),
+  CACHE_INITIALIZER_SERVICE,
   require('core/overrideRegistry/override.registry.js'),
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,

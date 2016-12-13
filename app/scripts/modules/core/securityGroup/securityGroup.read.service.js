@@ -1,15 +1,15 @@
 'use strict';
 
 import _ from 'lodash';
+let angular = require('angular');
 import {API_SERVICE} from 'core/api/api.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
-
-let angular = require('angular');
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
   require('../search/search.service.js'),
   NAMING_SERVICE,
-  require('../cache/infrastructureCaches.js'),
+  INFRASTRUCTURE_CACHE_SERVICE,
   require('./securityGroup.transformer.js'),
   require('../cloudProvider/serviceDelegate.service.js'),
   API_SERVICE
@@ -232,7 +232,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
     }
 
     function getAllSecurityGroups() {
-      return API.one('securityGroups').useCache(infrastructureCaches.securityGroups).get();
+      return API.one('securityGroups').useCache(infrastructureCaches.get('securityGroups')).get();
     }
 
     function getApplicationSecurityGroup(application, account, region, id) {

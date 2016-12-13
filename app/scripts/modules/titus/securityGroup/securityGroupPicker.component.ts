@@ -7,6 +7,7 @@ import {
   ACCOUNT_SERVICE, AccountService, IAggregatedAccounts,
   IAccountDetails
 } from 'core/account/account.service';
+import {CACHE_INITIALIZER_SERVICE, CacheInitializerService} from 'core/cache/cacheInitializer.service';
 
 class SecurityGroupPickerController implements ng.IComponentController {
   public securityGroups: any;
@@ -26,8 +27,11 @@ class SecurityGroupPickerController implements ng.IComponentController {
 
   static get $inject(): string[] { return ['$q', 'securityGroupReader', 'accountService', 'cacheInitializer', 'vpcReader']; }
 
-  public constructor(private $q: ng.IQService, private securityGroupReader: any, private accountService: AccountService,
-                     private cacheInitializer: any, private vpcReader: any) {}
+  public constructor(private $q: ng.IQService,
+                     private securityGroupReader: any,
+                     private accountService: AccountService,
+                     private cacheInitializer: CacheInitializerService,
+                     private vpcReader: any) {}
 
   public $onInit(): void {
     let credentialLoader: ng.IPromise<void> = this.accountService.getCredentialsKeyedByAccount('titus').then((credentials: IAggregatedAccounts) => {
@@ -79,7 +83,7 @@ class SecurityGroupPickerController implements ng.IComponentController {
       .value();
   }
 
-  public refreshSecurityGroups(skipCommandReconfiguration: boolean): void {
+  public refreshSecurityGroups(skipCommandReconfiguration: boolean): ng.IPromise<any[]> {
     return this.cacheInitializer.refreshCache('securityGroups').then(() => {
       return this.securityGroupReader.getAllSecurityGroups().then((securityGroups: any[]) => {
         this.securityGroups = securityGroups;
@@ -152,11 +156,10 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
 }
 
 const moduleName = 'spinnaker.titus.securityGroup.picker.component';
-
 module(moduleName, [
   ACCOUNT_SERVICE,
   require('core/securityGroup/securityGroup.read.service'),
-  require('core/cache/cacheInitializer'),
+  CACHE_INITIALIZER_SERVICE,
   require('amazon/vpc/vpc.read.service'),
 ])
   .component('titusSecurityGroupPicker', new SecurityGroupPickerComponent());

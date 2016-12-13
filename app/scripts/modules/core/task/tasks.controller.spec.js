@@ -30,7 +30,12 @@ describe('Controller: tasks', function () {
             $q.when(null).then(params.submitMethod);
           }
         };
-        var viewStateCache = { createCache: function() { return { get: angular.noop, put: angular.noop }; }};
+        var viewStateCache = {
+          createCache: function() {
+            return { get: angular.noop, put: angular.noop };
+          },
+          get: angular.noop
+        };
         scope = $rootScope.$new();
         controller = $controller('TasksCtrl', {
           app: application,

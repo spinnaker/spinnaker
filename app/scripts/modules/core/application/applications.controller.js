@@ -3,6 +3,7 @@
 import {ANY_FIELD_FILTER} from '../presentation/anyFieldFilter/anyField.filter';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
+import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 
 let angular = require('angular');
 
@@ -11,7 +12,7 @@ module.exports = angular.module('spinnaker.applications.controller', [
   APPLICATION_READ_SERVICE,
   ACCOUNT_SERVICE,
   ANY_FIELD_FILTER,
-  require('../cache/viewStateCache.js'),
+  VIEW_STATE_CACHE_SERVICE,
   require('../presentation/sortToggle/sorttoggle.directive.js'),
   require('../insight/insightmenu.directive.js'),
   require('../overrideRegistry/override.registry.js'),
@@ -19,7 +20,7 @@ module.exports = angular.module('spinnaker.applications.controller', [
   .controller('ApplicationsCtrl', function($scope, $uibModal, $log, $filter, accountService,
                                            $state, applicationReader, viewStateCache, overrideRegistry) {
 
-    var applicationsViewStateCache = viewStateCache.applications || viewStateCache.createCache('applications', { version: 1 });
+    var applicationsViewStateCache = viewStateCache.get('applications') || viewStateCache.createCache('applications', { version: 1 });
 
     function cacheViewState() {
       applicationsViewStateCache.put('#global', $scope.viewState);

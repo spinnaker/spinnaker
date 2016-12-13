@@ -1,14 +1,15 @@
 'use strict';
 
+require('../migrator.less');
+
 import _ from 'lodash';
+let angular = require('angular');
+
 import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
 import {SCROLL_TO_SERVICE} from 'core/utils/scrollTo/scrollTo.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
-
-require('../migrator.less');
-
-let angular = require('angular');
+import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
 module.exports = angular
   .module('spinnaker.migrator.pipeline.directive', [
@@ -20,7 +21,7 @@ module.exports = angular
     AUTO_SCROLL_DIRECTIVE,
     require('core/pipeline/config/services/pipelineConfigService.js'),
     SCROLL_TO_SERVICE,
-    require('core/cache/cacheInitializer.js'),
+    CACHE_INITIALIZER_SERVICE,
     TASK_READ_SERVICE,
     require('amazon/keyPairs/keyPairs.read.service'),
     require('amazon/vpc/vpc.read.service'),

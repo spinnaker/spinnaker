@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.loadBalan
       link: function(scope) {
 
         scope.getLoadBalancerRefreshTime = function() {
-          return infrastructureCaches.loadBalancers.getStats().ageMax;
+          return infrastructureCaches.get('loadBalancers').getStats().ageMax;
         };
 
         scope.refreshLoadBalancers = function() {

@@ -1,18 +1,19 @@
 'use strict';
 
 import _ from 'lodash';
+let angular = require('angular');
+
 import gceLoadBalancerSetTransformer from '../../loadBalancer/loadBalancer.setTransformer';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
-
-let angular = require('angular');
+import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.configuration.service', [
   gceLoadBalancerSetTransformer,
   ACCOUNT_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
-  require('core/cache/cacheInitializer.js'),
+  CACHE_INITIALIZER_SERVICE,
   require('core/loadBalancer/loadBalancer.read.service.js'),
   NETWORK_READ_SERVICE,
   SUBNET_READ_SERVICE,

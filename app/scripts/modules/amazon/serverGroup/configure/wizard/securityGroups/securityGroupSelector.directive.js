@@ -1,10 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.configure.wizard.securityGroups.selector.directive', [
-    require('core/cache/infrastructureCaches.js'),
+    INFRASTRUCTURE_CACHE_SERVICE,
     require('../../serverGroupConfiguration.service.js'),
   ])
   .directive('serverGroupSecurityGroupSelector', function () {
@@ -25,7 +26,7 @@ module.exports = angular
     };
   }).controller('awsServerGroupSecurityGroupsSelectorCtrl', function (awsServerGroupConfigurationService, infrastructureCaches) {
     this.getSecurityGroupRefreshTime = () => {
-      return infrastructureCaches.securityGroups.getStats().ageMax;
+      return infrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
     this.currentItems = 100;

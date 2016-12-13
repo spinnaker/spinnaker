@@ -9,7 +9,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.service', [
     require('../../../backendService/backendService.reader.js'),
-    require('core/cache/cacheInitializer.js'),
     require('../../../certificate/certificate.reader.js'),
     ACCOUNT_SERVICE,
     require('core/loadBalancer/loadBalancer.read.service.js'),
@@ -18,7 +17,6 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
     require('./transformer.service.js'),
   ])
   .factory('gceHttpLoadBalancerCommandBuilder', function ($q, accountService,
-                                                          cacheInitializer,
                                                           elSevenUtils,
                                                           gceBackendServiceReader,
                                                           gceCertificateReader,

@@ -96,7 +96,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
     }
 
     this.getInstanceTypeRefreshTime = function() {
-      return infrastructureCaches.instanceTypes.getStats().ageMax;
+      return infrastructureCaches.get('instanceTypes').getStats().ageMax;
     };
 
     this.refreshInstanceTypes = function() {
@@ -114,7 +114,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
     });
 
     this.getInstanceTypeRefreshTime = function() {
-      return infrastructureCaches.instanceTypes.getStats().ageMax;
+      return infrastructureCaches.get('instanceTypes').getStats().ageMax;
     };
 
     this.refreshInstanceTypes = function() {
