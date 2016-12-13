@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.model.pipeline;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
@@ -28,9 +29,10 @@ import java.util.stream.Collectors;
 
 public class DefaultPipelineStrategyDAO extends StorageServiceSupport<Pipeline> implements PipelineStrategyDAO {
   public DefaultPipelineStrategyDAO(StorageService service,
-                            Scheduler scheduler,
-                            int refreshIntervalMs) {
-    super(ObjectType.STRATEGY, service, scheduler, refreshIntervalMs);
+                                    Scheduler scheduler,
+                                    int refreshIntervalMs,
+                                    Registry registry) {
+    super(ObjectType.STRATEGY, service, scheduler, refreshIntervalMs, registry);
   }
 
   @Override

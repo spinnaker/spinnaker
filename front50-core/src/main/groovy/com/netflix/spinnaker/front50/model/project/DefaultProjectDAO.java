@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.model.project;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
@@ -26,9 +27,10 @@ import java.util.UUID;
 
 public class DefaultProjectDAO extends StorageServiceSupport<Project> implements ProjectDAO {
   public DefaultProjectDAO(StorageService service,
-                                Scheduler scheduler,
-                                int refreshIntervalMs) {
-    super(ObjectType.PROJECT, service, scheduler, refreshIntervalMs);
+                           Scheduler scheduler,
+                           int refreshIntervalMs,
+                           Registry registry) {
+    super(ObjectType.PROJECT, service, scheduler, refreshIntervalMs, registry);
   }
 
   @Override

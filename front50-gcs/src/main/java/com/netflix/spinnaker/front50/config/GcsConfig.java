@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.config;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.*;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
@@ -91,43 +92,43 @@ public class GcsConfig {
   }
 
   @Bean
-  public ApplicationDAO applicationDAO(GcsStorageService service) {
-    return new DefaultApplicationDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), APPLICATION_REFRESH_MS);
+  public ApplicationDAO applicationDAO(GcsStorageService service, Registry registry) {
+    return new DefaultApplicationDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), APPLICATION_REFRESH_MS, registry);
   }
 
   @Bean
-  public ApplicationPermissionDAO applicationPermissionDAO(GcsProperties gcsProperties) {
+  public ApplicationPermissionDAO applicationPermissionDAO(GcsProperties gcsProperties, Registry registry) {
     GcsStorageService service = googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME, gcsProperties);
-    return new DefaultApplicationPermissionDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), APPLICATION_REFRESH_MS);
+    return new DefaultApplicationPermissionDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), APPLICATION_REFRESH_MS, registry);
   }
 
   @Bean
-  public ServiceAccountDAO serviceAccountDAO(GcsStorageService service) {
-    return new DefaultServiceAccountDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), SERVICE_ACCOUNT_REFRESH_MS);
+  public ServiceAccountDAO serviceAccountDAO(GcsStorageService service, Registry registry) {
+    return new DefaultServiceAccountDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), SERVICE_ACCOUNT_REFRESH_MS, registry);
   }
 
   @Bean
-  public ProjectDAO projectDAO(GcsStorageService service) {
-    return new DefaultProjectDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PROJECT_REFRESH_MS);
+  public ProjectDAO projectDAO(GcsStorageService service, Registry registry) {
+    return new DefaultProjectDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PROJECT_REFRESH_MS, registry);
   }
 
   @Bean
-  public NotificationDAO notificationDAO(GcsStorageService service) {
-    return new DefaultNotificationDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), NOTIFICATION_REFRESH_MS);
+  public NotificationDAO notificationDAO(GcsStorageService service, Registry registry) {
+    return new DefaultNotificationDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), NOTIFICATION_REFRESH_MS, registry);
   }
 
   @Bean
-  public PipelineStrategyDAO pipelineStrategyDAO(GcsStorageService service) {
-    return new DefaultPipelineStrategyDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PIPELINE_STRATEGY_REFRESH_MS);
+  public PipelineStrategyDAO pipelineStrategyDAO(GcsStorageService service, Registry registry) {
+    return new DefaultPipelineStrategyDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PIPELINE_STRATEGY_REFRESH_MS, registry);
   }
 
   @Bean
-  public PipelineDAO pipelineDAO(GcsStorageService service) {
-    return new DefaultPipelineDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PIPELINE_REFRESH_MS);
+  public PipelineDAO pipelineDAO(GcsStorageService service, Registry registry) {
+    return new DefaultPipelineDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PIPELINE_REFRESH_MS, registry);
   }
 
   @Bean
-  public SnapshotDAO snapshotDAO(GcsStorageService service) {
-    return new DefaultSnapshotDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PIPELINE_REFRESH_MS);
+  public SnapshotDAO snapshotDAO(GcsStorageService service, Registry registry) {
+    return new DefaultSnapshotDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PIPELINE_REFRESH_MS, registry);
   }
 }

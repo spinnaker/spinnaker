@@ -9,6 +9,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.front50.model.S3StorageService;
@@ -92,43 +93,43 @@ public class S3Config {
   }
 
   @Bean
-  public ApplicationDAO applicationDAO(StorageService storageService) {
-    return new DefaultApplicationDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 15000);
+  public ApplicationDAO applicationDAO(StorageService storageService, Registry registry) {
+    return new DefaultApplicationDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 15000, registry);
   }
 
   @Bean
-  public ApplicationPermissionDAO applicationPermissionDAO(StorageService storageService) {
-    return new DefaultApplicationPermissionDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 45000);
+  public ApplicationPermissionDAO applicationPermissionDAO(StorageService storageService, Registry registry) {
+    return new DefaultApplicationPermissionDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 45000, registry);
   }
 
   @Bean
-  public ServiceAccountDAO serviceAccountDAO(StorageService storageService) {
-    return new DefaultServiceAccountDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 30000);
+  public ServiceAccountDAO serviceAccountDAO(StorageService storageService, Registry registry) {
+    return new DefaultServiceAccountDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 30000, registry);
   }
 
   @Bean
-  public ProjectDAO projectDAO(StorageService storageService) {
-    return new DefaultProjectDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 30000);
+  public ProjectDAO projectDAO(StorageService storageService, Registry registry) {
+    return new DefaultProjectDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 30000, registry);
   }
 
   @Bean
-  public NotificationDAO notificationDAO(StorageService storageService) {
-    return new DefaultNotificationDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 30000);
+  public NotificationDAO notificationDAO(StorageService storageService, Registry registry) {
+    return new DefaultNotificationDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 30000, registry);
   }
 
   @Bean
-  public PipelineStrategyDAO pipelineStrategyDAO(StorageService storageService) {
-    return new DefaultPipelineStrategyDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 20000);
+  public PipelineStrategyDAO pipelineStrategyDAO(StorageService storageService, Registry registry) {
+    return new DefaultPipelineStrategyDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 20000, registry);
   }
 
   @Bean
-  public PipelineDAO pipelineDAO(StorageService storageService) {
-    return new DefaultPipelineDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(25)), 10000);
+  public PipelineDAO pipelineDAO(StorageService storageService, Registry registry) {
+    return new DefaultPipelineDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(25)), 10000, registry);
   }
 
   @Bean
-  public SnapshotDAO snapshotDAO(StorageService storageService) {
-    return new DefaultSnapshotDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 60000);
+  public SnapshotDAO snapshotDAO(StorageService storageService, Registry registry) {
+    return new DefaultSnapshotDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 60000, registry);
   }
 
   @Bean

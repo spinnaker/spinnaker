@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.model.application;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
@@ -24,8 +25,9 @@ import rx.Scheduler;
 public class DefaultApplicationPermissionDAO extends StorageServiceSupport<Application.Permission> implements ApplicationPermissionDAO {
   public DefaultApplicationPermissionDAO(StorageService service,
                                          Scheduler scheduler,
-                                         int refreshIntervalMs) {
-    super(ObjectType.APPLICATION_PERMISSION, service, scheduler, refreshIntervalMs);
+                                         int refreshIntervalMs,
+                                         Registry registry) {
+    super(ObjectType.APPLICATION_PERMISSION, service, scheduler, refreshIntervalMs, registry);
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.front50.model;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.support.ClosureHelper;
 import com.netflix.spinnaker.hystrix.SimpleHystrixCommand;
@@ -27,6 +28,7 @@ import rx.Scheduler;
 import javax.annotation.PostConstruct;
 import java.lang.Long;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -34,7 +36,7 @@ import java.util.stream.Collectors;
 
 
 public abstract class StorageServiceSupport<T extends Timestamped> {
-  public static long HEALTH_MILLIS = 45000;
+  private static final long HEALTH_MILLIS = TimeUnit.SECONDS.toMillis(90);
   private final Logger log = LoggerFactory.getLogger(getClass());
   protected final AtomicReference<Set<T>> allItemsCache = new AtomicReference<>();
 
@@ -42,17 +44,27 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   private final StorageService service;
   private final Scheduler scheduler;
   private final int refreshIntervalMs;
+  private final Registry registry;
 
-  private long lastRefreshedTime;
+  private final AtomicLong lastRefreshedTime = new AtomicLong();
 
   public StorageServiceSupport(ObjectType objectType,
                                StorageService service,
                                Scheduler scheduler,
-                               int refreshIntervalMs) {
+                               int refreshIntervalMs,
+                               Registry registry) {
     this.objectType = objectType;
     this.service = service;
     this.scheduler = scheduler;
     this.refreshIntervalMs = refreshIntervalMs;
+    if (refreshIntervalMs >= HEALTH_MILLIS) {
+      throw new IllegalArgumentException("Cache refresh time must be more frequent than cache health timeout");
+    }
+    this.registry = registry;
+    registry.gauge(
+      registry.createId("storageServiceSupport.cacheAge", "objectType", objectType.name()),
+      lastRefreshedTime,
+      (lrt) -> Long.valueOf(System.currentTimeMillis() - lrt.get()).doubleValue());
   }
 
   @PostConstruct
@@ -80,7 +92,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
 
   public Collection<T> all() {
     long lastModified = readLastModified();
-    if (lastModified > lastRefreshedTime || allItemsCache.get() == null) {
+    if (lastModified > lastRefreshedTime.get() || allItemsCache.get() == null) {
         // only refresh if there was a modification since our last refresh cycle
         log.debug("all() forcing refresh");
         refresh();
@@ -101,7 +113,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
    * @return Healthy if refreshed in the past HEALTH_MILLIS
    */
   public boolean isHealthy() {
-    return (System.currentTimeMillis() - lastRefreshedTime) < HEALTH_MILLIS && allItemsCache.get() != null;
+    return (System.currentTimeMillis() - lastRefreshedTime.get()) < HEALTH_MILLIS && allItemsCache.get() != null;
   }
 
   public T findById(String id) throws NotFoundException {
@@ -147,11 +159,13 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
    * Update local cache with any recently modified items.
    */
   protected void refresh() {
-    long startTime = System.currentTimeMillis();
+    long startTime = System.nanoTime();
     allItemsCache.set(fetchAllItems(allItemsCache.get()));
-    long endTime = System.currentTimeMillis();
+    long elapsed = System.nanoTime() - startTime;
 
-    log.debug("Refreshed (" + (endTime - startTime) + "ms)");
+    registry.timer("storageServiceSupport.cacheRefreshTime", "objectType", objectType.name()).record(elapsed, TimeUnit.NANOSECONDS);
+
+    log.debug("Refreshed (" + TimeUnit.NANOSECONDS.toMillis(elapsed) + "ms)");
   }
 
   private String buildObjectKey(T item) {
@@ -226,7 +240,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
         });
 
     Set<T> result = resultMap.values().stream().collect(Collectors.toSet());
-    this.lastRefreshedTime = refreshTime;
+    this.lastRefreshedTime.set(refreshTime);
 
     int result_size = result.size();
     if (existingSize != result_size) {

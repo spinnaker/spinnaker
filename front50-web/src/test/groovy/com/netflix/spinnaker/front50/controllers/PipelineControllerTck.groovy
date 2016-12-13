@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
 
@@ -241,7 +242,7 @@ class S3PipelineControllerTck extends PipelineControllerTck {
     S3TestHelper.setupBucket(amazonS3, "front50")
 
     def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test")
-    pipelineDAO = new DefaultPipelineDAO(storageService, scheduler, 0)
+    pipelineDAO = new DefaultPipelineDAO(storageService, scheduler, 0, new NoopRegistry())
 
     return pipelineDAO
   }

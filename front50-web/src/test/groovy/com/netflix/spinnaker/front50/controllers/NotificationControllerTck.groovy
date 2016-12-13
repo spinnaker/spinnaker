@@ -20,6 +20,7 @@ package com.netflix.spinnaker.front50.controllers
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.notification.DefaultNotificationDAO
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
@@ -198,7 +199,7 @@ class S3NotificationControllerTck extends NotificationControllerTck {
     S3TestHelper.setupBucket(amazonS3, "front50")
 
     def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test")
-    notificationDAO = new DefaultNotificationDAO(storageService, scheduler, 0)
+    notificationDAO = new DefaultNotificationDAO(storageService, scheduler, 0, new NoopRegistry())
 
     return notificationDAO
   }

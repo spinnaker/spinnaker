@@ -20,6 +20,7 @@ package com.netflix.spinnaker.front50.controllers.v2
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.config.CassandraConfigProps
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.S3StorageService
@@ -396,7 +397,7 @@ class S3ApplicationsControllerTck extends ApplicationsControllerTck {
     S3TestHelper.setupBucket(amazonS3, "front50")
 
     def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false)
-    applicationDAO = new DefaultApplicationDAO(storageService, scheduler, 0)
+    applicationDAO = new DefaultApplicationDAO(storageService, scheduler, 0, new NoopRegistry())
     return applicationDAO
   }
 }

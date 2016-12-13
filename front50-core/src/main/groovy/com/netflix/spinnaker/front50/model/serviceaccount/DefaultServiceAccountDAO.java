@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.model.serviceaccount;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
@@ -23,9 +24,10 @@ import rx.Scheduler;
 
 public class DefaultServiceAccountDAO extends StorageServiceSupport<ServiceAccount> implements ServiceAccountDAO {
   public DefaultServiceAccountDAO(StorageService service,
-                                Scheduler scheduler,
-                                int refreshIntervalMs) {
-    super(ObjectType.SERVICE_ACCOUNT, service, scheduler, refreshIntervalMs);
+                                  Scheduler scheduler,
+                                  int refreshIntervalMs,
+                                  Registry registry) {
+    super(ObjectType.SERVICE_ACCOUNT, service, scheduler, refreshIntervalMs, registry);
   }
 
   @Override

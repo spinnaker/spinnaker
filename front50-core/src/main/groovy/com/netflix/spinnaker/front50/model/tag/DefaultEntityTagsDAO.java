@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.front50.model.tag;
 
+import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
@@ -27,9 +29,9 @@ import java.util.Objects;
 
 public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags> implements EntityTagsDAO {
   public DefaultEntityTagsDAO(StorageService service,
-                            Scheduler scheduler,
-                            int refreshIntervalMs) {
-    super(ObjectType.ENTITY_TAGS, service, scheduler, refreshIntervalMs);
+                              Scheduler scheduler,
+                              int refreshIntervalMs) {
+    super(ObjectType.ENTITY_TAGS, service, scheduler, refreshIntervalMs, new NoopRegistry());
   }
 
   @Override
@@ -57,5 +59,10 @@ public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags> impl
   @Override
   protected void refresh() {
     // avoid loading all tagged entities into memory
+  }
+
+  @Override
+  public boolean isHealthy() {
+    return true;
   }
 }

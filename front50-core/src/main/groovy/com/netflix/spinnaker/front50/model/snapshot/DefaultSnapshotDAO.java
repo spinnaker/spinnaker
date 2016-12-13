@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.front50.model.snapshot;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
@@ -27,8 +28,9 @@ import java.util.Collection;
 public class DefaultSnapshotDAO extends StorageServiceSupport<Snapshot> implements SnapshotDAO {
   public DefaultSnapshotDAO(StorageService service,
                             Scheduler scheduler,
-                            int refreshIntervalMs) {
-    super(ObjectType.SNAPSHOT, service, scheduler, refreshIntervalMs);
+                            int refreshIntervalMs,
+                            Registry registry) {
+    super(ObjectType.SNAPSHOT, service, scheduler, refreshIntervalMs, registry);
   }
 
   @Override
