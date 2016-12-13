@@ -26,6 +26,10 @@ import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
 abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicOperation<Void> {
   abstract String getBasePhase() // Either 'ENABLE' or 'DISABLE'.
   abstract String getAction() // Either 'true' or 'false', for Enable or Disable respectively.
@@ -94,13 +98,20 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
 
     task.updateStatus basePhase, "Resetting service labels for each pod..."
 
-    pods.forEach { Pod pod ->
-      List<String> podServices = KubernetesUtil.getLoadBalancers(pod)
-      podServices = podServices.collect {
-        KubernetesUtil.loadBalancerKey(it)
-      }
-      credentials.apiAdaptor.togglePodLabels(namespace, pod.metadata.name, podServices, action)
+    def pool = Executors.newWorkStealingPool((int) (pods.size() / 2) + 1)
+
+    pods.each { Pod pod ->
+      pool.submit({ _ ->
+        List<String> podServices = KubernetesUtil.getLoadBalancers(pod)
+        podServices = podServices.collect {
+          KubernetesUtil.loadBalancerKey(it)
+        }
+        credentials.apiAdaptor.togglePodLabels(namespace, pod.metadata.name, podServices, action)
+      })
     }
+
+    pool.shutdown();
+    pool.awaitTermination(1, TimeUnit.HOURS)
 
     task.updateStatus basePhase, "Finished ${verb} server group."
 
