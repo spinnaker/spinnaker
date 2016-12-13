@@ -906,7 +906,9 @@ class KubernetesApiConverter {
    */
   static Map<String, String> baseServerGroupLabels(DeployKubernetesAtomicOperationDescription description, String name) {
     def parsedName = Names.parseName(name)
-    return hasDeployment(description) ? [(parsedName.cluster): "true"] : [(name): "true"]
+    def labels = [(KubernetesUtil.SERVER_GROUP_LABEL): name]
+    labels += hasDeployment(description) ? [(parsedName.cluster): "true"] : [(name): "true"]
+    return labels
   }
 
   /*
