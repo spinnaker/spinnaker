@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.EnableDisableAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
@@ -71,7 +72,7 @@ class EnableDisableOpenstackAtomicOperationSpec extends Specification {
     OpenstackNamedAccountCredentials creds = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5), new ConsulConfig(), null)
     OpenstackProviderFactory.createProvider(creds) >> { provider }
     credentials = new OpenstackCredentials(creds)
-    description = new OpenstackServerGroupAtomicOperationDescription(serverGroupName: STACK, region: REGION, credentials: credentials)
+    description = new EnableDisableAtomicOperationDescription(serverGroupName: STACK, region: REGION, credentials: credentials)
     stack = Mock(Stack) {
       it.tags >> { lbIds }
     }

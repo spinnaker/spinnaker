@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.EnableDisableAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 
 /**
@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 class EnableOpenstackAtomicOperation extends AbstractEnableDisableOpenstackAtomicOperation {
   final String phaseName = "ENABLE_SERVER_GROUP"
   final String operation = AtomicOperations.ENABLE_SERVER_GROUP
-  EnableOpenstackAtomicOperation(OpenstackServerGroupAtomicOperationDescription description) {
+  EnableOpenstackAtomicOperation(EnableDisableAtomicOperationDescription description) {
     super(description)
   }
 

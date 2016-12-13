@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
-class EnableDisableDestroyAzureServerGroupDescription extends AzureServerGroupDescription {
-  String serverGroupName
+import com.netflix.spinnaker.clouddriver.deploy.description.EnableDisableDescriptionTrait
 
+class EnableDisableDestroyAzureServerGroupDescription extends AzureServerGroupDescription implements EnableDisableDescriptionTrait  {
   @Deprecated
   List<String> regions
 }

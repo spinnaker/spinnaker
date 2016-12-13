@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
+import com.netflix.spinnaker.clouddriver.deploy.description.EnableDisableDescriptionTrait
 import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
 
 /**
@@ -23,8 +24,7 @@ import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
  *
  * "Disabling" means removing a server group from the target pool of each of its network load balancers.
  */
-class EnableDisableGoogleServerGroupDescription extends AbstractGoogleCredentialsDescription implements ServerGroupNameable {
-  String serverGroupName
+class EnableDisableGoogleServerGroupDescription extends AbstractGoogleCredentialsDescription implements ServerGroupNameable, EnableDisableDescriptionTrait {
   String region
   String accountName
 

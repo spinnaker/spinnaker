@@ -18,13 +18,12 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.converters.servergrou
 
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
 import com.netflix.spinnaker.clouddriver.openstack.deploy.converters.OpenstackAtomicOperationConverterHelper
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.EnableDisableAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup.EnableOpenstackAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
-
 
 @OpenstackOperation(AtomicOperations.ENABLE_SERVER_GROUP)
 @Component
@@ -36,7 +35,7 @@ class EnableOpenstackAtomicOperationConverter extends AbstractAtomicOperationsCr
   }
 
   @Override
-  OpenstackServerGroupAtomicOperationDescription convertDescription(Map input) {
-    OpenstackAtomicOperationConverterHelper.convertDescription(input, this, OpenstackServerGroupAtomicOperationDescription)
+  EnableDisableAtomicOperationDescription convertDescription(Map input) {
+    OpenstackAtomicOperationConverterHelper.convertDescription(input, this, EnableDisableAtomicOperationDescription)
   }
 }

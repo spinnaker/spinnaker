@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
-class EnableDisableServerGroupDescription extends AbstractTitusCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.deploy.description.EnableDisableDescriptionTrait
+
+class EnableDisableServerGroupDescription extends AbstractTitusCredentialsDescription implements EnableDisableDescriptionTrait {
   String region
-  String serverGroupName
 }

@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup
+package com.netflix.spinnaker.clouddriver.deploy.description
 
-import com.netflix.spinnaker.clouddriver.deploy.description.EnableDisableDescriptionTrait
+trait EnableDisableDescriptionTrait {
+  String serverGroupName
 
-class EnableDisableKubernetesAtomicOperationDescription extends KubernetesServerGroupDescription implements EnableDisableDescriptionTrait {
-  Integer desiredPercentage
+  Integer getDesiredPercentage() {
+    throw new IllegalArgumentException("The selected provider hasn't implemented enabling/disabling by percentage yet")
+  }
+
+  void setDesiredPercentage(Integer _) {
+    throw new IllegalArgumentException("The selected provider hasn't implemented enabling/disabling by percentage yet")
+  }
 }

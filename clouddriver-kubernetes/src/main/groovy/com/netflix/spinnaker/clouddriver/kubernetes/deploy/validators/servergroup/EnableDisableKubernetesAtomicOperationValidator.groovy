@@ -21,8 +21,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKu
 
 class EnableDisableKubernetesAtomicOperationValidator {
   static void validate(EnableDisableKubernetesAtomicOperationDescription description, StandardKubernetesAttributeValidator helper) {
-    if (description.desiredPercent != null) {
-      helper.validateInRangeInclusive(description.desiredPercent, 0, 100, "desiredPercent")
+    if (description.desiredPercentage != null) {
+      helper.validateInRangeInclusive(description.desiredPercentage, 0, 100, "desiredPercent")
     }
   }
 }

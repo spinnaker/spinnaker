@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.helpers.EnableDisablePercentCategorizer
+import com.netflix.spinnaker.clouddriver.helpers.EnableDisablePercentageCategorizer
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.EnableDisableKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
@@ -101,7 +101,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
 
     def pool = Executors.newWorkStealingPool((int) (pods.size() / 2) + 1)
 
-    if (description.desiredPercent != null) {
+    if (description.desiredPercentage != null) {
       List<Pod> modifiedPods = pods.findAll { pod ->
         KubernetesUtil.getPodLoadBalancerStates(pod).every { it.value == action }
       }
@@ -110,7 +110,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
         KubernetesUtil.getPodLoadBalancerStates(pod).any { it.value != action }
       }
 
-      pods = EnableDisablePercentCategorizer.getInstancesToModify(modifiedPods, unmodifiedPods, description.desiredPercent)
+      pods = EnableDisablePercentageCategorizer.getInstancesToModify(modifiedPods, unmodifiedPods, description.desiredPercentage)
     }
 
     pods.each { Pod pod ->

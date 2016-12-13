@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
+import com.netflix.spinnaker.clouddriver.deploy.description.EnableDisableDescriptionTrait
+
 /**
  * Description for "enabling" a supplied ASG. "Enabling" means Resuming "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
  * override will also be achieved.
@@ -22,9 +24,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description
  * Description for "disabling" a supplied ASG. "Disabling" means Suspending "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
  * override will also be achieved.
  */
-class EnableDisableAsgDescription extends AbstractAmazonCredentialsDescription {
-
-  String serverGroupName
+class EnableDisableAsgDescription extends AbstractAmazonCredentialsDescription implements EnableDisableDescriptionTrait {
   String region
 
   List<AsgDescription> asgs = []

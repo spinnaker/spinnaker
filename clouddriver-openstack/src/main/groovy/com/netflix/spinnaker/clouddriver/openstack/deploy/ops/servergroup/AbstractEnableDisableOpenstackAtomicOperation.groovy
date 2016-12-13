@@ -20,15 +20,11 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
-import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.EnableDisableAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
-import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.LoadBalancerStatusAware
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.openstack4j.model.heat.Stack
-import org.openstack4j.model.network.ext.LbProvisioningStatus
-import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 
 import java.util.concurrent.CompletableFuture
@@ -44,9 +40,9 @@ abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOp
 
   static final int DEFAULT_WEIGHT = 1
 
-  OpenstackServerGroupAtomicOperationDescription description
+  EnableDisableAtomicOperationDescription description
 
-  AbstractEnableDisableOpenstackAtomicOperation(OpenstackServerGroupAtomicOperationDescription description) {
+  AbstractEnableDisableOpenstackAtomicOperation(EnableDisableAtomicOperationDescription description) {
     this.description = description
   }
 

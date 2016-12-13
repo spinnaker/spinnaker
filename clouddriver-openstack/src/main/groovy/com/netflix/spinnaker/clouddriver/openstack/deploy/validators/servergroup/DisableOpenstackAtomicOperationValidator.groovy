@@ -17,21 +17,21 @@
 package com.netflix.spinnaker.clouddriver.openstack.deploy.validators.servergroup
 
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackOperation
-import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
+import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.EnableDisableAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.AbstractOpenstackDescriptionValidator
+import com.netflix.spinnaker.clouddriver.openstack.deploy.validators.OpenstackAttributeValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @OpenstackOperation(AtomicOperations.DISABLE_SERVER_GROUP)
 @Component
-class DisableOpenstackAtomicOperationValidator extends AbstractOpenstackDescriptionValidator<OpenstackServerGroupAtomicOperationDescription> {
+class DisableOpenstackAtomicOperationValidator extends AbstractOpenstackDescriptionValidator<EnableDisableAtomicOperationDescription> {
 
   String context = "disableOpenstackServerGroupAtomicOperationDescription"
 
   @Override
-  void validate(OpenstackAttributeValidator validator, List priorDescriptions, OpenstackServerGroupAtomicOperationDescription description, Errors errors) {
+  void validate(OpenstackAttributeValidator validator, List priorDescriptions, EnableDisableAtomicOperationDescription description, Errors errors) {
     validator.validateNotEmpty(description.serverGroupName, "serverGroupName")
   }
 
