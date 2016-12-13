@@ -40,7 +40,9 @@ public class DeploymentService {
 
   public DeploymentConfiguration getDeploymentConfiguration(NodeReference reference) {
     String deploymentName = reference.getDeployment();
-    NodeFilter filter = new NodeFilter(reference).withAnyHalconfigFile();
+    NodeFilter filter = NodeFilter.makeEmptyFilter()
+        .refineWithReference(reference)
+        .withAnyHalconfigFile();
 
     List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class)
             .stream()
@@ -64,7 +66,7 @@ public class DeploymentService {
   }
 
   public List<DeploymentConfiguration> getAllDeploymentConfigurations() {
-    NodeFilter filter = NodeFilter.makeRejectAllFilter().withAnyHalconfigFile().withAnyDeployment();
+    NodeFilter filter = NodeFilter.makeEmptyFilter().withAnyHalconfigFile().withAnyDeployment();
 
     List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class)
         .stream()

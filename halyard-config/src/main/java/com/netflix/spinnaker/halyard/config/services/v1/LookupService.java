@@ -44,7 +44,7 @@ public class LookupService {
   public List<Node> getMatchingNodesOfType(NodeFilter filter, Class<? extends Node> clazz) {
     Halconfig halconfig = parser.getConfig(true);
 
-    return getMatchingLeafNodes(halconfig, filter)
+    return getMatchingNodes(halconfig, filter)
         .stream()
         .filter(clazz::isInstance)
         .collect(Collectors.toList());
@@ -56,7 +56,7 @@ public class LookupService {
    * @param filter is the filter to lookup by.
    * @return
    */
-  private List<Node> getMatchingLeafNodes(Node node, NodeFilter filter) {
+  private List<Node> getMatchingNodes(Node node, NodeFilter filter) {
     log.trace("Checking for leaf nodes of node " + node.getNodeName());
 
     List<Node> result = new ArrayList<>();
@@ -65,18 +65,12 @@ public class LookupService {
 
     Node recurse = children.getNext(filter);
     while (recurse != null) {
-      result.addAll(getMatchingLeafNodes(recurse, filter));
+      result.addAll(getMatchingNodes(recurse, filter));
       recurse = children.getNext(filter);
     }
 
-    // If no leaves were collected, then we must be a leaf.
-    //
-    // We can infer this because this function never returns an empty list, so for result to be empty we could
-    // not have iterated over anything.
-    if (result.isEmpty()) {
-      log.trace("Node " + node.getNodeName() + " was deemed to be a leaf");
-      result.add(node);
-    }
+    // If we have visited this node, it must have matched the filter.
+    result.add(node);
 
     return result;
   }

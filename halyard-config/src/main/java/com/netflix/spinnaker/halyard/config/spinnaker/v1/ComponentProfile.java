@@ -80,7 +80,7 @@ public class ComponentProfile {
 
       String componentVersion = bom.getServices().getComponentVersion(componentName);
 
-      String componentObjectName = componentName.getId() + "/" + componentVersion + "/" + componentName.getId() + ".yml";
+      String componentObjectName = componentName.getId() + "/" + componentVersion + "/" + componentName.getProfile();
 
       return IOUtils.toString(getContents(componentObjectName));
     } catch (RetrofitError | IOException e) {

@@ -81,6 +81,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
       return;
     }
 
+    System.out.println(context);
     if (context != null && !context.isEmpty()) {
       Optional<NamedContext> namedContext = kubeconfig
           .getContexts()
@@ -100,7 +101,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
             .setRemediation("Either specify a context in your halconfig, or set a current-context in your kubeconfig");
         smoketest = false;
       } else {
-        psBuilder.addProblem(WARNING, "You have not specified a Kubernetes context in your halconfig, Spinnaker will use \"" + kubeconfigFile + "\" instead")
+        psBuilder.addProblem(WARNING, "You have not specified a Kubernetes context in your halconfig, Spinnaker will use \"" + currentContext + "\" instead")
             .setRemediation("We recommend explicitly setting a context in your halconfig, to ensure changes to your kubeconfig won't break your deployment");
       }
     }

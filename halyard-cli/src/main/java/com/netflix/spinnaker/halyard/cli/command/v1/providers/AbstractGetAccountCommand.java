@@ -76,10 +76,9 @@ public abstract class AbstractGetAccountCommand extends AbstractProviderCommand 
     DaemonService service = Daemon.getService();
     String currentDeployment = service.getCurrentDeployment();
     ObjectMapper mapper = new ObjectMapper();
-    String providerName = getProviderName();
     return mapper.convertValue(
-        service.getAccount(currentDeployment, providerName, accountName, !noValidate),
-        Providers.translateAccountType(providerName)
+        service.getAccount(currentDeployment, getProviderName(), accountName, !noValidate),
+        Providers.translateAccountType(getProviderName())
     );
   }
 }

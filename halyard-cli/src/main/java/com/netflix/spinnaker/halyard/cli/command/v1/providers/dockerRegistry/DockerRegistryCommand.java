@@ -17,23 +17,16 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.providers.dockerRegistry;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractNamedProviderCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Describe a specific dockerRegistry account
  */
 @Parameters()
-public class DockerRegistryCommand extends AbstractProviderCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private String providerName = "dockerRegistry";
-
-  public DockerRegistryCommand() {
-    super();
+public class DockerRegistryCommand extends AbstractNamedProviderCommand {
+  protected String getProviderName() {
+    return "dockerRegistry";
   }
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
+import com.netflix.spinnaker.halyard.config.services.v1.GenerateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +34,9 @@ public class DeploymentController {
   @Autowired
   DeploymentService deploymentService;
 
+  @Autowired
+  GenerateService generateService;
+
   @RequestMapping(value = "/{deployment:.+}", method = RequestMethod.GET)
   DeploymentConfiguration deploymentConfiguration(@PathVariable String deployment) {
     NodeReference reference = new NodeReference().setDeployment(deployment);
@@ -42,5 +46,12 @@ public class DeploymentController {
   @RequestMapping(value = "/", method = RequestMethod.GET)
   List<DeploymentConfiguration> deploymentConfigurations() {
     return deploymentService.getAllDeploymentConfigurations();
+  }
+
+  @RequestMapping(value = "/{deployment:.+}/generate/", method = RequestMethod.POST)
+  Void generateConfig(@PathVariable String deployment) {
+    NodeReference reference = new NodeReference().setDeployment(deployment);
+    generateService.generateConfig(reference);
+    return null;
   }
 }

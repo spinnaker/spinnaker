@@ -18,7 +18,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractNamedProviderCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -29,14 +29,8 @@ import java.util.Map;
  * Interact with the kubernetes provider
  */
 @Parameters()
-public class KubernetesCommand extends AbstractProviderCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
-
-  @Getter(AccessLevel.PROTECTED)
-  private String providerName = "kubernetes";
-
-  public KubernetesCommand() {
-    super();
+public class KubernetesCommand extends AbstractNamedProviderCommand {
+  protected String getProviderName() {
+    return "kubernetes";
   }
 }

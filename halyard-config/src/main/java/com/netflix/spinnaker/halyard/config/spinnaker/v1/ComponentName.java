@@ -24,15 +24,35 @@ public enum ComponentName {
   FRONT50("front50"),
   GATE("gate"),
   IGOR("igor"),
-  ROSCO("rosco");
+  ROSCO("rosco"),
+  SPINNAKER("spinnaker");
 
   String id;
+
+  String filetype = "yml";
+
+  String profilePrefix;
 
   public String getId() {
     return id;
   }
 
+  public String getProfile(String profileName) {
+    return profilePrefix + "-" + profileName + "." + filetype;
+  }
+
+  public String getProfile() {
+    return profilePrefix + "." + filetype;
+  }
+
   ComponentName(String id) {
+    if (id.equals("deck")) {
+      filetype = "js";
+      profilePrefix = "settings";
+    } else {
+      profilePrefix = id;
+    }
+
     this.id = id;
   }
 }

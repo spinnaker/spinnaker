@@ -30,6 +30,10 @@ __hal__ is a CLI for making changes to your __halconfig__ via the __daemon__.
 
 ### hal config
 
+The `hal config` set of commands are used to operate on your __halconfig__ file.
+
+#### hal config provider
+
 To examine a particular cloud provider's configuration, run:
 
 ```
@@ -54,4 +58,13 @@ You can also enable/disable providers:
 ```
 $ hal config provider PROVIDER enable
 $ hal config provider PROVIDER disable
+```
+
+#### hal config generate
+
+Once your config is ready to be deployed, you can automatically generate all of
+Spinnaker's config with this command
+
+```
+$ hal config generate
 ```

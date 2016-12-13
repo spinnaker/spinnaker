@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 
 public class DockerRegistryProvider extends Provider<DockerRegistryAccount> {
   @Override
