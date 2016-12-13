@@ -43,6 +43,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   String jobType
   int retries
   int runtimeLimitSecs
+  Boolean useApplicationDefaultSecurityGroup = true
 
   @Canonical
   static class Capacity {
