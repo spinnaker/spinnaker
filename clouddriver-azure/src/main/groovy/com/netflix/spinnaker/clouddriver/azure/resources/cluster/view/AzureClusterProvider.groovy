@@ -186,9 +186,9 @@ class AzureClusterProvider implements ClusterProvider<AzureCluster> {
     serverGroup
   }
 
-  private static Set<AzureInstance> translateInstances(Collection<CacheData> instanceData) {
+  private Set<AzureInstance> translateInstances(Collection<CacheData> instanceData) {
     def instances = instanceData?.collect { instanceEntry ->
-        new AzureInstance(instanceEntry.attributes.instance)
+      objectMapper.convertValue(instanceEntry.attributes.instance, AzureInstance)
     } ?: []
     // TODO (scotm) add health info to instances
     instances as Set

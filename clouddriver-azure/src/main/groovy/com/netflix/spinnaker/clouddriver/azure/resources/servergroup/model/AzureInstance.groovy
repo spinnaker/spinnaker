@@ -29,15 +29,11 @@ class AzureInstance implements Instance, Serializable {
   String vhd
   HealthState healthState
   Long launchTime
-  String zone
+  final String zone = 'N/A'
   String instanceType
   List<Map<String, String>> health
   final String providerType = AzureCloudProvider.ID
   final String cloudProvider = AzureCloudProvider.ID
-
-  AzureInstance(){
-    zone = 'N/A'
-  }
 
   static AzureInstance build(VirtualMachineScaleSetVM vm) {
     AzureInstance instance = new AzureInstance()
