@@ -29,6 +29,7 @@ import command_processor
 import http_server
 import spectator_client
 import spectator_client_test as sample_data
+from spectator_client_test import args_to_options
 import spectator_handlers
 
 # pylint: disable=invalid-name
@@ -57,9 +58,11 @@ def TD(cells, rowspan=None):
 
 class MetricCollectorHandlersTest(unittest.TestCase):
   def setUp(self):
-    self.options = {'prototype_path': None,
-                    'host': 'spectator_hostname',
-                    'services': ['clouddriver', 'gate']}
+    self.options = args_to_options(
+        ['--host=spectator_hostname',
+         '--service_hosts=',
+         '--clouddriver=spectator_hostname',
+         '--gate=spectator_hostname'])
     command_processor.set_global_options(self.options)
 
     self.spectator = spectator_client.SpectatorClient(self.options)
@@ -74,15 +77,25 @@ class MetricCollectorHandlersTest(unittest.TestCase):
   @patch('spectator_client.urllib2.urlopen')
   def test_dump_handler_default(self, mock_urlopen):
     expected_by_service = {
-        'clouddriver': sample_data.CLOUDDRIVER_RESPONSE_OBJ,
-        'gate': sample_data.GATE_RESPONSE_OBJ
+        'clouddriver': [sample_data.CLOUDDRIVER_RESPONSE_OBJ],
+        'gate': [sample_data.GATE_RESPONSE_OBJ]
     }
-    mock_urlopen.side_effect = [self.mock_clouddriver_response,
-                                self.mock_gate_response]
+    expected_by_service['clouddriver'][0].update({
+      '__host': 'spectator_hostname',
+      '__port': 7002
+      })
+    expected_by_service['gate'][0].update({
+      '__host': 'spectator_hostname',
+      '__port': 8084
+      })
+
+    mock_urlopen.side_effect = [self.mock_gate_response,
+                                self.mock_clouddriver_response]
 
     dump = spectator_handlers.DumpMetricsHandler(None, None, None)
+
     params = dict(self.options)
-    params['services'] = ','.join(params['services'])
+    params['services'] = 'clouddriver,gate'
     dump.process_web_request(self.mock_request, '/dump', params, '')
     called_with = self.mock_request.respond.call_args[0]
     self.assertEqual(200, called_with[0])
@@ -93,7 +106,7 @@ class MetricCollectorHandlersTest(unittest.TestCase):
   def test_explore_to_service_tag_one(self):
     klass = spectator_handlers.ExploreCustomDescriptorsHandler
     type_map = spectator_client.SpectatorClient.service_map_to_type_map(
-        {'clouddriver': sample_data.CLOUDDRIVER_RESPONSE_OBJ})
+        {'clouddriver': [sample_data.CLOUDDRIVER_RESPONSE_OBJ]})
     service_tag_map, services = klass.to_service_tag_map(type_map)
     expect = {
         'jvm.buffer.memoryUsed': {
@@ -112,7 +125,7 @@ class MetricCollectorHandlersTest(unittest.TestCase):
   def test_explore_to_service_tag_map_two(self):
     klass = spectator_handlers.ExploreCustomDescriptorsHandler
     type_map = spectator_client.SpectatorClient.service_map_to_type_map(
-        {'clouddriver': sample_data.CLOUDDRIVER_RESPONSE_OBJ})
+        {'clouddriver': [sample_data.CLOUDDRIVER_RESPONSE_OBJ]})
     spectator_client.SpectatorClient.ingest_metrics(
         'gate', sample_data.GATE_RESPONSE_OBJ, type_map)
     usage, services = klass.to_service_tag_map(type_map)
@@ -155,11 +168,11 @@ class MetricCollectorHandlersTest(unittest.TestCase):
     klass = spectator_handlers.ExploreCustomDescriptorsHandler
     explore = klass(None, None, None)
 
-    mock_urlopen.side_effect = [self.mock_clouddriver_response,
-                                self.mock_gate_response]
+    mock_urlopen.side_effect = [self.mock_gate_response,
+                                self.mock_clouddriver_response]
 
     params = dict(self.options)
-    params['services'] = ','.join(params['services'])
+    params['services'] = 'clouddriver'
 
     explore.process_web_request(self.mock_request, '/explore', params, '')
     called_with = self.mock_request.respond.call_args[0]

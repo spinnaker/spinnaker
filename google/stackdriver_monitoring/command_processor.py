@@ -106,7 +106,7 @@ class CommandHandler(object):
     query_list = ['{0}={1}'.format(key, value) for key, value in params.items()]
     return '?{0}'.format('&'.join(query_list)) if query_list else ''
 
-  def process_commandline_request(self, options):
+  def process_commandline_request(self, options, **kwargs):
     """Processes the command from a commandline request.
 
     Output (as opposed to logging) should be emitted using output()

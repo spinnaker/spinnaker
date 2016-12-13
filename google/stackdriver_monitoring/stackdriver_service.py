@@ -41,7 +41,8 @@ def get_aws_identity_document():
   try:
     response = urllib2.urlopen(request)
   except IOError as ioex:
-    logging.info('Cannot read AWS Identity Document, probably not on Amazon Web Services.'
+    logging.info('Cannot read AWS Identity Document,'
+                 ' probably not on Amazon Web Services.'
                  ' url=%s: %s', url, ioex)
     raise ioex
   return json.JSONDecoder().decode(response.read())
@@ -54,7 +55,8 @@ def get_google_metadata(attribute):
   try:
     response = urllib2.urlopen(request)
   except IOError as ioex:
-    logging.info('Cannot read google metadata, probably not on Google Cloud Platform.'
+    logging.info('Cannot read google metadata,'
+                 ' probably not on Google Cloud Platform.'
                  ' url=%s: %s', url, ioex)
     raise ioex
 
@@ -110,7 +112,7 @@ class StackdriverMetricsService(object):
         'aws_account': doc['accountId'],
         'project_id': self.__project
        }
-    except (IOError, ValueError, KeyError) as ioex:
+    except (IOError, ValueError, KeyError):
       return None
 
   def __google_monitored_resource_or_none(self):
@@ -134,9 +136,9 @@ class StackdriverMetricsService(object):
             'instance_id': str(instance_id)
         }
       }
-    except IOError as ioex:
+    except IOError:
       return None
-    
+
   def __init__(self, stub_factory, options):
     """Constructor.
 
@@ -341,7 +343,7 @@ class StackdriverMetricsService(object):
     }
     if self.__add_source_tag:
       metric['labels']['InstanceSrc'] = '{host}:{port}'.format(
-          host=service_metadata['host'], port=service_metadata['port'])
+          host=service_metadata['__host'], port=service_metadata['__port'])
 
     points = [{'interval': {'endTime': self.millis_to_time(e['t'])},
                'value': {'doubleValue': e['v']}}
@@ -375,9 +377,11 @@ def make_service(options):
     http = apiclient.http.set_user_agent(
         http, 'SpinnakerStackdriverAgent/0.001')
     if credentials_path:
+      logging.info('Using Stackdriver Credentials from "%s"', credentials_path)
       credentials = ServiceAccountCredentials.from_json_keyfile_name(
             credentials_path, scopes=StackdriverMetricsService.WRITE_SCOPE)
     else:
+      logging.info('Using Stackdriver Credentials from application default.')
       credentials = GoogleCredentials.get_application_default()
 
     http = credentials.authorize(http)

@@ -18,6 +18,7 @@ import json
 import logging
 
 from command_processor import CommandHandler
+from command_processor import get_global_options
 import http_server
 import stackdriver_service
 from stackdriver_service import StackdriverMetricsService
@@ -103,7 +104,8 @@ class BatchProcessor(object):
     """Create a response for the caller to ultimately send."""
     if as_html:
       html_rows = [('<tr><td>{0}</td><td>{1}</td></tr>\n'
-                    .format(self.__get_name(i), self.batch_response[i]))
+                    .format(self.__get_name(self.__data_list[i]),
+                            self.batch_response[i]))
                    for i in range(self.__num_data)]
       html_body = '{0} {1} of {2}:\n<table>\n{3}\n</table>'.format(
           action, self.num_ok, self.__num_data, '\n'.join(html_rows))
@@ -157,7 +159,9 @@ class ListCustomDescriptorsHandler(BaseStackdriverCommandHandler):
     self.output(options, json_text)
 
   def process_web_request(self, request, path, params, fragment):
-    descriptor_list = self.__get_descriptor_list(params)
+    options = dict(get_global_options())
+    options.update(params)
+    descriptor_list = self.__get_descriptor_list(options)
 
     if accepts_content_type(request, 'text/html'):
       html = self.descriptors_to_html(descriptor_list)
@@ -237,7 +241,9 @@ class ClearCustomDescriptorsHandler(BaseStackdriverCommandHandler):
 
   def process_web_request(self, request, path, params, fragment):
     """Implements CommandHandler."""
-    type_map, processor = self.__do_clear(params)
+    options = dict(get_global_options())
+    options.update(params)
+    type_map, processor = self.__do_clear(options)
     response_code = (httplib.OK if processor.num_ok == len(type_map)
                      else httplib.INTERNAL_SERVER_ERROR)
     headers, body = processor.make_response(

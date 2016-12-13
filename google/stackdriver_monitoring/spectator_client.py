@@ -16,13 +16,10 @@
 
 import json
 import logging
-import os
 import threading
 import time
 import socket
 import urllib2
-
-import spinnaker.yaml_util as yaml_util
 
 
 def __foreach_metric_tag_binding(
@@ -35,13 +32,14 @@ def __foreach_metric_tag_binding(
 
 def foreach_metric_in_service_map(
     service_map, visitor, *visitor_pos_args, **visitor_kwargs):
-  for service, service_metrics in service_map.items():
-    if service_metrics is None:
+  for service, service_metric_list in service_map.items():
+    if not service_metric_list:
       continue
-    for metric_name, metric_data in service_metrics['metrics'].items():
-      __foreach_metric_tag_binding(
-          service, metric_name, metric_data, service_metrics,
-          visitor, visitor_pos_args, visitor_kwargs)
+    for service_metrics in service_metric_list:
+      for metric_name, metric_data in service_metrics['metrics'].items():
+        __foreach_metric_tag_binding(
+            service, metric_name, metric_data, service_metrics,
+            visitor, visitor_pos_args, visitor_kwargs)
 
 
 def normalize_name_and_tags(name, metric_instance, metric_metadata):
@@ -59,8 +57,60 @@ def normalize_name_and_tags(name, metric_instance, metric_metadata):
   return name, tags
 
 
+def _collect_endpoints(service, options, default_host_list):
+  result = []
+  all_netlocs = options.get(service, '').split(',')
+  for netloc in all_netlocs:
+    host_port = netloc.split(':')
+    if not host_port or not host_port[0]:
+      continue
+    if len(host_port) > 2:
+      raise ValueError('Invalid network location for "{0}": {1}'
+                       .format(service, netloc))
+    if len(host_port) == 1:
+      host_port.append(SpectatorClient.DEFAULT_SERVICE_PORT_MAP[service])
+    else:
+      try:
+        host_port[1] = int(host_port[1])
+      except ValueError:
+        pass  # allow named ports
+
+    if host_port[0] == SpectatorClient.ALL_HOSTS:
+      if default_host_list:
+        result.extend([(host, host_port[1])
+                       for host in default_host_list])
+    else:
+      result.append((host_port[0], host_port[1]))
+
+  return result
+
+
+def determine_service_endpoints(options):
+  """Determine the list of spectator endpoints to poll.
+
+  Args:
+    options: [dict] The configuration options dictionary.
+    See SpectatorClient.add_standard_parser_arguments
+
+  Returns:
+    A dictionary of endpoint lists keyed by service of interest.
+  """
+  result = {}
+  default_host_list = [name
+                       for name in options.get('service_hosts', '').split(',')
+                       if name]
+  all_services = SpectatorClient.DEFAULT_SERVICE_PORT_MAP.keys()
+  for service in all_services:
+    endpoints = _collect_endpoints(service, options, default_host_list)
+    if endpoints:
+      result[service] = endpoints
+  return result
+
+
 class SpectatorClient(object):
   """Helper class for pulling data from Spectator servers."""
+
+  ALL_HOSTS = '*'
 
   DEFAULT_SERVICE_PORT_MAP = {
     'clouddriver': 7002,
@@ -75,25 +125,35 @@ class SpectatorClient(object):
 
   @staticmethod
   def add_standard_parser_arguments(parser):
+    def add_microservice(parser, service):
+      parser.add_argument(
+          '--' + service, default=SpectatorClient.ALL_HOSTS,
+          help=('A comma-delimited list of {service} endpoints.'
+                ' Each endpoint is in the form <host>[:port].'
+                ' The default is "{all}" indicating all --service_hosts'
+                .format(service=service, all=SpectatorClient.ALL_HOSTS)))
+
     parser.add_argument('--host', default='localhost',
                         help='The hostname of the spectator services '
                         ' containing the services.')
     parser.add_argument('--prototype_path', default='',
-                        help='Optional filter to restrict metrics of interst.')
-    parser.add_argument('services', nargs='*', default=['all'],
-                        help='The list of services to include, or "all"')
+                        help='Optional filter to restrict metrics of interest.')
+    for service in SpectatorClient.DEFAULT_SERVICE_PORT_MAP.keys():
+      add_microservice(parser, service)
+
+    parser.add_argument(
+        '--service_hosts', default='localhost',
+        help=('A comma delimited list of hostnames to poll.'
+              ' An empty list indicates do not poll any by default;'
+              ' each service will explicitly declare its sources, if any.'))
 
   def __init__(self, options):
     self.__host = options['host']
     self.__prototype = None
     self.__default_scan_params = {'tagNameRegex': '.+'}
-    install_config_dir = os.path.join(
-        os.path.join(os.path.dirname(__file__)), '../../config')
-    user_config_dir = os.path.join(os.environ['HOME'], '.spinnaker')
-    self.__bindings = yaml_util.load_bindings(
-        install_config_dir, user_config_dir)
 
     if options['prototype_path']:
+      # pylint: disable=invalid-name
       with open(options['prototype_path']) as fd:
         self.__prototype = json.JSONDecoder().decode(fd.read())
 
@@ -114,14 +174,16 @@ class SpectatorClient(object):
     for key, value in query_params.items():
       query += sep + key + "=" + urllib2.quote(value)
       sep = "&"
+
     url = 'http://{host}:{port}/spectator/metrics{query}'.format(
         host=host, port=port, query=query)
     response = urllib2.urlopen(url)
     all_metrics = json.JSONDecoder(encoding='utf-8').decode(response.read())
-    all_metrics['port'] = port
-    all_metrics['host'] = (socket.getfqdn()
-                           if host in ['localhost', '127.0.0.1', None, '']
-                           else host)
+    all_metrics['__port'] = port
+    all_metrics['__host'] = (socket.getfqdn()
+                             if host in ['localhost', '127.0.0.1', None, '']
+                             else host)
+
     return (self.filter_metrics(all_metrics, self.__prototype)
             if self.__prototype else all_metrics)
 
@@ -151,6 +213,7 @@ class SpectatorClient(object):
       keep_values = []
       def have_tags(expect_tags, got_tags):
         for wanted_set in expect_tags:
+          # pylint: disable=invalid-name
           ok = True
           for want in wanted_set:
             if want not in got_tags:
@@ -176,59 +239,61 @@ class SpectatorClient(object):
     result['metrics'] = filtered
     return result
 
-  def scan_by_service(self, service_list, params=None):
+  def scan_by_service(self, service_endpoints, params=None):
     result = {}
-    if service_list == ['all']:
-      service_list = self.DEFAULT_SERVICE_PORT_MAP.keys()
 
     start = time.time()
-    service_time = {service: 0 for service in service_list}
-    result = {service: None for service in service_list}
+    service_time = {service: 0 for service in service_endpoints}
+    result = {service: None for service in service_endpoints.keys()}
     threads = {}
 
-    def timed_collect(self, service):
+    def timed_collect(self, service, endpoints):
       now = time.time()
-      try:
-        default_host = self.__bindings.get('services.default.host', self.__host)
-        service_host = self.__bindings.get('services.{0}.host'.format(service),
-                                           default_host)
-        service_port = self.__bindings.get('services.{0}.port'.format(service),
-                                           self.DEFAULT_SERVICE_PORT_MAP[service])
-        result[service] = self.collect_metrics(
-            service_host, service_port, params=params)
-      except IOError as ioex:
-        logging.getLogger(__name__).error('%s failed: %s', service, ioex)
+      endpoint_data_list = []
+      for service_host, service_port in endpoints:
+        try:
+          endpoint_data_list.append(self.collect_metrics(
+              service_host, service_port, params=params))
+        except IOError as ioex:
+          logging.getLogger(__name__).error(
+              '%s failed %s:%s with %s',
+              service, service_host, service_port, ioex)
+
+      result[service] = endpoint_data_list
       service_time[service] = int((time.time() - now) * 1000)
 
-    for service in service_list:
+    for service, endpoints in service_endpoints.items():
       threads[service] = threading.Thread(
           target=timed_collect,
-          args=(self, service))
+          args=(self, service, endpoints))
       threads[service].start()
-    for service in service_list:
+    for service in service_endpoints.keys():
       threads[service].join()
 
     logging.info('Collection times %d (ms): %s',
                  (time.time() - start) * 1000, service_time)
     return result
 
-  def scan_by_type(self, service_list, params=None):
-    service_map = self.scan_by_service(service_list, params=params)
+  def scan_by_type(self, service_endpoints, params=None):
+    service_map = self.scan_by_service(service_endpoints, params=params)
     return self.service_map_to_type_map(service_map)
 
   @staticmethod
-  def ingest_metrics(service, service_response, type_map):
-    """Add JSON metrics |response| from |service| name and add to |type_map|"""
-    for key, value in service_response['metrics'].items():
+  def ingest_metrics(service, response_data, type_map):
+    """Add JSON |metric_data| from |service| name and add to |type_map|"""
+    metric_data = response_data.get('metrics', {})
+    for key, value in metric_data.items():
       if key in type_map:
-        type_map[key][service] = value
+        have = type_map[key].get(service, [])
+        have.append(value)
+        type_map[key][service] = have
       else:
-        type_map[key] = {service: value}
+        type_map[key] = {service: [value]}
 
   @staticmethod
   def service_map_to_type_map(service_map):
     type_map = {}
-    for service, got in service_map.items():
-      if got is not None:
+    for service, got_from_each_endpoint in service_map.items():
+      for got in got_from_each_endpoint or []:
         SpectatorClient.ingest_metrics(service, got, type_map)
     return type_map
