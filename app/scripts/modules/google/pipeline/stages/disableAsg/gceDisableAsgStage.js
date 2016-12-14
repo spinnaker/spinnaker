@@ -1,11 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/pipeline/config/stages/stageConstants.js'),
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {
@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('gceDisableAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('gceDisableAsgStageCtrl', function($scope, accountService) {
 
     let stage = $scope.stage;
 
@@ -40,7 +40,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
       $scope.state.accounts = true;
     });
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';

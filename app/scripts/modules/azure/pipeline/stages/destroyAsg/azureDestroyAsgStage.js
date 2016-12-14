@@ -1,12 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.azure.destroyAsgStage', [
-  ACCOUNT_SERVICE,
-  require('core/pipeline/config/stages/stageConstants.js'),
-])
+module.exports = angular.module('spinnaker.core.pipeline.stage.azure.destroyAsgStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
@@ -25,7 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.destroyAsgS
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('azureDestroyAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('azureDestroyAsgStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -48,7 +47,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.destroyAsgS
       });
     };
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'azure';

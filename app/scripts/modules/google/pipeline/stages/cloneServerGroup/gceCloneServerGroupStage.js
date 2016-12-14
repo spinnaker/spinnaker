@@ -1,9 +1,9 @@
 'use strict';
 
 import _ from 'lodash';
-
 let angular = require('angular');
 
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 
@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.cloneServerGr
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('gceCloneServerGroupStageCtrl', function($scope, accountService, namingService, stageConstants) {
+  }).controller('gceCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
 
     let stage = $scope.stage;
 
@@ -40,7 +40,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.cloneServerGr
       $scope.viewState.accountsLoaded = true;
     });
 
-    this.cloneTargets = stageConstants.targetList;
+    this.cloneTargets = StageConstants.TARGET_LIST;
     stage.target = stage.target || this.cloneTargets[0].val;
     stage.application = $scope.application.name;
     stage.cloudProvider = 'gce';

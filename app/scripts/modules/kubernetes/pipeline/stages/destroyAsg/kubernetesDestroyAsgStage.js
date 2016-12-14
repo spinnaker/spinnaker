@@ -1,10 +1,9 @@
 'use strict';
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.destroyAsgStage', [
-  require('core/pipeline/config/stages/stageConstants.js'),
-])
+module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.destroyAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
@@ -23,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.destro
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('kubernetesDestroyAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('kubernetesDestroyAsgStageCtrl', function($scope, accountService) {
 
     let stage = $scope.stage;
 
@@ -38,7 +37,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.destro
       $scope.state.accounts = true;
     });
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     stage.namespaces = stage.namespaces || [];
     stage.cloudProvider = 'kubernetes';

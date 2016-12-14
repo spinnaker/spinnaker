@@ -1,12 +1,12 @@
 'use strict';
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
   require('core/serverGroup/serverGroup.read.service.js'),
   require('core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
   require('core/cloudProvider/cloudProvider.registry.js'),
-  require('../stageConstants.js'),
 ])
   .config(function (pipelineConfigProvider, cloudProviderRegistryProvider) {
     pipelineConfigProvider.registerStage({
@@ -38,7 +38,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
     });
   })
   .controller('DeployStageCtrl', function ($injector, $scope, $uibModal, stage, namingService, providerSelectionService,
-                                           cloudProviderRegistry, serverGroupCommandBuilder, serverGroupTransformer, stageConstants) {
+                                           cloudProviderRegistry, serverGroupCommandBuilder, serverGroupTransformer) {
     $scope.stage = stage;
 
     function initializeCommand() {
@@ -153,10 +153,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
 
     initializeCommand();
 
-    $scope.trafficOptions = stageConstants.strategyTrafficOptions;
+    $scope.trafficOptions = StageConstants.STRATEGY_TRAFFIC_OPTIONS;
 
     if ($scope.pipeline.strategy) {
-      $scope.stage.trafficOptions = $scope.stage.trafficOptions || stageConstants.strategyTrafficOptions[0].val;
+      $scope.stage.trafficOptions = $scope.stage.trafficOptions || $scope.trafficOptions[0].val;
     }
 
   });

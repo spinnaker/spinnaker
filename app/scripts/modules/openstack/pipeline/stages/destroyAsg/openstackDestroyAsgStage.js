@@ -1,10 +1,9 @@
 'use strict';
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.destroyAsgStage', [
-  require('core/pipeline/config/stages/stageConstants.js'),
-])
+module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.destroyAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
@@ -23,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.destroy
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('openstackDestroyAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('openstackDestroyAsgStageCtrl', function($scope, accountService) {
 
     let stage = $scope.stage;
 
@@ -37,7 +36,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.destroy
       $scope.state.accounts = true;
     });
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'openstack';
