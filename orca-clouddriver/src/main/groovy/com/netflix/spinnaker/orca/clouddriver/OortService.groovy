@@ -68,6 +68,14 @@ public interface OortService {
                       @Path("id") String id,
                       @Body String details)
 
+  @GET("/applications/{app}/jobs/{account}/{region}/{id}/{fileName}")
+  Map<String, Object> getFileContents(@Path("app") String app,
+                         @Path("account") String account,
+                         @Path("region") String region,
+                         @Path("id") String id,
+                         @Path("fileName") String fileName)
+
+
   @GET("/search")
   Response getSearchResults(@Query("q") String searchTerm,
                             @Query("type") String type,
@@ -127,7 +135,7 @@ public interface OortService {
       String entityId
 
       @JsonAnyGetter
-      Map<String,Object> attributes() {
+      Map<String, Object> attributes() {
         return attributes;
       }
 
