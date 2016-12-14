@@ -17,3 +17,4 @@ if [[ $NODE_VERSION != $npm_package_engines_node ]]; then
   fi
 fi
 
+npm run start-dev-server
