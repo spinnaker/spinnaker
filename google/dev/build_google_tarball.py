@@ -112,8 +112,10 @@ class Builder(object):
       return
 
     print 'Deleting snapshot {name}-snapshot'.format(name=self.__instance)
-    check_run_quick('gcloud {account} compute snapshots delete -q {name}-snapshot'
-                    .format(account=self.__gcloud_account_arg, name=self.__instance),
+    check_run_quick('gcloud {account} compute snapshots delete -q {name}-snapshot --project={project}'
+                    .format(account=self.__gcloud_account_arg,
+                            name=self.__instance,
+                            project=self.__project),
                     echo=False)
 
     print 'Deleting instance {name}'.format(name=self.__instance)
