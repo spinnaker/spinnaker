@@ -3,12 +3,13 @@
 import _ from 'lodash';
 
 let angular = require('angular');
+import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 
 require('./projectCluster.less');
 
 module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.projectCluster.directive', [
   require('core/account/collapsibleAccountTag.directive.js'),
-  require('core/navigation/urlBuilder.service.js'),
+  URL_BUILDER_SERVICE,
   require('core/cache/collapsibleSectionStateCache.js'),
   require('../../../cluster/filter/clusterFilter.service.js'),
   require('core/utils/timeFormatters.js'),
