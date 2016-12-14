@@ -101,11 +101,13 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   }
 
   @Bean
+  @ConditionalOnBean(ApplicationPermissionDAO)
   ItemDAOHealthIndicator applicationPermissionDAOHealthIndicator(ApplicationPermissionDAO applicationPermissionDAO) {
     return new ItemDAOHealthIndicator(itemDAO: applicationPermissionDAO)
   }
 
   @Bean
+  @ConditionalOnBean(ServiceAccountDAO)
   ItemDAOHealthIndicator serviceAccountDAOHealthIndicator(ServiceAccountDAO serviceAccountDAO) {
     return new ItemDAOHealthIndicator(itemDAO: serviceAccountDAO)
   }
