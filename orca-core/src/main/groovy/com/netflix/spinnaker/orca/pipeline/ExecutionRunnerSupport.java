@@ -32,8 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import static com.google.common.collect.Lists.reverse;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage;
-import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.HEAD;
-import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.TAIL;
+import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.*;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
@@ -181,6 +180,9 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
 
   // TODO: change callback type to Consumer<TaskDefinition>
   protected <T extends Execution<T>> void planTasks(Stage<T> stage, TaskNode.TaskGraph taskGraph, Consumer<com.netflix.spinnaker.orca.pipeline.model.Task> callback) {
+    if (taskGraph.isEmpty()) {
+      taskGraph = TaskNode.singleton(FULL, "no-op", NoOpTask.class);
+    }
     for (ListIterator<TaskNode> itr = taskGraph.listIterator(); itr.hasNext(); ) {
       boolean isStart = !itr.hasPrevious();
       // do this after calling itr.hasPrevious because ListIterator is stupid

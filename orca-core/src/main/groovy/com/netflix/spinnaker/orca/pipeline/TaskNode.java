@@ -57,6 +57,10 @@ public interface TaskNode {
     return builder.build();
   }
 
+  static TaskGraph emptyGraph(GraphType type) {
+    return build(type, builder -> {});
+  }
+
   static TaskGraph singleton(GraphType type, String name, Class<? extends com.netflix.spinnaker.orca.Task> implementingClass) {
     return build(type, builder -> builder.withTask(name, implementingClass));
   }
