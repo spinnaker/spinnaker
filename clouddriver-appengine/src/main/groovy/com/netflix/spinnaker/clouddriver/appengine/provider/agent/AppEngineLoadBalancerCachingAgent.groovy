@@ -110,7 +110,7 @@ class AppEngineLoadBalancerCachingAgent extends AbstractAppEngineCachingAgent im
       metricsSupport.onDemandStore {
         def cacheData = new DefaultCacheData(
           loadBalancerKey,
-          TimeUnit.MINUTES.toSeconds(10) as Integer,
+          TimeUnit.MINUTES.toSeconds(10) as int,
           [
             cacheTime: System.currentTimeMillis(),
             cacheResults: jsonResult,
