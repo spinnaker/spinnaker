@@ -52,6 +52,21 @@ class JobController {
     jobMatches.first()
   }
 
+
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")  @ApiOperation(value = "Collect a file from a job", notes = "Collects the file result of a job.")
+  @RequestMapping(value = "/{account}/{location}/{id}/{fileName}", method = RequestMethod.GET)
+  Map<String, Object> getFileContents(
+                       @ApiParam(value = "Application name", required = true) @PathVariable String application,
+                       @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
+                       @ApiParam(value = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
+                       @ApiParam(value = "Unique identifier of job being looked up", required = true) @PathVariable String id,
+                       @ApiParam(value = "File name to look up", required = true) @PathVariable String fileName
+  ) {
+    jobProviders.findResults {
+      it.getFileContents(account, location, id, fileName)
+    }.first()
+  }
+
   static class JobNotFoundException extends RuntimeException {
     String name
   }

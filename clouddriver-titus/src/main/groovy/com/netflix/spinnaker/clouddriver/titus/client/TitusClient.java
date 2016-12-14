@@ -96,7 +96,7 @@ public interface TitusClient {
      * @param taskId
      * @return
      */
-    public Logs getLogs(String taskId);
+    public Map logsDownload(String taskId);
 
     /**
      *

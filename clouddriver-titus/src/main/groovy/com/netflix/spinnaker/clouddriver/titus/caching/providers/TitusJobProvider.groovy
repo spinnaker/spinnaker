@@ -16,14 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.titus.caching.providers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.model.JobProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.model.TitusJobStatus
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.SSLSession
 
 @Component
 class TitusJobProvider implements JobProvider<TitusJobStatus> {
@@ -31,6 +37,17 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
   String platform = "titus"
 
   TitusClientProvider titusClientProvider
+
+  @Autowired
+  ObjectMapper objectMapper
+
+  OkHttpClient client = new OkHttpClient.Builder()
+    .hostnameVerifier(new HostnameVerifier() {
+    @Override
+    boolean verify(String hostname, SSLSession session) {
+      true
+    }
+  }).build();
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -45,6 +62,26 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
     TitusClient titusClient = titusClientProvider.getTitusClient(accountCredentialsProvider.getCredentials(account), location)
     Job job = titusClient.getJob(id)
     new TitusJobStatus(job, account, location)
+  }
+
+  @Override
+  Map<String, Object> getFileContents(String account, String location, String id, String fileName) {
+    TitusClient titusClient = titusClientProvider.getTitusClient(accountCredentialsProvider.getCredentials(account), location)
+    Job job = titusClient.getJob(id)
+    Map files = titusClient.logsDownload(job.tasks.last().id)
+    if (!files.containsKey(fileName)) {
+      throw new RuntimeException("File ${fileName} not found for task ${job.tasks.last().id}")
+    }
+    def fileContents = client.newCall(new Request.Builder().url(files.get(fileName) as String).build()).execute().body().byteStream()
+    Map results = [:]
+    if (fileName.endsWith('.json')) {
+      results = objectMapper.readValue(fileContents, Map)
+    } else {
+      Properties propertiesFile = new Properties()
+      propertiesFile.load(fileContents)
+      results = results << propertiesFile
+    }
+    results
   }
 
 }
