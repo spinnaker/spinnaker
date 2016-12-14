@@ -43,6 +43,11 @@ class GoogleBackendService {
   Integer affinityCookieTtlSec
   GoogleLoadBalancingScheme loadBalancingScheme
 
+  /**
+   * Specifies whether edge caching is enabled or not. Only applicable for Https LBs.
+   */
+  Boolean enableCDN
+
   // Note: This enum has non-standard style constants because we use these constants as strings directly
   // in the redis cache keys for backend services, where we want to avoid underscores and camelcase is the norm.
   static enum BackendServiceKind {

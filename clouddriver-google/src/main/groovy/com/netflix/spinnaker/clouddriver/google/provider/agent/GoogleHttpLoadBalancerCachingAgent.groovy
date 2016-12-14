@@ -381,6 +381,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
       backendServicesToUpdate.each { GoogleBackendService service ->
         service.sessionAffinity = GoogleSessionAffinity.valueOf(backendService.sessionAffinity)
         service.affinityCookieTtlSec = backendService.affinityCookieTtlSec
+        service.enableCDN = backendService.enableCDN
         service.backends = backendService.backends?.collect { Backend backend ->
           new GoogleLoadBalancedBackend(
               serverGroupUrl: backend.group,

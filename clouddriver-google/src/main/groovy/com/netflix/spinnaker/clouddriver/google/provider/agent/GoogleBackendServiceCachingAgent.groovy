@@ -84,6 +84,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
         attributes.sessionAffinity = backendService.sessionAffinity
         attributes.affinityCookieTtlSec = backendService.affinityCookieTtlSec
         attributes.region = backendService.region
+        attributes.enableCDN = backendService.enableCDN
       }
     }
 
@@ -99,6 +100,7 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
       healthCheckLink: bs.healthChecks[0],
       sessionAffinity: bs.sessionAffinity,
       affinityCookieTtlSec: bs.affinityCookieTtlSec,
+      enableCDN: bs.enableCDN,
       region: bs.region ?: 'global'
     )
   }
