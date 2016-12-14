@@ -6,7 +6,7 @@ import {APPENGINE_HELP_CONTENTS_REGISTRY} from './helpContents/appengineHelpCont
 import {APPENGINE_LOAD_BALANCER_MODULE} from './loadBalancer/loadBalancer.module';
 import {APPENGINE_SERVER_GROUP_BASIC_SETTINGS_CTRL} from './serverGroup/configure/wizard/basicSettings.controller';
 import {APPENGINE_SERVER_GROUP_COMMAND_BUILDER} from './serverGroup/configure/serverGroupCommandBuilder.service';
-import {APPENGINE_SERVER_GROUP_DETAILS_CONTROLLER} from './serverGroup/details/appengine.details.controller';
+import {APPENGINE_SERVER_GROUP_DETAILS_CONTROLLER} from './serverGroup/details/details.controller';
 import {APPENGINE_SERVER_GROUP_TRANSFORMER} from './serverGroup/transformer';
 
 let templates = require.context('./', true, /\.html$/);

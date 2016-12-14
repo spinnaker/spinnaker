@@ -60,6 +60,26 @@
         <dd>{{ctrl.serverGroup.region}}</dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Size" expanded="true">
+      <dl class="dl-horizontal"
+          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+          ng-if="ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max">
+        <dt>Min/Max</dt>
+        <dd>{{ctrl.serverGroup.capacity.min}}</dd>
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+      <dl class="dl-horizontal"
+          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+          ng-if="ctrl.serverGroup.capacity.min !== ctrl.serverGroup.capacity.max">
+        <dt>Min</dt>
+        <dd>{{ctrl.serverGroup.capacity.min}}</dd>
+        <dt>Max</dt>
+        <dd>{{ctrl.serverGroup.capacity.max}}</dd>
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
       <dl class="dl-horizontal"
           ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
