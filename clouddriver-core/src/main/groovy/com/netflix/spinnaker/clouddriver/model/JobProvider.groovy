@@ -20,4 +20,7 @@ public interface JobProvider<T extends JobStatus> {
   String getPlatform()
 
   T collectJob(String account, String location, String id)
+
+  Map<String, Object> getFileContents(String account, String location, String id, String fileName)
+
 }

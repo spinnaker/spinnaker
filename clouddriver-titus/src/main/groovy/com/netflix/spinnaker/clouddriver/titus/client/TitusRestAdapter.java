@@ -62,8 +62,8 @@ public interface TitusRestAdapter {
     @POST("/api/v2/tasks/kill")
     Call<Void> terminateTasksAndShrink(@Body TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJobRequest);
 
-    @GET("/v2/logs/{taskId}")
-    Call<Logs> getLogs(@Path("taskId") String taskId);
+    @GET("/api/v2/logs/download/{taskId}")
+    Call<Map> logsDownload(@Path("taskId") String taskId);
 
     @POST("/v2/jobs/setinstancecounts")
     Call<Void> resizeJob(@Body ResizeJobRequest resizeJob);

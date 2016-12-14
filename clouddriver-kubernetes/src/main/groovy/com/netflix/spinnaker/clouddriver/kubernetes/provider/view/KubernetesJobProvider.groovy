@@ -41,4 +41,10 @@ class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
     }
     return status
   }
+
+  @Override
+  Map<String, Object> getFileContents(String account, String location, String id, String fileName){
+    return [:]
+  }
+
 }

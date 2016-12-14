@@ -245,8 +245,8 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     @Override
-    public Logs getLogs(String taskId) {
-        return execute("getLogs", titusRestAdapter.getLogs(taskId));
+    public Map logsDownload(String taskId) {
+      return execute("logsDownload", titusRestAdapter.logsDownload(taskId));
     }
 
     @Override
