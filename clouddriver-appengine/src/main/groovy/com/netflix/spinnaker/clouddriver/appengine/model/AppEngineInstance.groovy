@@ -33,6 +33,15 @@ class AppEngineInstance implements Instance, Serializable {
   HealthState healthState
   final String providerType = AppEngineCloudProvider.ID
   final String cloudProvider = AppEngineCloudProvider.ID
+  String vmName
+  String vmZoneName
+  Integer requests
+  Integer errors
+  Float qps
+  Integer averageLatency
+  String memoryUsage
+  String vmStatus
+  String vmDebugEnabled
 
   AppEngineInstance() {}
 
@@ -44,6 +53,15 @@ class AppEngineInstance implements Instance, Serializable {
 
     this.name = instance.getId()
     this.launchTime = AppEngineModelUtil.translateTime(instance.getStartTime())
+    this.vmName = instance.getVmName()
+    this.vmZoneName = instance.getVmZoneName()
+    this.requests = instance.getRequests()
+    this.errors = instance.getErrors()
+    this.qps = instance.getQps()
+    this.averageLatency = instance.getAverageLatency()
+    this.memoryUsage = instance.getMemoryUsage()
+    this.vmStatus = instance.getVmStatus()
+    this.vmDebugEnabled = instance.getVmDebugEnabled()
   }
 
   List<Map<String, String>> getHealth() {
