@@ -108,7 +108,7 @@ class YamlBindings(object):
       value = self.__get_node(field)
     else:
       value = self.__typed_value(value)
-    if not isinstance(value, basestring) or not value.startswith('$'):
+    if not isinstance(value, basestring) or value.find('$') < 0:
       return value
 
     if field in saw:
@@ -120,6 +120,7 @@ class YamlBindings(object):
   def __resolve_value(self, value, saw, original):
     expression_re = re.compile('\${([\._a-zA-Z0-9]+)(:.+?)?}')
     exact_match = expression_re.match(value)
+
     if exact_match and exact_match.group(0) == value:
       try:
         got = self.__get_field_value(exact_match.group(1), saw, original)
