@@ -75,10 +75,20 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
       Map job = objectMapper.readValue(oortService.collectJob(parsedName.app, account, location, name, "delete").body.in(), new TypeReference<Map>() {})
       outputs.jobStatus = job
 
-      switch ((String)job.jobState) {
+      switch ((String) job.jobState) {
         case "Succeeded":
           status = ExecutionStatus.SUCCEEDED
           outputs.completionDetails = job.completionDetails
+
+          if (stage.context.propertyFile) {
+            Map<String, Object> properties = [:]
+            properties = oortService.getFileContents(parsedName.app, account, location, name, stage.context.propertyFile)
+            if (properties.size() == 0) {
+              throw new IllegalStateException("expected properties file ${stage.context.propertyFile} but one was not found or was empty")
+            }
+            outputs << properties
+          }
+
           return
 
         case "Failed":
