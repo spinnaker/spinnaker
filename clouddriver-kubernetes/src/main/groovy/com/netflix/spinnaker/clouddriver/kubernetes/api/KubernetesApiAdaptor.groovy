@@ -456,10 +456,10 @@ class KubernetesApiAdaptor {
   }
 
   static String getDeploymentRevision(Deployment deployment) {
-    return deployment?.metadata?.annotations?.get("$DEPLOYMENT_ANNOTATION/revision")
+    return deployment?.metadata?.annotations?.get("$DEPLOYMENT_ANNOTATION/revision".toString())
   }
 
   static String getDeploymentRevision(ReplicaSet replicaSet) {
-    return replicaSet?.metadata?.annotations?.get("$DEPLOYMENT_ANNOTATION/revision")
+    return replicaSet?.metadata?.annotations?.get("$DEPLOYMENT_ANNOTATION/revision".toString())
   }
 }

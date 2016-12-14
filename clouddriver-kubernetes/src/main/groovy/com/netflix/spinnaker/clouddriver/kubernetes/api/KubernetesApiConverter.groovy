@@ -808,11 +808,19 @@ class KubernetesApiConverter {
         builder = builder.withNewRollingUpdate()
 
         if (rollingUpdate.maxSurge) {
-          builder = builder.withNewMaxSurge(rollingUpdate.maxSurge)
+          def maxSurge = rollingUpdate.maxSurge
+          if (maxSurge.isInteger()) {
+            maxSurge = maxSurge as int
+          }
+          builder = builder.withNewMaxSurge(maxSurge)
         }
 
         if (rollingUpdate.maxUnavailable) {
-          builder = builder.withNewMaxUnavailable(rollingUpdate.maxUnavailable)
+          def maxUnavailable = rollingUpdate.maxUnavailable
+          if (maxUnavailable.isInteger()) {
+            maxUnavailable = maxUnavailable as int
+          }
+          builder = builder.withNewMaxUnavailable(maxUnavailable)
         }
 
         builder = builder.endRollingUpdate()
@@ -845,8 +853,8 @@ class KubernetesApiConverter {
         def update = strategy.rollingUpdate
         def rollingUpdate = new KubernetesRollingUpdate()
 
-        rollingUpdate.maxSurge = update.maxSurge.getStrVal()
-        rollingUpdate.maxUnavailable = update.maxUnavailable.getStrVal()
+        rollingUpdate.maxSurge = update.maxSurge.getStrVal() ?: update.maxSurge.getIntVal().toString()
+        rollingUpdate.maxUnavailable = update.maxUnavailable.getStrVal() ?: update.maxUnavailable.getIntVal().toString()
 
         deploymentStrategy.rollingUpdate = rollingUpdate
       }
@@ -906,9 +914,7 @@ class KubernetesApiConverter {
    */
   static Map<String, String> baseServerGroupLabels(DeployKubernetesAtomicOperationDescription description, String name) {
     def parsedName = Names.parseName(name)
-    def labels = [(KubernetesUtil.SERVER_GROUP_LABEL): name]
-    labels += hasDeployment(description) ? [(parsedName.cluster): "true"] : [(name): "true"]
-    return labels
+    return hasDeployment(description) ? [(parsedName.cluster): "true"] : [(name): "true"]
   }
 
   /*
@@ -930,6 +936,8 @@ class KubernetesApiConverter {
     if (parsedName.detail) {
       labels += ["detail": parsedName.detail]
     }
+
+    labels += [(KubernetesUtil.SERVER_GROUP_LABEL): name]
 
     return labels
   }

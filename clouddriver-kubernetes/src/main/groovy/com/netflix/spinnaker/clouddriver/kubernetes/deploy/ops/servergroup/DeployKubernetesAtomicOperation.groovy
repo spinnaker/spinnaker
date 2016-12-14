@@ -89,6 +89,8 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
     replicaSet = credentials.apiAdaptor.createReplicaSet(namespace, replicaSet)
 
+    task.updateStatus BASE_PHASE, "Deployed replica set ${replicaSet.metadata.name}"
+
     if (KubernetesApiConverter.hasDeployment(description)) {
       if (!credentials.apiAdaptor.getDeployment(namespace, clusterName)) {
         task.updateStatus BASE_PHASE, "Building deployment..."
@@ -99,12 +101,8 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
           description,
           replicaSetName)).done()
       }
+      task.updateStatus BASE_PHASE, "Configured deployment $clusterName"
     }
-
-
-    task.updateStatus BASE_PHASE, "Sending replica set spec to the Kubernetes master."
-
-    task.updateStatus BASE_PHASE, "Finished creating replica set ${replicaSet.metadata.name}."
 
     if (description.scalingPolicy) {
       task.updateStatus BASE_PHASE, "Attaching a horizontal pod autoscaler..."
