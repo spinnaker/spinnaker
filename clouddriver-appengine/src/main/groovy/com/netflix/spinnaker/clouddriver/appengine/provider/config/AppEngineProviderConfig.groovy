@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.appengine.AppEngineCloudProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.AppEngineProvider
+import com.netflix.spinnaker.clouddriver.appengine.provider.agent.AppEngineLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.appengine.provider.agent.AppEngineServerGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
@@ -90,6 +91,11 @@ class AppEngineProviderConfig {
                                                                  credentials,
                                                                  objectMapper,
                                                                  registry)
+
+        newlyAddedAgents << new AppEngineLoadBalancerCachingAgent(credentials.name,
+                                                                  credentials,
+                                                                  objectMapper,
+                                                                  registry)
       }
     }
 

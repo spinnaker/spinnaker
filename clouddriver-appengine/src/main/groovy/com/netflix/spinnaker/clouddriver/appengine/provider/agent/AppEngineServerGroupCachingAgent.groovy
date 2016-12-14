@@ -43,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheDa
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static com.netflix.spinnaker.clouddriver.appengine.cache.Keys.Namespace.*
 
 @Slf4j
@@ -56,7 +57,7 @@ class AppEngineServerGroupCachingAgent extends AbstractAppEngineCachingAgent imp
     AUTHORITATIVE.forType(CLUSTERS.ns),
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
     AUTHORITATIVE.forType(INSTANCES.ns),
-    AUTHORITATIVE.forType(LOAD_BALANCERS.ns),
+    INFORMATIVE.forType(LOAD_BALANCERS.ns),
   ] as Set)
 
   String agentType = "${accountName}/${AppEngineServerGroupCachingAgent.simpleName}"
@@ -298,22 +299,6 @@ class AppEngineServerGroupCachingAgent extends AbstractAppEngineCachingAgent imp
     ], [
       (ON_DEMAND.ns): onDemandEvict
     ])
-  }
-
-  static void cache(Map<String, List<CacheData>> cacheResults,
-                    String cacheNamespace,
-                    Map<String, CacheData> cacheDataById) {
-    cacheResults[cacheNamespace].each {
-      def existingCacheData = cacheDataById[it.id]
-      if (existingCacheData) {
-        existingCacheData.attributes.putAll(it.attributes)
-        it.relationships.each { String relationshipName, Collection<String> relationships ->
-          existingCacheData.relationships[relationshipName].addAll(relationships)
-        }
-      } else {
-        cacheDataById[it.id] = it
-      }
-    }
   }
 
   Map<Service, List<Version>> loadServerGroups() {

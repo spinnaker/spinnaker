@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.appengine.AppEngineCloudProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.AppEngineProvider
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
@@ -36,6 +37,22 @@ abstract class AbstractAppEngineCachingAgent implements CachingAgent, AccountAwa
     this.accountName = accountName
     this.objectMapper = objectMapper
     this.credentials = credentials
+  }
+
+  static void cache(Map<String, List<CacheData>> cacheResults,
+                    String cacheNamespace,
+                    Map<String, CacheData> cacheDataById) {
+    cacheResults[cacheNamespace].each {
+      def existingCacheData = cacheDataById[it.id]
+      if (existingCacheData) {
+        existingCacheData.attributes.putAll(it.attributes)
+        it.relationships.each { String relationshipName, Collection<String> relationships ->
+          existingCacheData.relationships[relationshipName].addAll(relationships)
+        }
+      } else {
+        cacheDataById[it.id] = it
+      }
+    }
   }
 
   abstract String getSimpleName()
