@@ -101,6 +101,15 @@
       </div>
     </div>
 
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        <b>Enable CDN</b>
+      </div>
+      <div class="col-md-4">
+        <input type="checkbox" ng-model="$ctrl.backendService.enableCDN"/>
+      </div>
+    </div>
+
     <div class="form-group" ng-if="$ctrl.backendService.sessionAffinity === 'Generated Cookie'">
       <div class="col-md-4 sm-label-right">
         <b>Affinity Cookie TTL Seconds</b>
