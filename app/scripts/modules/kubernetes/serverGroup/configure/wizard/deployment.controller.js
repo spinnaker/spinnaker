@@ -35,10 +35,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.depl
 
       var managedByDeployment = serverGroups.find((serverGroup) => serverGroup.buildInfo.createdBy);
 
-      if (managedByDeployment && !command.deployment.enabled) {
+      var deploymentEnabled = command.deployment && command.deployment.enabled;
+      if (managedByDeployment && !deploymentEnabled) {
         return 'The cluster ' + name + ' is already managed by a deployment. ' +
           'It\'s recommended that you enable it for all server groups in the cluster.';
-      } else if (!managedByDeployment && command.deployment.enabled) {
+      } else if (!managedByDeployment && deploymentEnabled) {
         return 'The cluster ' + name + ' is not already managed by a deployment. ' +
           'If you deploy this server group with a deployment enabled, old server groups won\'t be scaled down.';
       } else {
