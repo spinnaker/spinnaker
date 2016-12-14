@@ -257,6 +257,18 @@ e:
      self.assertEqual(234, bindings.get('def'))
      self.assertEqual(123, bindings.get('indirect'))
 
+  def test_concat(self):
+     bindings = YamlBindings()
+     bindings.import_string(
+        "s: 'TEST'\nmix: a.${s}")
+     self.assertEqual('a.TEST', bindings.get('mix'))
+
+  def test_concat_default(self):
+     bindings = YamlBindings()
+     bindings.import_string(
+        "mix: a.${s:TEST}")
+     self.assertEqual('a.TEST', bindings.get('mix'))
+
   def test_transform_ok(self):
      bindings = YamlBindings()
      bindings.import_dict({'a': {'b': { 'space': 'WithSpace',
