@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy
 
 import com.google.api.services.appengine.v1.model.Version
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineModelUtil
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 
@@ -25,7 +26,6 @@ import java.text.SimpleDateFormat
 
 class AppEngineServerGroupNameResolver extends AbstractServerGroupNameResolver {
   private static final String PHASE = "DEPLOY"
-  private static final SIMPLE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
 
   private final String project
   private final String region
@@ -63,7 +63,7 @@ class AppEngineServerGroupNameResolver extends AbstractServerGroupNameResolver {
       def friggaNames = Names.parseName(versionName)
 
       if (friggaNames.cluster == clusterName) {
-        def timestamp = new SimpleDateFormat(SIMPLE_DATE_FORMAT).parse(version.getCreateTime()).getTime()
+        def timestamp = AppEngineModelUtil.translateTime(version.getCreateTime())
         return new AbstractServerGroupNameResolver.TakenSlot(
           serverGroupName: versionName,
           sequence: friggaNames.sequence,
