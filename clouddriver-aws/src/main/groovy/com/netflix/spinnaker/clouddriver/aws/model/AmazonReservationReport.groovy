@@ -32,6 +32,7 @@ class AmazonReservationReport implements ReservationReport {
 
   Collection<Map> accounts = []
   Collection<OverallReservationDetail> reservations = []
+  Map<String, Collection<String>> errorsByRegion = [:]
 
   static enum OperatingSystemType {
     LINUX("LINUX", false),
