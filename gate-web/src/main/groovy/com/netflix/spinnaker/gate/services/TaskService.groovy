@@ -81,9 +81,9 @@ class TaskService {
    * @deprecated  This pipeline operation does not belong here.
    */
   @Deprecated
-  Map cancelPipeline(String id) {
+  Map cancelPipeline(String id, String reason) {
     HystrixFactory.newMapCommand(GROUP, "cancelPipeline") {
-      orcaService.cancelPipeline(id, "")
+      orcaService.cancelPipeline(id, reason, "")
     } execute()
   }
 }

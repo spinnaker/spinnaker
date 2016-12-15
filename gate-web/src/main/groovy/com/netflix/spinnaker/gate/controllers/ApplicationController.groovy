@@ -95,8 +95,9 @@ class ApplicationController {
    */
   @Deprecated
   @RequestMapping(value = "/{application}/pipelines/{id}/cancel", method = RequestMethod.PUT)
-  Map cancelPipeline(@PathVariable("id") String id) {
-    taskService.cancelPipeline(id)
+  Map cancelPipeline(@PathVariable("id") String id,
+                     @RequestParam(required = false) String reason) {
+    taskService.cancelPipeline(id, reason)
   }
 
   @RequestMapping(value = "/{application}/pipelineConfigs", method = RequestMethod.GET)

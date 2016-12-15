@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import retrofit.RetrofitError
@@ -76,8 +77,9 @@ class PipelineController {
   }
 
   @RequestMapping(value = "{id}/cancel", method = RequestMethod.PUT)
-  Map cancelPipeline(@PathVariable("id") String id) {
-    pipelineService.cancelPipeline(id)
+  Map cancelPipeline(@PathVariable("id") String id,
+                     @RequestParam(required = false) String reason) {
+    pipelineService.cancelPipeline(id, reason)
   }
 
   @RequestMapping(value = "{id}/pause", method = RequestMethod.PUT)
