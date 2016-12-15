@@ -198,7 +198,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }
 
       if (description.blockDevices == null) {
-        description.blockDevices = BlockDeviceConfig.blockDevicesByInstanceType[description.instanceType]
+        description.blockDevices = BlockDeviceConfig.getBlockDevicesForInstanceType(deployDefaults, description.instanceType)
       }
       ResolvedAmiResult ami = priorOutputs.find({
         it instanceof ResolvedAmiResult && it.region == region && it.amiName == description.amiName
@@ -318,7 +318,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       sourceAsg.launchConfigurationName
     )
 
-    description.blockDevices = buildBlockDeviceMappings(description, sourceLaunchConfiguration)
+    description.blockDevices = buildBlockDeviceMappings(deployDefaults, description, sourceLaunchConfiguration)
     description.spotPrice = description.spotPrice ?: sourceLaunchConfiguration.spotPrice
 
     return description
@@ -440,6 +440,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
    * - Continue to use any custom block device mappings (if set)
    */
   private static Collection<AmazonBlockDevice> buildBlockDeviceMappings(
+    DeployDefaults deployDefaults,
     BasicAmazonDeployDescription description,
     LaunchConfiguration sourceLaunchConfiguration
   ) {
@@ -453,13 +454,16 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def blockDevicesForSourceAsg = sourceLaunchConfiguration.blockDeviceMappings.collect {
         [deviceName: it.deviceName, virtualName: it.virtualName, size: it.ebs?.volumeSize]
       }.sort { it.deviceName }
-      def blockDevicesForSourceInstanceType = BlockDeviceConfig.blockDevicesByInstanceType[sourceLaunchConfiguration.instanceType].collect {
+      def blockDevicesForSourceInstanceType = BlockDeviceConfig.getBlockDevicesForInstanceType(
+        deployDefaults,
+        sourceLaunchConfiguration.instanceType
+      ).collect {
         [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size]
       }.sort { it.deviceName }
 
       if (blockDevicesForSourceAsg == blockDevicesForSourceInstanceType) {
         // use default block mappings for the new instance type (since default block mappings were used on the previous instance type)
-        return BlockDeviceConfig.blockDevicesByInstanceType[description.instanceType]
+        return BlockDeviceConfig.getBlockDevicesForInstanceType(deployDefaults, description.instanceType)
       }
     }
 

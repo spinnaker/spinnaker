@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import spock.lang.Shared
 import spock.lang.Specification
@@ -28,6 +29,9 @@ class BlockDeviceConfigSpec extends Specification {
     new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125),
     new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125),
   ]
+
+  @Shared
+  static def defaultBlockDevice = new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40)
 
   @Shared
   static def expectedD28xlargeBlockDevices = [
@@ -61,18 +65,21 @@ class BlockDeviceConfigSpec extends Specification {
   void "should return block devices for instance type"() {
 
     expect:
-    blockDevices == BlockDeviceConfig.blockDevicesByInstanceType[instanceType]
+    blockDevices == BlockDeviceConfig.getBlockDevicesForInstanceType(new AwsConfiguration.DeployDefaults(unknownInstanceTypeBlockDevice: unknownInstanceTypeBlockDevice), instanceType)
 
     where:
-    instanceType || blockDevices
-    "wat"         | null
-    "t2.small"    | []
-    "m4.xlarge"   | [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 80)]
-    "m4.large"    | [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40)]
-    "m4.16xlarge" | [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 120)]
-    "c4.8xlarge"  | expectedBlockDevicesForEbsOnly
-    "m3.medium"   | [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
-    "i2.2xlarge"  | [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0"), new AmazonBlockDevice(deviceName: "/dev/sdc", virtualName: "ephemeral1")]
-    "d2.8xlarge"  | expectedD28xlargeBlockDevices
+    unknownInstanceTypeBlockDevice | instanceType  || blockDevices
+    null                           | "wat"         || null
+    defaultBlockDevice             | "wat"         || [defaultBlockDevice]
+    null                           | "t2.small"    || []
+    defaultBlockDevice             | "t2.small"    || []
+    null                           | "m4.xlarge"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 80)]
+    defaultBlockDevice             | "m4.xlarge"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 80)]
+    null                           | "m4.large"    || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40)]
+    null                           | "m4.16xlarge" || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 120)]
+    null                           | "c4.8xlarge"  || expectedBlockDevicesForEbsOnly
+    null                           | "m3.medium"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
+    null                           | "i2.2xlarge"  || [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0"), new AmazonBlockDevice(deviceName: "/dev/sdc", virtualName: "ephemeral1")]
+    null                           | "d2.8xlarge"  || expectedD28xlargeBlockDevices
   }
 }

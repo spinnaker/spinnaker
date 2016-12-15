@@ -41,9 +41,11 @@ import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundE
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
+import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
@@ -71,6 +73,11 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   @Shared
   NetflixAmazonCredentials testCredentials = TestCredential.named('test')
+
+  @Shared
+  DeployDefaults deployDefaults = new DeployDefaults(
+    unknownInstanceTypeBlockDevice: new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40)
+  )
 
   @Shared
   Task task = Mock(Task)
@@ -595,7 +602,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     })
 
     when:
-    def blockDeviceMappings = BasicAmazonDeployHandler.buildBlockDeviceMappings(description, launchConfiguration)
+    def blockDeviceMappings = BasicAmazonDeployHandler.buildBlockDeviceMappings(deployDefaults, description, launchConfiguration)
 
     then:
     convertBlockDeviceMappings(blockDeviceMappings) == convertBlockDeviceMappings(expectedTargetBlockDevices)
@@ -606,6 +613,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     "c3.xlarge"        | "c4.xlarge"        | bD("c3.xlarge")                                 | []                      || []                                              // use the explicitly provided block devices even if an empty list
     "c3.xlarge"        | "c4.xlarge"        | bD("c3.xlarge")                                 | null                    || bD("c4.xlarge")                                 // was using default block devices, continue to use default block devices for targetInstanceType
     "c3.xlarge"        | "c4.xlarge"        | [new AmazonBlockDevice(deviceName: "/dev/xxx")] | null                    || [new AmazonBlockDevice(deviceName: "/dev/xxx")] // custom block devices should be preserved
+    "c3.xlarge"        | "r4.100xlarge"     | bD("c3.xlarge")                                 | null                    || [deployDefaults.unknownInstanceTypeBlockDevice] // no mapping for r4.100xlarge, use the default for unknown instance types
   }
 
   @Unroll
@@ -627,7 +635,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   }
 
   private Collection<AmazonBlockDevice> bD(String instanceType) {
-    return blockDevicesByInstanceType[instanceType]
+    return BlockDeviceConfig.getBlockDevicesForInstanceType(deployDefaults, instanceType)
   }
 
   private Collection<Map> convertBlockDeviceMappings(Collection<AmazonBlockDevice> blockDevices) {
