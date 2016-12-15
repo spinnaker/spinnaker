@@ -246,7 +246,7 @@ class AppEngineServerGroupCachingAgent extends AbstractAppEngineCachingAgent imp
           }
 
           def instanceKeys = instances.inject([], { ArrayList keys, instance ->
-            def instanceName = instance.getId()
+            def instanceName = instance.getVmName() ?: instance.getId()
             def key = Keys.getInstanceKey(accountName, instanceName)
             cachedInstances[key].with {
               attributes.name = instanceName

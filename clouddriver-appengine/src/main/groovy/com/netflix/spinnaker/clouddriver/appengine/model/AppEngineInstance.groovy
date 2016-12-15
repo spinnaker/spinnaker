@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.model.Instance
 
 class AppEngineInstance implements Instance, Serializable {
   String name
+  String id
   Long launchTime
   AppEngineInstanceStatus instanceStatus
   String zone
@@ -51,7 +52,15 @@ class AppEngineInstance implements Instance, Serializable {
       AppEngineInstanceStatus.valueOf(instance.getAvailability()) :
       null
 
-    this.name = instance.getId()
+    /*
+    * The instance controller takes three coordinates to locate an instance: account, region, and instance name.
+    * App Engine Flexible instances do not have unique ids, but do have unique vmNames, so we'll use vmName as instance name.
+    * App Engine Standard instances have unique ids, but do not have vmNames, so we'll use id as instance name.
+    * We'll keep a separate "id" property, which is the identifier the API needs for an instance delete operation.
+    * */
+    this.name = instance.getVmName() ?: instance.getId()
+    this.id = instance.getId()
+
     this.launchTime = AppEngineModelUtil.translateTime(instance.getStartTime())
     this.vmName = instance.getVmName()
     this.vmZoneName = instance.getVmZoneName()
