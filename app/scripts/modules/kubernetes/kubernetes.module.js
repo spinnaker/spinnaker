@@ -1,7 +1,7 @@
 'use strict';
 
 import {KUBERNETES_ANNOTATION_CONFIGURER} from './annotation/annotationConfigurer.component';
-import {KUBERNETES_ANNOTATION_DETAILS} from './annotation/annotationDetails.component';
+import {KUBERNETES_KEY_VALUE_DETAILS} from './common/keyValueDetails.component';
 import {KUBERNETES_SECURITY_CONTEXT_SELECTOR} from './container/securityContext/securityContextSelector.component';
 
 let angular = require('angular');
@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./event/event.directive.js'),
   require('./instance/details/details.kubernetes.module.js'),
   KUBERNETES_ANNOTATION_CONFIGURER,
-  KUBERNETES_ANNOTATION_DETAILS,
+  KUBERNETES_KEY_VALUE_DETAILS,
   KUBERNETES_SECURITY_CONTEXT_SELECTOR,
   require('./loadBalancer/configure/configure.kubernetes.module.js'),
   require('./loadBalancer/details/details.kubernetes.module.js'),

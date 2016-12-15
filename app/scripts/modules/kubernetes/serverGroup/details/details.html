@@ -246,23 +246,22 @@
         </div>
     </dl>
       </collapsible-section>
-    <collapsible-section heading="Labels">
-      <div ng-if="!serverGroup.labels">No labels associated with this replication controller</div>
-      <dl ng-repeat="(key, value) in serverGroup.labels" class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
-        {{key}}: {{value}}
+    <collapsible-section heading="Labels" ng-if="serverGroup.labels">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <kubernetes-key-value-details map="serverGroup.labels">
+        </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Replica Set Annotations" ng-if="serverGroup.deployDescription.replicaSetAnnotations">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <kubernetes-annotation-details annotations="serverGroup.deployDescription.replicaSetAnnotations">
-        </kubernetes-annotation-details>
+        <kubernetes-key-value-details map="serverGroup.deployDescription.replicaSetAnnotations">
+        </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Pod Annotations" ng-if="serverGroup.deployDescription.podAnnotations">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <kubernetes-annotation-details annotations="serverGroup.deployDescription.podAnnotations">
-        </kubernetes-annotation-details>
+        <kubernetes-key-value-details map="serverGroup.deployDescription.podAnnotations">
+        </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Events">

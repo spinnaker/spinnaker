@@ -116,10 +116,10 @@
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="!instance.notFound" heading="Labels">
-      <div ng-repeat="(key, value) in instance.metadata.labels" class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        {{key}}: {{value}}
-      </div>
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <kubernetes-key-value-details map="instance.metadata.labels">
+        </kubernetes-key-value-details>
+      </dl>
     </collapsible-section>
     <collapsible-section ng-repeat="container in instance.containers" heading="Container {{container.name}}">
       <div ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
