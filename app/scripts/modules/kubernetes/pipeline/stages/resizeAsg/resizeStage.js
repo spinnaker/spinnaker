@@ -1,6 +1,7 @@
 'use strict';
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 import './resizeStage.less';
@@ -29,7 +30,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.resize
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('kubernetesResizeStageController', function($scope, accountService, stageConstants) {
+  }).controller('kubernetesResizeStageController', function($scope, accountService) {
 
     var ctrl = this;
 
@@ -45,7 +46,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.resize
       $scope.viewState.accountsLoaded = true;
     });
 
-    $scope.resizeTargets = stageConstants.targetList;
+    $scope.resizeTargets = StageConstants.TARGET_LIST;
 
     $scope.scaleActions = [
       {

@@ -1,11 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.disableAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/pipeline/config/stages/stageConstants.js'),
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {
@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.disabl
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('kubernetesDisableAsgStageController', function($scope, accountService, stageConstants) {
+  }).controller('kubernetesDisableAsgStageController', function($scope, accountService) {
 
     let stage = $scope.stage;
 
@@ -42,7 +42,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.disabl
 
     stage.namespaces = stage.namespaces || [];
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     stage.cloudProvider = 'kubernetes';
     stage.interestingHealthProviderNames = ['KubernetesService'];

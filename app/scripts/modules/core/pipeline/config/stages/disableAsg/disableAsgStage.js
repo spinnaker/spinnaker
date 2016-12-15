@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.disableAsgStage', [
-  require('../stageConstants.js'),
   require('../../pipelineConfigProvider.js'),
   require('./templates/disableAsgExecutionDetails.controller'),
 ])

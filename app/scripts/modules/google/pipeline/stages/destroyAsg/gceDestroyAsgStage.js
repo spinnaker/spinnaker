@@ -1,10 +1,9 @@
 'use strict';
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgStage', [
-  require('core/pipeline/config/stages/stageConstants.js'),
-])
+module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
@@ -23,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgSta
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('gceDestroyAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('gceDestroyAsgStageCtrl', function($scope, accountService) {
 
     let stage = $scope.stage;
 
@@ -37,7 +36,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgSta
       $scope.state.accounts = true;
     });
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';

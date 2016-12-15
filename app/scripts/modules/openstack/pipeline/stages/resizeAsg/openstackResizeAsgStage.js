@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
+
 module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.resizeAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('./resizeAsgExecutionDetails.controller.js'),
@@ -26,7 +28,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.resizeA
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('openstackResizeAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('openstackResizeAsgStageCtrl', function($scope, accountService) {
 
     var ctrl = this;
 
@@ -42,7 +44,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.resizeA
       $scope.viewState.accountsLoaded = true;
     });
 
-    $scope.resizeTargets = stageConstants.targetList;
+    $scope.resizeTargets = StageConstants.TARGET_LIST;
 
     $scope.scaleActions = [
       {

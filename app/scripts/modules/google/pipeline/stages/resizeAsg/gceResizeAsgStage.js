@@ -1,6 +1,8 @@
 'use strict';
 
 let angular = require('angular');
+
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStage', [
@@ -27,7 +29,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('gceResizeAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('gceResizeAsgStageCtrl', function($scope, accountService) {
 
     var ctrl = this;
 
@@ -43,7 +45,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
       $scope.viewState.accountsLoaded = true;
     });
 
-    $scope.resizeTargets = stageConstants.targetList;
+    $scope.resizeTargets = StageConstants.TARGET_LIST;
 
     $scope.scaleActions = [
       {

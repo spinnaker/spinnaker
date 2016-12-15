@@ -4,9 +4,10 @@
 
 let angular = require('angular');
 
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
+
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/pipeline/config/stages/stageConstants.js'),
   require('./enableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
@@ -24,7 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStag
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('awsEnableAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('awsEnableAsgStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -44,7 +45,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStag
       ctrl.resetSelectedCluster();
     };
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'aws';

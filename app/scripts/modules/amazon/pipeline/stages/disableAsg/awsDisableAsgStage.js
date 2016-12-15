@@ -1,10 +1,10 @@
 'use strict';
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/pipeline/config/stages/stageConstants.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgSta
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('awsDisableAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('awsDisableAsgStageCtrl', function($scope, accountService) {
 
     let stage = $scope.stage;
 
@@ -40,7 +40,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgSta
     });
 
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'aws';

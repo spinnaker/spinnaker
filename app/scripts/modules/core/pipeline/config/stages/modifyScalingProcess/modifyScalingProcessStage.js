@@ -1,6 +1,7 @@
 'use strict';
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProcessStage', [])
   .config(function(pipelineConfigProvider) {
@@ -24,7 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
       cloudProvider: 'aws',
       strategy: true,
     });
-  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, stageConstants) {
+  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService) {
     $scope.stage = stage;
 
     $scope.state = {
@@ -37,7 +38,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
       $scope.state.accounts = true;
     });
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     $scope.actions = [
       {

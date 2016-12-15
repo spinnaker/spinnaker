@@ -3,12 +3,12 @@
 //BEN_TODO: where is this defined?
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.enableAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   ACCOUNT_SERVICE,
-  require('core/pipeline/config/stages/stageConstants.js'),
   require('./enableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.enableAsgStage
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ]
     });
-  }).controller('cfEnableAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('cfEnableAsgStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -46,7 +46,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.enableAsgStage
       });
     };
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'cf';

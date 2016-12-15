@@ -1,12 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
 //BEN_TODO: where is this defined?
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.aws.destroyAsgStage', [
-  require('core/pipeline/config/stages/stageConstants.js'),
-])
+module.exports = angular.module('spinnaker.core.pipeline.stage.aws.destroyAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
@@ -26,7 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.destroyAsgSta
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('awsDestroyAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('awsDestroyAsgStageCtrl', function($scope, accountService) {
 
     let stage = $scope.stage;
 
@@ -42,7 +41,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.destroyAsgSta
 
     $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
 
-    $scope.targets = stageConstants.targetList;
+    $scope.targets = StageConstants.TARGET_LIST;
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'aws';
