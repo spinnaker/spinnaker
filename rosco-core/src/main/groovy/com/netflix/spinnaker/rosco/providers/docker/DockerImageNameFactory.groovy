@@ -16,9 +16,8 @@ class DockerImageNameFactory extends ImageNameFactory {
 
     String imageName = bakeRequest.ami_name ?: osPackageNames.first()?.name
     String imageNamePrefixed = [bakeRequest.organization, imageName].findAll({it}).join("/")
-    String imageNameSuffixed = [imageNamePrefixed, bakeRequest.ami_suffix].findAll({it}).join("-")
 
-    return imageNameSuffixed
+    return imageNamePrefixed
   }
 
 }

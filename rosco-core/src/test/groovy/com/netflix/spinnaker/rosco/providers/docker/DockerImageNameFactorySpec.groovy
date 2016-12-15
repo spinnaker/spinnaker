@@ -28,7 +28,7 @@ class DockerImageNameFactorySpec extends Specification implements TestDefaults {
       packagesParameter == "nflx-djangobase-enhanced-0.1-3 kato redis-server"
   }
 
-  void "Should provide a docker image name based on ami_name, ami_suffix and no organization"() {
+  void "Should provide a docker image name based on ami_name and no organization"() {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DockerImageNameFactory(clock: clockMock)
@@ -36,7 +36,6 @@ class DockerImageNameFactorySpec extends Specification implements TestDefaults {
         build_number: "12",
         commit_hash: "170cdbd",
         ami_name: "superimage",
-        ami_suffix: "ultimate",
         base_os: "centos")
       def osPackages = parseRpmOsPackageNames(bakeRequest.package_name)
     when:
@@ -44,7 +43,7 @@ class DockerImageNameFactorySpec extends Specification implements TestDefaults {
       def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
       def packagesParameter = imageNameFactory.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages)
     then:
-      imageName == "superimage-ultimate"
+      imageName == "superimage"
       appVersionStr == "nflx-djangobase-enhanced-0.1-h12.170cdbd"
       packagesParameter == "nflx-djangobase-enhanced-0.1-3 kato redis-server"
   }
