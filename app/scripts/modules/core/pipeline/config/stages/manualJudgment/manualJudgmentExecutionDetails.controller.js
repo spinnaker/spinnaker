@@ -1,6 +1,6 @@
 'use strict';
 
-import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
+import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
 
@@ -8,7 +8,7 @@ module.exports = angular
     .module('spinnaker.core.pipeline.stage.manualJudgment.executionDetails.controller', [
     require('angular-ui-router'),
     require('./manualJudgment.service.js'),
-    detailsSectionModule,
+    EXECUTION_DETAILS_SECTION_SERVICE,
     require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   ])
   .controller('ManualJudgmentExecutionDetailsCtrl', function ($scope, $stateParams, manualJudgmentService,

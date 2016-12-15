@@ -1,8 +1,8 @@
 import {mock} from 'angular';
 
-import {Application} from '../../application.model';
-import modelBuilderModule, {ApplicationModelBuilder} from '../../applicationModel.builder';
-import editorModule, {DataSourceEditorController} from './applicationDataSourceEditor.component';
+import {Application} from 'core/application/application.model';
+import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
+import {APPLICATION_DATA_SOURCE_EDITOR, DataSourceEditorController} from './applicationDataSourceEditor.component';
 
 describe('Component: Application Data Source Editor', () => {
 
@@ -24,8 +24,8 @@ describe('Component: Application Data Source Editor', () => {
   };
 
   beforeEach(mock.module(
-    editorModule,
-    modelBuilderModule
+    APPLICATION_DATA_SOURCE_EDITOR,
+    APPLICATION_MODEL_BUILDER
   ));
 
   beforeEach(mock.inject(

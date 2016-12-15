@@ -1,8 +1,8 @@
 'use strict';
 
-import v2modalWizardModule from './wizard/v2modalWizard.component';
-import modalWizardServiceModule from './wizard/v2modalWizard.service';
-import modalCloseModule from './buttons/modalClose.component';
+import {V2_MODAL_WIZARD_COMPONENT} from './wizard/v2modalWizard.component';
+import {V2_MODAL_WIZARD_SERVICE} from './wizard/v2modalWizard.service';
+import {MODAL_CLOSE_COMPONENT} from './buttons/modalClose.component';
 
 let angular = require('angular');
 
@@ -12,12 +12,12 @@ module.exports = angular
   .module('spinnaker.core.modal', [
     require('./modalOverlay.directive.js'),
     require('./modalPage.directive.js'),
-    modalCloseModule,
+    MODAL_CLOSE_COMPONENT,
     require('./buttons/submitButton.directive.js'),
     require('./wizard/modalWizard.directive.js'),
-    modalWizardServiceModule,
+    V2_MODAL_WIZARD_SERVICE,
     require('./wizard/wizardPage.directive.js'),
-    v2modalWizardModule,
+    V2_MODAL_WIZARD_COMPONENT,
   ]).run(function($rootScope, $uibModalStack) {
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
       if (!fromParams.allowModalToStayOpen) {

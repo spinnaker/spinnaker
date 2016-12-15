@@ -1,4 +1,4 @@
-import modelBuilderModule from 'core/application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: renamePipelineModal', function() {
   const angular = require('angular');
@@ -6,7 +6,7 @@ describe('Controller: renamePipelineModal', function() {
   beforeEach(
     window.module(
       require('./rename.module.js'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

@@ -2,7 +2,7 @@
 
 import moment from 'moment';
 import _ from 'lodash';
-import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
+import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 
@@ -11,7 +11,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.controller', [
   require('angular-ui-router'),
   require('core/cluster/filter/clusterFilter.service.js'),
-  detailsSectionModule,
+  EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   URL_BUILDER_SERVICE,
   require('core/cloudProvider/cloudProvider.registry'),

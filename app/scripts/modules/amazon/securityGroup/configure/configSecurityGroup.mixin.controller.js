@@ -3,7 +3,7 @@
 import _ from 'lodash';
 import {Subject} from 'rxjs';
 
-import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 
 var angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
@@ -15,7 +15,7 @@ module.exports = angular
     require('core/securityGroup/securityGroup.write.service'),
     ACCOUNT_SERVICE,
     require('../../vpc/vpc.read.service'),
-    modalWizardServiceModule,
+    V2_MODAL_WIZARD_SERVICE,
     require('core/config/settings'),
     require('./ingressRuleGroupSelector.component'),
   ])

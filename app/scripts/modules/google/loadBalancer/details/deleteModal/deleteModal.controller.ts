@@ -86,14 +86,11 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
   }
 }
 
-const moduleName = 'spinnaker.gce.loadBalancer.deleteModal.controller';
-
-module(moduleName, [
+export const DELETE_MODAL_CONTROLLER = 'spinnaker.gce.loadBalancer.deleteModal.controller';
+module(DELETE_MODAL_CONTROLLER, [
     require('angular-ui-bootstrap'),
     require('core/task/monitor/taskMonitorService.js'),
     require('core/loadBalancer/loadBalancer.write.service.js'),
     require('../../configure/http/httpLoadBalancer.write.service.js'),
   ])
   .controller('gceLoadBalancerDeleteModalCtrl', DeleteLoadBalancerModalController);
-
-export default moduleName;

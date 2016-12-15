@@ -1,13 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
-import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
+import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.property.details.controller', [
   require('angular-ui-router'),
-  detailsSectionModule,
+  EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js')
 ])
   .controller('PropertyExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {

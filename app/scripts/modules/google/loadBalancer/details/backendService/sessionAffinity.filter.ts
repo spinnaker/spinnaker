@@ -7,9 +7,6 @@ function gceSessionAffinityFilter() {
   };
 }
 
-const moduleName = 'spinnaker.gce.loadBalancer.details.sessionAffinity.filter';
-
-module(moduleName, [])
+export const SESSION_AFFINITY_FILTER = 'spinnaker.gce.loadBalancer.details.sessionAffinity.filter';
+module(SESSION_AFFINITY_FILTER, [])
   .filter('gceSessionAffinityFilter', gceSessionAffinityFilter);
-
-export default moduleName;

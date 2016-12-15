@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-import modalWizardServiceModule from '../../../modal/wizard/v2modalWizard.service';
+import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 
@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
   require('./costFactor.js'),
   require('../../../presentation/isVisible/isVisible.directive.js'),
   require('../../../modal/wizard/modalWizard.service.js'),
-  modalWizardServiceModule,
+  V2_MODAL_WIZARD_SERVICE,
   require('../../../cloudProvider/cloudProvider.registry.js'),
 ])
   .directive('v2InstanceArchetypeSelector', function() {

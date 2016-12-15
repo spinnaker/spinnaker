@@ -1,6 +1,6 @@
 import {mock} from 'angular';
 
-import exceptionsModule, {ChaosMonkeyExceptionsController} from './chaosMonkeyExceptions.component';
+import {CHAOS_MONKEY_EXCEPTIONS_COMPONENT, ChaosMonkeyExceptionsController} from './chaosMonkeyExceptions.component';
 
 describe('Controller: ChaosMonkeyExceptions', () => {
 
@@ -18,7 +18,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
     );
   };
 
-  beforeEach(mock.module(exceptionsModule));
+  beforeEach(mock.module(CHAOS_MONKEY_EXCEPTIONS_COMPONENT));
 
   beforeEach(mock.inject((
     _$componentController_: ng.IComponentControllerService,

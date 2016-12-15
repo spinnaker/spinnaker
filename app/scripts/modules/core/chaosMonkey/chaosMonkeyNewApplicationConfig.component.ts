@@ -46,11 +46,8 @@ class ChaosMonkeyNewApplicationConfigComponent implements ng.IComponentOptions {
   `;
 }
 
-const moduleName = 'spinnaker.core.chaosMonkey.newApplication.config.component';
-
-module(moduleName, [
+export const CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT = 'spinnaker.core.chaosMonkey.newApplication.config.component';
+module(CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT, [
   require('../config/settings')
 ])
 .component('chaosMonkeyNewApplicationConfig', new ChaosMonkeyNewApplicationConfigComponent());
-
-export default moduleName;

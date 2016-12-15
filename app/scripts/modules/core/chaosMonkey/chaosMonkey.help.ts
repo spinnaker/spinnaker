@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import helpRegistryModule from '../help/helpContents.registry';
+import {HELP_CONTENTS_REGISTRY} from 'core/help/helpContents.registry';
 
 const helpContents: any[] = [
   {
@@ -44,11 +44,8 @@ const helpContents: any[] = [
   }
 ];
 
-const moduleName = 'spinnaker.core.chaosMonkey.help.contents';
-
-module(moduleName, [helpRegistryModule])
+export const CHAOS_MONKEY_HELP = 'spinnaker.core.chaosMonkey.help.contents';
+module(CHAOS_MONKEY_HELP, [HELP_CONTENTS_REGISTRY])
   .run((helpContentsRegistry: any) => {
     helpContents.forEach((entry: any) => helpContentsRegistry.register(entry.key, entry.contents));
 });
-
-export default moduleName;

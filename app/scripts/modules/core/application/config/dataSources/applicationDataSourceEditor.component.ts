@@ -94,11 +94,8 @@ class ApplicationDataSourceEditorComponent implements ng.IComponentOptions {
   public templateUrl: string = require('./applicationDataSourceEditor.component.html');
 }
 
-const moduleName = 'spinnaker.core.application.config.applicationDataSourceEditor';
-
-module(moduleName, [
+export const APPLICATION_DATA_SOURCE_EDITOR = 'spinnaker.core.application.config.applicationDataSourceEditor';
+module(APPLICATION_DATA_SOURCE_EDITOR, [
   APPLICATION_WRITE_SERVICE
 ])
   .component('applicationDataSourceEditor', new ApplicationDataSourceEditorComponent());
-
-export default moduleName;

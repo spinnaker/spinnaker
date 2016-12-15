@@ -50,9 +50,6 @@ class ChaosMonkeyExceptionsComponent implements ng.IComponentOptions {
   public templateUrl: string = require('./chaosMonkeyExceptions.component.html');
 }
 
-const moduleName = 'spinnaker.core.chaosMonkey.exceptions.directive';
-
-module(moduleName, [ACCOUNT_SERVICE])
+export const CHAOS_MONKEY_EXCEPTIONS_COMPONENT = 'spinnaker.core.chaosMonkey.exceptions.directive';
+module(CHAOS_MONKEY_EXCEPTIONS_COMPONENT, [ACCOUNT_SERVICE])
 .component('chaosMonkeyExceptions', new ChaosMonkeyExceptionsComponent());
-
-export default moduleName;

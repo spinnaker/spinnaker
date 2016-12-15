@@ -13,8 +13,5 @@ class ModalCloseComponent implements ng.IComponentOptions {
 `;
 }
 
-const moduleName = 'spinnaker.core.modal.modalClose.directive';
-
-module(moduleName, []).component('modalClose', new ModalCloseComponent());
-
-export default moduleName;
+export const MODAL_CLOSE_COMPONENT = 'spinnaker.core.modal.modalClose.directive';
+module(MODAL_CLOSE_COMPONENT, []).component('modalClose', new ModalCloseComponent());

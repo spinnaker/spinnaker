@@ -1,6 +1,6 @@
 import {module} from 'angular';
 
-import modalWizardServiceModule from './v2modalWizard.service';
+import {V2_MODAL_WIZARD_SERVICE} from './v2modalWizard.service';
 /**
  * Wizard page directive
  * possible attributes:
@@ -111,10 +111,6 @@ class WizardPageComponent implements ng.IComponentOptions {
   public controller: any = WizardPageController;
 }
 
-const moduleName = 'spinnaker.core.modal.wizard.wizardPage.component';
-
-module(moduleName, [
-  modalWizardServiceModule,
-]).component('v2WizardPage', new WizardPageComponent());
-
-export default moduleName;
+export const V2_WIZARD_PAGE_COMPONENT = 'spinnaker.core.modal.wizard.wizardPage.component';
+module(V2_WIZARD_PAGE_COMPONENT, [V2_MODAL_WIZARD_SERVICE])
+  .component('v2WizardPage', new WizardPageComponent());

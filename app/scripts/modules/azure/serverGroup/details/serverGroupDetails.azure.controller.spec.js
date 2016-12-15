@@ -1,4 +1,4 @@
-import modelBuilderModule from 'core/application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: Azure ServerGroupDetailsCtrl', function () {
   var controller;
@@ -7,7 +7,7 @@ describe('Controller: Azure ServerGroupDetailsCtrl', function () {
   beforeEach(
     window.module(
       require('./serverGroupDetails.azure.controller'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
       )
     );
 

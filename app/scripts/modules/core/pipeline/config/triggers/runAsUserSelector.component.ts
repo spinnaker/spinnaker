@@ -22,9 +22,6 @@ class RunAsUserSelectorComponent implements ng.IComponentOptions {
   `;
 }
 
-const moduleName = 'spinnaker.core.runAsUser.selector.component';
-
-module(moduleName, [])
+export const RUN_AS_USER_SELECTOR_COMPONENT = 'spinnaker.core.runAsUser.selector.component';
+module(RUN_AS_USER_SELECTOR_COMPONENT, [])
   .component('runAsUserSelector', new RunAsUserSelectorComponent());
-
-export default moduleName;

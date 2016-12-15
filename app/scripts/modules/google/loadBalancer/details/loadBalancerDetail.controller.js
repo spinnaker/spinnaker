@@ -1,9 +1,9 @@
 'use strict';
 
 import _ from 'lodash';
-import gceLoadBalancerDeleteModal from './deleteModal/deleteModal.controller';
-import gceBackendServiceDetailsComponent from './backendService/backendService.component';
-import gceSessionAffinityFilter from './backendService/sessionAffinity.filter';
+import {DELETE_MODAL_CONTROLLER} from './deleteModal/deleteModal.controller';
+import {GCE_BACKEND_SERVICE_DETAILS_COMPONENT} from './backendService/backendService.component';
+import {SESSION_AFFINITY_FILTER} from './backendService/sessionAffinity.filter';
 import {GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT} from '../configure/choice/loadBalancerTypeToWizardMap.constant';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
@@ -23,9 +23,9 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../elSevenUtils.service.js'),
   require('./healthCheck/healthCheck.component.js'),
   require('core/help/helpField.directive.js'),
-  gceBackendServiceDetailsComponent,
-  gceLoadBalancerDeleteModal,
-  gceSessionAffinityFilter,
+  GCE_BACKEND_SERVICE_DETAILS_COMPONENT,
+  DELETE_MODAL_CONTROLLER,
+  SESSION_AFFINITY_FILTER,
   GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,

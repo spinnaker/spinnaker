@@ -1,4 +1,4 @@
-import modelBuilderModule from '../application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: AllClustersCtrl', function () {
 
@@ -8,7 +8,7 @@ describe('Controller: AllClustersCtrl', function () {
   beforeEach(
     window.module(
       require('./allClusters.controller.js'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

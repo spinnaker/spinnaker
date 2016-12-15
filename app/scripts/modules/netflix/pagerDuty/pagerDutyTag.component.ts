@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import PagerDutyReaderModule, {IPagerDutyService} from './pagerDuty.read.service';
+import {PAGER_DUTY_READ_SERVICE, IPagerDutyService} from './pagerDuty.read.service';
 
 export class PagerDutyTagController implements ng.IComponentController {
   public currentService: IPagerDutyService;
@@ -28,10 +28,6 @@ class PagerDutyTagComponent implements ng.IComponentOptions {
   `;
 }
 
-const moduleName = 'spinnaker.netflix.pagerDuty.pagerDutyTag.component';
-
-module(moduleName, [
-  PagerDutyReaderModule,
-]).component('pagerDutyTag', new PagerDutyTagComponent());
-
-export default moduleName;
+export const PAGER_DUTY_TAG_COMPONENT = 'spinnaker.netflix.pagerDuty.pagerDutyTag.component';
+module(PAGER_DUTY_TAG_COMPONENT, [PAGER_DUTY_READ_SERVICE])
+  .component('pagerDutyTag', new PagerDutyTagComponent());

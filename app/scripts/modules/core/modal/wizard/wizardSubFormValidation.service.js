@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import modalWizardServiceModule from './v2modalWizard.service';
+import {V2_MODAL_WIZARD_SERVICE} from './v2modalWizard.service';
 
 let angular = require('angular');
 
@@ -10,7 +10,7 @@ let angular = require('angular');
  */
 
 module.exports = angular.module('spinnaker.core.modalWizard.subFormValidation.service', [
-    modalWizardServiceModule,
+    V2_MODAL_WIZARD_SERVICE,
   ])
   .factory('wizardSubFormValidation', function(v2modalWizardService) {
     let validatorRegistry = {};

@@ -1,12 +1,12 @@
 'use strict';
 
-import registryModule from 'core/help/helpContents.registry';
+import {HELP_CONTENTS_REGISTRY} from 'core/help/helpContents.registry';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.help.registry', [
-    registryModule,
+    HELP_CONTENTS_REGISTRY,
     require('core/config/settings.js'),
   ])
   .run(function(helpContentsRegistry, settings) {

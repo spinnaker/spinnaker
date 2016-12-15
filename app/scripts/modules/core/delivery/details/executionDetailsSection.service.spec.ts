@@ -1,6 +1,6 @@
 import {mock, noop} from 'angular';
 
-import {ExecutionDetailsSectionService} from './executionDetailsSection.service';
+import {EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService} from './executionDetailsSection.service';
 
 describe('executionDetailsSectionService', function() {
 
@@ -9,8 +9,7 @@ describe('executionDetailsSectionService', function() {
       $timeout: ng.ITimeoutService,
       service: ExecutionDetailsSectionService;
 
-  beforeEach(mock.module('spinnaker.executionDetails.section.service'));
-
+  beforeEach(mock.module(EXECUTION_DETAILS_SECTION_SERVICE));
   beforeEach(mock.inject((
     executionDetailsSectionService: ExecutionDetailsSectionService,
     _$state_: angular.ui.IStateService,

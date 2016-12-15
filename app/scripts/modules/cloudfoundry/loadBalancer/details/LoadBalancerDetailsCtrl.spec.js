@@ -1,4 +1,4 @@
-import modelBuilderModule from 'core/application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: LoadBalancerDetailsCtrl', function () {
   var controller;
@@ -16,7 +16,7 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
   beforeEach(
     window.module(
       require('./LoadBalancerDetailsCtrl'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

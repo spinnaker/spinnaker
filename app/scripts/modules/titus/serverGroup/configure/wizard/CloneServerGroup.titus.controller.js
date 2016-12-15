@@ -1,11 +1,11 @@
 'use strict';
 
 let angular = require('angular');
-import securityGroupPickerModule from '../../../securityGroup/securityGroupPicker.component';
+import {TITUS_SECURITY_GROUP_PICKER} from 'titus/securityGroup/securityGroupPicker.component';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServerGroup', [
   require('angular-ui-router'),
-  securityGroupPickerModule,
+  TITUS_SECURITY_GROUP_PICKER
 ])
   .controller('titusCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
