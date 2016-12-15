@@ -58,6 +58,16 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       });
     };
 
+    function normalizeDeploymentStatus(serverGroup) {
+      let deploymentStatus = serverGroup.deploymentStatus;
+
+      if (deploymentStatus !== undefined) {
+        deploymentStatus.unavailableReplicas |= 0;
+        deploymentStatus.availableReplicas |= 0;
+        deploymentStatus.updatedReplicas |= 0;
+      }
+    }
+
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
       return serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
@@ -66,6 +76,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
         angular.extend(details, summary);
 
         $scope.serverGroup = details;
+        normalizeDeploymentStatus($scope.serverGroup);
         $scope.runningExecutions = function() {
           return runningExecutionsService.filterRunningExecutions($scope.serverGroup.executions);
         };

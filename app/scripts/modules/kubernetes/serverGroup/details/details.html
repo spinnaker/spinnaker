@@ -107,6 +107,8 @@
         <dd>{{serverGroup.kind}}</dd>
         <dt>YAML</dt>
         <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
+        <dt ng-show="serverGroup.revision">Revision</dt>
+        <dd ng-show="serverGroup.revision">{{serverGroup.revision}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
@@ -117,6 +119,33 @@
         <dd>
           <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
         </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Deployment" expanded="true">
+      <dl class="dl-horizontal"
+          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
+        <div ng-show="serverGroup.deploymentStatus === null">
+          No deployment found.
+        </div>
+        <div ng-show="serverGroup.deploymentStatus !== null">
+          <div>
+            <dt>Name</dt>
+            <dd>{{serverGroup.labels.cluster}}</dd>
+            <dt>Most Recent</dt>
+            <dd>{{serverGroup.deploymentStatus.revision === serverGroup.revision}}</dd>
+            <dt>Revision</dt>
+            <dd>{{serverGroup.deploymentStatus.revision}}</dd>
+          </div>
+          <br>
+          <div>
+            <dt>Available</dt>
+            <dd>{{serverGroup.deploymentStatus.availableReplicas}}</dd>
+            <dt>Unavailable</dt>
+            <dd>{{serverGroup.deploymentStatus.unavailableReplicas}}</dd>
+            <dt>Updated</dt>
+            <dd>{{serverGroup.deploymentStatus.updatedReplicas}}</dd>
+          </div>
+        </div>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Replicas" expanded="true">
@@ -224,14 +253,6 @@
         {{key}}: {{value}}
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Events">
-      <div ng-if="serverGroup.events && serverGroup.events.length > 0">
-        <kubernetes-event ng-repeat="event in serverGroup.events" event="event"/>
-      </div>
-      <div ng-if="!(serverGroup.events && serverGroup.events.length > 0)">
-        No events.
-      </div>
-    </collapsible-section>
     <collapsible-section heading="Replica Set Annotations" ng-if="serverGroup.deployDescription.replicaSetAnnotations">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
         <kubernetes-annotation-details annotations="serverGroup.deployDescription.replicaSetAnnotations">
@@ -243,6 +264,14 @@
         <kubernetes-annotation-details annotations="serverGroup.deployDescription.podAnnotations">
         </kubernetes-annotation-details>
       </dl>
+    </collapsible-section>
+    <collapsible-section heading="Events">
+      <div ng-if="serverGroup.events && serverGroup.events.length > 0">
+        <kubernetes-event ng-repeat="event in serverGroup.events" event="event"/>
+      </div>
+      <div ng-if="!(serverGroup.events && serverGroup.events.length > 0)">
+        No events.
+      </div>
     </collapsible-section>
   </div>
 </div>
