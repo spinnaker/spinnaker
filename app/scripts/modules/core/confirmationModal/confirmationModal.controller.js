@@ -49,6 +49,8 @@ module.exports = angular
           $scope.taskMonitors.forEach(monitor => monitor.callPreconfiguredSubmit({reason: params.reason}));
         } else if ($scope.taskMonitor) {
           $scope.taskMonitor.submit(() => { return params.submitMethod({interestingHealthProviderNames: params.interestingHealthProviderNames, reason: params.reason}); });
+        } else if (params.submitJustWithReason) {
+          params.submitMethod(params.reason).then($uibModalInstance.close, showError);
         } else {
           if (params.submitMethod) {
             params.submitMethod(params.interestingHealthProviderNames).then($uibModalInstance.close, showError);

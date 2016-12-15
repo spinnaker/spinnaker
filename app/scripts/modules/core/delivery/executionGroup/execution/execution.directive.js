@@ -112,12 +112,13 @@ module.exports = angular
     }
 
     this.cancelExecution = () => {
-      let hasDeployStage = this.execution.stages && this.execution.stages.some(stage => stage.type === 'deploy');
+      let hasDeployStage = this.execution.stages && this.execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
       confirmationModalService.confirm({
         header: 'Really stop execution of ' + this.execution.name + '?',
         buttonText: 'Stop running ' + this.execution.name,
+        submitJustWithReason: true,
         body: hasDeployStage ? '<b>Note:</b> Any deployments that have begun will continue and need to be cleaned up manually.' : null,
-        submitMethod: () => executionService.cancelExecution(this.application, this.execution.id)
+        submitMethod: (reason) => executionService.cancelExecution(this.application, this.execution.id, reason)
       });
     };
 

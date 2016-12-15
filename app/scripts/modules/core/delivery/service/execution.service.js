@@ -131,7 +131,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       return deferred.promise;
     }
 
-    function cancelExecution(application, executionId) {
+    function cancelExecution(application, executionId, reason) {
       var deferred = $q.defer();
       $http({
         method: 'PUT',
@@ -142,7 +142,10 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
           'pipelines',
           executionId,
           'cancel',
-        ].join('/')
+        ].join('/'),
+        params: {
+          reason: reason
+        }
       }).then(
         () => waitUntilPipelineIsCancelled(application, executionId).then(deferred.resolve),
         (exception) => deferred.reject(exception && exception.data ? exception.message : null)

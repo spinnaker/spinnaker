@@ -30,6 +30,7 @@
     </div>
     <div class="execution-summary">
       Status: <span class="status execution-status execution-status-{{::vm.execution.status.toLowerCase()}}">{{::vm.execution.status}}</span>
+      <span ng-if="::vm.execution.cancellationReason" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ ::vm.execution.cancellationReason }}"></span>
       <span ng-if="::vm.execution.canceledBy">
         by {{::vm.execution.canceledBy}} &mdash; {{::vm.execution.endTime | timestamp}}
       </span>
