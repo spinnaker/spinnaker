@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2017 Microsoft, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-rootProject.name = "front50"
-
-include 'front50-web', 'front50-core', 'front50-cassandra', 'front50-gcs', 'front50-pipelines', 'front50-redis', 'front50-s3', 'front50-test', 'front50-migrations', 'front50-azure'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+repositories {
+  maven { url "http://adxsnapshots.azurewebsites.net" }
 }
 
-rootProject.children.each {
-  setBuildFile(it)
+repositories {
+  maven { url "http://adxsnapshots.azurewebsites.net" }
 }
+
+dependencies {
+  compile project(":front50-core")
+  compile 'com.microsoft.azure:azure:1.0.0-beta3'
+  compile 'com.microsoft.azure:azure-storage:4.4.0'
+  compile 'com.microsoft.azure:azure-mgmt-storage:1.0.0-beta3'
+
+  compile spinnaker.dependency("korkSecurity")
+  testCompile project(":front50-test")
+}
+
