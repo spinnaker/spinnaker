@@ -140,9 +140,6 @@ class NumberListComponent implements ng.IComponentOptions {
 `;
 }
 
-const moduleName = 'spinnaker.core.forms.numberList';
-
-module(moduleName, [])
+export const NUMBER_LIST_COMPONENT = 'spinnaker.core.forms.numberList';
+module(NUMBER_LIST_COMPONENT, [])
   .component('numberList', new NumberListComponent());
-
-export default moduleName;

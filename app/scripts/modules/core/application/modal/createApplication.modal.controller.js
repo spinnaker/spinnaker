@@ -7,7 +7,7 @@ import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.wr
 import {APPLICATION_NAME_VALIDATION_MESSAGES} from './validation/applicationNameValidationMessages.component';
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 import {VALIDATE_APPLICATION_NAME} from './validation/validateApplicationName.directive';
-import chaosMonkeyConfigModule from '../../chaosMonkey/chaosMonkeyNewApplicationConfig.component';
+import {CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT} from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
 
 let angular = require('angular');
 
@@ -23,7 +23,7 @@ module.exports = angular
     VALIDATE_APPLICATION_NAME,
     require('./applicationProviderFields.component.js'),
     require('./groupMembershipConfigurer.component.js'),
-    chaosMonkeyConfigModule,
+    CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT,
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, accountService,
                                                      applicationWriter, applicationReader, taskReader, $timeout,

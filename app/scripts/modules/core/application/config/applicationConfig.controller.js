@@ -1,5 +1,5 @@
-import applicationDataSourceEditor from './dataSources/applicationDataSourceEditor.component';
-import chaosMonkeyComponent from '../../chaosMonkey/chaosMonkeyConfig.component';
+import {APPLICATION_DATA_SOURCE_EDITOR} from './dataSources/applicationDataSourceEditor.component';
+import {CHAOS_MONKEY_CONFIG_COMPONENT} from 'core/chaosMonkey/chaosMonkeyConfig.component';
 
 let angular = require('angular');
 
@@ -11,8 +11,8 @@ module.exports = angular
     require('./applicationCacheManagement.directive.js'),
     require('./deleteApplicationSection.directive.js'),
     require('./applicationSnapshotSection.component.js'),
-    applicationDataSourceEditor,
-    chaosMonkeyComponent,
+    APPLICATION_DATA_SOURCE_EDITOR,
+    CHAOS_MONKEY_CONFIG_COMPONENT,
     require('./links/applicationLinks.component.js'),
     require('../../config/settings.js')
   ])

@@ -1,6 +1,6 @@
 'use strict';
 
-import numberListModule from './numberList/numberList.component';
+import {NUMBER_LIST_COMPONENT} from './numberList/numberList.component';
 
 let angular = require('angular');
 
@@ -11,5 +11,5 @@ module.exports = angular.module('spinnaker.core.forms', [
   require('./ignoreEmptyDelete.directive.js'),
   require('./buttonBusyIndicator/buttonBusyIndicator.directive.js'),
   require('./mapEditor/mapEditor.component.js'),
-  numberListModule,
+  NUMBER_LIST_COMPONENT
 ]);

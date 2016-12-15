@@ -1,6 +1,5 @@
 import {mock} from 'angular';
-import listModule from './numberList.component';
-import {NumberListConstraints} from './numberList.component';
+import {NUMBER_LIST_COMPONENT, NumberListConstraints} from './numberList.component';
 
 describe('Component: numberList', () => {
 
@@ -12,7 +11,7 @@ describe('Component: numberList', () => {
       constraints: NumberListConstraints,
       onChange: () => any;
 
-  beforeEach(mock.module(listModule));
+  beforeEach(mock.module(NUMBER_LIST_COMPONENT));
 
   beforeEach(mock.inject((_$compile_: ng.ICompileService, $rootScope: ng.IScope) => {
     $compile = _$compile_;

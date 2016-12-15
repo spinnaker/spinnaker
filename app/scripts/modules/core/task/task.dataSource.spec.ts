@@ -1,7 +1,7 @@
 import {mock} from 'angular';
 
 import {Application} from '../application/application.model';
-import modelBuilderModule from '../application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 import {TASK_READ_SERVICE, TaskReader} from 'core/task/task.read.service';
 
@@ -19,7 +19,7 @@ describe('Task Data Source', function () {
       require('./task.dataSource'),
       TASK_READ_SERVICE,
       APPLICATION_DATA_SOURCE_REGISTRY,
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     ));
 
   beforeEach(

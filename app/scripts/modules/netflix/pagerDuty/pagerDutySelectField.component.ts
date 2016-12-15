@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import PagerDutyReaderModule, {IPagerDutyService} from './pagerDuty.read.service';
+import {PAGER_DUTY_READ_SERVICE, IPagerDutyService} from './pagerDuty.read.service';
 
 export class PagerDutySelectFieldController implements ng.IComponentController {
   public pagerDutyServices: [IPagerDutyService];
@@ -37,10 +37,6 @@ class PagerDutySelectFieldComponent implements ng.IComponentOptions {
   `;
 }
 
-const moduleName = 'spinnaker.netflix.pagerDuty.pagerDutySelectField.component';
-
-module(moduleName, [
-  PagerDutyReaderModule,
-]).component('pagerDutySelectField', new PagerDutySelectFieldComponent());
-
-export default moduleName;
+export const PAGER_DUTY_SELECT_FIELD_COMPONENT = 'spinnaker.netflix.pagerDuty.pagerDutySelectField.component';
+module(PAGER_DUTY_SELECT_FIELD_COMPONENT, [PAGER_DUTY_READ_SERVICE])
+  .component('pagerDutySelectField', new PagerDutySelectFieldComponent());

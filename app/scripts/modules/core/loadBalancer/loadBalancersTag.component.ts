@@ -64,9 +64,6 @@ class LoadBalancersTagComponent implements ng.IComponentOptions {
 
 }
 
-const moduleName = 'spinnaker.core.loadBalancer.tag.directive';
-
-module(moduleName, [])
+export const LOAD_BALANCERS_TAG_COMPONENT = 'spinnaker.core.loadBalancer.tag.directive';
+module(LOAD_BALANCERS_TAG_COMPONENT, [])
   .component('loadBalancersTag', new LoadBalancersTagComponent());
-
-export default moduleName;

@@ -1,4 +1,4 @@
-import MODEL_BUILDER from 'core/application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
 
 describe('Controller: NetflixCiCtrl', function () {
@@ -8,7 +8,7 @@ describe('Controller: NetflixCiCtrl', function () {
   beforeEach(
     window.module(
       require('./ci.controller.js'),
-      MODEL_BUILDER,
+      APPLICATION_MODEL_BUILDER,
       APPLICATION_DATA_SOURCE_REGISTRY
     )
   );

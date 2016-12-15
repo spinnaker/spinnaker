@@ -1,4 +1,4 @@
-import modelBuilderModule from '../../application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: createPipelineModal', function() {
   const angular = require('angular');
@@ -7,7 +7,7 @@ describe('Controller: createPipelineModal', function() {
   beforeEach(
     window.module(
       require('./createPipelineModal.controller'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

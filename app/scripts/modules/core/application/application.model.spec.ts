@@ -1,7 +1,7 @@
 import {mock} from 'angular';
 
 import {Application} from './application.model';
-import modelBuilderModule, {ApplicationModelBuilder} from './applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from './applicationModel.builder';
 import {ApplicationDataSourceRegistry} from './service/applicationDataSource.registry';
 
 import {
@@ -26,7 +26,7 @@ describe ('Application Model', function () {
       require('../securityGroup/securityGroup.dataSource'),
       require('../serverGroup/serverGroup.dataSource'),
       require('../loadBalancer/loadBalancer.dataSource'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
   ));
 
   beforeEach(

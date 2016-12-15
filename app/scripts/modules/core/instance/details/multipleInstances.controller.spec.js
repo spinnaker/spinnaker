@@ -1,4 +1,4 @@
-import modelBuilderModule from '../../application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: MultipleInstances', function () {
 
@@ -9,7 +9,7 @@ describe('Controller: MultipleInstances', function () {
   beforeEach(
     window.module(
       require('./multipleInstances.controller'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

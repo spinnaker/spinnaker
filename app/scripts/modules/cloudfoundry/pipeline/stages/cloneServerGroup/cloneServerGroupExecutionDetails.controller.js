@@ -1,15 +1,15 @@
 'use strict';
 
 import _ from 'lodash';
-import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
-import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
-
 let angular = require('angular');
+
+import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
+import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroup.cf.executionDetails.controller', [
   require('angular-ui-router'),
   require('core/cluster/filter/clusterFilter.service.js'),
-  detailsSectionModule,
+  EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   URL_BUILDER_SERVICE
 ])

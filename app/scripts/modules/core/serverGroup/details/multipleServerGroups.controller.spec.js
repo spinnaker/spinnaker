@@ -1,4 +1,4 @@
-import modelBuilderModule from '../../application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
 
 describe('Controller: MultipleServerGroups', function () {
@@ -11,7 +11,7 @@ describe('Controller: MultipleServerGroups', function () {
     window.module(
       require('./multipleServerGroups.controller'),
       APPLICATION_READ_SERVICE,
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

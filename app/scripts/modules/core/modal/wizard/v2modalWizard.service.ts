@@ -128,9 +128,6 @@ export class V2ModalWizardService {
 
 }
 
-const moduleName = 'spinnaker.core.modalWizard.service.v2';
-
-module(moduleName, [SCROLL_TO_SERVICE])
+export const V2_MODAL_WIZARD_SERVICE = 'spinnaker.core.modalWizard.service.v2';
+module(V2_MODAL_WIZARD_SERVICE, [SCROLL_TO_SERVICE])
   .service('v2modalWizardService', V2ModalWizardService);
-
-export default moduleName;

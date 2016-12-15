@@ -1,6 +1,6 @@
 'use strict';
 
-import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
   require('core/loadBalancer/loadBalancer.write.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
   ACCOUNT_SERVICE,
-  modalWizardServiceModule,
+  V2_MODAL_WIZARD_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
   require('core/search/search.service.js'),
   require('../../../namespace/selectField.directive.js'),

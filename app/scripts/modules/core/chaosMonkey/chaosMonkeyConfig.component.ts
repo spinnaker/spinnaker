@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
 import {module, toJson} from 'angular';
 
-import helpContents from './chaosMonkey.help';
-import exceptionsModule from './chaosMonkeyExceptions.component';
+import {CHAOS_MONKEY_HELP} from './chaosMonkey.help';
+import {CHAOS_MONKEY_EXCEPTIONS_COMPONENT} from './chaosMonkeyExceptions.component';
 import {CONFIG_SECTION_FOOTER, IViewState} from '../application/config/footer/configSectionFooter.component';
 import {Application} from '../application/application.model';
 
@@ -70,14 +70,11 @@ class ChaosMonkeyConfigComponent implements ng.IComponentOptions {
   public templateUrl: string = require('./chaosMonkeyConfig.component.html');
 }
 
-const moduleName = 'spinnaker.core.chaosMonkey.config.component';
-
-module(moduleName, [
+export const CHAOS_MONKEY_CONFIG_COMPONENT = 'spinnaker.core.chaosMonkey.config.component';
+module(CHAOS_MONKEY_CONFIG_COMPONENT, [
   require('../config/settings'),
-  exceptionsModule,
-  helpContents,
+  CHAOS_MONKEY_EXCEPTIONS_COMPONENT,
+  CHAOS_MONKEY_HELP,
   CONFIG_SECTION_FOOTER,
 ])
 .component('chaosMonkeyConfig', new ChaosMonkeyConfigComponent());
-
-export default moduleName;

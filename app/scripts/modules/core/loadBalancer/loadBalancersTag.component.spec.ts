@@ -1,8 +1,8 @@
 import {mock} from 'angular';
 
 import {Application} from '../application/application.model';
-import modelBuilderModule, {ApplicationModelBuilder} from '../application/applicationModel.builder';
-import tagModule, {LoadBalancersTagController} from './loadBalancersTag.component';
+import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
+import {LOAD_BALANCERS_TAG_COMPONENT, LoadBalancersTagController} from './loadBalancersTag.component';
 import {InstanceCounts} from '../domain/instanceCounts';
 
 describe('Component: loadBalancersTag', () => {
@@ -32,8 +32,8 @@ describe('Component: loadBalancersTag', () => {
   };
 
   beforeEach(mock.module(
-    tagModule,
-    modelBuilderModule
+    LOAD_BALANCERS_TAG_COMPONENT,
+    APPLICATION_MODEL_BUILDER
   ));
 
   beforeEach(mock.inject(

@@ -16,10 +16,6 @@ export class PagerDutyReader {
   }
 }
 
-const moduleName = 'spinnaker.netflix.pagerDuty.read.service';
-
-module(moduleName, [
-  API_SERVICE
-]).service('pagerDutyReader', PagerDutyReader);
-
-export default moduleName;
+export const PAGER_DUTY_READ_SERVICE = 'spinnaker.netflix.pagerDuty.read.service';
+module(PAGER_DUTY_READ_SERVICE, [API_SERVICE])
+  .service('pagerDutyReader', PagerDutyReader);

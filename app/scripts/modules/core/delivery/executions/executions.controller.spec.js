@@ -1,4 +1,4 @@
-import modelBuilderModule from '../../application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: pipelineExecutions', function () {
 
@@ -13,7 +13,7 @@ describe('Controller: pipelineExecutions', function () {
   beforeEach(
     window.module(
       require('./executions.controller'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

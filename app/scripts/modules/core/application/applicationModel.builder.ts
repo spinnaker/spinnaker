@@ -1,5 +1,5 @@
-import {ApplicationDataSource, DataSourceConfig} from './service/applicationDataSource';
 import {module} from 'angular';
+import {ApplicationDataSource, DataSourceConfig} from './service/applicationDataSource';
 import {Application} from './application.model';
 
 /**
@@ -9,7 +9,10 @@ export class ApplicationModelBuilder {
 
   static get $inject() { return ['$log', '$q', '$filter', 'schedulerFactory']; }
 
-  constructor(private $log: ng.ILogService, private $q: ng.IQService, private $filter: any, private schedulerFactory: any) {}
+  constructor(private $log: ng.ILogService,
+              private $q: ng.IQService,
+              private $filter: any,
+              private schedulerFactory: any) {}
 
   public createApplication(...dataSources: any[]): Application {
     if (Array.isArray(dataSources[0])) {
@@ -28,12 +31,9 @@ export class ApplicationModelBuilder {
 
 }
 
-const moduleName = 'spinnaker.core.application.model.builder';
-
-module(moduleName, [
+export const APPLICATION_MODEL_BUILDER = 'spinnaker.core.application.model.builder';
+module(APPLICATION_MODEL_BUILDER, [
   require('../presentation/robotToHumanFilter/robotToHuman.filter'),
   require('../scheduler/scheduler.factory'),
 ])
   .service('applicationModelBuilder', ApplicationModelBuilder);
-
-export default moduleName;

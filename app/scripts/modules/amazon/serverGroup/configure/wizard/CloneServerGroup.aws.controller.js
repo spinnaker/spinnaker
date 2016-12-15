@@ -1,6 +1,6 @@
 'use strict';
 
-import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
 
@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('../serverGroupConfiguration.service.js'),
   require('core/serverGroup/serverGroup.write.service.js'),
   require('core/task/monitor/taskMonitorService.js'),
-  modalWizardServiceModule,
+  V2_MODAL_WIZARD_SERVICE,
   require('core/overrideRegistry/override.registry.js'),
   require('core/serverGroup/configure/common/serverGroupCommand.registry.js'),
   require('core/task/modal/reason.directive.js'),

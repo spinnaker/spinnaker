@@ -1,4 +1,4 @@
-import modelBuilderModule from 'core/application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: AWS ServerGroupDetailsCtrl', function () {
   var controller;
@@ -7,7 +7,7 @@ describe('Controller: AWS ServerGroupDetailsCtrl', function () {
   beforeEach(
     window.module(
       require('./serverGroupDetails.aws.controller'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

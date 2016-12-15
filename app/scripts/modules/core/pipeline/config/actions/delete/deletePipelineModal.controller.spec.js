@@ -1,4 +1,4 @@
-import modelBuilderModule from 'core/application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: deletePipelineModal', function() {
   const angular = require('angular');
@@ -6,7 +6,7 @@ describe('Controller: deletePipelineModal', function() {
   beforeEach(
     window.module(
       require('./delete.module.js'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

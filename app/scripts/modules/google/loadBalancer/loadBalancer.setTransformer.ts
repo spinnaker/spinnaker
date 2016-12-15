@@ -37,9 +37,6 @@ export class GceLoadBalancerSetTransformer {
   };
 }
 
-const moduleName = 'spinnaker.gce.loadBalancer.setTransformer.service';
-
-module(moduleName, [require('./elSevenUtils.service.js')])
+export const LOAD_BALANCER_SET_TRANSFORMER = 'spinnaker.gce.loadBalancer.setTransformer.service';
+module(LOAD_BALANCER_SET_TRANSFORMER, [require('./elSevenUtils.service.js')])
   .service('gceLoadBalancerSetTransformer', GceLoadBalancerSetTransformer);
-
-export default moduleName;

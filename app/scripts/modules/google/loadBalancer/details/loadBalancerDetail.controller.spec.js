@@ -1,4 +1,4 @@
-import modelBuilderModule from 'core/application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: LoadBalancerDetailsCtrl', function () {
   //NOTE: This is just a skeleton test to test DI.  Please add more tests.;
@@ -18,7 +18,7 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
   beforeEach(
     window.module(
       require('./loadBalancerDetail.controller'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

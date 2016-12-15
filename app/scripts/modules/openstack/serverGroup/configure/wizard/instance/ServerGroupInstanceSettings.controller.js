@@ -2,7 +2,7 @@
 
 import {Observable, Subject} from 'rxjs';
 
-import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
-  modalWizardServiceModule,
+  V2_MODAL_WIZARD_SERVICE,
   require('core/image/image.reader.js'),
   NAMING_SERVICE,
   require('../../../../instance/osInstanceTypeSelectField.directive.js'),

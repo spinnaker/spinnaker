@@ -4,11 +4,11 @@
 
 let angular = require('angular');
 
-import modalWizardServiceModule from 'core/modal/wizard/v2modalWizard.service';
+import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 
 module.exports = angular
   .module('spinnaker.netflix.serverGroup.diff.securityGroupDiff.directive', [
-    modalWizardServiceModule,
+    V2_MODAL_WIZARD_SERVICE,
   ])
   .directive('netflixSecurityGroupDiff', function () {
     return {

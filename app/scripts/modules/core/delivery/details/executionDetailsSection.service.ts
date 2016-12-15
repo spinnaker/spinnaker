@@ -34,10 +34,7 @@ export class ExecutionDetailsSectionService {
   }
 }
 
-const moduleName = 'spinnaker.executionDetails.section.service';
-
-module(moduleName, [
+export const EXECUTION_DETAILS_SECTION_SERVICE = 'spinnaker.executionDetails.section.service';
+module(EXECUTION_DETAILS_SECTION_SERVICE, [
   require('angular-ui-router'),
 ]).service('executionDetailsSectionService', ExecutionDetailsSectionService);
-
-export default moduleName;

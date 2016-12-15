@@ -1,4 +1,4 @@
-import modelBuilderModule from '../../application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: PipelineConfigCtrl', function () {
 
@@ -9,7 +9,7 @@ describe('Controller: PipelineConfigCtrl', function () {
   beforeEach(
     window.module(
       require('./pipelineConfig.controller.js'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

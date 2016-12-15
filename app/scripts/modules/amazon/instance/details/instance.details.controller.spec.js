@@ -1,4 +1,4 @@
-import modelBuilderModule from 'core/application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: awsInstanceDetailsCtrl', function () {
 
@@ -11,7 +11,7 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
   beforeEach(
     window.module(
       require('./instance.details.controller'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

@@ -155,13 +155,11 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
 `;
 }
 
-const moduleName = 'spinnaker.titus.securityGroup.picker.component';
-module(moduleName, [
+export const TITUS_SECURITY_GROUP_PICKER = 'spinnaker.titus.securityGroup.picker.component';
+module(TITUS_SECURITY_GROUP_PICKER, [
   ACCOUNT_SERVICE,
   require('core/securityGroup/securityGroup.read.service'),
   CACHE_INITIALIZER_SERVICE,
   require('amazon/vpc/vpc.read.service'),
 ])
   .component('titusSecurityGroupPicker', new SecurityGroupPickerComponent());
-
-export default moduleName;

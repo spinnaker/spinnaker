@@ -1,6 +1,6 @@
 'use strict';
 
-import modalWizardServiceModule from './v2modalWizard.service';
+import {V2_MODAL_WIZARD_SERVICE} from './v2modalWizard.service';
 
 describe('Service: wizardSubFormValidation', function () {
 
@@ -10,7 +10,7 @@ describe('Service: wizardSubFormValidation', function () {
   beforeEach(
     window.module(
       require('./wizardSubFormValidation.service.js'),
-      modalWizardServiceModule
+      V2_MODAL_WIZARD_SERVICE
     )
   );
 

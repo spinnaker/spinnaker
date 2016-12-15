@@ -1,4 +1,4 @@
-import modelBuilderModule from '../application/applicationModel.builder';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: tasks', function () {
   var controller;
@@ -9,7 +9,7 @@ describe('Controller: tasks', function () {
   beforeEach(
     window.module(
       require('./tasks.controller.js'),
-      modelBuilderModule
+      APPLICATION_MODEL_BUILDER
     )
   );
 

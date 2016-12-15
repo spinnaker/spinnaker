@@ -15,9 +15,6 @@ class GceBackendServiceDetailsComponent implements ng.IComponentOptions {
     <dd ng-if="$ctrl.backendService.sessionAffinity === 'GENERATED_COOKIE'">{{$ctrl.backendService.affinityCookieTtlSec}}</dd>`;
 }
 
-const gceBackendServiceDetailsComponent = 'spinnaker.gce.loadBalancer.details.backendServiceDetails.component';
-
-module(gceBackendServiceDetailsComponent, [])
+export const GCE_BACKEND_SERVICE_DETAILS_COMPONENT = 'spinnaker.gce.loadBalancer.details.backendServiceDetails.component';
+module(GCE_BACKEND_SERVICE_DETAILS_COMPONENT, [])
   .component('gceBackendServiceDetails', new GceBackendServiceDetailsComponent());
-
-export default gceBackendServiceDetailsComponent;

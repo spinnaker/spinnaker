@@ -1,6 +1,6 @@
 'use strict';
 
-import runAsUserSelector from './runAsUserSelector.component';
+import {RUN_AS_USER_SELECTOR_COMPONENT} from './runAsUserSelector.component';
 
 let angular = require('angular');
 
@@ -13,5 +13,5 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger', [
     require('./pipeline/pipelineTrigger.module.js'),
     require('./trigger.directive.js'),
     require('./triggers.directive.js'),
-    runAsUserSelector,
+    RUN_AS_USER_SELECTOR_COMPONENT,
   ]);
