@@ -1,10 +1,11 @@
 'use strict';
 
 let angular = require('angular');
+import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 
 module.exports = angular.module('spinnaker.core.cluster.pod.directive', [
   require('./serverGroup.sequence.filter.js'),
-  require('../navigation/urlBuilder.service.js'),
+  URL_BUILDER_SERVICE,
   require('../serverGroup/serverGroup.directive.js'),
   require('../utils/stickyHeader/stickyHeader.directive.js'),
 ])

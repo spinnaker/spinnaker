@@ -1,9 +1,10 @@
 'use strict';
 
+import moment from 'moment';
 import _ from 'lodash';
 import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
-import moment from 'moment';
+import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 
 let angular = require('angular');
 
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
   require('core/cluster/filter/clusterFilter.service.js'),
   detailsSectionModule,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
-  require('core/navigation/urlBuilder.service.js'),
+  URL_BUILDER_SERVICE,
   require('core/cloudProvider/cloudProvider.registry'),
   NAMING_SERVICE,
 ])

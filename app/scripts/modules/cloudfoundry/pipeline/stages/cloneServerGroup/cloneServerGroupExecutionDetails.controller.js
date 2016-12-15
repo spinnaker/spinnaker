@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
+import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 
 let angular = require('angular');
 
@@ -10,7 +11,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroup.
   require('core/cluster/filter/clusterFilter.service.js'),
   detailsSectionModule,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
-  require('core/navigation/urlBuilder.service.js'),
+  URL_BUILDER_SERVICE
 ])
   .controller('cfCloneServerGroupExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, urlBuilderService, clusterFilterService) {
 

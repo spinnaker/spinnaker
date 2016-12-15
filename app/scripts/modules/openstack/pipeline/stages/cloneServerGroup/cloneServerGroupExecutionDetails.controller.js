@@ -1,16 +1,17 @@
 'use strict';
 
 import _ from 'lodash';
-import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
-
 let angular = require('angular');
+
+import detailsSectionModule from 'core/delivery/details/executionDetailsSection.service';
+import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroup.openstack.executionDetails.controller', [
   require('angular-ui-router'),
   require('core/cluster/filter/clusterFilter.service.js'),
   detailsSectionModule,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
-  require('core/navigation/urlBuilder.service.js'),
+  URL_BUILDER_SERVICE
 ])
   .controller('openstackCloneServerGroupExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,
                                                                    urlBuilderService, clusterFilterService) {
