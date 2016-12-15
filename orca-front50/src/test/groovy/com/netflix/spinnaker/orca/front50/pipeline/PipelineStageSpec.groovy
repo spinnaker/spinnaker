@@ -41,7 +41,7 @@ class PipelineStageSpec extends Specification {
     pipelineStage.cancel(stage)
 
     then:
-    invocations * executionRepository.cancel(stageContext.executionId, "parent pipeline")
+    invocations * executionRepository.cancel(stageContext.executionId, "parent pipeline", null)
 
     where:
     stageContext                     || invocations

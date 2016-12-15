@@ -81,8 +81,8 @@ class TaskControllerSpec extends Specification {
 
     then:
     response.andExpect(status().isAccepted())
-    1 * executionRepository.cancel('id2', _)
-    1 * executionRepository.cancel('id1', _)
+    1 * executionRepository.cancel('id2', _, null)
+    1 * executionRepository.cancel('id1', _, null)
   }
 
   void 'step names are properly translated'() {

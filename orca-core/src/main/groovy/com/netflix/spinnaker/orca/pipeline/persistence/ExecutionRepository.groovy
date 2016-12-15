@@ -30,7 +30,7 @@ interface ExecutionRepository {
   void storeStage(PipelineStage stage)
 
   void cancel(String id)
-  void cancel(String id, String user)
+  void cancel(String id, String user, String reason)
 
   void pause(String id, String user)
   void resume(String id, String user)

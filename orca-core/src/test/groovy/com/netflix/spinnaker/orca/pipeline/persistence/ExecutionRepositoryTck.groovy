@@ -356,7 +356,8 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
   }
 
-  def "cancelling a running execution with a user adds a 'canceledBy' field"() {
+  @Unroll
+  def "cancelling a running execution with a user adds a 'canceledBy' field, and an optional 'cancellationReason' field"() {
     given:
     def execution = new Pipeline(buildTime: 0)
     def user = "user@netflix.com"
@@ -369,7 +370,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     when:
-    repository.cancel(execution.id, user)
+    repository.cancel(execution.id, user, reason)
 
 
     then:
@@ -377,7 +378,14 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
       canceled
       canceledBy == user
       status == RUNNING
+      cancellationReason == expectedCancellationReason
     }
+
+    where:
+    reason             || expectedCancellationReason
+    "some good reason" || "some good reason"
+    ""                 || null
+    null               || null
   }
 
   def "pausing/resuming a running execution will set appropriate 'paused' details"() {

@@ -67,7 +67,7 @@ public class PipelineStage implements StageDefinitionBuilder, RestartableStage, 
       String executionId = (String) stage.getContext().get("executionId");
       if (executionId != null) {
         // flag the child pipeline as canceled (actual cancellation will happen asynchronously)
-        executionRepository.cancel(executionId, "parent pipeline");
+        executionRepository.cancel(executionId, "parent pipeline", null);
       }
     } catch (Exception e) {
       log.info("Failed to cancel stage (stageId: ${stage.id}, executionId: ${stage.execution.id}), e: ${e.message}");

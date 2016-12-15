@@ -135,16 +135,19 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   void cancel(String id) {
-    cancel(id, null)
+    cancel(id, null, null)
   }
 
   @Override
-  void cancel(String id, String user) {
+  void cancel(String id, String user, String reason) {
     String key = fetchKey(id)
     withJedis(getJedisPoolForId(key)) { Jedis jedis ->
       def data = [canceled: "true"]
       if (user) {
         data.canceledBy = user
+      }
+      if (reason) {
+        data.cancellationReason = reason
       }
       def currentStatus = ExecutionStatus.valueOf(jedis.hget(key, "status"))
       if (currentStatus == ExecutionStatus.NOT_STARTED) {
@@ -531,6 +534,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.context.putAll(map.context ? mapper.readValue(map.context, Map) : [:])
       execution.canceled = Boolean.parseBoolean(map.canceled)
       execution.canceledBy = map.canceledBy
+      execution.cancellationReason = map.cancellationReason
       execution.parallel = Boolean.parseBoolean(map.parallel)
       execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)
       execution.buildTime = map.buildTime?.toLong()

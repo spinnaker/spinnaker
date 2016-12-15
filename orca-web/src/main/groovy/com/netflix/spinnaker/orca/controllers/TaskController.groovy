@@ -135,7 +135,7 @@ class TaskController {
   @RequestMapping(value = "/tasks/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTask(@PathVariable String id) {
-    executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+    executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), null)
   }
 
   @PreFilter("hasPermission(this.getOrchestration(filterObject)?.application, 'APPLICATION', 'WRITE')")
@@ -143,7 +143,7 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTasks(@RequestBody List<String> taskIds) {
     taskIds.each {
-      executionRepository.cancel(it, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+      executionRepository.cancel(it, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), null)
     }
   }
 
@@ -181,8 +181,8 @@ class TaskController {
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  void cancel(@PathVariable String id) {
-    executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+  void cancel(@PathVariable String id, @RequestParam(required = false) String reason) {
+    executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")

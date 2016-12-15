@@ -37,6 +37,7 @@ abstract class Execution<T extends Execution<T>> implements Serializable {
 
   boolean canceled
   String canceledBy
+  String cancellationReason
   boolean parallel
   boolean limitConcurrent = false
   boolean keepWaitingPipelines = false
