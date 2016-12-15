@@ -60,6 +60,9 @@ aws:
   #  protocol: HTTP
   defaults:
     iamRole: FooRole
+    unknownInstanceTypeBlockDevice:
+      deviceName: /dev/sdb
+      size: 40
     instanceClassBlockDevices:
     - instanceClass: m3
       blockDevices:

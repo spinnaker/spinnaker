@@ -41,6 +41,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataPr
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.NullOpUserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -179,6 +180,9 @@ class AwsConfiguration {
     int maxSecurityGroups = 5
     ReconcileMode reconcileClassicLinkSecurityGroups = ReconcileMode.NONE
     List<String> reconcileClassicLinkAccounts = []
+    AmazonBlockDevice unknownInstanceTypeBlockDevice = new AmazonBlockDevice(
+      deviceName: "/dev/sdb", size: 20
+    )
 
     boolean isReconcileClassicLinkAccount(NetflixAmazonCredentials credentials) {
       if (reconcileClassicLinkSecurityGroups == ReconcileMode.NONE) {

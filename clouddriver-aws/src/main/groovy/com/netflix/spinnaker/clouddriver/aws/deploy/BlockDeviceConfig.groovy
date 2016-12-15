@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 
 class BlockDeviceConfig {
@@ -39,6 +40,17 @@ class BlockDeviceConfig {
     [
       new AmazonBlockDevice(deviceName: "/dev/sdb", size: capacity)
     ]
+  }
+
+  static List<AmazonBlockDevice> getBlockDevicesForInstanceType(AwsConfiguration.DeployDefaults deployDefaults,
+                                                                String instanceType) {
+    def blockDevices = blockDevicesByInstanceType[instanceType]
+    if (blockDevices == null && deployDefaults.unknownInstanceTypeBlockDevice) {
+      // return a default block device mapping if no instance-specific default exists <optional>
+      return [deployDefaults.unknownInstanceTypeBlockDevice]
+    }
+
+    return blockDevices
   }
 
   static final def blockDevicesByInstanceType = [
