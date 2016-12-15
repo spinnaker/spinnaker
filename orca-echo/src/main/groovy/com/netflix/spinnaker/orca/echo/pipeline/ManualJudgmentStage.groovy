@@ -201,7 +201,8 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
           instructions: stage.context.instructions ?: "",
           message: message?.get(notificationState)?.text,
           judgmentInputs: stage.context.judgmentInputs,
-          judgmentInput: stage.context.judgmentInput
+          judgmentInput: stage.context.judgmentInput,
+          judgedBy: stage.context.lastModifiedBy
         ]
       ))
       lastNotifiedByNotificationState[notificationState] = new Date()
