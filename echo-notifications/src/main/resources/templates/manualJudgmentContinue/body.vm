@@ -1,10 +1,27 @@
-Spinnaker application '$notification.source.application' is awaiting manual judgment.
-
-#if($notification.additionalContext.instructions && !$notification.additionalContext.instructions.empty)
-Instructions:
-$htmlToText.convert($notification.additionalContext.instructions)
+#if( $notification.additionalContext.execution.name && !$notification.additionalContext.execution.name.empty )
+#if( $notification.additionalContext.execution.trigger.buildInfo.number && !$notification.additionalContext.execution.trigger.buildInfo.number.empty )
+Stage $notification.additionalContext.stageName for $notification.source.application's $notification.additionalContext.execution.name pipeline build #$notification.additionalContext.execution.trigger.buildInfo.number was judged to continue by $notification.additionalContext.judgedBy
+#else
+Stage $notification.additionalContext.stageName for $notification.source.application's $notification.additionalContext.execution.name pipeline was judged to continue by $notification.additionalContext.judgedBy
+#end
+#else
+Stage $notification.additionalContext.stageName for $notification.source.application was judged to continue by $notification.additionalContext.judgedBy
 #end
 
+#if($notification.additionalContext.message && !$notification.additionalContext.message.empty)
+$htmlToText.convert($notification.additionalContext.message)
+#end
+#if($notification.additionalContext.judgmentInput && !$notification.additionalContext.judgmentInput.empty)
+Judgment '$htmlToText.convert($notification.additionalContext.judgmentInput)' was selected.
+#end
 For more details, please visit:
 
+#if($notification.additionalContext.stageId && !$notification.additionalContext.stageId.empty)
+#if($notification.additionalContext.restrictExecutionDuringTimeWindow)
+$baseUrl/#/applications/$notification.source.application/executions/details/$notification.source.executionId?refId=$notification.additionalContext.stageId&step=1
+#else
+$baseUrl/#/applications/$notification.source.application/executions/details/$notification.source.executionId?refId=$notification.additionalContext.stageId
+#end
+#else
 $baseUrl/#/applications/$notification.source.application/executions/details/$notification.source.executionId
+#end
