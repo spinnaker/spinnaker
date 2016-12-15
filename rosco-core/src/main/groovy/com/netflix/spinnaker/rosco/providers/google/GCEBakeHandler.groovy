@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component
 @Component
 public class GCEBakeHandler extends CloudProviderBakeHandler {
 
-  private static final String BUILDER_TYPE = "googlecompute"
   private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created:"
 
   ImageNameFactory imageNameFactory = new ImageNameFactory()
@@ -109,11 +108,6 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   @Override
   String getTemplateFileName() {
     return gceBakeryDefaults.templateFile
-  }
-
-  @Override
-  boolean isProducerOf(String logsContentFirstLine) {
-    logsContentFirstLine =~ BUILDER_TYPE
   }
 
   @Override

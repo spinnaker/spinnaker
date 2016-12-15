@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component
 @Component
 public class AzureBakeHandler extends CloudProviderBakeHandler{
 
-  private static final String BUILDER_TYPE  = "azure-arm"
   private static final String IMAGE_NAME_TOKEN = "OSDiskUri:"
 
   ImageNameFactory imageNameFactory = new ImageNameFactory()
@@ -50,11 +49,6 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
       cloudProvider: BakeRequest.CloudProviderType.azure,
       baseImages: azureBakeryDefaults?.baseImages?.collect { it.baseImage }
     )
-  }
-
-  @Override
-  boolean isProducerOf(String logsContentFirstLine) {
-    logsContentFirstLine =~ BUILDER_TYPE
   }
 
   @Override

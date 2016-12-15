@@ -95,11 +95,6 @@ abstract class CloudProviderBakeHandler {
   }
 
   /**
-   * Returns true if this cloud provider is the producer of this first line of logs content.
-   */
-  abstract boolean isProducerOf(String logsContentFirstLine)
-
-  /**
    * Returns the details of a completed bake.
    * TODO(duftler): This is temporary. Remove the scraping logic when a better solution for
    * determining image id/name is in place.

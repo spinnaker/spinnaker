@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component
 @Component
 public class AWSBakeHandler extends CloudProviderBakeHandler {
 
-  private static final String BUILDER_TYPE = "amazon-(chroot|ebs)"
   private static final String IMAGE_NAME_TOKEN = "amazon-(chroot|ebs): Creating the AMI:"
 
   ImageNameFactory imageNameFactory = new ImageNameFactory()
@@ -135,11 +134,6 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   @Override
   String getTemplateFileName() {
     return awsBakeryDefaults.templateFile
-  }
-
-  @Override
-  boolean isProducerOf(String logsContentFirstLine) {
-    logsContentFirstLine =~ BUILDER_TYPE
   }
 
   @Override

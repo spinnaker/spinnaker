@@ -18,6 +18,7 @@ package com.netflix.spinnaker.rosco.executor
 
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.rosco.api.Bake
+import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
@@ -91,7 +92,8 @@ class BakePollerSpec extends Specification {
 
     then:
       1 * jobExecutorMock.updateJob(JOB_ID) >> completeBakeStatus
-      1 * cloudProviderBakeHandlerRegistryMock.findProducer(LOGS_CONTENT) >> cloudProviderBakeHandlerMock
+      1 * bakeStoreMock.retrieveCloudProviderById(JOB_ID) >> BakeRequest.CloudProviderType.gce.toString()
+      1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * bakeStoreMock.retrieveRegionById(JOB_ID) >> REGION
       1 * cloudProviderBakeHandlerMock.scrapeCompletedBakeResults(REGION, JOB_ID, "$LOGS_CONTENT\n$LOGS_CONTENT") >> bakeDetails
       1 * bakeStoreMock.updateBakeDetails(bakeDetails)

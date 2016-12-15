@@ -58,6 +58,11 @@ interface BakeStore {
   public String retrieveRegionById(String bakeId)
 
   /**
+   * Retrieve the cloud provider specified with the original request that is associated with the bakeId.
+   */
+  public String retrieveCloudProviderById(String bakeId)
+
+  /**
    * Retrieve the bake status associated with the bakeKey. bakeKey may be null.
    */
   public BakeStatus retrieveBakeStatusByKey(String bakeKey)

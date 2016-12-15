@@ -113,36 +113,6 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
     openstackBakeryDefaults = new ObjectMapper().convertValue(openstackBakeryDefaultsJson, RoscoOpenstackConfiguration.OpenstackBakeryDefaults)
   }
 
-  void 'can identify openstack builds'() {
-    setup:
-      @Subject
-      OpenstackBakeHandler openstackBakeHandler = new OpenstackBakeHandler(openstackBakeryDefaults: openstackBakeryDefaults)
-
-    when:
-      def logsContent =
-        "    openstack: Discovering enabled extensions...\n"
-
-      Boolean producer = openstackBakeHandler.isProducerOf(logsContent)
-
-    then:
-      producer
-  }
-
-  void 'rejects non openstack builds'() {
-    setup:
-      @Subject
-      OpenstackBakeHandler openstackBakeHandler = new OpenstackBakeHandler(openstackBakeryDefaults: openstackBakeryDefaults)
-
-    when:
-      def logsContent =
-        "    somesystem-thing: doing the harlem shake ...\n"
-
-      Boolean openstackProducer = openstackBakeHandler.isProducerOf(logsContent)
-
-    then:
-      !openstackProducer
-  }
-
   void 'can scrape packer logs for image name'() {
     setup:
       @Subject

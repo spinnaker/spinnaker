@@ -110,51 +110,6 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
     awsBakeryDefaults = new ObjectMapper().convertValue(awsBakeryDefaultsJson, RoscoAWSConfiguration.AWSBakeryDefaults)
   }
 
-  void 'can identify amazon-ebs builds'() {
-    setup:
-      @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
-
-    when:
-      def logsContent =
-        "    amazon-ebs: Processing triggers for libc-bin ...\n"
-
-      Boolean awsProducer = awsBakeHandler.isProducerOf(logsContent)
-
-    then:
-      awsProducer == true
-  }
-
-  void 'can identify amazon-chroot builds'() {
-    setup:
-      @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
-
-    when:
-      def logsContent =
-        "    amazon-chroot: Processing triggers for libc-bin ...\n"
-
-      Boolean awsProducer = awsBakeHandler.isProducerOf(logsContent)
-
-    then:
-      awsProducer == true
-  }
-
-  void 'rejects non amazon builds'() {
-    setup:
-      @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
-
-    when:
-      def logsContent =
-        "    somesystem-thing: Processing triggers for libc-bin ...\n"
-
-      Boolean awsProducer = awsBakeHandler.isProducerOf(logsContent)
-
-    then:
-      awsProducer == false
-  }
-
   void 'can scrape packer logs for image name'() {
     setup:
       @Subject

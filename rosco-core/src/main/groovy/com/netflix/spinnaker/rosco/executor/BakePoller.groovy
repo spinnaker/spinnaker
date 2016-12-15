@@ -19,6 +19,7 @@ package com.netflix.spinnaker.rosco.executor
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.rosco.api.Bake
+import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.persistence.BakeStore
@@ -188,11 +189,11 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
 
   void completeBake(String bakeId, String logsContent) {
     if (logsContent) {
-      int endOfFirstLineIndex = logsContent.indexOf("\n")
+      def cloudProvider = bakeStore.retrieveCloudProviderById(bakeId)
 
-      if (endOfFirstLineIndex > -1) {
-        def logsContentFirstLine = logsContent.substring(0, endOfFirstLineIndex)
-        def cloudProviderBakeHandler = cloudProviderBakeHandlerRegistry.findProducer(logsContentFirstLine)
+      if (cloudProvider) {
+        def cloudProviderType = BakeRequest.CloudProviderType.valueOf(cloudProvider)
+        def cloudProviderBakeHandler = cloudProviderBakeHandlerRegistry.lookup(cloudProviderType)
 
         if (cloudProviderBakeHandler) {
           String region = bakeStore.retrieveRegionById(bakeId)

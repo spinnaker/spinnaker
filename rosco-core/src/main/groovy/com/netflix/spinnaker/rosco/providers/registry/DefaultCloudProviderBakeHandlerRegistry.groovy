@@ -44,11 +44,4 @@ class DefaultCloudProviderBakeHandlerRegistry implements CloudProviderBakeHandle
     return (map.values() as List).asImmutable()
   }
 
-  @Override
-  public CloudProviderBakeHandler findProducer(String logsContentFirstLine) {
-    map.values().find { cloudProviderBakeHandler ->
-      cloudProviderBakeHandler.isProducerOf(logsContentFirstLine)
-    }
-  }
-
 }

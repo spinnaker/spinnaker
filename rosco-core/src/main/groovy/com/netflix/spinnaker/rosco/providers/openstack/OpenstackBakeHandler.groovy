@@ -33,7 +33,6 @@ import org.springframework.stereotype.Component
 @Component
 public class OpenstackBakeHandler extends CloudProviderBakeHandler {
 
-  private static final String BUILDER_TYPE = 'openstack'
   private static final String IMAGE_NAME_TOKEN = 'openstack: An image was created:'
 
   ImageNameFactory imageNameFactory = new ImageNameFactory()
@@ -139,11 +138,6 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
   @Override
   String getTemplateFileName() {
     return openstackBakeryDefaults.templateFile
-  }
-
-  @Override
-  boolean isProducerOf(String logsContentFirstLine) {
-    logsContentFirstLine =~ BUILDER_TYPE
   }
 
   @Override

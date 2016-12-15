@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component
 @Component
 public class DockerBakeHandler extends CloudProviderBakeHandler {
 
-  private static final String BUILDER_TYPE = "docker"
   private static final String IMAGE_NAME_TOKEN = "Repository:"
 
   ImageNameFactory imageNameFactory = new DockerImageNameFactory()
@@ -90,11 +89,6 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
   @Override
   String getTemplateFileName() {
     return dockerBakeryDefaults.templateFile
-  }
-
-  @Override
-  boolean isProducerOf(String logsContentFirstLine) {
-    logsContentFirstLine =~ BUILDER_TYPE
   }
 
   @Override
