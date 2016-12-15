@@ -30,6 +30,7 @@ class EntityTags {
   String lastModifiedBy
 
   Map<String, Object> tags = [:]
+  Map<String, EntityTagMetadata> tagsMetadata = [:]
   EntityRef entityRef
 
   @JsonIgnoreProperties(ignoreUnknown = true)
@@ -53,5 +54,12 @@ class EntityTags {
     String getEntityType() {
       return entityType?.toLowerCase()
     }
+  }
+
+  static class EntityTagMetadata {
+    Long lastModified
+    String lastModifiedBy
+    Long created
+    String createdBy
   }
 }

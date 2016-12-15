@@ -21,7 +21,9 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
+import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import retrofit.RetrofitError;
 
 import java.util.List;
 
@@ -44,13 +46,42 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   public Void operate(List priorOutputs) {
-    getTask().updateStatus(BASE_PHASE, format("Deleting %s from ElasticSearch", entityTagsDescription.getId()));
-    entityTagsProvider.delete(entityTagsDescription.getId());
-    getTask().updateStatus(BASE_PHASE, format("Deleted %s from ElasticSearch", entityTagsDescription.getId()));
+    getTask().updateStatus(BASE_PHASE, format("Retrieving %s from Front50", entityTagsDescription.getId()));
+    EntityTags currentTags;
+    try {
+      currentTags = front50Service.getEntityTags(entityTagsDescription.getId());
+    } catch (RetrofitError e) {
+      getTask().updateStatus(BASE_PHASE, format("Did not find %s in Front50", entityTagsDescription.getId()));
+      return null;
+    }
+    if (entityTagsDescription.isDeleteAll() || entityTagsDescription.getTags().containsAll(currentTags.getTags().keySet())) {
+      getTask().updateStatus(BASE_PHASE, format("Deleting %s from ElasticSearch", entityTagsDescription.getId()));
+      entityTagsProvider.delete(entityTagsDescription.getId());
+      getTask().updateStatus(BASE_PHASE, format("Deleted %s from ElasticSearch", entityTagsDescription.getId()));
 
-    getTask().updateStatus(BASE_PHASE, format("Deleting %s from Front50", entityTagsDescription.getId()));
-    front50Service.deleteEntityTags(entityTagsDescription.getId());
-    getTask().updateStatus(BASE_PHASE, format("Deleted %s from Front50", entityTagsDescription.getId()));
+      getTask().updateStatus(BASE_PHASE, format("Deleting %s from Front50", entityTagsDescription.getId()));
+      front50Service.deleteEntityTags(entityTagsDescription.getId());
+      getTask().updateStatus(BASE_PHASE, format("Deleted %s from Front50", entityTagsDescription.getId()));
+      return null;
+    }
+
+    entityTagsDescription.getTags().forEach(tag -> {
+      currentTags.getTags().remove(tag);
+      if (currentTags.getTagsMetadata() != null) {
+        currentTags.getTagsMetadata().remove(tag);
+      }
+    });
+
+    EntityTags durableEntityTags = front50Service.saveEntityTags(currentTags);
+    getTask().updateStatus(BASE_PHASE, format("Updated %s in Front50", durableEntityTags.getId()));
+
+    currentTags.setLastModified(durableEntityTags.getLastModified());
+    currentTags.setLastModifiedBy(durableEntityTags.getLastModifiedBy());
+
+    entityTagsProvider.index(currentTags);
+    entityTagsProvider.verifyIndex(currentTags);
+
+    getTask().updateStatus(BASE_PHASE, format("Updated %s in ElasticSearch", entityTagsDescription.getId()));
 
     return null;
   }

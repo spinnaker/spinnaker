@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable;
 
+import java.util.List;
+
 public class DeleteEntityTagsDescription implements CredentialsNameable {
   @JsonIgnore
   private AccountCredentials credentials;
@@ -31,6 +33,12 @@ public class DeleteEntityTagsDescription implements CredentialsNameable {
   @JsonProperty
   private String account;
 
+  @JsonProperty
+  private List<String> tags;
+
+  @JsonProperty
+  private boolean deleteAll = false;
+
   public String getId() {
     return id;
   }
@@ -38,6 +46,14 @@ public class DeleteEntityTagsDescription implements CredentialsNameable {
   @Override
   public String getAccount() {
     return account;
+  }
+
+  public List<String> getTags() {
+    return tags;
+  }
+
+  public boolean isDeleteAll() {
+    return deleteAll;
   }
 
   @Override
