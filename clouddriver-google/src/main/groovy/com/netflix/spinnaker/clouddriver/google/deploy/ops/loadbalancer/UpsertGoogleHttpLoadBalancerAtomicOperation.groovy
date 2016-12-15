@@ -110,7 +110,6 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     Boolean targetProxyExists = false
     Boolean targetProxyNeedsUpdated = false
     Boolean forwardingRuleExists
-    Boolean forwardingRuleNeedsUpdated
 
     // The following are unique on object equality, not just name. This lets us check if a service/hc exists or
     // needs updated by _name_ later.
@@ -148,11 +147,6 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       }
     }
     forwardingRuleExists = existingRule as Boolean
-    if (forwardingRuleExists) {
-      forwardingRuleNeedsUpdated = (httpLoadBalancer.ipAddress ? existingRule.getIPAddress() != httpLoadBalancer.ipAddress : false) ||
-        (httpLoadBalancer.ipProtocol ? existingRule.getIPProtocol() != httpLoadBalancer.ipProtocol : false) ||
-        (description.certificate ? false : existingRule.getPortRange() != "${httpLoadBalancer.portRange}-${httpLoadBalancer.portRange}")
-    }
 
     // TargetProxy
     def existingProxy = null
@@ -161,8 +155,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       switch (Utils.getTargetProxyType(existingRule.getTarget())) {
         case GoogleTargetProxyType.HTTP:
           existingProxy = compute.targetHttpProxies().get(project, targetProxyName).execute()
-          targetProxyNeedsUpdated = httpLoadBalancer.certificate as Boolean
-          forwardingRuleNeedsUpdated = forwardingRuleNeedsUpdated || targetProxyNeedsUpdated // We need to change the target of the forwarding rule if we change proxy from Http -> Https.
+          // Http target proxies aren't updated. If you want to add a Https listener, there are options for that in the frontend.
           break
         case GoogleTargetProxyType.HTTPS:
           existingProxy = compute.targetHttpsProxies().get(project, targetProxyName).execute()
@@ -375,7 +368,6 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     def targetProxy
     def insertTargetProxyOperation
     String targetProxyUrl
-    Boolean deleteExistingProxy = false
     if (!targetProxyExists) {
       if (httpLoadBalancer.certificate) {
         targetProxyName = "$httpLoadBalancerName-$TARGET_HTTPS_PROXY_NAME_PREFIX"
@@ -400,20 +392,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       GoogleTargetProxyType proxyType = Utils.getTargetProxyType(existingProxy?.getSelfLink())
       switch (proxyType) {
         case GoogleTargetProxyType.HTTP:
-          // We are "updating" a Http proxy to an Https proxy, since the only thing we check
-          // for differences is the certificate.
-          targetProxyName = "$httpLoadBalancerName-$TARGET_HTTPS_PROXY_NAME_PREFIX"
-          task.updateStatus BASE_PHASE, "Creating target proxy $targetProxyName..."
-          targetProxy = new TargetHttpsProxy(
-            name: targetProxyName,
-            sslCertificates: [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)],
-            urlMap: urlMapUrl,
-          )
-          insertTargetProxyOperation = compute.targetHttpsProxies().insert(project, targetProxy).execute()
-          targetProxyUrl = insertTargetProxyOperation.getTargetLink()
-
-          // We should also delete the old Http proxy.
-          deleteExistingProxy = true
+          // Http target proxies aren't updated. If you want to add a Https listener, there are options for that in the frontend.
           break
         case GoogleTargetProxyType.HTTPS:
           targetProxyName = "$httpLoadBalancerName-$TARGET_HTTPS_PROXY_NAME_PREFIX"
@@ -446,27 +425,9 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         target: targetProxyUrl,
       )
       compute.globalForwardingRules().insert(project, forwardingRule).execute()
-    } else if (forwardingRuleExists && forwardingRuleNeedsUpdated) {
-      task.updateStatus BASE_PHASE, "Updating global forwarding rule $httpLoadBalancerName..."
-      def forwardingRule = new ForwardingRule(
-        name: httpLoadBalancerName,
-        iPAddress: httpLoadBalancer.ipAddress ?: existingRule.getIPAddress(),
-        iPProtocol: httpLoadBalancer.ipProtocol ?: existingRule.getIPProtocol(),
-        portRange: httpLoadBalancer.certificate ? "443" : httpLoadBalancer.portRange, // 443 is the only supported port for Https.
-        target: targetProxyUrl,
-      )
-      def ruleDeleteOp = compute.globalForwardingRules().delete(project, forwardingRule.name).execute()
-      googleOperationPoller.waitForGlobalOperation(compute, project, ruleDeleteOp.getName(),
-        null, task, "global forwarding rule $existingRule.name", BASE_PHASE)
-      def ruleInsertOp = compute.globalForwardingRules().insert(project, forwardingRule).execute()
-      googleOperationPoller.waitForGlobalOperation(compute, project, ruleInsertOp.getName(),
-        null, task, "global forwarding rule $existingRule.name", BASE_PHASE)
     }
-
-    // Cleanup in case we switched types of TargetProxies.
-    if (deleteExistingProxy) {
-      compute.targetHttpProxies().delete(project, existingProxy.getName()).execute()
-    }
+    // NOTE: there is no update for forwarding rules because we support adding/deleting multiple listeners in the frontend.
+    // Rotating or changing certificates updates the targetProxy only, so the forwarding rule doesn't need to change.
 
     // Delete extraneous listeners.
     description.listenersToDelete?.each { String forwardingRuleName ->
