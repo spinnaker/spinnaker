@@ -287,7 +287,7 @@ function extract_spinnaker_gcr_credentials() {
 
     if [ -z "$gcr_account" ]; then
       # This service account is enabled with the Compute API.
-      gcr_account="${MY_PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+      gcr_account=$(curl -s -H "Metadata-Flavor: Google" "$METADATA_URL/instance/service-accounts/default/email")
       clear_instance_metadata "gcr_account"
     fi
 
