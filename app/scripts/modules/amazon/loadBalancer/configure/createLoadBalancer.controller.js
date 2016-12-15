@@ -304,7 +304,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     let formatListeners = () => {
       return accountService.getAccountDetails($scope.loadBalancer.credentials).then((account) => {
         $scope.loadBalancer.listeners.forEach((listener) => {
-          listener.sslCertificateId = certificateIdAsARN(account.accountId, listener.sslCertificateId,
+          listener.sslCertificateId = certificateIdAsARN(account.accountId, listener.sslCertificateName,
             $scope.loadBalancer.region, listener.sslCertificateType || this.certificateTypes[0]);
         });
       });
@@ -406,7 +406,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       }
     };
 
-    this.showSslCertificateIdField = function() {
+    this.showSslCertificateNameField = function() {
       return $scope.loadBalancer.listeners.some(function(listener) {
         return listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL';
       });

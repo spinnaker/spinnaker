@@ -55,23 +55,23 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
 
     this.$scope.loadBalancer = loadBalancer;
 
-    expect(this.ctrl.showSslCertificateIdField()).toBe(false);
+    expect(this.ctrl.showSslCertificateNameField()).toBe(false);
 
     loadBalancer.listeners.push({ externalProtocol: 'HTTP' });
-    expect(this.ctrl.showSslCertificateIdField()).toBe(false);
+    expect(this.ctrl.showSslCertificateNameField()).toBe(false);
 
     loadBalancer.listeners.push({ externalProtocol: 'TCP' });
-    expect(this.ctrl.showSslCertificateIdField()).toBe(false);
+    expect(this.ctrl.showSslCertificateNameField()).toBe(false);
 
     loadBalancer.listeners.push({ externalProtocol: 'SSL' });
-    expect(this.ctrl.showSslCertificateIdField()).toBe(true);
+    expect(this.ctrl.showSslCertificateNameField()).toBe(true);
 
     loadBalancer.listeners = [{externalProtocol: 'HTTP'}];
     loadBalancer.listeners.push({ externalProtocol: 'HTTPS' });
-    expect(this.ctrl.showSslCertificateIdField()).toBe(true);
+    expect(this.ctrl.showSslCertificateNameField()).toBe(true);
 
     loadBalancer.listeners = [ { externalProtocol: 'HTTPS' }, { externalProtocol: 'HTTPS' }];
-    expect(this.ctrl.showSslCertificateIdField()).toBe(true);
+    expect(this.ctrl.showSslCertificateNameField()).toBe(true);
   });
 
   describe('prependForwardSlash', function () {
