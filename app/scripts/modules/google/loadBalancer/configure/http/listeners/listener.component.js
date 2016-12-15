@@ -15,14 +15,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.listener.co
     templateUrl: require('./listener.component.html'),
     controller: function () {
       this.certificates = this.command.backingData.certificates;
-      this.originalListener = _.cloneDeep(this.listener);
       let loadBalancerMap = this.command.backingData.loadBalancerMap;
-
-      this.preventPortChange = () => {
-        return this.listener.created &&
-          this.originalListener.name === this.listener.name &&
-          (this.originalListener.port === 443 || this.originalListener.port === '443');
-      };
 
       this.getName = (listener, applicationName) => {
         let listenerName = [applicationName, (listener.stack || ''), (listener.detail || '')].join('-');

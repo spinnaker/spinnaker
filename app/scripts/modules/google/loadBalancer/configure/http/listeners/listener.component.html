@@ -14,6 +14,7 @@
                  ng-maxlength="63"
                  class="form-control input-sm"
                  ng-model="$ctrl.listener.name"
+                 ng-readonly="$ctrl.listener.created"
                  validate-unique="$ctrl.existingListenerNames()"
                  validate-ignore-case="true"
                  name="listenerName"/>
@@ -27,6 +28,7 @@
           <input type="text"
                  class="form-control input-sm"
                  ng-model="$ctrl.listener.stack"
+                 ng-readonly="$ctrl.listener.created"
                  name="stackName"
                  ng-change="$ctrl.updateName($ctrl.listener, $ctrl.application.name)"
                  ng-pattern="/^[a-z0-9]*$/"/>
@@ -37,6 +39,7 @@
           <input type="text"
                  class="form-control input-sm"
                  ng-model="$ctrl.listener.detail"
+                 ng-readonly="$ctrl.listener.created"
                  name="detailName"
                  ng-change="$ctrl.updateName($ctrl.listener, $ctrl.application.name)"
                  ng-pattern="/^[a-z0-9-]*$/"/>
@@ -54,7 +57,7 @@
         <div class="col-md-2 sm-label-right">Port<help-field key="gce.httpLoadBalancer.port"></help-field></div>
         <div class="col-md-3">
           <ui-select ng-model="$ctrl.listener.port"
-                     ng-disabled="$ctrl.preventPortChange()"
+                     ng-disabled="$ctrl.listener.created"
                      required
                      class="form-control input-sm">
             <ui-select-match>
@@ -71,6 +74,7 @@
           </div>
           <div class="col-md-3">
             <ui-select ng-model="$ctrl.listener.certificate"
+                       ng-disabled="$ctrl.listener.created && !$ctrl.listener.certificate"
                        required
                        class="form-control input-sm">
               <ui-select-match allow-clear placeholder="Select...">{{$select.selected}}</ui-select-match>
