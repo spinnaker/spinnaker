@@ -14,7 +14,6 @@
             <td>
               <ui-select ng-model="ctrl.loadBalancer.certificate"
                          required
-                         ng-disabled="!ctrl.isNew"
                          class="form-control input-sm">
                 <ui-select-match allow-clear placeholder="Select...">{{$select.selected.name}}</ui-select-match>
                 <ui-select-choices
