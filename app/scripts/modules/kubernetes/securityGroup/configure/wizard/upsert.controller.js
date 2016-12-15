@@ -93,8 +93,6 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
           $scope.securityGroup.account = accountNames[0];
         }
 
-        $scope.loadBalancers = getLoadBalancerNames(backingData.loadBalancers);
-
         ctrl.accountUpdated();
       });
     }
@@ -154,8 +152,12 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
     };
 
     this.accountUpdated = function() {
-      accountService.getAccountDetails($scope.securityGroup.account).then(function(details) {
-        $scope.namespaces = details.namespaces;
+      $q.all({
+        accountDetails: accountService.getAccountDetails($scope.securityGroup.account),
+        loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
+      }).then(function(backingData) {
+        $scope.namespaces = backingData.accountDetails.namespaces;
+        $scope.loadBalancers = getLoadBalancerNames(backingData.loadBalancers);
         ctrl.namespaceUpdated();
       });
     };
