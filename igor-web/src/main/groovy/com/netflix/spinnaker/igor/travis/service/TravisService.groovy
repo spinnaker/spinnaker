@@ -141,7 +141,9 @@ class TravisService implements BuildService {
         return builds.builds.size() > 0 ? builds.builds.first() : null
     }
 
-    Map<String, Object> getBuildProperties(String repoSlug, int buildNumber) {
+    Map<String, Object> getBuildProperties(String inputRepoSlug, int buildNumber) {
+        String repoSlug = cleanRepoSlug(inputRepoSlug)
+
         Build build = getBuild(repoSlug, buildNumber)
         return PropertyParser.extractPropertiesFromLog(getLog(build))
     }
