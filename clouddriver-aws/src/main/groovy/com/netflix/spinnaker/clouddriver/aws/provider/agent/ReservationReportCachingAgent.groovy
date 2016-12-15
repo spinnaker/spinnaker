@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesRequest
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
+import com.amazonaws.services.ec2.model.DescribeInstancesResult
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonGenerator
@@ -53,6 +54,7 @@ import rx.Observable
 import rx.Scheduler
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.ToDoubleFunction
@@ -80,6 +82,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   final AccountReservationDetailSerializer accountReservationDetailSerializer
   final Set<String> vpcOnlyAccounts
   final MetricsSupport metricsSupport
+  final Registry registry
 
   ReservationReportCachingAgent(Registry registry,
                                 AmazonClientProvider amazonClientProvider,
@@ -99,6 +102,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     this.ctx = ctx
     this.vpcOnlyAccounts = determineVpcOnlyAccounts()
     this.metricsSupport = new MetricsSupport(objectMapper, registry, { getCacheView() })
+    this.registry = registry
   }
 
   private Set<String> determineVpcOnlyAccounts() {
@@ -173,10 +177,11 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     log.info("Describing items in ${agentType}")
 
     ConcurrentHashMap<String, OverallReservationDetail> reservations = new ConcurrentHashMap<>()
+    ConcurrentHashMap<String, Collection<String>> errorsByRegion = new ConcurrentHashMap<>()
     Observable
       .from(accounts.sort { it.name })
       .flatMap({ credential ->
-        extractReservations(reservations, credential).subscribeOn(scheduler)
+        extractReservations(reservations, errorsByRegion, credential).subscribeOn(scheduler)
     })
       .observeOn(scheduler)
       .toList()
@@ -197,6 +202,11 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     }
     log.info("Caching ${reservations.size()} items in ${agentType} took ${System.currentTimeMillis() - startTime}ms")
 
+    amazonReservationReport.errorsByRegion = errorsByRegion
+    amazonReservationReport.reservations = amazonReservationReport.reservations.findAll {
+      !errorsByRegion.containsKey(it.region())
+    }
+
     // v1 is a legacy report that does not differentiate between vpc and non-vpc reserved instances
     accountReservationDetailSerializer.mergeVpcReservations = true
     def v1 = objectMapper.convertValue(amazonReservationReport, Map)
@@ -215,6 +225,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   }
 
   Observable extractReservations(ConcurrentHashMap<String, OverallReservationDetail> reservations,
+                                 ConcurrentHashMap<String, Collection<String>> errorsByRegion,
                                  NetflixAmazonCredentials credentials) {
     def getReservation = { String availabilityZone, String operatingSystemType, String instanceType ->
       def key = [availabilityZone, operatingSystemType, instanceType].join(":")
@@ -236,67 +247,93 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       .from(credentials.regions)
       .flatMap({ AmazonCredentials.AWSRegion region ->
         log.info("Fetching reservation report for ${credentials.name}:${region.name}")
-
-        def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name)
-
         long startTime = System.currentTimeMillis()
-        def cacheView = getCacheView()
-        def reservedInstances = cacheView.getAll(
-          RESERVED_INSTANCES.ns,
-          cacheView.filterIdentifiers(RESERVED_INSTANCES.ns, Keys.getReservedInstancesKey('*', credentials.name, region.name))
-        ).collect {
-          objectMapper.convertValue(it.attributes, ReservedInstanceDetails)
-        }
-        log.debug("Took ${System.currentTimeMillis() - startTime}ms to describe reserved instances for ${credentials.name}/${region.name}")
 
-        reservedInstances.findAll {
-          it.state.equalsIgnoreCase("active") &&
-            ["Heavy Utilization", "Partial Upfront", "All Upfront", "No Upfront"].contains(it.offeringType)
-        }.each {
-          def osType = operatingSystemType(it.productDescription)
-          def reservation = getReservation(it.availabilityZone, osType.name, it.instanceType)
-          reservation.totalReserved.addAndGet(it.instanceCount)
-
-          if (osType.isVpc || vpcOnlyAccounts.contains(credentials.name)) {
-            reservation.getAccount(credentials.name).reservedVpc.addAndGet(it.instanceCount)
-          } else {
-            reservation.getAccount(credentials.name).reserved.addAndGet(it.instanceCount)
+        try {
+          def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name)
+          def cacheView = getCacheView()
+          def reservedInstances = cacheView.getAll(
+            RESERVED_INSTANCES.ns,
+            cacheView.filterIdentifiers(RESERVED_INSTANCES.ns, Keys.getReservedInstancesKey('*', credentials.name, region.name))
+          ).collect {
+            objectMapper.convertValue(it.attributes, ReservedInstanceDetails)
           }
-        }
+          log.debug("Took ${System.currentTimeMillis() - startTime}ms to describe reserved instances for ${credentials.name}/${region.name}")
 
-        startTime = System.currentTimeMillis()
-        def describeInstancesRequest = new DescribeInstancesRequest().withMaxResults(500)
-        def allowedStates = ["pending", "running"] as Set<String>
-        while (true) {
-          def result = amazonEC2.describeInstances(describeInstancesRequest)
-          result.reservations.each {
-            it.getInstances().each {
-              if (!allowedStates.contains(it.state.name.toLowerCase())) {
-                return
-              }
+          reservedInstances.findAll {
+            it.state.equalsIgnoreCase("active") &&
+              ["Heavy Utilization", "Partial Upfront", "All Upfront", "No Upfront"].contains(it.offeringType)
+          }.each {
+            def osType = operatingSystemType(it.productDescription)
+            def reservation = getReservation(it.availabilityZone, osType.name, it.instanceType)
+            reservation.totalReserved.addAndGet(it.instanceCount)
 
-              def osTypeName = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX").name
-              def reservation = getReservation(it.placement.availabilityZone, osTypeName, it.instanceType)
-              reservation.totalUsed.incrementAndGet()
-
-              if (it.vpcId) {
-                reservation.getAccount(credentials.name).usedVpc.incrementAndGet()
-              } else {
-                reservation.getAccount(credentials.name).used.incrementAndGet()
-              }
+            if (osType.isVpc || vpcOnlyAccounts.contains(credentials.name)) {
+              reservation.getAccount(credentials.name).reservedVpc.addAndGet(it.instanceCount)
+            } else {
+              reservation.getAccount(credentials.name).reserved.addAndGet(it.instanceCount)
             }
           }
 
-          if (result.nextToken) {
-            describeInstancesRequest.withNextToken(result.nextToken)
-          } else {
-            break
+          startTime = System.currentTimeMillis()
+          def describeInstancesRequest = new DescribeInstancesRequest().withMaxResults(500)
+          def allowedStates = ["pending", "running"] as Set<String>
+          while (true) {
+            def result = amazonEC2.describeInstances(describeInstancesRequest)
+            result.reservations.each {
+              it.getInstances().each {
+                if (!allowedStates.contains(it.state.name.toLowerCase())) {
+                  return
+                }
+
+                def osTypeName = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX").name
+                def reservation = getReservation(it.placement.availabilityZone, osTypeName, it.instanceType)
+                reservation.totalUsed.incrementAndGet()
+
+                if (it.vpcId) {
+                  reservation.getAccount(credentials.name).usedVpc.incrementAndGet()
+                } else {
+                  reservation.getAccount(credentials.name).used.incrementAndGet()
+                }
+              }
+            }
+
+            if (result.nextToken) {
+              describeInstancesRequest.withNextToken(result.nextToken)
+            } else {
+              break
+            }
           }
+        } catch (Exception e) {
+          recordError(registry, errorsByRegion, credentials, region, e)
         }
+
         log.debug("Took ${System.currentTimeMillis() - startTime}ms to describe instances for ${credentials.name}/${region.name}")
 
-      return Observable.empty()
-    })
+        return Observable.empty()
+      })
+  }
+
+  static void recordError(Registry registry,
+                          ConcurrentHashMap<String, Collection<String>> errorsByRegion,
+                          NetflixAmazonCredentials credentials,
+                          AmazonCredentials.AWSRegion region,
+                          Exception e) {
+    def errorMessage = "Failed to describe instances in ${credentials.name}:${region.name}, reason: ${e.message}" as String
+    log.error(errorMessage, e)
+
+    def errors = new CopyOnWriteArrayList([errorMessage])
+
+    def previousValue = errorsByRegion.putIfAbsent(region.name, errors)
+    if (previousValue != null) {
+      previousValue.add(errorMessage)
+    }
+
+    def id = registry.createId("reservedInstances.errors").withTags([
+      region : region.name,
+      account: credentials.name
+    ])
+    registry.counter(id).increment()
   }
 
   static AmazonReservationReport.OperatingSystemType operatingSystemType(String productDescription) {
