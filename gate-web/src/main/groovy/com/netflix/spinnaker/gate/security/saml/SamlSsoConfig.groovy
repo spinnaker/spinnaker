@@ -47,6 +47,10 @@ import org.springframework.security.saml.userdetails.SAMLUserDetailsService
 import org.springframework.security.web.authentication.RememberMeServices
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices
 import org.springframework.stereotype.Component
+
+import javax.annotation.PostConstruct
+import java.security.KeyStore
+
 import static org.springframework.security.extensions.saml2.config.SAMLConfigurer.saml
 
 @ConditionalOnExpression('${saml.enabled:false}')
@@ -81,6 +85,32 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
     List<String> requiredRoles
     UserAttributeMapping userAttributeMapping = new UserAttributeMapping()
+
+    /**
+     * Ensure that the keystore exists and can be accessed with the given keyStorePassword and keyStoreAliasName
+     */
+    @PostConstruct
+    void validate() {
+      def keyStoreToValidate = keyStore
+      if (!keyStoreToValidate) {
+        return
+      }
+
+      if (!keyStoreToValidate.startsWith("file:")) {
+        keyStoreToValidate = "file:" + keyStoreToValidate
+      }
+
+      new File(new URI(keyStoreToValidate)).withInputStream { is ->
+        def keystore = KeyStore.getInstance(KeyStore.getDefaultType())
+
+        // will throw an exception if `keyStorePassword` is invalid
+        keystore.load(is, keyStorePassword.toCharArray());
+
+        if (keyStoreAliasName && !keystore.aliases().find { it.equalsIgnoreCase(keyStoreAliasName) }) {
+          throw new IllegalStateException("Keystore '${keyStore}' does not contain alias '${keyStoreAliasName}'")
+        }
+      }
+    }
   }
 
   static class UserAttributeMapping {
@@ -113,21 +143,21 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
     http
       .apply(saml())
-          .userDetailsService(samlUserDetailsService)
-          .identityProvider()
-            .metadataFilePath(samlSecurityConfigProperties.metadataUrl)
-            .discoveryEnabled(false)
-            .and()
-          .serviceProvider()
-            .entityId(samlSecurityConfigProperties.issuerId)
-            .protocol(samlSecurityConfigProperties.redirectProtocol)
-            .hostname(samlSecurityConfigProperties.redirectHostname ?: serverProperties?.address?.hostName)
-            .basePath(samlSecurityConfigProperties.redirectBasePath)
-            .keyStore()
-              .storeFilePath(samlSecurityConfigProperties.keyStore)
-              .password(samlSecurityConfigProperties.keyStorePassword)
-              .keyname(samlSecurityConfigProperties.keyStoreAliasName)
-              .keyPassword(samlSecurityConfigProperties.keyStorePassword)
+      .userDetailsService(samlUserDetailsService)
+      .identityProvider()
+      .metadataFilePath(samlSecurityConfigProperties.metadataUrl)
+      .discoveryEnabled(false)
+      .and()
+      .serviceProvider()
+      .entityId(samlSecurityConfigProperties.issuerId)
+      .protocol(samlSecurityConfigProperties.redirectProtocol)
+      .hostname(samlSecurityConfigProperties.redirectHostname ?: serverProperties?.address?.hostName)
+      .basePath(samlSecurityConfigProperties.redirectBasePath)
+      .keyStore()
+      .storeFilePath(samlSecurityConfigProperties.keyStore)
+      .password(samlSecurityConfigProperties.keyStorePassword)
+      .keyname(samlSecurityConfigProperties.keyStoreAliasName)
+      .keyPassword(samlSecurityConfigProperties.keyStorePassword)
   }
 
   @Bean
