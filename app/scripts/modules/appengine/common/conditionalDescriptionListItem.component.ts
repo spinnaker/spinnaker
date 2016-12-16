@@ -1,6 +1,6 @@
 import {module, IComponentOptions} from 'angular';
 
-class ConditionalDescriptionListItem implements IComponentOptions {
+class AppengineConditionalDescriptionListItem implements IComponentOptions {
   public bindings: any = {label: '@', key: '@', component: '<'};
   public transclude: boolean = true;
   public template: string = `
@@ -9,7 +9,7 @@ class ConditionalDescriptionListItem implements IComponentOptions {
   `;
 }
 
-export const CONDITIONAL_DESCRIPTION_LIST_ITEM = 'spinnaker.appengine.conditionalDescriptionListItem';
+export const APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM = 'spinnaker.appengine.conditionalDescriptionListItem';
 
-module(CONDITIONAL_DESCRIPTION_LIST_ITEM, [])
-  .component('conditionalDtDd', new ConditionalDescriptionListItem());
+module(APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM, [])
+  .component('appengineConditionalDtDd', new AppengineConditionalDescriptionListItem());
