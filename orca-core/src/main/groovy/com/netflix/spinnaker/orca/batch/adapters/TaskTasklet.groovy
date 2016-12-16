@@ -103,6 +103,15 @@ class TaskTasklet implements Tasklet {
           executionRepository.cancel(stage.execution.id)
         }
 
+        if (result.status.isFailure()) {
+          try {
+            // ensure that any cleanup behavior is invoked when a task fails (if stage is `Cancellable`)
+            cancel(stage, false)
+          } catch (Exception e) {
+            log.error("Error occurred canceling stage '${stage.id}' in execution '${stage.execution.id}'", e)
+          }
+        }
+
         def stageOutputs = new HashMap(result.stageOutputs)
         if (result.status.complete) {
           stageOutputs.put('batch.task.id.' + taskName(chunkContext), chunkContext.stepContext.stepExecution.id)
@@ -143,19 +152,26 @@ class TaskTasklet implements Tasklet {
     return result
   }
 
-  private RepeatStatus cancel(Stage stage) {
+  private RepeatStatus cancel(Stage stage, boolean adjustStageStatusAndTasks = true) {
+    doCancel(stage, adjustStageStatusAndTasks)
+    return RepeatStatus.FINISHED
+  }
+
+  protected void doCancel(Stage stage, boolean adjustStageStatusAndTasks) {
     def cancelResults = stage.ancestors({ Stage s, StageDefinitionBuilder stageBuilder ->
       !s.status.complete && stageBuilder instanceof CancellableStage
     }).collect {
       ((CancellableStage) it.stageBuilder).cancel(stage)
     }
     stage.context.cancelResults = cancelResults
-    stage.status = ExecutionStatus.CANCELED
-    stage.endTime = System.currentTimeMillis()
-    stage.tasks.findAll { !it.status.complete }.each { it.status = ExecutionStatus.CANCELED }
+
+    if (adjustStageStatusAndTasks) {
+      stage.status = ExecutionStatus.CANCELED
+      stage.endTime = System.currentTimeMillis()
+      stage.tasks.findAll { !it.status.complete }.each { it.status = ExecutionStatus.CANCELED }
+    }
 
     log.info("${stage.execution.class.simpleName} ${stage.execution.id} was canceled")
-    return RepeatStatus.FINISHED
   }
 
   private void save(Stage stage, ChunkContext chunkContext) {

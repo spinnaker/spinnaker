@@ -18,12 +18,14 @@ package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -48,6 +50,9 @@ class TaskTaskletSpec extends Specification {
 
   @Shared
   def stageNavigator = new StageNavigator(Stub(ApplicationContext))
+
+  @Shared
+  def allStartedStatuses = ExecutionStatus.values().findAll { it != NOT_STARTED }
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
@@ -291,6 +296,70 @@ class TaskTaskletSpec extends Specification {
     [failPipeline: false] | TERMINAL       || STOPPED
   }
 
+  @Unroll
+  def "should #verb stage when task ends in a #status"() {
+    given:
+    def wasCanceled = false
+    def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry(), stageNavigator) {
+      @Override
+      void doCancel(Stage stage, boolean adjustStageStatusAndTasks) {
+        wasCanceled = true
+      }
+    }
+
+    and:
+    task.execute(_) >> new DefaultTaskResult(status)
+
+    when:
+    tasklet.execute(stepContribution, chunkContext)
+
+    then:
+    wasCanceled == shouldCancel
+
+    where:
+    status << allStartedStatuses
+    shouldCancel << allStartedStatuses.collect { it.isFailure() }
+    verb << allStartedStatuses.collect { it.isFailure() ? "cancel" : "not cancel" }
+  }
+
+  def "should cancel incomplete ancestor stages"() {
+    given:
+    def stageType = "noop"
+    def stageDefinitionBuilder = new CancellableStageDefinitionBuilder(type: stageType)
+    def applicationContext = Mock(ApplicationContext) {
+      getBeansOfType(StageDefinitionBuilder) >> {
+        return [(stageType): stageDefinitionBuilder]
+      }
+    }
+
+    and:
+    def pipeline = new Pipeline()
+    def stage = new PipelineStage(pipeline, stageType)
+    stage.tasks << new DefaultTask(status: SUCCEEDED)
+    stage.tasks << new DefaultTask()
+    stage.stageNavigator = new StageNavigator(applicationContext)
+
+    when:
+    tasklet.cancel(stage, false)
+
+    then: "should NOT adjust stage and task statuses"
+    stage.status == NOT_STARTED
+    stage.endTime == null
+    stage.tasks*.status == [SUCCEEDED, NOT_STARTED]
+    stage.context.cancelResults == [stageDefinitionBuilder.result]
+    stageDefinitionBuilder.isCanceled
+
+    when:
+    stageDefinitionBuilder.isCanceled = false
+    tasklet.cancel(stage, true)
+
+    then: "should adjust stage and task statuses"
+    stage.status == CANCELED
+    stage.endTime != null
+    stage.tasks*.status == [SUCCEEDED, CANCELED]
+    stageDefinitionBuilder.isCanceled
+  }
+
   private buildTasklet(Class taskType, boolean shouldRetry) {
     def task = Mock(taskType)
     task.execute(_) >> { throw new RuntimeException() }
@@ -306,5 +375,18 @@ class TaskTaskletSpec extends Specification {
     }
 
     return tasklet
+  }
+
+  private class CancellableStageDefinitionBuilder implements StageDefinitionBuilder, CancellableStage {
+    String type
+    boolean isCanceled = false
+    CancellableStage.Result result
+
+    @Override
+    CancellableStage.Result cancel(Stage stage) {
+      isCanceled = true
+      result = new CancellableStage.Result(stage, [canceled: true])
+      return result
+    }
   }
 }
