@@ -1,0 +1,86 @@
+<div class="details-panel">
+  <div class="header" ng-if="ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="glyphicon glyphicon-hdd {{ctrl.instance.healthState}}"></span>
+      <h3 select-on-dbl-click>
+        {{ctrl.instance.name}}
+      </h3>
+    </div>
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading">
+    <collapsible-section heading="Instance Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Launched</dt>
+        <dd ng-if="ctrl.instance.launchTime">{{ctrl.instance.launchTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="ctrl.instance.account" pad="right"></account-tag>{{}}
+        </dd>
+        <dt ng-if="ctrl.instance.serverGroup">Server Group</dt>
+        <dd ng-if="ctrl.instance.serverGroup">
+          <a ui-sref="^.serverGroup({region: ctrl.instance.region,
+                                     accountId: ctrl.instance.account,
+                                     serverGroup: ctrl.instance.serverGroup,
+                                     provider: 'appengine'})">{{ctrl.instance.serverGroup}}</a>
+        </dd>
+        <dt>Region</dt>
+        <dd>{{ctrl.instance.region}}</dd>
+        <conditional-dt-dd component="ctrl.instance" key="vmZoneName" label="Zone"></conditional-dt-dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <dl>
+        <dt>Load Balancer</dt>
+        <dd>
+          <span class="pull-left"
+                uib-tooltip="{{ctrl.instance.healthState === 'Up' ? ctrl.upToolTip : ctrl.outOfServiceToolTip}}"
+                tooltip-placement="right">
+            <span class="glyphicon glyphicon-{{ctrl.instance.healthState}}-triangle"></span>
+            {{ctrl.instance.loadBalancers[0]}}
+          </span>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Metrics" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <conditional-dt-dd component="ctrl.instance" key="instanceStatus" label="Availability">
+          <help-field key="appengine.instance.availability"></help-field>
+        </conditional-dt-dd>
+        <conditional-dt-dd component="ctrl.instance" key="averageLatency" label="Average Latency">
+          <help-field key="appengine.instance.averageLatency"></help-field>
+        </conditional-dt-dd>
+        <conditional-dt-dd component="ctrl.instance" key="errors" label="Errors">
+          <help-field key="appengine.instance.errors"></help-field>
+        </conditional-dt-dd>
+        <conditional-dt-dd component="ctrl.instance" key="qps" label="QPS">
+          <help-field key="appengine.instance.qps"></help-field>
+        </conditional-dt-dd>
+        <conditional-dt-dd component="ctrl.instance" key="requests" label="Requests">
+          <help-field key="appengine.instance.requests"></help-field>
+        </conditional-dt-dd>
+        <conditional-dt-dd component="ctrl.instance" key="vmStatus" label="VM Status">
+          <help-field key="appengine.instance.vmStatus"></help-field>
+        </conditional-dt-dd>
+        <conditional-dt-dd component="ctrl.instance" key="vmDebugEnabled" label="Debug Enabled"></conditional-dt-dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

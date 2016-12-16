@@ -48,6 +48,39 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
       {
         key: 'appengine.loadBalancer.allocations',
         value: 'An allocation is the percent of traffic directed to a server group.'
+      },
+      {
+        key: 'appengine.instance.availability',
+        value: `
+          An instance's <b>availability</b> is determined by its version (Spinnaker server group).
+          <ul>
+            <li>Manual scaling versions use resident instances</li>
+            <li>Basic scaling versions use dynamic instances</li>
+            <li>Auto scaling versions use dynamic instances - but if you specify a number, N, 
+                of minimum idle instances, the first N instances will be resident, 
+                and additional dynamic instances will be created as necessary.
+            </li>
+          </ul>`
+      },
+      {
+        key: 'appengine.instance.averageLatency',
+        value: 'Average latency over the last minute in milliseconds.'
+      },
+      {
+        key: 'appengine.instance.vmStatus',
+        value: 'Status of the virtual machine where this instance lives.'
+      },
+      {
+        key: 'appengine.instance.qps',
+        value: 'Average queries per second over the last minute.'
+      },
+      {
+        key: 'appengine.instance.errors',
+        value: 'Number of errors since this instance was started.'
+      },
+      {
+        key: 'appengine.instance.requests',
+        value: 'Number of requests since this instance was started.'
       }
     ];
 
