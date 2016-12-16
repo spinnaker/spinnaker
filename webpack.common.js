@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const HappyPack = require('happypack');
 const path = require('path');
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
+const fs = require('fs');
 
 function configure(IS_TEST) {
 
@@ -95,6 +96,14 @@ function configure(IS_TEST) {
     },
     watch: IS_TEST
   };
+
+  if (process.env.DECK_CERT) {
+    config.devServer.cert = fs.readFileSync(process.env.DECK_CERT);
+    config.devServer.key = fs.readFileSync(process.env.DECK_KEY);
+    if (process.env.DECK_CA_CERT) {
+      config.devServer.cacert = fs.readFileSync(process.env.DECK_CA_CERT);
+    }
+  }
 
   config.module.preLoaders.push(getTypescriptLinterLoader());
   config.module.loaders.push(getJavascriptLoader(), getLessLoader(), getHtmlLoader());
