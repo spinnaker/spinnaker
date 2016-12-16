@@ -16,6 +16,7 @@
 
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
 tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
@@ -23,25 +24,10 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
 }
 
 apply plugin: 'spring-boot'
-apply plugin: 'nebula.ospackage'
+apply plugin: 'spinnaker.package'
 
 configurations.all {
   exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-}
-
-sourceSets {
-  main {
-    resources {
-      srcDir 'src/main/resources'
-      srcDir 'config'
-    }
-  }
-}
-
-jar {
-  doFirst {
-    exclude "${rootProject.name}.yml"
-  }
 }
 
 dependencies {
@@ -73,71 +59,10 @@ dependencies {
   testCompile project(":front50-test")
 }
 
-applicationName = "front50"
-applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
-applicationDistribution.from(project.file('config')) {
-  into 'config'
-}
-
-startScripts {
-  defaultJvmOpts = applicationDefaultJvmArgs + ["-Dspring.config.location=/opt/spinnaker/config/"]
-  doLast {
-    unixScript.text = unixScript.text.replace('DEFAULT_JVM_OPTS=', '''\
-        if [ -f /etc/default/spinnaker ]; then
-          set -a
-          . /etc/default/spinnaker
-          set +a
-        fi
-        DEFAULT_JVM_OPTS='''.stripIndent())
-    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
-    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
-  }
-}
-
-
-String toVers(String v) {
-  int idx = v.indexOf('-')
-  if (idx != -1) {
-    return v.substring(0, idx)
-  }
-  return v
-}
-ospackage {
-  packageName = "spinnaker-" + project.applicationName
-  version = toVers(project.version.toString())
-  release '3'
-  os = LINUX
-
-  // installer scripts
-  postInstall = file('pkg_scripts/postInstall.sh')
-  postUninstall = file('pkg_scripts/postUninstall.sh')
-
-  from "${project.buildDir}/install/${project.applicationName}"
-    into "/opt/${project.applicationName}"
-
-  from(file('etc/init/front50.conf')) {
-    into('/etc/init')
-    user = 'root'
-    permissionGroup = 'root'
-    fileType = CONFIG | NOREPLACE
-  }
-
-  from(file('etc/logrotate.d/front50')) {
-    into('/etc/logrotate.d')
-    user = 'root'
-    permissionGroup = 'root'
-    fileMode = 0644
-    fileType = CONFIG | NOREPLACE
-  }
-
-}
-
-buildDeb {
-  dependsOn installDist
-}
-
 bootRun {
   // jamm is required when using prepared statements with in-memory C*
   def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
   jvmArgs applicationDefaultJvmArgs + "-javaagent:${jamm}"
 }
+
+tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
