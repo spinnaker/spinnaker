@@ -95,6 +95,7 @@ enum ExecutionStatus {
   final ExitStatus exitStatus
 
   private static final Collection<ExecutionStatus> SUCCESSFUL = [SUCCEEDED, STOPPED, SKIPPED]
+  private static final Collection<ExecutionStatus> FAILURE = [TERMINAL, STOPPED, FAILED_CONTINUE]
 
   ExecutionStatus(boolean complete, boolean halt, ExitStatus exitStatus) {
     this.complete = complete
@@ -104,5 +105,9 @@ enum ExecutionStatus {
 
   boolean isSuccessful() {
     return SUCCESSFUL.contains(this)
+  }
+
+  boolean isFailure() {
+    return FAILURE.contains(this)
   }
 }
