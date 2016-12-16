@@ -9,8 +9,8 @@
           <th></th>
           <th>Internal Protocol</th>
           <th>Internal Port</th>
-          <th ng-if="ctrl.showSslCertificateIdField() && ctrl.certificateTypes.length > 1" width="10%">SSL Certificate Type</th>
-          <th ng-if="ctrl.showSslCertificateIdField()" width="30%">SSL Certificate Name</th>
+          <th ng-if="ctrl.showSslCertificateNameField() && ctrl.certificateTypes.length > 1" width="10%">SSL Certificate Type</th>
+          <th ng-if="ctrl.showSslCertificateNameField()" width="30%">SSL Certificate Name</th>
           <th></th>
         </tr>
         </thead>
@@ -26,17 +26,17 @@
                       ng-options="protocol for protocol in ['HTTP','HTTPS','TCP','SSL']"></select></td>
           <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.internalPort"
                      required/></td>
-          <td ng-if="ctrl.showSslCertificateIdField() && ctrl.certificateTypes.length > 1">
+          <td ng-if="ctrl.showSslCertificateNameField() && ctrl.certificateTypes.length > 1">
             <select ng-if="(listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL')"
                     class="form-control input-sm"
                     ng-model="listener.sslCertificateType"
                     ng-options="certificateType for certificateType in ['iam','acm']"></select>
           </td>
-          <td ng-if="ctrl.showSslCertificateIdField()">
+          <td ng-if="ctrl.showSslCertificateNameField()">
             <input ng-if="listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL'"
                    class="form-control input-sm no-spel"
                    type="text"
-                   ng-model="listener.sslCertificateId"
+                   ng-model="listener.sslCertificateName"
                    required/></td>
           </td>
           <td><a href class="sm-label" ng-click="ctrl.removeListener($index)"><span
@@ -45,7 +45,7 @@
         </tbody>
         <tfoot>
         <tr>
-          <td colspan="{{ctrl.showSslCertificateIdField() ? 7 : 5}}">
+          <td colspan="{{ctrl.showSslCertificateNameField() ? 7 : 5}}">
             <button class="add-new col-md-12" ng-click="ctrl.addListener()"><span
               class="glyphicon glyphicon-plus-sign"></span> Add new port mapping
             </button>
