@@ -41,6 +41,8 @@ class AppEngineServerGroup implements ServerGroup, Serializable {
   AppEngineScalingPolicy scalingPolicy
   ServingStatus servingStatus
   Environment env
+  String httpUrl
+  String httpsUrl
 
   AppEngineServerGroup() {}
 
@@ -54,6 +56,8 @@ class AppEngineServerGroup implements ServerGroup, Serializable {
     this.scalingPolicy = AppEngineModelUtil.getScalingPolicy(version)
     this.servingStatus = version.getServingStatus() ? ServingStatus.valueOf(version.getServingStatus()) : null
     this.env = version.getEnv() ? Environment.valueOf(version.getEnv().toUpperCase()) : null
+    this.httpUrl = AppEngineModelUtil.getHttpUrl(version.getName())
+    this.httpsUrl = AppEngineModelUtil.getHttpsUrl(version.getName())
   }
 
   @Override

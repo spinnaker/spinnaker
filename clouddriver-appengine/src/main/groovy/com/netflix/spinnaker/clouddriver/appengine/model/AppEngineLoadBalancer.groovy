@@ -37,6 +37,8 @@ class AppEngineLoadBalancer implements LoadBalancer, Serializable {
   String account
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
   AppEngineTrafficSplit split
+  String httpUrl
+  String httpsUrl
 
   AppEngineLoadBalancer() { }
 
@@ -46,6 +48,8 @@ class AppEngineLoadBalancer implements LoadBalancer, Serializable {
     this.account = account
     this.region = region
     this.split = new ObjectMapper().convertValue(service.getSplit(), AppEngineTrafficSplit)
+    this.httpUrl = AppEngineModelUtil.getHttpUrl(service.getName())
+    this.httpsUrl = AppEngineModelUtil.getHttpsUrl(service.getName())
   }
 
   Void setLoadBalancerServerGroups(Set<AppEngineServerGroup> serverGroups) {

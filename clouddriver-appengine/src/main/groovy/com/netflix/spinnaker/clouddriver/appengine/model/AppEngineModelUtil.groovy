@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.appengine.model
 
 import com.google.api.services.appengine.v1.model.Service
 import com.google.api.services.appengine.v1.model.Version
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.model.HealthState
 
 import java.text.SimpleDateFormat
@@ -46,8 +47,40 @@ class AppEngineModelUtil {
     }
   }
 
-  static getInstanceHealthState(Version version, Service service) {
+  static HealthState getInstanceHealthState(Version version, Service service) {
     def allocations = service.getSplit()?.getAllocations()
     allocations?.containsKey(version.getId()) ? HealthState.Up : HealthState.OutOfService
+  }
+
+  static String getHttpUrl(String selfLink) {
+    "http://${getUrl(selfLink, ".")}"
+  }
+
+  static String getHttpsUrl(String selfLink) {
+    "https://${getUrl(selfLink, "-dot-")}"
+  }
+
+  private static final String baseUrl = ".appspot.com"
+
+  /*
+    Self link has form apps/myapp/services/myservice/versions/myversion
+    HTTPS: myversion-dot-myservice-dot-myapp.appspot.com
+    HTTP: myversion.myservice.myapp.appspot.com
+
+    This should work for services and versions, and for
+    the default service and its versions ("default" can be omitted from their URLs).
+  */
+
+  @VisibleForTesting
+  private static String getUrl(String selfLink, String delimiter) {
+    def parts = selfLink.split("/").reverse()
+    def componentNames = []
+    parts.eachWithIndex { String entry, int i ->
+      if (i % 2 == 0 && entry != "default") {
+        componentNames << entry
+      }
+    }
+
+    return componentNames.join(delimiter) + baseUrl
   }
 }
