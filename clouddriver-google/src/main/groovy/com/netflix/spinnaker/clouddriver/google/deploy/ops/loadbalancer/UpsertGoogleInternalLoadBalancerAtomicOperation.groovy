@@ -85,35 +85,16 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     HealthCheck existingHealthCheck // Could be any one of Http, Https, Ssl, or Tcp.
 
     // We first devise a plan by setting all of these flags.
-    boolean needToUpdateForwardingRule = false
     boolean needToUpdateBackendService = false
     boolean needToUpdateHealthCheck = false
 
     // Check if there already exists a forwarding rule with the requested name.
     existingForwardingRule = GCEUtil.queryRegionalForwardingRule(project, description.loadBalancerName, compute, task, BASE_PHASE)
 
-    if (existingForwardingRule) {
-      if (description.region != GCEUtil.getLocalName(existingForwardingRule.region)) {
-        throw new GoogleOperationException("There is already a load balancer named " +
-          "$description.loadBalancerName (in region ${GCEUtil.getLocalName(existingForwardingRule.region)}). " +
-          "Please specify a different name.")
-      }
-
-      // Determine if the port lists are different.
-      List<String> portsFromDescription = description.ports.sort()
-      List<String> portsFromExisting = existingForwardingRule.getPorts().sort()
-      Boolean differentPorts = portsFromDescription.size() != portsFromExisting.size() ||
-        (0..portsFromDescription.size()).collect { int i -> portsFromDescription[i] != portsFromExisting[i]}.any { it }
-
-      // If any of these properties are different, we'll need to update the forwarding rule.
-      needToUpdateForwardingRule =
-        ((description.ipAddress && description.ipAddress != existingForwardingRule.IPAddress)
-          || description.ipProtocol != existingForwardingRule.IPProtocol
-          || differentPorts
-          || backendServiceName != existingForwardingRule.backendService
-          || description.network != Utils.getLocalName(existingForwardingRule.network)
-          || description.subnet != Utils.getLocalName(existingForwardingRule.subnetwork)
-        )
+    if (existingForwardingRule && (description.region != GCEUtil.getLocalName(existingForwardingRule.region))) {
+      throw new GoogleOperationException("There is already a load balancer named " +
+        "$description.loadBalancerName (in region ${GCEUtil.getLocalName(existingForwardingRule.region)}). " +
+        "Please specify a different name.")
     }
 
     existingBackendService = safeRetry.doRetry(
@@ -232,38 +213,6 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
         subnetwork: GCEUtil.buildSubnetworkUrl(project, region, description.subnet),
         ports: description.ports
       )
-      safeRetry.doRetry(
-        { compute.forwardingRules().insert(project, region, forwardingRule).execute() },
-        'Insert',
-        "Regional forwarding rule ${description.loadBalancerName}",
-        task,
-        BASE_PHASE,
-        [400, 403, 412],
-        []
-      )
-    } else if (existingForwardingRule && needToUpdateForwardingRule) {
-      task.updateStatus BASE_PHASE, "Updating forwarding rule $description.loadBalancerName..."
-      def forwardingRule = new ForwardingRule(
-        name: description.loadBalancerName,
-        loadBalancingScheme: 'INTERNAL',
-        backendService: GCEUtil.buildRegionBackendServiceUrl(project, region, description.backendService.name),
-        IPProtocol: description.ipProtocol,
-        IPAddress: description.ipAddress,
-        network: GCEUtil.buildNetworkUrl(project, description.network),
-        subnetwork: GCEUtil.buildSubnetworkUrl(project, region, description.subnet),
-        ports: description.ports
-      )
-      def deleteFrOp = safeRetry.doRetry(
-        { compute.forwardingRules().delete(project, region, description.loadBalancerName).execute() },
-        'Delete',
-        "Regional forwarding rule ${description.loadBalancerName}",
-        task,
-        BASE_PHASE,
-        [400, 403, 412],
-        [404]
-      )
-      googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteFrOp.getName(),
-        null, task, "forwarding rule " + description.loadBalancerName, BASE_PHASE)
       safeRetry.doRetry(
         { compute.forwardingRules().insert(project, region, forwardingRule).execute() },
         'Insert',
