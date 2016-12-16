@@ -1,11 +1,11 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
+package com.netflix.spinnaker.clouddriver.aws.security;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceRequest;
@@ -31,7 +31,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -50,11 +49,11 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class AmazonClientInvocationHandler implements InvocationHandler {
+class AmazonClientInvocationHandler implements InvocationHandler {
 
   private static final Logger log = LoggerFactory.getLogger(AmazonClientInvocationHandler.class);
 
-  public static final ThreadLocal<Long> lastModified = new ThreadLocal<>();
+  static final ThreadLocal<Long> lastModified = new ThreadLocal<>();
 
   private final String edda;
   private final HttpClient httpClient;

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
 import com.amazonaws.services.ec2.model.ModifyInstanceAttributeRequest
+import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpdateInstancesDescription
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -71,7 +72,9 @@ class UpdateInstancesAtomicOperation implements AtomicOperation<Void> {
       }
       groups = groups + launchConfigs.launchConfigurations.get(0).securityGroups
     }
+    def limiter = RateLimiter.create(MAX_REQUESTS_PER_SECOND)
     instances.each { instanceId ->
+      limiter.acquire()
       task.updateStatus PHASE, "Updating security groups for ${instanceId}..."
       try {
         regionScopedProvider.amazonEC2.modifyInstanceAttribute(new ModifyInstanceAttributeRequest(instanceId: instanceId).withGroups(groups))
