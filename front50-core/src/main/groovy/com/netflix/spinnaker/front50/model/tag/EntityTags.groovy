@@ -30,6 +30,7 @@ class EntityTags implements Timestamped {
   String lastModifiedBy
 
   Map<String, Object> tags = [:]
+  Map<String, Object> tagsMetadata = [:]
   EntityRef entityRef
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -41,12 +42,12 @@ class EntityTags implements Timestamped {
 
     @JsonAnyGetter
      Map<String,Object> attributes() {
-      return attributes;
+      return attributes
     }
 
     @JsonAnySetter
     void set(String name, Object value) {
-      attributes.put(name, value);
+      attributes.put(name, value)
     }
   }
 }
