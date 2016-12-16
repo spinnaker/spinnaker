@@ -30,6 +30,7 @@ import com.amazonaws.services.elasticloadbalancingv2.model.InvalidTargetExceptio
 import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
+import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -192,8 +193,10 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
   private static void handleInstancesWithLoadBalancing(Collection<String> lbIdentifiers, Collection<String> instanceIds, Closure instanceIdTransform, Closure actOnInstancesAndLoadBalancer) {
     if (instanceIds && lbIdentifiers) {
+      RateLimiter rateLimiter = RateLimiter.create(5)
       def instances = instanceIds.collect(instanceIdTransform)
       for (String lbId : lbIdentifiers) {
+        rateLimiter.acquire()
         actOnInstancesAndLoadBalancer(lbId, instances)
       }
     }

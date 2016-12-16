@@ -39,6 +39,7 @@ import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsR
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
+import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
@@ -103,7 +104,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     credsRepo.save('baz', TestCredential.named('baz'))
     this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults) {
       @Override LoadBalancerLookupHelper lookupHelper() {
-        return new LoadBalancerLookupHelper()
+        return new LoadBalancerLookupHelper(RateLimiter.create(1000000))
       }
     }
 

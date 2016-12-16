@@ -32,6 +32,7 @@ import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.VpcClassicLink;
 import com.google.common.base.Strings;
+import com.google.common.util.concurrent.RateLimiter;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.RunnableAgent;
@@ -126,9 +127,11 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
     }
     String classicLinkVpcId = classicLinkVpcIds.get(0);
 
+    RateLimiter apiRequestRateLimit = RateLimiter.create(5);
     final Map<String, ClassicLinkInstance> classicLinkInstances = new HashMap<>();
     DescribeInstancesRequest describeInstances = new DescribeInstancesRequest().withMaxResults(500);
     while (true) {
+      apiRequestRateLimit.acquire();
       DescribeInstancesResult instanceResult = ec2.describeInstances(describeInstances);
       instanceResult.getReservations().stream()
         .flatMap(r -> r.getInstances().stream())
@@ -146,6 +149,7 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
 
     DescribeClassicLinkInstancesRequest request = new DescribeClassicLinkInstancesRequest().withMaxResults(1000);
     while (true) {
+      apiRequestRateLimit.acquire();
       DescribeClassicLinkInstancesResult result = ec2.describeClassicLinkInstances(request);
       result.getInstances().forEach(i -> classicLinkInstances.put(i.getInstanceId(), i));
       if (result.getNextToken() == null) {
@@ -179,6 +183,7 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
   }
 
   void reconcileInstances(AmazonEC2 ec2, Map<String, String> groupNamesToIds, Collection<ClassicLinkInstance> instances) {
+    RateLimiter apiRequestRateLimit = RateLimiter.create(5);
     StringBuilder report = new StringBuilder();
     for (ClassicLinkInstance i : instances) {
       List<String> existingClassicLinkGroups = i.getGroups().stream()
@@ -207,6 +212,7 @@ public class ReconcileClassicLinkSecurityGroupsAgent implements RunnableAgent, C
           List<String> groupIds = new ArrayList<>(existingClassicLinkGroups);
           groupIds.addAll(missingGroupIds);
           if (deployDefaults.getReconcileClassicLinkSecurityGroups() == AwsConfiguration.DeployDefaults.ReconcileMode.MODIFY) {
+            apiRequestRateLimit.acquire();
             try {
               ec2.attachClassicLinkVpc(new AttachClassicLinkVpcRequest()
                 .withVpcId(i.getVpcId())
