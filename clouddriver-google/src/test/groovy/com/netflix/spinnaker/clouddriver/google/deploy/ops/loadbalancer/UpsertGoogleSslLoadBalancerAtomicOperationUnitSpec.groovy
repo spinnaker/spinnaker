@@ -47,7 +47,6 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final FORWARDING_RULE_OP_NAME = "forwarding-rule-op"
   private static final CERT = "ye-olde-cert"
   private static final DONE = "DONE"
-  private static final TARGET_PROXY_NAME = "$LOAD_BALANCER_NAME-${UpsertGoogleSslLoadBalancerAtomicOperation.TARGET_SSL_PROXY_NAME_SUFFIX}"
 
   @Shared GoogleHealthCheck hc
   @Shared SafeRetry safeRetry
