@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit
  * This job will wait until the {@link com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache} has run prior to
  * finding any missed triggers.
  */
-@ConditionalOnExpression('${scheduler.enabled:false && scheduler.compensationJob.enabled:false}')
+@ConditionalOnExpression('${scheduler.enabled:false} && ${scheduler.compensationJob.enabled:false}')
 @Component
 @Slf4j
 class MissedPipelineTriggerCompensationJob implements ApplicationListener<ContextRefreshedEvent> {
