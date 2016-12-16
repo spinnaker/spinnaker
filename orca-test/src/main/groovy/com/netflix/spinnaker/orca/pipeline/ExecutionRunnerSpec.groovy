@@ -40,6 +40,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.getType
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.FULL
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.TaskDefinition
@@ -707,7 +708,9 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     runner.start(execution)
 
     then:
-    execution.stages.findAll { it.type == RestrictExecutionDuringTimeWindow.TYPE }.size() == 1
+    execution.stages.findAll {
+      it.type == RestrictExecutionDuringTimeWindow.TYPE
+    }.size() == 1
 
     where:
     execution = Pipeline.builder().withId("1").withParallel(true).build()
@@ -880,6 +883,52 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
       .withId("1")
       .withStage(stageType, stageType, [restrictExecutionDuringTimeWindow: true])
       .withParallel(true).build()
+  }
+
+  @Issue("SPIN-2238")
+  // Stages such as Canary with no tasks of their own (only synthetic stages)
+  // failed to join correctly as they remain NOT_STARTED
+  def "handles joins for parallel no-op stages"() {
+    given:
+    execution.with {
+      stages[0].refId = "1"
+      stages[0].requisiteStageRefIds = []
+
+      stages[1].refId = "2"
+      stages[1].requisiteStageRefIds = []
+
+      stages[2].refId = "3"
+      stages[2].requisiteStageRefIds = stages[0..1].refId
+    }
+
+    and:
+    executionRepository.retrievePipeline(execution.id) >> execution
+
+    and:
+    def noOpStageDefinitionBuilder = Stub(StageDefinitionBuilder) {
+      getType() >> stageType
+      buildTaskGraph(_) >> TaskNode.emptyGraph(FULL)
+    }
+    def joinStageDefinitionBuilder = Stub(StageDefinitionBuilder) {
+      getType() >> "join"
+      buildTaskGraph(_) >> TaskNode.singleton(FULL, "test", TestTask)
+    }
+    @Subject runner = create(noOpStageDefinitionBuilder, joinStageDefinitionBuilder)
+
+    when:
+    runner.start(execution)
+
+    then:
+    1 * testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+
+    where:
+    stageType = "noop"
+    execution = Pipeline
+      .builder()
+      .withId("1")
+      .withStages(stageType, stageType, "join")
+      .withParallel(true)
+      .build()
   }
 
   static PipelineStage before(PipelineStage stage) {
