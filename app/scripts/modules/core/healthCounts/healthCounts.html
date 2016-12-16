@@ -6,9 +6,9 @@
     <span ng-if="container.up">/</span>
     {{ container.down }} <span class="glyphicon glyphicon-Down-triangle dead"></span>
   </span>
-  <span ng-if="container.unknown">
+  <span ng-if="container.unknown || container.starting">
     <span ng-if="container.up || container.down">/</span>
-    {{ container.unknown }} <span class="glyphicon glyphicon-Unknown-triangle unknown"></span>
+    {{ container.unknown + container.starting }} <span class="glyphicon glyphicon-Unknown-triangle unknown"></span>
   </span>
   <span ng-if="container.outOfService">
     <span ng-if="container.up || container.down || container.unknown">/</span>
