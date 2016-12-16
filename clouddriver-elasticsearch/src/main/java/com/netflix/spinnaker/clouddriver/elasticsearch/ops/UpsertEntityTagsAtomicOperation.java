@@ -26,7 +26,10 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import retrofit.RetrofitError;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,28 +54,25 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
   }
 
   public Void operate(List priorOutputs) {
-    EntityTags.EntityRef entityRef = entityTagsDescription.getEntityRef();
-    String entityRefAccount = (String) entityRef.attributes().get("account");
-    String entityRefAccountId = (String) entityRef.attributes().get("accountId");
-    if (entityRefAccount != null && entityRefAccountId == null) {
-      // add `accountId` if available (and not already specified)
-      AccountCredentials accountCredentials = accountCredentialsProvider.getCredentials(entityRefAccount);
-      if (accountCredentials != null) {
-        entityRefAccountId = accountCredentials.getAccountId();
-        entityRef.attributes().put("accountId", entityRefAccountId);
-      }
+    if (entityTagsDescription.getId() == null) {
+      setIdAndIdPattern(entityTagsDescription);
     }
 
-    if (entityTagsDescription.getId() == null) {
-      EntityRefIdBuilder.EntityRefId entityRefId = EntityRefIdBuilder.buildId(
-        entityRef.getCloudProvider(),
-        entityRef.getEntityType(),
-        entityRef.getEntityId(),
-        Optional.ofNullable(entityRefAccountId).orElse(entityRefAccount),
-        (String) entityRef.attributes().get("region")
-      );
-      entityTagsDescription.setId(entityRefId.id);
-      entityTagsDescription.setIdPattern(entityRefId.idPattern);
+    if (entityTagsDescription.isPartial) {
+      getTask().updateStatus(BASE_PHASE, format("Retrieving %s for partial update", entityTagsDescription.getId()));
+      EntityTags currentTags;
+      try {
+        currentTags = front50Service.getEntityTags(entityTagsDescription.getId());
+      } catch (RetrofitError e) {
+        getTask().updateStatus(
+          BASE_PHASE,
+          format("Could not load %s for partial update, will create new tag", entityTagsDescription.getId())
+        );
+        currentTags = null;
+      }
+      mergeExistingTagsAndMetadata(currentTags, entityTagsDescription);
+    } else {
+      addTagMetadata(entityTagsDescription);
     }
 
     getTask().updateStatus(
@@ -90,6 +90,80 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
     entityTagsProvider.verifyIndex(entityTagsDescription);
 
     getTask().updateStatus(BASE_PHASE, format("Indexed %s in ElasticSearch", entityTagsDescription.getId()));
+    return null;
+  }
+
+  private UpsertEntityTagsDescription setIdAndIdPattern(UpsertEntityTagsDescription description) {
+    EntityTags.EntityRef entityRef = description.getEntityRef();
+    String entityRefAccount = (String) entityRef.attributes().get("account");
+    String entityRefAccountId = (String) entityRef.attributes().get("accountId");
+    if (entityRefAccount != null && entityRefAccountId == null) {
+      // add `accountId` if available (and not already specified)
+      AccountCredentials accountCredentials = accountCredentialsProvider.getCredentials(entityRefAccount);
+      if (accountCredentials != null) {
+        entityRefAccountId = accountCredentials.getAccountId();
+        entityRef.attributes().put("accountId", entityRefAccountId);
+      }
+    }
+
+    EntityRefIdBuilder.EntityRefId entityRefId = EntityRefIdBuilder.buildId(
+      entityRef.getCloudProvider(),
+      entityRef.getEntityType(),
+      entityRef.getEntityId(),
+      Optional.ofNullable(entityRefAccountId).orElse(entityRefAccount),
+      (String) entityRef.attributes().get("region")
+    );
+    description.setId(entityRefId.id);
+    description.setIdPattern(entityRefId.idPattern);
+    return entityTagsDescription;
+  }
+
+  private static Void mergeExistingTagsAndMetadata(EntityTags currentTags, EntityTags updatedTags) {
+    String user = AuthenticatedRequest.getSpinnakerUser().orElse("unknown");
+    Long now = System.currentTimeMillis();
+
+    if (currentTags == null) {
+      addTagMetadata(updatedTags);
+    } else {
+      updatedTags.setTagsMetadata(currentTags.getTagsMetadata() == null ?
+        new HashMap<>() :
+        currentTags.getTagsMetadata());
+
+      updatedTags.getTags().forEach((key, tag) -> {
+        EntityTags.EntityTagMetadata metadata = currentTags.getTagsMetadata().get(key);
+        if (metadata == null) {
+          metadata = new EntityTags.EntityTagMetadata();
+          metadata.setCreated(now);
+          metadata.setCreatedBy(user);
+          updatedTags.getTagsMetadata().put(key, metadata);
+        }
+        metadata.setLastModified(now);
+        metadata.setLastModifiedBy(user);
+      });
+      currentTags.getTags().forEach((key, tag) -> {
+        if (!updatedTags.getTags().containsKey(key)) {
+          updatedTags.getTags().put(key, tag);
+          updatedTags.getTagsMetadata().put(key, currentTags.getTagsMetadata().get(key));
+        }
+      });
+    }
+    return null;
+  }
+
+  private static EntityTags.EntityTagMetadata tagMetadata() {
+    String user = AuthenticatedRequest.getSpinnakerUser().orElse("unknown");
+    Long now = System.currentTimeMillis();
+    EntityTags.EntityTagMetadata metadata = new EntityTags.EntityTagMetadata();
+    metadata.setCreated(now);
+    metadata.setLastModified(now);
+    metadata.setCreatedBy(user);
+    metadata.setLastModifiedBy(user);
+    return metadata;
+  }
+
+  private static Void addTagMetadata(EntityTags entityTags) {
+    entityTags.setTagsMetadata(new HashMap<>());
+    entityTags.getTags().forEach((key, tag) -> entityTags.getTagsMetadata().put(key, tagMetadata()));
     return null;
   }
 
