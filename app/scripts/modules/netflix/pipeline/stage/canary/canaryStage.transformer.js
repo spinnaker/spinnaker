@@ -31,6 +31,12 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
           return `Canary terminated by user. Reason: ${result.message}`;
         }
       }
+
+      let exception = stage.context.exception;
+      if (exception && exception.details && exception.details.errors && exception.details.errors.length) {
+        return exception.details.errors.join(', ');
+      }
+
       return stage.isFailed ? stage.failureMessage : null;
     }
 
@@ -155,6 +161,11 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
             stage.context.canary.canaryDeployments = buildCanaryDeploymentsFromClusterPairs(stage);
           }
           var status = monitorStage.status === 'CANCELED' || _.some(deployStages, { status: 'CANCELED' }) ? 'CANCELED' : 'UNKNOWN';
+
+          if (monitorStage.status === 'STOPPED') {
+            status = 'STOPPED';
+          }
+
           if (_.some(deployStages, { status: 'RUNNING' })) {
             status = 'RUNNING';
           }
