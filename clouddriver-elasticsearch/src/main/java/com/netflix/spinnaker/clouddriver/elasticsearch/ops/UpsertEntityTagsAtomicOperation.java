@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import retrofit.RetrofitError;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -55,8 +56,13 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
 
   public Void operate(List priorOutputs) {
     if (entityTagsDescription.getId() == null) {
-      setIdAndIdPattern(entityTagsDescription);
+      EntityRefIdBuilder.EntityRefId entityRefId = entityRefId(accountCredentialsProvider, entityTagsDescription);
+
+      entityTagsDescription.setId(entityRefId.id);
+      entityTagsDescription.setIdPattern(entityRefId.idPattern);
     }
+
+    Date now = new Date();
 
     if (entityTagsDescription.isPartial) {
       getTask().updateStatus(BASE_PHASE, format("Retrieving %s for partial update", entityTagsDescription.getId()));
@@ -70,9 +76,9 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
         );
         currentTags = null;
       }
-      mergeExistingTagsAndMetadata(currentTags, entityTagsDescription);
+      mergeExistingTagsAndMetadata(now, currentTags, entityTagsDescription);
     } else {
-      addTagMetadata(entityTagsDescription);
+      addTagMetadata(now, entityTagsDescription);
     }
 
     getTask().updateStatus(
@@ -93,10 +99,12 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
     return null;
   }
 
-  private UpsertEntityTagsDescription setIdAndIdPattern(UpsertEntityTagsDescription description) {
+  private static EntityRefIdBuilder.EntityRefId entityRefId(AccountCredentialsProvider accountCredentialsProvider,
+                                                            UpsertEntityTagsDescription description) {
     EntityTags.EntityRef entityRef = description.getEntityRef();
     String entityRefAccount = (String) entityRef.attributes().get("account");
     String entityRefAccountId = (String) entityRef.attributes().get("accountId");
+
     if (entityRefAccount != null && entityRefAccountId == null) {
       // add `accountId` if available (and not already specified)
       AccountCredentials accountCredentials = accountCredentialsProvider.getCredentials(entityRefAccount);
@@ -106,65 +114,64 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
       }
     }
 
-    EntityRefIdBuilder.EntityRefId entityRefId = EntityRefIdBuilder.buildId(
+    return EntityRefIdBuilder.buildId(
       entityRef.getCloudProvider(),
       entityRef.getEntityType(),
       entityRef.getEntityId(),
       Optional.ofNullable(entityRefAccountId).orElse(entityRefAccount),
       (String) entityRef.attributes().get("region")
     );
-    description.setId(entityRefId.id);
-    description.setIdPattern(entityRefId.idPattern);
-    return entityTagsDescription;
   }
 
-  private static Void mergeExistingTagsAndMetadata(EntityTags currentTags, EntityTags updatedTags) {
+  private static void mergeExistingTagsAndMetadata(Date now,
+                                                   EntityTags currentTags,
+                                                   EntityTags updatedTags) {
     String user = AuthenticatedRequest.getSpinnakerUser().orElse("unknown");
-    Long now = System.currentTimeMillis();
 
     if (currentTags == null) {
-      addTagMetadata(updatedTags);
-    } else {
-      updatedTags.setTagsMetadata(currentTags.getTagsMetadata() == null ?
-        new HashMap<>() :
-        currentTags.getTagsMetadata());
-
-      updatedTags.getTags().forEach((key, tag) -> {
-        EntityTags.EntityTagMetadata metadata = currentTags.getTagsMetadata().get(key);
-        if (metadata == null) {
-          metadata = new EntityTags.EntityTagMetadata();
-          metadata.setCreated(now);
-          metadata.setCreatedBy(user);
-          updatedTags.getTagsMetadata().put(key, metadata);
-        }
-        metadata.setLastModified(now);
-        metadata.setLastModifiedBy(user);
-      });
-      currentTags.getTags().forEach((key, tag) -> {
-        if (!updatedTags.getTags().containsKey(key)) {
-          updatedTags.getTags().put(key, tag);
-          updatedTags.getTagsMetadata().put(key, currentTags.getTagsMetadata().get(key));
-        }
-      });
+      addTagMetadata(now, updatedTags);
+      return;
     }
-    return null;
+
+    updatedTags.setTagsMetadata(
+      currentTags.getTagsMetadata() == null ? new HashMap<>() : currentTags.getTagsMetadata()
+    );
+
+    updatedTags.getTags().forEach((key, tag) -> {
+      EntityTags.EntityTagMetadata metadata = currentTags.getTagsMetadata().get(key);
+      if (metadata == null) {
+        metadata = new EntityTags.EntityTagMetadata();
+        metadata.setCreated(now.getTime());
+        metadata.setCreatedBy(user);
+        updatedTags.getTagsMetadata().put(key, metadata);
+      }
+      metadata.setLastModified(now.getTime());
+      metadata.setLastModifiedBy(user);
+    });
+
+    currentTags.getTags().forEach((key, tag) -> {
+      if (!updatedTags.getTags().containsKey(key)) {
+        updatedTags.getTags().put(key, tag);
+        updatedTags.getTagsMetadata().put(key, currentTags.getTagsMetadata().get(key));
+      }
+    });
   }
 
-  private static EntityTags.EntityTagMetadata tagMetadata() {
+  private static EntityTags.EntityTagMetadata tagMetadata(Date now) {
     String user = AuthenticatedRequest.getSpinnakerUser().orElse("unknown");
-    Long now = System.currentTimeMillis();
+
     EntityTags.EntityTagMetadata metadata = new EntityTags.EntityTagMetadata();
-    metadata.setCreated(now);
-    metadata.setLastModified(now);
+    metadata.setCreated(now.getTime());
+    metadata.setLastModified(now.getTime());
     metadata.setCreatedBy(user);
     metadata.setLastModifiedBy(user);
+
     return metadata;
   }
 
-  private static Void addTagMetadata(EntityTags entityTags) {
+  private static void addTagMetadata(Date now, EntityTags entityTags) {
     entityTags.setTagsMetadata(new HashMap<>());
-    entityTags.getTags().forEach((key, tag) -> entityTags.getTagsMetadata().put(key, tagMetadata()));
-    return null;
+    entityTags.getTags().forEach((key, tag) -> entityTags.getTagsMetadata().put(key, tagMetadata(now)));
   }
 
   private static Task getTask() {
