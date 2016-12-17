@@ -111,6 +111,7 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
               externalProtocol: listener.protocol,
               externalPort: listener.loadBalancerPort,
               sslCertificateId: listener.sslcertificateId,
+              sslCertificateName: listener.sslcertificateId,
               sslCertificateType: listener.sslCertificateType
             };
           });
