@@ -69,6 +69,19 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
 
       task.updateStatus(BASE_PHASE, "Beginning server group deployment")
 
+      // if this is not a custom image, then we need to go get the OsType from Azure
+      if (!description.image.isCustom) {
+        def virtualMachineImage = description.credentials.computeClient.getVMImage(description.region,
+          description.image.publisher, description.image.offer, description.image.sku, description.image.version)
+
+        if (!virtualMachineImage) {
+          throw new RuntimeException("Invalid published image was selected; $description.image.publisher:$description.image.offer:$description.image.sku:$description.image.version does not exist")
+        }
+
+        description.image.imageName ?: virtualMachineImage.name
+        description.image.ostype = virtualMachineImage?.osDiskImage?.operatingSystem
+      }
+
       resourceGroupName = AzureUtilities.getResourceGroupName(description.application, description.region)
 
       // TODO: replace appGatewayName with loadBalancerName
@@ -158,15 +171,6 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
 
       // TODO: Debug only; can be removed as part of tags cleanup
       description.appGatewayBapId = appGatewayPoolID
-
-      // if this is not a custom image, then we need to go get the OsType from Azure
-      if (!description.image.isCustom) {
-
-        def virtualMachineImage = description.credentials.computeClient.getVMImage(description.region,
-          description.image.publisher, description.image.offer, description.image.sku, description.image.version)
-        description.image.imageName ?: virtualMachineImage.name
-        description.image.ostype = virtualMachineImage?.osDiskImage?.operatingSystem
-      }
 
       // If Linux, set up connection on port 22 (ssh) otherwise use port 3389 (rdp)
       def backendPort = description.image.ostype.toLowerCase() == "linux" ? 22 : 3389
