@@ -150,12 +150,12 @@ azure:
     baseImages:
     - baseImage:
         id: ubuntu
-        shortDescription: v14.04
-        detailedDescription: Ubuntu Server 14.04.4-LTS
+        shortDescription: v14.05
+        detailedDescription: Ubuntu Server 14.04.5-LTS
         publisher: Canonical
         offer: UbuntuServer
-        sku: 14.04.3-LTS
-        version: 14.04.201602171
+        sku: 14.04.5-LTS
+        version: 14.04.201612130
         osType: Linux
         packageType: deb
     - baseImage:
