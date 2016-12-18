@@ -96,13 +96,6 @@ class TaskTasklet implements Tasklet {
 
         logResult(result, stage, chunkContext)
 
-        if (result.status == ExecutionStatus.TERMINAL) {
-          setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
-          // cancel execution which will halt any parallel branches and run
-          // cancellation routines
-          executionRepository.cancel(stage.execution.id)
-        }
-
         if (result.status.isFailure()) {
           try {
             // ensure that any cleanup behavior is invoked when a task fails (if stage is `Cancellable`)
@@ -110,6 +103,13 @@ class TaskTasklet implements Tasklet {
           } catch (Exception e) {
             log.error("Error occurred canceling stage '${stage.id}' in execution '${stage.execution.id}'", e)
           }
+        }
+
+        if (result.status == ExecutionStatus.TERMINAL) {
+          setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
+          // cancel execution which will halt any parallel branches and run
+          // cancellation routines
+          executionRepository.cancel(stage.execution.id)
         }
 
         def stageOutputs = new HashMap(result.stageOutputs)
