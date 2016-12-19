@@ -125,11 +125,12 @@ module.exports = angular
       if (ExecutionFilterModel.sortFilter.groupBy === 'name') {
         var executionGroups = _.groupBy(executions, 'name');
         _.forOwn(executionGroups, function (executions, key) {
-          let config = application.pipelineConfigs.data.filter((config) => config.id === executions[0].pipelineConfigId);
+          let matchId = (config) => config.id === executions[0].pipelineConfigId;
+          let config = application.pipelineConfigs.data.find(matchId) || _.get(application, 'strategyConfigs.data', []).find(matchId);
           executions.sort(executionSorter);
           groups.push({
             heading: key,
-            config: config ? config[0] : null,
+            config: config || null,
             executions: executions,
             runningExecutions: executions.filter((execution) => execution.isActive),
           });

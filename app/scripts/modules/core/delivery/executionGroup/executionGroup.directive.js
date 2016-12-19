@@ -52,13 +52,14 @@ module.exports = angular
     };
 
     this.pipelineConfig = _.find(this.application.pipelineConfigs.data, { name: this.group.heading });
+    this.strategyConfig = _.find(this.application.strategyConfigs.data, { name: this.group.heading });
 
     this.viewState = {
       triggeringExecution: false,
       open: this.isShowingDetails() || !collapsibleSectionStateCache.isSet(getSectionCacheKey()) || collapsibleSectionStateCache.isExpanded(getSectionCacheKey()),
       poll: null,
       canTriggerPipelineManually: this.pipelineConfig,
-      canConfigure: this.pipelineConfig,
+      canConfigure: this.pipelineConfig || this.strategyConfig,
       showPipelineName: ExecutionFilterModel.sortFilter.groupBy !== 'name',
     };
 
