@@ -48,6 +48,9 @@ interface Front50Service {
   @GET('/v2/tags/{id}')
   EntityTags getEntityTags(@Path('id') String id)
 
+  @GET('/v2/tags?prefix=')
+  Collection<EntityTags> getAllEntityTags()
+
   @DELETE('/v2/tags/{id}')
   Response deleteEntityTags(@Path('id') String id)
 }

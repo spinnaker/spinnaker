@@ -69,6 +69,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
 
     entityTagsProvider = new ElasticSearchEntityTagsProvider(
       objectMapper,
+      null,
       jestClient,
       elasticSearchConfigProperties
     )
@@ -77,11 +78,28 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
   def setup() {
     jestClient.execute(new DeleteIndex.Builder(elasticSearchConfigProperties.activeIndex).build());
 
-    Settings.Builder settingsBuilder = Settings.settingsBuilder();
-    settingsBuilder.put("refresh_interval", "1s")
+    def settings = """{
+  "settings": {
+    "refresh_interval": "1s"
+  },
+  "mappings": {
+    "_default_": {
+      "properties": {
+        "entityRef": {
+          "properties": {
+            "entityId": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        }
+      }
+    }
+  }
+}"""
 
     jestClient.execute(new CreateIndex.Builder(elasticSearchConfigProperties.activeIndex)
-      .settings(settingsBuilder.build())
+      .settings(settings)
       .build());
   }
 
@@ -105,27 +123,39 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     entityTagsProvider.index(entityTags)
     entityTagsProvider.verifyIndex(entityTags)
 
+    def moreEntityTags = buildEntityTags("aws:cluster:front50-main:myaccount:*", ["tag1": "value1"])
+    entityTagsProvider.index(moreEntityTags)
+    entityTagsProvider.verifyIndex(moreEntityTags)
+
     expect:
     // fetch everything
-    entityTagsProvider.getAll(null, null, null, null, 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll(null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+
+    // fetch everything for a single `entityId`
+    entityTagsProvider.getAll(null, null, [entityTags.entityRef.entityId], null, null, 2)*.id.sort() == [entityTags.id].sort()
+
+    // fetch everything for a multiple `entityId`
+    entityTagsProvider.getAll(null, null, [
+      entityTags.entityRef.entityId, moreEntityTags.entityRef.entityId
+    ], null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
 
     // fetch everything for `cloudprovider`
-    entityTagsProvider.getAll("aws", null, null, null, 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
 
     // fetch everything for `cloudprovider` and `cluster`
-    entityTagsProvider.getAll("aws", "cluster", null, null, 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", "cluster", null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
 
     // fetch everything for `cloudprovider`, `cluster` and `idPrefix`
-    entityTagsProvider.getAll("aws", "cluster", "aws:cluster:clouddriver*", null, 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", "cluster", null, "aws:cluster:clouddriver*", null, 2)*.id == [entityTags.id]
 
     // fetch everything for `cloudprovider`, `cluster`, `idPrefix` and `tags`
-    entityTagsProvider.getAll("aws", "cluster", "aws*", ["tag3": "value3"], 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", "cluster", null, "aws*", ["tag3": "value3"], 2)*.id == [entityTags.id]
 
     // verify that globbing by tags works
-    entityTagsProvider.getAll("aws", "cluster", "aws*", ["tag3": "*"], 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", "cluster", null, "aws*", ["tag3": "*"], 2)*.id == [entityTags.id]
 
     // verify that `maxResults` works
-    entityTagsProvider.getAll("aws", "cluster", null, null, 0).isEmpty()
+    entityTagsProvider.getAll("aws", "cluster", null, null, null, 0).isEmpty()
   }
 
   @Unroll
@@ -142,10 +172,15 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
   }
 
   private static EntityTags buildEntityTags(String id, Map<String, String> tags) {
+    def idSplit = id.split(":")
     return new EntityTags(
       id: id,
       tags: tags,
-      entityRef: new EntityTags.EntityRef(entityType: "cluster", cloudProvider: "aws")
+      entityRef: new EntityTags.EntityRef(
+        entityType: idSplit[1],
+        cloudProvider: idSplit[0],
+        entityId: idSplit[2]
+      )
     )
   }
 }
