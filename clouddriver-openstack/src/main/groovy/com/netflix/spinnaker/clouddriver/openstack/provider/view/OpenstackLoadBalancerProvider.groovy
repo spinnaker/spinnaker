@@ -25,9 +25,11 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackFloatingIP
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancer
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackLoadBalancerSummary
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackNetwork
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackSubnet
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,6 +44,8 @@ import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.S
 
 @Component
 class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoadBalancer.View> {
+
+  final String cloudProvider = OpenstackCloudProvider.ID
 
   final Cache cacheView
   final ObjectMapper objectMapper
@@ -127,4 +131,21 @@ class OpenstackLoadBalancerProvider implements LoadBalancerProvider<OpenstackLoa
     objectMapper.convertValue(cacheData?.attributes, clazz)
   }
 
+  // TODO: OpenstackLoadBalancerSummary is not a LoadBalancerProvider.Item, but still
+  // compiles anyway because of groovy magic.
+  List<OpenstackLoadBalancerSummary> list() {
+    getLoadBalancers('*', '*', '*').collect { lb ->
+      new OpenstackLoadBalancerSummary(account: lb.account, region: lb.region, id: lb.id, name: lb.name)
+    }.sort { it.name }
+  }
+
+  LoadBalancerProvider.Item get(String name) {
+    throw new UnsupportedOperationException("TODO: Support a single getter")
+  }
+
+  List<OpenstackLoadBalancer.View> byAccountAndRegionAndName(String account,
+                                                             String region,
+                                                             String name) {
+    getLoadBalancers(account, region, name) as List
+  }
 }

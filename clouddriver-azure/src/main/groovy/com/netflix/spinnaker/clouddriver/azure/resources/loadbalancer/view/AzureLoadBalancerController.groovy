@@ -17,20 +17,17 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.view
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerProviderTempShim
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
-
 
 /**
  * @deprecated - Use AzureAppGatewayController instead.
  */
 @Deprecated
-class AzureLoadBalancerController implements LoadBalancerProviderTempShim {
+class AzureLoadBalancerController {
 
   final String cloudProvider = "DoNotUse"
 
@@ -63,8 +60,7 @@ class AzureLoadBalancerController implements LoadBalancerProviderTempShim {
     map
   }
 
-  @Override
-  LoadBalancerProviderTempShim.Item get(String name) {
+  LoadBalancerProvider.Item get(String name) {
     throw new UnsupportedOperationException("TODO: Implement single getter.")
   }
 
@@ -95,7 +91,7 @@ class AzureLoadBalancerController implements LoadBalancerProviderTempShim {
     return []
   }
 
-  static class AzureLoadBalancerSummary implements LoadBalancerProviderTempShim.Item {
+  static class AzureLoadBalancerSummary implements LoadBalancerProvider.Item {
     private Map<String, AzureLoadBalancerAccount> mappedAccounts = [:]
     String name
 
@@ -113,7 +109,7 @@ class AzureLoadBalancerController implements LoadBalancerProviderTempShim {
     }
   }
 
-  static class AzureLoadBalancerAccount implements LoadBalancerProviderTempShim.ByAccount {
+  static class AzureLoadBalancerAccount implements LoadBalancerProvider.ByAccount {
     private Map<String, AzureLoadBalancerAccountRegion> mappedRegions = [:]
     String name
 
@@ -131,12 +127,12 @@ class AzureLoadBalancerController implements LoadBalancerProviderTempShim {
 
   }
 
-  static class AzureLoadBalancerAccountRegion implements LoadBalancerProviderTempShim.Details {
+  static class AzureLoadBalancerAccountRegion implements LoadBalancerProvider.Details {
     String name
     List<AzureLoadBalancerDetail> loadBalancers
   }
 
-  static class AzureLoadBalancerDetail implements LoadBalancerProviderTempShim.Details {
+  static class AzureLoadBalancerDetail implements LoadBalancerProvider.Details {
     String account
     String region
     String name

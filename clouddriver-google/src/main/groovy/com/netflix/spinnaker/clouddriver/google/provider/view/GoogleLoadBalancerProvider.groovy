@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
@@ -29,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -37,10 +41,14 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 @Component
 class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancerView> {
 
+  final String cloudProvider = GoogleCloudProvider.ID
+
   @Autowired
   Cache cacheView
   @Autowired
   ObjectMapper objectMapper
+  @Autowired
+  AccountCredentialsProvider accountCredentialsProvider
 
   @Override
   Set<GoogleLoadBalancerView> getApplicationLoadBalancers(String application) {
@@ -155,5 +163,187 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     }
 
     loadBalancerView
+  }
+
+  List<GoogleLoadBalancerAccountRegionSummary> list() {
+    def loadBalancerViewsByName = getApplicationLoadBalancers("").groupBy { it.name }
+
+    loadBalancerViewsByName.collect { String name, List<GoogleLoadBalancerView> views ->
+      def summary = new GoogleLoadBalancerAccountRegionSummary(name: name)
+
+      views.each { GoogleLoadBalancerView view ->
+        def loadBalancerType = view.loadBalancerType
+        def backendServices = []
+        def urlMapName
+        switch (loadBalancerType) {
+          case (GoogleLoadBalancerType.HTTP):
+            GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
+            if (httpView.defaultService) {
+              backendServices << httpView?.defaultService.name
+            }
+            httpView?.hostRules?.each { GoogleHostRule hostRule ->
+              backendServices << hostRule?.pathMatcher?.defaultService?.name
+              hostRule?.pathMatcher?.pathRules?.each { GooglePathRule pathRule ->
+                backendServices << pathRule.backendService.name
+              }
+            }
+            urlMapName = httpView.urlMapName
+            break
+          case (GoogleLoadBalancerType.INTERNAL):
+            GoogleInternalLoadBalancer.View ilbView = view as GoogleInternalLoadBalancer.View
+            backendServices << ilbView.backendService.name
+            break
+          case (GoogleLoadBalancerType.SSL):
+            GoogleSslLoadBalancer.View sslView = view as GoogleSslLoadBalancer.View
+            backendServices << sslView.backendService.name
+          default:
+            // No backend services to add.
+            break
+        }
+
+        summary.mappedAccounts[view.account].mappedRegions[view.region].loadBalancers << new GoogleLoadBalancerSummary(
+            account: view.account,
+            region: view.region,
+            name: view.name,
+            loadBalancerType: loadBalancerType,
+            backendServices: backendServices.unique() as List<String> ?: null,
+            urlMapName: urlMapName
+        )
+      }
+
+      summary
+    }
+  }
+
+  GoogleLoadBalancerAccountRegionSummary get(String name) {
+    // TODO(ttomsu): It's inefficient to pull everything back and (possibly) discard most of it.
+    // Refactor when addressing https://github.com/spinnaker/spinnaker/issues/807
+    list().find { it.name == name }
+  }
+
+  List<GoogleLoadBalancerDetails> byAccountAndRegionAndName(String account,
+                                                            String region,
+                                                            String name) {
+    GoogleLoadBalancerView view = getApplicationLoadBalancers(name).find { view ->
+      view.account == account && view.region == region
+    }
+
+    if (!view) {
+      return []
+    }
+
+    def backendServiceHealthChecks = [:]
+    if (view.loadBalancerType == GoogleLoadBalancerType.HTTP) {
+      GoogleHttpLoadBalancer.View httpView = view as GoogleHttpLoadBalancer.View
+      List<GoogleBackendService> backendServices = Utils.getBackendServicesFromHttpLoadBalancerView(httpView)
+      backendServices?.each { GoogleBackendService backendService ->
+        backendServiceHealthChecks[backendService.name] = backendService.healthCheck.view
+      }
+    }
+
+    String instancePort
+    String loadBalancerPort
+    switch (view.loadBalancerType) {
+      case GoogleLoadBalancerType.NETWORK:
+        instancePort = Utils.derivePortOrPortRange(view.portRange)
+        loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
+        break
+      case GoogleLoadBalancerType.HTTP:
+        instancePort = 'http'
+        loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
+        break
+      case GoogleLoadBalancerType.INTERNAL:
+        GoogleInternalLoadBalancer.View ilbView = view as GoogleInternalLoadBalancer.View
+        def portString = ilbView.ports.join(",")
+        instancePort = portString
+        loadBalancerPort = portString
+        break
+      case GoogleLoadBalancerType.SSL:
+        instancePort = 'http' // NOTE: This is what occurs in Google Cloud Console, it's not documented and a bit non-sensical.
+        loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
+        break
+      default:
+        throw new IllegalStateException("Load balancer ${view.name} is an unknown load balancer type.")
+        break
+    }
+    [new GoogleLoadBalancerDetails(loadBalancerName: view.name,
+                                   loadBalancerType: view.loadBalancerType,
+                                   createdTime: view.createdTime,
+                                   dnsname: view.ipAddress,
+                                   ipAddress: view.ipAddress,
+                                   healthCheck: view.healthCheck ?: null,
+                                   backendServiceHealthChecks: backendServiceHealthChecks ?: null,
+                                   listenerDescriptions: [[
+                                                              listener: new ListenerDescription(
+                                                                  instancePort: instancePort,
+                                                                  loadBalancerPort: loadBalancerPort,
+                                                                  instanceProtocol: view.ipProtocol,
+                                                                  protocol: view.ipProtocol
+                                                              )
+                                                          ]])]
+  }
+
+  static class GoogleLoadBalancerAccountRegionSummary implements LoadBalancerProvider.Item {
+
+    String name
+
+    @JsonIgnore
+    Map<String, GoogleLoadBalancerAccount> mappedAccounts = [:].withDefault {
+      String accountName -> new GoogleLoadBalancerAccount(name: accountName)
+    }
+
+    @JsonProperty("accounts")
+    List<GoogleLoadBalancerAccount> getByAccounts() {
+      mappedAccounts.values() as List
+    }
+  }
+
+  static class GoogleLoadBalancerAccount implements LoadBalancerProvider.ByAccount {
+
+    String name
+
+    @JsonIgnore
+    Map<String, GoogleLoadBalancerAccountRegion> mappedRegions = [:].withDefault {
+      String region -> new GoogleLoadBalancerAccountRegion(name: region)
+    }
+
+    @JsonProperty("regions")
+    List<GoogleLoadBalancerAccountRegion> getByRegions() {
+      mappedRegions.values() as List
+    }
+  }
+
+  static class GoogleLoadBalancerAccountRegion implements LoadBalancerProvider.ByRegion {
+    String name
+    List<GoogleLoadBalancerSummary> loadBalancers = []
+  }
+
+  static class GoogleLoadBalancerSummary implements LoadBalancerProvider.Details {
+    GoogleLoadBalancerType loadBalancerType
+    String account
+    String region
+    String name
+    String type = GoogleCloudProvider.ID
+    List<String> backendServices
+    String urlMapName
+  }
+
+  static class GoogleLoadBalancerDetails implements LoadBalancerProvider.Details {
+    Long createdTime
+    String dnsname
+    String ipAddress
+    String loadBalancerName
+    GoogleLoadBalancerType loadBalancerType
+    GoogleHealthCheck.View healthCheck
+    Map<String, GoogleHealthCheck.View> backendServiceHealthChecks = [:]
+    // TODO(ttomsu): Bizarre nesting of data. Necessary?
+    List<Map<String, ListenerDescription>> listenerDescriptions = []
+  }
+
+  static class ListenerDescription {
+    String instancePort
+    String instanceProtocol
+    String loadBalancerPort
+    String protocol
   }
 }
