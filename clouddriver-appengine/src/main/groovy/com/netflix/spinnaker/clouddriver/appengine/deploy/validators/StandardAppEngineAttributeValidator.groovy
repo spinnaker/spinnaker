@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineClusterProvider
+import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineInstanceProvider
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -129,7 +131,7 @@ class StandardAppEngineAttributeValidator {
 
     if (unknownServerGroups) {
       errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Server group${unknownServerGroups.size() > 1 ? "s " : " "}"
-        + unknownServerGroups.join(", ") + " cannot be enabled for load balancer $loadBalancerName.")
+        + unknownServerGroups.join(", ") + " cannot be enabled for load balancer $loadBalancerName).")
       return false
     } else {
       return true
@@ -143,5 +145,36 @@ class StandardAppEngineAttributeValidator {
     } else {
       return true
     }
+  }
+
+  def validateInstances(List<String> instanceIds,
+                        AppEngineNamedAccountCredentials credentials,
+                        AppEngineInstanceProvider appEngineInstanceProvider,
+                        String attribute) {
+    def instances = instanceIds.collect { appEngineInstanceProvider.getInstance(credentials.name, credentials.region, it) }
+    def valid = true
+
+    instances.eachWithIndex { AppEngineInstance instance, int i ->
+      def name = instanceIds[i]
+      if (!instance) {
+        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Instance $name not found).")
+        valid = false
+        return null
+      }
+
+      if (!instance.serverGroup) {
+        errors.rejectValue("${context}.${attribute}",
+                           "${context}.${attribute}.invalid (Could not find parent server group for instance $name).")
+        valid = false
+      }
+
+      if (!instance.loadBalancers?.getAt(0)) {
+        errors.rejectValue("${context}.${attribute}",
+                           "${context}.${attribute}.invalid (Could not find parent load balancer for instance $name).")
+        valid = false
+      }
+    }
+
+    return valid
   }
 }
