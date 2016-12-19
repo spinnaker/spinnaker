@@ -22,14 +22,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/admin/tags")
 public class EntityTagsAdminController {
   private final EntityTagsProvider entityTagsProvider;
 
-  @Autowired
-  public EntityTagsAdminController(EntityTagsProvider entityTagsProvider) {
-    this.entityTagsProvider = entityTagsProvider;
+  @Autowired(required = false)
+  public EntityTagsAdminController(Optional<EntityTagsProvider> entityTagsProvider) {
+    this.entityTagsProvider = entityTagsProvider.orElse(null);
   }
 
   @RequestMapping(value="/reindex", method = RequestMethod.POST)
