@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.model;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,6 +27,7 @@ public interface EntityTagsProvider {
    */
   Collection<EntityTags> getAll(String cloudProvider,
                                 String entityType,
+                                List<String> entityIds,
                                 String idPrefix,
                                 Map<String, Object> tags,
                                 int maxResults);
@@ -54,4 +56,9 @@ public interface EntityTagsProvider {
    * Delete EntityTags by {@code id}
    */
   void delete(String id);
+
+  /**
+   * Reindex all EntityTags
+   */
+  void reindex();
 }

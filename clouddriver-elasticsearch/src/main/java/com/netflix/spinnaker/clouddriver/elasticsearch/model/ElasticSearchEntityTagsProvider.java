@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.elasticsearch.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider;
@@ -27,10 +28,14 @@ import io.searchbox.core.Delete;
 import io.searchbox.core.Index;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
+import io.searchbox.indices.CreateIndex;
+import io.searchbox.indices.DeleteIndex;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,15 +52,20 @@ import static java.lang.String.format;
 
 @Component
 public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
+  private static final Logger log = LoggerFactory.getLogger(ElasticSearchEntityTagsProvider.class);
+
   private final ObjectMapper objectMapper;
+  private final Front50Service front50Service;
   private final JestClient jestClient;
   private final String activeElasticSearchIndex;
 
   @Autowired
   public ElasticSearchEntityTagsProvider(ObjectMapper objectMapper,
+                                         Front50Service front50Service,
                                          JestClient jestClient,
                                          ElasticSearchConfigProperties elasticSearchConfigProperties) {
     this.objectMapper = objectMapper;
+    this.front50Service = front50Service;
     this.jestClient = jestClient;
     this.activeElasticSearchIndex = elasticSearchConfigProperties.getActiveIndex();
   }
@@ -63,14 +73,20 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
   @Override
   public Collection<EntityTags> getAll(String cloudProvider,
                                        String entityType,
+                                       List<String> entityIds,
                                        String idPrefix,
                                        Map<String, Object> tags,
                                        int maxResults) {
     BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
 
     if (cloudProvider != null) {
-      // restrict to a specific clouddriver (optional)
+      // restrict to a specific cloudProvider (optional)
       queryBuilder = queryBuilder.must(QueryBuilders.matchQuery("entityRef.cloudProvider", cloudProvider));
+    }
+
+    if (entityIds != null && !entityIds.isEmpty()) {
+      // restrict to a specific set of entityIds (optional)
+      queryBuilder = queryBuilder.must(QueryBuilders.termsQuery("entityRef.entityId", entityIds));
     }
 
     if (idPrefix != null) {
@@ -140,6 +156,34 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
         format("Failed to delete %s, reason: '%s'", id, e.getMessage())
       );
     }
+  }
+
+  @Override
+  public void reindex() {
+    try {
+      log.info("Deleting Index {}", activeElasticSearchIndex);
+      jestClient.execute(
+        new DeleteIndex.Builder(activeElasticSearchIndex).build()
+      );
+      log.info("Deleted Index {}", activeElasticSearchIndex);
+
+      log.info("Creating Index {}", activeElasticSearchIndex);
+      jestClient.execute(
+        new CreateIndex.Builder(activeElasticSearchIndex).build()
+      );
+      log.info("Created Index {}", activeElasticSearchIndex);
+    } catch (IOException e) {
+      throw new ElasticSearchException("Unable to re-create index '" + activeElasticSearchIndex + "'");
+    }
+
+    Collection<EntityTags> entityTags = front50Service.getAllEntityTags();
+
+    log.info("Indexing {} entity tags", entityTags.size());
+    entityTags
+      .stream()
+      .filter(e -> e.getEntityRef() != null)
+      .forEach(this::index);
+    log.info("Indexed {} entity tags", entityTags.size());
   }
 
   @Override

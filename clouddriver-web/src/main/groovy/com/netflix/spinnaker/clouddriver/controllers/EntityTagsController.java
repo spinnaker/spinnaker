@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +55,7 @@ public class EntityTagsController {
   @RequestMapping(method = RequestMethod.GET)
   public Collection<EntityTags> list(@RequestParam(value = "cloudProvider", required = false) String cloudProvider,
                                      @RequestParam(value = "entityType", required = false) String entityType,
+                                     @RequestParam(value = "entityId", required = false) String entityId,
                                      @RequestParam(value = "idPrefix", required = false) String idPrefix,
                                      @RequestParam(value = "maxResults", required = false, defaultValue = "100") int maxResults,
                                      @RequestParam Map<String, Object> allParameters) {
@@ -62,7 +64,14 @@ public class EntityTagsController {
       .filter(m -> m.getKey().toLowerCase().startsWith("tag"))
       .collect(Collectors.toMap(p -> p.getKey().toLowerCase().replaceAll("tag:", ""), Map.Entry::getValue));
 
-    return tagProvider.getAll(cloudProvider, entityType, idPrefix, tags, maxResults);
+    return tagProvider.getAll(
+      cloudProvider,
+      entityType,
+      entityId != null ? Arrays.asList(entityId.split(",")) : null,
+      idPrefix,
+      tags,
+      maxResults
+      );
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.GET)
