@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.appengine.provider.view
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.clouddriver.appengine.AppEngineCloudProvider
+import com.netflix.spinnaker.clouddriver.appengine.AppEngineConfiguration
 import com.netflix.spinnaker.clouddriver.appengine.cache.Keys
 import com.netflix.spinnaker.clouddriver.appengine.cache.Keys.Namespace
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
@@ -30,6 +32,25 @@ import org.springframework.stereotype.Component
 
 @Component
 class AppEngineLoadBalancerProvider implements LoadBalancerProvider<AppEngineLoadBalancer> {
+
+  final String cloudProvider = AppEngineCloudProvider.ID
+
+  @Override
+  List<LoadBalancerProvider.Item> list() {
+    // TODO(danielpeach): Implement.
+    throw new UnsupportedOperationException("AppEngine Not Yet Ready.")
+  }
+
+  @Override
+  LoadBalancerProvider.Item get(String name) {
+    throw new UnsupportedOperationException("AppEngine Not Yet Ready.")
+  }
+
+  @Override
+  List<LoadBalancerProvider.Details> byAccountAndRegionAndName(String account, String region, String name) {
+    throw new UnsupportedOperationException("AppEngine Not Yet Ready.")
+  }
+
   @Autowired
   Cache cacheView
 
