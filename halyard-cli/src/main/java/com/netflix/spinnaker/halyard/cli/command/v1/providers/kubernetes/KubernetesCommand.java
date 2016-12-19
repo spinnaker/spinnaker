@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes;
 
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractNamedProviderCommand;
 import lombok.AccessLevel;
@@ -32,5 +33,10 @@ import java.util.Map;
 public class KubernetesCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "kubernetes";
+  }
+
+  public KubernetesCommand() {
+    super();
+    registerSubcommand(new KubernetesAddAccountCommand());
   }
 }

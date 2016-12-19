@@ -46,7 +46,7 @@ public class ValidateService {
   }
 
   private void recursiveValidate(ProblemSetBuilder psBuilder, Node node, NodeFilter filter) {
-    log.info("Running all validators for node " + node.getNodeName() + " with class " + node.getClass());
+    log.info("Running all validators for node " + node.getNodeName() + " with class " + node.getClass().getCanonicalName());
 
     validatorCollection.runAllValidators(psBuilder, node);
 
