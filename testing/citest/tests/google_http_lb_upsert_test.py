@@ -144,8 +144,11 @@ class GoogleHttpLoadBalancerTest(st.AgentTestCase):
     return citest.base.TestRunner.global_runner().get_shared_data(
         GoogleHttpLoadBalancerTestScenario)
 
-  def test_c_upsert_min_lb(self):
+  def test_a_upsert_min_lb(self):
     self.run_test_case(self.scenario.upsert_min_load_balancer())
+
+  def test_b_delete_lb(self):
+    self.run_test_case(self.scenario.delete_http_load_balancer())
 
   def test_d_upsert_full_lb(self):
     self.run_test_case(self.scenario.upsert_full_load_balancer())
@@ -166,13 +169,6 @@ class GoogleHttpLoadBalancerTest(st.AgentTestCase):
 
   def test_j_update_host_rule(self):
     self.run_test_case(self.scenario.update_host_rule())
-
-  def test_k_update_port_range(self):
-    self.run_test_case(self.scenario.update_port_range())
-
-  def test_l_add_cert(self):
-    self.run_test_case(self.scenario.add_cert(self.__class__.FIRST_CERT,
-                                              'add cert'))
 
   def test_m_change_cert(self):
     self.run_test_case(self.scenario.add_cert(self.__class__.SECOND_CERT,
