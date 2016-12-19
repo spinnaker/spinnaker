@@ -24,6 +24,19 @@
         {{ctrl.instance.name}}
       </h3>
     </div>
+    <div>
+      <div class="actions">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+            Instance Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
+          </ul>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
   </div>
   <div class="content" ng-if="!ctrl.state.loading">
     <collapsible-section heading="Instance Information" expanded="true">
