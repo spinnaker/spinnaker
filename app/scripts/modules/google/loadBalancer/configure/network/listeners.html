@@ -1,29 +1,44 @@
 <div class="container-fluid form-horizontal">
-  <div class="form-group">
-    <div class="col-md-3 sm-label-right table-offset">Listener</div>
-    <div class="col-md-9">
-      <table class="table table-condensed packed">
-        <thead>
-        <tr>
-          <th>Protocol</th>
-          <th>Port Range <help-field key="gce.loadBalancer.portRange"></help-field></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="listener in loadBalancer.listeners">
-          <td><select class="form-control input-sm" ng-model="listener.protocol"
-                      ng-options="protocol for protocol in ['TCP', 'UDP']"></select></td>
-          <td><input class="form-control input-sm" ng-model="listener.portRange"/></td>
-        </tr>
-        <tr>
-          <td>
-              <label><input type="checkbox" ng-model="loadBalancer.listeners[0].healthCheck" ng-change="ctrl.setVisibilityHealthCheckTab()" />
-                Enable health check? <help-field key="gce.loadBalancer.healthCheck"></help-field>
+  <form name="listenerForm">
+    <div class="form-group">
+      <div class="alert alert-warning" ng-if="listenerForm.protocolSelect.$dirty || listenerForm.portRangeInput.$dirty">
+        <p><span class="glyphicon glyphicon-warning-sign"></span>
+          Changing your load balancer's protocol or port range will cause the forwarding rule to be destroyed and
+          recreated. This will most likely cause the IP address of this load balancer to change. If you want to preserve
+          the IP for this load balancer, you need to reserve it and manipulate the forwarding rule in Google Cloud
+          Console.
+        </p>
+      </div>
+      <div class="col-md-3 sm-label-right table-offset">Listener</div>
+      <div class="col-md-9">
+        <table class="table table-condensed packed">
+          <thead>
+          <tr>
+            <th>Protocol</th>
+            <th>Port Range
+              <help-field key="gce.loadBalancer.portRange"></help-field>
+            </th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat="listener in loadBalancer.listeners">
+            <td><select class="form-control input-sm" ng-model="listener.protocol"
+                        ng-options="protocol for protocol in ['TCP', 'UDP']"
+                        name="protocolSelect"></select></td>
+            <td><input class="form-control input-sm" ng-model="listener.portRange" name="portRangeInput"/></td>
+          </tr>
+          <tr>
+            <td>
+              <label><input type="checkbox" ng-model="loadBalancer.listeners[0].healthCheck"
+                            ng-change="ctrl.setVisibilityHealthCheckTab()"/>
+                Enable health check?
+                <help-field key="gce.loadBalancer.healthCheck"></help-field>
               </label>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+  </form>
 </div>
