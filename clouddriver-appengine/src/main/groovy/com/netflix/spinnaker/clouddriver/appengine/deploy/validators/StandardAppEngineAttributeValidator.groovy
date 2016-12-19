@@ -135,4 +135,13 @@ class StandardAppEngineAttributeValidator {
       return true
     }
   }
+
+  def validateLoadBalancerCanBeDeleted(String loadBalancerName, String attribute) {
+    if (loadBalancerName == "default") {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Cannot delete default service).")
+      return false
+    } else {
+      return true
+    }
+  }
 }
