@@ -8,12 +8,13 @@ import {
   IApplicationSummary
 } from 'core/application/service/application.read.service';
 import {COPY_STAGE_CARD_COMPONENT} from './copyStageCard.component';
-import {IPipeline, IStage} from 'core/domain/index';
+import {IPipeline, IStage, IStrategy} from 'core/domain/index';
 
 import './copyStage.modal.less';
 
 interface IStageWrapper {
-  pipeline: string;
+  pipeline?: string;
+  strategy?: string;
   stage: IStage;
 }
 
@@ -73,22 +74,36 @@ class CopyStageModalCtrl implements ng.IComponentController {
   }
 
   private getStagesForApplication (applicationName: string): ng.IPromise<IStageWrapper[]> {
-    return this.API.one('applications')
-      .one(applicationName)
-      .all('pipelineConfigs')
-      .getList()
-      .then((pipelines: IPipeline[]) => {
-        let nestedStageWrappers = pipelines
-          .map((pipeline) => {
-            return (pipeline.stages || [])
+    let configPromises = ['pipelineConfigs', 'strategyConfigs']
+      .map((configType) => {
+        return this.API.one('applications')
+          .one(applicationName)
+          .all(configType)
+          .getList() as ng.IPromise<(IPipeline | IStrategy)[]>;
+      });
+
+    return this.$q.all(configPromises)
+      .then(([pipelineConfigs, strategyConfigs]) => pipelineConfigs.concat(strategyConfigs))
+      .then((configs: (IPipeline | IStrategy)[]) => {
+        let nestedStageWrappers = configs
+          .map((config) => {
+            return (config.stages || [])
               .filter((stage: IStage) => !this.uncopiableStageTypes.has(stage.type))
               .map((stage: IStage) => {
-                return { pipeline: pipeline.name, stage: stage };
+                if (this.isStrategyConfig(config)) {
+                  return {strategy: config.name, stage: stage};
+                } else {
+                  return {pipeline: config.name, stage: stage};
+                }
               });
           });
 
         return flatten(nestedStageWrappers);
       });
+  }
+
+  private isStrategyConfig(config: IPipeline | IStrategy): config is IStrategy {
+    return (config as IStrategy).strategy;
   }
 }
 

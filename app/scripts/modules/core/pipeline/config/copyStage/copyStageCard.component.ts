@@ -21,7 +21,8 @@ class CopyStageCardComponent implements ng.IComponentOptions {
       </div>
     </div>
     <p><b>Type:</b> {{::$ctrl.stageWrapper.stage.type | robotToHuman}}</p>
-    <p><b>Pipeline:</b> {{::$ctrl.stageWrapper.pipeline}}</p>
+    <p ng-if="$ctrl.stageWrapper.pipeline"><b>Pipeline:</b> {{::$ctrl.stageWrapper.pipeline}}</p>
+    <p ng-if="$ctrl.stageWrapper.strategy"><b>Strategy:</b> {{::$ctrl.stageWrapper.strategy}}</p>
     <p class="small">{{::$ctrl.stageWrapper.stage.comments}}</p>
   `;
 }
