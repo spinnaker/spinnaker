@@ -78,6 +78,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     self.__lb_name = '{app}-{stack}-{detail}'.format(
         app=bindings['TEST_APP'], stack=bindings['TEST_STACK'],
         detail=self.__lb_detail)
+    self.__first_cert = 'first-cert-%s' % (bindings['TEST_APP'])
     self.__proto_hc = {
       'name': 'basic-' + self.TEST_APP,
       'requestPath': '/',
@@ -113,7 +114,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
         'backends': [],
         'healthCheck': self.__proto_hc,
       },
-      'certificate': '',
+      'certificate': self.__first_cert,
       'hostRules': [
         {
           'hostPatterns': ['host1.com', 'host2.com'],
@@ -299,6 +300,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     '''
     upsert = copy.deepcopy(self.__proto_upsert)
     upsert['hostRules'] = []
+    upsert['certificate'] = '' # Test HTTP upsert, not HTTPS.
 
     payload = self.agent.make_json_payload_from_kwargs(
       job=[upsert],
@@ -450,28 +452,6 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
       self.new_post_operation(title='update host rule',
-                              data=payload, path='tasks'),
-      contract=contract_builder.build()
-    )
-
-
-  def update_port_range(self):
-    '''Updates the port range on the forwarding rule.
-    '''
-    bs_upsert = copy.deepcopy(self.__proto_upsert)
-    bs_upsert['portRange'] = '8080'
-
-    payload = self.agent.make_json_payload_from_kwargs(
-      job=[bs_upsert],
-      description='Upsert L7 Load Balancer: ' + self.__lb_name,
-      application=self.TEST_APP
-    )
-
-    contract_builder = gcp.GcpContractBuilder(self.gcp_observer)
-    self._add_contract_clauses(contract_builder, bs_upsert)
-
-    return st.OperationContract(
-      self.new_post_operation(title='update port range',
                               data=payload, path='tasks'),
       contract=contract_builder.build()
     )
