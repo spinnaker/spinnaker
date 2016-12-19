@@ -2,6 +2,7 @@ import {module} from 'angular';
 import {cloneDeep} from 'lodash';
 
 import {Application} from 'core/application/application.model';
+import {IAppengineLoadBalancer} from 'appengine/domain/index';
 import {LoadBalancer} from 'core/domain/index';
 
 interface ILoadBalancerFromStateParams {
@@ -12,15 +13,19 @@ interface ILoadBalancerFromStateParams {
 
 class AppengineLoadBalancerDetailsController {
   public state = { loading: true };
-  public loadBalancer: LoadBalancer;
+  public loadBalancer: IAppengineLoadBalancer;
 
-  static get $inject() { return ['$uibModal', '$state', '$scope', 'loadBalancer', 'app']; }
+  static get $inject() {
+    return ['$uibModal', '$state', '$scope', 'loadBalancer', 'app', 'loadBalancerWriter', 'confirmationModalService'];
+  }
 
   constructor(private $uibModal: any,
               private $state: any,
               private $scope: any,
               private loadBalancerFromParams: ILoadBalancerFromStateParams,
-              private app: Application) {
+              private app: Application,
+              private loadBalancerWriter: any,
+              private confirmationModalService: any) {
     this.app.getDataSource('loadBalancers')
       .ready()
       .then(() => this.extractLoadBalancer());
@@ -40,17 +45,83 @@ class AppengineLoadBalancerDetailsController {
     });
   }
 
+  public deleteLoadBalancer(): void {
+    let taskMonitor = {
+      application: this.app,
+      title: 'Deleting ' + this.loadBalancer.name,
+      forceRefreshMessage: 'Refreshing application...',
+      forceRefreshEnabled: true
+    };
+
+    let submitMethod = () => {
+      let loadBalancer = cloneDeep(this.loadBalancer) as any;
+      loadBalancer.providerType = loadBalancer.provider;
+      loadBalancer.accountId = loadBalancer.account;
+      return this.loadBalancerWriter.deleteLoadBalancer(loadBalancer, this.app, {
+        loadBalancerName: loadBalancer.name,
+      });
+    };
+
+    this.confirmationModalService.confirm({
+      header: 'Really delete ' + this.loadBalancer.name + '?',
+      buttonText: 'Delete ' + this.loadBalancer.name,
+      provider: 'appengine',
+      body: this.getConfirmationModalBodyHtml(),
+      account: this.loadBalancer.account,
+      applicationName: this.app.name,
+      taskMonitorConfig: taskMonitor,
+      submitMethod: submitMethod,
+    });
+  }
+
+  public canDeleteLoadBalancer(): boolean {
+    return this.loadBalancer.name !== 'default';
+  }
+
   private extractLoadBalancer(): void {
     this.loadBalancer = this.app.getDataSource('loadBalancers').data.find((test: LoadBalancer) => {
       return test.name === this.loadBalancerFromParams.name &&
         test.account === this.loadBalancerFromParams.accountId;
-    });
+    }) as IAppengineLoadBalancer;
 
     if (this.loadBalancer) {
       this.state.loading = false;
       this.app.getDataSource('loadBalancers').onRefresh(this.$scope, () => this.extractLoadBalancer());
     } else {
       this.autoClose();
+    }
+  }
+
+  private getConfirmationModalBodyHtml(): string {
+    let serverGroupNames = this.loadBalancer.serverGroups.map(serverGroup => serverGroup.name);
+    let hasAny = serverGroupNames ? serverGroupNames.length > 0 : false;
+    let hasMoreThanOne = serverGroupNames ? serverGroupNames.length > 1 : false;
+
+    // HTML accepted by the confirmationModalService is static (i.e., not managed by angular).
+    if (hasAny) {
+      if (hasMoreThanOne) {
+        let listOfServerGroupNames = serverGroupNames.map(name => `<li>${name}</li>`).join('');
+        return `
+          <div class="alert alert-warning">      
+            <p>
+              Deleting <b>${this.loadBalancer.name}</b> will destroy the following server groups:
+              <ul>
+                ${listOfServerGroupNames}
+              </ul>
+            </p>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="alert alert-warning">
+            <p>
+              Deleting <b>${this.loadBalancer.name}</b> will destroy <b>${serverGroupNames[0]}</b>.
+            </p>
+          </div>
+        `;
+      }
+    } else {
+      return null;
     }
   }
 
@@ -66,5 +137,7 @@ class AppengineLoadBalancerDetailsController {
 
 export const APPENGINE_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.appengine.loadBalancerDetails.controller';
 
-module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [])
-  .controller('appengineLoadBalancerDetailsCtrl', AppengineLoadBalancerDetailsController);
+module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [
+  require('core/loadBalancer/loadBalancer.write.service.js'),
+  require('core/confirmationModal/confirmationModal.service.js'),
+]).controller('appengineLoadBalancerDetailsCtrl', AppengineLoadBalancerDetailsController);

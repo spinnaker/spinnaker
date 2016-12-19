@@ -32,6 +32,14 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
+            <li ng-if="ctrl.canDeleteLoadBalancer()">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+            </li>
+            <li ng-if="!ctrl.canDeleteLoadBalancer()" 
+                uib-tooltip="You cannot delete a default service."
+                class="disabled">
+              <a href>Delete Load Balancer</a>
+            </li>          
           </ul>
         </div>
       </div>
