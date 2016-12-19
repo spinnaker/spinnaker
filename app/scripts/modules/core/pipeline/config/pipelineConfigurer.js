@@ -89,6 +89,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         controllerAs: 'copyStageModalCtrl',
         resolve: {
           application: () => $scope.application,
+          forStrategyConfig: () => $scope.pipeline.strategy,
         }
       }).result.then(stageTemplate => ctrl.addStage(stageTemplate));
     };

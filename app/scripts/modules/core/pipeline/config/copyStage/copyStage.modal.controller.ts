@@ -26,13 +26,14 @@ class CopyStageModalCtrl implements ng.IComponentController {
 
   private uncopiableStageTypes: Set<string> = new Set(['deploy']);
 
-  static get $inject() { return ['$q', 'API', 'application', 'applicationReader', '$uibModalInstance']; }
+  static get $inject() { return ['$q', 'API', 'application', 'applicationReader', '$uibModalInstance', 'forStrategyConfig']; }
 
   constructor (private $q: ng.IQService,
                private API: Api,
                public application: Application,
                private applicationReader: ApplicationReader,
-               private $uibModalInstance: any) { }
+               private $uibModalInstance: any,
+               private forStrategyConfig: boolean) { }
 
   public $onInit (): void {
     this.$q.all({
@@ -74,32 +75,28 @@ class CopyStageModalCtrl implements ng.IComponentController {
   }
 
   private getStagesForApplication (applicationName: string): ng.IPromise<IStageWrapper[]> {
-    let configPromises = ['pipelineConfigs', 'strategyConfigs']
-      .map((configType) => {
-        return this.API.one('applications')
-          .one(applicationName)
-          .all(configType)
-          .getList() as ng.IPromise<(IPipeline | IStrategy)[]>;
-      });
+    let configType = this.forStrategyConfig ? 'strategyConfigs' : 'pipelineConfigs';
 
-    return this.$q.all(configPromises)
-      .then(([pipelineConfigs, strategyConfigs]) => pipelineConfigs.concat(strategyConfigs))
-      .then((configs: (IPipeline | IStrategy)[]) => {
-        let nestedStageWrappers = configs
-          .map((config) => {
-            return (config.stages || [])
-              .filter((stage: IStage) => !this.uncopiableStageTypes.has(stage.type))
-              .map((stage: IStage) => {
-                if (this.isStrategyConfig(config)) {
-                  return {strategy: config.name, stage: stage};
-                } else {
-                  return {pipeline: config.name, stage: stage};
-                }
-              });
-          });
+    return this.API.one('applications')
+        .one(applicationName)
+        .all(configType)
+        .getList()
+        .then((configs: (IPipeline | IStrategy)[]) => {
+          let nestedStageWrappers = configs
+            .map((config) => {
+              return (config.stages || [])
+                .filter((stage: IStage) => !this.uncopiableStageTypes.has(stage.type))
+                .map((stage: IStage) => {
+                  if (this.isStrategyConfig(config)) {
+                    return {strategy: config.name, stage: stage};
+                  } else {
+                    return {pipeline: config.name, stage: stage};
+                  }
+                });
+            });
 
-        return flatten(nestedStageWrappers);
-      });
+          return flatten(nestedStageWrappers);
+        });
   }
 
   private isStrategyConfig(config: IPipeline | IStrategy): config is IStrategy {
