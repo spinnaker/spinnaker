@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import com.netflix.spinnaker.halyard.DaemonResponse;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
@@ -29,54 +30,54 @@ import retrofit.http.Query;
 
 public interface DaemonService {
   @GET("/v1/config/")
-  Halconfig getHalconfig();
+  DaemonResponse<Halconfig> getHalconfig();
 
   @GET("/v1/config/currentDeployment/")
-  String getCurrentDeployment();
+  DaemonResponse<String> getCurrentDeployment();
 
   @GET("/v1/config/deployments/")
-  List<DeploymentConfiguration> getDeployments();
+  DaemonResponse<List<DeploymentConfiguration>> getDeployments();
 
   @GET("/v1/config/deployments/{deploymentName}/")
-  DeploymentConfiguration getDeployment(
+  DaemonResponse<DeploymentConfiguration> getDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
   @POST("/v1/config/deployments/{deploymentName}/generate/")
-  Void generateDeployment(
+  DaemonResponse<Void> generateDeployment(
       @Path("deploymentName") String deploymentName,
-      @Body String _ignore,
-      @Query("validate") boolean validate);
+      @Query("validate") boolean validate,
+      @Body String _ignore);
 
   @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/")
-  Object getProvider(
+  DaemonResponse<Object> getProvider(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/enabled/")
-  Object setProviderEnabled(
+  DaemonResponse<Void> setProviderEnabled(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Query("validate") boolean validate,
       @Body boolean enabled);
 
   @POST("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/")
-  Object addAccount(
+  DaemonResponse<Void> addAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Query("validate") boolean validate,
       @Body Account account);
 
   @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/{accountName}/")
-  Object getAccount(
+  DaemonResponse<Object> getAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/{accountName}/")
-  Object setAccount(
+  DaemonResponse<Void> setAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,

@@ -16,14 +16,18 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
+import com.netflix.spinnaker.halyard.DaemonResponse;
+import com.netflix.spinnaker.halyard.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.config.services.v1.GenerateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -38,20 +42,47 @@ public class DeploymentController {
   GenerateService generateService;
 
   @RequestMapping(value = "/{deployment:.+}", method = RequestMethod.GET)
-  DeploymentConfiguration deploymentConfiguration(@PathVariable String deployment) {
+  DaemonResponse<DeploymentConfiguration> deploymentConfiguration(@PathVariable String deployment,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     NodeReference reference = new NodeReference().setDeployment(deployment);
-    return deploymentService.getDeploymentConfiguration(reference);
+    StaticRequestBuilder<DeploymentConfiguration> builder = new StaticRequestBuilder<>();
+
+    builder.setBuildResponse(() -> deploymentService.getDeploymentConfiguration(reference));
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeployment(reference, severity));
+    }
+
+    return builder.build();
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  List<DeploymentConfiguration> deploymentConfigurations() {
-    return deploymentService.getAllDeploymentConfigurations();
+  DaemonResponse<List<DeploymentConfiguration>> deploymentConfigurations(
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    StaticRequestBuilder<List<DeploymentConfiguration>> builder = new StaticRequestBuilder<>();
+
+    builder.setBuildResponse(() -> deploymentService.getAllDeploymentConfigurations());
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateAllDeployments(severity));
+    }
+
+    return builder.build();
   }
 
   @RequestMapping(value = "/{deployment:.+}/generate/", method = RequestMethod.POST)
-  Void generateConfig(@PathVariable String deployment) {
+  DaemonResponse<Void> generateConfig(@PathVariable String deployment) {
     NodeReference reference = new NodeReference().setDeployment(deployment);
-    generateService.generateConfig(reference);
-    return null;
+
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+
+    builder.setBuildResponse(() -> {
+      generateService.generateConfig(reference);
+      return null;
+    });
+
+    return builder.build();
   }
 }

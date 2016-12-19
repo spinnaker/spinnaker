@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import lombok.AccessLevel;
 import lombok.Setter;
 
@@ -27,6 +28,9 @@ import java.util.stream.Collectors;
 
 public class ProblemSetBuilder {
   private List<ProblemBuilder> builders = new ArrayList<>();
+
+  @Setter(AccessLevel.PUBLIC)
+  private Severity severity = Severity.NONE;
 
   @Setter(AccessLevel.PUBLIC)
   private Node node;
@@ -46,6 +50,9 @@ public class ProblemSetBuilder {
         .map(ProblemBuilder::build)
         .collect(Collectors.toList());
 
-    return new ProblemSet(problems);
+    ProblemSet result = new ProblemSet(problems);
+    result.throwifSeverityExceeds(severity);
+
+    return result;
   }
 }

@@ -16,15 +16,42 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import retrofit.RestAdapter;
-import retrofit.RetrofitError;
 import retrofit.client.OkClient;
 
-import java.net.ConnectException;
-
 public class Daemon {
-  public static DaemonService getService() {
+  public static String getCurrentDeployment() {
+    return ResponseUnwrapper.get(getService().getCurrentDeployment());
+  }
+
+  public static Account getAccount(String deploymentName, String providerName, String accountName, boolean validate) {
+    Object rawAccount = ResponseUnwrapper.get(getService().getAccount(deploymentName, providerName, accountName, validate));
+    return getObjectMapper().convertValue(rawAccount, Providers.translateAccountType(providerName));
+  }
+
+  public static void addAccount(String deploymentName, String providerName, boolean validate, Account account) {
+    ResponseUnwrapper.get(service.addAccount(deploymentName, providerName, validate, account));
+  }
+
+  public static Provider getProvider(String deploymentName, String providerName, boolean validate) {
+    Object provider = ResponseUnwrapper.get(service.getProvider(deploymentName, providerName, validate));
+    return getObjectMapper().convertValue(provider, Providers.translateProviderType(providerName));
+  }
+
+  public static void setProviderEnableDisable(String deploymentName, String providerName, boolean validate, boolean enable) {
+    ResponseUnwrapper.get(service.setProviderEnabled(deploymentName, providerName, validate, enable));
+  }
+
+  public static void generateDeployment(String deploymentName, boolean validate) {
+    ResponseUnwrapper.get(service.generateDeployment(deploymentName, validate, ""));
+  }
+
+  private static DaemonService getService() {
     if (service == null) {
       boolean debug =  GlobalOptions.getGlobalOptions().isDebug();
       service = createService(debug);
@@ -33,10 +60,19 @@ public class Daemon {
     return service;
   }
 
+  private static ObjectMapper getObjectMapper() {
+    if (objectMapper == null) {
+      objectMapper = new ObjectMapper();
+    }
+
+    return objectMapper;
+  }
+
   // TODO(lwander): setup config file for this
   static final private String endpoint = "http://localhost:8064";
 
   static private DaemonService service;
+  static private ObjectMapper objectMapper;
 
   private static DaemonService createService(boolean log) {
     return new RestAdapter.Builder()

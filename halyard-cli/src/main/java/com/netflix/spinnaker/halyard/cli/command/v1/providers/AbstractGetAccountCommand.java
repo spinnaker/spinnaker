@@ -18,20 +18,16 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.services.v1.DaemonService;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 /**
  * Describe a specific PROVIDER account
@@ -73,12 +69,7 @@ public abstract class AbstractGetAccountCommand extends AbstractProviderCommand 
   }
 
   private Account getAccount(String accountName) {
-    DaemonService service = Daemon.getService();
-    String currentDeployment = service.getCurrentDeployment();
-    ObjectMapper mapper = new ObjectMapper();
-    return mapper.convertValue(
-        service.getAccount(currentDeployment, getProviderName(), accountName, !noValidate),
-        Providers.translateAccountType(getProviderName())
-    );
+    String currentDeployment = Daemon.getCurrentDeployment();
+    return Daemon.getAccount(currentDeployment, getProviderName(), accountName, !noValidate);
   }
 }

@@ -20,19 +20,20 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.ui.v1.*;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
+import com.netflix.spinnaker.halyard.DaemonResponse;
+import com.netflix.spinnaker.halyard.cli.services.v1.ResponseUnwrapper;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiParagraphBuilder;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiPrinter;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiStoryBuilder;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiStyle;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import java.net.ConnectException;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import retrofit.RetrofitError;
-
-import java.net.ConnectException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 
 @Parameters(separators = "=")
 public abstract class NestableCommand {
@@ -84,37 +85,7 @@ public abstract class NestableCommand {
         AnsiUi.error(e.getCause().getMessage());
         AnsiUi.remediation("Is your daemon running?");
       } else {
-        ProblemSet problemSet = (ProblemSet) e.getBodyAs(ProblemSet.class);
-
-        problemSet.sortIncreasingSeverity();
-        for (Problem problem : problemSet.getProblems()) {
-          Severity severity = problem.getSeverity();
-          String problemLocation = problem.getReferenceTitle();
-          String message = problem.getMessage();
-          String remediation = problem.getRemediation();
-
-          switch(severity) {
-            case FATAL:
-            case ERROR:
-              AnsiUi.error(problemLocation);
-              AnsiUi.error(message);
-              break;
-            case WARNING:
-              AnsiUi.warning(problemLocation);
-              AnsiUi.warning(message);
-              break;
-            default:
-              throw new RuntimeException("Unknown severity level " + severity);
-          }
-
-          if (remediation != null && !remediation.isEmpty()) {
-            AnsiUi.remediation(remediation);
-          }
-
-          // Newline between errors
-          AnsiUi.raw("");
-        }
-
+        ResponseUnwrapper.get((DaemonResponse) e.getBodyAs(DaemonResponse.class));
         System.exit(1);
       }
     } catch (Exception e) {
