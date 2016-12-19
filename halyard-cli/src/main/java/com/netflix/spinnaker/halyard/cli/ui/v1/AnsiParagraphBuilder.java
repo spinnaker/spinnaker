@@ -61,11 +61,13 @@ public class AnsiParagraphBuilder {
     for (int i = 0; i < lines.length; i++) {
       String line = lines[i];
 
+      line = WordUtils.wrap(line, maxLineWidth, "\n" + getIndent(), false);
+
       if (indentFirstLine) {
         line = getIndent() + line;
       }
 
-      lineBuilder.append(WordUtils.wrap(line, maxLineWidth, "\n" + getIndent(), false));
+      lineBuilder.append(line);
 
       if (i != lines.length - 1) {
         lineBuilder.append("\n");

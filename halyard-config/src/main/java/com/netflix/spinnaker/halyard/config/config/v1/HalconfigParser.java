@@ -83,6 +83,7 @@ public class HalconfigParser {
    */
   public Halconfig getConfig(boolean reload) {
     if (!reload && halconfig != null) {
+      halconfig.parentify();
       return halconfig;
     }
 

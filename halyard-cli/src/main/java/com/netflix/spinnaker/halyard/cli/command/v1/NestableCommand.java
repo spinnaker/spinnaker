@@ -183,6 +183,10 @@ public abstract class NestableCommand {
           paragraph.addSnippet(parameter.getDefault().toString().toUpperCase()).addStyle(AnsiStyle.UNDERLINE);
         }
 
+        if (parameter.getParameter().required()) {
+          paragraph.addSnippet(" (required)");
+        }
+
         paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
         paragraph.addSnippet(parameter.getDescription());
         story.addNewline();

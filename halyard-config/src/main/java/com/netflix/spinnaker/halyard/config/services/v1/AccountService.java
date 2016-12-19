@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +40,9 @@ import java.util.stream.Collectors;
 public class AccountService {
   @Autowired
   LookupService lookupService;
+
+  @Autowired
+  ProviderService providerService;
 
   @Autowired
   ValidateService validateService;
@@ -88,9 +94,30 @@ public class AccountService {
     }
   }
 
-  public void validateAccount(NodeReference nodeReference) {
+  public void setAccount(NodeReference reference, Account newAccount) {
+    String accountName = reference.getAccount();
+
+    Provider provider = providerService.getProvider(reference);
+
+    for (int i = 0; i < provider.getAccounts().size(); i++) {
+      Account account = (Account) provider.getAccounts().get(i);
+      if (account.getNodeName().equals(accountName)) {
+        provider.getAccounts().set(i, newAccount);
+        return;
+      }
+    }
+
+    throw new HalconfigException(new ProblemBuilder(Severity.FATAL, "Account \"" + accountName + "\" wasn't found").build());
+  }
+
+  public void addAccount(NodeReference reference, Account newAccount) {
+    Provider provider = providerService.getProvider(reference);
+    provider.getAccounts().add(newAccount);
+  }
+
+  public void validateAccount(NodeReference reference) {
     NodeFilter filter = NodeFilter.makeEmptyFilter()
-        .refineWithReference(nodeReference)
+        .refineWithReference(reference)
         .withAnyHalconfigFile();
 
     validateService.validateMatchingFilter(filter).throwIfProblem();
