@@ -46,7 +46,10 @@ import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.awsobjectmapper.AmazonObjectMapper;
+import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spectator.api.Registry;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -56,6 +59,7 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
@@ -74,6 +78,7 @@ public class AmazonClientProvider {
   private final AWSProxy proxy;
   private final EddaTimeoutConfig eddaTimeoutConfig;
   private final boolean useGzip;
+  private final Registry registry;
 
   public static class Builder {
     private HttpClient httpClient;
@@ -88,6 +93,7 @@ public class AmazonClientProvider {
     private int maxConnections = 200;
     private int maxConnectionsPerRoute = 20;
     private boolean uzeGzip = true;
+    private Registry registry = new NoopRegistry();
 
     public Builder httpClient(HttpClient httpClient) {
       this.httpClient = httpClient;
@@ -149,6 +155,11 @@ public class AmazonClientProvider {
       return this;
     }
 
+    public Builder registry(Registry registry) {
+      this.registry = registry;
+      return this;
+    }
+
     public AmazonClientProvider build() {
       HttpClient client = this.httpClient;
       if (client == null) {
@@ -164,7 +175,7 @@ public class AmazonClientProvider {
       AWSProxy proxy = this.proxy;
       EddaTimeoutConfig eddaTimeoutConfig = this.eddaTimeoutConfig == null ? EddaTimeoutConfig.DEFAULT : this.eddaTimeoutConfig;
 
-      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers, proxy, eddaTimeoutConfig, uzeGzip);
+      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers, proxy, eddaTimeoutConfig, uzeGzip, registry);
     }
 
     private RetryPolicy buildPolicy() {
@@ -202,7 +213,8 @@ public class AmazonClientProvider {
       Collections.emptyList(),
       null,
       EddaTimeoutConfig.DEFAULT,
-      true);
+      true,
+      new NoopRegistry());
   }
 
   public AmazonClientProvider(HttpClient httpClient,
@@ -212,7 +224,8 @@ public class AmazonClientProvider {
                               List<RequestHandler2> requestHandlers,
                               AWSProxy proxy,
                               EddaTimeoutConfig eddaTimeoutConfig,
-                              boolean useGzip) {
+                              boolean useGzip,
+                              Registry registry) {
     this.httpClient = requireNonNull(httpClient, "httpClient");
     this.objectMapper = requireNonNull(objectMapper, "objectMapper");
     this.eddaTemplater = requireNonNull(eddaTemplater, "eddaTemplater");
@@ -221,6 +234,7 @@ public class AmazonClientProvider {
     this.proxy = proxy;
     this.eddaTimeoutConfig = eddaTimeoutConfig;
     this.useGzip = useGzip;
+    this.registry = requireNonNull(registry, "registry");
   }
 
   /**
@@ -373,7 +387,7 @@ public class AmazonClientProvider {
       T delegate = getClient(impl, amazonCredentials.getCredentialsProvider(), region);
       if (amazonCredentials.getEddaEnabled() && !skipEdda) {
         return interfaceKlazz.cast(Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz},
-          getInvocationHandler(delegate, delegate.getServiceName(), region, amazonCredentials)));
+          getInvocationHandler(delegate, interfaceKlazz.getSimpleName(), region, amazonCredentials)));
       } else {
         return interfaceKlazz.cast(delegate);
       }
@@ -431,8 +445,12 @@ public class AmazonClientProvider {
   }
 
   protected AmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, NetflixAmazonCredentials amazonCredentials) {
+    final Map<String, String> baseTags = ImmutableMap.of(
+      "account", amazonCredentials.getName(),
+      "region", region,
+      "serviceName", serviceName);
     return new AmazonClientInvocationHandler(client, serviceName, eddaTemplater.getUrl(amazonCredentials.getEdda(), region),
-      this.httpClient, objectMapper, eddaTimeoutConfig);
+      this.httpClient, objectMapper, eddaTimeoutConfig, registry, baseTags);
   }
 
   private static void checkCredentials(NetflixAmazonCredentials amazonCredentials) {
