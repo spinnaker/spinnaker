@@ -7,7 +7,7 @@ buildscript {
     maven { url "https://spinnaker.bintray.com/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.9.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.10.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }

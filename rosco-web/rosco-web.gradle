@@ -1,5 +1,6 @@
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  repackage = System.getProperty('springBoot.repackage', "false")
 }
 
 tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
@@ -7,7 +8,7 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
 }
 
 apply plugin: 'spring-boot'
-apply plugin: 'nebula.ospackage'
+apply plugin: 'spinnaker.package'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
@@ -24,76 +25,9 @@ dependencies {
   spinnaker.group("bootWeb")
 }
 
-applicationName = 'rosco'
-applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
-applicationDistribution.from(project.file('config')) {
-  into "config"
-}
-
-sourceSets {
-  main {
-    resources {
-      srcDir 'src/main/resources'
-      srcDir 'config'
-    }
-  }
-}
-
-jar {
-  doFirst { 
-    exclude "${rootProject.name}.yml"
-  }
-}
-
-startScripts {
-  defaultJvmOpts = applicationDefaultJvmArgs + ["-Dspring.config.location=/opt/spinnaker/config/"]
-  doLast {
-    unixScript.text = unixScript.text.replace('DEFAULT_JVM_OPTS=', '''\
-        if [ -f /etc/default/spinnaker ]; then
-          set -a
-          . /etc/default/spinnaker
-          set +a
-        fi
-        DEFAULT_JVM_OPTS='''.stripIndent())
-    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
-    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
-  }
-}
-
-String toVers(String v) {
-  int idx = v.indexOf('-')
-  if (idx != -1) {
-    return v.substring(0, idx)
-  }
-  return v
-}
-
 ospackage {
-  packageName = "spinnaker-" + project.applicationName
-  version = toVers(project.version.toString())
-  release '3'
-  os = LINUX
-
-  // installer scripts
-  postInstall = file('pkg_scripts/postInstall.sh')
-  postUninstall = file('pkg_scripts/postUninstall.sh')
-
-  from "${project.buildDir}/install/${project.applicationName}"  
-    into "/opt/${project.applicationName}"
-  
-  from(file('etc/init/rosco.conf')) {
-    into('/etc/init')
-    user = 'root'
-    permissionGroup = 'root'
-    fileType = CONFIG | NOREPLACE
-  }
-
-  from(file('etc/logrotate.d/rosco')) {
-    into('/etc/logrotate.d')
-    user = 'root'
-    permissionGroup = 'root'
-    fileMode = 0644
-    fileType = CONFIG | NOREPLACE
+  from('config/packer') {
+    into '/opt/rosco/config/packer'
   }
 
   configurationFile('/opt/rosco/config/rosco.yml')
@@ -108,6 +42,4 @@ ospackage {
   }  
 }
 
-buildDeb {
-  dependsOn installDist
-}
+tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
