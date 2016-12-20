@@ -20,12 +20,8 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
-import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 
-/**
- * LoadBalancerLookupHelper.
- */
 class LoadBalancerLookupHelper {
 
   static class LoadBalancerLookupResult {
@@ -34,14 +30,7 @@ class LoadBalancerLookupHelper {
     Set<String> unknownLoadBalancers = []
   }
 
-  private final RateLimiter limiter
-
   public LoadBalancerLookupHelper() {
-    this(RateLimiter.create(1))
-  }
-
-  public LoadBalancerLookupHelper(RateLimiter limiter) {
-    this.limiter = Objects.requireNonNull(limiter)
   }
 
   LoadBalancerLookupResult getLoadBalancersFromAsg(AutoScalingGroup asg) {
@@ -64,10 +53,8 @@ class LoadBalancerLookupHelper {
       //at the moment, '--' is not allowed in lbv2 load balancer names, and asking for it throws a ValidationError not a LoadBalancerNotFoundException
       if (!lbName.contains("--")) {
         try {
-          limiter.acquire()
           def lb = lbv2.describeLoadBalancers(new DescribeLoadBalancersRequest().withNames(lbName)).loadBalancers.first()
           v2LoadBalancers.add(lbName)
-          limiter.acquire()
           result.targetGroupArns.addAll(lbv2.describeTargetGroups(new DescribeTargetGroupsRequest().withLoadBalancerArn(lb.loadBalancerArn)).targetGroups*.targetGroupArn)
         } catch (LoadBalancerNotFoundException lbnfe) {
           //ignore
@@ -75,7 +62,6 @@ class LoadBalancerLookupHelper {
       }
 
       try {
-        limiter.acquire()
         lbv1.describeLoadBalancers(new com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest().withLoadBalancerNames(lbName))
         result.classicLoadBalancers.add(lbName)
       } catch (com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException lbnfe) {

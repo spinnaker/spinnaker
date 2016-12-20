@@ -23,7 +23,6 @@ import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRe
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
-import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -35,7 +34,7 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
     description.instanceIds = ["i-123456"]
     op = new DeregisterInstancesFromLoadBalancerAtomicOperation(description) {
       @Override LoadBalancerLookupHelper lookupHelper() {
-        return new LoadBalancerLookupHelper(RateLimiter.create(100000))
+        return new LoadBalancerLookupHelper()
       }
     }
   }

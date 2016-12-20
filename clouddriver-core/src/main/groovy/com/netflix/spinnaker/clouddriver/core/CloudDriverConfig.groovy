@@ -23,6 +23,8 @@ import com.netflix.spinnaker.clouddriver.cache.CacheConfig
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.core.agent.CleanupPendingOnDemandCachesAgent
+import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration
+import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
@@ -59,6 +61,7 @@ import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvi
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -78,6 +81,17 @@ class CloudDriverConfig {
   @Bean
   String clouddriverUserAgentApplicationName(Environment environment) {
     return "Spinnaker/${environment.getProperty("Implementation-Version", "Unknown")}"
+  }
+
+  @Bean
+  @ConfigurationProperties('serviceLimits')
+  ServiceLimitConfigurationBuilder serviceLimitConfigProperties() {
+    return new ServiceLimitConfigurationBuilder()
+  }
+
+  @Bean
+  ServiceLimitConfiguration serviceLimitConfiguration(ServiceLimitConfigurationBuilder serviceLimitConfigProperties) {
+    return serviceLimitConfigProperties.build()
   }
 
   @Bean

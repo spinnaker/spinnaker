@@ -16,69 +16,57 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.AmazonWebServiceClient;
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.handlers.RequestHandler2;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
+import com.amazonaws.services.autoscaling.AmazonAutoScalingClientBuilder;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaAsync;
-import com.amazonaws.services.lambda.AWSLambdaAsyncClient;
-import com.amazonaws.services.lambda.AWSLambdaClient;
+import com.amazonaws.services.lambda.AWSLambdaAsyncClientBuilder;
+import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.route53.AmazonRoute53;
-import com.amazonaws.services.route53.AmazonRoute53Client;
+import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
-import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
+import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClientBuilder;
 import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import com.netflix.awsobjectmapper.AmazonObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
+import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AmazonClientInvocationHandler;
+import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AwsSdkClientSupplier;
+import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.ProxyHandlerBuilder;
+import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.RateLimiterSupplier;
+import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
+import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-
-import static java.util.Objects.requireNonNull;
 
 /**
- * Provides of Amazon SDK Clients that can read through Edda.
+ * Provider of Amazon SDK Clients that can read through Edda.
  */
 public class AmazonClientProvider {
 
   public static final String DEFAULT_REGION = null;
 
-  private final HttpClient httpClient;
-  private final ObjectMapper objectMapper;
-  private final EddaTemplater eddaTemplater;
-  private final RetryPolicy retryPolicy;
-  private final List<RequestHandler2> requestHandlers;
-  private final AWSProxy proxy;
-  private final EddaTimeoutConfig eddaTimeoutConfig;
-  private final boolean useGzip;
-  private final Registry registry;
+  private final AwsSdkClientSupplier awsSdkClientSupplier;
+  private final ProxyHandlerBuilder proxyHandlerBuilder;
 
   public static class Builder {
     private HttpClient httpClient;
@@ -93,6 +81,7 @@ public class AmazonClientProvider {
     private int maxConnections = 200;
     private int maxConnectionsPerRoute = 20;
     private boolean uzeGzip = true;
+    private ServiceLimitConfiguration serviceLimitConfiguration = new ServiceLimitConfigurationBuilder().build();
     private Registry registry = new NoopRegistry();
 
     public Builder httpClient(HttpClient httpClient) {
@@ -155,6 +144,11 @@ public class AmazonClientProvider {
       return this;
     }
 
+    public Builder serviceLimitConfiguration(ServiceLimitConfiguration serviceLimitConfiguration) {
+      this.serviceLimitConfiguration = serviceLimitConfiguration;
+      return this;
+    }
+
     public Builder registry(Registry registry) {
       this.registry = registry;
       return this;
@@ -169,13 +163,13 @@ public class AmazonClientProvider {
         client = builder.build();
       }
 
-      ObjectMapper mapper = this.objectMapper == null ? new AmazonObjectMapper() : this.objectMapper;
+      ObjectMapper mapper = this.objectMapper == null ? AmazonObjectMapperConfigurer.createConfigured() : this.objectMapper;
       EddaTemplater templater = this.eddaTemplater == null ? EddaTemplater.defaultTemplater() : this.eddaTemplater;
       RetryPolicy policy = buildPolicy();
       AWSProxy proxy = this.proxy;
       EddaTimeoutConfig eddaTimeoutConfig = this.eddaTimeoutConfig == null ? EddaTimeoutConfig.DEFAULT : this.eddaTimeoutConfig;
 
-      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers, proxy, eddaTimeoutConfig, uzeGzip, registry);
+      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers, proxy, eddaTimeoutConfig, uzeGzip, serviceLimitConfiguration, registry);
     }
 
     private RetryPolicy buildPolicy() {
@@ -198,7 +192,7 @@ public class AmazonClientProvider {
   }
 
   public AmazonClientProvider(HttpClient httpClient) {
-    this(httpClient, new AmazonObjectMapper());
+    this(httpClient, AmazonObjectMapperConfigurer.createConfigured());
   }
 
   public AmazonClientProvider(ObjectMapper objectMapper) {
@@ -207,13 +201,14 @@ public class AmazonClientProvider {
 
   public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper) {
     this(httpClient == null ? HttpClients.createDefault() : httpClient,
-      objectMapper == null ? new AmazonObjectMapper() : objectMapper,
+      objectMapper == null ? AmazonObjectMapperConfigurer.createConfigured() : objectMapper,
       EddaTemplater.defaultTemplater(),
       PredefinedRetryPolicies.getDefaultRetryPolicy(),
       Collections.emptyList(),
       null,
       EddaTimeoutConfig.DEFAULT,
       true,
+      new ServiceLimitConfigurationBuilder().build(),
       new NoopRegistry());
   }
 
@@ -225,16 +220,11 @@ public class AmazonClientProvider {
                               AWSProxy proxy,
                               EddaTimeoutConfig eddaTimeoutConfig,
                               boolean useGzip,
+                              ServiceLimitConfiguration serviceLimitConfiguration,
                               Registry registry) {
-    this.httpClient = requireNonNull(httpClient, "httpClient");
-    this.objectMapper = requireNonNull(objectMapper, "objectMapper");
-    this.eddaTemplater = requireNonNull(eddaTemplater, "eddaTemplater");
-    this.retryPolicy = requireNonNull(retryPolicy, "retryPolicy");
-    this.requestHandlers = requestHandlers == null ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(requestHandlers));
-    this.proxy = proxy;
-    this.eddaTimeoutConfig = eddaTimeoutConfig;
-    this.useGzip = useGzip;
-    this.registry = requireNonNull(registry, "registry");
+    RateLimiterSupplier rateLimiterSupplier = new RateLimiterSupplier(serviceLimitConfiguration, registry);
+    this.awsSdkClientSupplier = new AwsSdkClientSupplier(rateLimiterSupplier, registry, retryPolicy, requestHandlers, proxy, useGzip);
+    this.proxyHandlerBuilder = new ProxyHandlerBuilder(awsSdkClientSupplier, httpClient, objectMapper, eddaTemplater, eddaTimeoutConfig, registry);
   }
 
   /**
@@ -250,27 +240,31 @@ public class AmazonClientProvider {
   }
 
   public AmazonEC2 getAmazonEC2(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return getProxyHandler(AmazonEC2.class, AmazonEC2Client.class, amazonCredentials, region, skipEdda);
+    return proxyHandlerBuilder.getProxyHandler(AmazonEC2.class, AmazonEC2ClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
   public AmazonEC2 getAmazonEC2(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(AmazonEC2Client.class, awsCredentialsProvider, region);
+    return awsSdkClientSupplier.getClient(AmazonEC2ClientBuilder.class, AmazonEC2.class, "UNSPECIFIED_ACCOUNT", awsCredentialsProvider, region);
+  }
+
+  public AmazonEC2 getAmazonEC2(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonEC2ClientBuilder.class, AmazonEC2.class, accountName, awsCredentialsProvider, region);
   }
 
   public AWSLambda getAmazonLambda(NetflixAmazonCredentials amazonCredentials, String region) {
-    return getProxyHandler(AWSLambda.class, AWSLambdaClient.class, amazonCredentials, region);
+    return proxyHandlerBuilder.getProxyHandler(AWSLambda.class, AWSLambdaClientBuilder.class, amazonCredentials, region);
   }
 
-  public AWSLambda getAmazonLambda(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(AWSLambdaClient.class, awsCredentialsProvider, region);
+  public AWSLambda getAmazonLambda(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AWSLambdaClientBuilder.class, AWSLambda.class, accountName, awsCredentialsProvider, region);
   }
 
   public AWSLambdaAsync getAmazonLambdaAsync(NetflixAmazonCredentials amazonCredentials, String region) {
-    return getProxyHandler(AWSLambdaAsync.class, AWSLambdaAsyncClient.class, amazonCredentials, region);
+    return proxyHandlerBuilder.getProxyHandler(AWSLambdaAsync.class, AWSLambdaAsyncClientBuilder.class, amazonCredentials, region);
   }
 
-  public AWSLambdaAsync getAmazonLambdaAsync(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(AWSLambdaAsyncClient.class, awsCredentialsProvider, region);
+  public AWSLambdaAsync getAmazonLambdaAsync(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AWSLambdaAsyncClientBuilder.class, AWSLambdaAsync.class, accountName, awsCredentialsProvider, region);
   }
 
   public AmazonAutoScaling getAutoScaling(NetflixAmazonCredentials amazonCredentials, String region) {
@@ -278,11 +272,11 @@ public class AmazonClientProvider {
   }
 
   public AmazonAutoScaling getAutoScaling(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return getProxyHandler(AmazonAutoScaling.class, AmazonAutoScalingClient.class, amazonCredentials, region, skipEdda);
+    return proxyHandlerBuilder.getProxyHandler(AmazonAutoScaling.class, AmazonAutoScalingClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
-  public AmazonAutoScaling getAutoScaling(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(AmazonAutoScalingClient.class, awsCredentialsProvider, region);
+  public AmazonAutoScaling getAutoScaling(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonAutoScalingClientBuilder.class, AmazonAutoScaling.class, accountName, awsCredentialsProvider, region);
   }
 
   public AmazonRoute53 getAmazonRoute53(NetflixAmazonCredentials amazonCredentials, String region) {
@@ -290,11 +284,11 @@ public class AmazonClientProvider {
   }
 
   public AmazonRoute53 getAmazonRoute53(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return getProxyHandler(AmazonRoute53.class, AmazonRoute53Client.class, amazonCredentials, region, skipEdda);
+    return proxyHandlerBuilder.getProxyHandler(AmazonRoute53.class, AmazonRoute53ClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
-  public AmazonRoute53 getAmazonRoute53(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(AmazonRoute53Client.class, awsCredentialsProvider, region);
+  public AmazonRoute53 getAmazonRoute53(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonRoute53ClientBuilder.class, AmazonRoute53.class, accountName, awsCredentialsProvider, region);
   }
 
   public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(NetflixAmazonCredentials amazonCredentials, String region) {
@@ -302,11 +296,11 @@ public class AmazonClientProvider {
   }
 
   public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return getProxyHandler(AmazonElasticLoadBalancing.class, AmazonElasticLoadBalancingClient.class, amazonCredentials, region, skipEdda);
+    return proxyHandlerBuilder.getProxyHandler(AmazonElasticLoadBalancing.class, AmazonElasticLoadBalancingClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
-  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(AmazonElasticLoadBalancingClient.class, awsCredentialsProvider, region);
+  public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonElasticLoadBalancingClientBuilder.class, AmazonElasticLoadBalancing.class, accountName, awsCredentialsProvider, region);
   }
 
   public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2(NetflixAmazonCredentials amazonCredentials, String region) {
@@ -314,11 +308,16 @@ public class AmazonClientProvider {
   }
 
   public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return getProxyHandler(com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing.class, com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClient.class, amazonCredentials, region, skipEdda);
+    return proxyHandlerBuilder.getProxyHandler(com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing.class, com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
-  public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClient.class, awsCredentialsProvider, region);
+  public com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing getAmazonElasticLoadBalancingV2(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(
+      com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClientBuilder.class,
+      com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing.class,
+      accountName,
+      awsCredentialsProvider,
+      region);
   }
 
   public AmazonSimpleWorkflow getAmazonSimpleWorkflow(NetflixAmazonCredentials amazonCredentials, String region) {
@@ -326,11 +325,11 @@ public class AmazonClientProvider {
   }
 
   public AmazonSimpleWorkflow getAmazonSimpleWorkflow(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return getProxyHandler(AmazonSimpleWorkflow.class, AmazonSimpleWorkflowClient.class, amazonCredentials, region, skipEdda);
+    return proxyHandlerBuilder.getProxyHandler(AmazonSimpleWorkflow.class, AmazonSimpleWorkflowClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
-  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(AmazonSimpleWorkflowClient.class, awsCredentialsProvider, region);
+  public AmazonSimpleWorkflow getAmazonSimpleWorkflow(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonSimpleWorkflowClientBuilder.class, AmazonSimpleWorkflow.class, accountName, awsCredentialsProvider, region);
   }
 
   public AmazonCloudWatch getAmazonCloudWatch(NetflixAmazonCredentials amazonCredentials, String region) {
@@ -338,11 +337,11 @@ public class AmazonClientProvider {
   }
 
   public AmazonCloudWatch getAmazonCloudWatch(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return getProxyHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region, skipEdda);
+    return proxyHandlerBuilder.getProxyHandler(AmazonCloudWatch.class, AmazonCloudWatchClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
-  public AmazonCloudWatch getAmazonCloudWatch(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(AmazonCloudWatchClient.class, awsCredentialsProvider, region);
+  public AmazonCloudWatch getAmazonCloudWatch(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonCloudWatchClientBuilder.class, AmazonCloudWatch.class, accountName, awsCredentialsProvider, region);
   }
 
   public AmazonCloudWatch getCloudWatch(NetflixAmazonCredentials amazonCredentials, String region) {
@@ -358,11 +357,11 @@ public class AmazonClientProvider {
   }
 
   public AmazonSNS getAmazonSNS(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return getProxyHandler(AmazonSNS.class, AmazonSNSClient.class, amazonCredentials, region, skipEdda);
+    return proxyHandlerBuilder.getProxyHandler(AmazonSNS.class, AmazonSNSClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
-  public AmazonSNS getAmazonSNS(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(AmazonSNSClient.class, awsCredentialsProvider, region);
+  public AmazonSNS getAmazonSNS(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonSNSClientBuilder.class, AmazonSNS.class, accountName, awsCredentialsProvider, region);
   }
 
   public AmazonIdentityManagement getAmazonIdentityManagement(NetflixAmazonCredentials amazonCredentials, String region) {
@@ -370,94 +369,10 @@ public class AmazonClientProvider {
   }
 
   public AmazonIdentityManagement getAmazonIdentityManagement(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    return getProxyHandler(AmazonIdentityManagement.class, AmazonIdentityManagementClient.class, amazonCredentials, region, skipEdda);
+    return proxyHandlerBuilder.getProxyHandler(AmazonIdentityManagement.class, AmazonIdentityManagementClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
-  public AmazonIdentityManagement getAmazonIdentityManagement(AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return getClient(AmazonIdentityManagementClient.class, awsCredentialsProvider, region);
-  }
-
-  protected <T extends AmazonWebServiceClient, U> U getProxyHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region) {
-    return getProxyHandler(interfaceKlazz, impl, amazonCredentials, region, false);
-  }
-
-  protected <T extends AmazonWebServiceClient, U> U getProxyHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
-    checkCredentials(amazonCredentials);
-    try {
-      T delegate = getClient(impl, amazonCredentials.getCredentialsProvider(), region);
-      if (amazonCredentials.getEddaEnabled() && !skipEdda) {
-        return interfaceKlazz.cast(Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz},
-          getInvocationHandler(delegate, interfaceKlazz.getSimpleName(), region, amazonCredentials)));
-      } else {
-        return interfaceKlazz.cast(delegate);
-      }
-    } catch (RuntimeException re) {
-      throw re;
-    } catch (Exception e) {
-      throw new RuntimeException("Instantiation of client implementation failed!", e);
-    }
-  }
-
-  protected <T extends AmazonWebServiceClient> T getClient(Class<T> impl, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    checkAWSCredentialsProvider(awsCredentialsProvider);
-    try {
-      Constructor<T> constructor = impl.getConstructor(AWSCredentialsProvider.class, ClientConfiguration.class);
-
-      ClientConfiguration clientConfiguration = new ClientConfiguration();
-
-      if (awsCredentialsProvider instanceof NetflixSTSAssumeRoleSessionCredentialsProvider) {
-        RetryPolicy.RetryCondition delegatingRetryCondition = (originalRequest, exception, retriesAttempted) -> {
-          NetflixSTSAssumeRoleSessionCredentialsProvider stsCredentialsProvider = (NetflixSTSAssumeRoleSessionCredentialsProvider) awsCredentialsProvider;
-          if (exception instanceof AmazonServiceException) {
-            ((AmazonServiceException) exception).getHttpHeaders().put("targetAccountId", stsCredentialsProvider.getAccountId());
-          }
-          return retryPolicy.getRetryCondition().shouldRetry(originalRequest, exception, retriesAttempted);
-        };
-
-        RetryPolicy delegatingRetryPolicy = new RetryPolicy(
-          delegatingRetryCondition,
-          retryPolicy.getBackoffStrategy(),
-          retryPolicy.getMaxErrorRetry(),
-          retryPolicy.isMaxErrorRetryInClientConfigHonored()
-        );
-        clientConfiguration.setRetryPolicy(delegatingRetryPolicy);
-      } else {
-        clientConfiguration.setRetryPolicy(retryPolicy);
-      }
-
-      if (proxy != null && proxy.isProxyConfigMode()) {
-        proxy.apply(clientConfiguration);
-      }
-
-      clientConfiguration.setUseGzip(useGzip);
-
-      T delegate = constructor.newInstance(awsCredentialsProvider, clientConfiguration);
-      for (RequestHandler2 requestHandler : requestHandlers) {
-        delegate.addRequestHandler(requestHandler);
-      }
-      if (region != null && region.length() > 0) {
-        delegate.setRegion(Region.getRegion(Regions.fromName(region)));
-      }
-      return delegate;
-    } catch (Exception e) {
-      throw new RuntimeException("Instantiation of client implementation failed!", e);
-    }
-  }
-
-  protected AmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, NetflixAmazonCredentials amazonCredentials) {
-    final Map<String, String> baseTags = ImmutableMap.of(
-      "account", amazonCredentials.getName(),
-      "region", region,
-      "serviceName", serviceName);
-    return new AmazonClientInvocationHandler(client, serviceName, eddaTemplater.getUrl(amazonCredentials.getEdda(), region),
-      this.httpClient, objectMapper, eddaTimeoutConfig, registry, baseTags);
-  }
-
-  private static void checkCredentials(NetflixAmazonCredentials amazonCredentials) {
-    requireNonNull(amazonCredentials, "Credentials cannot be null");
-  }
-
-  private static void checkAWSCredentialsProvider(AWSCredentialsProvider awsCredentialsProvider) {
-    requireNonNull(awsCredentialsProvider, "AWSCredentialsProvider cannot be null");
+  public AmazonIdentityManagement getAmazonIdentityManagement(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
+    return awsSdkClientSupplier.getClient(AmazonIdentityManagementClientBuilder.class, AmazonIdentityManagement.class, accountName, awsCredentialsProvider, region);
   }
 }

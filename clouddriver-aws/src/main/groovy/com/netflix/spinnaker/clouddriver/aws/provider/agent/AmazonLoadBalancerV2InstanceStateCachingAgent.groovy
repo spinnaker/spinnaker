@@ -21,7 +21,6 @@ import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthR
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.util.concurrent.RateLimiter
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -80,18 +79,12 @@ class AmazonLoadBalancerV2InstanceStateCachingAgent implements CachingAgent, Hea
     types
   }
 
-  RateLimiter rateLimiter() {
-    return RateLimiter.create(2)
-  }
-
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    def limiter = rateLimiter()
     def lbv2 = amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region)
     List<TargetGroup> targetGroups = []
     def req = new DescribeTargetGroupsRequest()
     while (true) {
-      limiter.acquire()
       def resp = lbv2.describeTargetGroups(req)
       if (resp.targetGroups) {
         targetGroups.addAll(resp.targetGroups)
@@ -107,7 +100,6 @@ class AmazonLoadBalancerV2InstanceStateCachingAgent implements CachingAgent, Hea
       Optional.ofNullable(tg.loadBalancerArns?.getAt(0))
         .flatMap({ extractLoadBalancerName(it) })
         .ifPresent({ String loadBalancerName ->
-          limiter.acquire()
           def healthDesc = lbv2.describeTargetHealth(new DescribeTargetHealthRequest().withTargetGroupArn(tg.targetGroupArn)).targetHealthDescriptions
           for (TargetHealthDescription hd : healthDesc) {
             ilbStates << new InstanceLoadBalancerState(hd.target.id, 'application', loadBalancerName, hd.targetHealth.state, hd.targetHealth.reason, hd.targetHealth.description)
