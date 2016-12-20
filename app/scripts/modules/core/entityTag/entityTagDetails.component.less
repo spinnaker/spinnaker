@@ -1,0 +1,27 @@
+@import "../presentation/less/imports/commonImports.less";
+
+entity-tag-details {
+  .tag {
+    padding: 5px;
+    margin-bottom: 10px;
+  }
+  .fa {
+    margin-right: 5px;
+    margin-top: 4px;
+  }
+  .actions {
+    .btn-link:last-child {
+      padding-right: 0;
+    }
+  }
+  .tag-contents {
+    display: flex;
+    flex-direction: row;
+    .fa {
+      flex: 0 0 auto;
+    }
+    [marked] {
+      flex: 1 1 auto;
+    }
+  }
+}

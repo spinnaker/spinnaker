@@ -491,4 +491,5 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'titus.bake.imageName': '(Optional) The name for the image, e.g. <samp>igor</samp> for <samp>spinnaker/igor</samp>Defaults to [git project name].[git repo name].',
     'titus.bake.tags': '(Optional) Comma separated. By default, the <samp>latest</samp> tag is updated. Adds additional tags to label this image <samp>1.0.0-unstable,1.0.0-rc1</samp>',
     'titus.bake.buildParameters': '(Optional) Build time variables to be passed to the Docker image. These are the set of values passed to --build-args in the command line.',
+    'markdown.examples': 'Some examples of markdown syntax: <br/> *<em>emphasis</em>* <br/> **<b>strong</b>** <br/> [link text](http://url-goes-here)',
   });

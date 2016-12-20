@@ -23,6 +23,8 @@ require('angular-wizard/dist/angular-wizard.css');
 
 require('source-sans-pro');
 
+require('font-awesome/css/font-awesome.css');
+
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
