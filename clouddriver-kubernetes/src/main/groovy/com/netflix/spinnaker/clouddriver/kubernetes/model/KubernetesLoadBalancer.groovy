@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
-import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.client.internal.SerializationUtils
 
-@CompileStatic
 @EqualsAndHashCode(includes = ["name", "namespace", "account"])
-class KubernetesLoadBalancer implements LoadBalancer, Serializable {
+class KubernetesLoadBalancer implements LoadBalancer, Serializable, LoadBalancerProvider.Item {
   String name
   final String type = KubernetesCloudProvider.ID
   final String cloudProvider = KubernetesCloudProvider.ID
@@ -86,5 +86,16 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
           }
         } as Set)
     } as Set
+  }
+
+  @Override
+  @JsonIgnore
+  List<LoadBalancerProvider.ByAccount> getByAccounts() {
+    [new ByAccount(name: account)]
+  }
+
+  static class ByAccount implements LoadBalancerProvider.ByAccount {
+    String name
+    List<LoadBalancerProvider.ByRegion> byRegions = []
   }
 }
