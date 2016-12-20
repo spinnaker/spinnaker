@@ -4,6 +4,7 @@ dependencies {
   compile group: 'jline', name: 'jline', version: '2.11'
 
   compile project(':halyard-config')
+  compile project(':halyard-web')
 }
 
 apply plugin: 'java'

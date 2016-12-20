@@ -61,7 +61,7 @@ public class ProblemSet {
    *
    * @return the highest severity this problem set stores.
    */
-  public Problem.Severity maxSeverity() {
+  private Problem.Severity maxSeverity() {
     if (problems.isEmpty()) {
       return Problem.Severity.NONE;
     }
@@ -80,7 +80,7 @@ public class ProblemSet {
    *
    * @param severity is the severity to compare all errors to that this problem set stores.
    */
-  public void throwifSeverityExceeds(Problem.Severity severity) {
+  void throwifSeverityExceeds(Problem.Severity severity) {
     if (maxSeverity().compareTo(severity) > 0) {
       throw new HalconfigException(problems);
     }

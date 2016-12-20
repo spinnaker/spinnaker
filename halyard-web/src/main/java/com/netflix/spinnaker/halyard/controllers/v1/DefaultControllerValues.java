@@ -14,22 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1;
+package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import lombok.AccessLevel;
-import lombok.Getter;
-
-public class GenerateCommand extends NestableCommand {
-  @Getter(AccessLevel.PUBLIC)
-  private String commandName = "generate";
-
-  @Getter(AccessLevel.PUBLIC)
-  private String description = "Generate the full Spinnaker config for your current deployment.";
-
-  @Override
-  protected void executeThis() {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.generateDeployment(currentDeployment, true);
-  }
+public class DefaultControllerValues {
+  public final static String validate = "false";
+  public final static String severity = "WARNING";
 }

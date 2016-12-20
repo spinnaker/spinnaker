@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.ValidatorCollection;
@@ -37,9 +38,9 @@ public class ValidateService {
   @Autowired
   ValidatorCollection validatorCollection;
 
-  ProblemSet validateMatchingFilter(NodeFilter filter) {
+  ProblemSet validateMatchingFilter(NodeFilter filter, Severity severity) {
     Halconfig halconfig = parser.getConfig(false);
-    ProblemSetBuilder psBuilder = new ProblemSetBuilder();
+    ProblemSetBuilder psBuilder = new ProblemSetBuilder().setSeverity(severity);
     recursiveValidate(psBuilder, halconfig, filter);
 
     return psBuilder.build();

@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.providers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.services.v1.DaemonService;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 
 public abstract class AbstractNamedProviderCommand extends AbstractProviderCommand {
   @Override
@@ -54,13 +51,8 @@ public abstract class AbstractNamedProviderCommand extends AbstractProviderComma
   }
 
   private Provider getProvider() {
-    DaemonService service = Daemon.getService();
-    String currentDeployment = service.getCurrentDeployment();
-    ObjectMapper mapper = new ObjectMapper();
-    return mapper.convertValue(
-        service.getProvider(currentDeployment, getProviderName(), !noValidate),
-        Providers.translateProviderType(getProviderName())
-    );
+    String currentDeployment = Daemon.getCurrentDeployment();
+    return Daemon.getProvider(currentDeployment, getProviderName(), !noValidate);
   }
 
   @Override

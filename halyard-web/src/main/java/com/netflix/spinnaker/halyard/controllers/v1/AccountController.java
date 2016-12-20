@@ -17,12 +17,18 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.DaemonResponse;
+import com.netflix.spinnaker.halyard.DaemonResponse.StaticRequestBuilder;
+import com.netflix.spinnaker.halyard.DaemonResponse.UpdateRequestBuilder;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
-import com.netflix.spinnaker.halyard.config.services.v1.UpdateService;
 import java.util.List;
+import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,47 +44,58 @@ public class AccountController {
   AccountService accountService;
 
   @Autowired
-  UpdateService updateService;
+  HalconfigParser halconfigParser;
 
   @Autowired
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  List<Account> accounts(@PathVariable String deploymentName, @PathVariable String providerName) {
+  DaemonResponse<List<Account>> accounts(@PathVariable String deploymentName, @PathVariable String providerName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     NodeReference reference = new NodeReference()
         .setDeployment(deploymentName)
         .setProvider(providerName);
 
-    return accountService.getAllAccounts(reference);
+    StaticRequestBuilder<List<Account>> builder = new StaticRequestBuilder<>();
+    builder.setBuildResponse(() -> accountService.getAllAccounts(reference));
 
+    if (validate) {
+      builder.setValidateResponse(() -> accountService.validateAllAccounts(reference, severity));
+    }
+
+    return builder.build();
   }
 
   @RequestMapping(value = "/{accountName:.+}", method = RequestMethod.GET)
-  Account account(
+  DaemonResponse<Account> account(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = "false") boolean validate) {
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     NodeReference reference = new NodeReference()
         .setDeployment(deploymentName)
         .setProvider(providerName)
         .setAccount(accountName);
 
-    Account result = accountService.getAccount(reference);
+    StaticRequestBuilder<Account> builder = new StaticRequestBuilder<>();
+    builder.setBuildResponse(() -> accountService.getAccount(reference));
 
     if (validate) {
-      accountService.validateAccount(reference);
+      builder.setValidateResponse(() -> accountService.validateAccount(reference, severity));
     }
 
-    return result;
+    return builder.build();
   }
 
   @RequestMapping(value = "/{accountName:.+}", method = RequestMethod.PUT)
-  void setAccount(
+  DaemonResponse<Void> setAccount(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
-      @RequestParam(required = false, defaultValue = "false") boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestBody Object rawAccount) {
     NodeReference reference = new NodeReference()
         .setDeployment(deploymentName)
@@ -90,21 +107,27 @@ public class AccountController {
         Providers.translateAccountType(providerName)
     );
 
-    Runnable doUpdate = () -> accountService.setAccount(reference, account);
-    Runnable doValidate = () -> {};
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    builder.setUpdate(() -> accountService.setAccount(reference, account));
+
+    Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> accountService.validateAccount(reference);
+      doValidate = () -> accountService.validateAccount(reference, severity);
     }
 
-    updateService.safeUpdate(doUpdate, doValidate);
+    builder.setValidate(doValidate);
+    builder.setHalconfigParser(halconfigParser);
+
+    return builder.build();
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  void addAccount(
+  DaemonResponse<Void> addAccount(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
-      @RequestParam(required = false, defaultValue = "false") boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestBody Object rawAccount) {
     Account account = objectMapper.convertValue(
         rawAccount,
@@ -116,13 +139,18 @@ public class AccountController {
         .setProvider(providerName)
         .setAccount(account.getName());
 
-    Runnable doUpdate = () -> accountService.addAccount(reference, account);
-    Runnable doValidate = () -> {};
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
+    builder.setUpdate(() -> accountService.addAccount(reference, account));
+
+    Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> accountService.validateAccount(reference);
+      doValidate = () -> accountService.validateAccount(reference, severity);
     }
 
-    updateService.safeUpdate(doUpdate, doValidate);
+    builder.setValidate(doValidate);
+    builder.setHalconfigParser(halconfigParser);
+
+    return builder.build();
   }
 }

@@ -20,7 +20,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.services.v1.DaemonService;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,9 +48,7 @@ public abstract class AbstractAddAccountCommand extends AbstractProviderCommand 
     Account account = buildAccount(accountName);
     String providerName = getProviderName();
 
-    DaemonService service = Daemon.getService();
-    String currentDeployment = service.getCurrentDeployment();
-
-    service.addAccount(currentDeployment, providerName, !noValidate, account);
+    String currentDeployment = Daemon.getCurrentDeployment();
+    Daemon.addAccount(currentDeployment, providerName, !noValidate, account);
   }
 }

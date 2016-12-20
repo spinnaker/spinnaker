@@ -26,6 +26,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -115,11 +116,20 @@ public class AccountService {
     provider.getAccounts().add(newAccount);
   }
 
-  public void validateAccount(NodeReference reference) {
+  public ProblemSet validateAccount(NodeReference reference, Severity severity) {
     NodeFilter filter = NodeFilter.makeEmptyFilter()
         .refineWithReference(reference)
         .withAnyHalconfigFile();
 
-    validateService.validateMatchingFilter(filter).throwIfProblem();
+    return validateService.validateMatchingFilter(filter, severity);
+  }
+
+  public ProblemSet validateAllAccounts(NodeReference reference, Severity severity) {
+    NodeFilter filter = NodeFilter.makeEmptyFilter()
+        .refineWithReference(reference)
+        .withAnyHalconfigFile()
+        .withAnyAccount();
+
+    return validateService.validateMatchingFilter(filter, severity);
   }
 }

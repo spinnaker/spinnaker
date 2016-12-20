@@ -18,13 +18,11 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers;
 
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.services.v1.DaemonService;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 public abstract class AbstractProviderEnableDisableCommand extends AbstractProviderCommand {
   @Override
@@ -51,9 +49,8 @@ public abstract class AbstractProviderEnableDisableCommand extends AbstractProvi
   }
 
   private void setEnable() {
-    DaemonService service = Daemon.getService();
-    String currentDeployment = service.getCurrentDeployment();
-    service.setProviderEnabled(currentDeployment, getProviderName(), !noValidate, isEnable());
+    String currentDeployment = Daemon.getCurrentDeployment();
+    Daemon.setProviderEnableDisable(currentDeployment, getProviderName(), !noValidate, isEnable());
   }
 
   @Override

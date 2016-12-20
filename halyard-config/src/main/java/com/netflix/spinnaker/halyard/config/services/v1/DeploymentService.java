@@ -22,7 +22,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +39,9 @@ import java.util.stream.Collectors;
 public class DeploymentService {
   @Autowired
   LookupService lookupService;
+
+  @Autowired
+  ValidateService validateService;
 
   public DeploymentConfiguration getDeploymentConfiguration(NodeReference reference) {
     String deploymentName = reference.getDeployment();
@@ -80,5 +85,25 @@ public class DeploymentService {
     } else {
       return matching;
     }
+  }
+
+  public ProblemSet validateAllDeployments(Severity severity) {
+    NodeFilter filter = NodeFilter.makeEmptyFilter()
+        .withAnyDeployment()
+        .withAnyHalconfigFile()
+        .withAnyProvider()
+        .withAnyAccount();
+
+    return validateService.validateMatchingFilter(filter, severity);
+  }
+
+  public ProblemSet validateDeployment(NodeReference reference, Severity severity) {
+    NodeFilter filter = NodeFilter.makeEmptyFilter()
+        .refineWithReference(reference)
+        .withAnyHalconfigFile()
+        .withAnyProvider()
+        .withAnyAccount();
+
+    return validateService.validateMatchingFilter(filter, severity);
   }
 }
