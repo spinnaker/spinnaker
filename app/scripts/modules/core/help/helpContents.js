@@ -482,4 +482,13 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the pipeline to complete',
     'jenkins.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the jenkins job to complete',
     'script.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the script to complete',
+    'titus.bake.fromGitTrigger': 'If checked, gets git details from the specified git trigger. The pipeline will fail when ran manually',
+    'titus.bake.repositoryUrl': 'Url to the git repository containing the code to create the Docker image from, <samp>ssh://git@stash.corp.netflix.com:7999/SPKR/orca.git</samp> or <samp>ssh://git@github.com/spinnaker/orca.git</samp>',
+    'titus.bake.repositoryHash': '(Optional) The hashcode to the git commit for the image',
+    'titus.bake.repositoryBranch': '(Optional) The branch in git to build the image from',
+    'titus.bake.repositoryDirectory': '(Optional) If specified, will build the image from the Dockerfile contained in this directory. Default to project root.',
+    'titus.bake.imageOrganization': '(Optional) The organization to which this image belongs to, e.g. <samp>spinnaker</samp> for <samp>spinnaker/igor</samp>Defaults to none.',
+    'titus.bake.imageName': '(Optional) The name for the image, e.g. <samp>igor</samp> for <samp>spinnaker/igor</samp>Defaults to [git project name].[git repo name].',
+    'titus.bake.tags': '(Optional) Comma separated. By default, the <samp>latest</samp> tag is updated. Adds additional tags to label this image <samp>1.0.0-unstable,1.0.0-rc1</samp>',
+    'titus.bake.buildParameters': '(Optional) Build time variables to be passed to the Docker image. These are the set of values passed to --build-args in the command line.',
   });

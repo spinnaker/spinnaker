@@ -30,6 +30,7 @@ module.exports = angular.module('spinnaker.titus', [
   require('./pipeline/stages/destroyAsg/titusDestroyAsgStage.js'),
   require('./pipeline/stages/resizeAsg/titusResizeAsgStage.js'),
   require('./pipeline/stages/cloneServerGroup/titusCloneServerGroupStage.js'),
+  require('./pipeline/stages/bake/titusBakeStage.js'),
   require('./pipeline/stages/disableCluster/titusDisableClusterStage.js'),
   require('./pipeline/stages/shrinkCluster/titusShrinkClusterStage.js'),
   require('./pipeline/stages/scaleDownCluster/titusScaleDownClusterStage.js'),
