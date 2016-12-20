@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.executor.BakePoller
 import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
@@ -25,11 +24,9 @@ import com.netflix.spinnaker.rosco.providers.registry.DefaultCloudProviderBakeHa
 import com.netflix.spinnaker.rosco.providers.util.LocalJobFriendlyPackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
 import org.springframework.core.convert.ConversionService
 import org.springframework.core.convert.support.DefaultConversionService
 import redis.clients.jedis.JedisPool
@@ -69,12 +66,6 @@ class RoscoConfiguration {
   @ConditionalOnMissingBean(PackerCommandFactory)
   PackerCommandFactory localJobFriendlyPackerCommandFactory() {
     return new LocalJobFriendlyPackerCommandFactory()
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  ObjectMapper mapper() {
-    return new ObjectMapper()
   }
 
 }

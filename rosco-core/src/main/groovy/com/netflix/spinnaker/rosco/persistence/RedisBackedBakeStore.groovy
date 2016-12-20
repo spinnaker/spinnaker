@@ -34,9 +34,7 @@ class RedisBackedBakeStore implements BakeStore {
   @Autowired
   String roscoInstanceId
 
-  @Autowired
-  ObjectMapper mapper
-
+  private ObjectMapper mapper = new ObjectMapper()
   private JedisPool jedisPool
 
   def scriptNameToSHAMap = [:]
