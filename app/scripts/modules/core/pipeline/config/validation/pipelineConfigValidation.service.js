@@ -201,6 +201,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
 
         validators.checkRequiredField(pipeline, parameter, validationConfig, {}, messages);
       });
+
+      if (pipeline.strategy && !(stages.find(stage => stage.type === 'deploy'))) {
+        messages.push('To be able to create new server groups, a custom strategy should contain a Deploy stage.');
+      }
+
       return $q.all(asyncValidations).then(() => {
         return _.uniq(messages);
       });
