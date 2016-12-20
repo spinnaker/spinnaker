@@ -72,15 +72,17 @@ public class S3Config {
     }
 
     AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
-    if (s3Properties.getEndpoint() != null){
+
+    if (s3Properties.getEndpoint() != null) {
       client.setEndpoint(s3Properties.getEndpoint());
       client.setS3ClientOptions(S3ClientOptions.builder().setPathStyleAccess(true).build());
-    } else{
+    } else {
       Optional.ofNullable(s3Properties.getRegion())
         .map(Regions::fromName)
         .map(Region::getRegion)
         .ifPresent(client::setRegion);
     }
+
     return client;
   }
 
