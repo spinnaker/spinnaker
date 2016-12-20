@@ -19,6 +19,7 @@ package com.netflix.spinnaker.front50.config;
 public class S3BucketProperties {
   private String bucket;
   private String region;
+  private String endpoint;
   private String proxyHost;
   private String proxyPort;
   private String proxyProtocol;
@@ -37,6 +38,14 @@ public class S3BucketProperties {
 
   public void setRegion(String region) {
     this.region = region;
+  }
+
+  public String getEndpoint() {
+    return endpoint;
+  }
+
+  public void setEndpoint(String endpoint) {
+    this.endpoint = endpoint;
   }
 
   public String getProxyHost() {

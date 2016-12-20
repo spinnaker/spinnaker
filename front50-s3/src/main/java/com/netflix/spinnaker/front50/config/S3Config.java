@@ -7,6 +7,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.S3ClientOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spectator.api.Registry;
@@ -71,10 +72,15 @@ public class S3Config {
     }
 
     AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
-    Optional.ofNullable(s3Properties.getRegion())
-      .map(Regions::fromName)
-      .map(Region::getRegion)
-      .ifPresent(client::setRegion);
+    if (s3Properties.getEndpoint() != null){
+      client.setEndpoint(s3Properties.getEndpoint());
+      client.setS3ClientOptions(S3ClientOptions.builder().setPathStyleAccess(true).build());
+    } else{
+      Optional.ofNullable(s3Properties.getRegion())
+        .map(Regions::fromName)
+        .map(Region::getRegion)
+        .ifPresent(client::setRegion);
+    }
     return client;
   }
 

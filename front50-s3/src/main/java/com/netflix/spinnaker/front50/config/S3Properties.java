@@ -63,6 +63,14 @@ public class S3Properties extends S3BucketProperties {
   }
 
   @Override
+  public String getEndpoint() {
+    if (isFailoverEnabled()) {
+      return failover.getEndpoint();
+    }
+    return super.getEndpoint();
+  }
+
+  @Override
   public String getProxyHost() {
     if (isFailoverEnabled()) {
       return failover.getProxyHost();
