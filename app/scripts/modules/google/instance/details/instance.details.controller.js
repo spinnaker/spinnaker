@@ -144,7 +144,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           var pathSegments = $scope.instance.selfLink.split('/');
           var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
           $scope.instance.logsLink =
-            'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
+            'https://console.developers.google.com/project/' + projectId + '/logs?service=gce_instance&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
 
           $scope.instance.gcloudSSHCommand = 'gcloud compute ssh --project ' + projectId + ' --zone ' + $scope.instance.placement.availabilityZone + ' ' + instance.instanceId;
 
