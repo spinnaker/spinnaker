@@ -19,8 +19,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers.kubernetes;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractAddAccountCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractNamedProviderCommand;
-import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
