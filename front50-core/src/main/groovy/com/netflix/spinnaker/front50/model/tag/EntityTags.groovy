@@ -23,14 +23,15 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.front50.model.Timestamped
 
 class EntityTags implements Timestamped {
+  String version = "v1"
   String id
   String idPattern   // pattern used to construct the `id`, ie. {{entityType}}__{{entityId}}__{{account}}__{{region}}
 
   Long lastModified
   String lastModifiedBy
 
-  Map<String, Object> tags = [:]
-  Map<String, Object> tagsMetadata = [:]
+  Collection<EntityTag> tags = []
+  Collection<EntityTagMetadata> tagsMetadata = []
   EntityRef entityRef
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -49,5 +50,19 @@ class EntityTags implements Timestamped {
     void set(String name, Object value) {
       attributes.put(name, value)
     }
+  }
+
+  static class EntityTagMetadata {
+    String name
+    Long lastModified
+    String lastModifiedBy
+    Long created
+    String createdBy
+  }
+
+  static class EntityTag {
+    String name
+    Object value
+    String valueType
   }
 }
