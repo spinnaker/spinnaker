@@ -84,7 +84,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             resourceTypes = _.join(resourceTypes, ' OR ');
 
             $scope.loadBalancer.logsLink =
-              'https://console.developers.google.com/project/' + accountDetails.project + '/logs?advancedFilter=resource.type=(' + resourceTypes + ')%0A\"' + $scope.loadBalancer.name + "\"";
+              'https://console.developers.google.com/project/' + accountDetails.project + '/logs?advancedFilter=resource.type=(' + resourceTypes + ')%0A\"' + $scope.loadBalancer.name + '\"';
           });
         },
           autoClose

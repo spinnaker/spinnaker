@@ -96,7 +96,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           var pathSegments = this.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
           var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
           this.serverGroup.logsLink =
-            'https://console.developers.google.com/project/' + projectId + '/logs?advancedFilter=resource.type=(gce_instance_group_manager OR gce_instance OR gce_autoscaler)%0A\"' + this.serverGroup.name + "\"";
+            'https://console.developers.google.com/project/' + projectId + '/logs?advancedFilter=resource.type=(gce_instance_group_manager OR gce_instance OR gce_autoscaler)%0A\"' + this.serverGroup.name + '\"';
 
           findStartupScript();
           prepareDiskDescriptions();
