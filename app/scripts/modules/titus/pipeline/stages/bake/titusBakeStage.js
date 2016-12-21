@@ -33,6 +33,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.titusBakeSt
       stage.storeType = 'docker';
     }
 
+    if (!stage.baseOs) {
+      stage.baseOs = 'trusty';
+    }
+
     if (!stage.repository) {
       stage.repository = {};
     }
