@@ -26,7 +26,7 @@ class GoogleOperationPollerSpec extends Specification {
   @Shared SafeRetry safeRetry
 
   def setupSpec() {
-    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
   }
 
   void "waitForOperation should query the operation at least once"() {

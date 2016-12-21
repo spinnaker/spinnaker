@@ -63,7 +63,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
 
     // Yes this can affect other tests; but only in a good way.
-    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
   }
 
   void "should delete managed instance group"() {
@@ -515,6 +515,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     when:
       def destroy = new DestroyGoogleServerGroupAtomicOperation()
+      destroy.googleOperationPoller =
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          safeRetry: safeRetry
+        )
       destroy.safeRetry = safeRetry
       destroy.destroy(
           DestroyGoogleServerGroupAtomicOperation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
@@ -550,7 +556,6 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * backendServicesMock.update(PROJECT_NAME, 'backend-service', bs) >> backendUpdateMock
 
     when:
-      destroy.safeRetry = safeRetry
       destroy.destroy(
         DestroyGoogleServerGroupAtomicOperation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
         "Http load balancer backends"

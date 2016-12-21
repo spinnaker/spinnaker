@@ -45,6 +45,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
   private static final DONE = "DONE"
 
   @Shared GoogleHealthCheck hc
+  @Shared def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
   @Shared SafeRetry safeRetry
 
   def setupSpec() {
@@ -58,7 +59,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         "healthyThreshold"  : 1,
         "unhealthyThreshold": 1
     ]
-    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
   }
 
   void "should create an HTTP Load Balancer with host rule, path matcher, path rules, etc with no existing infrastructure"() {
@@ -165,6 +166,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -286,6 +288,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.googleOperationPoller =
           new GoogleOperationPoller(
             googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
             safeRetry: safeRetry
           )
       operation.safeRetry = safeRetry
@@ -407,6 +410,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.googleOperationPoller =
           new GoogleOperationPoller(
             googleConfigurationProperties: new GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock,
             safeRetry: safeRetry
           )
       operation.safeRetry = safeRetry
@@ -558,6 +562,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -714,6 +719,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -875,6 +881,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry

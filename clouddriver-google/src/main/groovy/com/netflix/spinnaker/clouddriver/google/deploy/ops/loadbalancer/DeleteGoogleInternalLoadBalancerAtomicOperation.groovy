@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
-import com.google.api.client.json.GenericJson
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.Operation

@@ -36,6 +36,9 @@ class SafeRetry {
   @Value('${google.safeRetryRetryIntervalBaseSec:2}')
   Long retryIntervalBase
 
+  @Value('${google.safeRetryJitterMultiplier:1000}')
+  Long jitterMultiplier
+
   @Value('${google.safeRetryMaxRetries:10}')
   Long maxRetries
 
@@ -53,12 +56,12 @@ class SafeRetry {
    * @return Object returned from the operation.
    */
   public Object doRetry(Closure operation,
-                   String action,
-                   String resource,
-                   Task task,
-                   String phase,
-                   List<Integer> retryCodes,
-                   List<Integer> successfulErrorCodes) {
+                        String action,
+                        String resource,
+                        Task task,
+                        String phase,
+                        List<Integer> retryCodes,
+                        List<Integer> successfulErrorCodes) {
     try {
       task?.updateStatus phase, "Attempting $action of $resource..."
       return operation()
@@ -73,7 +76,7 @@ class SafeRetry {
           // Sleep with exponential backoff based on the number of retries. Add retry jitter with Math.random() to
           // prevent clients syncing up and bursting at regular intervals. Don't wait longer than a minute.
           Long thisIntervalWait = TimeUnit.SECONDS.toMillis(Math.pow(retryIntervalBase, tries) as Integer)
-          sleep(Math.min(thisIntervalWait, maxWaitInterval) + Math.round(Math.random() * 1000))
+          sleep(Math.min(thisIntervalWait, maxWaitInterval) + Math.round(Math.random() * jitterMultiplier))
           log.warn "$action $resource attempt #$tries..."
           return operation()
         } catch (GoogleJsonResponseException jsonException) {

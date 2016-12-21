@@ -49,6 +49,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final DONE = "DONE"
 
   @Shared GoogleHealthCheck hc
+  @Shared def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
   @Shared SafeRetry safeRetry
 
   def setupSpec() {
@@ -63,7 +64,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
       "healthyThreshold"  : 1,
       "unhealthyThreshold": 1
     ]
-    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0)
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
   }
 
   void "should create ssl load balancer if no infrastructure present."() {
@@ -136,6 +137,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
     operation.googleOperationPoller =
       new GoogleOperationPoller(
         googleConfigurationProperties: new GoogleConfigurationProperties(),
+        threadSleeper: threadSleeperMock,
         safeRetry: safeRetry
       )
     operation.safeRetry = safeRetry
@@ -247,6 +249,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
     operation.googleOperationPoller =
       new GoogleOperationPoller(
         googleConfigurationProperties: new GoogleConfigurationProperties(),
+        threadSleeper: threadSleeperMock,
         safeRetry: safeRetry
       )
     operation.safeRetry = safeRetry
@@ -358,6 +361,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
     operation.googleOperationPoller =
       new GoogleOperationPoller(
         googleConfigurationProperties: new GoogleConfigurationProperties(),
+        threadSleeper: threadSleeperMock,
         safeRetry: safeRetry
       )
     operation.safeRetry = safeRetry
