@@ -25,7 +25,9 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import retrofit.RetrofitError;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -54,7 +56,12 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
       getTask().updateStatus(BASE_PHASE, format("Did not find %s in Front50", entityTagsDescription.getId()));
       return null;
     }
-    if (entityTagsDescription.isDeleteAll() || entityTagsDescription.getTags().containsAll(currentTags.getTags().keySet())) {
+
+    Collection<String> currentTagNames = currentTags.getTags().stream()
+      .map(EntityTags.EntityTag::getName)
+      .collect(Collectors.toSet());
+
+    if (entityTagsDescription.isDeleteAll() || entityTagsDescription.getTags().containsAll(currentTagNames)) {
       getTask().updateStatus(BASE_PHASE, format("Deleting %s from ElasticSearch", entityTagsDescription.getId()));
       entityTagsProvider.delete(entityTagsDescription.getId());
       getTask().updateStatus(BASE_PHASE, format("Deleted %s from ElasticSearch", entityTagsDescription.getId()));
@@ -65,12 +72,7 @@ public class DeleteEntityTagsAtomicOperation implements AtomicOperation<Void> {
       return null;
     }
 
-    entityTagsDescription.getTags().forEach(tag -> {
-      currentTags.getTags().remove(tag);
-      if (currentTags.getTagsMetadata() != null) {
-        currentTags.getTagsMetadata().remove(tag);
-      }
-    });
+    entityTagsDescription.getTags().forEach(currentTags::removeEntityTag);
 
     EntityTags durableEntityTags = front50Service.saveEntityTags(currentTags);
     getTask().updateStatus(BASE_PHASE, format("Updated %s in Front50", durableEntityTags.getId()));

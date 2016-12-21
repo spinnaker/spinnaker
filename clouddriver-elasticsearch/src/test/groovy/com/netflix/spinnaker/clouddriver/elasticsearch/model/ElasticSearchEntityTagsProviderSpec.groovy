@@ -85,6 +85,9 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
   "mappings": {
     "_default_": {
       "properties": {
+        "tags": {
+          "type": "nested"
+        },
         "entityRef": {
           "properties": {
             "entityId": {
@@ -113,7 +116,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     entityTagsProvider.get(entityTags.id).isPresent()
     !entityTagsProvider.get("does-not-exist").isPresent()
 
-    entityTagsProvider.get(entityTags.id, entityTags.tags).isPresent()
+    entityTagsProvider.get(entityTags.id, ["tag1": "value1", "tag2": "value2"]).isPresent()
     !entityTagsProvider.get(entityTags.id, ["tag3": "value3"]).isPresent()
   }
 
@@ -175,7 +178,7 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     def idSplit = id.split(":")
     return new EntityTags(
       id: id,
-      tags: tags,
+      tags: tags.collect { k,v -> new EntityTags.EntityTag(name: k, value: v, valueType: EntityTags.EntityTagValueType.literal)},
       entityRef: new EntityTags.EntityRef(
         entityType: idSplit[1],
         cloudProvider: idSplit[0],

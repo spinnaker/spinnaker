@@ -29,10 +29,13 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import retrofit.RetrofitError;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -64,26 +67,41 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
 
     Date now = new Date();
 
-    if (entityTagsDescription.isPartial) {
-      getTask().updateStatus(BASE_PHASE, format("Retrieving %s for partial update", entityTagsDescription.getId()));
-      EntityTags currentTags;
-      try {
-        currentTags = front50Service.getEntityTags(entityTagsDescription.getId());
-      } catch (RetrofitError e) {
+    EntityTags currentTags = null;
+    try {
+      getTask().updateStatus(BASE_PHASE, format("Retrieving current entity tags (%s)", entityTagsDescription.getId()));
+      currentTags = front50Service.getEntityTags(entityTagsDescription.getId());
+    } catch (RetrofitError e) {
+      if (e.getResponse().getStatus() == 404) {
         getTask().updateStatus(
           BASE_PHASE,
-          format("Could not load %s for partial update, will create new tag", entityTagsDescription.getId())
+          format("No existing tags found (%s)", entityTagsDescription.getId())
         );
-        currentTags = null;
+      } else {
+        throw e;
       }
-      mergeExistingTagsAndMetadata(now, currentTags, entityTagsDescription);
-    } else {
-      addTagMetadata(now, entityTagsDescription);
     }
+
+    if (currentTags != null && !entityTagsDescription.isPartial) {
+      Map<String, EntityTags.EntityTag> entityTagsByName = entityTagsDescription.getTags().stream()
+        .collect(Collectors.toMap(EntityTags.EntityTag::getName, x -> x));
+
+      currentTags.setTags(entityTagsDescription.getTags());
+      for (EntityTags.EntityTagMetadata entityTagMetadata : currentTags.getTagsMetadata()) {
+        if (!entityTagsByName.containsKey(entityTagMetadata.getName())) {
+          currentTags.removeEntityTagMetadata(entityTagMetadata.getName());
+        }
+      }
+    }
+    mergeExistingTagsAndMetadata(now, currentTags, entityTagsDescription);
+
+    Collection<String> entityTagSummaries = entityTagsDescription.getTags().stream()
+      .map(entityTag -> entityTag.getName() + ":" + entityTag.getValue())
+      .collect(Collectors.toList());
 
     getTask().updateStatus(
       BASE_PHASE,
-      format("Tagging %s with %s", entityTagsDescription.getId(), entityTagsDescription.getTags())
+      format("Tagging %s with %s", entityTagsDescription.getId(), entityTagSummaries)
     );
 
     EntityTags durableEntityTags = front50Service.saveEntityTags(entityTagsDescription);
@@ -126,41 +144,27 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
   private static void mergeExistingTagsAndMetadata(Date now,
                                                    EntityTags currentTags,
                                                    EntityTags updatedTags) {
-    String user = AuthenticatedRequest.getSpinnakerUser().orElse("unknown");
-
     if (currentTags == null) {
       addTagMetadata(now, updatedTags);
       return;
     }
 
     updatedTags.setTagsMetadata(
-      currentTags.getTagsMetadata() == null ? new HashMap<>() : currentTags.getTagsMetadata()
+      currentTags.getTagsMetadata() == null ? new ArrayList<>() : currentTags.getTagsMetadata()
     );
 
-    updatedTags.getTags().forEach((key, tag) -> {
-      EntityTags.EntityTagMetadata metadata = currentTags.getTagsMetadata().get(key);
-      if (metadata == null) {
-        metadata = new EntityTags.EntityTagMetadata();
-        metadata.setCreated(now.getTime());
-        metadata.setCreatedBy(user);
-        updatedTags.getTagsMetadata().put(key, metadata);
-      }
-      metadata.setLastModified(now.getTime());
-      metadata.setLastModifiedBy(user);
+    updatedTags.getTags().forEach(tag -> {
+      updatedTags.putEntityTagMetadata(tagMetadata(tag.getName(), now));
     });
 
-    currentTags.getTags().forEach((key, tag) -> {
-      if (!updatedTags.getTags().containsKey(key)) {
-        updatedTags.getTags().put(key, tag);
-        updatedTags.getTagsMetadata().put(key, currentTags.getTagsMetadata().get(key));
-      }
-    });
+    currentTags.getTags().forEach(updatedTags::putEntityTagIfAbsent);
   }
 
-  private static EntityTags.EntityTagMetadata tagMetadata(Date now) {
+  private static EntityTags.EntityTagMetadata tagMetadata(String tagName, Date now) {
     String user = AuthenticatedRequest.getSpinnakerUser().orElse("unknown");
 
     EntityTags.EntityTagMetadata metadata = new EntityTags.EntityTagMetadata();
+    metadata.setName(tagName);
     metadata.setCreated(now.getTime());
     metadata.setLastModified(now.getTime());
     metadata.setCreatedBy(user);
@@ -170,8 +174,10 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
   }
 
   private static void addTagMetadata(Date now, EntityTags entityTags) {
-    entityTags.setTagsMetadata(new HashMap<>());
-    entityTags.getTags().forEach((key, tag) -> entityTags.getTagsMetadata().put(key, tagMetadata(now)));
+    entityTags.setTagsMetadata(new ArrayList<>());
+    entityTags.getTags().forEach(tag -> {
+      entityTags.putEntityTagMetadata(tagMetadata(tag.getName(), now));
+    });
   }
 
   private static Task getTask() {

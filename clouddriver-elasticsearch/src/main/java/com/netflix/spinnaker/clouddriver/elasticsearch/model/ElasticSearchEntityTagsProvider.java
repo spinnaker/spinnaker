@@ -84,22 +84,22 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
     if (cloudProvider != null) {
       // restrict to a specific cloudProvider (optional)
-      queryBuilder = queryBuilder.must(QueryBuilders.matchQuery("entityRef.cloudProvider", cloudProvider));
+      queryBuilder = queryBuilder.must(QueryBuilders.termQuery("entityRef.cloudProvider", cloudProvider));
     }
 
     if (entityIds != null && !entityIds.isEmpty()) {
       // restrict to a specific set of entityIds (optional)
-      queryBuilder = queryBuilder.must(QueryBuilders.termsQuery("entityRef.entityId", entityIds));
+     queryBuilder = queryBuilder.must(QueryBuilders.termsQuery("entityRef.entityId", entityIds));
     }
 
     if (account != null) {
       // restrict to a specific set of entityIds (optional)
-      queryBuilder = queryBuilder.must(QueryBuilders.matchQuery("entityRef.account", account));
+      queryBuilder = queryBuilder.must(QueryBuilders.termQuery("entityRef.account", account));
     }
 
     if (region != null) {
       // restrict to a specific set of entityIds (optional)
-      queryBuilder = queryBuilder.must(QueryBuilders.matchQuery("entityRef.region", region));
+      queryBuilder = queryBuilder.must(QueryBuilders.termQuery("entityRef.region", region));
     }
 
     if (idPrefix != null) {
@@ -107,7 +107,16 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       queryBuilder = queryBuilder.must(QueryBuilders.wildcardQuery("id", idPrefix));
     }
 
-    return search(entityType, applyTagsToBuilder(queryBuilder, tags), maxResults);
+    if (tags != null) {
+      for (Map.Entry<String, Object> entry: tags.entrySet()) {
+        // each key/value pair maps to a distinct nested `tags` object and must be a unique query snippet
+        queryBuilder = queryBuilder.must(
+          applyTagsToBuilder(Collections.singletonMap(entry.getKey(), entry.getValue()))
+        );
+      }
+    }
+
+    return search(entityType, queryBuilder, maxResults);
   }
 
   @Override
@@ -118,14 +127,23 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
   @Override
   public Optional<EntityTags> get(String id, Map<String, Object> tags) {
     BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("_id", id));
-    List<EntityTags> entityTags = search(null, applyTagsToBuilder(queryBuilder, tags), 1);
+    if (tags != null) {
+      for (Map.Entry<String, Object> entry: tags.entrySet()) {
+        // each key/value pair maps to a distinct nested `tags` object and must be a unique query snippet
+        queryBuilder = queryBuilder.must(
+          applyTagsToBuilder(Collections.singletonMap(entry.getKey(), entry.getValue()))
+        );
+      }
+    }
+
+    List<EntityTags> entityTags = search(null, queryBuilder, 1);
     return entityTags.isEmpty() ? Optional.empty() : Optional.of(entityTags.get(0));
   }
 
   @Override
   public void index(EntityTags entityTags) {
     try {
-      Index action = new Index.Builder(objectMapper.convertValue(entityTags, Map.class))
+      Index action = new Index.Builder(objectMapper.convertValue(prepareForWrite(objectMapper, entityTags), Map.class))
         .index(activeElasticSearchIndex)
         .type(entityTags.getEntityRef().getEntityType())
         .id(entityTags.getId())
@@ -151,7 +169,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
     for (EntityTags entityTags : multipleEntityTags) {
       builder = builder.addAction(
-        new Index.Builder(objectMapper.convertValue(entityTags, Map.class))
+        new Index.Builder(objectMapper.convertValue(prepareForWrite(objectMapper, entityTags), Map.class))
           .index(activeElasticSearchIndex)
           .type(entityTags.getEntityRef().getEntityType())
           .id(entityTags.getId())
@@ -172,7 +190,6 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
         format("Failed to index bulk entity tags, reason: '%s'", e.getMessage())
       );
     }
-
   }
 
   @Override
@@ -234,7 +251,18 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
   public void verifyIndex(EntityTags entityTags) {
     OperationPoller.retryWithBackoff(o -> {
         // verify that the indexed document can be retrieved (accounts for index lag)
-        if (!get(entityTags.getId(), entityTags.getTags()).isPresent()) {
+        Map<String, Object> entityTagsCriteria = new HashMap<>();
+        entityTags.getTags().forEach(entityTag -> {
+          switch(entityTag.getValueType()) {
+            case object:
+              entityTagsCriteria.put(entityTag.getName(), "*");
+              break;
+            default:
+              entityTagsCriteria.put(entityTag.getName(), entityTag.getValueForRead(objectMapper));
+          }
+        });
+
+        if (!get(entityTags.getId(), entityTagsCriteria).isPresent()) {
           throw new ElasticSearchException(format("Failed to index %s, reason: 'no document found with id'", entityTags.getId()));
         }
         return true;
@@ -244,21 +272,18 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     );
   }
 
-  private BoolQueryBuilder applyTagsToBuilder(BoolQueryBuilder queryBuilder, Map<String, Object> tags) {
-    if (tags == null) {
-      return queryBuilder;
-    }
+  private QueryBuilder applyTagsToBuilder(Map<String, Object> tags) {
+    BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
     for (Map.Entry<String, Object> entry : flatten(new HashMap<>(), null, tags).entrySet()) {
       // restrict to specific tags (optional)
-      if (entry.getValue().equals("*")) {
-        queryBuilder = queryBuilder.must(QueryBuilders.existsQuery("tags." + entry.getKey()));
-      } else {
-        queryBuilder = queryBuilder.must(QueryBuilders.matchQuery("tags." + entry.getKey(), entry.getValue()));
+      boolQueryBuilder.must(QueryBuilders.termQuery("tags.name", entry.getKey()));
+      if (!entry.getValue().equals("*")) {
+        boolQueryBuilder.must(QueryBuilders.matchQuery("tags.value", entry.getValue()));
       }
     }
 
-    return queryBuilder;
+    return QueryBuilders.nestedQuery("tags", boolQueryBuilder);
   }
 
   /**
@@ -291,10 +316,27 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       SearchResult searchResult = jestClient.execute(searchBuilder.build());
       return searchResult.getHits(Map.class).stream()
         .map(h -> h.source)
-        .map(s -> objectMapper.convertValue(s, EntityTags.class))
+        .map(s -> prepareForRead(objectMapper, s))
         .collect(Collectors.toList());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private static EntityTags prepareForWrite(ObjectMapper objectMapper, EntityTags entityTags) {
+    EntityTags copyOfEntityTags = objectMapper.convertValue(
+      objectMapper.convertValue(entityTags, Map.class), EntityTags.class
+    );
+
+    copyOfEntityTags.getTags().forEach(entityTag -> entityTag.setValue(entityTag.getValueForWrite(objectMapper)));
+
+    return copyOfEntityTags;
+  }
+
+  private static EntityTags prepareForRead(ObjectMapper objectMapper, Map indexedEntityTags) {
+    EntityTags entityTags = objectMapper.convertValue(indexedEntityTags, EntityTags.class);
+    entityTags.getTags().forEach(entityTag -> entityTag.setValue(entityTag.getValueForRead(objectMapper)));
+
+    return entityTags;
   }
 }

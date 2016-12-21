@@ -19,7 +19,9 @@ package com.netflix.spinnaker.clouddriver.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.databind.ObjectMapper
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class EntityTags {
@@ -29,9 +31,38 @@ class EntityTags {
   Long lastModified
   String lastModifiedBy
 
-  Map<String, Object> tags = [:]
-  Map<String, EntityTagMetadata> tagsMetadata = [:]
+  Collection<EntityTag> tags = []
+  Collection<EntityTagMetadata> tagsMetadata = []
   EntityRef entityRef
+
+  @JsonIgnore
+  void putEntityTagMetadata(EntityTagMetadata updatedEntityTagMetadata) {
+    def existingTagsMetadata = tagsMetadata.find { it.name.equalsIgnoreCase(updatedEntityTagMetadata.name) }
+    if (existingTagsMetadata) {
+      existingTagsMetadata.lastModified = updatedEntityTagMetadata.lastModified
+      existingTagsMetadata.lastModifiedBy = updatedEntityTagMetadata.lastModifiedBy
+    } else {
+      tagsMetadata.add(updatedEntityTagMetadata)
+    }
+  }
+
+  @JsonIgnore
+  void putEntityTagIfAbsent(EntityTag entityTag) {
+    if (!tags.find { it.name.equalsIgnoreCase(entityTag.name) }) {
+      tags.add(entityTag)
+    }
+  }
+
+  @JsonIgnore
+  void removeEntityTagMetadata(String name) {
+    tagsMetadata = tagsMetadata.findAll { !it.name.equalsIgnoreCase(name) }
+  }
+
+  @JsonIgnore
+  void removeEntityTag(String name) {
+    tags = tags.findAll { !it.name.equalsIgnoreCase(name) }
+    removeEntityTagMetadata(name)
+  }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   static class EntityRef {
@@ -42,7 +73,7 @@ class EntityTags {
     String entityId
 
     @JsonAnyGetter
-    Map<String,Object> attributes() {
+    Map<String, Object> attributes() {
       return attributes;
     }
 
@@ -57,9 +88,45 @@ class EntityTags {
   }
 
   static class EntityTagMetadata {
+    String name
     Long lastModified
     String lastModifiedBy
     Long created
     String createdBy
+  }
+
+  static class EntityTag {
+    String name
+    Object value
+    EntityTagValueType valueType
+
+    @JsonIgnore
+    Object getValueForWrite(ObjectMapper objectMapper) {
+      switch (valueType) {
+        case EntityTagValueType.object:
+          return objectMapper.writeValueAsString(value)
+        default:
+          return value
+      }
+    }
+
+    @JsonIgnore
+    Object getValueForRead(ObjectMapper objectMapper) {
+      if (!(value instanceof String)) {
+        return value;
+      }
+
+      switch (valueType) {
+        case EntityTagValueType.object:
+          return objectMapper.readValue(value.toString(), Map.class)
+        default:
+          return value
+      }
+    }
+  }
+
+  static enum EntityTagValueType {
+    literal, // number or string
+    object   // map
   }
 }
