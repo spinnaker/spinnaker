@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider;
 import com.netflix.spinnaker.config.ElasticSearchConfigProperties;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
+import io.searchbox.core.Bulk;
 import io.searchbox.core.Delete;
 import io.searchbox.core.Index;
 import io.searchbox.core.Search;
@@ -75,6 +76,8 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
                                        String entityType,
                                        List<String> entityIds,
                                        String idPrefix,
+                                       String account,
+                                       String region,
                                        Map<String, Object> tags,
                                        int maxResults) {
     BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
@@ -87,6 +90,16 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     if (entityIds != null && !entityIds.isEmpty()) {
       // restrict to a specific set of entityIds (optional)
       queryBuilder = queryBuilder.must(QueryBuilders.termsQuery("entityRef.entityId", entityIds));
+    }
+
+    if (account != null) {
+      // restrict to a specific set of entityIds (optional)
+      queryBuilder = queryBuilder.must(QueryBuilders.matchQuery("entityRef.account", account));
+    }
+
+    if (region != null) {
+      // restrict to a specific set of entityIds (optional)
+      queryBuilder = queryBuilder.must(QueryBuilders.matchQuery("entityRef.region", region));
     }
 
     if (idPrefix != null) {
@@ -129,6 +142,37 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
         format("Failed to index %s, reason: '%s'", entityTags.getId(), e.getMessage())
       );
     }
+  }
+
+  @Override
+  public void bulkIndex(Collection<EntityTags> multipleEntityTags) {
+    Bulk.Builder builder = new Bulk.Builder()
+      .defaultIndex(activeElasticSearchIndex);
+
+    for (EntityTags entityTags : multipleEntityTags) {
+      builder = builder.addAction(
+        new Index.Builder(objectMapper.convertValue(entityTags, Map.class))
+          .index(activeElasticSearchIndex)
+          .type(entityTags.getEntityRef().getEntityType())
+          .id(entityTags.getId())
+          .build()
+      );
+    }
+
+    Bulk bulk = builder.build();
+    try {
+      JestResult jestResult = jestClient.execute(bulk);
+      if (!jestResult.isSucceeded()) {
+        throw new ElasticSearchException(
+          format("Failed to index bulk entity tags, reason: '%s'", jestResult.getErrorMessage())
+        );
+      }
+    } catch (IOException e) {
+      throw new ElasticSearchException(
+        format("Failed to index bulk entity tags, reason: '%s'", e.getMessage())
+      );
+    }
+
   }
 
   @Override

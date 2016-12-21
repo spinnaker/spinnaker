@@ -57,6 +57,8 @@ public class EntityTagsController {
                                      @RequestParam(value = "entityType", required = false) String entityType,
                                      @RequestParam(value = "entityId", required = false) String entityId,
                                      @RequestParam(value = "idPrefix", required = false) String idPrefix,
+                                     @RequestParam(value = "account", required = false) String account,
+                                     @RequestParam(value = "region", required = false) String region,
                                      @RequestParam(value = "maxResults", required = false, defaultValue = "100") int maxResults,
                                      @RequestParam Map<String, Object> allParameters) {
 
@@ -69,6 +71,8 @@ public class EntityTagsController {
       entityType,
       entityId != null ? Arrays.asList(entityId.split(",")) : null,
       idPrefix,
+      account,
+      region,
       tags,
       maxResults
       );
