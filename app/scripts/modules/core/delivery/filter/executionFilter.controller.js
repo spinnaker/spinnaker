@@ -47,7 +47,8 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
       if (this.application.pipelineConfigs.loadFailure) {
         return;
       }
-      let allOptions = _.sortBy(this.application.pipelineConfigs.data, 'index')
+      let configs = (this.application.pipelineConfigs.data || []).concat(this.application.strategyConfigs.data || []);
+      let allOptions = _.orderBy(configs, ['strategy', 'index'], ['desc', 'asc'])
         .concat(this.application.executions.data)
         .filter((option) => option && option.name)
         .map((option) => option.name);

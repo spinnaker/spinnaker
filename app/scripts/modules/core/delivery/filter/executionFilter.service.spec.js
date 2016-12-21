@@ -24,6 +24,20 @@ describe('Service: executionFilterService', function () {
     );
   });
 
+  describe('Sorting', () => {
+    it('sorts pipeline groups by index, always putting strategies at the end, followed by ad-hoc pipelines', () => {
+      let firstGroup = { config: { index: 1} };
+      let secondGroup = { config: { index: 2} };
+      let strategy = { config: { index: 0, strategy: true } };
+      let adHocA = { heading: 'a' };
+      let adHocB = { heading: 'b' };
+      let groups = [strategy, adHocB, adHocA, secondGroup, firstGroup];
+      let sorted = groups.sort(service.executionGroupSorter);
+
+      expect(sorted).toEqual([firstGroup, secondGroup, strategy, adHocA, adHocB]);
+    });
+  });
+
   describe('Updating execution groups', function () {
 
     it('limits executions per pipeline', function () {
