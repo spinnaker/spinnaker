@@ -29,6 +29,8 @@ public interface EntityTagsProvider {
                                 String entityType,
                                 List<String> entityIds,
                                 String idPrefix,
+                                String account,
+                                String region,
                                 Map<String, Object> tags,
                                 int maxResults);
 
@@ -46,6 +48,11 @@ public interface EntityTagsProvider {
    * Index an EntityTags
    */
   void index(EntityTags entityTags);
+
+  /**
+   * Index multiple EntityTags
+   */
+  void bulkIndex(Collection<EntityTags> multipleEntityTags);
 
   /**
    * Verify that EntityTags has been indexed and can be retrieved via a search
