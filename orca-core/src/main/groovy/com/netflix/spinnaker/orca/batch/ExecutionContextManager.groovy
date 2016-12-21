@@ -30,7 +30,8 @@ import org.springframework.batch.core.scope.context.ChunkContext
 @Canonical
 class ExecutionContextManager {
   static <T extends Execution> Stage<T> retrieve(Stage<T> stage, ChunkContext chunkContext) {
-    ((AbstractStage)stage).context = new DelegatingHashMap(stage.context, chunkContext, stage)
+    Map<String, Object> processed = processEntries(stage.context, stage, chunkContext)
+    ((AbstractStage) stage).context = new DelegatingHashMap(processed ?: [:], chunkContext, stage)
     return stage
   }
 
@@ -39,6 +40,17 @@ class ExecutionContextManager {
     taskResult.globalOutputs.each { String key, Serializable obj ->
       jobExecutionContext.put(key, obj)
     }
+  }
+
+  private
+  static Map<String, Object> processEntries(Map<String, Object> map, Stage<? extends Execution> stage, ChunkContext context) {
+    def jobExecutionContext = context.stepContext.jobExecutionContext
+    def augmentedContext = [:] + jobExecutionContext + map
+    if (stage.execution instanceof Pipeline) {
+      augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
+      augmentedContext.put('execution', stage.execution)
+    }
+    ContextParameterProcessor.process(map, augmentedContext, true)
   }
 
   static class DelegatingHashMap implements Map<String, Object> {
@@ -55,7 +67,7 @@ class ExecutionContextManager {
       this.stage = stage
     }
 
-    public Object get(Object key) {
+    Object get(Object key) {
       if (stage.execution instanceof Pipeline) {
         if (key == "trigger") {
           return ((Pipeline) stage.execution).trigger
@@ -82,14 +94,8 @@ class ExecutionContextManager {
       return result
     }
 
-    public Set<Map.Entry<Object, Object>> entrySet() {
-      def jobExecutionContext = chunkContext.stepContext.jobExecutionContext
-      def augmentedContext = [:] + jobExecutionContext + delegate
-      if (stage.execution instanceof Pipeline) {
-        augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
-        augmentedContext.put('execution', stage.execution)
-      }
-      def processed = ContextParameterProcessor.process(delegate, augmentedContext, true)
+    Set<Map.Entry<Object, Object>> entrySet() {
+      Map processed = processEntries(delegate, stage, chunkContext)
       return processed?.entrySet() ?: [:].entrySet()
     }
   }
