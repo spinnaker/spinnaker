@@ -41,15 +41,15 @@ public abstract class NestableCommand {
   @Getter(AccessLevel.PROTECTED)
   private JCommander commander;
 
-  @Parameter(names = { "-h", "--help" }, description = "Display help text about this command")
+  @Parameter(names = { "-h", "--help" }, description = "Display help text about this command.")
   public boolean help;
 
-  @Parameter(names = {"-d", "--debug"}, description = "Show detailed network traffic with halyard daemon")
+  @Parameter(names = {"-d", "--debug"}, description = "Show detailed network traffic with halyard daemon.")
   public void setDebug(boolean debug) {
     GlobalOptions.getGlobalOptions().setDebug(debug);
   }
 
-  @Parameter(names = { "-c", "--color" }, description = "Enable terminal color output", arity = 1)
+  @Parameter(names = { "-c", "--color" }, description = "Enable terminal color output.", arity = 1)
   public void setColor(boolean color) {
     GlobalOptions.getGlobalOptions().setColor(color);
   }

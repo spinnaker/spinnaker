@@ -20,6 +20,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiParagraphBuilder;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +36,10 @@ public abstract class AbstractAddAccountCommand extends AbstractProviderCommand 
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "add-account";
 
-  @Parameter(names = { "--account-name" }, description = "The name of the account to create")
+  @Parameter(
+      names = "--account-name",
+      description = "The name of the account to create."
+  )
   private String accountName;
 
   protected abstract Account buildAccount(String accountName);
@@ -50,5 +55,6 @@ public abstract class AbstractAddAccountCommand extends AbstractProviderCommand 
 
     String currentDeployment = Daemon.getCurrentDeployment();
     Daemon.addAccount(currentDeployment, providerName, !noValidate, account);
+    AnsiUi.success("Added " + providerName + " account \"" + accountName + "\"");
   }
 }
