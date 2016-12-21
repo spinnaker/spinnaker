@@ -56,7 +56,7 @@ public class AwsSdkClientSupplier {
   public AwsSdkClientSupplier(RateLimiterSupplier rateLimiterSupplier, Registry registry, RetryPolicy retryPolicy, List<RequestHandler2> requestHandlers, AWSProxy proxy, boolean useGzip) {
     this.rateLimiterSupplier = Objects.requireNonNull(rateLimiterSupplier);
     this.registry = Objects.requireNonNull(registry);
-    awsSdkClients = CacheBuilder.newBuilder().recordStats().expireAfterWrite(10, TimeUnit.MINUTES).build(new SdkClientCacheLoader(retryPolicy, requestHandlers, proxy, useGzip));
+    awsSdkClients = CacheBuilder.newBuilder().recordStats().build(new SdkClientCacheLoader(retryPolicy, requestHandlers, proxy, useGzip));
     LoadingCacheMetrics.instrument("awsSdkClientSupplier", registry, awsSdkClients);
   }
 

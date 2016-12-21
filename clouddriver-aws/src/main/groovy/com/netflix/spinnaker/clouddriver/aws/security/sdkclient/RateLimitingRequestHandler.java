@@ -42,4 +42,22 @@ public class RateLimitingRequestHandler extends RequestHandler2 {
     counter.increment(rateLimitedMillis);
     super.beforeRequest(request);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RateLimitingRequestHandler that = (RateLimitingRequestHandler) o;
+
+    if (!counter.equals(that.counter)) return false;
+    return rateLimiter.equals(that.rateLimiter);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = counter.hashCode();
+    result = 31 * result + rateLimiter.hashCode();
+    return result;
+  }
 }
