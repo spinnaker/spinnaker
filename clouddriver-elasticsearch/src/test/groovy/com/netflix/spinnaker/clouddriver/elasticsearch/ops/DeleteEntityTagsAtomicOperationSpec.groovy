@@ -58,7 +58,7 @@ class DeleteEntityTagsAtomicOperationSpec extends Specification {
     description.id = 'abc'
     description.deleteAll = true
     description.tags = ['a']
-    EntityTags current = new EntityTags(tags: [a: 'something', b: 'something else'])
+    EntityTags current = new EntityTags(tags: buildTags([a: 'something', b: 'something else']))
 
     when:
     operation.operate([])
@@ -74,7 +74,7 @@ class DeleteEntityTagsAtomicOperationSpec extends Specification {
     given:
     description.id = 'abc'
     description.tags = ['a', 'b']
-    EntityTags current = new EntityTags(tags: [a: 'something', b: 'something else'])
+    EntityTags current = new EntityTags(tags: buildTags([a: 'something', b: 'something else']))
 
     when:
     operation.operate([])
@@ -92,22 +92,27 @@ class DeleteEntityTagsAtomicOperationSpec extends Specification {
     description.tags = ['a']
     EntityTags current = new EntityTags(
       id: 'abc',
-      tags: [a: 'something', b: 'something else'],
+      tags: buildTags([a: 'something', b: 'something else']),
       tagsMetadata: [
-        a: new EntityTags.EntityTagMetadata(),
-        b: new EntityTags.EntityTagMetadata()
+        new EntityTags.EntityTagMetadata(name: "a"),
+        new EntityTags.EntityTagMetadata(name: "b")
       ])
 
     when:
     operation.operate([])
 
     then:
-    current.tags == [b: 'something else']
-    current.tagsMetadata.keySet().asList() == ['b']
+    current.tags*.name == ['b']
+    current.tags*.value == ['something else']
+    current.tagsMetadata*.name == ['b']
     1 * front50Service.getEntityTags('abc') >> current
     1 * entityTagsProvider.index(current)
     1 * entityTagsProvider.verifyIndex(current)
     1 * front50Service.saveEntityTags(current) >> current
     0 * _
+  }
+
+  Collection<EntityTags.EntityTag> buildTags(Map<String, String> tags) {
+    return tags.collect { k, v -> new EntityTags.EntityTag(name: k, value: v) }
   }
 }

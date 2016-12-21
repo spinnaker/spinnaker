@@ -51,7 +51,7 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
     given:
     description.entityRef = new EntityRef(cloudProvider: "aws", entityType: "servergroup", entityId: "orca-v001",
       attributes: [account: "test", region: "us-east-1"])
-    description.tags = [ "tag1": "some tag" ]
+    description.tags = buildTags(["tag1": "some tag"])
 
     when:
     def entityRefId = operation.entityRefId(accountCredentialsProvider, description)
@@ -66,7 +66,7 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
     given:
     description.entityRef = new EntityRef(cloudProvider: "aws", entityType: "servergroup", entityId: "orca-v001",
       attributes: [account: "test", region: "us-east-1"])
-    description.tags = [ "tag1": "some tag" ]
+    description.tags = buildTags(["tag1": "some tag"])
 
     when:
     operation.operate([])
@@ -74,11 +74,12 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
     then:
     description.id == "aws:servergroup:orca-v001:test:us-east-1"
     description.idPattern == "{{cloudProvider}}:{{entityType}}:{{entityId}}:{{account}}:{{region}}"
-    description.tagsMetadata.keySet().asList() == ["tag1"]
-    description.tagsMetadata.tag1.createdBy == 'unknown'
-    description.tagsMetadata.tag1.created != null
-    description.tagsMetadata.tag1.lastModified == description.tagsMetadata.tag1.created
-    description.tagsMetadata.tag1.lastModifiedBy == description.tagsMetadata.tag1.createdBy
+    description.tagsMetadata*.name == ["tag1"]
+    description.tagsMetadata[0].createdBy == 'unknown'
+    description.tagsMetadata[0].created != null
+    description.tagsMetadata[0].lastModified == description.tagsMetadata[0].created
+    description.tagsMetadata[0].lastModifiedBy == description.tagsMetadata[0].createdBy
+
     1 * accountCredentialsProvider.getCredentials('test') >> null
     1 * front50Service.saveEntityTags(description) >> new EntityTags(lastModified: 123, lastModifiedBy: "unknown")
     1 * entityTagsProvider.index(description)
@@ -89,10 +90,10 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
   void 'should only set modified/by metadata for partial upsert when tag exists'() {
     given:
     EntityTags current = new EntityTags(
-      tags: [tag1: "old tag", tag2: "unchanged tag"],
+      tags: buildTags([tag1: "old tag", tag2: "unchanged tag"]),
       tagsMetadata: [
-        tag1: new EntityTagMetadata(created: 1L, createdBy: "chris", lastModified: 2L, lastModifiedBy: "adam"),
-        tag2: new EntityTagMetadata(created: 1L, createdBy: "chris", lastModified: 2L, lastModifiedBy: "adam")
+        new EntityTagMetadata(name: "tag1", created: 1L, createdBy: "chris", lastModified: 2L, lastModifiedBy: "adam"),
+        new EntityTagMetadata(name: "tag2", created: 1L, createdBy: "chris", lastModified: 2L, lastModifiedBy: "adam")
       ])
     description.entityRef = new EntityRef(
       cloudProvider: "aws",
@@ -100,7 +101,7 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
       entityId: "orca-v001",
       attributes: [account: "test", region: "us-east-1"]
     )
-    description.tags = [ "tag1": "some tag" ]
+    description.tags = buildTags(["tag1": "some tag"])
     description.isPartial = true
 
     def now = new Date()
@@ -109,23 +110,23 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
     operation.mergeExistingTagsAndMetadata(now, current, description)
 
     then:
-    description.tagsMetadata.tag1.created == 1L
-    description.tagsMetadata.tag1.createdBy == "chris"
-    description.tagsMetadata.tag1.lastModified == now.time
-    description.tagsMetadata.tag1.lastModifiedBy == "unknown"
-    description.tagsMetadata.tag2.created == 1L
-    description.tagsMetadata.tag2.createdBy == "chris"
-    description.tagsMetadata.tag2.lastModified == 2L
-    description.tagsMetadata.tag2.lastModifiedBy == "adam"
+    description.tagsMetadata[0].created == 1L
+    description.tagsMetadata[0].createdBy == "chris"
+    description.tagsMetadata[0].lastModified == now.time
+    description.tagsMetadata[0].lastModifiedBy == "unknown"
+    description.tagsMetadata[1].created == 1L
+    description.tagsMetadata[1].createdBy == "chris"
+    description.tagsMetadata[1].lastModified == 2L
+    description.tagsMetadata[1].lastModifiedBy == "adam"
   }
 
   void 'should preserve existing tags when merging'() {
     given:
     EntityTags current = new EntityTags(
-      tags: [tag1: "old tag", tag2: "unchanged tag"],
+      tags: buildTags([tag1: "old tag", tag2: "unchanged tag"]),
       tagsMetadata: [
-        tag1: new EntityTagMetadata(created: 1L, createdBy: "chris", lastModified: 2L, lastModifiedBy: "adam"),
-        tag2: new EntityTagMetadata(created: 1L, createdBy: "chris", lastModified: 2L, lastModifiedBy: "adam")
+        new EntityTagMetadata(name: "tag1", created: 1L, createdBy: "chris", lastModified: 2L, lastModifiedBy: "adam"),
+        new EntityTagMetadata(name: "tag2", created: 1L, createdBy: "chris", lastModified: 2L, lastModifiedBy: "adam")
       ])
     description.entityRef = new EntityRef(
       cloudProvider: "aws",
@@ -133,7 +134,7 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
       entityId: "orca-v001",
       attributes: [account: "test", region: "us-east-1"]
     )
-    description.tags = [ "tag1": "updated tag" ]
+    description.tags = buildTags(["tag1": "updated tag"])
 
     def now = new Date()
 
@@ -142,7 +143,11 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
 
     then:
     description.tags.size() == 2
-    description.tags.tag1 == "updated tag"
-    description.tags.tag2 == "unchanged tag"
+    description.tags.find {it.name == "tag1"}.value == "updated tag"
+    description.tags.find {it.name == "tag2"}.value == "unchanged tag"
+  }
+
+  Collection<EntityTags.EntityTag> buildTags(Map<String, String> tags) {
+    return tags.collect { k, v -> new EntityTags.EntityTag(name: k, value: v, valueType: EntityTags.EntityTagValueType.literal) }
   }
 }

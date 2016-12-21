@@ -23,12 +23,14 @@ import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.UpsertEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
 import com.netflix.spinnaker.clouddriver.elasticsearch.ops.UpsertEntityTagsAtomicOperation;
+import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Map;
 
 @Component("upsertEntityTags")
@@ -59,6 +61,14 @@ public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOper
   }
 
   public UpsertEntityTagsDescription convertDescription(Map input) {
-    return objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
+    UpsertEntityTagsDescription upsertEntityTagsDescription = objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
+    upsertEntityTagsDescription.getTags().forEach(entityTag -> {
+      if (entityTag.getValueType() == null) {
+        boolean isObject = entityTag.getValue() instanceof Map || entityTag.getValue() instanceof Collection;
+        entityTag.setValueType(isObject ? EntityTags.EntityTagValueType.object : EntityTags.EntityTagValueType.literal);
+      }
+    });
+
+    return upsertEntityTagsDescription;
   }
 }
