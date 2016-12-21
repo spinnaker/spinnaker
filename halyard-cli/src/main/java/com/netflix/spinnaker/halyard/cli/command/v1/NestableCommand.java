@@ -151,11 +151,15 @@ public abstract class NestableCommand {
 
         if (parameter.getDefault() != null) {
           paragraph.addSnippet("=");
-          paragraph.addSnippet(parameter.getDefault().toString().toUpperCase()).addStyle(AnsiStyle.UNDERLINE);
+          paragraph.addSnippet(parameter.getDefault().toString()).addStyle(AnsiStyle.UNDERLINE);
         }
 
         if (parameter.getParameter().required()) {
           paragraph.addSnippet(" (required)");
+        }
+
+        if (parameter.getParameter().password()) {
+          paragraph.addSnippet(" (sensitive data - user will be prompted)");
         }
 
         paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);

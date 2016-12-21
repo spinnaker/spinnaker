@@ -29,4 +29,9 @@ public class DockerRegistryCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "dockerRegistry";
   }
+
+  public DockerRegistryCommand() {
+    super();
+    registerSubcommand(new DockerAddAccountCommand());
+  }
 }
