@@ -237,7 +237,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
   }
 
   // Note: The TargetProxyCallbacks assume that each proxy points to a unique urlMap.
-  class TargetHttpsProxyCallback<TargetHttpsProxy> extends JsonBatchCallback<TargetHttpsProxy> implements FailureLogger {
+  class TargetHttpsProxyCallback<TargetHttpsProxy> extends JsonBatchCallback<TargetHttpsProxy> implements PlatformErrorPropagator {
     GoogleHttpLoadBalancer googleLoadBalancer
     BatchRequest urlMapRequest
 
@@ -266,7 +266,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
   }
 
   // Note: The TargetProxyCallbacks assume that each proxy points to a unique urlMap.
-  class TargetProxyCallback<TargetHttpProxy> extends JsonBatchCallback<TargetHttpProxy> implements FailureLogger {
+  class TargetProxyCallback<TargetHttpProxy> extends JsonBatchCallback<TargetHttpProxy> implements PlatformErrorPropagator {
     GoogleHttpLoadBalancer googleLoadBalancer
     BatchRequest urlMapRequest
 
@@ -291,7 +291,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     }
   }
 
-  class UrlMapCallback<UrlMap> extends JsonBatchCallback<UrlMap> implements FailureLogger {
+  class UrlMapCallback<UrlMap> extends JsonBatchCallback<UrlMap> implements PlatformErrorPropagator {
     GoogleHttpLoadBalancer googleLoadBalancer
     BatchRequest backendServiceRequest
 
@@ -361,7 +361,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     }
   }
 
-  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements FailureLogger {
+  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements PlatformErrorPropagator {
     GoogleHttpLoadBalancer googleLoadBalancer
     BatchRequest httpHealthCheckRequest
     BatchRequest groupHealthRequest
@@ -415,7 +415,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     }
   }
 
-  class HttpsHealthCheckCallback<HttpsHealthCheck> extends JsonBatchCallback<HttpsHealthCheck> implements FailureLogger {
+  class HttpsHealthCheckCallback<HttpsHealthCheck> extends JsonBatchCallback<HttpsHealthCheck> implements PlatformErrorPropagator {
     List<GoogleBackendService> googleBackendServices
 
     @Override
@@ -435,7 +435,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     }
   }
 
-  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailureLogger {
+  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements PlatformErrorPropagator {
     List<GoogleBackendService> googleBackendServices
 
     @Override
@@ -455,7 +455,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     }
   }
 
-  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements FailureLogger {
+  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements PlatformErrorPropagator {
     GoogleHttpLoadBalancer googleLoadBalancer
 
     @Override

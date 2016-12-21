@@ -18,13 +18,13 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import groovy.util.logging.Slf4j
-import org.slf4j.LoggerFactory
 
 @Slf4j
-trait FailureLogger {
+trait PlatformErrorPropagator {
 
   void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-    LoggerFactory.getLogger(this.class).error e.getMessage()
+    throw new GoogleOperationException(e.getMessage())
   }
 }

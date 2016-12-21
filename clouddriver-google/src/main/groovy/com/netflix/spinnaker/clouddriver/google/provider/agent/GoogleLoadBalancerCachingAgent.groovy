@@ -208,7 +208,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
     }
   }
 
-  class TargetPoolCallback<TargetPool> extends JsonBatchCallback<TargetPool> implements FailureLogger {
+  class TargetPoolCallback<TargetPool> extends JsonBatchCallback<TargetPool> implements PlatformErrorPropagator {
 
     GoogleLoadBalancer googleLoadBalancer
 
@@ -235,7 +235,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
     }
   }
 
-  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailureLogger {
+  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements PlatformErrorPropagator {
 
     GoogleLoadBalancer googleLoadBalancer
     def targetPool
@@ -288,8 +288,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
   }
 
 
-  class TargetPoolInstanceHealthCallback<TargetPoolInstanceHealth> extends JsonBatchCallback<TargetPoolInstanceHealth> implements FailureLogger {
-
+  class TargetPoolInstanceHealthCallback<TargetPoolInstanceHealth> extends JsonBatchCallback<TargetPoolInstanceHealth> implements PlatformErrorPropagator {
     GoogleLoadBalancer googleLoadBalancer
     String instanceName
     String instanceZone

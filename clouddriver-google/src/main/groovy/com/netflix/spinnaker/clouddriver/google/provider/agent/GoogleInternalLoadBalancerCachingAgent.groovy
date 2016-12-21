@@ -211,7 +211,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     }
   }
 
-  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements FailureLogger {
+  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements PlatformErrorPropagator {
     GoogleInternalLoadBalancer googleLoadBalancer
     BatchRequest healthCheckRequest
     BatchRequest groupHealthRequest
@@ -273,7 +273,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     }
   }
 
-  class HealthCheckCallback<HealthCheck> extends JsonBatchCallback<HealthCheck> implements FailureLogger {
+  class HealthCheckCallback<HealthCheck> extends JsonBatchCallback<HealthCheck> implements PlatformErrorPropagator {
     GoogleBackendService googleBackendService
 
     @Override
@@ -315,7 +315,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     }
   }
 
-  class HttpsHealthCheckCallback<HttpsHealthCheck> extends JsonBatchCallback<HttpsHealthCheck> implements FailureLogger {
+  class HttpsHealthCheckCallback<HttpsHealthCheck> extends JsonBatchCallback<HttpsHealthCheck> implements PlatformErrorPropagator {
     GoogleBackendService googleBackendService
 
     @Override
@@ -333,7 +333,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     }
   }
 
-  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailureLogger {
+  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements PlatformErrorPropagator {
     GoogleBackendService googleBackendService
 
     @Override
@@ -351,7 +351,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     }
   }
 
-  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements FailureLogger {
+  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements PlatformErrorPropagator {
     GoogleInternalLoadBalancer googleLoadBalancer
 
     @Override

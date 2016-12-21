@@ -203,7 +203,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     }
   }
 
-  class TargetSslProxyCallback<TargetSslProxy> extends JsonBatchCallback<TargetSslProxy> implements FailureLogger {
+  class TargetSslProxyCallback<TargetSslProxy> extends JsonBatchCallback<TargetSslProxy> implements PlatformErrorPropagator {
 
     GoogleSslLoadBalancer googleLoadBalancer
     BatchRequest backendServiceRequest
@@ -225,7 +225,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     }
   }
 
-  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements FailureLogger {
+  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements PlatformErrorPropagator {
     GoogleSslLoadBalancer googleLoadBalancer
     BatchRequest healthCheckRequest
     BatchRequest groupHealthRequest
@@ -276,7 +276,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     }
   }
 
-  class HealthCheckCallback<HealthCheck> extends JsonBatchCallback<HealthCheck> implements FailureLogger {
+  class HealthCheckCallback<HealthCheck> extends JsonBatchCallback<HealthCheck> implements PlatformErrorPropagator {
     GoogleBackendService googleBackendService
 
     @Override
@@ -318,7 +318,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     }
   }
 
-  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements FailureLogger {
+  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements PlatformErrorPropagator {
     GoogleSslLoadBalancer googleLoadBalancer
 
     @Override
