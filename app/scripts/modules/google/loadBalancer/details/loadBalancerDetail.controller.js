@@ -68,8 +68,23 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             });
           }
           accountService.getAccountDetails(loadBalancer.accountId).then(function(accountDetails) {
+            let resourceTypes;
+
+            if ($scope.loadBalancer.loadBalancerType === 'INTERNAL') {
+              resourceTypes = ['gce_forwarding_rule', 'gce_backend_service'];
+            } else if ($scope.loadBalancer.loadBalancerType === 'NETWORK') {
+              resourceTypes = ['gce_forwarding_rule', 'gce_target_pool', 'gce_health_check'];
+            } else if ($scope.loadBalancer.loadBalancerType === 'SSL') {
+              resourceTypes = ['gce_forwarding_rule', 'gce_backend_service'];
+            } else {
+              // $scope.loadBalancer.loadBalancerType === 'HTTP'
+              resourceTypes = ['http_load_balancer', 'gce_target_http_proxy', 'gce_url_map', 'gce_backend_service'];
+            }
+
+            resourceTypes = _.join(resourceTypes, ' OR ');
+
             $scope.loadBalancer.logsLink =
-              'https://console.developers.google.com/project/' + accountDetails.project + '/logs?service=gce_forwarding_rule&minLogLevel=0&filters=text:' + $scope.loadBalancer.name;
+              'https://console.developers.google.com/project/' + accountDetails.project + '/logs?advancedFilter=resource.type=(' + resourceTypes + ')%0A\"' + $scope.loadBalancer.name + "\"";
           });
         },
           autoClose
