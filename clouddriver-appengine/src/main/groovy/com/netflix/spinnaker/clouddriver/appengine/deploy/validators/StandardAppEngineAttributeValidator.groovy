@@ -16,10 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineIllegalArgumentExeception
+import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
+import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineLoadBalancer
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineClusterProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineInstanceProvider
+import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -175,6 +179,38 @@ class StandardAppEngineAttributeValidator {
       }
     }
 
+    return valid
+  }
+
+  def validateServerGroupCanBeDisabled(String serverGroupName,
+                                       AppEngineNamedAccountCredentials credentials,
+                                       AppEngineClusterProvider clusterProvider,
+                                       AppEngineLoadBalancerProvider loadBalancerProvider,
+                                       String attribute) {
+    def serverGroup = clusterProvider.getServerGroup(credentials.name, credentials.region, serverGroupName)
+    def valid = true
+    if (!serverGroup) {
+      errors.rejectValue("${context}.${attribute}",
+                         "${context}.${attribute}.invalid (Server group $serverGroupName not found).")
+      valid = false
+      return valid
+    }
+
+    def loadBalancerName = serverGroup?.loadBalancers?.first()
+    def loadBalancer = loadBalancerProvider.getLoadBalancer(credentials.name, loadBalancerName)
+    if (!loadBalancer) {
+      errors.rejectValue("${context}.${attribute}",
+                         "${context}.${attribute}.invalid (Could not find parent load balancer $loadBalancerName for server group $serverGroupName).")
+      valid = false
+      return valid
+    }
+
+    if (loadBalancer?.split?.allocations?.get(serverGroupName) == 1 as Double) {
+      errors.rejectValue("${context}.${attribute}",
+                         "${context}.${attribute}.invalid (Server group $serverGroupName is the only server group " +
+                         "receiving traffic from load balancer $loadBalancerName).")
+      valid = false
+    }
     return valid
   }
 }

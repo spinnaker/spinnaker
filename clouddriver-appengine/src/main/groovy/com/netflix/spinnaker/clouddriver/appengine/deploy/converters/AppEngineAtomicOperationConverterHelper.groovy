@@ -24,7 +24,7 @@ class AppEngineAtomicOperationConverterHelper {
   static Object convertDescription(Map input,
                                    AbstractAtomicOperationsCredentialsSupport credentialsSupport,
                                    Class targetDescriptionType) {
-    input.accountName = input.accountName ?: input.credentials
+    input.accountName = input.accountName ?: input.account ?: input.credentials
 
     if (input.accountName) {
       input.credentials = credentialsSupport.getCredentialsObject(input.accountName as String)

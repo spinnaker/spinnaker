@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.description
 
-import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
+import com.netflix.spinnaker.clouddriver.deploy.description.EnableDisableDescriptionTrait
 
-abstract class AbstractAppEngineCredentialsDescription implements CredentialsNameable {
-  String account
-  AppEngineNamedAccountCredentials credentials
+class EnableDisableAppEngineDescription extends AbstractAppEngineCredentialsDescription implements EnableDisableDescriptionTrait {
+  String accountName
+  String serverGroupName
+  Boolean migrateTraffic
 }
