@@ -83,11 +83,11 @@ public class EntityTagsController {
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map post(@RequestParam("entityId") String entityId,
                   @RequestParam("entityType") String entityType,
-                  @RequestParam(value = "account", defaultValue = "*") String account,
-                  @RequestParam(value = "region", defaultValue = "*") String region,
-                  @RequestParam(value = "cloudProvider", defaultValue = "*") String cloudProvider,
+                  @RequestParam(value = "account") String account,
+                  @RequestParam(value = "region") String region,
+                  @RequestParam(value = "cloudProvider") String cloudProvider,
                   @RequestParam(value = "isPartial", defaultValue = "true") Boolean isPartial,
-                  @RequestBody Map<String, Object> tags) {
+                  @RequestBody List<Map> tags) {
 
     Map<String, String> entityRef = new HashMap<>();
     entityRef.put("entityId", entityId);
