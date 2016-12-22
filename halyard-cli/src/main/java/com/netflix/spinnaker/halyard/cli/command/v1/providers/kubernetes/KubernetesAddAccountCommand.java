@@ -48,6 +48,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
 
   @Parameter(
       names = "--docker-registries",
+      required = true,
       variableArity = true,
       description = "A list of the Spinnaker docker registry account names this Spinnaker account can use as image sources. "
           + "These docker registry accounts must be registered in your halconfig before you can add them here."

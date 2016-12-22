@@ -41,7 +41,7 @@ public abstract class NestableCommand {
   @Getter(AccessLevel.PROTECTED)
   private JCommander commander;
 
-  @Parameter(names = { "-h", "--help" }, description = "Display help text about this command.")
+  @Parameter(names = { "-h", "--help" }, help = true, description = "Display help text about this command.")
   public boolean help;
 
   @Parameter(names = {"-d", "--debug"}, description = "Show detailed network traffic with halyard daemon.")
