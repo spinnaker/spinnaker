@@ -92,26 +92,24 @@ class DisableAppEngineAtomicOperation implements AtomicOperation<Void> {
   }
 
   // https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services#TrafficSplit
-  private static final COOKIE_SPLIT_PRECISION = 3
-  private static final IP_SPLIT_PRECISION = 2
+  private static final COOKIE_SPLIT_DECIMAL_PLACES = 3
+  private static final IP_SPLIT_DECIMAL_PLACES = 2
 
   static AppEngineTrafficSplit buildTrafficSplitWithoutServerGroup(AppEngineTrafficSplit oldSplit, String serverGroupName) {
     AppEngineTrafficSplit newSplit = oldSplit.clone()
 
+    def decimalPlaces = newSplit.shardBy == ShardBy.COOKIE ? COOKIE_SPLIT_DECIMAL_PLACES : IP_SPLIT_DECIMAL_PLACES;
+
     Map<String, BigDecimal> newAllocations = newSplit
-      .allocations.collectEntries { k, v -> [(k): new BigDecimal(v)] } as Map<String, BigDecimal>
+      .allocations
+      .collectEntries { k, v -> [(k): new BigDecimal(v).setScale(decimalPlaces, RoundingMode.HALF_UP)] } as Map<String, BigDecimal>
 
     // The validator ensured that the server group we're disabling doesn't have an allocation of 1, which would be bad.
     BigDecimal denominator = (new BigDecimal("1")).subtract(newAllocations.get(serverGroupName))
     newAllocations.remove(serverGroupName)
 
-    MathContext context = new MathContext(
-      newSplit.shardBy == ShardBy.COOKIE ? COOKIE_SPLIT_PRECISION : IP_SPLIT_PRECISION,
-      RoundingMode.DOWN
-    )
-
     newAllocations = newAllocations.collectEntries { name, allocation ->
-      BigDecimal newAllocation = allocation.divide(denominator, context)
+      BigDecimal newAllocation = allocation.divide(denominator, decimalPlaces, RoundingMode.DOWN)
       return [(name): newAllocation]
     } as Map<String, BigDecimal>
 

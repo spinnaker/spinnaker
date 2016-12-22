@@ -46,7 +46,7 @@ class DisableAppEngineAtomicOperationSpec extends Specification {
   }
 
   @Unroll
-  void "split builder handles precision errors and precision levels for shardBy types"() {
+  void "split builder handles precision levels for shardBy types"() {
     when:
       def outputSplit = DisableAppEngineAtomicOperation.buildTrafficSplitWithoutServerGroup(
         new AppEngineTrafficSplit(allocations: inputAllocations, shardBy: shardType),
@@ -95,6 +95,13 @@ class DisableAppEngineAtomicOperationSpec extends Specification {
       ["a": 0.33,
        "b": 0.17,
        "c": 0.5]           | "a"                  | ShardBy.IP        | ["b": 0.26, "c": 0.74]
+      ["a": 0.06,
+       "b": 0.04,
+       "c": 0.9]           | "a"                  | ShardBy.IP        | ["b": 0.05, "c": 0.95]
+      ["a": 0.04,
+       "b": 0.02,
+       "c": 0.02,
+       "d": 0.92]          | "a"                  | ShardBy.IP        | ["b": 0.03, "c": 0.02, "d": 0.95]
   }
 
   void "operation can disable a server group"() {
