@@ -17,6 +17,8 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
       var defaultCredentials = defaults.account || settings.providers.titus.defaults.account;
       var defaultRegion = defaults.region || settings.providers.titus.defaults.region;
       var defaultZone = defaults.zone || settings.providers.titus.defaults.zone;
+      var defaultIamProfile = settings.providers.titus.defaults.iamProfile || '{{application}}InstanceProfile';
+      defaultIamProfile = defaultIamProfile.replace('{{application}}', application.name);
 
       var command = {
         application: application.name,
@@ -45,6 +47,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         labels: {},
         cloudProvider: 'titus',
         selectedProvider: 'titus',
+        iamProfile: defaultIamProfile,
         softConstraints: [],
         hardConstraints: [],
         viewState: {
@@ -83,7 +86,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         env: serverGroup.env,
         labels: serverGroup.labels,
         entryPoint: serverGroup.entryPoint,
-        iamProfile: serverGroup.iamProfile,
+        iamProfile: serverGroup.iamProfile || application.name + 'InstanceProfile',
         capacityGroup: serverGroup.capacityGroup,
         securityGroups: serverGroup.securityGroups || [],
         hardConstraints: (serverGroup.hardConstraints || []),

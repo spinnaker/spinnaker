@@ -52,7 +52,8 @@ window.spinnakerSettings = {
     titus: {
       defaults: {
         account: 'titustestvpc',
-        region: 'us-east-1'
+        region: 'us-east-1',
+        iamProfile: '{{application}}InstanceProfile',
       },
     },
     openstack: {
