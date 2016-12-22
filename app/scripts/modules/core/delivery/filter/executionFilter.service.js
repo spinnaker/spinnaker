@@ -246,9 +246,11 @@ module.exports = angular
       if (ExecutionFilterModel.sortFilter.groupBy === 'timeBoundary') {
         return b.executions[0].startTime - a.executions[0].startTime;
       }
-
       if (a.config && b.config) {
-        return a.config.index - b.config.index;
+        if (a.config.strategy === b.config.strategy) {
+          return a.config.index - b.config.index;
+        }
+        return a.config.strategy ? 1 : -1;
       }
       if (a.config) {
         return -1;
@@ -288,6 +290,7 @@ module.exports = angular
       filterExecutionsForDisplay: filterExecutionsForDisplay,
       sortGroupsByHeading: applyGroupsToModel,
       clearFilters: clearFilters,
+      executionGroupSorter: executionGroupSorter,
     };
   }
 );
