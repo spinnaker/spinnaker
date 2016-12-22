@@ -248,6 +248,12 @@ public class MetricDescriptorCache {
       log.error("Could not fetch descriptor " + descriptorType + ": " + ioex);
       return null;
     }
+    List<LabelDescriptor> labels = descriptor.getLabels();
+    if (labels == null) {
+      labels = new ArrayList<LabelDescriptor>();
+      descriptor.setLabels(labels);
+    }
+
     for (LabelDescriptor labelDescriptor : descriptor.getLabels()) {
       if (labelDescriptor.getKey().equals(newLabel)) {
         log.info("{} already added to descriptor", newLabel);
