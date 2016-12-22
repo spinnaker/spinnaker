@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.front50.model
 import com.netflix.spinnaker.front50.model.application.Application;
 
+import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.DefaultRegistry;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.util.DateTime;
@@ -29,6 +31,9 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class GoogleStorageServiceSpec extends Specification {
+
+  @Shared
+  Registry registry = new DefaultRegistry()
 
   @Shared
   String BUCKET_NAME = "TestBucket"
@@ -47,7 +52,7 @@ class GoogleStorageServiceSpec extends Specification {
   GcsStorageService gcs
 
   GcsStorageService makeGcs() {
-    return new GcsStorageService(BUCKET_NAME, BUCKET_LOCATION, BASE_PATH, PROJECT_NAME, mockStorage)
+    return new GcsStorageService(BUCKET_NAME, BUCKET_LOCATION, BASE_PATH, PROJECT_NAME, mockStorage, registry)
   }
 
   def "ensureBucketExists make bucket"() {

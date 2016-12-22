@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.front50.model;
 
+import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.support.ClosureHelper;
 import com.netflix.spinnaker.hystrix.SimpleHystrixCommand;
@@ -32,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
 
@@ -45,6 +48,12 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   private final Scheduler scheduler;
   private final int refreshIntervalMs;
   private final Registry registry;
+  private final Timer cacheRefreshTimer;      // All refreshes
+  private final Timer autoRefreshTimer;       // Only spontaneous refreshes in all()
+  private final Timer scheduledRefreshTimer;  // Only refreshes from scheduler
+  private final Counter addCounter;      // Newly discovered files during refresh
+  private final Counter removeCounter;   // Deletes discovered during refresh
+  private final Counter updateCounter;   // Updates discovered during refresh
 
   private final AtomicLong lastRefreshedTime = new AtomicLong();
 
@@ -60,9 +69,32 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     if (refreshIntervalMs >= HEALTH_MILLIS) {
       throw new IllegalArgumentException("Cache refresh time must be more frequent than cache health timeout");
     }
+    String typeName = objectType.name();
     this.registry = registry;
+
+    this.cacheRefreshTimer = registry.timer(
+      registry.createId("storageServiceSupport.cacheRefreshTime", "objectType", typeName));
+    this.autoRefreshTimer = registry.timer(
+      registry.createId("storageServiceSupport.autoRefreshTime", "objectType", typeName));
+    this.scheduledRefreshTimer = registry.timer(
+      registry.createId("storageServiceSupport.scheduledRefreshTime", "objectType", typeName));
+    this.addCounter = registry.counter(
+      registry.createId("storageServiceSupport.numAdded", "objectType", typeName));
+    this.removeCounter = registry.counter(
+      registry.createId("storageServiceSupport.numRemoved", "objectType", typeName));
+    this.updateCounter = registry.counter(
+      registry.createId("storageServiceSupport.numUpdated", "objectType", typeName));
+
     registry.gauge(
-      registry.createId("storageServiceSupport.cacheAge", "objectType", objectType.name()),
+      registry.createId("storageServiceSupport.cacheSize", "objectType", typeName),
+      this, new ToDoubleFunction() {
+        @Override
+        public double applyAsDouble(Object ignore) {
+          return allItemsCache.get().size();
+        }
+    });
+    registry.gauge(
+      registry.createId("storageServiceSupport.cacheAge", "objectType", typeName),
       lastRefreshedTime,
       (lrt) -> Long.valueOf(System.currentTimeMillis() - lrt.get()).doubleValue());
   }
@@ -82,7 +114,10 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
         .repeat()
         .subscribe(interval -> {
           try {
+            long startTime = System.nanoTime();
             refresh();
+            long elapsed = System.nanoTime() - startTime;
+            scheduledRefreshTimer.record(elapsed, TimeUnit.NANOSECONDS);
           } catch (Exception e) {
             log.error("Unable to refresh: {}", e);
           }
@@ -95,7 +130,10 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     if (lastModified > lastRefreshedTime.get() || allItemsCache.get() == null) {
         // only refresh if there was a modification since our last refresh cycle
         log.debug("all() forcing refresh");
+        long startTime = System.nanoTime();
         refresh();
+        long elapsed = System.nanoTime() - startTime;
+        autoRefreshTimer.record(elapsed, TimeUnit.NANOSECONDS);
     }
 
     return allItemsCache.get().stream().collect(Collectors.toList());
@@ -162,8 +200,9 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     long startTime = System.nanoTime();
     allItemsCache.set(fetchAllItems(allItemsCache.get()));
     long elapsed = System.nanoTime() - startTime;
-
-    registry.timer("storageServiceSupport.cacheRefreshTime", "objectType", objectType.name()).record(elapsed, TimeUnit.NANOSECONDS);
+    registry.timer("storageServiceSupport.cacheRefreshTime",
+                   "objectType", objectType.name())
+        .record(elapsed, TimeUnit.NANOSECONDS);
 
     log.debug("Refreshed (" + TimeUnit.NANOSECONDS.toMillis(elapsed) + "ms)");
   }
@@ -187,6 +226,9 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
       existingItems = new HashSet<>();
     }
     int existingSize = existingItems.size();
+    AtomicLong numAdded = new AtomicLong();
+    AtomicLong numRemoved = new AtomicLong();
+    AtomicLong numUpdated = new AtomicLong();
 
     Map<String, String> keyToId = new HashMap<String, String>();
     for (T item : existingItems) {
@@ -208,10 +250,15 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
         .filter(entry -> {
           T existingItem = resultMap.get(entry.getKey());
           if (existingItem == null) {
+            numAdded.getAndIncrement();
             return true;
           }
           Long modTime = existingItem.getLastModified();
-          return modTime == null || entry.getValue() > modTime;
+          if (modTime == null || entry.getValue() > modTime) {
+            numUpdated.getAndIncrement();
+            return true;
+          }
+          return false;
          })
         .collect(Collectors.toList());
 
@@ -225,6 +272,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
                     return Observable.just((T) service.loadObject(objectType, entry.getKey()));
                   } catch (NotFoundException e) {
                     resultMap.remove(keyToId.get(entry.getKey()));
+                    numRemoved.getAndIncrement();
                     return Observable.empty();
                   }
                 }
@@ -242,10 +290,13 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     Set<T> result = resultMap.values().stream().collect(Collectors.toSet());
     this.lastRefreshedTime.set(refreshTime);
 
-    int result_size = result.size();
-    if (existingSize != result_size) {
+    int resultSize = result.size();
+    addCounter.increment(numAdded.get());
+    updateCounter.increment(numUpdated.get());
+    removeCounter.increment(existingSize + numAdded.get() - resultSize);
+    if (existingSize != resultSize) {
       log.info("{}={} delta={}",
-        objectType.group, result_size, result_size - existingSize);
+        objectType.group, resultSize, resultSize - existingSize);
     }
 
     return result;

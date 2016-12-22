@@ -27,6 +27,7 @@ import com.google.api.services.storage.model.Bucket;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.util.DateTime;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpResponseException;
@@ -38,7 +39,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.FileInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Gauge;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -57,13 +63,21 @@ public class GcsStorageService implements StorageService {
   private static final String LAST_MODIFIED_FILENAME = "last-modified";
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private ObjectMapper objectMapper = new ObjectMapper();
-  private String projectName;
-  private String bucketName;
-  private String basePath;
-  private Storage storage;
-  private Storage.Objects obj_api;
-  private String dataFilename = DEFAULT_DATA_FILENAME;
+  private final Registry registry;
+  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final String projectName;
+  private final String bucketName;
+  private final String basePath;
+  private final Storage storage;
+  private final Storage.Objects obj_api;
+  private final String dataFilename;
+  private final Timer deleteTimer;
+  private final Timer purgeTimer;  // for deleting timestamp generations
+  private final Timer loadTimer;
+  private final Timer mediaDownloadTimer;
+  private final Timer listTimer;
+  private final Timer insertTimer;
+  private final Timer patchTimer;
 
   /**
    * Bucket location for when a missing bucket is created. Has no effect if the bucket already
@@ -96,28 +110,25 @@ public class GcsStorageService implements StorageService {
                     String bucketLocation,
                     String basePath,
                     String projectName,
-                    Storage storage) {
+                    Storage storage,
+                    Registry registry) {
     this.bucketName = bucketName;
     this.bucketLocation = bucketLocation;
     this.basePath = basePath;
     this.projectName = projectName;
     this.storage = storage;
+    this.registry = registry;
     this.obj_api = storage.objects();
-  }
+    this.dataFilename = DEFAULT_DATA_FILENAME;
 
-  public GcsStorageService(String bucketName,
-                           String bucketLocation,
-                           String basePath,
-                           String projectName,
-                           String credentialsPath,
-                           String applicationVersion) {
-    this(bucketName,
-         bucketLocation,
-         basePath,
-         projectName,
-         credentialsPath,
-         applicationVersion,
-         DEFAULT_DATA_FILENAME);
+    Id id = registry.createId("google.storage.invocation");
+    deleteTimer = registry.timer(id.withTag("method", "delete"));
+    purgeTimer = registry.timer(id.withTag("method", "purgeTimestamp"));
+    loadTimer = registry.timer(id.withTag("method", "load"));
+    listTimer = registry.timer(id.withTag("method", "list"));
+    mediaDownloadTimer = registry.timer(id.withTag("method", "mediaDownload"));
+    insertTimer = registry.timer(id.withTag("method", "insert"));
+    patchTimer = registry.timer(id.withTag("method", "patch"));
   }
 
   public GcsStorageService(String bucketName,
@@ -126,7 +137,25 @@ public class GcsStorageService implements StorageService {
                            String projectName,
                            String credentialsPath,
                            String applicationVersion,
-                           String dataFilename) {
+                           Registry registry) {
+    this(bucketName,
+         bucketLocation,
+         basePath,
+         projectName,
+         credentialsPath,
+         applicationVersion,
+         DEFAULT_DATA_FILENAME,
+         registry);
+  }
+
+  public GcsStorageService(String bucketName,
+                           String bucketLocation,
+                           String basePath,
+                           String projectName,
+                           String credentialsPath,
+                           String applicationVersion,
+                           String dataFilename,
+                           Registry registry) {
     Storage storage;
 
     try {
@@ -150,6 +179,30 @@ public class GcsStorageService implements StorageService {
     this.storage = storage;
     this.obj_api = this.storage.objects();
     this.dataFilename = dataFilename;
+    this.registry = registry;
+
+    Id id = registry.createId("google.storage.invocation");
+    deleteTimer = registry.timer(id.withTag("method", "delete"));
+    purgeTimer = registry.timer(id.withTag("method", "purgeTimestamp"));
+    loadTimer = registry.timer(id.withTag("method", "load"));
+    listTimer = registry.timer(id.withTag("method", "list"));
+    mediaDownloadTimer = registry.timer(id.withTag("method", "mediaDownload"));
+    insertTimer = registry.timer(id.withTag("method", "insert"));
+    patchTimer = registry.timer(id.withTag("method", "patch"));
+  }
+
+  private <T> T timeExecute(Timer timer, AbstractGoogleClientRequest<T> request) throws IOException {
+     try {
+       return timer.record(new Callable<T>() {
+          public T call() throws IOException {
+            return request.execute();
+          }
+       });
+     } catch (IOException ioex) {
+         throw ioex;
+     } catch (Exception ex) {
+         throw new IllegalStateException(ex);
+     }
   }
 
   /**
@@ -209,7 +262,7 @@ public class GcsStorageService implements StorageService {
          throws NotFoundException {
     String path = keyToPath(objectKey, objectType.group);
     try {
-      StorageObject storageObject = obj_api.get(bucketName, path).execute();
+      StorageObject storageObject = timeExecute(loadTimer, obj_api.get(bucketName, path));
       T item = deserialize(storageObject, (Class<T>) objectType.clazz, true);
       item.setLastModified(storageObject.getUpdated().getValue());
       log.debug("Loaded bucket={} path={}", bucketName, path);
@@ -223,7 +276,6 @@ public class GcsStorageService implements StorageService {
       throw new IllegalStateException(e);
     } catch (IOException e) {
       throw new IllegalStateException(e);
-
     }
   }
 
@@ -236,7 +288,7 @@ public class GcsStorageService implements StorageService {
   public void deleteObject(ObjectType objectType, String objectKey) {
     String path = keyToPath(objectKey, objectType.group);
     try {
-      obj_api.delete(bucketName, path).execute();
+      timeExecute(deleteTimer, obj_api.delete(bucketName, path));
       writeLastModified(objectType.group);
     } catch (HttpResponseException e) {
       if (e.getStatusCode() == 404) {
@@ -258,7 +310,7 @@ public class GcsStorageService implements StorageService {
       byte[] bytes = objectMapper.writeValueAsBytes(obj);
       StorageObject object = new StorageObject().setBucket(bucketName).setName(path);
       ByteArrayContent content = new ByteArrayContent("application/json", bytes);
-      obj_api.insert(bucketName, object, content).execute();
+      timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
       writeLastModified(objectType.group);
     } catch (IOException e) {
       log.error("Update failed on path={}: {}", path, e);
@@ -279,7 +331,7 @@ public class GcsStorageService implements StorageService {
       listObjects.setPrefix(rootFolder);
       com.google.api.services.storage.model.Objects objects;
       do {
-          objects = listObjects.execute();
+          objects = timeExecute(listTimer, listObjects);
           List<StorageObject> items = objects.getItems();
           if (items != null) {
               for (StorageObject item: items) {
@@ -314,7 +366,7 @@ public class GcsStorageService implements StorageService {
         .setVersions(true);
       com.google.api.services.storage.model.Objects objects;
       do {
-        objects = listObjects.execute();
+        objects = timeExecute(listTimer, listObjects);
         List<StorageObject> items = objects.getItems();
         if (items != null) {
           for (StorageObject item : items) {
@@ -352,10 +404,15 @@ public class GcsStorageService implements StorageService {
         if (!current_version) {
             getter.setGeneration(object.getGeneration());
         }
-        getter.executeMediaAndDownloadTo(output);
+        mediaDownloadTimer.record(new Callable() {
+           public Void call() throws Exception {
+             getter.executeMediaAndDownloadTo(output);
+             return null;
+           }
+        });
         String json = output.toString("UTF8");
         return objectMapper.readValue(json, clas);
-      } catch (IOException ex) {
+      } catch (Exception ex) {
         if (current_version) {
           log.error("Error reading {}: {}", object.getName(), ex);
         } else {
@@ -374,7 +431,7 @@ public class GcsStorageService implements StorageService {
           .setName(timestamp_path)
           .setUpdated(new DateTime(System.currentTimeMillis()));
       try {
-          obj_api.patch(bucketName, object.getName(), object).execute();
+          timeExecute(patchTimer, obj_api.patch(bucketName, object.getName(), object));
       } catch (HttpResponseException e) {
           log.error("writeLastModified failed to update {}\n{}", timestamp_path, e.toString());
           if (e.getStatusCode() == 404 || e.getStatusCode() == 400) {
@@ -383,7 +440,7 @@ public class GcsStorageService implements StorageService {
 
               try {
                 log.info("Attempting to add {}", timestamp_path);
-                obj_api.insert(bucketName, object, content).execute();
+                timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
               } catch (IOException ioex) {
                 log.error("writeLastModified insert failed too: {}", ioex);
                 throw new IllegalStateException(e);
@@ -401,7 +458,7 @@ public class GcsStorageService implements StorageService {
           // because they serve no value and just consume storage and extra time
           // if we eventually destroy this bucket.
           purgeOldVersions(timestamp_path);
-      } catch (IOException e) {
+      } catch (Exception e) {
           log.error("Failed to purge old versions of {}. Ignoring error.",
                     timestamp_path);
       }
@@ -410,7 +467,7 @@ public class GcsStorageService implements StorageService {
   // Remove the old versions of a path.
   // Versioning is per-bucket but it doesnt make sense to version the
   // timestamp objects so we'll aggressively delete those.
-  private void purgeOldVersions(String path) throws IOException {
+  private void purgeOldVersions(String path) throws Exception {
       Storage.Objects.List listObjects = obj_api.list(bucketName)
           .setPrefix(path)
           .setVersions(true);
@@ -420,7 +477,7 @@ public class GcsStorageService implements StorageService {
       // Keep the 0th object on the first page (which is current).
       List<Long> generations = new ArrayList(32);
       do {
-          objects = listObjects.execute();
+          objects = timeExecute(listTimer, listObjects);
           List<StorageObject> items = objects.getItems();
           if (items != null) {
               int n = items.size();
@@ -432,11 +489,11 @@ public class GcsStorageService implements StorageService {
       } while (objects.getNextPageToken() != null);
 
       for (long generation : generations) {
-          if (generation == generations.get(0)) {
-              continue;
-          }
-          log.debug("Remove {} generation {}", path, generation);
-          obj_api.delete(bucketName, path).setGeneration(generation).execute();
+        if (generation == generations.get(0)) {
+            continue;
+        }
+        log.debug("Remove {} generation {}", path, generation);
+        timeExecute(purgeTimer, obj_api.delete(bucketName, path).setGeneration(generation));
       }
   }
 
@@ -453,7 +510,7 @@ public class GcsStorageService implements StorageService {
           }
           log.error("Error writing timestamp file {}", e.toString());
           return 0L;
-      } catch (Exception e) {
+      } catch (IOException e) {
           log.error("Error accessing timestamp file {}", e.toString());
           return 0L;
       }

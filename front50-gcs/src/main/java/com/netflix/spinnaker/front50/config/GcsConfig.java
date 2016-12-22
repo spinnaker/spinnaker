@@ -36,6 +36,7 @@ import com.netflix.spinnaker.front50.model.snapshot.DefaultSnapshotDAO;
 import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -52,17 +53,18 @@ import java.util.concurrent.TimeUnit;
 @ConditionalOnExpression("${spinnaker.gcs.enabled:false}")
 @EnableConfigurationProperties(GcsProperties.class)
 public class GcsConfig {
-  // Refresh every 10 minutes. In practice this either doesnt matter because refreshes are fast enough,
-  // or should be finer tuned. But it seems silly to refresh at a fast rate when changes are generally infrequent.
-  // Actual queries always check to see if the cache is out of date anyway. So this is mostly for the benefit of
-  // keeping other replicas up to date so that last-minute updates have fewer changes in them.
+  @Autowired
+  Registry registry;
+
   private final Logger log = LoggerFactory.getLogger(getClass());
-  private static int APPLICATION_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
-  private static int PROJECT_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
-  private static int NOTIFICATION_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
-  private static int PIPELINE_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
-  private static int PIPELINE_STRATEGY_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
-  private static int SERVICE_ACCOUNT_REFRESH_MS = (int) TimeUnit.MINUTES.toMillis(1);
+  private static int APPLICATION_REFRESH_MS = (int) TimeUnit.SECONDS.toMillis(15);
+  private static int APPLICATION_PERMISSIONS_REFRESH_MS = (int) TimeUnit.SECONDS.toMillis(45);
+  private static int PROJECT_REFRESH_MS = (int) TimeUnit.SECONDS.toMillis(30);
+  private static int NOTIFICATION_REFRESH_MS = (int) TimeUnit.SECONDS.toMillis(30);
+  private static int PIPELINE_REFRESH_MS = (int) TimeUnit.SECONDS.toMillis(10);
+  private static int PIPELINE_STRATEGY_REFRESH_MS = (int) TimeUnit.SECONDS.toMillis(20);
+  private static int SERVICE_ACCOUNT_REFRESH_MS = (int) TimeUnit.SECONDS.toMillis(30);
+  private static int SNAPSHOT_REFRESH_MS = (int) TimeUnit.SECONDS.toMillis(60);
 
   @Bean
   public GcsStorageService defaultGoogleCloudStorageService(GcsProperties gcsProperties) {
@@ -73,9 +75,9 @@ public class GcsConfig {
     String applicationVersion = Optional.ofNullable(getClass().getPackage().getImplementationVersion()).orElse("Unknown");
     GcsStorageService service;
     if (dataFilename == null || dataFilename.isEmpty()) {
-      service = new GcsStorageService(gcsProperties.getBucket(), gcsProperties.getBucketLocation(), gcsProperties.getRootFolder(), gcsProperties.getProject(), gcsProperties.getJsonPath(), applicationVersion);
+      service = new GcsStorageService(gcsProperties.getBucket(), gcsProperties.getBucketLocation(), gcsProperties.getRootFolder(), gcsProperties.getProject(), gcsProperties.getJsonPath(), applicationVersion, registry);
     } else {
-      service = new GcsStorageService(gcsProperties.getBucket(), gcsProperties.getBucketLocation(), gcsProperties.getRootFolder(), gcsProperties.getProject(), gcsProperties.getJsonPath(), applicationVersion, dataFilename);
+      service = new GcsStorageService(gcsProperties.getBucket(), gcsProperties.getBucketLocation(), gcsProperties.getRootFolder(), gcsProperties.getProject(), gcsProperties.getJsonPath(), applicationVersion, dataFilename, registry);
     }
     service.ensureBucketExists();
     log.info("Using Google Cloud Storage bucket={} in project={}",
@@ -99,7 +101,7 @@ public class GcsConfig {
   @Bean
   public ApplicationPermissionDAO applicationPermissionDAO(GcsProperties gcsProperties, Registry registry) {
     GcsStorageService service = googleCloudStorageService(ApplicationPermissionDAO.DEFAULT_DATA_FILENAME, gcsProperties);
-    return new DefaultApplicationPermissionDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), APPLICATION_REFRESH_MS, registry);
+    return new DefaultApplicationPermissionDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), APPLICATION_PERMISSIONS_REFRESH_MS, registry);
   }
 
   @Bean
@@ -129,6 +131,6 @@ public class GcsConfig {
 
   @Bean
   public SnapshotDAO snapshotDAO(GcsStorageService service, Registry registry) {
-    return new DefaultSnapshotDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), PIPELINE_REFRESH_MS, registry);
+    return new DefaultSnapshotDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), SNAPSHOT_REFRESH_MS, registry);
   }
 }
