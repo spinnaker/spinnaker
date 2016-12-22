@@ -119,27 +119,47 @@ class StandardAppEngineAttributeValidator {
     }
   }
 
-  def validateServerGroupsCanBeEnabled(Map<String, Double> allocations,
+  def validateServerGroupsCanBeEnabled(Collection<String> serverGroupNames,
                                        String loadBalancerName,
                                        AppEngineNamedAccountCredentials credentials,
                                        AppEngineClusterProvider appEngineClusterProvider,
                                        String attribute) {
-    def serverGroupNames = allocations.keySet()
-    def unknownServerGroups = serverGroupNames.inject([] as List, { List unknown, serverGroupName ->
+    def rejectedServerGroups = serverGroupNames.inject([:].withDefault { [] }, { Map reject, serverGroupName ->
       def serverGroup = appEngineClusterProvider.getServerGroup(credentials.name, credentials.region, serverGroupName)
-      if (!serverGroup || serverGroup?.loadBalancers[0] != loadBalancerName) {
-        unknown << serverGroupName
+      if (!serverGroup) {
+        reject.notFound << serverGroupName
+        return reject
+      } else if (loadBalancerName && serverGroup?.loadBalancers[0] != loadBalancerName) {
+        reject.notRegisteredWithLoadBalancer << serverGroupName
+        return reject
+      } else {
+        return reject
       }
-      unknown
     })
 
-    if (unknownServerGroups) {
-      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Server group${unknownServerGroups.size() > 1 ? "s " : " "}"
-        + unknownServerGroups.join(", ") + " cannot be enabled for load balancer $loadBalancerName).")
-      return false
-    } else {
-      return true
+    def valid = true
+    if (rejectedServerGroups.notFound) {
+      def notFound = rejectedServerGroups.notFound
+      errors.rejectValue(
+        "${context}.${attribute}",
+        "${context}.${attribute}.invalid (Server group${notFound.size() > 1 ? "s" : ""} ${notFound.join(", ")} not found)."
+      )
+
+      valid = false
     }
+
+    if (rejectedServerGroups.notRegisteredWithLoadBalancer) {
+      def notRegistered = rejectedServerGroups.notRegisteredWithLoadBalancer
+      errors.rejectValue(
+        "${context}.${attribute}",
+        "${context}.${attribute}.invalid (Server group${notRegistered.size() > 1 ? "s" : ""} ${notRegistered.join(", ")} " +
+          "not registered with load balancer $loadBalancerName)."
+      )
+
+      valid = false
+    }
+
+    return valid
   }
 
   def validateLoadBalancerCanBeDeleted(String loadBalancerName, String attribute) {

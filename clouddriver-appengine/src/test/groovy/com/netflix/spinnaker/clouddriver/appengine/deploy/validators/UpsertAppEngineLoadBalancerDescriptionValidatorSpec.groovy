@@ -134,7 +134,7 @@ class UpsertAppEngineLoadBalancerDescriptionValidatorSpec extends Specification 
     then:
       1 * errors.rejectValue('upsertAppEngineLoadBalancerAtomicOperationDescription.split.allocations',
                              'upsertAppEngineLoadBalancerAtomicOperationDescription.split.allocations.invalid ' +
-                             '(Server group does-not-exist cannot be enabled for load balancer default).')
+                             '(Server group does-not-exist not found).')
   }
 
   void "null input fails validation"() {

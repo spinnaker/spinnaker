@@ -46,7 +46,8 @@ class UpsertAppEngineLoadBalancerDescriptionValidator extends DescriptionValidat
     helper.validateNotEmpty(description.loadBalancerName, "loadBalancerName")
     helper.validateTrafficSplit(description.split, "split")
     if (description?.split?.allocations) {
-      helper.validateServerGroupsCanBeEnabled(description.split.allocations,
+      def serverGroupNames = description.split.allocations.keySet()
+      helper.validateServerGroupsCanBeEnabled(serverGroupNames,
                                               description.loadBalancerName,
                                               description.credentials,
                                               appEngineClusterProvider,

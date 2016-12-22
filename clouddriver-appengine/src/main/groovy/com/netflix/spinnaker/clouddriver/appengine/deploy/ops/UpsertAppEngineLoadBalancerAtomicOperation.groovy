@@ -64,7 +64,12 @@ class UpsertAppEngineLoadBalancerAtomicOperation implements AtomicOperation<Map>
     def ancestorLoadBalancer = appEngineLoadBalancerProvider.getLoadBalancer(credentials.name, loadBalancerName)
     def override = copyAndOverrideAncestorSplit(ancestorLoadBalancer.split, updateSplit)
 
-    def service = new Service(split: new TrafficSplit(allocations: override.allocations, shardBy: override.shardBy.toString()))
+    def service = new Service(
+      split: new TrafficSplit(
+        allocations: override.allocations,
+        shardBy: override.shardBy ? override.shardBy.toString() : null
+      )
+    )
 
     appengine.apps().services().patch(credentials.project, loadBalancerName, service)
       .setUpdateMask("split")
