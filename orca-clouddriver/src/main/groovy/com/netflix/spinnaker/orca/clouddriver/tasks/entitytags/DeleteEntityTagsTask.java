@@ -49,10 +49,8 @@ public class DeleteEntityTagsTask extends AbstractCloudProviderAwareTask impleme
 
   @Override
   public TaskResult execute(Stage stage) {
-    EntityTags entityTags = null;
-
     try {
-      entityTags = oort.getEntityTags((String) stage.getContext().get("id"));
+      oort.getEntityTags((String) stage.getContext().get("id"));
     } catch (RetrofitError e) {
       if (e.getResponse() != null && e.getResponse().getStatus() == 404) {
         // tag doesn't exist, nothing to delete
@@ -60,12 +58,9 @@ public class DeleteEntityTagsTask extends AbstractCloudProviderAwareTask impleme
       }
     }
 
-    Map operationContext = new HashMap(stage.getContext());
-    operationContext.put("account", entityTags.getEntityRef().attributes().get("account"));
-
     TaskId taskId = kato.requestOperations(Collections.singletonList(
       new HashMap<String, Map>() {{
-        put("deleteEntityTags", operationContext);
+        put("deleteEntityTags", stage.getContext());
       }})
     ).toBlocking().first();
 
