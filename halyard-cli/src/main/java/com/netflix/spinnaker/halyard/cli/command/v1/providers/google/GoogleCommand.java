@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
 
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractNamedProviderCommand;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -28,6 +30,11 @@ import lombok.Getter;
 public class GoogleCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "google";
+  }
+
+  public GoogleCommand() {
+    super();
+    registerSubcommand(new GoogleAddAccountCommand());
   }
 }
 
