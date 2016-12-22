@@ -24,6 +24,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class ExecutionContextManagerSpec extends Specification {
+
   @Unroll
   def "should not overwrite a local value with a global value"() {
     given:
@@ -31,10 +32,10 @@ class ExecutionContextManagerSpec extends Specification {
     def pipeline = new Pipeline()
     pipeline.trigger.putAll(trigger)
     def stage = new PipelineStage(pipeline, null, context)
-    def chunkContext = Mock(ChunkContext) {
-      _ * getStepContext() >> {
-        return Mock(StepContext) {
-          1 * getJobExecutionContext() >> {
+    def chunkContext = Stub(ChunkContext) {
+      getStepContext() >> {
+        return Stub(StepContext) {
+          getJobExecutionContext() >> {
             return jobExecutionContext
           }
         }
@@ -51,10 +52,39 @@ class ExecutionContextManagerSpec extends Specification {
     stage.context."key" == expectedValue
 
     where:
-    context          | jobExecutionContext          || expectedValue
-    ["key": "value"] | [:]                          || "value"
-    ["key": "value"] | ["key": "global-value"]      || "value"
-    [:]              | ["key": "global-value"]      || "global-value"
+    context          | jobExecutionContext     || expectedValue
+    ["key": "value"] | [:]                     || "value"
+    ["key": "value"] | ["key": "global-value"] || "value"
+    [:]              | ["key": "global-value"] || "global-value"
+  }
+
+  @Unroll
+  def "should resolve expressions"() {
+    given:
+    def pipeline = new Pipeline()
+    def stage = new PipelineStage(pipeline, null, context)
+    def chunkContext = Stub(ChunkContext) {
+      getStepContext() >> {
+        return Stub(StepContext) {
+          getJobExecutionContext() >> {
+            return [:]
+          }
+        }
+      }
+    }
+
+    when:
+    ExecutionContextManager.retrieve(stage, chunkContext)
+
+    then:
+    stage.context.key == expectedValue
+
+    where:
+    context                   || expectedValue
+    [key: '${1 == 1}']        || true
+    [key: '${1 == 2}']        || false
+    [key: [key: '${1 == 1}']] || [key: true]
+    [key: [key: '${1 == 2}']] || [key: false]
   }
 
   @Unroll
