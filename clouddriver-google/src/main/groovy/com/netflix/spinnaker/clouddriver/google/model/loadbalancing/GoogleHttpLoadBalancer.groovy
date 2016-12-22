@@ -56,6 +56,12 @@ class GoogleHttpLoadBalancer {
    */
   String urlMapName
 
+  /**
+   * Flag for filtering out load balancers that contain backend buckets in the caching agent.
+   * TODO(jacobkiefer): Support backend buckets.
+   */
+  Boolean containsBackendBucket = false
+
   @JsonIgnore
   GoogleLoadBalancerView getView() {
     new View()

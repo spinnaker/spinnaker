@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
+import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.Registry
@@ -31,12 +32,14 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
+import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
@@ -107,6 +110,9 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     log.info "Describing items in ${agentType}"
 
     def cacheResultBuilder = new CacheResultBuilder()
+
+    // Filter out all LBs that contain backend buckets, since we don't support them in our model.
+    googleLoadBalancers = googleLoadBalancers.findAll { !it.containsBackendBucket }
 
     googleLoadBalancers.each { GoogleHttpLoadBalancer loadBalancer ->
       def loadBalancerKey = Keys.getLoadBalancerKey(
@@ -361,10 +367,19 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     }
   }
 
-  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements PlatformErrorPropagator {
+  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> {
     GoogleHttpLoadBalancer googleLoadBalancer
     BatchRequest httpHealthCheckRequest
     BatchRequest groupHealthRequest
+
+    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+      if (e.getCode() == 404) {
+        log.warn(e.getMessage())
+        googleLoadBalancer.containsBackendBucket = true;
+      } else {
+        throw new GoogleOperationException(e.getMessage())
+      }
+    }
 
     @Override
     void onSuccess(BackendService backendService, HttpHeaders responseHeaders) throws IOException {
