@@ -26,12 +26,30 @@
         {{ctrl.serverGroup.name}}
       </h3>
     </div>
+    <div class="actions">
+      <div class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+          Server Group Actions <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li><a ng-if="ctrl.canDestroyServerGroup()" href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
+          <li ng-if="!ctrl.canDestroyServerGroup()" 
+              uib-tooltip="You cannot destroy a server group if it is the only server group 
+                           receiving traffic from a load balancer. You may be able to delete
+                           this server group's load balancer."
+              class="disabled">
+              <a href>Destroy</a>
+          </li>
+        </ul>
+      </div>
+      <div class="clearfix"></div>
+    </div>
   </div>
 
   <div class="content" ng-if="!ctrl.state.loading">
     <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled">Disabled</div>
     <collapsible-section heading="Running Tasks" expanded="true" body-class="details-running-tasks"
-                         ng-if="ctrl.serverGroup.runningTasks.length > 0">
+                         ng-if="ctrl.serverGroup.runningTasks.length > 0 || ctrl.runningExecutions().length > 0">
       <div class="container-fluid no-padding" ng-repeat="task in ctrl.serverGroup.runningTasks | orderBy:'-startTime'">
         <div class="row">
           <div class="col-md-12">
@@ -49,6 +67,25 @@
           </div>
         </div>
       </div>
+
+      <div class="container-fluid no-padding" ng-repeat="execution in ctrl.runningExecutions()">
+        <div class="row">
+          <div class="col-md-12">
+            <strong>
+              Pipeline: {{execution.name}}
+            </strong>
+          </div>
+        </div>
+        <div class="row" ng-repeat="stage in execution.stages">
+          <div class="col-md-7 col-md-offset-0">
+            <span class="small"><status-glyph item="stage"></status-glyph></span> {{stage.name | robotToHuman }}
+          </div>
+          <div class="col-md-4 text-right">
+            {{stage.runningTimeInMs | duration }}
+          </div>
+        </div>
+      </div>
+      
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
