@@ -29,6 +29,7 @@ class DatadogMetricsService(object):
 
   @staticmethod
   def add_standard_parser_arguments(parser):
+    """Adds commandline arguments common to datadog commands."""
     parser.add_argument('--host', default='localhost')
 
 
@@ -74,7 +75,7 @@ class DatadogMetricsService(object):
 
     result.append({
         'metric': '{service}.{name}'.format(service=service, name=name),
-        'host': service_metadata['host'],
+        'host': service_metadata['__host'],
         'points': [(elem['t'] / 1000, elem['v'])
                    for elem in instance['values']],
         'tags': ['{0}:{1}'.format(tag['key'], tag['value']) for tag in tags]
@@ -87,7 +88,7 @@ class DatadogMetricsService(object):
         service_metrics, self.__append_timeseries_point, points)
 
     try:
-      response = self.api.Metric.send(points)
+      self.api.Metric.send(points)
     except IOError as ioerr:
       logging.error('Error sending to datadog: %s', ioerr)
       raise

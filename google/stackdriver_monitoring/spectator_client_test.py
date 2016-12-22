@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import json
+import sys
 import unittest
 from StringIO import StringIO
 import mock
@@ -23,6 +25,20 @@ import spectator_client
 
 # pylint: disable=missing-docstring
 # pylint: disable=invalid-name
+
+
+def args_to_options(args):
+  parser = argparse.ArgumentParser()
+  spectator_client.SpectatorClient.add_standard_parser_arguments(parser)
+  old_argv = sys.argv
+  try:
+    sys.argv = ['foo']
+    sys.argv.extend(args)
+    options = vars(parser.parse_args())
+  finally:
+    sys.argv = old_argv
+  return options
+    
 
 
 TEST_HOST = 'test_hostname'
@@ -102,10 +118,46 @@ class SpectatorClientTest(unittest.TestCase):
     self.spectator = spectator_client.SpectatorClient(options)
     self.default_query_params = '?tagNameRegex=.%2B'  # tagNameRegex=.+
 
+  def test_default_endpoints(self):
+    options = args_to_options([])
+    service_endpoints = spectator_client.determine_service_endpoints(options)
+    self.assertEquals({'clouddriver': [('localhost', 7002)],
+                       'echo': [('localhost', 8089)],
+                       'fiat': [('localhost', 7003)],
+                       'front50': [('localhost', 8080)],
+                       'gate': [('localhost', 8084)],
+                       'igor': [('localhost', 8088)],
+                       'orca': [('localhost', 8083)],
+                       'rosco': [('localhost', 8087)]},
+                      service_endpoints)
+
+  def test_multi_mutated_endpoints(self):
+    options = args_to_options(
+        ['--service_hosts=one,two,three',
+         '--clouddriver=xyz',
+         '--echo=', '--fiat=', '--front50=','--gate=', '--igor='])
+    service_endpoints = spectator_client.determine_service_endpoints(options)
+    self.assertEquals(
+      {'clouddriver': [('xyz', 7002)],
+       'orca': [('one', 8083), ('two', 8083), ('three', 8083)],
+       'rosco': [('one', 8087), ('two', 8087), ('three', 8087)]},
+      service_endpoints)
+
+  def test_filtered_endpoints(self):
+    options = args_to_options(
+        ['--service_hosts=',
+         '--clouddriver=abc:1234,xyz:4321',
+         '--gate=even:2468,named:foo'])
+    service_endpoints = spectator_client.determine_service_endpoints(options)
+    self.assertEquals(
+      {'clouddriver': [('abc', 1234), ('xyz', 4321)],
+       'gate': [('even', 2468), ('named', 'foo')]},
+      service_endpoints)
+
   @patch('spectator_client.urllib2.urlopen')
   def test_collect_metrics_no_params(self, mock_urlopen):
-    expect = {'bogus': 'Hello, World'}
     port = 13246
+    expect = {'bogus': 'Hello, World', '__host': TEST_HOST, '__port': port}
 
     text = json.JSONEncoder(encoding='utf-8').encode(expect)
     mock_http_response = StringIO(text)
@@ -119,9 +171,9 @@ class SpectatorClientTest(unittest.TestCase):
 
   @patch('spectator_client.urllib2.urlopen')
   def test_collect_metrics_with_params(self, mock_urlopen):
-    expect = {'bogus': 'Hello, World'}
-
     port = 13246
+    expect = {'bogus': 'Hello, World', '__host': TEST_HOST, '__port': port}
+
     params = {'tagNameRegex': 'someName', 'tagValueRegex': 'Second+Part&Third'}
     encoded_params = {'tagNameRegex': 'someName',
                       'tagValueRegex': 'Second%2BPart%26Third'}
@@ -144,60 +196,105 @@ class SpectatorClientTest(unittest.TestCase):
     self.assertEqual(expect, response)
 
   @patch('spectator_client.urllib2.urlopen')
-  def test_scan_by_service(self, mock_urlopen):
-    expect = {'bogus': 'Hello, World'}
+  def test_scan_by_service_one(self, mock_urlopen):
+    expect = [{'bogus': 'Hello, World', '__host': TEST_HOST, '__port': 7002}]
 
-    text = json.JSONEncoder(encoding='utf-8').encode(expect)
+    text = json.JSONEncoder(encoding='utf-8').encode(expect[0])
     mock_http_response = StringIO(text)
     mock_urlopen.return_value = mock_http_response
 
-    response = self.spectator.scan_by_service(['clouddriver'])
+    response = self.spectator.scan_by_service(
+        {'clouddriver': [(TEST_HOST, 7002)]})
     mock_urlopen.assert_called_with(
         'http://{0}:7002/spectator/metrics{1}'.format(
           TEST_HOST, self.default_query_params))
     self.assertEqual({'clouddriver': expect}, response)
 
   @patch('spectator_client.urllib2.urlopen')
-  def test_scan_by_service_list(self, mock_urlopen):
-    expect_clouddriver = {'cloud': 'Cloud Hello'}
-    expect_gate = {'gateway': 'Gateway Hello'}
+  def test_scan_by_service_two(self, mock_urlopen):
+    expect = [{'common': 123, 'a': 100, '__host': TEST_HOST, '__port': 7002},
+              {'common': 456, 'b': 200, '__host': TEST_HOST, '__port': 7003}]
 
-    text = json.JSONEncoder(encoding='utf-8').encode(expect_clouddriver)
+    text_a = json.JSONEncoder(encoding='utf-8').encode(expect[0])
+    text_b = json.JSONEncoder(encoding='utf-8').encode(expect[1])
+    mock_http_response_a = StringIO(text_a)
+    mock_http_response_b = StringIO(text_b)
+    mock_urlopen.side_effect = [mock_http_response_a, mock_http_response_b]
+
+    response = self.spectator.scan_by_service(
+        {'clouddriver': [(TEST_HOST, 7002), (TEST_HOST, 7003)]})
+    calls = [mock.call('http://{0}:7002/spectator/metrics{1}'
+                       .format(TEST_HOST, self.default_query_params)),
+             mock.call('http://{0}:7003/spectator/metrics{1}'
+                       .format(TEST_HOST, self.default_query_params))]
+    mock_urlopen.assert_has_calls(calls)
+
+    self.assertEqual({'clouddriver': expect}, response)
+
+  @patch('spectator_client.urllib2.urlopen')
+  def test_scan_by_service_list(self, mock_urlopen):
+    expect_clouddriver = [{'cloud': 'Cloud Hello',
+                           '__host': TEST_HOST, '__port': 7002}]
+    expect_gate = [{'gateway': 'Gateway Hello',
+                    '__host': TEST_HOST, '__port': 8084}]
+
+    text = json.JSONEncoder(encoding='utf-8').encode(expect_clouddriver[0])
     mock_clouddriver_response = StringIO(text)
-    text = json.JSONEncoder(encoding='utf-8').encode(expect_gate)
+    text = json.JSONEncoder(encoding='utf-8').encode(expect_gate[0])
     mock_gate_response = StringIO(text)
 
-    mock_urlopen.side_effect = [mock_clouddriver_response,
-                                mock_gate_response]
+    # The order is sensitive to the order we'll call in.
+    # To get the call order, we'll let the dict tell us,
+    # since that is the order we'll be calling internally.
+    # Ideally this can be specified a different way, but I cant find how.
+    mock_urlopen.side_effect = {'clouddriver': mock_clouddriver_response,
+                                'gate': mock_gate_response}.values()
 
-    response = self.spectator.scan_by_service(['clouddriver', 'gate'])
+    response = self.spectator.scan_by_service(
+        {'clouddriver': [(TEST_HOST, 7002)], 'gate': [(TEST_HOST, 8084)]})
     clouddriver_url = 'http://{0}:7002/spectator/metrics{1}'.format(
         TEST_HOST, self.default_query_params)
     gate_url = 'http://{0}:8084/spectator/metrics{1}'.format(
         TEST_HOST, self.default_query_params)
-    self.assertEquals([mock.call(clouddriver_url), mock.call(gate_url)],
-                      mock_urlopen.call_args_list)
+
+    # Order does not matter.
+    self.assertEquals(sorted([mock.call(clouddriver_url), mock.call(gate_url)]),
+                      sorted(mock_urlopen.call_args_list))
 
     self.assertEqual({'clouddriver': expect_clouddriver, 'gate': expect_gate},
                      response)
 
   def test_service_map_to_type_map_one(self):
     got = spectator_client.SpectatorClient.service_map_to_type_map(
-      {'clouddriver': CLOUDDRIVER_RESPONSE_OBJ})
+      {'clouddriver': [CLOUDDRIVER_RESPONSE_OBJ]})
     expect = {}
     self.spectator.ingest_metrics(
         'clouddriver', CLOUDDRIVER_RESPONSE_OBJ, expect)
     self.assertEquals(expect, got)
 
-  def test_service_map_to_type_map_two(self):
+  def test_service_map_to_type_map_two_different(self):
     got = spectator_client.SpectatorClient.service_map_to_type_map(
-      {'clouddriver': CLOUDDRIVER_RESPONSE_OBJ,
-       'gate': GATE_RESPONSE_OBJ})
+      {'clouddriver': [CLOUDDRIVER_RESPONSE_OBJ],
+       'gate': [GATE_RESPONSE_OBJ]})
     expect = {}
     self.spectator.ingest_metrics(
         'clouddriver', CLOUDDRIVER_RESPONSE_OBJ, expect)
     self.spectator.ingest_metrics(
         'gate', GATE_RESPONSE_OBJ, expect)
+    self.assertEquals(expect, got)
+
+  def test_service_map_to_type_map_two_same(self):
+    another = dict(CLOUDDRIVER_RESPONSE_OBJ)
+    metric = another['metrics']['jvm.buffer.memoryUsed']['values'][0]
+    metric['values'][0]['t'] = 12345
+    got = spectator_client.SpectatorClient.service_map_to_type_map(
+      {'clouddriver': [CLOUDDRIVER_RESPONSE_OBJ, another]})
+
+    expect = {}
+    self.spectator.ingest_metrics(
+        'clouddriver', CLOUDDRIVER_RESPONSE_OBJ, expect)
+    self.spectator.ingest_metrics(
+        'clouddriver', another, expect)
     self.assertEquals(expect, got)
 
   @patch('spectator_client.urllib2.urlopen')
@@ -209,10 +306,11 @@ class SpectatorClientTest(unittest.TestCase):
     mock_http_response = StringIO(CLOUDDRIVER_RESPONSE_TEXT)
     mock_urlopen.return_value = mock_http_response
 
-    response = self.spectator.scan_by_type(['clouddriver'])
+    response = self.spectator.scan_by_type({'clouddriver': [(TEST_HOST, 7002)]})
     mock_urlopen.assert_called_with(
         'http://{0}:7002/spectator/metrics{1}'.format(
             TEST_HOST, self.default_query_params))
+
     self.assertEqual(expect, response)
 
   @patch('spectator_client.urllib2.urlopen')
@@ -226,16 +324,22 @@ class SpectatorClientTest(unittest.TestCase):
     mock_clouddriver_response = StringIO(CLOUDDRIVER_RESPONSE_TEXT)
     mock_gate_response = StringIO(GATE_RESPONSE_TEXT)
 
-    mock_urlopen.side_effect = [mock_clouddriver_response,
-                                mock_gate_response]
+    # The order is sensitive to the order we'll call in.
+    # To get the call order, we'll let the dict tell us,
+    # since that is the order we'll be calling internally.
+    # Ideally this can be specified a different way, but I cant find how.
+    mock_urlopen.side_effect = {'clouddriver': mock_clouddriver_response,
+                                'gate': mock_gate_response}.values()
 
-    response = self.spectator.scan_by_type(['clouddriver', 'gate'])
+    response = self.spectator.scan_by_type(
+        {'clouddriver': [(TEST_HOST, 7002)], 'gate': [(TEST_HOST, 8084)]})
     clouddriver_url = 'http://{0}:7002/spectator/metrics{1}'.format(
         TEST_HOST, self.default_query_params)
     gate_url = 'http://{0}:8084/spectator/metrics{1}'.format(
         TEST_HOST, self.default_query_params)
-    self.assertEquals([mock.call(clouddriver_url), mock.call(gate_url)],
-                      mock_urlopen.call_args_list)
+    self.assertEquals(
+        sorted([mock.call(clouddriver_url), mock.call(gate_url)]),
+        sorted(mock_urlopen.call_args_list))
     self.assertEqual(expect, response)
 
   def test_ingest_metrics_base_case(self):
@@ -244,9 +348,10 @@ class SpectatorClientTest(unittest.TestCase):
         'clouddriver', CLOUDDRIVER_RESPONSE_OBJ, result)
 
     expect = {
-        key: {'clouddriver': value}
+        key: {'clouddriver': [value]}
         for key, value in CLOUDDRIVER_RESPONSE_OBJ['metrics'].items()
         }
+
     self.assertEqual(expect, result)
 
   def test_ingest_metrics_incremental_case(self):
@@ -256,14 +361,14 @@ class SpectatorClientTest(unittest.TestCase):
     self.spectator.ingest_metrics(
       'gate', GATE_RESPONSE_OBJ, result)
 
-    expect = {key: {'clouddriver': value}
+    expect = {key: {'clouddriver': [value]}
               for key, value
               in CLOUDDRIVER_RESPONSE_OBJ['metrics'].items()}
     for key, value in GATE_RESPONSE_OBJ['metrics'].items():
       if key in expect:
-        expect[key]['gate'] = value
+        expect[key]['gate'] = [value]
       else:
-        expect[key] = {'gate': value}
+        expect[key] = {'gate': [value]}
 
     self.assertEqual(expect, result)
 
@@ -293,7 +398,6 @@ class SpectatorClientTest(unittest.TestCase):
              }
     got = self.spectator.filter_metrics(CLOUDDRIVER_RESPONSE_OBJ, prototype)
     self.assertEqual(expect, got)
-
 
 if __name__ == '__main__':
   # pylint: disable=invalid-name

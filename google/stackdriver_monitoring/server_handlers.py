@@ -89,7 +89,6 @@ class WebserverCommandHandler(command_processor.CommandHandler):
     """Implements CommandHandler."""
     parser = super(WebserverCommandHandler, self).add_argparser(subparsers)
     parser.add_argument('--port', default=8008, type=int)
-    parser.add_argument('services', nargs='*', default=['all'])
     spectator_client.SpectatorClient.add_standard_parser_arguments(parser)
     stackdriver_service.StackdriverMetricsService.add_parser_arguments(parser)
     return parser
@@ -108,6 +107,15 @@ class MonitorCommandHandler(WebserverCommandHandler):
     raise ValueError('No metric service specified.')
 
   def __data_map_to_service_metrics(self, data_map):
+    """Extract raw responses into just the metrics.
+
+    Args:
+      data_map: [dict of list of response dicts] Keyed by service name,
+          whose value is the list of raw response dictionaries.
+    Returns:
+      dictionary keyed by service ame whose value is the list of 'metrics'
+          dictionaries embedded in the original raw response dictionaries.
+    """
     result = {}
     for service, metrics in data_map.items():
       actual_metrics = metrics.get('metrics', None)
@@ -135,16 +143,15 @@ class MonitorCommandHandler(WebserverCommandHandler):
     The main thread will be the standard WebServer.
     """
     period = options['period']
-    services = options['services']
+    service_endpoints = spectator_client.determine_service_endpoints(options)
     spectator = spectator_client.SpectatorClient(options)
-    params = {}
 
     logging.info('Starting Monitor')
     time_offset = int(time.time())
     while True:
       start = time.time()
       done = start
-      service_metric_map = spectator.scan_by_service(services, params=params)
+      service_metric_map = spectator.scan_by_service(service_endpoints)
       collected = time.time()
       try:
         count = metric_service.publish_metrics(service_metric_map)
@@ -164,7 +171,8 @@ class MonitorCommandHandler(WebserverCommandHandler):
       # There is still going to be jitter on the collection end but we'll at
       # least always start with a steady rhythm.
       delta_time = (period - (int(done) - time_offset)) % period
-      if delta_time == 0 and int(done) == time_offset:
+      if delta_time == 0 and (int(done) == time_offset
+                              or (done - start <= 1)):
         delta_time = period
       time.sleep(delta_time)
 
@@ -176,18 +184,20 @@ class MonitorCommandHandler(WebserverCommandHandler):
                         help='Publish metrics to stackdriver.')
     backend.add_argument('--datadog', default=False, action='store_true',
                          help='Publish metrics to Datadog.')
-    parser.add_argument('--fix_stackdriver_labels_unsafe', default=True,
-                        action='store_true',
-                        help='Work around Stackdriver design bug. Using this'
-                        ' option can result in the loss of all historic data for'
-                        ' a given metric that needs to workaround. Not using this'
-                        ' options will result in the inability to collect metric'
-                        ' data for a given metric that needs the workaround.'
-                        ' When needed the workaround will only be needed once'
-                        ' and then remembered for the lifetime of the project.')
-    parser.add_argument('--nofix_stackdriver_labels_unsafe',
-                        dest='fix_stackdriver_labels_unsafe',
-                        action='store_false')
+    parser.add_argument(
+        '--fix_stackdriver_labels_unsafe', default=True,
+        action='store_true',
+        help='Work around Stackdriver design bug. Using this'
+        ' option can result in the loss of all historic data for'
+        ' a given metric that needs to workaround. Not using this'
+        ' options will result in the inability to collect metric'
+        ' data for a given metric that needs the workaround.'
+        ' When needed the workaround will only be needed once'
+        ' and then remembered for the lifetime of the project.')
+    parser.add_argument(
+        '--nofix_stackdriver_labels_unsafe',
+        dest='fix_stackdriver_labels_unsafe',
+        action='store_false')
 
     parser.add_argument('--period', default=60, type=int)
     return parser

@@ -18,6 +18,6 @@ if [[ -f /etc/default/spinnaker ]]; then
   source /etc/default/spinnaker
 fi
 PYTHONPATH=$(dirname $0)/../../pylib \
-python $(dirname $0)/spinnaker_metric_tool.py $@
+python $(dirname $0)/spinnaker_metric_tool.py "$@"
 
 

@@ -52,31 +52,43 @@ class BaseSpectatorCommandHandler(command_processor.CommandHandler):
     spectator_client.SpectatorClient.add_standard_parser_arguments(parser)
     return parser
 
-
-class DumpMetricsHandler(BaseSpectatorCommandHandler):
-  def __get_data_map(self, options):
-    service_list = options['services']
+  def _get_data_map(self, service_endpoints, options):
+    restrict_services = options.get('services', None)
+    if restrict_services:
+      service_endpoints = {service: endpoints
+                           for service, endpoints in service_endpoints.items()
+                           if service in restrict_services.split(',')}
     spectator = self.make_spectator_client(options)
 
     by = options.get('by', 'service')
     if by == 'service':
-      data_map = spectator.scan_by_service(service_list, params=options)
+      data_map = spectator.scan_by_service(service_endpoints, params=options)
     else:
-      data_map = spectator.scan_by_type(service_list, params=options)
+      data_map = spectator.scan_by_type(service_endpoints, params=options)
     return data_map
 
+
+class DumpMetricsHandler(BaseSpectatorCommandHandler):
   def process_commandline_request(self, options):
-    data_map = self.__get_data_map(options)
+    service_endpoints = spectator_client.determine_service_endpoints(options)
+    data_map = self._get_data_map(service_endpoints, options)
     json_text = json.JSONEncoder(indent=2).encode(data_map)
     self.output(options, json_text)
 
   def process_web_request(self, request, path, params, fragment):
     options = dict(command_processor.get_global_options())
-    options['services'] = ','.join(options.get('services', '[all]'))
     options.update(params)
-    options['services'] = options.get('services', 'all').split(',')
+    all_service_endpoints = spectator_client.determine_service_endpoints(
+        options)
+    param_services = params.get('services', 'all').split(',')
+    if param_services == 'all':
+      service_endpoints = all_service_endpoints
+    else:
+      service_endpoints = {key: value
+                           for key, value in all_service_endpoints.items()
+                           if key in all_service_endpoints.keys()}
 
-    data_map = self.__get_data_map(options)
+    data_map = self._get_data_map(service_endpoints, options)
     body = json.JSONEncoder(indent=2).encode(data_map)
     request.respond(200, {'ContentType': 'application/json'}, body)
 
@@ -84,17 +96,20 @@ class DumpMetricsHandler(BaseSpectatorCommandHandler):
 class ExploreCustomDescriptorsHandler(BaseSpectatorCommandHandler):
   """Show all the current descriptors in use, and who is using them."""
 
-  def __get_type_and_tag_map_and_active_services(self, options):
-    service_list = options['services']
+  def __get_type_and_tag_map_and_active_services(
+        self, service_endpoints, options):
+    service_endpoints = spectator_client.determine_service_endpoints(options)
     spectator = self.make_spectator_client(options)
 
-    type_map = spectator.scan_by_type(service_list, params=options)
+    type_map = spectator.scan_by_type(service_endpoints, params=options)
     service_tag_map, active_services = self.to_service_tag_map(type_map)
     return type_map, service_tag_map, active_services
 
   def process_commandline_request(self, options):
+    service_endpoints = spectator_client.determine_service_endpoints(options)
     type_map, service_tag_map, active_services = (
-        self.__get_type_and_tag_map_and_active_services(options))
+        self.__get_type_and_tag_map_and_active_services(
+            service_endpoints, options))
 
     params = strip_non_html_params(options)
     html = self.to_html(type_map, service_tag_map, active_services, params)
@@ -104,13 +119,12 @@ class ExploreCustomDescriptorsHandler(BaseSpectatorCommandHandler):
 
   def process_web_request(self, request, path, params, fragment):
     options = dict(command_processor.get_global_options())
-    options['services'] = ','.join(options.get('services', '[all]'))
     options.update(params)
-    service_list = options.get('services', 'all').split(',')
-    options['services'] = service_list
+    service_endpoints = spectator_client.determine_service_endpoints(options)
 
     type_map, service_tag_map, active_services = (
-        self.__get_type_and_tag_map_and_active_services(options))
+        self.__get_type_and_tag_map_and_active_services(
+            service_endpoints, options))
 
     params = strip_non_html_params(options)
     html = self.to_html(type_map, service_tag_map, active_services, params)
@@ -122,24 +136,31 @@ class ExploreCustomDescriptorsHandler(BaseSpectatorCommandHandler):
   def to_service_tag_map(type_map):
     service_tag_map = {}
     active_services = set()
+
+    def process_endpoint_values_helper(key, service, values):
+      if not isinstance(values, dict):
+        return
+      tagged_data = values.get('values', [])
+      for tagged_point in tagged_data:
+        tag_map = {tag['key']: tag['value']
+                  for tag in tagged_point.get('tags')}
+        if not tag_map:
+          tag_map = {None: None}
+        if key not in service_tag_map:
+          service_tag_map[key] = {service: [tag_map]}
+        else:
+          service_map = service_tag_map[key]
+          if service in service_map:
+             service_map[service].append(tag_map)
+          else:
+             service_map[service] = [tag_map]
+
     for key, entry in sorted(type_map.items()):
       # pylint: disable=bad-indentation
-      for service, value in sorted(entry.items()):
+      for service, value_list in sorted(entry.items()):
         active_services.add(service)
-        tagged_data = value.get('values')
-        for tagged_point in tagged_data:
-            tag_map = {tag['key']: tag['value']
-                       for tag in tagged_point.get('tags')}
-            if not tag_map:
-              tag_map = {None: None}
-            if key not in service_tag_map:
-              service_tag_map[key] = {service: [tag_map]}
-            else:
-              service_map = service_tag_map[key]
-              if service in service_map:
-                 service_map[service].append(tag_map)
-              else:
-                 service_map[service] = [tag_map]
+        for value in value_list:
+          process_endpoint_values_helper(key, service, value)
 
     return service_tag_map, active_services
 
@@ -230,21 +251,9 @@ class TagValue(object):
 class ShowCurrentMetricsHandler(BaseSpectatorCommandHandler):
   """Show all the current metric values."""
 
-  def __get_data_map(self, options):
-    service_list = options['services']
-    spectator = self.make_spectator_client(options)
-
-    by = options.get('by', 'service')
-    if by == 'service':
-      service_map = spectator.scan_by_service(
-          service_list, params=options)
-      return service_map
-    else:
-      type_map = spectator.scan_by_type(service_list, params=options)
-      return type_map
-
   def process_commandline_request(self, options):
-    data_map = self.__get_data_map(options)
+    service_endpoints = spectator_client.determine_service_endpoints(options)
+    data_map = self._get_data_map(service_endpoints, options)
     by = options.get('by', 'service')
     if by == 'service':
       content_data = self.service_map_to_text(data_map, params=options)
@@ -254,11 +263,9 @@ class ShowCurrentMetricsHandler(BaseSpectatorCommandHandler):
 
   def process_web_request(self, request, path, params, fragment):
     options = dict(command_processor.get_global_options())
-    options['services'] = ','.join(options.get('services', '[all]'))
     options.update(params)
-    service_list = options.get('services', 'all').split(',')
-    options['services'] = service_list
-    data_map = self.__get_data_map(options)
+    service_endpoints = spectator_client.determine_service_endpoints(options)
+    data_map = self._get_data_map(service_endpoints, options)
 
     if accepts_html(request):
       content_type = 'text/html'
@@ -285,7 +292,6 @@ class ShowCurrentMetricsHandler(BaseSpectatorCommandHandler):
   def all_tagged_values(self, value_list):
     all_values = []
     for data in value_list:
-      all_points = []
       tags = [TagValue(tag) for tag in data.get('tags', [])]
       all_values.append((tags, data['values']))
     return all_values
@@ -305,24 +311,16 @@ class ShowCurrentMetricsHandler(BaseSpectatorCommandHandler):
       return td_html
 
   def data_points_to_text(self, data_points):
-    if len(data_points) == 1:
-      point = data_points[0]
-      return '{time} {value}'.format(
-          time=millis_to_time(point['t']), value=point['v'])
-
-      text = []
-      for point in data_points:
-        text.append('{time}  {value}'.format(
-            time=millis_to_time(point['t']),
-            value=point['v']))
-      return ', '.join(text)
+    text = []
+    for point in data_points:
+      text.append('{time}  {value}'.format(
+          time=millis_to_time(point['t']),
+          value=point['v']))
+    return ', '.join(text)
 
   def service_map_to_text(self, service_map, params=None):
     lines = []
-    for service, entry in sorted(service_map.items()):
-      if entry is None:
-        continue
-      metrics = entry.get('metrics', {})
+    def process_metrics_helper(metrics):
       for key, value in metrics.items():
         tagged_values = self.all_tagged_values(value.get('values'))
         parts = ['Service "{0}"'.format(service)]
@@ -335,6 +333,11 @@ class ShowCurrentMetricsHandler(BaseSpectatorCommandHandler):
           parts.append('    Tags={0}'.format(tag_text))
           parts.append('    Values={0}'.format(time_values))
         lines.append('\n'.join(parts))
+
+    for service, entry_list in sorted(service_map.items()):
+      for entry in entry_list or []:
+        process_metrics_helper(entry.get('metrics', {}))
+
     return '\n\n'.join(lines)
 
   def service_map_to_html(self, service_map, params=None):
@@ -343,10 +346,7 @@ class ShowCurrentMetricsHandler(BaseSpectatorCommandHandler):
     result = ['<table>',
               '<tr><th>Service</th><th>Metric</th>'
               '<th>Timestamp</th><th>Values</th><th>Labels</th></tr>']
-    for service, entry in sorted(service_map.items()):
-      if entry is None:
-        continue
-      metrics = entry.get('metrics', {})
+    def process_metrics_helper(metrics):
       for key, value in metrics.items():
           # pylint: disable=bad-indentation
           tagged_values = self.all_tagged_values(value.get('values'))
@@ -371,18 +371,26 @@ class ShowCurrentMetricsHandler(BaseSpectatorCommandHandler):
                 time_value_td=time_value_td, tag_list=tag_html)
             result.append(html)
             html = '<tr>'
+
+    for service, entry_list in sorted(service_map.items()):
+      for entry in entry_list or []:
+        process_metrics_helper(entry.get('metrics', {}))
     result.append('</table>')
     return '\n'.join(result)
 
   def type_map_to_text(self, type_map, params=None):
     lines = []
+    def process_values_helper(values):
+      tagged_values = self.all_tagged_values(values)
+      for tag_value in tagged_values:
+        text_key = ', '.join([str(tag) for tag in tag_value[0]])
+        tag_to_service_values[text_key] = (service, tag_value[1])
+
     for key, entry in sorted(type_map.items()):
       tag_to_service_values = {}
-      for service, value in sorted(entry.items()):
-        tagged_values = self.all_tagged_values(value.get('values'))
-        for tag_value in tagged_values:
-          text_key = ', '.join([str(tag) for tag in tag_value[0]])
-          tag_to_service_values[text_key] = (service, tag_value[1])
+      for service, value_list in sorted(entry.items()):
+        for value in value_list:
+          process_values_helper(value.get('values'))
 
       parts = ['Metric "{0}"'.format(key)]
       for tags_text, values in sorted(tag_to_service_values.items()):
@@ -399,14 +407,17 @@ class ShowCurrentMetricsHandler(BaseSpectatorCommandHandler):
     column_headers_html = ('<tr><th>Key</th><th>Timestamp</th><th>Value</th>'
                            '<th>Service</th><th>Tags</th></tr>')
     row_html = []
+    def process_values_helper(values):
+      tagged_values = self.all_tagged_values(values)
+      for tag_value in tagged_values:
+        html_key = '<br/>'.join([tag.as_html() for tag in tag_value[0]])
+        tag_to_service_values[html_key] = (service, tag_value[1])
 
     for key, entry in sorted(type_map.items()):
       tag_to_service_values = {}
-      for service, value in sorted(entry.items()):
-        tagged_values = self.all_tagged_values(value.get('values'))
-        for tag_value in tagged_values:
-          html_key = '<br/>'.join([tag.as_html() for tag in tag_value[0]])
-          tag_to_service_values[html_key] = (service, tag_value[1])
+      for service, value_list in sorted(entry.items()):
+        for value in value_list or []:
+          process_values_helper(value.get('values'))
 
       row_html.append('<tr><td rowspan={rowspan}><b>{key}</b></td>'.format(
           rowspan=len(tag_to_service_values), key=key))
