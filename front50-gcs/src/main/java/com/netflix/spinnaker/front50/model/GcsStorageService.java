@@ -433,7 +433,6 @@ public class GcsStorageService implements StorageService {
       try {
           timeExecute(patchTimer, obj_api.patch(bucketName, object.getName(), object));
       } catch (HttpResponseException e) {
-          log.error("writeLastModified failed to update {}\n{}", timestamp_path, e.toString());
           if (e.getStatusCode() == 404 || e.getStatusCode() == 400) {
               byte[] bytes = "{}".getBytes();
               ByteArrayContent content = new ByteArrayContent("application/json", bytes);
@@ -442,10 +441,14 @@ public class GcsStorageService implements StorageService {
                 log.info("Attempting to add {}", timestamp_path);
                 timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
               } catch (IOException ioex) {
-                log.error("writeLastModified insert failed too: {}", ioex);
+                  log.error("writeLastModified failed to update {}\n{}",
+                            timestamp_path, e.toString());
+                  log.error("writeLastModified insert failed too: {}", ioex);
                 throw new IllegalStateException(e);
               }
           } else {
+              log.error("writeLastModified failed to update {}\n{}",
+                        timestamp_path, e.toString());
               throw new IllegalStateException(e);
           }
       } catch (IOException e) {
@@ -459,8 +462,8 @@ public class GcsStorageService implements StorageService {
           // if we eventually destroy this bucket.
           purgeOldVersions(timestamp_path);
       } catch (Exception e) {
-          log.error("Failed to purge old versions of {}. Ignoring error.",
-                    timestamp_path);
+          log.warn("Failed to purge old versions of {}. Ignoring error.",
+                   timestamp_path);
       }
   }
 
@@ -503,16 +506,17 @@ public class GcsStorageService implements StorageService {
       try {
           return obj_api.get(bucketName, path).execute().getUpdated().getValue();
       } catch (HttpResponseException e) {
+          long now = System.currentTimeMillis();
           if (e.getStatusCode() == 404) {
-              log.error("No timestamp file at {}. Creating a new one.", path);
+              log.info("No timestamp file at {}. Creating a new one.", path);
               writeLastModified(objectType.group);
-              return 0L;
+              return now;
           }
           log.error("Error writing timestamp file {}", e.toString());
-          return 0L;
+          return now;
       } catch (IOException e) {
           log.error("Error accessing timestamp file {}", e.toString());
-          return 0L;
+          return System.currentTimeMillis();
       }
   }
 
