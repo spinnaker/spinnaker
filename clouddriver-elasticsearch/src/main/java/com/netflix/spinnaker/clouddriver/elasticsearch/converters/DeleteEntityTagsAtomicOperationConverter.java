@@ -55,8 +55,6 @@ public class DeleteEntityTagsAtomicOperationConverter extends AbstractAtomicOper
   }
 
   public DeleteEntityTagsDescription convertDescription(Map input) {
-    DeleteEntityTagsDescription description = objectMapper.convertValue(input, DeleteEntityTagsDescription.class);
-    description.setCredentials(getCredentialsObject(description.getAccount()));
-    return description;
+    return objectMapper.convertValue(input, DeleteEntityTagsDescription.class);
   }
 }
