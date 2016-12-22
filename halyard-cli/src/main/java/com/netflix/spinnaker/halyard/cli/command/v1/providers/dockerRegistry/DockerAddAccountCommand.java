@@ -33,10 +33,11 @@ public class DockerAddAccountCommand extends AbstractAddAccountCommand {
   @Parameter(
       names = "--address",
       description = "The registry address you want to pull and deploy images from. For example:\n\n"
-          + "  index.docker.io - DockerHub\n"
-          + "  quay.io         - Quay\n"
-          + "  gcr.io          - GCR\n"
-          + "  localhost       - Locally deployed registry"
+          + "  index.docker.io     - DockerHub\n"
+          + "  quay.io             - Quay\n"
+          + "  gcr.io              - Google Container Registry (GCR)\n"
+          + "  [us|eu|asia].gcr.io - Regional GCR\n"
+          + "  localhost           - Locally deployed registry"
   )
   private String address="gcr.io";
 
