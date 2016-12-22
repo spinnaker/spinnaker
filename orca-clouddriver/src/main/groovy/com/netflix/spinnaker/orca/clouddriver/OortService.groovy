@@ -116,38 +116,4 @@ public interface OortService {
                       @Query("account") String account,
                       @Query("region") String region,
                       @QueryMap Map additionalFilters)
-
-  @GET("/tags/{id}")
-  EntityTags getEntityTags(@Path("id") String id)
-
-  static class EntityTags {
-    String id
-
-    Map<String, Object> tags = [:]
-    EntityRef entityRef
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class EntityRef {
-      private Map<String, Object> attributes = new HashMap<String, Object>()
-
-      String cloudProvider
-      String entityType
-      String entityId
-
-      @JsonAnyGetter
-      Map<String, Object> attributes() {
-        return attributes;
-      }
-
-      @JsonAnySetter
-      void set(String name, Object value) {
-        attributes.put(name, value);
-      }
-
-      String getEntityType() {
-        return entityType?.toLowerCase()
-      }
-    }
-  }
-
 }
