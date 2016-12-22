@@ -60,17 +60,3 @@ spectator:
     projectName: ${services.stackdriver.projectName}
     credentialsPath: ${services.stackdriver.credentialsPath}
 
-stackdriver:
-  hints:
-    - name: controller.invocations
-      labels:
-      - application
-      - cause
-    - name: aws.request.httpRequestTime
-      labels:
-      - status
-      - exception
-      - AWSErrorCode
-    - name: aws.request.requestSigningTime
-      labels:
-      - exception

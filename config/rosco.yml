@@ -48,9 +48,3 @@ spectator:
     enabled: ${services.stackdriver.enabled}
     projectName: ${services.stackdriver.projectName}
     credentialsPath: ${services.stackdriver.credentialsPath}
-
-stackdriver:
-  hints:
-    - name: bakes
-      labels:
-      - success
