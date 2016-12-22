@@ -32,6 +32,7 @@ public class DockerAddAccountCommand extends AbstractAddAccountCommand {
 
   @Parameter(
       names = "--address",
+      required = true,
       description = "The registry address you want to pull and deploy images from. For example:\n\n"
           + "  index.docker.io     - DockerHub\n"
           + "  quay.io             - Quay\n"

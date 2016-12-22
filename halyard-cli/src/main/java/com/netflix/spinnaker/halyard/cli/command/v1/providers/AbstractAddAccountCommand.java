@@ -37,6 +37,7 @@ public abstract class AbstractAddAccountCommand extends AbstractProviderCommand 
 
   @Parameter(
       names = "--account-name",
+      required = true,
       description = "The name of the account to create."
   )
   private String accountName;

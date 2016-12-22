@@ -32,6 +32,7 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
 
   @Parameter(
       names = "--project",
+      required = true,
       description = "The Google Cloud Platform project this Spinnaker account will manage."
   )
   private String project;
