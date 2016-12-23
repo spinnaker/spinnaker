@@ -51,7 +51,7 @@ class ProjectSearchProvider implements SearchProvider {
       return new SearchResultSet(totalMatches: 0)
     }
 
-    def projects = front50Service.searchForProjects(query) as List<Map>
+    def projects = front50Service.searchForProjects([ name: query, applications: query ], pageSize) as List<Map>
     def results = (projects ?: []).collect { Map project ->
       project.type = PROJECTS_TYPE
       project.url = "/projects/${project.id}".toString()
