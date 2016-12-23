@@ -81,6 +81,7 @@ class AutoScalingWorker {
   private int desiredInstances
 
   private RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider
+  private Integer maxSecurityGroupsPerInstance
 
   AutoScalingWorker() {
 
@@ -203,6 +204,10 @@ class AutoScalingWorker {
     // Favor subnetIds over availability zones
     def subnetIds = subnetIds?.join(',')
     if (subnetIds) {
+      if (securityGroups && maxSecurityGroupsPerInstance && securityGroups.size() > maxSecurityGroupsPerInstance) {
+        throw new IllegalArgumentException("An instance can have at most ${maxSecurityGroupsPerInstance} security groups")
+      }
+
       task.updateStatus AWS_PHASE, " > Deploying to subnetIds: $subnetIds"
       request.withVPCZoneIdentifier(subnetIds)
     } else if (subnetType && !subnets) {

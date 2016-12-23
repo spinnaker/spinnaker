@@ -256,7 +256,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         regionScopedProvider: regionScopedProvider,
         base64UserData: description.base64UserData,
         legacyUdf: description.legacyUdf,
-        tags: description.tags)
+        tags: description.tags,
+        maxSecurityGroupsPerInstance: deployDefaults.maxSecurityGroups
+      )
 
       def asgName = autoScalingWorker.deploy()
 
