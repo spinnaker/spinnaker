@@ -178,7 +178,7 @@ class InstancesUrlBuilder implements IUrlBuilder {
   public build(input: IUrlBuilderInput) {
 
     let result: string;
-    if (input.application) {
+    if (!input.application) {
       result = this.$state.href('home.instanceDetails',
         {
           account: input.account,
@@ -197,7 +197,7 @@ class InstancesUrlBuilder implements IUrlBuilder {
         },
         {inherit: false}
       );
-      result = UrlBuilderUtils.buildUrl(href, {q: input.serverGroup, accnt: input.account, reg: input.region});
+      result = UrlBuilderUtils.buildUrl(href, {q: input.serverGroup, acct: input.account, reg: input.region});
     }
 
     return result;
@@ -275,7 +275,7 @@ class ServerGroupsUrlBuilder implements IUrlBuilder {
       {inherit: false}
     );
 
-    return UrlBuilderUtils.buildUrl(href, {q: input.serverGroup, accnt: input.account, reg: input.region});
+    return UrlBuilderUtils.buildUrl(href, {q: input.serverGroup, acct: input.account, reg: input.region});
   }
 }
 
