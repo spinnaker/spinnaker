@@ -8,7 +8,6 @@ import {NAMING_SERVICE} from 'core/naming/naming.service';
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.genericCanary', [
   require('./acaTaskStage'),
   require('./acaTaskExecutionDetails.controller'),
-  require('core/serverGroup/serverGroup.read.service.js'),
   require('./acaTaskStage.transformer'),
   require('../canary/canaryScore.directive.js'),
   require('../canary/canaryStatus.directive.js'),

@@ -1,16 +1,20 @@
 import {copy, module} from 'angular';
 
 import {Application} from 'core/application/application.model';
+import {SERVER_GROUP_WRITER_SERVICE, ServerGroupWriterService} from 'core/serverGroup/serverGroupWriter.service';
 import {IAppengineServerGroupCommand, AppengineServerGroupCommandBuilder} from '../serverGroupCommandBuilder.service';
 
 import './serverGroupWizard.less';
 
 class AppengineCloneServerGroupCtrl {
-  public pages: { [pageKey: string]: string } = {
+  public pages: {[pageKey: string]: string} = {
     'basicSettings': require('./basicSettings.html'),
     'advancedSettings': require('./advancedSettings.html'),
   };
   public state = { loading: true };
+  public state: {[stateKey: string]: boolean} = {
+    loading: true,
+  };
   public taskMonitor: any;
 
   static get $inject() { return ['$scope',
@@ -43,7 +47,6 @@ class AppengineCloneServerGroupCtrl {
     }
 
     $scope.application = application;
-
     this.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: this.application,
       title: 'Creating your server group',
@@ -65,12 +68,11 @@ class AppengineCloneServerGroupCtrl {
 
     let submitMethod = () => this.serverGroupWriter.cloneServerGroup(copy(this.$scope.command), this.$scope.application);
     this.taskMonitor.submit(submitMethod);
+
     return null;
   }
 }
 
 export const APPENGINE_CLONE_SERVER_GROUP_CTRL = 'spinnaker.appengine.cloneServerGroup.controller';
-
-module(APPENGINE_CLONE_SERVER_GROUP_CTRL, [
-    require('core/serverGroup/serverGroup.write.service.js'),
-  ]).controller('appengineCloneServerGroupCtrl', AppengineCloneServerGroupCtrl);
+module(APPENGINE_CLONE_SERVER_GROUP_CTRL, [SERVER_GROUP_WRITER_SERVICE])
+  .controller('appengineCloneServerGroupCtrl', AppengineCloneServerGroupCtrl);

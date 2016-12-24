@@ -1,13 +1,14 @@
 'use strict';
 
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-
 let angular = require('angular');
+
+import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone', [
   require('angular-ui-router'),
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/serverGroup/serverGroup.write.service.js'),
+  SERVER_GROUP_WRITER_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
   require('../serverGroupConfiguration.service.js'),

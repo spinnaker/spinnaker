@@ -1,25 +1,27 @@
 'use strict';
 
 import _ from 'lodash';
+let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {VIEW_SCALING_ACTIVITIES_LINK} from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
+import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 require('../configure/serverGroup.configure.aws.module.js');
-
-let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
   require('angular-ui-router'),
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('core/confirmationModal/confirmationModal.service.js'),
-  require('core/serverGroup/serverGroup.write.service.js'),
+  SERVER_GROUP_WRITER_SERVICE,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   require('core/overrideRegistry/override.registry.js'),
   ACCOUNT_SERVICE,
   VIEW_SCALING_ACTIVITIES_LINK,
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
-  require('core/serverGroup/serverGroup.read.service.js'),
+  SERVER_GROUP_READER_SERVICE,
   require('../configure/serverGroupCommandBuilder.service.js'),
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable

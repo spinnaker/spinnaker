@@ -4,12 +4,13 @@ let angular = require('angular');
 
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {SERVER_GROUP_COMMAND_REGISTRY_PROVIDER} from 'core/serverGroup/configure/common/serverGroupCommandRegistry.provider';
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('angular-ui-router'),
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('../serverGroupConfiguration.service.js'),
-  require('core/serverGroup/serverGroup.write.service.js'),
+  SERVER_GROUP_WRITER_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
   V2_MODAL_WIZARD_SERVICE,
   require('core/overrideRegistry/override.registry.js'),

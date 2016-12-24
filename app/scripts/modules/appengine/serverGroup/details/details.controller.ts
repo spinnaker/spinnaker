@@ -1,7 +1,9 @@
-import {module, IScope, IPromise} from 'angular';
+import {module, IScope} from 'angular';
 import {find, cloneDeep, reduce, mapValues, get, map} from 'lodash';
 
-import {ServerGroup, Execution} from 'core/domain/index';
+import {Execution, ServerGroup} from 'core/domain/index';
+import {SERVER_GROUP_READER_SERVICE, ServerGroupReaderService} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER_SERVICE, ServerGroupWriterService} from 'core/serverGroup/serverGroupWriter.service';
 import {Application} from 'core/application/application.model';
 import {IAppengineLoadBalancer, IAppengineServerGroup} from 'appengine/domain/index';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE, ServerGroupWarningMessageService} from 'core/serverGroup/details/serverGroupWarningMessage.service';
@@ -35,13 +37,45 @@ class AppengineServerGroupDetailsController {
             'appengineServerGroupWriter'];
   }
 
+  private static isLastServerGroup(serverGroup: ServerGroup, app: any): boolean {
+    let cluster = find(app.clusters, {name: serverGroup.cluster, account: serverGroup.account}) as any;
+    if (cluster && cluster.serverGroups) {
+      return cluster.serverGroups.length === 1;
+    } else {
+      return false;
+    }
+  }
+
+  private static buildExpectedAllocationsTable(expectedAllocations: {[key: string]: number}): string {
+    let tableRows = map(expectedAllocations, (allocation, serverGroupName) => {
+      return `
+        <tr>
+          <td>${serverGroupName}</td>
+          <td>${allocation * 100}%</td>
+        </tr>`;
+    }).join('');
+
+    return `
+      <table class="table table-condensed">
+        <thead>
+          <tr>
+            <th>Server Group</th>
+            <th>Allocation</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>`;
+  }
+
   constructor(private $state: any,
               private $scope: IPrivateScope,
               serverGroup: IServerGroupFromStateParams,
               private app: Application,
-              private serverGroupReader: any,
+              private serverGroupReader: ServerGroupReaderService,
               public InsightFilterStateModel: any,
-              private serverGroupWriter: any,
+              private serverGroupWriter: ServerGroupWriterService,
               private serverGroupWarningMessageService: ServerGroupWarningMessageService,
               private confirmationModalService: any,
               private runningExecutionsService: any,
@@ -169,7 +203,7 @@ class AppengineServerGroupDetailsController {
       title: 'Disabling ' + this.serverGroup.name,
     };
 
-    let submitMethod = (params: any) => this.serverGroupWriter.disableServerGroup(this.serverGroup, this.app, params);
+    let submitMethod = (params: any) => this.serverGroupWriter.disableServerGroup(this.serverGroup, this.app.name, params);
 
     let expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
     let modalBody = `
@@ -185,7 +219,7 @@ class AppengineServerGroupDetailsController {
         </p>
         <div class="row">
           <div class="col-md-12">
-            ${this.buildExpectedAllocationsTable(expectedAllocations)}
+            ${AppengineServerGroupDetailsController.buildExpectedAllocationsTable(expectedAllocations)}
           </div>
         </div>
       </div>
@@ -294,7 +328,7 @@ class AppengineServerGroupDetailsController {
 
   private getBodyTemplate(serverGroup: IAppengineServerGroup, app: Application): string {
     let template = '';
-    if (this.isLastServerGroup(serverGroup, app)) {
+    if (AppengineServerGroupDetailsController.isLastServerGroup(serverGroup, app)) {
       template += this.serverGroupWarningMessageService.getMessage(serverGroup);
     }
 
@@ -317,7 +351,7 @@ class AppengineServerGroupDetailsController {
           </p>
           <div class="row">
             <div class="col-md-12">
-              ${this.buildExpectedAllocationsTable(expectedAllocations)}
+              ${AppengineServerGroupDetailsController.buildExpectedAllocationsTable(expectedAllocations)}
             </div>
           </div>
         </div>
@@ -349,38 +383,6 @@ class AppengineServerGroupDetailsController {
     }
   }
 
-  private buildExpectedAllocationsTable(expectedAllocations: {[key: string]: number}): string {
-    let tableRows = map(expectedAllocations, (allocation, serverGroupName) => {
-      return `
-        <tr>
-          <td>${serverGroupName}</td>
-          <td>${allocation * 100}%</td>
-        </tr>`;
-    }).join('');
-
-    return `
-      <table class="table table-condensed">
-        <thead>
-          <tr>
-            <th>Server Group</th>
-            <th>Allocation</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tableRows}
-        </tbody>
-      </table>`;
-  }
-
-  private isLastServerGroup(serverGroup: ServerGroup, app: any): boolean {
-    let cluster = find(app.clusters, {name: serverGroup.cluster, account: serverGroup.account}) as any;
-    if (cluster && cluster.serverGroups) {
-      return cluster.serverGroups.length === 1;
-    } else {
-      return false;
-    }
-  }
-
   private autoClose(): void {
     if (this.$scope.$$destroyed) {
       return;
@@ -390,7 +392,7 @@ class AppengineServerGroupDetailsController {
     }
   }
 
-  private extractServerGroup(fromParams: IServerGroupFromStateParams): IPromise<void> {
+  private extractServerGroup(fromParams: IServerGroupFromStateParams): ng.IPromise<void> {
     return this.serverGroupReader
       .getServerGroup(this.app.name, fromParams.accountId, fromParams.region, fromParams.name)
       .then((serverGroupDetails: ServerGroup) => {
@@ -426,9 +428,9 @@ module(APPENGINE_SERVER_GROUP_DETAILS_CTRL, [
     APPENGINE_SERVER_GROUP_WRITER,
     require('core/confirmationModal/confirmationModal.service.js'),
     require('core/insight/insightFilterState.model.js'),
-    require('core/serverGroup/serverGroup.read.service.js'),
     SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-    require('core/serverGroup/serverGroup.write.service.js'),
+    SERVER_GROUP_READER_SERVICE,
+    SERVER_GROUP_WRITER_SERVICE,
     require('core/serverGroup/configure/common/runningExecutions.service.js'),
   ])
   .controller('appengineServerGroupDetailsCtrl', AppengineServerGroupDetailsController);

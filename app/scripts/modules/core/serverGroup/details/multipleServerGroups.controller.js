@@ -2,9 +2,11 @@
 
 let angular = require('angular');
 
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+
 module.exports = angular.module('spinnaker.core.serverGroup.details.multipleServerGroups.controller', [
     require('angular-ui-router'),
-    require('../serverGroup.write.service'),
+    SERVER_GROUP_WRITER_SERVICE,
     require('../../confirmationModal/confirmationModal.service'),
     require('../../insight/insightFilterState.model'),
     require('../../cluster/filter/multiselect.model'),

@@ -1,22 +1,24 @@
 'use strict';
 
-require('../configure/serverGroup.configure.gce.module.js');
-
 import _ from 'lodash';
 let angular = require('angular');
 
+require('../configure/serverGroup.configure.gce.module.js');
+
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
+import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
   require('angular-ui-router'),
   require('../configure/serverGroupCommandBuilder.service.js'),
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/serverGroup/serverGroup.read.service.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_READER_SERVICE,
   require('core/confirmationModal/confirmationModal.service.js'),
   NETWORK_READ_SERVICE,
-  require('core/serverGroup/serverGroup.write.service.js'),
+  SERVER_GROUP_WRITER_SERVICE,
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),

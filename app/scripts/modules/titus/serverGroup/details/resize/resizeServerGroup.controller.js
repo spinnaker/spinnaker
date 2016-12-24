@@ -2,8 +2,10 @@
 
 let angular = require('angular');
 
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+
 module.exports = angular.module('spinnaker.titus.serverGroup.details.resize.controller', [
-  require('core/serverGroup/serverGroup.write.service.js'),
+  SERVER_GROUP_WRITER_SERVICE,
   require('core/task/monitor/taskMonitorService.js')
 ])
   .controller('titusResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorService,

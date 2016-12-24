@@ -2,9 +2,11 @@
 
 let angular = require('angular');
 
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+
 module.exports = angular.module('spinnaker.openstack.serverGroup.details.rollback.controller', [
       require('core/application/modal/platformHealthOverride.directive.js'),
-      require('core/serverGroup/serverGroup.write.service.js'),
+      SERVER_GROUP_WRITER_SERVICE,
       require('core/task/monitor/taskMonitorService.js'),
       require('../../../common/footer.directive.js'),
     ])

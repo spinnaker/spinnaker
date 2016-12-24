@@ -2,10 +2,12 @@
 
 let angular = require('angular');
 
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.controller', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('core/task/modal/reason.directive.js'),
-  require('core/serverGroup/serverGroup.write.service.js'),
+  SERVER_GROUP_WRITER_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
   require('./resizeCapacity.directive.js'),
   require('../../../common/footer.directive.js'),

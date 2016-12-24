@@ -4,16 +4,18 @@ import _ from 'lodash';
 let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
   require('../configure/ServerGroupCommandBuilder.js'),
-  require('core/serverGroup/serverGroup.read.service.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_READER_SERVICE,
   require('core/confirmationModal/confirmationModal.service.js'),
-  require('core/serverGroup/serverGroup.write.service.js'),
+  SERVER_GROUP_WRITER_SERVICE,
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),

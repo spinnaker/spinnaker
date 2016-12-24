@@ -1,11 +1,12 @@
 'use strict';
 
 import _ from 'lodash';
-
 let angular = require('angular');
 
+import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
+
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.templateSelection.controller', [
-  require('core/serverGroup/serverGroup.read.service.js'),
+  SERVER_GROUP_READER_SERVICE,
   require('../ServerGroupCommandBuilder.js'),
 ])
   .controller('openstackServerGroupTemplateSelectionCtrl', function($scope, openstackServerGroupCommandBuilder, serverGroupReader) {

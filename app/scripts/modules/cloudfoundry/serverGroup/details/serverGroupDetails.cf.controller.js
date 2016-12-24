@@ -1,17 +1,19 @@
 'use strict';
 
 import _ from 'lodash';
-
 let angular = require('angular');
+
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
+import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
   require('angular-ui-router'),
   require('../configure/ServerGroupCommandBuilder.js'),
-  require('core/serverGroup/serverGroup.read.service.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_READER_SERVICE,
   require('core/confirmationModal/confirmationModal.service.js'),
-  require('core/serverGroup/serverGroup.write.service.js'),
+  SERVER_GROUP_WRITER_SERVICE,
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),

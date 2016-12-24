@@ -2,6 +2,9 @@ import * as _ from 'lodash';
 import {module} from 'angular';
 import {IModalServiceInstance} from '../../../../../../types/angular-ui-bootstrap';
 
+import {SERVER_GROUP_READER_SERVICE, ServerGroupReaderService} from 'core/serverGroup/serverGroupReader.service';
+import {ServerGroup} from 'core/domain';
+
 interface IViewState {
   loading: boolean;
   error: boolean;
@@ -35,8 +38,8 @@ export class ScalingActivitiesCtrl implements ng.IComponentController {
   static get $inject() { return ['$uibModalInstance', 'serverGroupReader', 'serverGroup']; }
 
   public constructor(private $uibModalInstance: IModalServiceInstance,
-                     private serverGroupReader: any,
-                     public serverGroup: any) {
+                     private serverGroupReader: ServerGroupReaderService,
+                     public serverGroup: ServerGroup) {
     this.serverGroup = serverGroup;
   }
 
@@ -91,6 +94,5 @@ export class ScalingActivitiesCtrl implements ng.IComponentController {
 }
 
 export const SCALING_ACTIVITIES_CTRL = 'spinnaker.core.serverGroup.scalingActivities.controller';
-module(SCALING_ACTIVITIES_CTRL, [
-  require('core/serverGroup/serverGroup.read.service.js'),
-]).controller('ScalingActivitiesCtrl', ScalingActivitiesCtrl);
+module(SCALING_ACTIVITIES_CTRL, [SERVER_GROUP_READER_SERVICE])
+  .controller('ScalingActivitiesCtrl', ScalingActivitiesCtrl);
