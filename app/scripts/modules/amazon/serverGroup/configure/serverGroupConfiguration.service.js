@@ -7,6 +7,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
+import {SERVER_GROUP_COMMAND_REGISTRY_PROVIDER} from 'core/serverGroup/configure/common/serverGroupCommandRegistry.provider';
 
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
@@ -18,7 +19,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../keyPairs/keyPairs.read.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
   CACHE_INITIALIZER_SERVICE,
-  require('core/serverGroup/configure/common/serverGroupCommand.registry.js'),
+  SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   require('../details/scalingProcesses/autoScalingProcess.service.js'),
 ])
   .factory('awsServerGroupConfigurationService', function($q, awsImageReader, accountService, securityGroupReader,

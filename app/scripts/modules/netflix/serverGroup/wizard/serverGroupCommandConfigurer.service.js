@@ -1,18 +1,18 @@
 'use strict';
 
 import _ from 'lodash';
+const angular = require('angular');
 
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
-
-const angular = require('angular');
+import {SERVER_GROUP_COMMAND_REGISTRY_PROVIDER} from 'core/serverGroup/configure/common/serverGroupCommandRegistry.provider';
 
 module.exports = angular
   .module('spinnaker.netflix.serverGroup.configurer.service', [
     require('./../diff/diff.service.js'),
     NAMING_SERVICE,
     require('core/config/settings.js'),
-    require('core/serverGroup/configure/common/serverGroupCommand.registry.js'),
+    SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
     V2_MODAL_WIZARD_SERVICE,
   ])
   .factory('netflixServerGroupCommandConfigurer', function(diffService, namingService, v2modalWizardService) {

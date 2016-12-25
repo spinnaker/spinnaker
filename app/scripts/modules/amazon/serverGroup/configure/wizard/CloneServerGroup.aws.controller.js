@@ -1,8 +1,9 @@
 'use strict';
 
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-
 let angular = require('angular');
+
+import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
+import {SERVER_GROUP_COMMAND_REGISTRY_PROVIDER} from 'core/serverGroup/configure/common/serverGroupCommandRegistry.provider';
 
 module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('angular-ui-router'),
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('core/task/monitor/taskMonitorService.js'),
   V2_MODAL_WIZARD_SERVICE,
   require('core/overrideRegistry/override.registry.js'),
-  require('core/serverGroup/configure/common/serverGroupCommand.registry.js'),
+  SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   require('core/task/modal/reason.directive.js'),
   ])
   .controller('awsCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
