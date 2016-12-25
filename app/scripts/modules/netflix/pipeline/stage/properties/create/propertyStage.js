@@ -6,7 +6,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage', [
   require('core/application/listExtractor/listExtractor.service.js'),
-  require('core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
   require('core/cloudProvider/cloudProvider.registry.js'),
   require('core/config/settings.js'),
   require('netflix/fastProperties/modal/wizard/scope/index'),
@@ -35,7 +34,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
   .controller('PropertyStageCtrl', function ($scope, $uibModal, stage,
                                            namingService, providerSelectionService, fastPropertyReader,
                                            cloudProviderRegistry,
-                                           serverGroupCommandBuilder, awsServerGroupTransformer, accountService, appListExtractorService, fastPropertyScopeBuilderService) {
+                                           awsServerGroupTransformer, accountService, appListExtractorService, fastPropertyScopeBuilderService) {
 
     let applicationList = [];
     let vm = this;

@@ -2,9 +2,11 @@
 
 let angular = require('angular');
 
+import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
+
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', [
   require('core/application/listExtractor/listExtractor.service'),
-  require('core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
+  SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   require('core/cloudProvider/cloudProvider.registry.js'),
   require('core/config/settings.js'),
 ])
