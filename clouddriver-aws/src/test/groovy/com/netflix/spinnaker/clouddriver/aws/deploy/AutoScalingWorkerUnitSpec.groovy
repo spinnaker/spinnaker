@@ -17,10 +17,6 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.DescribeSubnetsResult
-import com.amazonaws.services.ec2.model.Subnet
-import com.amazonaws.services.ec2.model.Tag
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -41,7 +37,6 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
   def lcBuilder = Mock(LaunchConfigurationBuilder)
   def asgService = Mock(AsgService)
-  def amazonEC2 = Mock(AmazonEC2)
   def clusterProvider = Mock(ClusterProvider)
   def awsServerGroupNameResolver = new AWSServerGroupNameResolver('test', 'us-east-1', asgService, [clusterProvider])
   def credential = TestCredential.named('foo')
@@ -49,41 +44,11 @@ class AutoScalingWorkerUnitSpec extends Specification {
     getLaunchConfigurationBuilder() >> lcBuilder
     getAsgService() >> asgService
     getAWSServerGroupNameResolver() >> awsServerGroupNameResolver
-    getAmazonEC2() >> amazonEC2
   }
 
   def setup() {
     Task task = new DefaultTask("task")
     TaskRepository.threadLocalTask.set(task)
-  }
-
-  void "should fail deployment if there are more than 5 security groups per instance"() {
-    given:
-    def maxSecurityGroups = 5
-    def tooManySecurityGroups = ["sg-test-1", "sg-test-2", "sg-test3", "sg-test4", "sg-test5", "sg-test6"]
-    def autoScalingWorker = new AutoScalingWorker(
-      regionScopedProvider : regionScopedProvider,
-      credentials: credential,
-      application : "myasg",
-      region : "us-east-1",
-      availabilityZones: ["us-east-1b"],
-      subnetType: "internal",
-      securityGroups: tooManySecurityGroups,
-      maxSecurityGroupsPerInstance: maxSecurityGroups
-    )
-
-    and:
-    def describeSubnetResult = Mock(DescribeSubnetsResult)
-    describeSubnetResult.getSubnets() >> [ new Subnet().withSubnetId("subnetId1")
-                                             .withAvailabilityZone("us-east-1b")
-                                             .withTags(new Tag("immutable_metadata","""{"target":"ec2", "purpose":"internal"}"""))]
-
-    when:
-    autoScalingWorker.deploy()
-
-    then:
-    1 * amazonEC2.describeSubnets() >> describeSubnetResult
-    thrown(IllegalArgumentException)
   }
 
   @Unroll
