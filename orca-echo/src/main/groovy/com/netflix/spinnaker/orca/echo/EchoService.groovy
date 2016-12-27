@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.echo
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.GET
@@ -35,9 +36,11 @@ interface EchoService {
   @POST("/notifications")
   Response create(@Body Notification notification)
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   static class Notification {
     Type notificationType
     Collection<String> to
+    Collection<String> cc
     String templateGroup
     Severity severity
 

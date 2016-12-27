@@ -155,6 +155,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
 
   static class Notification {
     String address
+    String cc
     String type
     List<NotificationState> when
     Map<NotificationState, Map> message
@@ -185,7 +186,8 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
     void notify(EchoService echoService, Stage stage, NotificationState notificationState) {
       echoService.create(new EchoService.Notification(
         notificationType: EchoService.Notification.Type.valueOf(type.toUpperCase()),
-        to: [address],
+        to: address ? [address] : null,
+        cc: cc ? [cc] : null,
         templateGroup: notificationState,
         severity: EchoService.Notification.Severity.HIGH,
         source: new EchoService.Notification.Source(
