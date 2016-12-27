@@ -51,6 +51,13 @@ google:
       jsonPath: ${providers.google.primaryCredentials.jsonPath}
       consul:
         enabled: ${providers.google.primaryCredentials.consul.enabled:false}
+      # Specify the project id of each GCP project whose images you want indexed and
+      # made available to this account. Each project must have granted the IAM role
+      # compute.imageUser to the service account associated with the json key referenced
+      # above, as well as to the 'Google APIs service account' automatically created for
+      # the project being managed (should look similar to
+      # 12345678912@cloudservices.gserviceaccount.com).
+      # imageProjects:
 
 cf:
   enabled: ${providers.cf.enabled:false}
