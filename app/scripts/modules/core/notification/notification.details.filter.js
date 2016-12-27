@@ -31,4 +31,19 @@ module.exports = angular.module('spinnaker.core.notification.details.filter', []
     return function(input) {
       return input.charAt(0).toUpperCase() + input.slice(1);
     };
+  }).filter('notificationDetails', function() {
+    return function(input) {
+      if (input.type !== 'email') {
+        return input.address;
+      } else {
+        let addresses = [];
+        if (input.address) {
+          addresses.push(input.address);
+        }
+        if (input.cc) {
+          addresses.push('cc:' + input.cc);
+        }
+        return _.join(addresses, ', ');
+      }
+    };
   });

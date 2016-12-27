@@ -28,7 +28,7 @@
                     {{notification.type|notificationType}}
                 </td>
                 <td>
-                    {{notification.address}}
+                    {{notification|notificationDetails}}
                 </td>
                 <td>
                     <div ng-repeat="when in notification.when">{{when|notificationWhen:level:parent.type}}</div>
