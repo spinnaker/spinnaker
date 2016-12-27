@@ -1,4 +1,4 @@
-import {module, IScope} from 'angular';
+import {module, IScope, IPromise} from 'angular';
 import {find, cloneDeep, reduce, mapValues, get, map} from 'lodash';
 
 import {ServerGroup, Execution} from 'core/domain/index';
@@ -43,22 +43,27 @@ class AppengineServerGroupDetailsController {
               private confirmationModalService: any,
               private runningExecutionsService: any) {
 
-    this.serverGroupReader
-      .getServerGroup(this.app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-      .then((serverGroupDetails: ServerGroup) => {
-        this.serverGroup = Object.assign(serverGroupDetails, this.extractServerGroupFromApp(serverGroup)) as IAppengineServerGroup;
-        this.state.loading = false;
-      })
-      .catch(() => this.autoClose());
+    this.app
+      .ready()
+      .then(() => this.extractServerGroup(serverGroup))
+      .then(() => {
+        if (!this.$scope.$$destroyed) {
+          this.app.getDataSource('serverGroups').onRefresh(this.$scope, () => this.extractServerGroup(serverGroup));
+        }
+      });
   }
 
-  public canDestroyServerGroup(): boolean {
+  public canDisableServerGroup(): boolean {
     if (this.serverGroup) {
+      if (this.serverGroup.disabled) {
+        return false;
+      }
+
       let expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
       if (expectedAllocations) {
         return Object.keys(expectedAllocations).length > 0;
       } else {
-        return true;
+        return false;
       }
     } else {
       return false;
@@ -113,6 +118,94 @@ class AppengineServerGroupDetailsController {
     this.confirmationModalService.confirm(confirmationModalParams);
   };
 
+  public enableServerGroup(): void {
+    let taskMonitor = {
+      application: this.app,
+      title: 'Enabling ' + this.serverGroup.name,
+      forceRefreshMessage: 'Refreshing application...',
+    };
+
+    let submitMethod = (params: any) => this.serverGroupWriter.enableServerGroup(this.serverGroup, this.app, Object.assign(params));
+
+    let modalBody = `
+      <div class="well well-sm">
+        <p>
+          Enabling <b>${this.serverGroup.name}</b> will set its traffic allocation for 
+          <b>${this.serverGroup.loadBalancers[0]}</b> to 100%.
+        </p>
+        <p>
+          If you would like more fine-grained control over your server groups' allocations,
+          edit <b>${this.serverGroup.loadBalancers[0]}</b> under the <b>Load Balancers</b> tab.
+        </p> 
+      </div>
+    `;
+
+    let confirmationModalParams = {
+      header: 'Really enable ' + this.serverGroup.name + '?',
+      buttonText: 'Enable ' + this.serverGroup.name,
+      provider: 'appengine',
+      body: modalBody,
+      account: this.serverGroup.account,
+      taskMonitorConfig: taskMonitor,
+      submitMethod: submitMethod,
+      askForReason: true,
+      interestingHealthProviderNames: [] as string[],
+    };
+
+    if (this.app.attributes.platformHealthOnlyShowOverride && this.app.attributes.platformHealthOnly) {
+      confirmationModalParams.interestingHealthProviderNames = ['appengine'];
+    }
+
+    this.confirmationModalService.confirm(confirmationModalParams);
+  }
+
+  public disableServerGroup(): void {
+    let taskMonitor = {
+      application: this.app,
+      title: 'Disabling ' + this.serverGroup.name,
+    };
+
+    let submitMethod = (params: any) => this.serverGroupWriter.disableServerGroup(this.serverGroup, this.app, params);
+
+    let expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
+    let modalBody = `
+      <div class="well well-sm">
+        <p>
+          For App Engine, a disable operation sets this server group's allocation
+          to 0% and sets the other enabled server groups' allocations to their relative proportions
+          before the disable operation. The approximate allocations that will result from this operation are shown below.
+        </p>
+        <p>
+          If you would like more fine-grained control over your server groups' allocations,
+          edit <b>${this.serverGroup.loadBalancers[0]}</b> under the <b>Load Balancers</b> tab.
+        </p>
+        <div class="row">
+          <div class="col-md-12">
+            ${this.buildExpectedAllocationsTable(expectedAllocations)}
+          </div>
+        </div>
+      </div>
+    `;
+
+    let confirmationModalParams = {
+      header: 'Really disable ' + this.serverGroup.name + '?',
+      buttonText: 'Disable ' + this.serverGroup.name,
+      provider: 'appengine',
+      body: modalBody,
+      account: this.serverGroup.account,
+      taskMonitorConfig: taskMonitor,
+      submitMethod: submitMethod,
+      askForReason: true,
+      interestingHealthProviderNames: [] as string[],
+    };
+
+    if (this.app.attributes.platformHealthOnlyShowOverride && this.app.attributes.platformHealthOnly) {
+      confirmationModalParams.interestingHealthProviderNames = ['appengine'];
+    }
+
+    this.confirmationModalService.confirm(confirmationModalParams);
+  }
+
   public runningExecutions(): Execution[] {
     return this.runningExecutionsService.filterRunningExecutions((this.serverGroup as any).executions);
   }
@@ -125,14 +218,6 @@ class AppengineServerGroupDetailsController {
 
     if (!serverGroup.disabled) {
       let expectedAllocations = this.expectedAllocationsAfterDisableOperation(serverGroup, app);
-      let tableRows = map(expectedAllocations, (allocation, serverGroupName) => {
-        return `
-          <tr>
-            <td>${serverGroupName}</td>
-            <td>${allocation * 100}%</td>
-          </tr>
-        `;
-      }).join('');
 
       template += `
         <div class="well well-sm">
@@ -150,17 +235,7 @@ class AppengineServerGroupDetailsController {
           </p>
           <div class="row">
             <div class="col-md-12">
-              <table class="table table-condensed">
-                <thead>
-                <tr>
-                  <th>Server Group</th>
-                  <th>Allocation</th>
-                </tr>
-                </thead>
-                <tbody>
-                  ${tableRows}
-                </tbody>
-              </table>
+              ${this.buildExpectedAllocationsTable(expectedAllocations)}
             </div>
           </div>
         </div>
@@ -192,6 +267,29 @@ class AppengineServerGroupDetailsController {
     }
   }
 
+  private buildExpectedAllocationsTable(expectedAllocations: {[key: string]: number}): string {
+    let tableRows = map(expectedAllocations, (allocation, serverGroupName) => {
+      return `
+        <tr>
+          <td>${serverGroupName}</td>
+          <td>${allocation * 100}%</td>
+        </tr>`;
+    }).join('');
+
+    return `
+      <table class="table table-condensed">
+        <thead>
+          <tr>
+            <th>Server Group</th>
+            <th>Allocation</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>`;
+  }
+
   private isLastServerGroup(serverGroup: ServerGroup, app: any): boolean {
     let cluster = find(app.clusters, {name: serverGroup.cluster, account: serverGroup.account}) as any;
     if (cluster && cluster.serverGroups) {
@@ -210,27 +308,33 @@ class AppengineServerGroupDetailsController {
     }
   }
 
-  private extractServerGroupFromApp(fromParams: IServerGroupFromStateParams): ServerGroup {
-    let serverGroup = this.app.getDataSource('serverGroups').data.find((toCheck: ServerGroup) => {
-      return toCheck.name === fromParams.name &&
-        toCheck.account === fromParams.accountId &&
-        toCheck.region === fromParams.region;
-    });
+  private extractServerGroup(fromParams: IServerGroupFromStateParams): IPromise<void> {
+    return this.serverGroupReader
+      .getServerGroup(this.app.name, fromParams.accountId, fromParams.region, fromParams.name)
+      .then((serverGroupDetails: ServerGroup) => {
+        let fromApp = this.app.getDataSource('serverGroups').data.find((toCheck: ServerGroup) => {
+          return toCheck.name === fromParams.name &&
+            toCheck.account === fromParams.accountId &&
+            toCheck.region === fromParams.region;
+        });
 
-    if (!serverGroup) {
-      this.app.getDataSource('loadBalancers').data.some((loadBalancer) => {
-        if (loadBalancer.account === fromParams.accountId) {
-          return loadBalancer.serverGroups.some((toCheck: ServerGroup) => {
-            if (toCheck.name === fromParams.name) {
-              serverGroup = toCheck;
-              return true;
+        if (!fromApp) {
+          this.app.getDataSource('loadBalancers').data.some((loadBalancer) => {
+            if (loadBalancer.account === fromParams.accountId) {
+              return loadBalancer.serverGroups.some((toCheck: ServerGroup) => {
+                if (toCheck.name === fromParams.name) {
+                  fromApp = toCheck;
+                  return true;
+                }
+              });
             }
           });
         }
-      });
-    }
 
-    return serverGroup;
+        this.serverGroup = Object.assign(fromApp, serverGroupDetails);
+        this.state.loading = false;
+      })
+      .catch(() => this.autoClose());
   }
 }
 
