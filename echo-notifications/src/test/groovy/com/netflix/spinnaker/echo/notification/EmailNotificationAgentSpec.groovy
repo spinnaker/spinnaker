@@ -37,8 +37,9 @@ class EmailNotificationAgentSpec extends Specification {
   def "subject is correct for a #type #status notification"() {
     given:
     def email = new BlockingVariables()
-    mailService.send(*_) >> { to, subject, text ->
+    mailService.send(*_) >> { to, cc, subject, text ->
       email.to = to
+      email.cc = cc
       email.subject = subject
       email.text = text
     }
@@ -75,8 +76,9 @@ class EmailNotificationAgentSpec extends Specification {
   def "custom text is appended to email body for #status notification"() {
     given:
     def email = new BlockingVariables()
-    mailService.send(*_) >> { to, subject, text ->
+    mailService.send(*_) >> { to, cc, subject, text ->
       email.to = to
+      email.cc = cc
       email.subject = subject
       email.text = text
     }

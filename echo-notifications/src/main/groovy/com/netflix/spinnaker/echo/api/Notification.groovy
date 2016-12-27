@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.api
 class Notification {
   Type notificationType
   Collection<String> to
+  Collection<String> cc
   String templateGroup
   Severity severity
 

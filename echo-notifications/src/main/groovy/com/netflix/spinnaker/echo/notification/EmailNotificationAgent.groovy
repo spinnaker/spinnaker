@@ -73,7 +73,8 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
     log.info("Send Email: ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
 
     sendMessage(
-      [preference.address] as String[],
+      preference.address ? [preference.address] as String[] : null,
+      preference.cc ? [preference.cc] as String[] : null,
       event,
       subject,
       config.type,
@@ -88,7 +89,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
     'email'
   }
 
-  private void sendMessage(String[] email, Event event, String title, String type, String status, String link, String customMessage) {
+  private void sendMessage(String[] email, String[] cc, Event event, String title, String type, String status, String link, String customMessage) {
     def body = VelocityEngineUtils.mergeTemplateIntoString(
       engine,
       type == 'stage' ? 'stage.vm' : 'pipeline.vm',
@@ -106,10 +107,6 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
       ]
     )
 
-    mailService.send(email, title, body)
-  }
-
-  private void sendMessage(String[] email, String title, String text) {
-    mailService.send(email, title, text)
+    mailService.send(email, cc, title, body)
   }
 }

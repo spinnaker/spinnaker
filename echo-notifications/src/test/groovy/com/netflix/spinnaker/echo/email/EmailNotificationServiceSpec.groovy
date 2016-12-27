@@ -25,7 +25,9 @@ import org.springframework.mail.javamail.JavaMailSenderImpl
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
+import javax.mail.Message
 import javax.mail.internet.MimeMessage
 
 class EmailNotificationServiceSpec extends Specification {
@@ -37,7 +39,7 @@ class EmailNotificationServiceSpec extends Specification {
   @Shared
   GreenMail greenMail
 
-  void setupSpec() {
+  void setup() {
     greenMail = new GreenMail(ServerSetupTest.SMTP);
     greenMail.start()
 
@@ -49,18 +51,18 @@ class EmailNotificationServiceSpec extends Specification {
     service.from = 'me@localhost'
   }
 
-  void cleanupSpec() {
+  void cleanup() {
     greenMail.stop()
   }
 
+  @Unroll
   void 'can send an email message correctly'() {
     given:
-    String[] to = ['receiver@localhost']
     String message = 'email body' + GreenMailUtil.random()
     String subject = 'subject' + GreenMailUtil.random()
 
     when:
-    service.send(to, subject, message)
+    service.send(to as String[], cc as String[], subject, message)
 
     then:
     greenMail.waitForIncomingEmail(5000, 1)
@@ -72,6 +74,14 @@ class EmailNotificationServiceSpec extends Specification {
     mail.subject == subject
     GreenMailUtil.getBody(mail) == message
     GreenMailUtil.getAddressList(mail.from) == service.from
+    GreenMailUtil.getAddressList(mail.getRecipients(Message.RecipientType.TO)) == to?.getAt(0)
+    GreenMailUtil.getAddressList(mail.getRecipients(Message.RecipientType.CC)) == cc?.getAt(0)
+
+    where:
+    to                     | cc
+    ['receiver@localhost'] | null
+    null                   | ['some-addr@localhost']
+    ['receiver@localhost'] | ['some-addr@localhost']
   }
 
 }

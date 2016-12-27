@@ -55,21 +55,31 @@ class EmailNotificationService implements NotificationService {
   @Override
   void handle(Notification notification) {
     def to = notification.to as String[]
+    def cc = notification.cc as String[]
     def subject = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.SUBJECT)
     def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
 
-    send(to, subject, body)
+    send(to, cc, subject, body)
   }
 
-  void send(String[] to, String subject, String text) {
+  void send(String[] to, String[] cc, String subject, String text) {
     MimeMessage message = javaMailSender.createMimeMessage()
     MimeMessageHelper helper = new MimeMessageHelper(message)
 
-    helper.setTo(to)
-    helper.setFrom(from)
-    helper.setText(text)
-    helper.setSubject(subject)
+    if (to) {
+      helper.setTo(to)
+    }
 
-    javaMailSender.send(message)
+    if (cc) {
+      helper.setCc(cc)
+    }
+
+    if (to || cc) {
+      helper.setFrom(from)
+      helper.setText(text)
+      helper.setSubject(subject)
+
+      javaMailSender.send(message)
+    }
   }
 }
