@@ -33,8 +33,8 @@ interface Front50Service {
   @GET('/v2/projects/{project}')
   Map getProject(@Path('project') String project)
 
-  @GET('/v2/projects/search')
-  List<Map> searchForProjects(@Query("q") String query)
+  @GET('/v2/projects')
+  List<Map> searchForProjects(@QueryMap Map<String, String> params, @Query("pageSize") Integer pageSize)
 
   @POST('/snapshots')
   Response saveSnapshot(@Body Map snapshot)
