@@ -41,6 +41,16 @@ class SpinnakerUserInfoTokenServicesSpec extends Specification {
       !tokenServices.hasAllUserInfoRequirements(["bar": "foo.com"])
       !tokenServices.hasAllUserInfoRequirements(["bar": "bar.com"])
 
+    when: 'domain restricted by regex expression'
+      userInfoRequirements.hd = "/foo\\.com|bar\\.com/"
+
+    then:
+      !tokenServices.hasAllUserInfoRequirements([:])
+      tokenServices.hasAllUserInfoRequirements(['hd': 'foo.com'])
+      tokenServices.hasAllUserInfoRequirements(['hd': 'bar.com'])
+      !tokenServices.hasAllUserInfoRequirements(['hd': 'baz.com'])
+      !tokenServices.hasAllUserInfoRequirements(['bar': 'foo.com'])
+
     when: "multiple restriction values"
       userInfoRequirements.bar = "bar.com"
 

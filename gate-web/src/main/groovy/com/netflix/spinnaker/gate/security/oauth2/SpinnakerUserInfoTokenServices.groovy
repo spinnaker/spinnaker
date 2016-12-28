@@ -33,6 +33,9 @@ import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 
+import java.util.regex.Pattern
+import java.util.regex.PatternSyntaxException
+
 /**
  * ResourceServerTokenServices is an interface used to manage access tokens. The UserInfoTokenService object is an
  * implementation of that interface that uses an access token to get the logged in user's data (such as email or
@@ -108,12 +111,32 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     }
 
     def invalidFields = userInfoRequirements.findAll { String reqKey, String reqVal ->
-      details[reqKey] != reqVal
+      if (details[reqKey] && isRegexExpression(reqVal)) {
+        return !String.valueOf(details[reqKey]).matches(mutateRegexPattern(reqVal))
+      }
+      return details[reqKey] != reqVal
     }
-    if (log.debugEnabled) {
+    if (!invalidFields && log.debugEnabled) {
       log.debug "Invalid userInfo response: " + invalidFields.collect({k, v -> "got $k=${details[k]}, wanted $v"}).join(", ")
     }
 
     return !invalidFields
+  }
+
+  static boolean isRegexExpression(String val) {
+    if (val.startsWith('/') && val.endsWith('/')) {
+      try {
+        Pattern.compile(val)
+        return true
+      } catch (PatternSyntaxException ignored) {
+        return false
+      }
+    }
+    return false
+  }
+
+  static String mutateRegexPattern(String val) {
+    // "/expr/" -> "expr"
+    val.substring(1, val.length() - 1)
   }
 }
