@@ -198,8 +198,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
                                                         Project oldProject = new Project(name: project.name, lastBuild: build)
                                                         if (build.number != lastBuild
                                                                 || (build.number == lastBuild && cachedBuild.lastBuildBuilding != build.building)) {
-                                                            echoService.postEvent(
-                                                                    new BuildEvent(content: new BuildContent(project: oldProject, master: master)))
+                                                            postEvent(echoService, cachedBuilds, oldProject, master)
                                                         }
                                                     } catch (e) {
                                                         log.error("An error occurred fetching ${master}:${project.name}:${build.number}", e)
@@ -220,11 +219,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
                             if (addToCache) {
                                 project.lastBuild.result = project?.lastBuild?.result ?: project.lastBuild.building ? BUILD_IN_PROGRESS : ""
                                 log.debug "setting result to ${project.lastBuild.result}"
-                                if (echoService) {
-                                    echoService.postEvent(
-                                            new BuildEvent(content: new BuildContent(project: project, master: master))
-                                    )
-                                }
+                                postEvent(echoService, cachedBuilds, project, master)
                                 results << [previous: cachedBuild, current: project]
                             }
                         } catch (e) {
@@ -242,4 +237,19 @@ class JenkinsBuildMonitor implements PollingMonitor {
         results
     }
 
+    static void postEvent(EchoService echoService, List<String> cachedBuildsForMaster, Project project, String master) {
+        if (!cachedBuildsForMaster) {
+            // avoid publishing an event if this master has no indexed builds (protects against a flushed redis)
+            return
+        }
+
+        if (!echoService) {
+            // avoid publishing an event if echo is disabled
+            return
+        }
+
+        echoService.postEvent(
+            new BuildEvent(content: new BuildContent(project: project, master: master))
+        )
+    }
 }

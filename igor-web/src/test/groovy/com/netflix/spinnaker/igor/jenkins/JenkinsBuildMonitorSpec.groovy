@@ -17,16 +17,16 @@
 package com.netflix.spinnaker.igor.jenkins
 
 import com.netflix.spinnaker.igor.history.EchoService
+import com.netflix.spinnaker.igor.history.model.BuildEvent
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
-import rx.Scheduler
 import rx.schedulers.Schedulers
-import rx.schedulers.TestScheduler
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Tests for JenkinsBuildMonitor
@@ -48,7 +48,7 @@ class JenkinsBuildMonitorSpec extends Specification {
     void 'flag a new build not found in the cache'() {
         given:
         1 * cache.getJobNames(MASTER) >> ['job1']
-        1 * jenkinsService.projects >> new ProjectsList(list: [new Project(name: 'job2', lastBuild : new Build(number: 1))])
+        1 * jenkinsService.projects >> new ProjectsList(list: [new Project(name: 'job2', lastBuild: new Build(number: 1))])
 
         when:
         List<Map> builds = monitor.changedBuilds(MASTER)
@@ -65,7 +65,7 @@ class JenkinsBuildMonitorSpec extends Specification {
     void 'flag existing build with a higher number as changed'() {
         given:
         1 * cache.getJobNames(MASTER) >> ['job2']
-        1 * jenkinsService.projects >> new ProjectsList(list: [new Project(name: 'job2',  lastBuild : new Build(number: 5))])
+        1 * jenkinsService.projects >> new ProjectsList(list: [new Project(name: 'job2', lastBuild: new Build(number: 5))])
 
         when:
         List<Map> builds = monitor.changedBuilds(MASTER)
@@ -81,7 +81,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         given:
         1 * cache.getJobNames(MASTER) >> ['job3']
         1 * jenkinsService.projects >> new ProjectsList(
-            list: [new Project(name: 'job3', lastBuild : new Build(number: 5, building: false))]
+            list: [new Project(name: 'job3', lastBuild: new Build(number: 5, building: false))]
         )
 
         when:
@@ -109,7 +109,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         1 * cache.remove(MASTER, 'job4')
     }
 
-    void 'sends an event for every intermediate build'(){
+    void 'sends an event for every intermediate build'() {
         given:
         1 * cache.getJobNames(MASTER) >> ['job']
         1 * jenkinsService.projects >> new ProjectsList(
@@ -134,13 +134,13 @@ class JenkinsBuildMonitorSpec extends Specification {
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildRunning: true]
         1 * cache.setLastBuild(MASTER, 'job', 6, false)
-        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 3})
-        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 4})
-        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 5})
-        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 6})
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 3 })
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 4 })
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 5 })
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 6 })
     }
 
-    void 'emits events only for builds in list'(){
+    void 'emits events only for builds in list'() {
         given:
         1 * cache.getJobNames(MASTER) >> ['job']
         1 * jenkinsService.projects >> new ProjectsList(
@@ -162,11 +162,11 @@ class JenkinsBuildMonitorSpec extends Specification {
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildRunning: true]
         1 * cache.setLastBuild(MASTER, 'job', 6, false)
-        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 3})
-        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 6})
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 3 })
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 6 })
     }
 
-    void 'does not send event for current unchanged build'(){
+    void 'does not send event for current unchanged build'() {
         given:
         1 * cache.getJobNames(MASTER) >> ['job']
         1 * jenkinsService.projects >> new ProjectsList(
@@ -184,7 +184,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         0 * monitor.echoService.postEvent(_)
     }
 
-    void 'does not send event for past build with already sent event'(){
+    void 'does not send event for past build with already sent event'() {
         given:
         1 * cache.getJobNames(MASTER) >> ['job']
         1 * jenkinsService.projects >> new ProjectsList(
@@ -205,11 +205,11 @@ class JenkinsBuildMonitorSpec extends Specification {
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 5, lastBuildBuilding: false]
         1 * cache.setLastBuild(MASTER, 'job', 6, true)
-        0 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 5})
-        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 6})
+        0 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 5 })
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 6 })
     }
 
-    void 'does not send event for same build'(){
+    void 'does not send event for same build'() {
         given:
         1 * cache.getJobNames(MASTER) >> ['job']
         1 * jenkinsService.projects >> new ProjectsList(
@@ -224,11 +224,11 @@ class JenkinsBuildMonitorSpec extends Specification {
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 6, lastBuildBuilding: true]
         0 * jenkinsService.getBuilds('job')
-        0 * monitor.echoService.postEvent({_})
+        0 * monitor.echoService.postEvent({ _ })
     }
 
 
-    void 'sends event for same build that has finished'(){
+    void 'sends event for same build that has finished'() {
         given:
         1 * cache.getJobNames(MASTER) >> ['job']
         1 * jenkinsService.projects >> new ProjectsList(
@@ -242,7 +242,38 @@ class JenkinsBuildMonitorSpec extends Specification {
 
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 6, lastBuildBuilding: false]
-        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 6})
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 6 })
     }
 
+    @Unroll
+    void 'should only publish events if build has been previously seen'() {
+        def echoService = Mock(EchoService)
+        def project = new Project(name: "project")
+        def master = "master"
+
+        when:
+        monitor.postEvent(
+            echoService, cachedBuilds, project, master
+        )
+
+        then:
+        echoServiceCallCount * echoService.postEvent({ BuildEvent event ->
+            assert event.content.project == project
+            assert event.content.master == master
+            return true
+        })
+
+        when: "should short circuit if `echoService` is not available"
+        monitor.postEvent(null, ["job1"], project, master)
+
+        then:
+        notThrown(NullPointerException)
+
+        where:
+        cachedBuilds || echoServiceCallCount
+        null         || 0
+        []           || 0
+        ["job1"]     || 1
+
+    }
 }
