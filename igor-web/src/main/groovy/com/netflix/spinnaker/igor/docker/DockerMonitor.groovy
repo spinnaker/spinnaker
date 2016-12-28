@@ -121,16 +121,7 @@ class DockerMonitor implements PollingMonitor {
                 }
 
                 if (updateCache) {
-                    if (echoService) {
-                        log.info "Sending tagged image info to echo: ${image.account}: ${imageId}"
-                        echoService.postEvent(new DockerEvent(content: new DockerEvent.Content(
-                                registry: image.registry,
-                                repository: image.repository,
-                                tag: image.tag,
-                                digest: image.digest,
-                                account: image.account,
-                        )))
-                    }
+                    postEvent(echoService, cachedImages, image, imageId)
                     cache.setLastDigest(image.account, image.registry, image.repository, image.tag, image.digest)
                 }
             })
@@ -177,5 +168,27 @@ class DockerMonitor implements PollingMonitor {
     @Override
     int getPollInterval() {
         igorConfigurationProperties.spinnaker.build.pollInterval
+    }
+
+    static void postEvent(EchoService echoService, List<String> cachedImagesForAccount, TaggedImage image, String imageId) {
+        if (!cachedImagesForAccount) {
+            // avoid publishing an event if this account has no indexed images (protects against a flushed redis)
+            return
+        }
+
+        if (!echoService) {
+            // avoid publishing an event if echo is disabled
+            return
+        }
+
+        log.info "Sending tagged image info to echo: ${image.account}: ${imageId}"
+
+        echoService.postEvent(new DockerEvent(content: new DockerEvent.Content(
+            registry: image.registry,
+            repository: image.repository,
+            tag: image.tag,
+            digest: image.digest,
+            account: image.account,
+        )))
     }
 }
