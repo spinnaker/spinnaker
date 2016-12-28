@@ -14,6 +14,7 @@
           ng-if="vm.component.credentials && vm.singleRegion"
           ng-model="vm.component.region"
           ng-change="vm.regionChanged()"
+          ng-disabled="vm.disableRegionSelect"
           ng-options="region for region in vm.regions"
           required>
   </select>

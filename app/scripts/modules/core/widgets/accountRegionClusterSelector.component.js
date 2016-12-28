@@ -20,7 +20,9 @@ module.exports = angular
         accounts: '=',
         clusterField: '@',
         singleRegion: '=',
-        showAllRegions: '=?'
+        showAllRegions: '=?',
+        onAccountUpdate: '&?',
+        disableRegionSelect: '=?',
       },
       templateUrl: require('./accountRegionClusterSelector.component.html'),
       controllerAs: 'vm',
@@ -74,6 +76,9 @@ module.exports = angular
           vm.component[this.clusterField] = undefined;
           setRegionList();
           setClusterList();
+          if (vm.onAccountUpdate) {
+            vm.onAccountUpdate();
+          }
         };
 
         let init = () => {
