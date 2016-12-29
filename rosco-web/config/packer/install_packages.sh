@@ -39,7 +39,7 @@ function provision_deb() {
   fi
 
   # Enforce the package installation order.
-  for package in $packages; do sudo apt-get install --force-yes -y $package; done
+  for package in $packages; do sudo DEBIAN_FRONTEND=noninteractive apt-get install --force-yes -y $package; done
 
   # https://www.packer.io/docs/builders/amazon-chroot.html look at gotchas at the end.
   if [[ "$disable_services" == "true" ]]; then
