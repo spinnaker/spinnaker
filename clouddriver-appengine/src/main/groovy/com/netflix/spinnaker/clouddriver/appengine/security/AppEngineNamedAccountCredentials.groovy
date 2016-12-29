@@ -30,6 +30,7 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
   final String project
   final String cloudProvider = AppEngineCloudProvider.ID
   final String region
+  final List<String> regions
   final List<String> requiredGroupMembership
 
   @JsonIgnore
@@ -131,6 +132,7 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
                                                   project,
                                                   AppEngineCloudProvider.ID,
                                                   region,
+                                                  [region],
                                                   requiredGroupMembership,
                                                   jsonPath,
                                                   credentials,
