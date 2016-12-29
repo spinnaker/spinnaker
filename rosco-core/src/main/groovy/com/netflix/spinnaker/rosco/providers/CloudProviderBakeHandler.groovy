@@ -116,9 +116,9 @@ abstract class CloudProviderBakeHandler {
   /**
    * Returns the command that should be prepended to the shell command passed to the container.
    */
-  String getBaseCommand() {
+  String getBaseCommand(String templateName) {
     if (templatesNeedingRoot) {
-      return templatesNeedingRoot.contains(getBakeryDefaults().templateFile) ? "sudo" : ""
+      return templatesNeedingRoot.contains(templateName) ? "sudo" : ""
     } else {
       return ""
     }
@@ -179,13 +179,15 @@ abstract class CloudProviderBakeHandler {
       }
     }
 
-    def finalTemplateFileName = "$configDir/${bakeRequest.template_file_name ?: templateFileName}"
+    def finalTemplateFileName = bakeRequest.template_file_name ?: templateFileName
+    def finaltemplateFilePath = "$configDir/$finalTemplateFileName"
     def finalVarFileName = bakeRequest.var_file_name ? "$configDir/$bakeRequest.var_file_name" : null
+    def baseCommand = getBaseCommand(finalTemplateFileName)
 
     return packerCommandFactory.buildPackerCommand(baseCommand,
                                                    parameterMap,
                                                    finalVarFileName,
-                                                   finalTemplateFileName)
+                                                   finaltemplateFilePath)
   }
 
   protected Map unrollParameters(Map.Entry entry) {
