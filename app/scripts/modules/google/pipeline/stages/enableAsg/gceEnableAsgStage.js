@@ -6,14 +6,13 @@ import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStage', [
   require('core/application/listExtractor/listExtractor.service.js'),
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('./enableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'enableServerGroup',
       cloudProvider: 'gce',
       templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: require('./enableAsgExecutionDetails.html'),
+      executionDetailsUrl: require('core/pipeline/config/stages/enableAsg/templates/enableAsgExecutionDetails.template.html'),
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

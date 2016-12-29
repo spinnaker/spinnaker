@@ -6,7 +6,6 @@ import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.titus.enableAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('./enableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -14,7 +13,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.enableAsgSt
       alias: 'enableAsg',
       cloudProvider: 'titus',
       templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: require('./enableAsgExecutionDetails.html'),
+      executionDetailsUrl: require('core/pipeline/config/stages/enableAsg/templates/enableAsgExecutionDetails.template.html'),
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

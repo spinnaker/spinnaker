@@ -9,14 +9,13 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.enableAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   ACCOUNT_SERVICE,
-  require('./enableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'enableServerGroup',
       cloudProvider: 'cf',
       templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: require('./enableAsgExecutionDetails.html'),
+      executionDetailsUrl: require('core/pipeline/config/stages/enableAsg/templates/enableAsgExecutionDetails.template.html'),
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
