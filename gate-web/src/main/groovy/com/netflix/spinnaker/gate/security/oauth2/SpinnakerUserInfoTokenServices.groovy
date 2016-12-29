@@ -116,7 +116,7 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
       }
       return details[reqKey] != reqVal
     }
-    if (!invalidFields && log.debugEnabled) {
+    if (invalidFields && log.debugEnabled) {
       log.debug "Invalid userInfo response: " + invalidFields.collect({k, v -> "got $k=${details[k]}, wanted $v"}).join(", ")
     }
 
