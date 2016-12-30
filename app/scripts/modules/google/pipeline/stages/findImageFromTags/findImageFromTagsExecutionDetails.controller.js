@@ -5,12 +5,12 @@ import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/execution
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.findImageFromTags.executionDetails.controller', [
+  .module('spinnaker.core.pipeline.stage.findImageFromTags.gce.executionDetails.controller', [
     require('angular-ui-router'),
     EXECUTION_DETAILS_SECTION_SERVICE,
     require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   ])
-  .controller('FindImageFromTagsExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
+  .controller('gceFindImageFromTagsExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['findImageConfig', 'taskStatus'];
 

@@ -32,6 +32,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.baseProviderStage
       }
       if (availableProviders.length === 1) {
         $scope.stage.cloudProviderType = availableProviders[0];
+      } else if (!$scope.stage.cloudProviderType && $scope.stage.cloudProvider) {
+        // This addresses the situation where a pipeline includes a stage from before it was made multi-provider.
+        $scope.stage.cloudProviderType = $scope.stage.cloudProvider;
       } else {
         $scope.providers = availableProviders;
       }

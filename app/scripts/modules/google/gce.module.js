@@ -33,6 +33,7 @@ module.exports = angular.module('spinnaker.gce', [
   require('./pipeline/stages/disableCluster/gceDisableClusterStage.js'),
   require('./pipeline/stages/enableAsg/gceEnableAsgStage.js'),
   require('./pipeline/stages/findAmi/gceFindAmiStage.js'),
+  require('./pipeline/stages/findImageFromTags/gceFindImageFromTagsStage.js'),
   require('./pipeline/stages/resizeAsg/gceResizeAsgStage.js'),
   require('./pipeline/stages/scaleDownCluster/gceScaleDownClusterStage.js'),
   require('./pipeline/stages/shrinkCluster/gceShrinkClusterStage.js'),

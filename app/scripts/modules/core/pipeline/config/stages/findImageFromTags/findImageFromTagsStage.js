@@ -1,35 +1,15 @@
 'use strict';
 
-import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.findImageFromTagsStage', [
-  BAKERY_SERVICE,
+  require('../../pipelineConfigProvider.js')
 ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
+      useBaseProvider: true,
+      key: 'findImageFromTags',
       label: 'Find Image from Tags',
       description: 'Finds an image to deploy from existing tags',
-      key: 'findImageFromTags',
-      cloudProvider: 'aws',
-      controller: 'FindImageFromTagsStageCtrl',
-      controllerAs: 'findImageFromTagsStageCtrl',
-      templateUrl: require('./findImageFromTagsStage.html'),
-      executionDetailsUrl: require('./findImageFromTagsExecutionDetails.html'),
-      validators: [
-        { type: 'requiredField', fieldName: 'packageName', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'tags', },
-      ],
-    });
-  })
-  .controller('FindImageFromTagsStageCtrl', function($scope, bakeryService) {
-    $scope.stage.tags = $scope.stage.tags || {};
-    $scope.stage.regions = $scope.stage.regions || [];
-    $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'aws';
-
-    bakeryService.getRegions('aws').then(function(regions) {
-      $scope.regions = regions;
     });
   });

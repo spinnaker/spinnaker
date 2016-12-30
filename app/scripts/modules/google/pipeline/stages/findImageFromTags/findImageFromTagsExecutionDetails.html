@@ -1,11 +1,13 @@
-<div ng-controller="FindImageFromTagsExecutionDetailsCtrl as findImageFromTagsCtrl">
+<div ng-controller="gceFindImageFromTagsExecutionDetailsCtrl as findImageFromTagsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'findImageConfig'">
     <div class="row">
       <div class="col-md-12">
         <dl class="dl-narrow dl-horizontal">
-          <dt>Regions</dt>
-          <dd>{{stage.context.regions.join(', ')}}</dd>
+          <dt if-multiple-providers>Provider</dt>
+          <dd if-multiple-providers>Google</dd>
+          <dt>Package</dt>
+          <dd>{{stage.context.packageName}}</dd>
           <dt>Tags</dt>
           <dd>
             <span ng-repeat="(key, val) in stage.context.tags">
@@ -24,9 +26,7 @@
           <dl ng-repeat="image in stage.context.amiDetails" class="dl-narrow dl-horizontal">
             <dt>Region</dt>
             <dd>{{image.region}}</dd>
-            <dt>Image ID</dt>
-            <dd>{{image.imageId}}</dd>
-            <dt>Name</dt>
+            <dt>Image</dt>
             <dd>{{image.imageName}}</dd>
           </dl>
         </div>
