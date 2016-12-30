@@ -3,16 +3,17 @@
 require('../configure/serverGroup.configure.gce.module.js');
 
 import _ from 'lodash';
-import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
-
 let angular = require('angular');
+
+import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
+import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
   require('angular-ui-router'),
   require('../configure/serverGroupCommandBuilder.service.js'),
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('core/serverGroup/serverGroup.read.service.js'),
-  require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   require('core/confirmationModal/confirmationModal.service.js'),
   NETWORK_READ_SERVICE,
   require('core/serverGroup/serverGroup.write.service.js'),

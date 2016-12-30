@@ -3,6 +3,7 @@
 import _ from 'lodash';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {VIEW_SCALING_ACTIVITIES_LINK} from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
+import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 require('../configure/serverGroup.configure.aws.module.js');
 
 let angular = require('angular');
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('core/confirmationModal/confirmationModal.service.js'),
   require('core/serverGroup/serverGroup.write.service.js'),
-  require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   require('core/overrideRegistry/override.registry.js'),
   ACCOUNT_SERVICE,
   VIEW_SCALING_ACTIVITIES_LINK,

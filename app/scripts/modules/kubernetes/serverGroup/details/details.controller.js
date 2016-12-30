@@ -1,15 +1,17 @@
 'use strict';
 
 import _ from 'lodash';
-
 let angular = require('angular');
+
+import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
+
 
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
   require('angular-ui-router'),
   require('../configure/configure.kubernetes.module.js'),
   require('core/confirmationModal/confirmationModal.service.js'),
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
-  require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   require('core/serverGroup/serverGroup.read.service.js'),
   require('core/serverGroup/serverGroup.write.service.js'),
   require('core/insight/insightFilterState.model.js'),

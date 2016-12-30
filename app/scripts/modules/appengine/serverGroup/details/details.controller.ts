@@ -4,6 +4,7 @@ import {find, cloneDeep, reduce, mapValues, get, map} from 'lodash';
 import {ServerGroup, Execution} from 'core/domain/index';
 import {Application} from 'core/application/application.model';
 import {IAppengineLoadBalancer, IAppengineServerGroup} from 'appengine/domain/index';
+import {SERVER_GROUP_WARNING_MESSAGE_SERVICE, ServerGroupWarningMessageService} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 
 interface IPrivateScope extends IScope {
   $$destroyed: boolean;
@@ -39,7 +40,7 @@ class AppengineServerGroupDetailsController {
               private serverGroupReader: any,
               public InsightFilterStateModel: any,
               private serverGroupWriter: any,
-              private serverGroupWarningMessageService: any,
+              private serverGroupWarningMessageService: ServerGroupWarningMessageService,
               private confirmationModalService: any,
               private runningExecutionsService: any) {
 
@@ -344,7 +345,7 @@ module(APPENGINE_SERVER_GROUP_DETAILS_CONTROLLER, [
     require('core/confirmationModal/confirmationModal.service.js'),
     require('core/insight/insightFilterState.model.js'),
     require('core/serverGroup/serverGroup.read.service.js'),
-    require('core/serverGroup/details/serverGroupWarningMessage.service.js'),
+    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
     require('core/serverGroup/serverGroup.write.service.js'),
     require('core/serverGroup/configure/common/runningExecutions.service.js'),
   ])
