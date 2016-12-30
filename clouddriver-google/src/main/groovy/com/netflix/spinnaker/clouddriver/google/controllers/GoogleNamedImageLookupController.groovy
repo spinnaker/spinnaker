@@ -17,40 +17,54 @@
 package com.netflix.spinnaker.clouddriver.google.controllers
 
 import com.google.api.services.compute.model.Image
+import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.mem.InMemoryCache
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
+import javax.servlet.http.HttpServletRequest
+
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.IMAGES
+
 @Slf4j
 @RestController
 @RequestMapping("/gce/images")
 class GoogleNamedImageLookupController {
 
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  private final Cache cacheView
 
   @Autowired
-  ImageProvider imageProvider
+  GoogleNamedImageLookupController(Cache cacheView) {
+    this.cacheView = cacheView
+  }
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
-  List<Map> find(LookupOptions lookupOptions) {
-    def imageMap = imageProvider.listImagesByAccount()
+  List<NamedImage> list(LookupOptions lookupOptions, HttpServletRequest request) {
+    def imageMap = listImagesByAccount()
     def results = []
 
     if (lookupOptions.account) {
       def imageList = imageMap?.get(lookupOptions.account) ?: []
 
       results = imageList.collect {
-        [imageName: it.name]
+        new NamedImage(imageName: it.name, attributes: [creationDate: it.creationTimestamp], tags: buildTagsMap(it))
       }
     } else {
       imageMap?.entrySet()?.each { Map.Entry<String, List<Image>> accountNameToImagesEntry ->
         accountNameToImagesEntry.value.each {
-          results << [account: accountNameToImagesEntry.key, imageName: it.name]
+          results << new NamedImage(
+            account: accountNameToImagesEntry.key,
+            imageName: it.name,
+            attributes: [creationDate: it.creationTimestamp],
+            tags: buildTagsMap(it)
+          )
         }
       }
       results.sort { a, b -> a.imageName <=> b.imageName }
@@ -65,7 +79,80 @@ class GoogleNamedImageLookupController {
 
     def pattern = new InMemoryCache.Glob(glob).toPattern()
 
-    return results.findAll { pattern.matcher(it.imageName).matches() }
+    // Filter by query pattern.
+    def matchingResults = results.findAll { pattern.matcher(it.imageName).matches() }
+
+    // Further filter by tags.
+    matchingResults = filter(matchingResults, extractTagFilters(request))
+
+    return matchingResults
+  }
+
+  Map<String, List<Image>> listImagesByAccount() {
+    def filter = cacheView.filterIdentifiers(IMAGES.ns, "$GoogleCloudProvider.ID:*")
+    def result = [:].withDefault { _ -> []}
+
+    cacheView.getAll(IMAGES.ns, filter).each { CacheData cacheData ->
+      def account = Keys.parse(cacheData.id).account
+      result[account] << (cacheData.attributes.image as Image)
+    }
+
+    return result
+  }
+
+  @VisibleForTesting
+  static Map<String, String> buildTagsMap(Image image) {
+    Map<String, String> tags = [:]
+    List<String> descriptionTokens = image.description?.tokenize(",")
+
+    descriptionTokens.each { String descriptionToken ->
+      if (descriptionToken.contains(": ")) {
+        def key = descriptionToken.split(": ")[0].trim()
+        def value = descriptionToken.substring(key.length() + 2).trim()
+
+        tags[key] = value
+      }
+    }
+
+    if (image.labels) {
+      tags += image.labels
+    }
+
+    return tags
+  }
+
+  /**
+   * Apply tag-based filtering to the list of named images.
+   *
+   * For example: /gce/images/find?q=PackageName&tag:stage=released&tag:somekey=someval
+   */
+  private static List<NamedImage> filter(List<NamedImage> namedImages, Map<String, String> tagFilters) {
+    if (!tagFilters) {
+      return namedImages
+    }
+
+    return namedImages.findResults { NamedImage namedImage ->
+      def matches = tagFilters.every {
+        namedImage.tags[it.key.toLowerCase()]?.equalsIgnoreCase(it.value)
+      }
+
+      return matches ? namedImage : null
+    }
+  }
+
+  private static Map<String, String> extractTagFilters(HttpServletRequest httpServletRequest) {
+    return httpServletRequest.getParameterNames().findAll {
+      it.toLowerCase().startsWith("tag:")
+    }.collectEntries { String tagParameter ->
+      [tagParameter.replaceAll("tag:", "").toLowerCase(), httpServletRequest.getParameter(tagParameter)]
+    } as Map<String, String>
+  }
+
+  private static class NamedImage {
+    String account
+    String imageName
+    Map<String, Object> attributes = [:]
+    Map<String, String> tags = [:]
   }
 
   private static class LookupOptions {
@@ -74,7 +161,4 @@ class GoogleNamedImageLookupController {
     String region
   }
 
-  interface ImageProvider {
-    Map<String, List<Image>> listImagesByAccount()
-  }
 }
