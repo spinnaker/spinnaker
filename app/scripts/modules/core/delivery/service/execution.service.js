@@ -278,11 +278,15 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     function synchronizeExecution(current, updated) {
       (updated.stageSummaries || []).forEach((updatedSummary, idx) => {
         let currentSummary = current.stageSummaries[idx];
-        // if the stage was not already completed, update it in place if it has changed to save Angular
-        // from removing, then re-rendering every DOM node
-        if (!updatedSummary.isComplete || !current.isComplete) {
-          if (JSON.stringify(current, jsonReplacer) !== JSON.stringify(updatedSummary, jsonReplacer)) {
-            Object.assign(currentSummary, updatedSummary);
+        if (!currentSummary) {
+          current.stageSummaries.push(updatedSummary);
+        } else {
+          // if the stage was not already completed, update it in place if it has changed to save Angular
+          // from removing, then re-rendering every DOM node
+          if (!updatedSummary.isComplete || !current.isComplete) {
+            if (JSON.stringify(current, jsonReplacer) !== JSON.stringify(updatedSummary, jsonReplacer)) {
+              Object.assign(currentSummary, updatedSummary);
+            }
           }
         }
         current.stringVal = updated.stringVal;
