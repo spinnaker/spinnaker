@@ -222,7 +222,7 @@ class ValidateConfigurationTest(unittest.TestCase):
     def test_verify_baseUrl_only_host_port_path_bad(self):
         tests = {
             'onlypath': '/bad',
-            'undef': 'localhost/${undef}',
+            'undef': 'localhost/${unknown}',
             'badescape0': 'host/bad%',
             'badescape1': 'host/bad%1',
             'badescapeX': 'host/bad%gg',

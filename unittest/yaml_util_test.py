@@ -221,6 +221,18 @@ e:
     with self.assertRaises(ValueError):
       bindings.get('field')
 
+  def test_load_None_strings(self):
+    bindings = YamlBindings()
+    bindings.import_dict({'a': None, 'b': 'B'})
+    bindings.import_dict({'a': 'A', 'b': None})
+    self.assertEqual({'a': 'A', 'b': None}, bindings.map)
+
+  def test_load_None_dict(self):
+    bindings = YamlBindings()
+    bindings.import_dict({'a': None, 'b': {'y': 'Y'}})
+    bindings.import_dict({'a': {'x': 'X'}, 'b': None})
+    self.assertEqual({'a': {'x': 'X'}, 'b': {'y': 'Y'}}, bindings.map)
+
   def test_replace(self):
     bindings = YamlBindings()
     bindings.import_dict({'a': 'A', 'container': {'b': 'B'}})
