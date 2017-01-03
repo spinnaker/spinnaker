@@ -1,14 +1,20 @@
 import {module} from 'angular';
 import {AUTHENTICATION_SERVICE, AuthenticationService} from '../authentication/authentication.service';
 import {TASK_READ_SERVICE, TaskReader, ITask} from 'core/task/task.read.service';
-import {IJob} from '../application/service/application.write.service';
 
 export interface ITaskCommand {
   application?: any;
   project?: any;
   job: IJob[];
   description: string;
+}
 
+export interface IJob {
+  type: string;
+  application: any;
+  account?: string;
+  user?: string;
+  providerType?: string;
 }
 
 export class TaskExecutor {

@@ -1,6 +1,7 @@
 import {mock} from 'angular';
 
-import {APPLICATION_WRITE_SERVICE, ApplicationWriter, IApplicationAttributes, IJob} from './application.write.service';
+import {APPLICATION_WRITE_SERVICE, ApplicationWriter, IApplicationAttributes} from './application.write.service';
+import {IJob} from 'core/task/taskExecutor';
 
 describe('Service: applicationWriter', function () {
   let applicationWriter: ApplicationWriter;

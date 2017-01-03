@@ -1,15 +1,7 @@
 import {cloneDeep} from 'lodash';
 import {module} from 'angular';
 import {Application} from '../application.model';
-import {TASK_EXECUTOR, TaskExecutor} from 'core/task/taskExecutor';
-
-export interface IJob {
-  type: string;
-  application: any;
-  account?: string;
-  user?: string;
-  providerType?: string;
-}
+import {TASK_EXECUTOR, IJob, TaskExecutor} from 'core/task/taskExecutor';
 
 export interface IApplicationAttributes {
   name: string;
