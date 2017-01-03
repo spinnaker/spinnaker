@@ -4,7 +4,7 @@ import {IAppengineStageScope} from 'appengine/domain/index';
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import {AppengineStageCtrl} from '../appengineStage.controller';
 
-class AppengineDisableAsgStageCtrl extends AppengineStageCtrl {
+class AppengineEnableAsgStageCtrl extends AppengineStageCtrl {
   static get $inject() { return ['$scope', 'accountService']; }
 
   constructor(protected $scope: IAppengineStageScope, protected accountService: AccountService) {
@@ -27,27 +27,23 @@ class AppengineDisableAsgStageCtrl extends AppengineStageCtrl {
   }
 }
 
-export const APPENGINE_DISABLE_ASG_STAGE = 'spinnaker.appengine.pipeline.stage.disableAsgStage';
+export const APPENGINE_ENABLE_ASG_STAGE = 'spinnaker.appengine.pipeline.stage.enableAsgStage';
 
-module(APPENGINE_DISABLE_ASG_STAGE, [
+module(APPENGINE_ENABLE_ASG_STAGE, [
   require('core/application/modal/platformHealthOverride.directive.js'),
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider: any) {
     pipelineConfigProvider.registerStage({
-      provides: 'disableServerGroup',
+      provides: 'enableServerGroup',
       cloudProvider: 'appengine',
-      templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: require('core/pipeline/config/stages/disableAsg/templates/disableAsgExecutionDetails.template.html'),
-      executionStepLabelUrl: require('./disableAsgStepLabel.html'),
+      templateUrl: require('./enableAsgStage.html'),
+      executionDetailsUrl: require('core/pipeline/config/stages/enableAsg/templates/enableAsgExecutionDetails.template.html'),
+      executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
-        {
-          type: 'targetImpedance',
-          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
-        },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
+        { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
-      ],
+      ]
     });
-  }).controller('appengineDisableAsgStageCtrl', AppengineDisableAsgStageCtrl);
+  }).controller('appengineEnableAsgStageCtrl', AppengineEnableAsgStageCtrl);

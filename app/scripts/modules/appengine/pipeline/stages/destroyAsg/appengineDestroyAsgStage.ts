@@ -7,7 +7,7 @@ import {AppengineStageCtrl} from '../appengineStage.controller';
 class AppengineDestroyAsgStageCtrl extends AppengineStageCtrl {
   static get $inject() { return ['$scope', 'accountService']; }
 
-  constructor(public $scope: IAppengineStageScope, accountService: AccountService) {
+  constructor(protected $scope: IAppengineStageScope, protected accountService: AccountService) {
     super($scope, accountService);
 
     super.setAccounts()
@@ -17,6 +17,7 @@ class AppengineDestroyAsgStageCtrl extends AppengineStageCtrl {
 
     super.setStageCloudProvider();
     super.setTargets();
+    super.setStageCredentials();
   }
 }
 

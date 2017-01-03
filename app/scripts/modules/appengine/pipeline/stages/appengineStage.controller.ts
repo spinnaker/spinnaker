@@ -5,7 +5,7 @@ import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {IAppengineAccount, IAppengineStageScope} from 'appengine/domain/index';
 
 export class AppengineStageCtrl {
-  constructor(public $scope: IAppengineStageScope, private accountService: AccountService) {}
+  constructor(protected $scope: IAppengineStageScope, protected accountService: AccountService) {}
 
   public setStageRegion(): void {
     let selected = this.$scope.accounts.find((account) => account.name === this.$scope.stage.credentials);
@@ -32,6 +32,12 @@ export class AppengineStageCtrl {
 
     if (!this.$scope.stage.target) {
       this.$scope.stage.target = this.$scope.targets[0].val;
+    }
+  }
+
+  protected setStageCredentials(): void {
+    if (!this.$scope.stage.credentials && this.$scope.application.defaultCredentials.appengine) {
+      this.$scope.stage.credentials = this.$scope.application.defaultCredentials.appengine;
     }
   }
 }
