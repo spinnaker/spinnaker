@@ -57,6 +57,8 @@ google:
       # above, as well as to the 'Google APIs service account' automatically created for
       # the project being managed (should look similar to
       # 12345678912@cloudservices.gserviceaccount.com).
+      # You can read more about sharing images across GCP projects here:
+      # https://cloud.google.com/compute/docs/images/sharing-images-across-projects#granting_a_user_access_to_images
       # imageProjects:
 
 cf:
