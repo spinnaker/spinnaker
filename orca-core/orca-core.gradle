@@ -33,6 +33,8 @@ dependencies {
   compile spinnaker.dependency('kork')
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.6.3"
 
+  compile "org.springframework.security:spring-security-web:3.2.9.RELEASE"
+
   testCompile project(":orca-test")
 }
 

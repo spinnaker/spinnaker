@@ -58,7 +58,7 @@ interface Front50Service {
   @GET("/strategies/{application}")
   List<Map<String, Object>> getStrategies(@Path("application") String application)
 
-  @GET("/pipelines")
+  @GET("/pipelines?restricted=false")
   List<Map<String, Object>> getAllPipelines()
 
   @GET("/strategies")

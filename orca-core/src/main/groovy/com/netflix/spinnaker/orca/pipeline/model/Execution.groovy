@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.User
+import groovy.transform.CompileStatic
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 
 @CompileStatic
@@ -79,7 +81,7 @@ abstract class Execution<T extends Execution<T>> implements Serializable {
 
   static class AuthenticationDetails implements Serializable {
     String user
-    Collection<String> allowedAccounts
+    Collection<String> allowedAccounts = []
 
     static Optional<AuthenticationDetails> build() {
       def spinnakerUserOptional = AuthenticatedRequest.getSpinnakerUser()
@@ -93,6 +95,13 @@ abstract class Execution<T extends Execution<T>> implements Serializable {
       }
 
       return Optional.empty()
+    }
+
+    Optional<User> toKorkUser() {
+      if (!user) {
+        return Optional.empty()
+      }
+      return Optional.of(new User(email: user, allowedAccounts: allowedAccounts).asImmutable())
     }
   }
 

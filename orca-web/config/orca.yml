@@ -32,3 +32,6 @@ redis:
 tasks:
   useWaitForAllNetflixAWSInstancesDownTask: false
 
+logging:
+  config: classpath:logback-defaults.xml
+
