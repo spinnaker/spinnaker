@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.providers;
 
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 
@@ -57,6 +58,6 @@ public abstract class AbstractNamedProviderCommand extends AbstractProviderComma
 
   @Override
   protected void executeThis() {
-    AnsiUi.success(getProvider().toString());
+    AnsiUi.success(AnsiFormatUtils.format(getProvider()));
   }
 }

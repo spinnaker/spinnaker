@@ -20,6 +20,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import java.util.ArrayList;
@@ -65,7 +66,7 @@ public abstract class AbstractGetAccountCommand extends AbstractProviderCommand 
 
   @Override
   protected void executeThis() {
-    AnsiUi.success(getAccount(getAccountName()).toString());
+    AnsiUi.success(AnsiFormatUtils.format(getAccount(getAccountName())));
   }
 
   private Account getAccount(String accountName) {
