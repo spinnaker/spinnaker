@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy
 
+import com.google.api.client.googleapis.batch.BatchRequest
+import com.google.api.client.http.HttpHeaders
+import com.google.api.services.appengine.v1.model.ListVersionsResponse
 import com.google.api.services.appengine.v1.model.Service
 import com.google.api.services.appengine.v1.model.Version
+import com.netflix.spinnaker.clouddriver.appengine.provider.callbacks.AppEngineCallback
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 
@@ -29,9 +33,23 @@ class AppEngineUtils {
     task.updateStatus phase, "Querying all versions for project $project..."
     def services = queryAllServices(project, credentials, task, phase)
 
-    services.collect { service ->
-      queryVersionsForService(project, parseResourceName(service.getName()), credentials, task, phase)
+    BatchRequest batch = credentials.appengine.batch()
+    def allVersions = []
+
+    services.each { service ->
+      def callback = new AppEngineCallback<ListVersionsResponse>()
+        .success { ListVersionsResponse versionsResponse, HttpHeaders responseHeaders ->
+          def versions = versionsResponse.getVersions()
+          if (versions) {
+            allVersions << versions
+          }
+        }
+
+      credentials.appengine.apps().services().versions().list(project, service.getId()).queue(batch, callback)
     }.flatten() as List<Version>
+
+    batch.execute()
+    return allVersions.flatten()
   }
 
   static List<Service> queryAllServices(String project,
@@ -39,7 +57,7 @@ class AppEngineUtils {
                                         Task task,
                                         String phase) {
     task.updateStatus phase, "Querying services for project $project..."
-    credentials.appengine.apps().services().list(project).execute().getServices()
+    return credentials.appengine.apps().services().list(project).execute().getServices()
   }
 
   static List<Version> queryVersionsForService(String project,
@@ -48,10 +66,6 @@ class AppEngineUtils {
                                                Task task,
                                                String phase) {
     task.updateStatus phase, "Querying versions for project $project and service $service"
-    credentials.appengine.apps().services().versions().list(project, service).execute().getVersions()
-  }
-
-  static String parseResourceName(String resourceName) {
-    resourceName.split('/').last()
+    return credentials.appengine.apps().services().versions().list(project, service).execute().getVersions()
   }
 }

@@ -59,7 +59,7 @@ class AppEngineServerGroupNameResolver extends AbstractServerGroupNameResolver {
     }
 
     return versions.findResults { version ->
-      def versionName = AppEngineUtils.parseResourceName(version.getName())
+      def versionName = version.getId()
       def friggaNames = Names.parseName(versionName)
 
       if (friggaNames.cluster == clusterName) {
