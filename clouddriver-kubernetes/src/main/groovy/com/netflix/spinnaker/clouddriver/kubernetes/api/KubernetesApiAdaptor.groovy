@@ -413,7 +413,8 @@ class KubernetesApiAdaptor {
 
   Map<String, HorizontalPodAutoscaler> getAutoscalers(String namespace, String kind) {
     exceptionWrapper("Get Autoscalers", namespace) {
-      client.extensions().horizontalPodAutoscalers().inNamespace(namespace).list().items.collectEntries { def autoscaler ->
+      def items = client.extensions().horizontalPodAutoscalers().inNamespace(namespace).list().items ?: []
+      items.collectEntries { def autoscaler ->
         autoscaler.spec.scaleRef.kind == kind ? [(autoscaler.metadata.name): autoscaler] : [:]
       }
     }
