@@ -24,7 +24,9 @@ import com.netflix.spinnaker.clouddriver.appengine.cache.Keys
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineLoadBalancer
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineServerGroup
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class AppEngineProviderUtils {
   static AppEngineServerGroup serverGroupFromCacheData(ObjectMapper objectMapper,
                                                        CacheData cacheData,
@@ -35,14 +37,25 @@ class AppEngineProviderUtils {
   }
 
   static AppEngineInstance instanceFromCacheData(ObjectMapper objectMapper, CacheData instanceData) {
-    def instance = objectMapper.convertValue(instanceData.attributes.instance, AppEngineInstance)
-    def loadBalancers = instanceData.relationships[Keys.Namespace.LOAD_BALANCERS.ns]?.collect { Keys.parse(it).name } ?: []
-    instance.loadBalancers = loadBalancers
+    if (!instanceData) {
+      return null
+    } else {
+      def instance = objectMapper.convertValue(instanceData.attributes.instance, AppEngineInstance)
+      def loadBalancers = instanceData.relationships[Keys.Namespace.LOAD_BALANCERS.ns]?.collect { Keys.parse(it).name } ?: []
+      if (!loadBalancers) {
+        log.warn("Load balancers not found for instance ${instance.name}.")
+      }
 
-    def serverGroup = instanceData.relationships[Keys.Namespace.SERVER_GROUPS.ns]?.collect { Keys.parse(it).name }?.first()
-    instance.serverGroup = serverGroup
+      instance.loadBalancers = loadBalancers
 
-    instance
+      def serverGroup = instanceData.relationships[Keys.Namespace.SERVER_GROUPS.ns]?.collect { Keys.parse(it).name }?.first()
+      if (!serverGroup) {
+        log.warn("Server group not found for instance ${instance.name}.")
+      }
+      instance.serverGroup = serverGroup
+
+      return instance
+    }
   }
 
   static AppEngineLoadBalancer loadBalancerFromCacheData(ObjectMapper objectMapper,

@@ -20,7 +20,10 @@ import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineIll
 import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineLoadBalancer
+import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineScalingPolicy
+import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineServerGroup
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
+import com.netflix.spinnaker.clouddriver.appengine.model.ScalingPolicyType
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineClusterProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineInstanceProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineLoadBalancerProvider
@@ -232,5 +235,30 @@ class StandardAppEngineAttributeValidator {
       valid = false
     }
     return valid
+  }
+
+  def validateServingStatusCanBeChanged(String serverGroupName,
+                                        AppEngineNamedAccountCredentials credentials,
+                                        AppEngineClusterProvider clusterProvider,
+                                        String attribute) {
+    def serverGroup = clusterProvider.getServerGroup(credentials.name, credentials.region, serverGroupName)
+    if (!serverGroup) {
+      errors.rejectValue("${context}.${attribute}",
+                         "${context}.${attribute}.invalid (Server group $serverGroupName not found).")
+      return false
+    }
+
+    def isFlex = serverGroup.env == AppEngineServerGroup.Environment.FLEXIBLE
+    def usesManualScaling = serverGroup.scalingPolicy?.type == ScalingPolicyType.MANUAL
+    def usesBasicScaling = serverGroup.scalingPolicy?.type == ScalingPolicyType.BASIC
+
+    if (!(isFlex || usesBasicScaling || usesManualScaling)) {
+      errors.rejectValue("${context}.${attribute}",
+                         "${context}.${attribute}.invalid (Only server groups that use the flexible environment," +
+                         " or use basic or manual scaling can be started or stopped).")
+      return false
+    } else {
+      return true
+    }
   }
 }

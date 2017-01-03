@@ -35,6 +35,8 @@ final class AtomicOperations {
   public static final String DELETE_SCALING_POLICY = "deleteScalingPolicy"
   public static final String MIGRATE_SERVER_GROUP = "migrateServerGroup"
   public static final String MIGRATE_CLUSTER_CONFIGURATIONS = "migrateClusterConfigurations"
+  public static final String START_SERVER_GROUP = "startServerGroup"
+  public static final String STOP_SERVER_GROUP = "stopServerGroup"
 
   // Instance operations
   public static final String REBOOT_INSTANCES = "rebootInstances"

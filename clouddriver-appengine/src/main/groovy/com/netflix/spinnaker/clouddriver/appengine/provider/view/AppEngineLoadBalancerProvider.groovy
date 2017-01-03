@@ -76,7 +76,7 @@ class AppEngineLoadBalancerProvider implements LoadBalancerProvider<AppEngineLoa
         .collect {
           Set<AppEngineInstance> instances = AppEngineProviderUtils
             .resolveRelationshipData(cacheView, it, Namespace.INSTANCES.ns)
-            .collect { AppEngineProviderUtils.instanceFromCacheData(objectMapper, it) }
+            .findResults { AppEngineProviderUtils.instanceFromCacheData(objectMapper, it) }
           AppEngineProviderUtils.serverGroupFromCacheData(objectMapper, it, instances)
         }
 

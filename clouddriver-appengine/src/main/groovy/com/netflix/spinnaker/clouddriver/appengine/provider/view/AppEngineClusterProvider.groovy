@@ -81,7 +81,7 @@ class AppEngineClusterProvider implements ClusterProvider<AppEngineCluster> {
     }
 
     Set<AppEngineInstance> instances = cacheView.getAll(INSTANCES.ns, serverGroupData.relationships[INSTANCES.ns])
-      .collect { AppEngineProviderUtils.instanceFromCacheData(objectMapper, it) }
+      .findResults { AppEngineProviderUtils.instanceFromCacheData(objectMapper, it) }
 
     AppEngineProviderUtils.serverGroupFromCacheData(objectMapper, serverGroupData, instances)
   }
@@ -165,7 +165,7 @@ class AppEngineClusterProvider implements ClusterProvider<AppEngineCluster> {
                                              RelationshipCacheFilter.none())
 
     def instances = instanceCacheDataMap.collectEntries { String key, Collection<CacheData> cacheData ->
-        [(key): cacheData.collect { AppEngineProviderUtils.instanceFromCacheData(objectMapper, it) } as Set ]
+        [(key): cacheData.findResults { AppEngineProviderUtils.instanceFromCacheData(objectMapper, it) } as Set ]
     }
 
     return serverGroupData
