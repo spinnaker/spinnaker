@@ -47,17 +47,29 @@ flag:
 $ hal config provider PROVIDER --no-validate
 ```
 
+You can also enable/disable providers:
+
+```
+$ hal config provider PROVIDER enable
+$ hal config provider PROVIDER disable
+```
+
 If you want to examine only a particular account's configuration, run:
 
 ```
 $ hal config provider PROVIDER get-account ACCOUNT
 ```
 
-You can also enable/disable providers:
+To add an account, run:
 
 ```
-$ hal config provider PROVIDER enable
-$ hal config provider PROVIDER disable
+$ hal config provider PROVIDER add-account --account-name ACCOUNT-NAME [provider-specific flags]
+```
+
+To delete an account, run:
+
+```
+$ hal config provider PROVIDER delete-account --account-name ACCOUNT-NAME
 ```
 
 #### hal config generate

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import java.util.List;
 import retrofit.http.Body;
+import retrofit.http.DELETE;
 import retrofit.http.GET;
 import retrofit.http.POST;
 import retrofit.http.PUT;
@@ -83,4 +84,11 @@ public interface DaemonService {
       @Path("accountName") String accountName,
       @Query("validate") boolean validate,
       @Body Account account);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/{accountName}/")
+  DaemonResponse<Object> deleteAccount(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("accountName") String accountName,
+      @Query("validate") boolean validate);
 }

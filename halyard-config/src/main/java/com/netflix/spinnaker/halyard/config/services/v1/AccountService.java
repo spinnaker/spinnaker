@@ -111,6 +111,19 @@ public class AccountService {
     throw new HalconfigException(new ProblemBuilder(Severity.FATAL, "Account \"" + accountName + "\" wasn't found").build());
   }
 
+  public void deleteAccount(NodeReference reference) {
+    String accountName = reference.getAccount();
+
+    Provider provider = providerService.getProvider(reference);
+    boolean removed = provider.getAccounts().removeIf(account -> ((Account) account).getName().equals(accountName));
+
+    if (!removed) {
+      throw new HalconfigException(
+          new ProblemBuilder(Severity.FATAL, "Account \"" + accountName + "\" wasn't found")
+              .build());
+    }
+  }
+
   public void addAccount(NodeReference reference, Account newAccount) {
     Provider provider = providerService.getProvider(reference);
     provider.getAccounts().add(newAccount);

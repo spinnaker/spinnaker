@@ -89,6 +89,33 @@ public class AccountController {
     return builder.build();
   }
 
+  @RequestMapping(value = "/{accountName:.+}", method = RequestMethod.DELETE)
+  DaemonResponse<Void> deleteAccount(
+      @PathVariable String deploymentName,
+      @PathVariable String providerName,
+      @PathVariable String accountName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    NodeReference reference = new NodeReference()
+        .setDeployment(deploymentName)
+        .setProvider(providerName)
+        .setAccount(accountName);
+
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setUpdate(() -> accountService.deleteAccount(reference));
+
+    Supplier<ProblemSet> doValidate = ProblemSet::new;
+    if (validate) {
+      doValidate = () -> accountService.validateAccount(reference, severity);
+    }
+
+    builder.setValidate(doValidate);
+    builder.setHalconfigParser(halconfigParser);
+
+    return builder.build();
+  }
+
   @RequestMapping(value = "/{accountName:.+}", method = RequestMethod.PUT)
   DaemonResponse<Void> setAccount(
       @PathVariable String deploymentName,
