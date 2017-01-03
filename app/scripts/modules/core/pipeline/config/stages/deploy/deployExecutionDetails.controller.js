@@ -2,6 +2,8 @@
 
 import moment from 'moment';
 import _ from 'lodash';
+
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
@@ -14,7 +16,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
   EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   URL_BUILDER_SERVICE,
-  require('core/cloudProvider/cloudProvider.registry'),
+  CLOUD_PROVIDER_REGISTRY,
   NAMING_SERVICE,
 ])
   .controller('DeployExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,

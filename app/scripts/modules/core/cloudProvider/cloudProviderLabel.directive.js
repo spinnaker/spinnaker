@@ -1,12 +1,14 @@
 'use strict';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
 let angular = require('angular');
 
 require('./cloudProviderLogo.less');
 
 module.exports = angular
   .module('spinnaker.core.cloudProviderLabel.directive', [
-    require('./cloudProvider.registry.js'),
+    CLOUD_PROVIDER_REGISTRY,
   ])
   .directive('cloudProviderLabel', function (cloudProviderRegistry) {
     return {

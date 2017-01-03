@@ -1,5 +1,6 @@
 'use strict';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {TITUS_MIGRATION_CONFIG_COMPONENT} from './migration/titusMigrationConfig.component';
 import {TITUS_APPLICATION_NAME_VALIDATOR} from './validation/applicationName.validator';
 
@@ -14,7 +15,7 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.titus', [
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('./securityGroup/securityGroup.read.service'),
   require('./serverGroup/details/serverGroupDetails.titus.controller.js'),
   require('./serverGroup/configure/ServerGroupCommandBuilder.js'),

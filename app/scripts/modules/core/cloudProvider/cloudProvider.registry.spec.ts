@@ -1,21 +1,23 @@
-'use strict';
+import {mock} from 'angular';
+
+import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from './cloudProvider.registry';
 
 describe('cloudProviderRegistry: API', function() {
-  var configurer;
+  let configurer: CloudProviderRegistry;
 
   beforeEach(
-    window.module(
-      require('./cloudProvider.registry.js'),
-      function(cloudProviderRegistryProvider) {
+    mock.module(
+      CLOUD_PROVIDER_REGISTRY,
+      function(cloudProviderRegistryProvider: CloudProviderRegistry) {
         configurer = cloudProviderRegistryProvider;
       }
     )
   );
 
   describe('registration', function() {
-    it('registers providers', window.inject(function() {
-      expect(configurer.$get().getProvider('aws')).toBeUndefined();
-      var config = { key: 'a' };
+    it('registers providers', mock.inject(function() {
+      expect(configurer.$get().getProvider('aws')).toBeNull();
+      const config = { name: 'a', key: 'a' };
       configurer.registerProvider('aws', config);
       expect(configurer.$get().getProvider('aws')).toEqual(config);
     }));
@@ -48,20 +50,20 @@ describe('cloudProviderRegistry: API', function() {
       expect(configurer.$get().getValue('aws', 'nested')).toEqual(this.config.nested);
 
       // the above tests should be sufficient, but just to really drive home the point
-      var nested = configurer.$get().getValue('aws', 'nested');
+      const nested = configurer.$get().getValue('aws', 'nested');
       expect(nested.good).toBe('nice');
       nested.good = 'mean';
       expect(configurer.$get().getValue('aws', 'nested').good).toBe('nice');
     });
 
-    it('returns falsy values', window.inject(function() {
+    it('returns falsy values', mock.inject(function() {
       configurer.registerProvider('aws', this.config);
       expect(configurer.$get().getValue('aws', 'nested.falsy')).toBe(false);
       expect(configurer.$get().getValue('aws', 'nested.nully')).toBe(null);
       expect(configurer.$get().getValue('aws', 'nested.zero')).toBe(0);
     }));
 
-    it('returns null when provider or property is not found', window.inject(function() {
+    it('returns null when provider or property is not found', mock.inject(function() {
       configurer.registerProvider('aws', this.config);
       expect(configurer.$get().getValue('gce', 'a')).toBe(null);
       expect(configurer.$get().getValue('aws', 'b')).toBe(null);

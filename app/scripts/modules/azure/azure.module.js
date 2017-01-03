@@ -1,5 +1,7 @@
 'use strict';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
 let angular = require('angular');
 
 // load all templates into the $templateCache
@@ -13,7 +15,7 @@ module.exports = angular.module('spinnaker.azure', [
   require('./pipeline/stages/enableAsg/azureEnableAsgStage.js'),
   require('./pipeline/stages/disableAsg/azureDisableAsgStage.js'),
   require('./pipeline/stages/bake/azureBakeStage.js'),
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('./serverGroup/details/serverGroup.details.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
   require('./serverGroup/configure/wizard/CloneServerGroup.azure.controller.js'),

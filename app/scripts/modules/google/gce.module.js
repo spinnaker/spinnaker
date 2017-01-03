@@ -2,6 +2,7 @@
 
 let angular = require('angular');
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {LOAD_BALANCER_SET_TRANSFORMER} from './loadBalancer/loadBalancer.setTransformer';
 import {GCE_INTERNAL_LOAD_BALANCER_CTRL} from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
 import {GCE_SSL_LOAD_BALANCER_CTRL} from './loadBalancer/configure/ssl/gceCreateSslLoadBalancer.controller';
@@ -16,7 +17,7 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.gce', [
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   LOAD_BALANCER_SET_TRANSFORMER,
   GCE_INTERNAL_LOAD_BALANCER_CTRL,
   GCE_LOAD_BALANCER_CHOICE_MODAL,

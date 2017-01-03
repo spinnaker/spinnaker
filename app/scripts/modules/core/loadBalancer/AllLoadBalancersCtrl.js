@@ -1,5 +1,7 @@
 'use strict';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
@@ -8,7 +10,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
   require('./filter/loadBalancer.filter.service.js'),
   require('./filter/loadBalancer.filter.model.js'),
   require('../filterModel/filter.tags.directive.js'),
-  require('../cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
 ])
   .controller('AllLoadBalancersCtrl', function($scope, $uibModal, $timeout,
                                                providerSelectionService, cloudProviderRegistry,

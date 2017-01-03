@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
@@ -11,7 +12,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
   require('../../../presentation/isVisible/isVisible.directive.js'),
   require('../../../modal/wizard/modalWizard.service.js'),
   V2_MODAL_WIZARD_SERVICE,
-  require('../../../cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
 ])
   .directive('v2InstanceArchetypeSelector', function() {
     return {

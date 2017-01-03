@@ -1,19 +1,20 @@
 'use strict';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
 describe('providerSelectionService: API', () => {
 
   let cloudProvider;
   beforeEach(
     window.module(
-      require('../cloudProvider.registry'),
+      CLOUD_PROVIDER_REGISTRY,
       function (cloudProviderRegistryProvider) {
         cloudProvider = cloudProviderRegistryProvider;
       }
     )
   );
 
-  beforeEach(window.module(require('./providerSelection.service'),ACCOUNT_SERVICE));
+  beforeEach(window.module(require('./providerSelection.service'), ACCOUNT_SERVICE));
 
   // required to ensure registry provider is available
   let $q, $scope, $modal, accountService, cloudProviderRegistry, providerService;

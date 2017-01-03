@@ -1,4 +1,5 @@
 import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
 let angular = require('angular');
 
@@ -41,6 +42,7 @@ module.exports = angular
     require('./tableau/states'),
     require('./ci/ci.module'),
     APPLICATION_DATA_SOURCE_REGISTRY,
+    CLOUD_PROVIDER_REGISTRY,
   ])
   .run(function(cloudProviderRegistry, applicationDataSourceRegistry, settings) {
     if (settings.feature && settings.feature.netflixMode) {

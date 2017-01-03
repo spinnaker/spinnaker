@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
 let angular = require('angular');
 
@@ -16,13 +17,12 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   require('core/config/settings.js'),
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('core/instance/details/instanceLinks.component'),
 ])
   .controller('awsInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel, settings,
-                                               instanceWriter, confirmationModalService, recentHistoryService,
-                                                  cloudProviderRegistry,
-                                               instanceReader, instance, app, $q, overrides) {
+                                                  instanceWriter, confirmationModalService, recentHistoryService,
+                                                  cloudProviderRegistry, instanceReader, instance, app, $q, overrides) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');

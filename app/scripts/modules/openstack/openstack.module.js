@@ -1,5 +1,7 @@
 'use strict';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
 let angular = require('angular');
 
 require('./logo/openstack.logo.less');
@@ -23,7 +25,7 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./securityGroup/transformer.js'),
   require('./validation/applicationName.validator.js'),
   require('./cache/cacheConfigurer.service.js'),
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('./loadBalancer/configure/configure.openstack.module.js'),
   require('./loadBalancer/details/details.openstack.module.js'),
   require('./loadBalancer/transformer.js'),

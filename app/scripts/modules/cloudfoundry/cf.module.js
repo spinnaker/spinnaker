@@ -1,5 +1,7 @@
 'use strict';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
 let angular = require('angular');
 
 require('./logo/cf.logo.less');
@@ -11,7 +13,7 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.cf', [
-    require('core/cloudProvider/cloudProvider.registry.js'),
+    CLOUD_PROVIDER_REGISTRY,
     require('./instance/cfInstanceTypeService.js'),
     require('./serverGroup/details/serverGroupDetails.cf.controller.js'),
     require('./serverGroup/configure/ServerGroupCommandBuilder.js'),

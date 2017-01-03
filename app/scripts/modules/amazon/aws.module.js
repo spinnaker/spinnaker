@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 import {AMAZON_APPLICATION_NAME_VALIDATOR} from './validation/applicationName.validator';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
 require('./logo/aws.logo.less');
 
@@ -13,7 +14,7 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.aws', [
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('./pipeline/stages/bake/awsBakeStage.js'),
   require('./pipeline/stages/cloneServerGroup/awsCloneServerGroupStage.js'),
   require('./pipeline/stages/destroyAsg/awsDestroyAsgStage.js'),

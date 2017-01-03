@@ -1,6 +1,7 @@
 'use strict';
 
 import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
 let angular = require('angular');
 
@@ -11,7 +12,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
   require('./stateHelper.provider.js'),
   require('../delivery/states.js'),
   require('../config/settings.js'),
-  require('../cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('../projects/project.controller.js'),
   require('../projects/dashboard/dashboard.controller.js'),
   require('../projects/service/project.read.service.js'),

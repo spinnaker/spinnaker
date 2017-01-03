@@ -1,8 +1,9 @@
 import {module} from 'angular';
 import {
-  APPLICATION_NAME_VALIDATOR, IApplicationNameValidator, IApplicationNameValidationResult,
+  APPLICATION_NAME_VALIDATOR, IApplicationNameValidator,
   ApplicationNameValidator, IValidationResult
 } from './applicationName.validator';
+import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 
 export class ExampleApplicationNameValidator implements IApplicationNameValidator {
 
@@ -79,7 +80,7 @@ export const EXAMPLE_APPLICATION_NAME_VALIDATOR = 'spinnaker.core.application.mo
 
 module(EXAMPLE_APPLICATION_NAME_VALIDATOR, [
   APPLICATION_NAME_VALIDATOR,
-  require('../../../cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('core/config/settings.js'),
 ]).service('exampleApplicationNameValidator', ExampleApplicationNameValidator)
   .service('exampleApplicationNameValidator2', ExampleApplicationNameValidator2)
@@ -89,9 +90,9 @@ module(EXAMPLE_APPLICATION_NAME_VALIDATOR, [
     applicationNameValidator.registerValidator('example', exampleApplicationNameValidator);
     applicationNameValidator.registerValidator('example2', exampleApplicationNameValidator2);
   })
-  .config((cloudProviderRegistryProvider: any, settings: any) => {
+  .config((cloudProviderRegistryProvider: CloudProviderRegistry, settings: any) => {
     settings.providers.example = {};
     settings.providers.example2 = {};
-    cloudProviderRegistryProvider.registerProvider('example', {});
-    cloudProviderRegistryProvider.registerProvider('example2', {});
+    cloudProviderRegistryProvider.registerProvider('example', {name: 'example'});
+    cloudProviderRegistryProvider.registerProvider('example2', {name: 'example2'});
   });

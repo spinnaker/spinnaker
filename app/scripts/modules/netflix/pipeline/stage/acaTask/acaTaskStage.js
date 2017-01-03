@@ -1,10 +1,12 @@
 'use strict';
 
-let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
+let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage', [
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('core/config/settings.js'),
   require('../canary/canaryExecutionSummary.controller'),
   ACCOUNT_SERVICE,
