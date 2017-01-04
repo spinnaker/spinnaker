@@ -94,6 +94,11 @@
                ng-model="command.appYamlPath"/></div>
     </div>
 
+    <deployment-strategy-selector label-columns="3"
+                                  field-columns="7"
+                                  ng-if="!command.viewState.disableStrategySelection"
+                                  command="command"></deployment-strategy-selector>
+
     <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
       <div class="col-md-12">
         <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">

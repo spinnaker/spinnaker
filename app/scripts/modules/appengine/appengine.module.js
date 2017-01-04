@@ -51,6 +51,7 @@ module(APPENGINE_MODULE, [
         commandBuilder: 'appengineServerGroupCommandBuilder',
         cloneServerGroupController: 'appengineCloneServerGroupCtrl',
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
+        skipUpstreamStageCheck: true,
       },
       loadBalancer: {
         transformer: 'appengineLoadBalancerTransformer',

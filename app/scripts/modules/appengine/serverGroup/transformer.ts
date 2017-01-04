@@ -3,9 +3,11 @@ import {module} from 'angular';
 import {ServerGroup} from 'core/domain/index';
 import {IAppengineServerGroupCommand} from './configure/serverGroupCommandBuilder.service';
 
-class AppengineDeployDescription {
+export class AppengineDeployDescription {
   cloudProvider: string = 'appengine';
+  provider: string = 'appengine';
   credentials: string;
+  account: string;
   application: string;
   stack?: string;
   freeFormDetails?: string;
@@ -16,9 +18,13 @@ class AppengineDeployDescription {
   stopPreviousVersion?: boolean;
   type: string;
   region: string;
+  strategy?: string;
+  strategyApplication?: string;
+  strategyPipeline?: string;
 
   constructor(command: IAppengineServerGroupCommand) {
     this.credentials = command.credentials;
+    this.account = command.credentials;
     this.application = command.application;
     this.stack = command.stack;
     this.freeFormDetails = command.freeFormDetails;
@@ -29,6 +35,9 @@ class AppengineDeployDescription {
     this.stopPreviousVersion = command.stopPreviousVersion;
     this.type = command.type;
     this.region = command.region;
+    this.strategy = command.strategy;
+    this.strategyApplication = command.strategyApplication;
+    this.strategyPipeline = command.strategyPipeline;
   }
 }
 

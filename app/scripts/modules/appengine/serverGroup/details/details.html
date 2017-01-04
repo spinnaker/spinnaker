@@ -43,7 +43,7 @@
             </a>
           </li>
           <li ng-if="!ctrl.serverGroup.disabled && !ctrl.canDisableServerGroup()"
-              uib-tooltip="You cannot disable a server group if it is the 
+              uib-tooltip="You cannot disable a server group if it is the
                            only server group receiving traffic from a load balancer."
               class="disabled">
             <a href>
@@ -53,8 +53,8 @@
           <li ng-if="ctrl.canDisableServerGroup()">
             <a href ng-click="ctrl.destroyServerGroup()">Destroy</a>
           </li>
-          <li ng-if="!ctrl.canDisableServerGroup()" 
-              uib-tooltip="You cannot destroy a server group if it is the only server group 
+          <li ng-if="!ctrl.canDisableServerGroup()"
+              uib-tooltip="You cannot destroy a server group if it is the only server group
                            receiving traffic from a load balancer. You may be able to delete
                            this server group's load balancer."
               class="disabled">
@@ -105,7 +105,6 @@
           </div>
         </div>
       </div>
-      
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
