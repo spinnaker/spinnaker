@@ -87,13 +87,14 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
       machineTypeName = GCEUtil.queryMachineType(description.instanceType, zone, credentials, task, BASE_PHASE)
     }
 
-    def sourceImage = GCEUtil.querySourceImage(project,
-                                               description,
-                                               compute,
-                                               task,
-                                               BASE_PHASE,
-                                               clouddriverUserAgentApplicationName,
-                                               googleConfigurationProperties.baseImageProjects)
+    def sourceImage = GCEUtil.queryImage(project,
+                                         description.image,
+                                         credentials,
+                                         compute,
+                                         task,
+                                         BASE_PHASE,
+                                         clouddriverUserAgentApplicationName,
+                                         googleConfigurationProperties.baseImageProjects)
 
     def network = GCEUtil.queryNetwork(accountName, description.network ?: DEFAULT_NETWORK_NAME, task, BASE_PHASE, googleNetworkProvider)
 

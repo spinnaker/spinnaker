@@ -34,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
@@ -139,13 +138,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       machineTypeName = GCEUtil.queryMachineType(description.instanceType, location, credentials, task, BASE_PHASE)
     }
 
-    def sourceImage = GCEUtil.querySourceImage(project,
-                                               description,
-                                               compute,
-                                               task,
-                                               BASE_PHASE,
-                                               clouddriverUserAgentApplicationName,
-                                               googleConfigurationProperties.baseImageProjects)
+    def sourceImage = GCEUtil.queryImage(project,
+                                         description.image,
+                                         credentials,
+                                         compute,
+                                         task,
+                                         BASE_PHASE,
+                                         clouddriverUserAgentApplicationName,
+                                         googleConfigurationProperties.baseImageProjects)
 
     def network = GCEUtil.queryNetwork(accountName, description.network ?: DEFAULT_NETWORK_NAME, task, BASE_PHASE, googleNetworkProvider)
 

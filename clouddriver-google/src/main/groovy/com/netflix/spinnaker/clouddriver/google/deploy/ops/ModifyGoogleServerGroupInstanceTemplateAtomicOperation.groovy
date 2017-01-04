@@ -152,13 +152,14 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
       if (overriddenProperties.image
           || overriddenProperties.disks
           || overriddenProperties.instanceType) {
-        def sourceImage = GCEUtil.querySourceImage(project,
-                                                   newDescription,
-                                                   compute,
-                                                   task,
-                                                   BASE_PHASE,
-                                                   clouddriverUserAgentApplicationName,
-                                                   googleConfigurationProperties.baseImageProjects)
+        def sourceImage = GCEUtil.queryImage(project,
+                                             description.image,
+                                             credentials,
+                                             compute,
+                                             task,
+                                             BASE_PHASE,
+                                             clouddriverUserAgentApplicationName,
+                                             googleConfigurationProperties.baseImageProjects)
         def attachedDisks = GCEUtil.buildAttachedDisks(project,
                                                        null,
                                                        sourceImage,

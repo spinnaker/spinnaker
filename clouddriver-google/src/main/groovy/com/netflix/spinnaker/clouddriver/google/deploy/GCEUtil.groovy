@@ -70,24 +70,24 @@ class GCEUtil {
     }
   }
 
-  static Image querySourceImage(String projectName,
-                                BaseGoogleInstanceDescription description,
-                                Compute compute,
-                                Task task,
-                                String phase,
-                                String clouddriverUserAgentApplicationName,
-                                List<String> baseImageProjects) {
-    task.updateStatus phase, "Looking up source image $description.image..."
+  static Image queryImage(String projectName,
+                          String imageName,
+                          GoogleNamedAccountCredentials credentials,
+                          Compute compute,
+                          Task task,
+                          String phase,
+                          String clouddriverUserAgentApplicationName,
+                          List<String> baseImageProjects) {
+    task.updateStatus phase, "Looking up image $imageName..."
 
-    def imageProjects = [projectName] + description.credentials?.imageProjects + baseImageProjects - null
-    def sourceImageName = description.image
+    def imageProjects = [projectName] + credentials?.imageProjects + baseImageProjects - null
     def sourceImage = null
 
     def imageListBatch = buildBatchRequest(compute, clouddriverUserAgentApplicationName)
     def imageListCallback = new JsonBatchCallback<ImageList>() {
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        updateStatusAndThrowNotFoundException("Error locating $sourceImageName in these projects: $imageProjects: $e.message", task, phase)
+        updateStatusAndThrowNotFoundException("Error locating $imageName in these projects: $imageProjects: $e.message", task, phase)
       }
 
       @Override
@@ -95,7 +95,7 @@ class GCEUtil {
         // No need to look through these images if the requested image was already found.
         if (!sourceImage) {
           for (def image : imageList.items) {
-            if (image.name == sourceImageName) {
+            if (image.name == imageName) {
               sourceImage = image
             }
           }
@@ -112,7 +112,7 @@ class GCEUtil {
     if (sourceImage) {
       return sourceImage
     } else {
-      updateStatusAndThrowNotFoundException("Source image $sourceImageName not found in any of these projects: $imageProjects.", task, phase)
+      updateStatusAndThrowNotFoundException("Image $imageName not found in any of these projects: $imageProjects.", task, phase)
     }
   }
 

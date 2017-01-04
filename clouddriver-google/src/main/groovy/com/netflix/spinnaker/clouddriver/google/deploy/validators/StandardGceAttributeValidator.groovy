@@ -240,6 +240,10 @@ class StandardGceAttributeValidator {
     validateNotEmpty(image, "image")
   }
 
+  def validateImageName(String imageName) {
+    validateNotEmpty(imageName, "imageName")
+  }
+
   def validateNameList(List<String> names, String componentDescription) {
     validateNameListHelper(names, componentDescription, false)
   }
@@ -450,6 +454,26 @@ class StandardGceAttributeValidator {
 
   def validateTags(List<String> tags) {
     return validateOptionalNameList(tags, "tag")
+  }
+
+  def validateMap(Map<String, String> mappings, String componentDescription) {
+    if (mappings == null) {
+      errors.rejectValue("${componentDescription}s", "${context}.${componentDescription}s.empty")
+      return false
+    }
+
+    def result = true
+
+    mappings.each { key, value ->
+      result &= validateNameAsPart(key, "${componentDescription}s", "${componentDescription}s.key")
+
+      // Keys can be mapped to empty values.
+      if (value) {
+        result &= validateNameAsPart(value, "${componentDescription}s", "$componentDescription.${key}.value")
+      }
+    }
+
+    return result
   }
 
   def validateAuthScopes(List<String> authScopes) {
