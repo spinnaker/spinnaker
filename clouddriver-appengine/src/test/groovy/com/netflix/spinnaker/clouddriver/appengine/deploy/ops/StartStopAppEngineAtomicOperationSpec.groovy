@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
 import com.google.api.services.appengine.v1.Appengine
 import com.google.api.services.appengine.v1.model.Version
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.StartStopAppEngineDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineServerGroup
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineClusterProvider
@@ -71,6 +72,7 @@ class StartStopAppEngineAtomicOperationSpec extends Specification {
         new StartAppEngineAtomicOperation(description) :
         new StopAppEngineAtomicOperation(description)
       operation.appEngineClusterProvider = clusterProviderMock
+      operation.safeRetry = new AppEngineSafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
 
     when:
       operation.operate([])

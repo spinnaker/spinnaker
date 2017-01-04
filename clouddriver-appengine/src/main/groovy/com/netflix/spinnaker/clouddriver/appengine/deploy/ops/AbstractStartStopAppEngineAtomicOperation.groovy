@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
+import com.google.api.services.appengine.v1.model.Operation
 import com.google.api.services.appengine.v1.model.Version
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.StartStopAppEngineDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineServerGroup
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineClusterProvider
@@ -29,6 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired
 abstract class AbstractStartStopAppEngineAtomicOperation implements AtomicOperation<Void> {
   @Autowired
   AppEngineClusterProvider appEngineClusterProvider
+
+  @Autowired
+  AppEngineSafeRetry safeRetry
 
   abstract String getBasePhase()
 
@@ -65,11 +70,25 @@ abstract class AbstractStartStopAppEngineAtomicOperation implements AtomicOperat
     def version = new Version(servingStatus: newServingStatus.toString())
 
     task.updateStatus basePhase, "$presentParticipling $serverGroupName..."
-    appengine.apps().services().versions().patch(project, loadBalancerName, serverGroupName, version)
-      .setUpdateMask("servingStatus")
-      .execute()
+
+    safeRetry.doRetry(
+      { callApi(project, loadBalancerName, serverGroupName, version) },
+      verb,
+      "version",
+      task,
+      basePhase,
+      [409],
+      []
+    )
 
     task.updateStatus basePhase, "Done ${presentParticipling.toLowerCase()} $serverGroupName."
     return null
+  }
+
+  Operation callApi(String project, String loadBalancerName, String serverGroupName, Version version) {
+    description.credentials.appengine.apps().services().versions()
+        .patch(project, loadBalancerName, serverGroupName, version)
+        .setUpdateMask("servingStatus")
+        .execute()
   }
 }

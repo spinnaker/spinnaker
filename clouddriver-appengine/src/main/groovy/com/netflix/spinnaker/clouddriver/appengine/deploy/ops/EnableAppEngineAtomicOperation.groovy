@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.EnableDisableAppEngineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppEngineLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
@@ -40,6 +41,9 @@ class EnableAppEngineAtomicOperation implements AtomicOperation<Void> {
 
   @Autowired
   AppEngineClusterProvider appEngineClusterProvider
+
+  @Autowired
+  AppEngineSafeRetry safeRetry
 
   EnableAppEngineAtomicOperation(EnableDisableAppEngineDescription description) {
     this.description = description
@@ -70,6 +74,7 @@ class EnableAppEngineAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Updating load balancer $loadBalancerName..."
     def upsertLoadBalancerOperation = new UpsertAppEngineLoadBalancerAtomicOperation(upsertLoadBalancerDescription)
     upsertLoadBalancerOperation.appEngineLoadBalancerProvider = appEngineLoadBalancerProvider
+    upsertLoadBalancerOperation.safeRetry = safeRetry
     upsertLoadBalancerOperation.operate(priorOutputs)
 
     return null

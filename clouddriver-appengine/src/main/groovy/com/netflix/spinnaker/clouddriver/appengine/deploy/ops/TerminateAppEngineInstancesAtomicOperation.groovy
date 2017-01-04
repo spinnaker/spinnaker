@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.TerminateAppEngineInstancesDescription
-import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineOperationException
-import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineInstanceProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 import com.google.api.services.appengine.v1.Appengine
 import com.google.api.services.appengine.v1.model.Service
 import com.google.api.services.appengine.v1.model.TrafficSplit
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.EnableDisableAppEngineDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineLoadBalancer
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineServerGroup
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -40,8 +42,12 @@ class EnableAppEngineAtomicOperationSpec extends Specification {
   private static final LOAD_BALANCER_NAME = 'default'
   private static final PROJECT = 'my-gcp-project'
 
+  @Shared
+  AppEngineSafeRetry safeRetry
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    safeRetry = new AppEngineSafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
   }
 
   void "enable operation should set a server group's allocation to 1"() {
@@ -85,6 +91,7 @@ class EnableAppEngineAtomicOperationSpec extends Specification {
       @Subject def operation = new EnableAppEngineAtomicOperation(description)
       operation.appEngineClusterProvider = clusterProviderMock
       operation.appEngineLoadBalancerProvider = loadBalancerProviderMock
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])

@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineSafeRetry
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineUtils
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.EnableDisableAppEngineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppEngineLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineIllegalArgumentExeception
-import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineResourceNotFoundException
-import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineLoadBalancer
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.model.ShardBy
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineClusterProvider
@@ -30,7 +30,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-import java.math.MathContext
 import java.math.RoundingMode
 
 class DisableAppEngineAtomicOperation implements AtomicOperation<Void> {
@@ -47,6 +46,9 @@ class DisableAppEngineAtomicOperation implements AtomicOperation<Void> {
 
   @Autowired
   AppEngineClusterProvider appEngineClusterProvider
+
+  @Autowired
+  AppEngineSafeRetry safeRetry
 
   DisableAppEngineAtomicOperation(EnableDisableAppEngineDescription description) {
     this.description = description
@@ -66,29 +68,43 @@ class DisableAppEngineAtomicOperation implements AtomicOperation<Void> {
     def serverGroup = appEngineClusterProvider.getServerGroup(credentials.name, credentials.region, serverGroupName)
     def loadBalancerName = serverGroup?.loadBalancers?.first()
 
-    def loadBalancer = appEngineLoadBalancerProvider.getLoadBalancer(credentials.name, loadBalancerName)
+    safeRetry.doRetry(
+      { buildNewLoadBalancerAndCallApi(credentials.project, loadBalancerName, serverGroupName, priorOutputs) },
+      "disable",
+      "version",
+      task,
+      BASE_PHASE,
+      [409],
+      []
+    )
 
-    if (!loadBalancer.split.allocations.containsKey(serverGroupName)) {
-      task.updateStatus BASE_PHASE, "Server group $serverGroupName does not receive traffic from load balancer $loadBalancer.name," +
+    return null
+  }
+
+  Map buildNewLoadBalancerAndCallApi(String projectName, String loadBalancerName, String serverGroupName, List priorOutputs) {
+    // We need to make a live call to make sure we have an up-to-date service, since the new traffic split we build is
+    // dependent on the existing service's traffic split.
+    def service = AppEngineUtils.queryService(projectName, loadBalancerName, description.credentials, task, BASE_PHASE)
+    def oldSplit = new ObjectMapper().convertValue(service.getSplit(), AppEngineTrafficSplit)
+
+    if (!oldSplit.allocations.containsKey(serverGroupName)) {
+      task.updateStatus BASE_PHASE, "Server group $serverGroupName does not receive traffic from load balancer $loadBalancerName," +
         " ending operation..."
       return null
     }
 
-    def split = buildTrafficSplitWithoutServerGroup(loadBalancer.split, serverGroupName)
+    def newSplit = buildTrafficSplitWithoutServerGroup(oldSplit, serverGroupName)
 
     def upsertLoadBalancerDescription = new UpsertAppEngineLoadBalancerDescription(
-      credentials: credentials,
+      credentials: description.credentials,
       loadBalancerName: loadBalancerName,
-      split: split,
+      split: newSplit,
       migrateTraffic: description.migrateTraffic
     )
 
-    task.updateStatus BASE_PHASE, "Updating load balancer $loadBalancerName..."
-    def upsertLoadBalancerOperation = new UpsertAppEngineLoadBalancerAtomicOperation(upsertLoadBalancerDescription)
+    def upsertLoadBalancerOperation = new UpsertAppEngineLoadBalancerAtomicOperation(upsertLoadBalancerDescription, false)
     upsertLoadBalancerOperation.appEngineLoadBalancerProvider = appEngineLoadBalancerProvider
-    upsertLoadBalancerOperation.operate(priorOutputs)
-
-    return null
+    return upsertLoadBalancerOperation.operate(priorOutputs)
   }
 
   // https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services#TrafficSplit

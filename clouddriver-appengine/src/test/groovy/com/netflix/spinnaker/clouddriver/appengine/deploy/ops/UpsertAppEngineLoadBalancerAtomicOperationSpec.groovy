@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 import com.google.api.services.appengine.v1.Appengine
 import com.google.api.services.appengine.v1.model.Service
 import com.google.api.services.appengine.v1.model.TrafficSplit
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppEngineLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineLoadBalancer
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -44,8 +46,12 @@ class UpsertAppEngineLoadBalancerAtomicOperationSpec extends Specification {
     split: new AppEngineTrafficSplit(allocations: [(SERVER_GROUP_NAME_1): 1])
   )
 
+  @Shared
+  AppEngineSafeRetry safeRetry
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    safeRetry = new AppEngineSafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
   }
 
   void "can update AppEngine service using shardBy type and allocation from upsert description"() {
@@ -81,6 +87,7 @@ class UpsertAppEngineLoadBalancerAtomicOperationSpec extends Specification {
 
       @Subject def operation = new UpsertAppEngineLoadBalancerAtomicOperation(description)
       operation.appEngineLoadBalancerProvider = appEngineLoadBalancerProviderMock
+      operation.safeRetry = safeRetry
 
       def expectedService = new Service(
         split: new TrafficSplit(allocations: descriptionSplit.allocations,
@@ -131,6 +138,7 @@ class UpsertAppEngineLoadBalancerAtomicOperationSpec extends Specification {
 
       @Subject def operation = new UpsertAppEngineLoadBalancerAtomicOperation(description)
       operation.appEngineLoadBalancerProvider = appEngineLoadBalancerProviderMock
+      operation.safeRetry = safeRetry
 
       def expectedService = new Service(split: new TrafficSplit(
         allocations: LOAD_BALANCER_IN_CACHE.split.allocations,

@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
+import com.google.api.services.appengine.v1.model.Operation
 import com.google.api.services.appengine.v1.model.Service
 import com.google.api.services.appengine.v1.model.TrafficSplit
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineSafeRetry
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineUtils
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppEngineLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineLoadBalancerProvider
@@ -37,8 +40,18 @@ class UpsertAppEngineLoadBalancerAtomicOperation implements AtomicOperation<Map>
 
   private final UpsertAppEngineLoadBalancerDescription description
 
+  boolean retryApiCall = true
+
   @Autowired
   AppEngineLoadBalancerProvider appEngineLoadBalancerProvider
+
+  @Autowired
+  AppEngineSafeRetry safeRetry
+
+  UpsertAppEngineLoadBalancerAtomicOperation(UpsertAppEngineLoadBalancerDescription description, boolean retryApiCall) {
+    this(description)
+    this.retryApiCall = retryApiCall
+  }
 
   UpsertAppEngineLoadBalancerAtomicOperation(UpsertAppEngineLoadBalancerDescription description) {
     this.description = description
@@ -54,7 +67,6 @@ class UpsertAppEngineLoadBalancerAtomicOperation implements AtomicOperation<Map>
       "in $description.credentials.region..."
 
     def credentials = description.credentials
-    def appengine = credentials.appengine
     def loadBalancerName = description.loadBalancerName
     def updateSplit = description.split
 
@@ -71,13 +83,30 @@ class UpsertAppEngineLoadBalancerAtomicOperation implements AtomicOperation<Map>
       )
     )
 
-    appengine.apps().services().patch(credentials.project, loadBalancerName, service)
-      .setUpdateMask("split")
-      .setMigrateTraffic(migrateTraffic)
-      .execute()
+    def callApiClosure = { callApi(credentials.project, loadBalancerName, service) }
+    if (retryApiCall) {
+      safeRetry.doRetry(
+        callApiClosure,
+        "upsert",
+        "service",
+        task,
+        BASE_PHASE,
+        [409],
+        []
+      )
+    } else {
+      callApiClosure()
+    }
 
     task.updateStatus BASE_PHASE, "Done upserting $loadBalancerName in $description.credentials.region."
-    [loadBalancers: [(credentials.region): [name: loadBalancerName]]]
+    return [loadBalancers: [(credentials.region): [name: loadBalancerName]]]
+  }
+
+  Operation callApi(String projectName, String loadBalancerName, Service updatedService) {
+    return description.credentials.appengine.apps().services().patch(projectName, loadBalancerName, updatedService)
+      .setUpdateMask("split")
+      .setMigrateTraffic(description.migrateTraffic)
+      .execute()
   }
 
   static AppEngineTrafficSplit copyAndOverrideAncestorSplit(AppEngineTrafficSplit ancestor, AppEngineTrafficSplit update) {

@@ -68,4 +68,13 @@ class AppEngineUtils {
     task.updateStatus phase, "Querying versions for project $project and service $service"
     return credentials.appengine.apps().services().versions().list(project, service).execute().getVersions()
   }
+
+  static Service queryService(String project,
+                              String service,
+                              AppEngineNamedAccountCredentials credentials,
+                              Task task,
+                              String phase) {
+    task.updateStatus phase, "Querying service $service for project $project..."
+    return credentials.appengine.apps().services().get(project, service).execute()
+  }
 }
