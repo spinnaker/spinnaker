@@ -594,8 +594,8 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     builder = HttpContractBuilder(self.agent)
     (builder.new_clause_builder('Has Expected Images')
        .get_url_path('/gce/images/find')
-       .add_constraint(jp.PathPredicate(jp.DONT_ENUMERATE_TERMINAL,
-                                        jp.EQUIVALENT(expect_images))))
+       .contains_match([jp.DICT_SUBSET(image_entry) for image_entry in expect_images],
+                       match_kwargs={'strict':True, 'unique':True}))
 
     return st.OperationContract(
         NoOpOperation('List Available Images'),
