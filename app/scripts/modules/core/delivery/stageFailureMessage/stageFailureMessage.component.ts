@@ -17,7 +17,7 @@ class StageFailureMessageCtrl implements ng.IComponentController {
   public failedTask: IStageStep;
 
   public $onInit(): void {
-    if (this.stage && this.stage.isFailed || this.stage.isStopped) {
+    if (this.stage && (this.stage.isFailed || this.stage.isStopped)) {
       if (this.isFailed === undefined) {
         this.isFailed = true;
       }
