@@ -131,9 +131,18 @@ public abstract class NestableCommand {
 
     if (!commander.getParameters().isEmpty()) {
       paragraph = story.addParagraph();
-      paragraph.addSnippet("PARAMETERS").addStyle(AnsiStyle.BOLD);
+      paragraph.addSnippet("GLOBAL PARAMETERS").addStyle(AnsiStyle.BOLD);
       story.addNewline();
 
+      for (ParameterDescription parameter : commander.getParameters()) {
+        if (GlobalOptions.isGlobalOption(parameter.getLongestName())) {
+          formatParameter(story, parameter, indentWidth);
+        }
+      }
+
+      paragraph = story.addParagraph();
+      paragraph.addSnippet("PARAMETERS").addStyle(AnsiStyle.BOLD);
+      story.addNewline();
 
       ParameterDescription mainParameter = commander.getMainParameter();
       if (mainParameter != null) {
@@ -146,25 +155,9 @@ public abstract class NestableCommand {
       }
 
       for (ParameterDescription parameter : commander.getParameters()) {
-        paragraph = story.addParagraph().setIndentWidth(indentWidth);
-        paragraph.addSnippet(parameter.getNames()).addStyle(AnsiStyle.BOLD);
-
-        if (parameter.getDefault() != null) {
-          paragraph.addSnippet("=");
-          paragraph.addSnippet(parameter.getDefault().toString()).addStyle(AnsiStyle.UNDERLINE);
+        if (!GlobalOptions.isGlobalOption(parameter.getLongestName())) {
+          formatParameter(story, parameter, indentWidth);
         }
-
-        if (parameter.getParameter().required()) {
-          paragraph.addSnippet(" (required)");
-        }
-
-        if (parameter.getParameter().password()) {
-          paragraph.addSnippet(" (sensitive data - user will be prompted)");
-        }
-
-        paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
-        paragraph.addSnippet(parameter.getDescription());
-        story.addNewline();
       }
     }
 
@@ -191,6 +184,28 @@ public abstract class NestableCommand {
     }
 
     AnsiPrinter.println(story.toString());
+  }
+
+  private static void formatParameter(AnsiStoryBuilder story, ParameterDescription parameter, int indentWidth) {
+    AnsiParagraphBuilder paragraph = story.addParagraph().setIndentWidth(indentWidth);
+    paragraph.addSnippet(parameter.getNames()).addStyle(AnsiStyle.BOLD);
+
+    if (parameter.getDefault() != null) {
+      paragraph.addSnippet("=");
+      paragraph.addSnippet(parameter.getDefault().toString()).addStyle(AnsiStyle.UNDERLINE);
+    }
+
+    if (parameter.getParameter().required()) {
+      paragraph.addSnippet(" (required)");
+    }
+
+    if (parameter.getParameter().password()) {
+      paragraph.addSnippet(" (sensitive data - user will be prompted)");
+    }
+
+    paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
+    paragraph.addSnippet(parameter.getDescription());
+    story.addNewline();
   }
 
   abstract public String getDescription();

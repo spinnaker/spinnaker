@@ -31,6 +31,21 @@ public class GlobalOptions {
 
   private static GlobalOptions globalOptions = null;
 
+  public static boolean isGlobalOption(String name) {
+    int i = 0;
+    while (name.charAt(i) == '-') {
+      i++;
+    }
+
+    name = name.substring(i);
+    try {
+      GlobalOptions.class.getDeclaredField(name);
+    } catch (NoSuchFieldException e) {
+      return false;
+    }
+    return true;
+  }
+
   public static GlobalOptions getGlobalOptions() {
     if (globalOptions == null) {
       globalOptions = new GlobalOptions();
