@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.deploy
+package com.netflix.spinnaker.clouddriver.appengine.deploy
 
+import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineOperationException
 import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleCommonSafeRetry
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
-// TODO(jacobkiefer): This used to have a generic return type associated with 'doRetry'. Find a way to reincorporate while still making this a Bean.
 @Component
-class SafeRetry extends GoogleCommonSafeRetry {
-  @Value('${google.safeRetryMaxWaitIntervalMs:60000}')
+class AppEngineSafeRetry extends GoogleCommonSafeRetry {
+  @Value('${appengine.safeRetryMaxWaitIntervalMs:60000}')
   Long maxWaitInterval
 
-  @Value('${google.safeRetryRetryIntervalBaseSec:2}')
+  @Value('${appengine.safeRetryRetryIntervalBaseSec:2}')
   Long retryIntervalBase
 
-  @Value('${google.safeRetryJitterMultiplier:1000}')
+  @Value('${appengine.safeRetryJitterMultiplier:1000}')
   Long jitterMultiplier
 
-  @Value('${google.safeRetryMaxRetries:10}')
+  @Value('${appengine.safeRetryMaxRetries:10}')
   Long maxRetries
 
   public Object doRetry(Closure operation,
@@ -60,7 +59,7 @@ class SafeRetry extends GoogleCommonSafeRetry {
   }
 
   @Override
-  GoogleOperationException providerOperationException(String message) {
-    new GoogleOperationException(message)
+  AppEngineOperationException providerOperationException(String message) {
+    new AppEngineOperationException(message)
   }
 }
