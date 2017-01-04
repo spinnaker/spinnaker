@@ -49,6 +49,11 @@ public abstract class AbstractNamedProviderCommand extends AbstractProviderComma
         .setEnable(true)
         .build()
     );
+
+    registerSubcommand(new DeleteAccountCommandBuilder()
+        .setProviderName(getProviderName())
+        .build()
+    );
   }
 
   private Provider getProvider() {
