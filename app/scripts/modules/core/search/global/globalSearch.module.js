@@ -8,6 +8,4 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.search.global', [
   require('../../utils/jQuery.js'),
   require('./globalSearch.directive.js'),
-  require('../../cluster/filter/clusterFilter.model.js'),
-  require('../../cluster/filter/clusterFilter.service.js'),
 ]);

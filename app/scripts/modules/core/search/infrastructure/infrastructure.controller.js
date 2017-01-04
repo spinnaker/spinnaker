@@ -1,9 +1,11 @@
 'use strict';
 
 import _ from 'lodash';
-let angular = require('angular');
 
+import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
+
+let angular = require('angular');
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./infrastructureSearch.service.js'),
@@ -12,7 +14,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('core/pageTitle/pageTitle.service.js'),
   require('./project/infrastructureProject.directive.js'),
   require('../searchRank.filter.js'),
-  require('core/cluster/filter/clusterFilter.service.js'),
+  CLUSTER_FILTER_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   require('core/overrideRegistry/override.registry.js'),
 ])
@@ -30,7 +32,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       minCharactersToSearch: 3,
     };
 
-    this.clearFilters = clusterFilterService.overrideFiltersForUrl;
+    this.clearFilters = r => clusterFilterService.overrideFiltersForUrl(r);
 
     this.loadRecentItems = () => {
       $scope.recentProjects = recentHistoryService.getItems('projects');

@@ -25,7 +25,7 @@ module.exports = angular
 
     function checkAccountFilters(model) {
       return function(target) {
-        if(isFilterable(model.sortFilter.account)) {
+        if (isFilterable(model.sortFilter.account)) {
           var checkedAccounts = getCheckValues(model.sortFilter.account);
           return _.includes(checkedAccounts, target.account);
         } else {
@@ -36,7 +36,7 @@ module.exports = angular
 
     function checkRegionFilters(model) {
       return function(target) {
-        if(isFilterable(model.sortFilter.region)) {
+        if (isFilterable(model.sortFilter.region)) {
           var checkedRegions = getCheckValues(model.sortFilter.region);
           return _.includes(checkedRegions, target.region);
         } else {

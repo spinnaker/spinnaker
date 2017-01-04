@@ -20,14 +20,17 @@ module.exports = angular
   .constant('groupedJSON',
     [ {
       heading : 'prod',
+      key: 'prod',
       subgroups : [ {
         heading : 'in-eu-east-2-only',
         category: 'serverGroup',
+        key: 'in-eu-east-2-only:serverGroup',
         hasDiscovery: false,
         hasLoadBalancers: false,
         subgroups : [ {
           heading : 'eu-east-2',
           category: 'serverGroup',
+          key: 'eu-east-2:serverGroup',
           serverGroups : [ {
             cluster: 'in-eu-east-2-only',
             category: 'serverGroup',
@@ -52,14 +55,17 @@ module.exports = angular
       } ] },
       {
         heading : 'test',
+        key: 'test',
         subgroups : [ {
           heading : 'in-us-west-1-only',
           category: 'serverGroup',
+          key: 'in-us-west-1-only:serverGroup',
           hasDiscovery: false,
           hasLoadBalancers: false,
           subgroups : [ {
             heading : 'us-west-1',
             category: 'serverGroup',
+            key: 'us-west-1:serverGroup',
             serverGroups : [ {
               cluster: 'in-us-west-1-only',
               category: 'serverGroup',

@@ -2,8 +2,10 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
+import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
+
+let angular = require('angular');
 
 require('./projectCluster.less');
 
@@ -11,7 +13,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
   require('core/account/collapsibleAccountTag.directive.js'),
   URL_BUILDER_SERVICE,
   require('core/cache/collapsibleSectionStateCache.js'),
-  require('../../../cluster/filter/clusterFilter.service.js'),
+  CLUSTER_FILTER_SERVICE,
   require('core/utils/timeFormatters.js'),
   require('../../../healthCounts/healthCounts.directive.js'),
   require('../regionFilter/regionFilter.service.js'),
@@ -36,7 +38,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
 
     let getCacheKey = () => [this.project.name, this.cluster.account, this.cluster.stack].join(':');
 
-    this.clearFilters = clusterFilterService.overrideFiltersForUrl;
+    this.clearFilters = r => clusterFilterService.overrideFiltersForUrl(r);
 
     this.refreshTooltipTemplate = require('./projectClusterRefresh.tooltip.html');
     this.inconsistentBuildsTemplate = require('./inconsistentBuilds.tooltip.html');

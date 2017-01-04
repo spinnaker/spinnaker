@@ -1,9 +1,11 @@
 'use strict';
 
+import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.instanceListBody.directive', [
-  require('../cluster/filter/clusterFilter.service'),
+  CLUSTER_FILTER_SERVICE,
   require('../cluster/filter/multiselect.model'),
   require('../cluster/filter/clusterFilter.model')
 ])
@@ -145,7 +147,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         function renderInstances() {
           instanceGroup = MultiselectModel.getOrCreateInstanceGroup(scope.serverGroup);
           var instances = (scope.instances || [])
-            .filter(clusterFilterService.shouldShowInstance)
+            .filter(i => clusterFilterService.shouldShowInstance(i))
             .sort(instanceSorter);
 
           renderedMultiselectInstances = instanceGroup.instanceIds.slice(0);

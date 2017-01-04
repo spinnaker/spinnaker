@@ -2,13 +2,15 @@
 
 import _ from 'lodash';
 
+import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
+
 let angular = require('angular');
 
 // controllerAs: clustersFilters
 
 module.exports = angular.module('cluster', [
   require('./collapsibleFilterSection.directive.js'),
-  require('./clusterFilter.service.js'),
+  CLUSTER_FILTER_SERVICE,
   require('./clusterFilter.model.js'),
   require('../../filterModel/dependentFilter/dependentFilter.service.js'),
   require('./clusterDependentFilterHelper.service.js')

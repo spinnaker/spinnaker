@@ -2,10 +2,13 @@
 
 /* eslint consistent-return:0 */
 
+import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.search.global.controller', [
   require('angulartics'),
+  CLUSTER_FILTER_SERVICE,
   require('../../utils/jQuery.js'),
   require('../searchResult/searchResult.directive.js'),
   require('../searchRank.filter.js'),
@@ -122,7 +125,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
       });
     }, 200);
 
-    ctrl.clearFilters = clusterFilterService.overrideFiltersForUrl;
+    ctrl.clearFilters = r => clusterFilterService.overrideFiltersForUrl(r);
 
     this.focusFirstSearchResult = function focusFirstSearchResult(event) {
       try {
