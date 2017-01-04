@@ -38,7 +38,7 @@ class AmazonHealthIndicatorSpec extends Specification {
       describeAccountAttributes() >> { throw new AmazonServiceException("fail") }
     }
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAmazonEC2(_, _) >> mockEc2
+      getAmazonEC2(*_) >> mockEc2
     }
     def indicator = new AmazonHealthIndicator(accountCredentialsProvider: holder, amazonClientProvider: mockAmazonClientProvider)
 
@@ -61,7 +61,7 @@ class AmazonHealthIndicatorSpec extends Specification {
       describeAccountAttributes() >> { Mock(DescribeAccountAttributesResult) }
     }
     def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAmazonEC2(_, _) >> mockEc2
+      getAmazonEC2(*_) >> mockEc2
     }
     def indicator = new AmazonHealthIndicator(accountCredentialsProvider: holder, amazonClientProvider: mockAmazonClientProvider)
 
