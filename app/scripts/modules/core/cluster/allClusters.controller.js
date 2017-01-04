@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
+
 require('./rollups.less');
 
 module.exports = angular.module('spinnaker.core.cluster.allClusters.controller', [
@@ -12,7 +14,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   require('./clusterPod.directive'),
   require('../account/account.module'),
   require('../cloudProvider/providerSelection/providerSelection.service'),
-  require('../serverGroup/configure/common/serverGroupCommandBuilder'),
+  SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   require('../filterModel/filter.tags.directive'),
   require('../utils/waypoints/waypointContainer.directive'),
   require('angular-ui-bootstrap'),

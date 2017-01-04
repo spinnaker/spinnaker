@@ -4,7 +4,6 @@ let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage', [
-  require('core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
   require('core/cloudProvider/cloudProvider.registry.js'),
   require('core/config/settings.js'),
   require('../canary/canaryExecutionSummary.controller'),
@@ -32,7 +31,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
   .controller('AcaTaskStageCtrl', function ($scope, $uibModal, stage,
                                            namingService, providerSelectionService,
                                            authenticationService, cloudProviderRegistry,
-                                           serverGroupCommandBuilder, awsServerGroupTransformer, accountService) {
+                                           awsServerGroupTransformer, accountService) {
 
     var user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;
