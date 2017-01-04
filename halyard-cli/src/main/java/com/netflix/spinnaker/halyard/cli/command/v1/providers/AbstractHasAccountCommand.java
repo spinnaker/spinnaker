@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,39 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.providers;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
+/**
+ * An abstract definition for commands that accept ACCOUNT as a main parameter
+ */
 @Parameters()
-public abstract class AbstractAddAccountCommand extends AbstractHasAccountCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
-
-  @Getter(AccessLevel.PUBLIC)
-  private String commandName = "add-account";
-
-  protected abstract Account buildAccount(String accountName);
-
-  public String getDescription() {
-    return "Add a " + getProviderName() + " account";
-  }
+public abstract class AbstractHasAccountCommand extends AbstractProviderCommand {
+  @Parameter(description = "The name of the account to operate on.", arity = 1)
+  List<String> accounts = new ArrayList<>();
 
   @Override
-  protected void executeThis() {
-    String accountName = getAccountName();
-    Account account = buildAccount(accountName);
-    String providerName = getProviderName();
+  public String getMainParameter() {
+    return "account";
+  }
 
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.addAccount(currentDeployment, providerName, !noValidate, account);
-    AnsiUi.success("Added " + providerName + " account \"" + accountName + "\"");
+  public String getAccountName() {
+    switch (accounts.size()) {
+      case 0:
+        throw new IllegalArgumentException("No account name supplied");
+      case 1:
+        return accounts.get(0);
+      default:
+        throw new IllegalArgumentException("More than one account supplied");
+    }
   }
 }

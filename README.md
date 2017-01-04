@@ -57,19 +57,19 @@ $ hal config provider PROVIDER disable
 If you want to examine only a particular account's configuration, run:
 
 ```
-$ hal config provider PROVIDER get-account ACCOUNT
+$ hal config provider PROVIDER get-account ACCOUNT-NAME
 ```
 
 To add an account, run:
 
 ```
-$ hal config provider PROVIDER add-account --account-name ACCOUNT-NAME [provider-specific flags]
+$ hal config provider PROVIDER add-account ACCOUNT-NAME [provider-specific flags]
 ```
 
 To delete an account, run:
 
 ```
-$ hal config provider PROVIDER delete-account --account-name ACCOUNT-NAME
+$ hal config provider PROVIDER delete-account ACCOUNT-NAME
 ```
 
 #### hal config generate

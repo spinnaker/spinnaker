@@ -16,16 +16,13 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.providers;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,7 +31,7 @@ import lombok.Getter;
  * Describe a specific PROVIDER account
  */
 @Parameters()
-public abstract class AbstractGetAccountCommand extends AbstractProviderCommand {
+public abstract class AbstractGetAccountCommand extends AbstractHasAccountCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
@@ -42,26 +39,7 @@ public abstract class AbstractGetAccountCommand extends AbstractProviderCommand 
   private String commandName = "get-account";
 
   public String getDescription() {
-    return "Get details for a specific " + getProviderName() + " account";
-  }
-
-  @Parameter(description = "The name of the account to show", arity = 1)
-  List<String> accounts = new ArrayList<>();
-
-  @Override
-  public String getMainParameter() {
-    return "account";
-  }
-
-  public String getAccountName() {
-    switch (accounts.size()) {
-      case 0:
-        throw new IllegalArgumentException("No account name supplied");
-      case 1:
-        return accounts.get(0);
-      default:
-        throw new IllegalArgumentException("More than one account supplied");
-    }
+    return "Get details for a specific " + getProviderName() + " account.";
   }
 
   @Override
