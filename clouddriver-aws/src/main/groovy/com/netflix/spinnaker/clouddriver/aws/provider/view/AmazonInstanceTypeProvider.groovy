@@ -31,15 +31,30 @@ class AmazonInstanceTypeProvider implements InstanceTypeProvider<AmazonInstanceT
 
   private final Cache cacheView
   private final ObjectMapper objectMapper
+  private final AmazonInstanceTypeProviderConfiguration amazonInstanceTypeProviderConfiguration
 
   @Autowired
-  AmazonInstanceTypeProvider(Cache cacheView, ObjectMapper objectMapper) {
+  AmazonInstanceTypeProvider(Cache cacheView, ObjectMapper objectMapper, AmazonInstanceTypeProviderConfiguration amazonInstanceTypeProviderConfiguration) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
+    this.amazonInstanceTypeProviderConfiguration = amazonInstanceTypeProviderConfiguration
   }
 
   @Override
   Set<AmazonInstanceType> getAll() {
-    cacheView.getAll(INSTANCE_TYPES.ns, RelationshipCacheFilter.none()).collect { objectMapper.convertValue(it.attributes, AmazonInstanceType) }
+    cacheView.getAll(INSTANCE_TYPES.ns, RelationshipCacheFilter.none()).collect { objectMapper.convertValue(it.attributes, AmazonInstanceType) }.findAll(this.&includeInstance)
+  }
+
+  boolean includeInstance(AmazonInstanceType amazonInstanceType) {
+    def excludedType = amazonInstanceTypeProviderConfiguration?.excluded?.find { it.name == amazonInstanceType.name }
+    if (!excludedType) {
+      return true
+    }
+
+    if (!excludedType.regions || excludedType.regions.find { it == amazonInstanceType.region }) {
+      return false
+    }
+
+    return true
   }
 }

@@ -29,8 +29,10 @@ import spock.lang.Subject
 class AmazonInstanceTypeProviderSpec extends Specification {
 
   Cache cache = Mock(Cache)
+  AmazonInstanceTypeProviderConfiguration config = new AmazonInstanceTypeProviderConfiguration()
+
   @Subject
-  AmazonInstanceTypeProvider provider = new AmazonInstanceTypeProvider(cache, new ObjectMapper())
+  AmazonInstanceTypeProvider provider = new AmazonInstanceTypeProvider(cache, new ObjectMapper(), config)
 
   void "should retrieve all instance types"() {
     when:
@@ -60,6 +62,63 @@ class AmazonInstanceTypeProviderSpec extends Specification {
         account         : 'prod',
         region          : 'us-west-1',
         name            : 'm1.medium']),
+    ]
+  }
+
+  void "should filter instance types"() {
+    given:
+    config.setExcluded([
+        new AmazonInstanceTypeProviderConfiguration.InstanceTypeOption('m1.regionfiltered', ['us-east-1']),
+        new AmazonInstanceTypeProviderConfiguration.InstanceTypeOption('m1.allfiltered')])
+
+    when:
+    def result = provider.getAll()
+
+    then:
+    result == [
+        new AmazonInstanceType(
+            account: 'test',
+            region: 'us-east-1',
+            name: 'm1.unfiltered',
+        ),
+        new AmazonInstanceType(
+            account: 'test',
+            region: 'us-west-2',
+            name: 'm1.unfiltered',
+        ),
+        new AmazonInstanceType(
+            account: 'test',
+            region: 'us-west-2',
+            name: 'm1.regionfiltered',
+        )
+    ] as Set
+
+    and:
+    1 * cache.getAll(Keys.Namespace.INSTANCE_TYPES.ns, _ as CacheFilter) >> [
+        itData('m1.unfiltered-e1', [
+            account         : 'test',
+            region          : 'us-east-1',
+            name            : 'm1.unfiltered']),
+        itData('m1.unfiltered-w2', [
+            account         : 'test',
+            region          : 'us-west-2',
+            name            : 'm1.unfiltered']),
+        itData('m1.regionfiltered-e1', [
+            account         : 'test',
+            region          : 'us-east-1',
+            name            : 'm1.regionfiltered']),
+        itData('m1.regionfiltered-w2', [
+            account         : 'test',
+            region          : 'us-west-2',
+            name            : 'm1.regionfiltered']),
+        itData('m1.allfiltered-e1', [
+            account         : 'test',
+            region          : 'us-east-1',
+            name            : 'm1.allfiltered']),
+        itData('m1.allfiltered-w2', [
+            account         : 'test',
+            region          : 'us-west-2',
+            name            : 'm1.allfiltered']),
     ]
   }
 
