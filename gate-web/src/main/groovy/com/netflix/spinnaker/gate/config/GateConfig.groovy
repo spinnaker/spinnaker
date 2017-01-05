@@ -22,6 +22,9 @@ import com.netflix.spinnaker.config.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
+import com.netflix.spinnaker.gate.filters.CorsFilter
+import com.netflix.spinnaker.gate.filters.GateOriginValidator
+import com.netflix.spinnaker.gate.filters.OriginValidator
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
@@ -62,8 +65,6 @@ import javax.servlet.FilterConfig
 import javax.servlet.ServletException
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -198,29 +199,17 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
-  FilterRegistrationBean simpleCORSFilter() {
-    def frb = new FilterRegistrationBean(
-      new Filter() {
-        public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-          throws IOException, ServletException {
-          HttpServletResponse response = (HttpServletResponse) res;
-          HttpServletRequest request = (HttpServletRequest) req;
-          String origin = request.getHeader("Origin") ?: "*"
-          response.setHeader("Access-Control-Allow-Credentials", "true");
-          response.setHeader("Access-Control-Allow-Origin", origin);
-          response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT, PATCH");
-          response.setHeader("Access-Control-Max-Age", "3600");
-          response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type, authorization");
-          response.setHeader("Access-Control-Expose-Headers", [Headers.AUTHENTICATION_REDIRECT_HEADER_NAME].join(", "))
-          chain.doFilter(req, res);
-        }
+  OriginValidator gateOriginValidator(
+      @Value('${services.deck.baseUrl}') String deckBaseUrl,
+      @Value('${services.deck.redirectHostPattern:#{null}}') String redirectHostPattern,
+      @Value('${cors.allowedOriginsPattern:#{null}}') String allowedOriginsPattern) {
+    return new GateOriginValidator(deckBaseUrl, redirectHostPattern, allowedOriginsPattern)
+  }
 
-        public void init(FilterConfig filterConfig) {}
-
-        public void destroy() {}
-      })
+  @Bean
+  FilterRegistrationBean simpleCORSFilter(OriginValidator gateOriginValidator) {
+    def frb = new FilterRegistrationBean(new CorsFilter(gateOriginValidator))
     frb.setOrder(Ordered.HIGHEST_PRECEDENCE)
-
     return frb
   }
 
@@ -241,7 +230,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
    * can be pulled and forwarded in the AuthenticatedRequestFilter.
    */
   @Bean
-  public FilterRegistrationBean securityFilterChain(@Qualifier(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME) Filter securityFilter) {
+  FilterRegistrationBean securityFilterChain(@Qualifier(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME) Filter securityFilter) {
     def frb = new FilterRegistrationBean(securityFilter)
     frb.order = 0
     frb.name = AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME
