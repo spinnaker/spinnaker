@@ -5,13 +5,13 @@ import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/execution
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.tagImage.executionDetails.controller', [
+  .module('spinnaker.core.pipeline.stage.tagImage.aws.executionDetails.controller', [
     require('angular-ui-router'),
     EXECUTION_DETAILS_SECTION_SERVICE,
     require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   ])
-  .controller('TagImageExecutionDetailsCtrl', function ($scope, $stateParams, manualJudgmentService,
-                                                        executionDetailsSectionService) {
+  .controller('awsTagImageExecutionDetailsCtrl', function ($scope, $stateParams, manualJudgmentService,
+                                                           executionDetailsSectionService) {
 
     $scope.configSections = ['tagImageConfig', 'taskStatus'];
 

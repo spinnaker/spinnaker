@@ -1,0 +1,39 @@
+<div ng-controller="gceTagImageExecutionDetailsCtrl as tagImageCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'tagImageConfig'">
+    <div class="row" ng-if="stage.context.targets">
+      <div class="col-md-12">
+        <dl class="dl-narrow dl-horizontal">
+          <dt if-multiple-providers>Provider</dt>
+          <dd if-multiple-providers>Google</dd>
+          <dt>Account</dt>
+          <dd>
+            <account-tag account="stage.context.credentials"></account-tag>
+          </dd>
+          <dt>Images</dt>
+          <dd ng-repeat="target in stage.context.targets">
+            {{target.imageName}}
+          </dd>
+        </dl>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Tags</dt>
+          <dd ng-repeat="(key, val) in stage.context.tags" ng-if="val !== null">
+            {{key}} = {{val}}
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <stage-failure-message stage="stage" message="stage.failureMessage"></stage-failure-message>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>

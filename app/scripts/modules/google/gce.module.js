@@ -38,6 +38,7 @@ module.exports = angular.module('spinnaker.gce', [
   require('./pipeline/stages/resizeAsg/gceResizeAsgStage.js'),
   require('./pipeline/stages/scaleDownCluster/gceScaleDownClusterStage.js'),
   require('./pipeline/stages/shrinkCluster/gceShrinkClusterStage.js'),
+  require('./pipeline/stages/tagImage/gceTagImageStage.js'),
   require('./instance/gceInstanceType.service.js'),
   require('./instance/gceMultiInstanceTask.transformer.js'),
   require('./instance/custom/customInstance.filter.js'),

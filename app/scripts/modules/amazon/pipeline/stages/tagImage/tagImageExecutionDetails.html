@@ -1,9 +1,11 @@
-<div ng-controller="TagImageExecutionDetailsCtrl as tagImageCtrl">
+<div ng-controller="awsTagImageExecutionDetailsCtrl as tagImageCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'tagImageConfig'">
     <div class="row" ng-if="stage.context.targets">
       <div class="col-md-12">
         <dl class="dl-narrow dl-horizontal">
+          <dt if-multiple-providers>Provider</dt>
+          <dd if-multiple-providers>Amazon</dd>
           <dt>Images</dt>
           <dd ng-repeat="target in stage.context.targets">
             {{target.imageName}}<br/>
