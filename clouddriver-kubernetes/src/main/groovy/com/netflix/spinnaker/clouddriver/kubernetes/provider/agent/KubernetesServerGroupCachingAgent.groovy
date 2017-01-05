@@ -336,7 +336,7 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implement
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
         }
 
-        pods.forEach { pod ->
+        pods?.forEach { pod ->
           def key = Keys.getInstanceKey(accountName, pod.metadata.namespace, pod.metadata.name)
           instanceKeys << key
           cachedInstances[key].with {
@@ -347,7 +347,7 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implement
           }
         }
 
-        loadBalancerKeys.forEach { loadBalancerKey ->
+        loadBalancerKeys?.forEach { loadBalancerKey ->
           cachedLoadBalancers[loadBalancerKey].with {
             relationships[Keys.Namespace.SERVER_GROUPS.ns].add(serverGroupKey)
             relationships[Keys.Namespace.INSTANCES.ns].addAll(instanceKeys)
