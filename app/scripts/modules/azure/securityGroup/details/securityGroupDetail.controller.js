@@ -2,13 +2,15 @@
 
 import _ from 'lodash';
 
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.controller', [
   require('angular-ui-router'),
   require('core/securityGroup/securityGroup.read.service.js'),
   require('../securityGroup.write.service.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
   require('core/insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),

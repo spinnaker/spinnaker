@@ -5,7 +5,6 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.controller', [
-  require('core/confirmationModal/confirmationModal.service.js'),
   require('./elasticIp.read.service.js'),
   require('./elasticIp.controller.js'),
   require('./ip.sort.filter.js'),

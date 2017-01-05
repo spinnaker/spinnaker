@@ -1,14 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
-let angular = require('angular');
 
-require('../configure/serverGroup.configure.gce.module.js');
-
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
+
+let angular = require('angular');
+
+require('../configure/serverGroup.configure.gce.module.js');
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
   require('angular-ui-router'),
@@ -16,7 +18,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('core/application/modal/platformHealthOverride.directive.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_READER_SERVICE,
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
   NETWORK_READ_SERVICE,
   SERVER_GROUP_WRITER_SERVICE,
   require('core/serverGroup/configure/common/runningExecutions.service.js'),

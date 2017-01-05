@@ -1,13 +1,14 @@
 'use strict';
 
-let angular = require('angular');
-
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+
+let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.serverGroup.details.multipleServerGroups.controller', [
     require('angular-ui-router'),
     SERVER_GROUP_WRITER_SERVICE,
-    require('../../confirmationModal/confirmationModal.service'),
+    CONFIRMATION_MODAL_SERVICE,
     require('../../insight/insightFilterState.model'),
     require('../../cluster/filter/multiselect.model'),
     require('../../cloudProvider/serviceDelegate.service.js'),

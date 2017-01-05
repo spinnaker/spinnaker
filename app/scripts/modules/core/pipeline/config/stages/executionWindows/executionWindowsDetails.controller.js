@@ -1,6 +1,7 @@
 'use strict';
 
-import { DAYS_OF_WEEK } from './daysOfWeek';
+import {DAYS_OF_WEEK} from './daysOfWeek';
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
@@ -10,7 +11,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
   EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('core/delivery/service/execution.service'),
-  require('core/confirmationModal/confirmationModal.service'),
+  CONFIRMATION_MODAL_SERVICE,
 ])
   .controller('ExecutionWindowsDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, executionService, confirmationModalService) {
 

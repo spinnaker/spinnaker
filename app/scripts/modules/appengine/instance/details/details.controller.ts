@@ -3,6 +3,7 @@ import {IStateService} from 'angular-ui-router';
 import {flattenDeep, cloneDeep} from 'lodash';
 
 import {Application} from 'core/application/application.model';
+import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
 import {IAppengineInstance} from 'appengine/domain/index';
 
 interface InstanceFromStateParams {
@@ -32,7 +33,7 @@ class AppengineInstanceDetailsController {
               private app: Application,
               private instanceReader: any,
               private instanceWriter: any,
-              private confirmationModalService: any,
+              private confirmationModalService: ConfirmationModalService,
               instance: InstanceFromStateParams) {
     this.app.ready()
       .then(() => this.retrieveInstance(instance))
@@ -69,7 +70,6 @@ class AppengineInstanceDetailsController {
       header: 'Really terminate ' + shortName + '?',
       buttonText: 'Terminate ' + shortName,
       account: instance.account,
-      provider: 'appengine',
       taskMonitorConfig: taskMonitor,
       submitMethod: submitMethod
     });
@@ -114,5 +114,5 @@ export const APPENGINE_INSTANCE_DETAILS_CTRL = 'spinnaker.appengine.instanceDeta
 module(APPENGINE_INSTANCE_DETAILS_CTRL, [
   require('core/instance/instance.read.service.js'),
   require('core/instance/instance.write.service.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
 ]).controller('appengineInstanceDetailsCtrl', AppengineInstanceDetailsController);

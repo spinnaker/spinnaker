@@ -10,12 +10,11 @@ module.exports = angular.module('spinnaker.securityGroup.cf.details.controller',
   ACCOUNT_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/securityGroup/securityGroup.write.service.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
   require('core/insight/insightFilterState.model.js'),
   require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('cfSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app, InsightFilterStateModel,
-                                                    confirmationModalService, securityGroupWriter, securityGroupReader) {
+                                                    securityGroupWriter, securityGroupReader) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;

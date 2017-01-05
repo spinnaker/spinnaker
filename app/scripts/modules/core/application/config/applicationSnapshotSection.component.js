@@ -1,12 +1,14 @@
 'use strict';
 
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.serialize.component', [
     require('angular-ui-router'),
     require('./../../snapshot/snapshot.write.service.js'),
-    require('../../confirmationModal/confirmationModal.service.js'),
+    CONFIRMATION_MODAL_SERVICE,
     require('core/snapshot/diff/viewSnapshotDiffButton.component.js'),
   ])
   .component('applicationSnapshotSection', {

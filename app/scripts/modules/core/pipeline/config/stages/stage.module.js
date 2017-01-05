@@ -1,9 +1,11 @@
 'use strict';
 
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {API_SERVICE} from 'core/api/api.service';
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 
 let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
+
 
 module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   API_SERVICE,
@@ -12,7 +14,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   require('./overrideTimeout/overrideTimeout.directive.js'),
   require('./overrideFailure/overrideFailure.component.js'),
   require('./optionalStage/optionalStage.directive.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
   ACCOUNT_SERVICE,
   require('./core/stageConfigField/stageConfigField.directive.js'),
 ])

@@ -2,6 +2,7 @@ import {module} from 'angular';
 import {cloneDeep} from 'lodash';
 
 import {Application} from 'core/application/application.model';
+import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
 import {IAppengineLoadBalancer} from 'appengine/domain/index';
 import {LoadBalancer} from 'core/domain/index';
 
@@ -25,7 +26,7 @@ class AppengineLoadBalancerDetailsController {
               private loadBalancerFromParams: ILoadBalancerFromStateParams,
               private app: Application,
               private loadBalancerWriter: any,
-              private confirmationModalService: any) {
+              private confirmationModalService: ConfirmationModalService) {
     this.app.getDataSource('loadBalancers')
       .ready()
       .then(() => this.extractLoadBalancer());
@@ -65,10 +66,8 @@ class AppengineLoadBalancerDetailsController {
     this.confirmationModalService.confirm({
       header: 'Really delete ' + this.loadBalancer.name + '?',
       buttonText: 'Delete ' + this.loadBalancer.name,
-      provider: 'appengine',
       body: this.getConfirmationModalBodyHtml(),
       account: this.loadBalancer.account,
-      applicationName: this.app.name,
       taskMonitorConfig: taskMonitor,
       submitMethod: submitMethod,
     });
@@ -139,5 +138,5 @@ export const APPENGINE_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.appengine.loadBal
 
 module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [
   require('core/loadBalancer/loadBalancer.write.service.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
 ]).controller('appengineLoadBalancerDetailsCtrl', AppengineLoadBalancerDetailsController);

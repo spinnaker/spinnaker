@@ -1,19 +1,22 @@
 'use strict';
 
 import _ from 'lodash';
-let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {VIEW_SCALING_ACTIVITIES_LINK} from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
 import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
+
+let angular = require('angular');
+
 require('../configure/serverGroup.configure.aws.module.js');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
   require('angular-ui-router'),
   require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER_SERVICE,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   require('core/overrideRegistry/override.registry.js'),

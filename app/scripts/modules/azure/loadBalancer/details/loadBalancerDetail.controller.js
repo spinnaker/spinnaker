@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller', [
@@ -9,7 +11,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
   require('core/securityGroup/securityGroup.read.service.js'),
   require('../loadBalancer.write.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
   require('core/insight/insightFilterState.model.js'),
   require('core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('core/utils/selectOnDblClick.directive.js'),

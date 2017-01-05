@@ -1,6 +1,8 @@
 'use strict';
 
 import _ from 'lodash';
+
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
 let angular = require('angular');
@@ -10,14 +12,14 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/loadBalancer/loadBalancer.write.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
   require('core/insight/insightFilterState.model.js'),
   require('core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   SUBNET_READ_SERVICE,
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, $q, loadBalancer, app, InsightFilterStateModel,
-                                                   securityGroupReader, confirmationModalService, loadBalancerWriter,
+                                                      securityGroupReader, confirmationModalService, loadBalancerWriter,
                                                       loadBalancerReader, subnetReader) {
 
     $scope.state = {

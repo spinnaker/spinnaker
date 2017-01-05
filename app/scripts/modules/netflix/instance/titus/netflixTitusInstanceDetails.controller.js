@@ -2,8 +2,10 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+
+let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
   require('angular-ui-router'),
@@ -11,7 +13,7 @@ module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
   ACCOUNT_SERVICE,
   require('core/instance/instance.write.service.js'),
   require('core/instance/instance.read.service.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
   require('core/insight/insightFilterState.model.js'),
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
@@ -20,8 +22,7 @@ module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
 ])
   .controller('netflixTitusInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel, settings,
                                                          instanceWriter, confirmationModalService, recentHistoryService,
-                                                         accountService,
-                                                         instanceReader, instance, app, $q, $controller) {
+                                                         accountService, instanceReader, instance, app, $q, $controller) {
 
     this.instanceDetailsLoaded = () => {
       this.getBastionAddressForAccount($scope.instance.account, $scope.instance.region);
