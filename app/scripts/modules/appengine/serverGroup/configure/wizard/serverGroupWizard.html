@@ -7,6 +7,9 @@
       <v2-wizard-page key="basic-settings" label="Basic Settings" mark-complete-on-view="false">
         <ng-include src="ctrl.pages.basicSettings"></ng-include>
       </v2-wizard-page>
+      <v2-wizard-page key="load-balancer" label="Load Balancer" done="true">
+        <appengine-load-balancer-message show-create-message="false"></appengine-load-balancer-message>
+      </v2-wizard-page>
       <v2-wizard-page key="advanced-settings" label="Advanced Settings" done="true">
         <ng-include src="ctrl.pages.advancedSettings"></ng-include>
       </v2-wizard-page>

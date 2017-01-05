@@ -6,6 +6,7 @@ import {APPENGINE_COMPONENT_URL_DETAILS} from './common/componentUrlDetails.comp
 import {APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM} from './common/conditionalDescriptionListItem.component';
 import {APPENGINE_HELP_CONTENTS_REGISTRY} from './helpContents/appengineHelpContents';
 import {APPENGINE_INSTANCE_DETAILS_CTRL} from './instance/details/details.controller';
+import {APPENGINE_LOAD_BALANCER_CREATE_MESSAGE} from './common/loadBalancerMessage.component';
 import {APPENGINE_LOAD_BALANCER_MODULE} from './loadBalancer/loadBalancer.module';
 import {APPENGINE_PIPELINE_MODULE} from './pipeline/pipeline.module';
 import {APPENGINE_SERVER_GROUP_BASIC_SETTINGS_CTRL} from './serverGroup/configure/wizard/basicSettings.controller';
@@ -28,6 +29,7 @@ module(APPENGINE_MODULE, [
     APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM,
     APPENGINE_HELP_CONTENTS_REGISTRY,
     APPENGINE_INSTANCE_DETAILS_CTRL,
+    APPENGINE_LOAD_BALANCER_CREATE_MESSAGE,
     APPENGINE_LOAD_BALANCER_MODULE,
     APPENGINE_PIPELINE_MODULE,
     APPENGINE_SERVER_GROUP_BASIC_SETTINGS_CTRL,

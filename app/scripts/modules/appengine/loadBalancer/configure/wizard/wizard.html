@@ -9,7 +9,10 @@
       </v2-wizard-page>
     </div>
   </v2-modal-wizard>
-  <appengine-load-balancer-create-message ng-if="ctrl.isNew"></appengine-load-balancer-create-message>
+  <appengine-load-balancer-message ng-if="ctrl.isNew"
+                                   column-offset="1"
+                                   columns="10"
+                                   show-create-message="true"></appengine-load-balancer-message>
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
     <submit-button ng-if="!ctrl.isNew && ctrl.showSubmitButton()"
