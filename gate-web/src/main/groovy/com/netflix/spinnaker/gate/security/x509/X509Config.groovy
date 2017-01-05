@@ -29,9 +29,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cloud.security.oauth2.sso.OAuth2SsoConfigurer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
+import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
+import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.AuthenticationException
 
 @ConditionalOnExpression('${x509.enabled:false}')
 @Configuration
@@ -69,6 +76,17 @@ class X509Config {
     void configure(HttpSecurity http) {
       authConfig.configure(http)
       X509Config.this.configure(http)
+    }
+  }
+
+  @ConditionalOnBean(X509StandaloneAuthConfig)
+  @Bean
+  AuthenticationManager authenticationManagerBean() {
+    new AuthenticationManager() {
+      @Override
+      Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        throw new UnsupportedOperationException("No authentication should be done with this AuthenticationManager");
+      }
     }
   }
 

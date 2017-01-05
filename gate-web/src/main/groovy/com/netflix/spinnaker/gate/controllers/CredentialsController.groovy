@@ -35,13 +35,13 @@ class CredentialsController {
   @Autowired
   CredentialsService credentialsService
 
-  @PostFilter("hasPermission(filterObject.name, 'ACCOUNT', 'WRITE')")
+  @PostFilter("hasPermission(filterObject.name, 'ACCOUNT', 'READ')")
   @RequestMapping(method = RequestMethod.GET)
   List<ClouddriverService.Account> getAccounts(@SpinnakerUser User user) {
     credentialsService.getAccounts(user.roles)
   }
 
-  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'WRITE')")
+  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = '/{account}', method = RequestMethod.GET)
   Map getAccount(@PathVariable("account") String account) {
     credentialsService.getAccount(account)
