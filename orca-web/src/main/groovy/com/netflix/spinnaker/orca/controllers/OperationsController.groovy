@@ -94,8 +94,9 @@ class OperationsController {
     if (pipeline.trigger.parentPipelineId && !pipeline.trigger.parentExecution) {
       Pipeline parentExecution = executionRepository.retrievePipeline(pipeline.trigger.parentPipelineId)
       if (parentExecution) {
-        pipeline.trigger.parentStatus = parentExecution.status
-        pipeline.trigger.parentExecution = parentExecution
+        pipeline.trigger.isPipeline         = true
+        pipeline.trigger.parentStatus       = parentExecution.status
+        pipeline.trigger.parentExecution    = parentExecution
         pipeline.trigger.parentPipelineName = parentExecution.name
       }
     }
