@@ -8,14 +8,12 @@ module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [
     require('../scalingPolicy.write.service.js'),
     require('exports?"n3-line-chart"!n3-charts/build/LineChart.js'),
-    require('core/serverGroup/serverGroup.read.service.js'),
     require('./simple/simplePolicyAction.component.js'),
     require('./step/stepPolicyAction.component.js'),
     require('./alarm/alarmConfigurer.component.js'),
   ])
   .controller('awsUpsertScalingPolicyCtrl', function ($uibModalInstance, scalingPolicyWriter,
-                                                      taskMonitorService,
-                                                      serverGroupReader, serverGroup, application, policy) {
+                                                      taskMonitorService, serverGroup, application, policy) {
 
     this.serverGroup = serverGroup;
 

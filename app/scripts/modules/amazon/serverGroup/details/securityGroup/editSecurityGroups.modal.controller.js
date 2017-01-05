@@ -1,13 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
-
 let angular = require('angular');
+
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.securityGroup.editSecurityGroups.modal.controller', [
   require('core/task/monitor/taskMonitor.module.js'),
-  require('core/serverGroup/serverGroup.write.service'),
+  SERVER_GROUP_WRITER_SERVICE,
   require('core/securityGroup/securityGroup.read.service'),
   TASK_EXECUTOR,
 ])

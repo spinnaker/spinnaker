@@ -4,7 +4,8 @@ import _ from 'lodash';
 let angular = require('angular');
 
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
-
+import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
   require('angular-ui-router'),
@@ -12,8 +13,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
   require('core/confirmationModal/confirmationModal.service.js'),
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  require('core/serverGroup/serverGroup.read.service.js'),
-  require('core/serverGroup/serverGroup.write.service.js'),
+  SERVER_GROUP_READER_SERVICE,
+  SERVER_GROUP_WRITER_SERVICE,
   require('core/insight/insightFilterState.model.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   require('../paramsMixin.js'),

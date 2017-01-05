@@ -3,20 +3,23 @@
 import _ from 'lodash';
 let angular = require('angular');
 
-require('../configure/serverGroup.configure.openstack.module.js');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
+
+require('../configure/serverGroup.configure.openstack.module.js');
 
 module.exports = angular.module('spinnaker.serverGroup.details.openstack.controller', [
   require('angular-ui-router'),
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('core/confirmationModal/confirmationModal.service.js'),
   require('core/securityGroup/securityGroup.read.service.js'),
-  require('core/serverGroup/serverGroup.write.service.js'),
+  SERVER_GROUP_WRITER_SERVICE,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   require('core/overrideRegistry/override.registry.js'),
   ACCOUNT_SERVICE,
-  require('core/serverGroup/serverGroup.read.service.js'),
+  SERVER_GROUP_READER_SERVICE,
   require('../configure/ServerGroupCommandBuilder.js'),
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable

@@ -1,13 +1,14 @@
 'use strict';
 
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
-
 let angular = require('angular');
+
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
 
 module.exports = angular
   .module('spinnaker.core.instance.write.service', [
     TASK_EXECUTOR,
-    require('../serverGroup/serverGroup.read.service.js'),
+    SERVER_GROUP_READER_SERVICE,
     require('../cloudProvider/serviceDelegate.service.js'),
   ])
   .factory('instanceWriter', function (taskExecutor, serverGroupReader, serviceDelegate) {

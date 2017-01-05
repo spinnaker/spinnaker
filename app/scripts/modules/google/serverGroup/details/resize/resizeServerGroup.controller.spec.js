@@ -1,5 +1,7 @@
 'use strict';
 
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+
 let template = require('./resizeServerGroup.html');
 
 // template dependencies
@@ -16,7 +18,7 @@ describe('Controller: gceResizeServerGroupCtrl', function () {
     window.module(
       require('./resizeServerGroup.controller'),
       require('../../../autoscalingPolicy/autoscalingPolicy.write.service.js'),
-      require('core/serverGroup/serverGroup.write.service.js')
+      SERVER_GROUP_WRITER_SERVICE
     )
   );
 

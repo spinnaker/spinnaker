@@ -1,12 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
-
 let angular = require('angular');
+
+import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.details.resize.capacity.component', [
-    require('core/serverGroup/serverGroup.write.service.js'),
+    SERVER_GROUP_WRITER_SERVICE,
   ])
   .component('gceResizeCapacity', {
     bindings: {
