@@ -11,8 +11,7 @@ class AppengineCloneServerGroupCtrl {
     'basicSettings': require('./basicSettings.html'),
     'advancedSettings': require('./advancedSettings.html'),
   };
-  public state = { loading: true };
-  public state: {[stateKey: string]: boolean} = {
+  public state = {
     loading: true,
   };
   public taskMonitor: any;
@@ -32,7 +31,7 @@ class AppengineCloneServerGroupCtrl {
               public serverGroupCommand: IAppengineServerGroupCommand,
               private application: Application,
               private taskMonitorService: any,
-              private serverGroupWriter: any,
+              private serverGroupWriter: ServerGroupWriterService,
               private commandBuilder: AppengineServerGroupCommandBuilder) {
 
     if (serverGroupCommand) {
