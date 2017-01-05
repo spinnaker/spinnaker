@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.api
 
-import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.autoscaler.KubernetesAutoscalerDescription
@@ -24,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalan
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesNamedServicePort
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.*
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
-import io.fabric8.kubernetes.api.builder.BaseFluent
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.extensions.*
 

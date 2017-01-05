@@ -79,6 +79,7 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
           .cluster(managedAccount.cluster)
           .user(managedAccount.user)
           .kubeconfigFile(managedAccount.kubeconfigFile)
+          .serviceAccount(managedAccount.serviceAccount)
           .namespaces(managedAccount.namespaces)
           .cacheThreads(managedAccount.cacheThreads ?: DEFAULT_CACHE_THREADS)
           .dockerRegistries(managedAccount.dockerRegistries)

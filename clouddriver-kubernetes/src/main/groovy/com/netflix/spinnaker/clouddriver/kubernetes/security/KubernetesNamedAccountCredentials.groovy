@@ -32,6 +32,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   final String user
   final String userAgent
   final String kubeconfigFile
+  final Boolean serviceAccount
   List<String> namespaces
   final int cacheThreads
   KubernetesCredentials credentials
@@ -48,6 +49,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
                                            String cluster,
                                            String user,
                                            String kubeconfigFile,
+                                           Boolean serviceAccount,
                                            List<String> namespaces,
                                            int cacheThreads,
                                            List<LinkedDockerRegistryConfiguration> dockerRegistries,
@@ -61,6 +63,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.user = user
     this.userAgent = userAgent
     this.kubeconfigFile = kubeconfigFile
+    this.serviceAccount = serviceAccount
     this.namespaces = namespaces
     this.cacheThreads = cacheThreads
     this.requiredGroupMembership = requiredGroupMembership
@@ -82,6 +85,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     String user
     String userAgent
     String kubeconfigFile
+    Boolean serviceAccount
     List<String> namespaces
     int cacheThreads
     KubernetesCredentials credentials
@@ -129,6 +133,11 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
       return this
     }
 
+    Builder serviceAccount(Boolean serviceAccount) {
+      this.serviceAccount = serviceAccount;
+      return this
+    }
+
     Builder requiredGroupMembership(List<String> requiredGroupMembership) {
       this.requiredGroupMembership = requiredGroupMembership
       return this
@@ -160,7 +169,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     }
 
     private KubernetesCredentials buildCredentials() {
-      Config config = KubernetesConfigParser.parse(kubeconfigFile, context, cluster, user, namespaces)
+      Config config = KubernetesConfigParser.parse(kubeconfigFile, context, cluster, user, namespaces, serviceAccount)
       config.setUserAgent(userAgent)
 
       for (LinkedDockerRegistryConfiguration registry : dockerRegistries) {
@@ -200,6 +209,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
           cluster,
           user,
           kubeconfigFile,
+          serviceAccount,
           namespaces,
           cacheThreads,
           dockerRegistries,

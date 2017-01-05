@@ -29,6 +29,7 @@ class KubernetesConfigurationProperties {
     String cluster
     String user
     String kubeconfigFile
+    Boolean serviceAccount
     List<String> namespaces
     int cacheThreads
     List<LinkedDockerRegistryConfiguration> dockerRegistries

@@ -23,9 +23,45 @@ import io.fabric8.kubernetes.api.model.NamedContext
 import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils
 
-class KubernetesConfigParser {
-  static Config parse(String kubeconfigFile, String context, String cluster, String user, List<String> namespaces) {
+import java.nio.file.Files
 
+class KubernetesConfigParser {
+  static Config parse(String kubeconfigFile, String context, String cluster, String user, List<String> namespaces, Boolean serviceAccount) {
+    if (serviceAccount) {
+      return withServiceAccount()
+    } else {
+      return withKubeConfig(kubeconfigFile, context, cluster, user, namespaces)
+    }
+  }
+
+  static Config withServiceAccount() {
+    Config config = new Config()
+
+    boolean serviceAccountCaCertExists = Files.isRegularFile(new File(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH).toPath())
+    if (serviceAccountCaCertExists) {
+      config.setCaCertFile(Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH)
+    } else {
+      throw new IllegalStateException("Could not find CA cert for service account at $Config.KUBERNETES_SERVICE_ACCOUNT_CA_CRT_PATH")
+    }
+
+    try {
+      String serviceTokenCandidate = new String(Files.readAllBytes(new File(Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH).toPath()))
+      if (serviceTokenCandidate != null) {
+        String error = "Configured service account doesn't have access. Service account may have been revoked."
+        config.setOauthToken(serviceTokenCandidate)
+        config.getErrorMessages().put(401, "Unauthorized! " + error)
+        config.getErrorMessages().put(403, "Forbidden! " + error)
+      } else {
+        throw new IllegalStateException("Did not find service account token at $Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH")
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not read service account token at $Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH", e)
+    }
+
+    return config
+  }
+
+  static Config withKubeConfig(String kubeconfigFile, String context, String cluster, String user, List<String> namespaces) {
     def kubeConfig = KubeConfigUtils.parseConfig(new File(kubeconfigFile))
     Config config = new Config()
 
@@ -46,7 +82,7 @@ class KubernetesConfigParser {
       currentContext.namespace = "default"
     }
 
-    Cluster currentCluster = KubeConfigUtils.getCluster(kubeConfig, currentContext);
+    Cluster currentCluster = KubeConfigUtils.getCluster(kubeConfig, currentContext)
     config.setApiVersion("v1") // TODO(lwander) Make config parameter when new versions arrive.
     config.setNoProxy([] as String[])
     if (currentCluster != null) {
