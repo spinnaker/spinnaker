@@ -4,14 +4,13 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.shrinkClusterStage', [
   require('core/application/listExtractor/listExtractor.service.js'),
-  require('./shrinkClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',
       cloudProvider: 'aws',
       templateUrl: require('./shrinkClusterStage.html'),
-      executionDetailsUrl: require('./shrinkClusterExecutionDetails.html'),
+      executionDetailsUrl: require('core/pipeline/config/stages/shrinkCluster/templates/shrinkClusterExecutionDetails.template.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},

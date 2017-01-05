@@ -5,14 +5,13 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkClusterStage', [
   ACCOUNT_SERVICE,
-  require('./shrinkClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',
       cloudProvider: 'gce',
       templateUrl: require('./shrinkClusterStage.html'),
-      executionDetailsUrl: require('./shrinkClusterExecutionDetails.html'),
+      executionDetailsUrl: require('core/pipeline/config/stages/shrinkCluster/templates/shrinkClusterExecutionDetails.template.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},

@@ -1,5 +1,7 @@
 'use strict';
 
+import {SHRINK_CLUSTER_EXECUTION_DETAILS_CTRL} from './templates/shrinkClusterExecutionDetails.controller';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.shrinkCluster', [
@@ -7,4 +9,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.shrinkCluster', [
   require('../stage.module.js'),
   require('../core/stage.core.module.js'),
   require('core/account/account.module.js'),
+  SHRINK_CLUSTER_EXECUTION_DETAILS_CTRL,
 ]);
