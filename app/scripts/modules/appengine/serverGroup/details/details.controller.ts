@@ -5,6 +5,7 @@ import {ServerGroup, Execution} from 'core/domain/index';
 import {Application} from 'core/application/application.model';
 import {IAppengineLoadBalancer, IAppengineServerGroup} from 'appengine/domain/index';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE, ServerGroupWarningMessageService} from 'core/serverGroup/details/serverGroupWarningMessage.service';
+import {APPENGINE_SERVER_GROUP_WRITER, AppengineServerGroupWriter} from '../writer/serverGroup.write.service';
 
 interface IPrivateScope extends IScope {
   $$destroyed: boolean;
@@ -30,7 +31,8 @@ class AppengineServerGroupDetailsController {
             'serverGroupWriter',
             'serverGroupWarningMessageService',
             'confirmationModalService',
-            'runningExecutionsService'];
+            'runningExecutionsService',
+            'appengineServerGroupWriter'];
   }
 
   constructor(private $state: any,
@@ -42,7 +44,8 @@ class AppengineServerGroupDetailsController {
               private serverGroupWriter: any,
               private serverGroupWarningMessageService: ServerGroupWarningMessageService,
               private confirmationModalService: any,
-              private runningExecutionsService: any) {
+              private runningExecutionsService: any,
+              private appengineServerGroupWriter: AppengineServerGroupWriter) {
 
     this.app
       .ready()
@@ -207,6 +210,84 @@ class AppengineServerGroupDetailsController {
     this.confirmationModalService.confirm(confirmationModalParams);
   }
 
+  public stopServerGroup(): void {
+    let taskMonitor = {
+      application: this.app,
+      title: 'Stopping ' + this.serverGroup.name,
+    };
+
+    let submitMethod = () => this.appengineServerGroupWriter.stopServerGroup(this.serverGroup, this.app);
+
+    let modalBody: string;
+    if (!this.serverGroup.disabled) {
+      modalBody = `
+        <div class="alert alert-danger">
+          <p>Stopping this server group will scale it down to zero instances.</p>
+          <p>
+            This server group is currently serving traffic from <b>${this.serverGroup.loadBalancers[0]}</b>.
+            Traffic directed to this server group after it has been stopped will not be handled.
+          </p>
+        </div>`;
+    }
+
+    let confirmationModalParams = {
+      header: 'Really stop ' + this.serverGroup.name + '?',
+      buttonText: 'Stop ' + this.serverGroup.name,
+      provider: 'appengine',
+      account: this.serverGroup.account,
+      body: modalBody,
+      taskMonitorConfig: taskMonitor,
+      submitMethod: submitMethod,
+      askForReason: true,
+    };
+
+    this.confirmationModalService.confirm(confirmationModalParams);
+  }
+
+  public startServerGroup(): void {
+    let taskMonitor = {
+      application: this.app,
+      title: 'Starting ' + this.serverGroup.name,
+    };
+
+    let submitMethod = () => this.appengineServerGroupWriter.startServerGroup(this.serverGroup, this.app);
+
+    let confirmationModalParams = {
+      header: 'Really start ' + this.serverGroup.name + '?',
+      buttonText: 'Start ' + this.serverGroup.name,
+      provider: 'appengine',
+      account: this.serverGroup.account,
+      taskMonitorConfig: taskMonitor,
+      submitMethod: submitMethod,
+      askForReason: true,
+    };
+
+    this.confirmationModalService.confirm(confirmationModalParams);
+  }
+
+  public canStartServerGroup(): boolean {
+    if (this.canStartOrStopServerGroup()) {
+      return this.serverGroup.servingStatus === 'STOPPED';
+    } else {
+      return false;
+    }
+  }
+
+  public canStopServerGroup(): boolean {
+    if (this.canStartOrStopServerGroup()) {
+      return this.serverGroup.servingStatus === 'SERVING';
+    } else {
+      return false;
+    }
+  }
+
+  private canStartOrStopServerGroup(): boolean {
+    let isFlex = this.serverGroup.env === 'FLEXIBLE';
+    let usesManualScaling = get(this.serverGroup, 'scalingPolicy.type') === 'MANUAL';
+    let usesBasicScaling = get(this.serverGroup, 'scalingPolicy.type') === 'BASIC';
+    return isFlex || usesManualScaling || usesBasicScaling;
+  }
+
   public runningExecutions(): Execution[] {
     return this.runningExecutionsService.filterRunningExecutions((this.serverGroup as any).executions);
   }
@@ -339,9 +420,10 @@ class AppengineServerGroupDetailsController {
   }
 }
 
-export const APPENGINE_SERVER_GROUP_DETAILS_CONTROLLER = 'spinnaker.appengine.serverGroup.details.controller';
+export const APPENGINE_SERVER_GROUP_DETAILS_CTRL = 'spinnaker.appengine.serverGroup.details.controller';
 
-module(APPENGINE_SERVER_GROUP_DETAILS_CONTROLLER, [
+module(APPENGINE_SERVER_GROUP_DETAILS_CTRL, [
+    APPENGINE_SERVER_GROUP_WRITER,
     require('core/confirmationModal/confirmationModal.service.js'),
     require('core/insight/insightFilterState.model.js'),
     require('core/serverGroup/serverGroup.read.service.js'),

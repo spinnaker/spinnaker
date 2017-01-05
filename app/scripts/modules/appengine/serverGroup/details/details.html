@@ -32,6 +32,16 @@
           Server Group Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li ng-if="ctrl.canStopServerGroup()">
+            <a href ng-click="ctrl.stopServerGroup()">
+              Stop
+            </a>
+          </li>
+          <li ng-if="ctrl.canStartServerGroup()">
+            <a href ng-click="ctrl.startServerGroup()">
+              Start
+            </a>
+          </li>
           <li ng-if="ctrl.serverGroup.disabled">
             <a href ng-click="ctrl.enableServerGroup()">
               Enable
