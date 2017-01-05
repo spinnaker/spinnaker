@@ -71,7 +71,9 @@ class YamlBindings(object):
 
   def __update_field(self, name, value, container):
     if not isinstance(value, dict) or not name in container:
-      container[name] = value
+      if not (value is None and isinstance(container.get(name, None), dict)):
+        # Set the value, but if it is an empty dictionary, keep the old one
+        container[name] = value
       return
 
     container_value = container[name]
