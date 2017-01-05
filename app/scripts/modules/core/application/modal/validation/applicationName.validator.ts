@@ -1,4 +1,5 @@
 import {module} from 'angular';
+import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 
 export interface IApplicationNameValidationMessage {
   cloudProvider?: string;
@@ -28,7 +29,7 @@ export class ApplicationNameValidator {
 
   static get $inject() { return ['cloudProviderRegistry']; }
 
-  public constructor(private cloudProviderRegistry: any) {}
+  public constructor(private cloudProviderRegistry: CloudProviderRegistry) {}
 
   /**
    * Registers a validator for a cloud provider.
@@ -74,6 +75,5 @@ export class ApplicationNameValidator {
 
 export const APPLICATION_NAME_VALIDATOR = 'spinnaker.core.application.name.validator';
 
-module(APPLICATION_NAME_VALIDATOR, [
-  require('core/cloudProvider/cloudProvider.registry'),
-]).service('applicationNameValidator', ApplicationNameValidator);
+module(APPLICATION_NAME_VALIDATOR, [CLOUD_PROVIDER_REGISTRY])
+  .service('applicationNameValidator', ApplicationNameValidator);

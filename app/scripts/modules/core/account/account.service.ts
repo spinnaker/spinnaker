@@ -3,6 +3,7 @@ import {module} from 'angular';
 
 import {Application} from 'core/application/application.model';
 import {API_SERVICE, Api} from 'core/api/api.service';
+import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from '../cloudProvider/cloudProvider.registry';
 
 export interface IRegion {
   account?: string;
@@ -52,7 +53,7 @@ export class AccountService {
   constructor(private $log: ng.ILogService,
               private $q: ng.IQService,
               private settings: any,
-              private cloudProviderRegistry: any,
+              private cloudProviderRegistry: CloudProviderRegistry,
               private API: Api) {
   }
 
@@ -204,7 +205,7 @@ export class AccountService {
 export const ACCOUNT_SERVICE = 'spinnaker.core.account.service';
 module(ACCOUNT_SERVICE, [
   require('core/config/settings'),
-  require('core/cloudProvider/cloudProvider.registry'),
+  CLOUD_PROVIDER_REGISTRY,
   API_SERVICE
 ])
   .service('accountService', AccountService);

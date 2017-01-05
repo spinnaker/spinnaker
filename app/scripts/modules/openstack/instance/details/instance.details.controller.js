@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.openstack.controller', [
@@ -15,7 +17,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   require('core/config/settings.js'),
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('core/instance/details/instanceLinks.component'),
 ])
   .controller('openstackInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel, settings,

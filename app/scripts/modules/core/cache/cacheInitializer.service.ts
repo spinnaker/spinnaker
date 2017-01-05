@@ -5,6 +5,7 @@ import {module, noop} from 'angular';
 import {
   APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/service/application.read.service';
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
+import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {INFRASTRUCTURE_CACHE_CONFIG, IInfrastructureCacheConfig} from './infrastructureCacheConfig';
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from './infrastructureCaches.service';
 import {ICacheConfig} from './deckCache.service';
@@ -35,7 +36,7 @@ export class CacheInitializerService {
     config.onReset = config.onReset || [noop];
   }
 
-  private extendConfig(): ng.IPromise<any[]> {
+  private extendConfig(): ng.IPromise<void> {
     Object.keys(this.cacheConfig).forEach((key: string) => {
       this.setConfigDefaults(key, this.cacheConfig[key]);
     });
@@ -88,7 +89,7 @@ export class CacheInitializerService {
               private infrastructureCaches: InfrastructureCacheService,
               private accountService: AccountService,
               private securityGroupReader: any,
-              private cloudProviderRegistry: any,
+              private cloudProviderRegistry: CloudProviderRegistry,
               private igorService: any,
               private serviceDelegate: any) {}
 
@@ -127,6 +128,6 @@ module(CACHE_INITIALIZER_SERVICE, [
   APPLICATION_READ_SERVICE,
   require('../ci/jenkins/igor.service.js'),
   INFRASTRUCTURE_CACHE_SERVICE,
-  require('../cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
 ])
   .service('cacheInitializer', CacheInitializerService);

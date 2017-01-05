@@ -1,12 +1,12 @@
 'use strict';
 
 import _ from 'lodash';
-
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage', [
   require('core/application/listExtractor/listExtractor.service.js'),
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('core/config/settings.js'),
   require('netflix/fastProperties/modal/wizard/scope/index'),
   require('netflix/fastProperties/modal/fastPropertyScopeBuilder.service.js'),
@@ -32,9 +32,9 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
     }
   })
   .controller('PropertyStageCtrl', function ($scope, $uibModal, stage,
-                                           namingService, providerSelectionService, fastPropertyReader,
-                                           cloudProviderRegistry,
-                                           awsServerGroupTransformer, accountService, appListExtractorService, fastPropertyScopeBuilderService) {
+                                             namingService, providerSelectionService, fastPropertyReader,
+                                             awsServerGroupTransformer, accountService,
+                                             appListExtractorService, fastPropertyScopeBuilderService) {
 
     let applicationList = [];
     let vm = this;

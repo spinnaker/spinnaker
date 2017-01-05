@@ -1,13 +1,14 @@
 'use strict';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
+import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
+
 let angular = require('angular');
 
-import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
-import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-
 module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
+  CLOUD_PROVIDER_REGISTRY,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
-  require('core/cloudProvider/cloudProvider.registry.js'),
 ])
   .config(function (pipelineConfigProvider, cloudProviderRegistryProvider) {
     pipelineConfigProvider.registerStage({

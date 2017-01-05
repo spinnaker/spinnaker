@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.openstack.details.controller', [
@@ -11,7 +13,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.details.contr
   require('core/confirmationModal/confirmationModal.service.js'),
   require('core/insight/insightFilterState.model.js'),
   require('core/utils/selectOnDblClick.directive.js'),
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
 ])
   .controller('openstackSecurityGroupDetailsController', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
                                                        confirmationModalService, securityGroupWriter, securityGroupReader,

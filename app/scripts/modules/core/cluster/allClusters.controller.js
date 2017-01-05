@@ -1,5 +1,7 @@
 'use strict';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
 let angular = require('angular');
 
 import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
@@ -18,7 +20,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   require('../filterModel/filter.tags.directive'),
   require('../utils/waypoints/waypointContainer.directive'),
   require('angular-ui-bootstrap'),
-  require('../cloudProvider/cloudProvider.registry'),
+  CLOUD_PROVIDER_REGISTRY,
   require('angular-ui-router'),
 ])
   .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, clusterFilterService, $state,

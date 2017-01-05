@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
@@ -10,7 +12,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
   require('../cloudProvider/providerSelection/providerSelection.service.js'),
   require('../config/settings.js'),
   require('angular-ui-bootstrap'),
-  require('../cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
 ])
   .controller('AllSecurityGroupsCtrl', function($scope, app, $uibModal, $timeout,
                                                 providerSelectionService, settings, cloudProviderRegistry,

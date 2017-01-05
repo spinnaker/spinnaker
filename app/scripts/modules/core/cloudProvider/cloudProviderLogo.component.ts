@@ -1,5 +1,7 @@
 import {module} from 'angular';
 
+import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
+
 import './cloudProviderLogo.less';
 
 class CloudProviderLogoController implements ng.IComponentController {
@@ -13,7 +15,7 @@ class CloudProviderLogoController implements ng.IComponentController {
 
   static get $inject() { return ['cloudProviderRegistry']; }
 
-  public constructor(private cloudProviderRegistry: any) {}
+  public constructor(private cloudProviderRegistry: CloudProviderRegistry) {}
 
   public $onInit(): void {
     if (this.showTooltip) {
@@ -39,5 +41,5 @@ class CloudProviderLogoComponent implements ng.IComponentOptions {
 export const CLOUD_PROVIDER_LOGO = 'spinnaker.core.cloudProviderLogo.directive';
 
 module(CLOUD_PROVIDER_LOGO, [
-  require('./cloudProvider.registry'),
+  CLOUD_PROVIDER_REGISTRY,
 ]).component('cloudProviderLogo', new CloudProviderLogoComponent());

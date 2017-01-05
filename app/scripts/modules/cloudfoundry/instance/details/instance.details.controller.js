@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
 let angular = require('angular');
 
@@ -13,7 +14,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
   require('core/insight/insightFilterState.model.js'),
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
   require('core/instance/details/instanceLinks.component'),
 ])
   .controller('cfInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal, InsightFilterStateModel,

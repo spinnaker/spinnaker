@@ -1,12 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.modal.applicationProviderFields.directive', [
-    require('../../cloudProvider/cloudProvider.registry.js'),
+    CLOUD_PROVIDER_REGISTRY,
     require('../../config/settings.js'),
   ])
   .component('applicationProviderFields', {

@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller', [
@@ -13,7 +15,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
   require('core/insight/insightFilterState.model.js'),
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
-  require('core/cloudProvider/cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
 ])
   .controller('kubernetesInstanceDetailsController', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                                instanceWriter, confirmationModalService, recentHistoryService,

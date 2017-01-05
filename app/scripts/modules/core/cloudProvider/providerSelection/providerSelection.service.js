@@ -2,11 +2,12 @@
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
 module.exports = angular.module('spinnaker.providerSelection.service', [
   ACCOUNT_SERVICE,
   require('../../config/settings.js'),
-  require('../cloudProvider.registry.js'),
+  CLOUD_PROVIDER_REGISTRY,
 ])
   .factory('providerSelectionService', function($uibModal, $q, accountService, settings, cloudProviderRegistry) {
     function selectProvider(application, feature) {

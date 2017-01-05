@@ -1,12 +1,13 @@
 import {mock} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {ACCOUNT_SERVICE, AccountService, IAccount} from 'core/account/account.service';
+import {CloudProviderRegistry} from '../cloudProvider/cloudProvider.registry';
 
 describe('Service: accountService', () => {
 
   let $http: ng.IHttpBackendService;
   let settings: any;
-  let cloudProviderRegistry: any;
+  let cloudProviderRegistry: CloudProviderRegistry;
   let API: Api;
   let accountService: AccountService;
 
@@ -16,7 +17,7 @@ describe('Service: accountService', () => {
     mock.inject(
       function ($httpBackend: ng.IHttpBackendService,
                 _settings_: any,
-                _cloudProviderRegistry_: any,
+                _cloudProviderRegistry_: CloudProviderRegistry,
                 _API_: Api,
                 _accountService_: AccountService) {
         $http = $httpBackend;
