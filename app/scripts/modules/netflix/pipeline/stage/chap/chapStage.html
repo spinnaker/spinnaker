@@ -1,0 +1,18 @@
+<div class="form-horizontal">
+  <stage-config-field label="Test Case">
+    <div class="text-center" ng-if="!stageCtrl.viewState.testCasesLoaded">
+      <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+    </div>
+    <ui-select ng-model="stage.testCaseId" class="form-control input-sm" ng-if="stageCtrl.viewState.testCasesLoaded">
+      <ui-select-match>
+        {{$select.selected.name}}
+      </ui-select-match>
+      <ui-select-choices repeat="case.id as case in stageCtrl.testCases | filter: $select.search">
+        {{case.name}}
+        <div class="small">
+          Scenario: {{case.scenario}}
+        </div>
+      </ui-select-choices>
+    </ui-select>
+  </stage-config-field>
+</div>

@@ -23,6 +23,7 @@ module.exports = angular
     require('./pipeline/stage/properties'),
     require('./pipeline/stage/quickPatchAsg/quickPatchAsgStage.module.js'),
     require('./pipeline/stage/quickPatchAsg/bulkQuickPatchStage/bulkQuickPatchStage.module.js'),
+    require('./pipeline/stage/chap/chapStage'),
     require('./pipeline/config/properties'),
 
     require('./canary'),
