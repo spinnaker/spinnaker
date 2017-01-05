@@ -332,10 +332,10 @@ providers:
     primaryCredentials:
       name: my-docker-registry-account
       address: ${SPINNAKER_DOCKER_REGISTRY:https://index.docker.io/}
-      repository: ${SPINNAKER_DOCKER_REPOSITORY:library/nginx}
-      username: ${SPINNAKER_DOCKER_USERNAME}
+      repository: ${SPINNAKER_DOCKER_REPOSITORY:}
+      username: ${SPINNAKER_DOCKER_USERNAME:}
       # A path to a plain text file containing the user's password
-      passwordFile: ${SPINNAKER_DOCKER_PASSWORD_FILE}
+      passwordFile: ${SPINNAKER_DOCKER_PASSWORD_FILE:}
 
   openstack:
     # This default configuration uses the same environment variable names set in
