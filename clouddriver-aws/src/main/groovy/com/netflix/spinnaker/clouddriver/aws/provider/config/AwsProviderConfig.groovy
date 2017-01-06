@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.AgentProvider
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerV2InstanceStateCachingAgent
@@ -64,7 +64,8 @@ class AwsProviderConfig {
                           EddaApiFactory eddaApiFactory,
                           ApplicationContext ctx,
                           Registry registry,
-                          Scheduler reservationReportScheduler) {
+                          Scheduler reservationReportScheduler,
+                          Optional<Collection<AgentProvider>> agentProviders) {
     def awsProvider =
       new AwsProvider(accountCredentialsRepository, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
@@ -76,7 +77,8 @@ class AwsProviderConfig {
                            eddaApiFactory,
                            ctx,
                            registry,
-                           reservationReportScheduler)
+                           reservationReportScheduler,
+                           agentProviders.orElse(Collections.emptyList()))
 
     awsProvider
   }
@@ -110,11 +112,12 @@ class AwsProviderConfig {
                                                  EddaApiFactory eddaApiFactory,
                                                  ApplicationContext ctx,
                                                  Registry registry,
-                                                 Scheduler reservationReportScheduler) {
+                                                 Scheduler reservationReportScheduler,
+                                                 Collection<AgentProvider> agentProviders) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider)
     Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
-    List<CachingAgent> newlyAddedAgents = []
+    List<Agent> newlyAddedAgents = []
 
     //only index public images once per region
     Set<String> publicRegions = []
@@ -155,6 +158,10 @@ class AwsProviderConfig {
       newlyAddedAgents << new ReservationReportCachingAgent(
         registry, amazonClientProvider, allAccounts, objectMapper, reservationReportScheduler, ctx
       )
+    }
+
+    agentProviders.findAll { it.supports(AwsProvider.PROVIDER_NAME) }.each {
+      newlyAddedAgents.addAll(it.agents());
     }
 
     awsProvider.agents.addAll(newlyAddedAgents)

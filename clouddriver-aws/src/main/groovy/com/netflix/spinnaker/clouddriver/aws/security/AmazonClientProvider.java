@@ -40,6 +40,8 @@ import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClientBuilder;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClientBuilder;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
@@ -362,6 +364,10 @@ public class AmazonClientProvider {
 
   public AmazonSNS getAmazonSNS(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
     return awsSdkClientSupplier.getClient(AmazonSNSClientBuilder.class, AmazonSNS.class, accountName, awsCredentialsProvider, region);
+  }
+
+  public AmazonSQS getAmazonSQS(NetflixAmazonCredentials amazonCredentials, String region) {
+    return proxyHandlerBuilder.getProxyHandler(AmazonSQS.class, AmazonSQSClientBuilder.class, amazonCredentials, region, false);
   }
 
   public AmazonIdentityManagement getAmazonIdentityManagement(NetflixAmazonCredentials amazonCredentials, String region) {
