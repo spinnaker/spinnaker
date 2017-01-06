@@ -14,4 +14,6 @@ dependencies {
   compile spinnaker.dependency('guava')
 
   compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'
+  compile 'com.jcraft:jsch.agentproxy.jsch:0.0.9'
+  compile 'com.jcraft:jsch.agentproxy.connector-factory:0.0.9'
 }

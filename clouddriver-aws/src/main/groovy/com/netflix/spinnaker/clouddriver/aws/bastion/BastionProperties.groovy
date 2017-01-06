@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.aws.bastion
 
+import org.springframework.boot.context.properties.ConfigurationProperties
+
+@ConfigurationProperties("bastion")
 class BastionProperties {
   Boolean enabled
   String host

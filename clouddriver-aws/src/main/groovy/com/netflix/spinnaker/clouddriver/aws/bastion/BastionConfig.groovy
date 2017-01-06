@@ -24,17 +24,10 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@EnableConfigurationProperties
+@ConditionalOnProperty('bastion.enabled')
+@EnableConfigurationProperties(BastionProperties)
 class BastionConfig {
-
   @Bean
-  @ConfigurationProperties("bastion")
-  BastionProperties bastionConfiguration() {
-    new BastionProperties()
-  }
-
-  @Bean
-  @ConditionalOnProperty('bastion.enabled')
   AWSCredentialsProvider bastionCredentialsProvider(BastionProperties bastionConfiguration) {
     def provider = new BastionCredentialsProvider(bastionConfiguration.user, bastionConfiguration.host, bastionConfiguration.port, bastionConfiguration.proxyCluster,
       bastionConfiguration.proxyRegion, bastionConfiguration.accountIamRole)

@@ -22,10 +22,15 @@ import com.aestasit.infrastructure.ssh.dsl.SshDslEngine
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.BasicSessionCredentials
+import com.jcraft.jsch.IdentityRepository
+import com.jcraft.jsch.agentproxy.ConnectorFactory
+import com.jcraft.jsch.agentproxy.RemoteIdentityRepository
 import groovy.json.JsonSlurper
+import groovy.util.logging.Slf4j
 
 import java.text.SimpleDateFormat
 
+@Slf4j
 class BastionCredentialsProvider implements AWSCredentialsProvider {
   private static final JsonSlurper slurper = new JsonSlurper()
 
@@ -38,7 +43,7 @@ class BastionCredentialsProvider implements AWSCredentialsProvider {
 
   private Date expiration
   private AWSCredentials credentials
-  private final String sshKey
+  private final IdentityRepository identityRepository
 
   BastionCredentialsProvider(String user, String host, Integer port, String proxyCluster, String proxyRegion, String iamRole) {
     this.user = user ?: System.properties["user.name"]
@@ -47,11 +52,7 @@ class BastionCredentialsProvider implements AWSCredentialsProvider {
     this.proxyCluster = proxyCluster
     this.proxyRegion = proxyRegion
     this.iamRole = iamRole
-    File sshDir = new File(System.getProperty('user.home'), '.ssh')
-    this.sshKey = (["id_dsa", "id_rsa"].findResult {
-      def key = new File(sshDir, it)
-      key.exists() ? key : null
-    } ?: new File(sshDir, "id_rsa")).absolutePath
+    this.identityRepository = new RemoteIdentityRepository(ConnectorFactory.default.createConnector())
   }
 
   @Override
@@ -70,7 +71,8 @@ class BastionCredentialsProvider implements AWSCredentialsProvider {
   private AWSCredentials getRemoteCredentials() {
     SimpleDateFormat format = new SimpleDateFormat(
       "yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-    def engine = new SshDslEngine(new SshOptions(defaultKeyFile: new File(sshKey), trustUnknownHosts: true))
+    def engine = new SshDslEngine(new SshOptions(defaultPassword: '', trustUnknownHosts: true, jschProperties: [(SshDslEngine.SSH_PREFERRED_AUTHENTICATIONS): 'publickey']))
+    engine.jsch.setIdentityRepository(identityRepository)
     def command = "oq-ssh -r ${proxyRegion} ${proxyCluster},0 'curl -s http://169.254.169.254/latest/meta-data/iam/security-credentials/${iamRole}'".toString()
     CommandOutput output
     engine.remoteSession("${user}@${host}:${port}") {
