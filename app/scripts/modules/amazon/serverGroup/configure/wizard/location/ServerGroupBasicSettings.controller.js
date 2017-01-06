@@ -2,6 +2,7 @@
 
 import {Observable, Subject} from 'rxjs';
 
+import {IMAGE_READER} from 'core/image/image.reader';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
   require('angular-ui-bootstrap'),
   require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   V2_MODAL_WIZARD_SERVICE,
-  require('core/image/image.reader.js'),
+  IMAGE_READER,
   NAMING_SERVICE,
 ])
   .controller('awsServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
