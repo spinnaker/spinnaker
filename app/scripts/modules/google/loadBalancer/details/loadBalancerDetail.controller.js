@@ -12,10 +12,8 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller', [
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
-  require('core/confirmationModal/confirmationModal.service.js'),
   require('core/loadBalancer/loadBalancer.write.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
   require('core/insight/insightFilterState.model.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   require('./hostAndPathRules/hostAndPathRulesButton.component.js'),
@@ -29,7 +27,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
-                                                      confirmationModalService, accountService, elSevenUtils,
+                                                      accountService, elSevenUtils,
                                                       loadBalancerWriter, loadBalancerReader,
                                                       $q, loadBalancerTypeToWizardMap) {
 

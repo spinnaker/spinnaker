@@ -59,7 +59,6 @@ module.exports = angular
     require('./cluster/cluster.module.js'),
     require('./config/versionCheck.service.js'),
     require('./config/settings.js'),
-    require('./confirmationModal/confirmationModal.service.js'),
 
     require('./delivery/delivery.module.js'),
     require('./deploymentStrategy/deploymentStrategy.module.js'),

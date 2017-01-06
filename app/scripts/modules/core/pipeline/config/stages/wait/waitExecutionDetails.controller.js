@@ -1,5 +1,6 @@
 'use strict';
 
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
 
 let angular = require('angular');
@@ -9,7 +10,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.wait.executionDet
   EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('core/delivery/service/execution.service'),
-  require('core/confirmationModal/confirmationModal.service'),
+  CONFIRMATION_MODAL_SERVICE,
 ])
   .controller('WaitExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, executionService, confirmationModalService) {
 

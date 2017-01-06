@@ -1,6 +1,8 @@
 'use strict';
 
 import _ from 'lodash';
+
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 import {DISPLAYABLE_TASKS_FILTER} from './displayableTasks.filter';
 
@@ -11,7 +13,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
   require('./taskProgressBar.directive.js'),
   VIEW_STATE_CACHE_SERVICE,
   require('./task.write.service.js'),
-  require('../confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
   DISPLAYABLE_TASKS_FILTER,
   require('../config/settings.js'),
 ])

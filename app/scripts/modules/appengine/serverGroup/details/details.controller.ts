@@ -2,6 +2,7 @@ import {module, IScope} from 'angular';
 import {find, cloneDeep, reduce, mapValues, get, map} from 'lodash';
 
 import {Execution, ServerGroup} from 'core/domain/index';
+import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
 import {SERVER_GROUP_READER_SERVICE, ServerGroupReaderService} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER_SERVICE, ServerGroupWriterService} from 'core/serverGroup/serverGroupWriter.service';
 import {Application} from 'core/application/application.model';
@@ -77,7 +78,7 @@ class AppengineServerGroupDetailsController {
               public InsightFilterStateModel: any,
               private serverGroupWriter: ServerGroupWriterService,
               private serverGroupWarningMessageService: ServerGroupWarningMessageService,
-              private confirmationModalService: any,
+              private confirmationModalService: ConfirmationModalService,
               private runningExecutionsService: any,
               private appengineServerGroupWriter: AppengineServerGroupWriter) {
 
@@ -443,7 +444,7 @@ export const APPENGINE_SERVER_GROUP_DETAILS_CTRL = 'spinnaker.appengine.serverGr
 
 module(APPENGINE_SERVER_GROUP_DETAILS_CTRL, [
     APPENGINE_SERVER_GROUP_WRITER,
-    require('core/confirmationModal/confirmationModal.service.js'),
+    CONFIRMATION_MODAL_SERVICE,
     require('core/insight/insightFilterState.model.js'),
     SERVER_GROUP_WARNING_MESSAGE_SERVICE,
     SERVER_GROUP_READER_SERVICE,

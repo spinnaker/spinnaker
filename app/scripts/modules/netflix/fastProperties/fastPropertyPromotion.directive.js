@@ -2,11 +2,13 @@
 
 import _ from 'lodash';
 
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.promotion.directive', [
-    require('../../../modules/core/confirmationModal/confirmationModal.service'),
+    CONFIRMATION_MODAL_SERVICE,
     require('./fastProperty.write.service.js'),
     require('./fastPropertyScope.service.js')
   ])

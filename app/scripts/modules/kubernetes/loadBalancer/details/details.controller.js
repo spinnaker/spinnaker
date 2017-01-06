@@ -1,15 +1,16 @@
 'use strict';
 
-let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+
+let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.controller', [
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
   require('core/loadBalancer/loadBalancer.write.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
   require('core/insight/insightFilterState.model.js'),
   require('core/utils/selectOnDblClick.directive.js'),
 ])

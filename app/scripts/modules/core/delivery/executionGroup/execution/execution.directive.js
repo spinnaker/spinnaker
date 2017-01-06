@@ -1,5 +1,7 @@
 'use strict';
 
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+
 let angular = require('angular');
 
 require('./execution.less');
@@ -8,7 +10,7 @@ module.exports = angular
   .module('spinnaker.core.delivery.group.executionGroup.execution.directive', [
     require('../../filter/executionFilter.service.js'),
     require('../../filter/executionFilter.model.js'),
-    require('core/confirmationModal/confirmationModal.service.js'),
+    CONFIRMATION_MODAL_SERVICE,
     require('core/navigation/urlParser.service.js'),
     require('core/scheduler/scheduler.factory'),
   ])

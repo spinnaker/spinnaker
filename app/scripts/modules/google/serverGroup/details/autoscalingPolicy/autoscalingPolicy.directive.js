@@ -1,11 +1,13 @@
 'use strict';
 
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.directive', [
   require('core/insight/insightFilterState.model.js'),
   require('core/widgets/actionIcons/actionIcons.component.js'),
-  require('core/confirmationModal/confirmationModal.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
   require('angular-ui-bootstrap'),
   require('./../../../autoscalingPolicy/autoscalingPolicy.write.service.js'),
   require('./modal/upsertAutoscalingPolicy.modal.controller.js'),

@@ -10,7 +10,6 @@ module.exports = angular
     require('angular-ui-router'),
     require('./fastProperty.read.service.js'),
     require('./fastProperty.write.service.js'),
-    require('core/confirmationModal/confirmationModal.service.js'),
     require('./fastPropertyTransformer.service.js'),
     APPLICATION_READ_SERVICE,
   ])
