@@ -32,18 +32,19 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class UpsertAppEngineLoadBalancerAtomicOperationSpec extends Specification {
   private static final ACCOUNT_NAME = "my-appengine-account"
   private static final LOAD_BALANCER_NAME = "default"
-  private static final SERVER_GROUP_NAME_1 = "app-stack-detail-v000"
-  private static final SERVER_GROUP_NAME_2 = "app-stack-detail-v001"
+  private static final ORIGINAL_SERVER_GROUP = "app-stack-detail-v000"
+  private static final REPLACEMENT_SERVER_GROUP = "app-stack-detail-v001"
   private static final REGION = "us-central"
   private static final PROJECT = "myapp"
 
   private static final LOAD_BALANCER_IN_CACHE = new AppEngineLoadBalancer(
     name: LOAD_BALANCER_NAME,
-    split: new AppEngineTrafficSplit(allocations: [(SERVER_GROUP_NAME_1): 1])
+    split: new AppEngineTrafficSplit(allocations: [(ORIGINAL_SERVER_GROUP): 1])
   )
 
   @Shared
@@ -54,6 +55,7 @@ class UpsertAppEngineLoadBalancerAtomicOperationSpec extends Specification {
     safeRetry = new AppEngineSafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
   }
 
+  @Unroll
   void "can update AppEngine service using shardBy type and allocation from upsert description"() {
     setup:
       def appEngineLoadBalancerProviderMock = Mock(AppEngineLoadBalancerProvider)
@@ -73,7 +75,7 @@ class UpsertAppEngineLoadBalancerAtomicOperationSpec extends Specification {
 
       def migrateTraffic = false
       def descriptionSplit = new AppEngineTrafficSplit(
-        allocations: [(SERVER_GROUP_NAME_2): 1],
+        allocations: inputAllocations,
         shardBy: ShardBy.IP
       )
 
@@ -89,17 +91,11 @@ class UpsertAppEngineLoadBalancerAtomicOperationSpec extends Specification {
       operation.appEngineLoadBalancerProvider = appEngineLoadBalancerProviderMock
       operation.safeRetry = safeRetry
 
-      def expectedService = new Service(
-        split: new TrafficSplit(allocations: descriptionSplit.allocations,
-        shardBy: descriptionSplit.shardBy)
-      )
-
     when:
       operation.operate([])
 
     then:
       1 * appEngineLoadBalancerProviderMock.getLoadBalancer(ACCOUNT_NAME, LOAD_BALANCER_NAME) >> LOAD_BALANCER_IN_CACHE
-
 
       1 * appEngineMock.apps() >> appsMock
       1 * appsMock.services() >> servicesMock
@@ -107,6 +103,12 @@ class UpsertAppEngineLoadBalancerAtomicOperationSpec extends Specification {
       1 * patchMock.setUpdateMask("split") >> patchMock
       1 * patchMock.setMigrateTraffic(migrateTraffic) >> patchMock
       1 * patchMock.execute()
+
+    where:
+      inputAllocations                || expectedService
+      [(REPLACEMENT_SERVER_GROUP): 1] || new Service(split: new TrafficSplit(allocations: [(REPLACEMENT_SERVER_GROUP): 1], shardBy: ShardBy.IP))
+      [(REPLACEMENT_SERVER_GROUP): 1,
+       "no-allocation": 0]            || new Service(split: new TrafficSplit(allocations: [(REPLACEMENT_SERVER_GROUP): 1], shardBy: ShardBy.IP))
   }
 
   void "can update AppEngine service with only shardBy value in description, uses existing service split allocation"() {

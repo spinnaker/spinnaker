@@ -117,13 +117,13 @@ class UpsertAppEngineLoadBalancerAtomicOperation implements AtomicOperation<Map>
     }
 
     if (update.allocations) {
-      override.allocations = update.allocations
+      override.allocations = update.allocations.findAll { it.value > 0 }
     }
 
     if (update.shardBy) {
       override.shardBy = update.shardBy
     }
 
-    override
+    return override
   }
 }
