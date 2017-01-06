@@ -9,6 +9,7 @@ export interface IJob {
   source?: string;
   type?: string;
   user?: string;
+  [attribute: string]: any;
 }
 
 export interface ITaskCommand {

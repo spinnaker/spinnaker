@@ -3,6 +3,7 @@
 import _ from 'lodash';
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {ADD_ENTITY_TAG_LINKS_COMPONENT} from 'core/entityTag/addEntityTagLinks.component';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {VIEW_SCALING_ACTIVITIES_LINK} from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
 import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
@@ -22,6 +23,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('core/overrideRegistry/override.registry.js'),
   ACCOUNT_SERVICE,
   VIEW_SCALING_ACTIVITIES_LINK,
+  ADD_ENTITY_TAG_LINKS_COMPONENT,
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
   SERVER_GROUP_READER_SERVICE,

@@ -1291,3 +1291,35 @@ ul.checkmap {
     display: none !important;
   }
 }
+
+.popover.no-padding {
+  .popover-content {
+    padding: 0;
+  }
+}
+
+.fa-exclamation-triangle {
+  color: @unhealthy_red;
+}
+.fa-info-circle {
+  color: @spinnaker-blue;
+}
+
+// duplicated from bootstrap core
+// needed to render components in dropdowns correctly
+.dropdown-menu {
+  li {
+    > a {
+      display: block;
+      padding: 3px 20px;
+      clear: both;
+      color: #333333;
+      white-space: nowrap;
+      &:hover, &:focus {
+        background-color: #f5f5f5;
+        text-decoration: none;
+        color: #262626;
+      }
+    }
+  }
+}

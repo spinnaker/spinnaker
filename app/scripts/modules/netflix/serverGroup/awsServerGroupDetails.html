@@ -25,6 +25,8 @@
       <cloud-provider-logo provider="ctrl.serverGroup.type" height="36px" width="36px" style="margin-right: 10px"></cloud-provider-logo>
       <h3 select-on-dbl-click>
         {{ctrl.serverGroup.name}}
+        <entity-ui-tags component="ctrl.serverGroup" application="ctrl.application" entity-type="serverGroup"
+                        on-update="ctrl.application.serverGroups.refresh()"></entity-ui-tags>
       </h3>
     </div>
     <div>
@@ -49,6 +51,10 @@
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><a href ng-click="ctrl.cloneServerGroup(ctrl.serverGroup)">Clone</a></li>
             <li><migrator application="ctrl.application" server-group="ctrl.serverGroup"></migrator></li>
+            <add-entity-tag-links component="ctrl.serverGroup"
+                                  application="ctrl.application"
+                                  entity-type="serverGroup"
+                                  on-update="ctrl.application.serverGroups.refresh()"></add-entity-tag-links>
           </ul>
         </div>
         <div class="dropdown" ng-if="ctrl.serverGroup.insightActions.length > 0" uib-dropdown dropdown-append-to-body>

@@ -1,0 +1,18 @@
+@import "../presentation/less/imports/commonImports.less";
+
+entity-ui-tags {
+  position: relative;
+  .tag-marker {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 15px;
+  }
+  &.inverse {
+    .fa-exclamation-triangle {
+      color: @alert-background;
+    }
+    .fa-info-circle {
+      color: @light_blue_background;
+    }
+  }
+}

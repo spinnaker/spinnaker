@@ -1,6 +1,7 @@
 'use strict';
 
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
+import {ENTITY_UI_TAGS_COMPONENT} from 'core/entityTag/entityUiTags.component';
 
 let angular = require('angular');
 
@@ -11,6 +12,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
   require('../instance/instances.directive'),
   require('../instance/instanceList.directive'),
   require('./serverGroup.transformer'),
+  ENTITY_UI_TAGS_COMPONENT,
 ])
   .directive('serverGroup', function ($rootScope, $timeout, $filter, clusterFilterService,
                                       MultiselectModel, ClusterFilterModel, serverGroupTransformer) {

@@ -135,6 +135,7 @@ describe ('Application Model', function () {
           account: 'test',
           region: 'us-west-2',
           type: 'aws',
+          cloudProvider: 'aws',
           instances: [],
           instanceCounts: <InstanceCounts>{}
         }],

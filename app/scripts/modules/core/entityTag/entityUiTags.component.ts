@@ -1,0 +1,164 @@
+import {module} from 'angular';
+import {IEntityTag} from 'core/domain';
+import './entityUiTags.component.less';
+import {Application} from '../application/application.model';
+import {EntityTagWriter} from './entityTags.write.service';
+import {IModalService} from '../../../../types/angular-ui-bootstrap';
+import {EntityTagEditorCtrl} from './entityTagEditor.controller';
+
+import './entityUiTags.popover.less';
+
+class EntityUiTagsCtrl implements ng.IComponentController {
+
+  public alerts: IEntityTag[] = [];
+  public notices: IEntityTag[] = [];
+  public application: Application;
+  public entityType: string;
+  public hasTags: boolean = false;
+  public popoverTemplate: string = require('./entityUiTags.popover.html');
+  public popoverType: string;
+  public displayPopover: boolean;
+  public popoverContents: IEntityTag[] = [];
+  private popoverClose: ng.IPromise<void>;
+  private onUpdate: () => any;
+
+  private component: any;
+
+  static get $inject() { return ['$timeout', '$uibModal', 'confirmationModalService', 'entityTagWriter']; }
+
+  public constructor(private $timeout: ng.ITimeoutService, private $uibModal: IModalService,
+                     private confirmationModalService: any, private entityTagWriter: EntityTagWriter) {}
+
+  public $onInit(): void {
+    if (this.component.entityTags) {
+      this.alerts = this.component.entityTags.alerts;
+      this.notices = this.component.entityTags.notices;
+      this.hasTags = this.alerts.length + this.notices.length > 0;
+    }
+  }
+
+  public $onChanges(): void {
+    this.$onInit();
+  }
+
+  public $onDestroy(): void {
+    if (this.popoverClose) {
+      this.$timeout.cancel(this.popoverClose);
+    }
+  }
+
+  public deleteTag(tag: IEntityTag): void {
+    const taskMonitorConfig: any = {
+      application: this.application,
+      title: `Deleting ${tag.value['type']} on ${this.component.name}`,
+      onTaskComplete: () => this.onUpdate(),
+    };
+
+    this.confirmationModalService.confirm({
+      header: `Really delete ${tag.value['type']}?`,
+      buttonText: `Delete ${tag.value['type']}`,
+      provider: this.component.cloudProvider,
+      account: this.component.account,
+      applicationName: this.application.name,
+      taskMonitorConfig: taskMonitorConfig,
+      submitMethod: () => this.entityTagWriter.deleteEntityTag(this.application, this.component,
+        this.component.entityTags, tag.name)
+    });
+  }
+
+  public editTag(tag: IEntityTag) {
+    this.$uibModal.open({
+      templateUrl: require('./entityTagEditor.modal.html'),
+      controller: EntityTagEditorCtrl,
+      controllerAs: '$ctrl',
+      resolve: {
+        tag: (): IEntityTag => {
+          return {
+            name: tag.name,
+            value: {
+              message: tag.value['message'],
+              type: tag.value['type']
+            }
+          };
+        },
+        isNew: (): boolean => false,
+        owner: (): any => this.component,
+        entityType: (): string => this.entityType,
+        application: (): Application => this.application,
+        onUpdate: (): any => this.onUpdate
+      }
+    });
+  }
+
+
+  // Popover bits allow the popover to stay open when hovering to allow users to click on links, highlight text, etc.
+  // We may end up extracting this into a common widget if we want to use it elsewhere
+
+  public showPopover(type: string): void {
+    this.popoverType = type;
+    this.popoverContents = type === 'alert' ? this.alerts : this.notices;
+    this.displayPopover = true;
+  }
+
+  public popoverHovered(): void {
+    if (this.popoverClose) {
+      this.$timeout.cancel(this.popoverClose);
+      this.popoverClose = null;
+    }
+  }
+
+  public hidePopover(defer: boolean): void {
+    const hidePopoverType: string = this.popoverType;
+    if (defer) {
+      this.popoverClose = this.$timeout(() => {
+        if (this.popoverType === hidePopoverType) {
+          this.displayPopover = false;
+        }
+      }, 500);
+    } else {
+      this.displayPopover = false;
+    }
+  }
+}
+
+class EntityUiTagsComponent implements ng.IComponentOptions {
+  public bindings: any = {
+    component: '<',
+    application: '<',
+    onUpdate: '&?',
+    entityType: '@',
+  };
+  public controller: any = EntityUiTagsCtrl;
+  public template: string = `
+    <span ng-if="$ctrl.hasTags">
+      <span ng-if="$ctrl.alerts.length > 0"
+            class="tag-marker" 
+            ng-mouseover="$ctrl.showPopover('alert')" 
+            ng-mouseleave="$ctrl.hidePopover(true)">
+        <span uib-popover-template="$ctrl.popoverTemplate"
+              popover-placement="auto top"
+              popover-trigger="none"
+              popover-is-open="$ctrl.popoverType === 'alert' && $ctrl.displayPopover"
+              popover-class="no-padding">
+          <i class="fa fa-exclamation-triangle"></i>
+        </span>
+      </span>
+      <span ng-if="$ctrl.notices.length > 0"
+            class="tag-marker"
+            ng-mouseover="$ctrl.showPopover('notice')" 
+            ng-mouseleave="$ctrl.hidePopover(true)">
+        <span uib-popover-template="$ctrl.popoverTemplate"
+              popover-placement="auto top"
+              popover-trigger="none"
+              popover-is-open="$ctrl.popoverType === 'notice' && $ctrl.displayPopover"
+              popover-class="no-padding">
+          <i class="fa fa-info-circle"></i>
+        </span>
+      </span>
+    </span>
+  `;
+}
+
+export const ENTITY_UI_TAGS_COMPONENT = 'spinnaker.core.entityTags.uiTags.component';
+module(ENTITY_UI_TAGS_COMPONENT, [])
+  .component('entityUiTags', new EntityUiTagsComponent());

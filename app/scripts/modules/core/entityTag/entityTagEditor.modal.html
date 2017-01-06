@@ -1,0 +1,40 @@
+<div modal-page class="entity-tag-editor-modal">
+  <task-monitor monitor="$ctrl.taskMonitor"></task-monitor>
+  <modal-close dismiss="$ctrl.cancel()"></modal-close>
+  <div class="modal-header">
+    <h3>{{$ctrl.isNew ? 'Create' : 'Update'}} {{$ctrl.tag.value.type}}</h3>
+  </div>
+  <div class="modal-body">
+    <form role="form" name="form" class="form-horizontal" ng-submit="$ctrl.upsertTag()">
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+          <div class="form-group">
+            <div class="col-md-3 sm-label-right">
+              <b>Message</b>
+            </div>
+            <div class="col-md-9">
+              <textarea ng-model="$ctrl.tag.value.message" class="form-control input-sm" rows="5" required></textarea>
+              <div class="small text-right">Markdown is okay <help-field key="markdown.examples"></help-field></div>
+            </div>
+          </div>
+          <div class="form-group preview" ng-if="$ctrl.tag.value.message">
+            <div class="col-md-3 sm-label-right">
+              <b>Preview</b>
+            </div>
+            <div class="col-md-9">
+              <div marked="$ctrl.tag.value.message"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="$ctrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-disabled="form.$invalid || $ctrl.viewState.submitting"
+            ng-click="$ctrl.upsertTag()">
+      <span class="glyphicon glyphicon-ok-circle"></span> {{$ctrl.isNew ? 'Create' : 'Update'}} {{$ctrl.tag.value.type}}
+    </button>
+  </div>
+</div>
