@@ -60,10 +60,10 @@
               Disable
             </a>
           </li>
-          <li ng-if="ctrl.canDisableServerGroup()">
+          <li ng-if="ctrl.canDestroyServerGroup()">
             <a href ng-click="ctrl.destroyServerGroup()">Destroy</a>
           </li>
-          <li ng-if="!ctrl.canDisableServerGroup()"
+          <li ng-if="!ctrl.canDestroyServerGroup()"
               uib-tooltip="You cannot destroy a server group if it is the only server group
                            receiving traffic from a load balancer. You may be able to delete
                            this server group's load balancer."

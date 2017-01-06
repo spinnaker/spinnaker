@@ -108,6 +108,23 @@ class AppengineServerGroupDetailsController {
     }
   }
 
+  public canDestroyServerGroup(): boolean {
+    if (this.serverGroup) {
+      if (this.serverGroup.disabled) {
+        return true;
+      }
+
+      let expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
+      if (expectedAllocations) {
+        return Object.keys(expectedAllocations).length > 0;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
   public destroyServerGroup(): void {
     let taskMonitor = {
       application: this.app,
