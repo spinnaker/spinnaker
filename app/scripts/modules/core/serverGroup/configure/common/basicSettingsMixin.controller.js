@@ -1,6 +1,8 @@
 'use strict';
 
 import _ from 'lodash';
+
+import {IMAGE_READER} from 'core/image/image.reader';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
@@ -10,7 +12,7 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('angular-ui-router'),
     NAMING_SERVICE,
-    require('../../../image/image.reader.js')
+    IMAGE_READER,
   ])
   .controller('BasicSettingsMixin', function ($scope, imageReader, namingService, $uibModalStack, $state) {
 

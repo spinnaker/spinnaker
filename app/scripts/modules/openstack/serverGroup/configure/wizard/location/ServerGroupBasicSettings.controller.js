@@ -10,7 +10,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.basic
   require('angular-ui-bootstrap'),
   require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   V2_MODAL_WIZARD_SERVICE,
-  require('core/image/image.reader.js'),
   NAMING_SERVICE,
 ])
   .controller('openstackServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,

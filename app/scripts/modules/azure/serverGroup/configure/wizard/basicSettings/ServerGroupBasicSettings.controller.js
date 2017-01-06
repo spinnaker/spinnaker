@@ -1,9 +1,10 @@
 'use strict';
 
+import {IMAGE_READER} from 'core/image/image.reader';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 
 let angular = require('angular');
-import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.basicSettings', [
   require('angular-ui-router'),
@@ -11,7 +12,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.basicSett
   require('./image.regional.filter.js'),
   require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   V2_MODAL_WIZARD_SERVICE,
-  require('core/image/image.reader.js'),
+  IMAGE_READER,
   NAMING_SERVICE,
 ])
   .controller('azureServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,

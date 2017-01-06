@@ -1,17 +1,13 @@
 import {isString, trim} from 'lodash';
 import {module} from 'angular';
 import {ACCOUNT_SERVICE, AccountService, IAccount} from 'core/account/account.service';
+import {IFindImageParams} from 'core/image/image.reader';
 import {DOCKER_IMAGE_READER_SERVICE, DockerImageReaderService, IDockerImage} from './docker.image.reader.service';
 
 interface IViewState {
   imagesLoading: boolean;
   imagesLoaded: boolean;
   imagesRefreshing: boolean;
-}
-
-interface IImageConfig {
-  provider: string;
-  account: string;
 }
 
 interface IOnDockerBindingsChanges extends ng.IOnChangesObject {
@@ -174,7 +170,7 @@ class DockerImageAndTagSelectorController implements ng.IComponentController {
   }
 
   private initializeImages() {
-    const imageConfig: IImageConfig = {
+    const imageConfig: IFindImageParams = {
       provider: 'dockerRegistry',
       account: this.showRegistry ? this.account : this.registry
     };
