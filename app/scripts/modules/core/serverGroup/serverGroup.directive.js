@@ -1,9 +1,11 @@
 'use strict';
 
+import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directive', [
-  require('../cluster/filter/clusterFilter.service'),
+  CLUSTER_FILTER_SERVICE,
   require('../cluster/filter/clusterFilter.model'),
   require('../cluster/filter/multiselect.model'),
   require('../instance/instances.directive'),
@@ -32,7 +34,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
         scope.$state = $rootScope.$state;
 
         function setViewModel() {
-          var filteredInstances = scope.serverGroup.instances.filter(clusterFilterService.shouldShowInstance);
+          var filteredInstances = scope.serverGroup.instances.filter(i => clusterFilterService.shouldShowInstance(i));
 
           var serverGroup = scope.serverGroup;
 

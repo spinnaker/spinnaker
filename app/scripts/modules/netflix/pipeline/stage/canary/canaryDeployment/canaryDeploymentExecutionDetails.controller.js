@@ -1,11 +1,14 @@
 'use strict';
 
-let angular = require('angular');
+import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
 import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 
+let angular = require('angular');
+
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryDeployment.details.controller', [
   require('angular-ui-router'),
+  CLUSTER_FILTER_SERVICE,
   EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   URL_BUILDER_SERVICE,
@@ -81,9 +84,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryD
       }
     };
 
-    this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
-
-    this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
+    this.overrideFiltersForUrl = r => clusterFilterService.overrideFiltersForUrl(r);
 
     let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 

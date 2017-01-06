@@ -1,15 +1,15 @@
 'use strict';
 
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
+import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 
 let angular = require('angular');
-
-import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 
 require('./rollups.less');
 
 module.exports = angular.module('spinnaker.core.cluster.allClusters.controller', [
-  require('../cluster/filter/clusterFilter.service'),
+  CLUSTER_FILTER_SERVICE,
   require('../cluster/filter/clusterFilter.model'),
   require('../cluster/filter/multiselect.model'),
   require('./filter/clusterFilter.controller'),

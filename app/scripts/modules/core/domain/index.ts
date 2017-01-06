@@ -13,4 +13,5 @@ export * from './IVpc';
 export * from './IStage';
 export * from './IPipeline';
 export * from './instance';
-export * from './IStrategy'
+export * from './IStrategy';
+export * from './ICluster';

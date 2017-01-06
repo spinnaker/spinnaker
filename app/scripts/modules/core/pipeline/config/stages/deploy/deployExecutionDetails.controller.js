@@ -3,6 +3,7 @@
 import moment from 'moment';
 import _ from 'lodash';
 
+import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
@@ -12,7 +13,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.controller', [
   require('angular-ui-router'),
-  require('core/cluster/filter/clusterFilter.service.js'),
+  CLUSTER_FILTER_SERVICE,
   EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   URL_BUILDER_SERVICE,
@@ -118,7 +119,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
       }
     }
 
-    this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
+    this.overrideFiltersForUrl = r => clusterFilterService.overrideFiltersForUrl(r);
 
     let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
