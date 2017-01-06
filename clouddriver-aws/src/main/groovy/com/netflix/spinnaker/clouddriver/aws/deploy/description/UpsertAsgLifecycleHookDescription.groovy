@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook.DefaultResult
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook.LifecycleTransition
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook.Transition
 
 class UpsertAsgLifecycleHookDescription extends AbstractAmazonCredentialsDescription {
 
@@ -29,7 +29,7 @@ class UpsertAsgLifecycleHookDescription extends AbstractAmazonCredentialsDescrip
 
   // optional
   String name
-  LifecycleTransition lifecycleTransition = LifecycleTransition.EC2InstanceTerminating
+  Transition lifecycleTransition = Transition.EC2InstanceTerminating
   String notificationMetadata
   Integer heartbeatTimeout = 3600
   DefaultResult defaultResult = DefaultResult.ABANDON

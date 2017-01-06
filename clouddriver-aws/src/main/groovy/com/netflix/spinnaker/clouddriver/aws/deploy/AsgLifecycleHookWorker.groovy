@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.PutLifecycleHookRequest
+import com.amazonaws.services.autoscaling.model.PutNotificationConfigurationRequest
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -31,6 +32,7 @@ import java.util.regex.Pattern
 class AsgLifecycleHookWorker {
 
   private final static REGION_TEMPLATE_PATTERN = Pattern.quote("{{region}}")
+  private final static ACCOUNT_ID_TEMPLATE_PATTERN = Pattern.quote("{{accountId}}")
 
   final AmazonClientProvider amazonClientProvider
 
@@ -44,26 +46,42 @@ class AsgLifecycleHookWorker {
       return
     }
 
+    def targetAccountId = targetCredentials.accountId
     AmazonAutoScaling autoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion, true)
     lifecycleHooks.each { lifecycleHook ->
       String lifecycleHookName = lifecycleHook.name ?: [targetAsgName, 'lifecycle', idGenerator.nextId()].join('-')
-      def request = new PutLifecycleHookRequest(
-        autoScalingGroupName: targetAsgName,
-        lifecycleHookName: lifecycleHookName,
-        roleARN: lifecycleHook.roleARN,
-        notificationTargetARN: arnRegionTemplater(lifecycleHook.notificationTargetARN, targetRegion),
-        notificationMetadata: lifecycleHook.notificationMetadata,
-        lifecycleTransition: lifecycleHook.lifecycleTransition.toString(),
-        heartbeatTimeout: lifecycleHook.heartbeatTimeout,
-        defaultResult: lifecycleHook.defaultResult.toString()
-      )
-      autoScaling.putLifecycleHook(request)
 
-      task.updateStatus "AWS_DEPLOY", "Creating lifecycle hook (${request}) on ${targetRegion}/${targetAsgName}"
+      switch (lifecycleHook.lifecycleTransition.type) {
+        case AmazonAsgLifecycleHook.TransitionType.LIFECYCLE:
+          def request = new PutLifecycleHookRequest(
+            autoScalingGroupName: targetAsgName,
+            lifecycleHookName: lifecycleHookName,
+            roleARN: arnTemplater(lifecycleHook.roleARN, targetRegion, targetAccountId),
+            notificationTargetARN: arnTemplater(lifecycleHook.notificationTargetARN, targetRegion, targetAccountId),
+            notificationMetadata: lifecycleHook.notificationMetadata,
+            lifecycleTransition: lifecycleHook.lifecycleTransition.toString(),
+            heartbeatTimeout: lifecycleHook.heartbeatTimeout,
+            defaultResult: lifecycleHook.defaultResult.toString()
+          )
+          autoScaling.putLifecycleHook(request)
+
+          task.updateStatus "AWS_DEPLOY", "Creating lifecycle hook (${request}) on ${targetRegion}/${targetAsgName}"
+          break
+
+        case AmazonAsgLifecycleHook.TransitionType.NOTIFICATION:
+          def request = new PutNotificationConfigurationRequest()
+            .withAutoScalingGroupName(targetAsgName)
+            .withNotificationTypes(lifecycleHook.lifecycleTransition.toString())
+            .withTopicARN(arnTemplater(lifecycleHook.notificationTargetARN, targetRegion, targetAccountId))
+          autoScaling.putNotificationConfiguration(request)
+
+          task.updateStatus "AWS_DEPLOY", "Creating notification hook (${request}) on ${targetRegion}/${targetAsgName}"
+          break
+      }
     }
   }
 
-  private static String arnRegionTemplater(String arnTemplate, String region) {
-    arnTemplate.replaceAll(REGION_TEMPLATE_PATTERN, region)
+  private static String arnTemplater(String arnTemplate, String region, String accountId) {
+    arnTemplate.replaceAll(REGION_TEMPLATE_PATTERN, region).replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, accountId)
   }
 }

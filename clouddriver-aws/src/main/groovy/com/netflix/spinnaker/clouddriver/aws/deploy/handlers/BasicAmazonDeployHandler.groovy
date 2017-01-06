@@ -364,9 +364,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         new AmazonAsgLifecycleHook(
           roleARN: it.roleARN,
           notificationTargetARN: it.notificationTargetARN,
-          lifecycleTransition: AmazonAsgLifecycleHook.LifecycleTransition.valueOfName(it.lifecycleTransition),
+          lifecycleTransition: AmazonAsgLifecycleHook.Transition.valueOfName(it.lifecycleTransition),
           heartbeatTimeout: it.heartbeatTimeout,
-          defaultResult: AmazonAsgLifecycleHook.DefaultResult.valueOf(it.defaultResult)
+          defaultResult: it.defaultResult ? AmazonAsgLifecycleHook.DefaultResult.valueOf(it.defaultResult) : null
         )
       })
     }

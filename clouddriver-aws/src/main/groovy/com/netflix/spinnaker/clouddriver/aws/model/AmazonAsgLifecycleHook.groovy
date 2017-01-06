@@ -25,25 +25,33 @@ class AmazonAsgLifecycleHook {
   String roleARN
   String notificationTargetARN
   String notificationMetadata
-  LifecycleTransition lifecycleTransition
+  Transition lifecycleTransition
   Integer heartbeatTimeout
   DefaultResult defaultResult
 
-  enum LifecycleTransition {
-    EC2InstanceLaunching("autoscaling:EC2_INSTANCE_LAUNCHING"),
-    EC2InstanceTerminating("autoscaling:EC2_INSTANCE_TERMINATING")
+  static enum TransitionType {
+    NOTIFICATION,
+    LIFECYCLE
+  }
+
+  static enum Transition {
+    EC2InstanceLaunching("autoscaling:EC2_INSTANCE_LAUNCHING", TransitionType.LIFECYCLE),
+    EC2InstanceTerminating("autoscaling:EC2_INSTANCE_TERMINATING", TransitionType.LIFECYCLE),
+    EC2InstanceLaunchError("autoscaling:EC2_INSTANCE_LAUNCH_ERROR", TransitionType.NOTIFICATION)
 
     final String value
+    final TransitionType type
 
-    LifecycleTransition(String value) {
+    Transition(String value, TransitionType transitionType) {
       this.value = value
+      this.type = transitionType
     }
 
     String toString() {
       value
     }
 
-    static LifecycleTransition valueOfName(String name) {
+    static Transition valueOfName(String name) {
       values().find { it.value == name }
     }
   }

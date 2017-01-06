@@ -17,8 +17,10 @@ package com.netflix.spinnaker.clouddriver.aws.deploy
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.PutLifecycleHookRequest
+import com.amazonaws.services.autoscaling.model.PutNotificationConfigurationRequest
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import spock.lang.Specification
@@ -36,7 +38,13 @@ class AsgLifecycleHookWorkerSpec extends Specification {
     nextId() >> { (++count).toString() }
   }
 
-  @Subject def asgLifecycleHookWorker = new AsgLifecycleHookWorker(amazonClientProvider, null, 'us-east-1', idGenerator)
+  def targetAccountId = '123456789012'
+  def targetCredentials = Stub(NetflixAmazonCredentials) {
+    getAccountId() >> { targetAccountId }
+  }
+
+  @Subject
+  def asgLifecycleHookWorker = new AsgLifecycleHookWorker(amazonClientProvider, targetCredentials, 'us-east-1', idGenerator)
 
   void 'should no-op with no lifecycle hooks defined'() {
     when:
@@ -52,16 +60,20 @@ class AsgLifecycleHookWorkerSpec extends Specification {
       new AmazonAsgLifecycleHook(
         roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
         notificationTargetARN: 'arn:aws:sns:us-east-1:123456789012:my-sns-topic',
-        lifecycleTransition: AmazonAsgLifecycleHook.LifecycleTransition.EC2InstanceTerminating,
+        lifecycleTransition: AmazonAsgLifecycleHook.Transition.EC2InstanceTerminating,
         heartbeatTimeout: 3600,
         defaultResult: AmazonAsgLifecycleHook.DefaultResult.ABANDON
       ),
       new AmazonAsgLifecycleHook(
-        roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
-        notificationTargetARN: 'arn:aws:sns:{{region}}:123456789012:my-sns-topic',
-        lifecycleTransition: AmazonAsgLifecycleHook.LifecycleTransition.EC2InstanceLaunching,
+        roleARN: 'arn:aws:iam::{{accountId}}:role/my-notification-role',
+        notificationTargetARN: 'arn:aws:sns:{{region}}:{{accountId}}:my-sns-topic',
+        lifecycleTransition: AmazonAsgLifecycleHook.Transition.EC2InstanceLaunching,
         heartbeatTimeout: 3600,
         defaultResult: AmazonAsgLifecycleHook.DefaultResult.CONTINUE
+      ),
+      new AmazonAsgLifecycleHook(
+        notificationTargetARN: 'arn:aws:sns:{{region}}:{{accountId}}:my-notification-sns-topic',
+        lifecycleTransition: AmazonAsgLifecycleHook.Transition.EC2InstanceLaunchError,
       )
     ]
 
@@ -87,6 +99,11 @@ class AsgLifecycleHookWorkerSpec extends Specification {
       heartbeatTimeout: 3600,
       defaultResult: 'CONTINUE'
     ))
-
+    1 * autoScaling.putNotificationConfiguration(
+      new PutNotificationConfigurationRequest()
+        .withAutoScalingGroupName('asg-v000')
+        .withNotificationTypes('autoscaling:EC2_INSTANCE_LAUNCH_ERROR')
+        .withTopicARN('arn:aws:sns:us-east-1:123456789012:my-notification-sns-topic')
+    )
   }
 }
