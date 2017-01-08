@@ -153,7 +153,7 @@ public class RegionScopedTitusClient implements TitusClient {
              .withTag("responseCode", Optional.ofNullable(responseCode).map(Object::toString).orElse("UNKNOWN"));
            registry.timer(timerId).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
          }
-       }, 1000, 3 );
+       }, 100, 8 );
     }
 
     @Override
