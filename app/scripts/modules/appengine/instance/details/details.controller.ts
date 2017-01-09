@@ -4,6 +4,7 @@ import {flattenDeep, cloneDeep} from 'lodash';
 
 import {Application} from 'core/application/application.model';
 import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
+import {INSTANCE_READ_SERVICE, InstanceReader} from 'core/instance/instance.read.service';
 import {IAppengineInstance} from 'appengine/domain/index';
 
 interface InstanceFromStateParams {
@@ -31,7 +32,7 @@ class AppengineInstanceDetailsController {
               private $state: IStateService,
               private $q: IQService,
               private app: Application,
-              private instanceReader: any,
+              private instanceReader: InstanceReader,
               private instanceWriter: any,
               private confirmationModalService: ConfirmationModalService,
               instance: InstanceFromStateParams) {
@@ -112,7 +113,7 @@ class AppengineInstanceDetailsController {
 export const APPENGINE_INSTANCE_DETAILS_CTRL = 'spinnaker.appengine.instanceDetails.controller';
 
 module(APPENGINE_INSTANCE_DETAILS_CTRL, [
-  require('core/instance/instance.read.service.js'),
+  INSTANCE_READ_SERVICE,
   require('core/instance/instance.write.service.js'),
   CONFIRMATION_MODAL_SERVICE,
 ]).controller('appengineInstanceDetailsCtrl', AppengineInstanceDetailsController);
