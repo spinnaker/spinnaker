@@ -1,9 +1,11 @@
 'use strict';
 
+import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.details.console.controller', [
-  require('../../instance.read.service.js'),
+  INSTANCE_READ_SERVICE,
 ])
   .controller('ConsoleOutputCtrl', function($scope, $uibModalInstance, instanceReader, instance) {
     $scope.vm = {

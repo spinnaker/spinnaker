@@ -3,6 +3,7 @@
 import _ from 'lodash';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
 
 let angular = require('angular');
 
@@ -10,7 +11,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   require('core/instance/instance.write.service.js'),
-  require('core/instance/instance.read.service.js'),
+  INSTANCE_READ_SERVICE,
   require('../../vpc/vpcTag.directive.js'),
   require('core/subnet/subnetTag.component.js'),
   CONFIRMATION_MODAL_SERVICE,
