@@ -168,7 +168,7 @@ class CreateDeployTaskSpec extends Specification {
       credentials      : 'fzlem',
       instanceType     : 'large',
       keyPair          : 'nf-fzlem-keypair-a',
-      securityGroups   : ['a', 'b', 'c', 'nf-infrastructure-vpc', 'nf-datacenter-vpc'],
+      securityGroups   : ['a', 'b', 'c', 'nf-infrastructure', 'nf-datacenter'],
       stack            : 'the-stack-value',
       subnetType       : 'the-subnet-type-value'
     ]
