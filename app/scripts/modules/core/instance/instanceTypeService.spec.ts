@@ -1,12 +1,17 @@
-'use strict';
+import {mock} from 'angular';
+
+import {INSTANCE_TYPE_SERVICE, InstanceTypeService, IInstanceTypeCategory} from 'core/instance/instanceType.service';
 
 describe('Service: instanceTypeService', function () {
 
-  var instanceTypeService, $q, $scope;
+  let instanceTypeService: InstanceTypeService,
+      $q: ng.IQService,
+      $scope: ng.IScope;
 
-  var generalFamily = {
+  const m3Category: IInstanceTypeCategory = {
     type: 'general',
     families: [{
+      type: 'm3',
       instanceTypes: [
         {name: 'm3.medium'},
         {name: 'm3.large'},
@@ -16,9 +21,10 @@ describe('Service: instanceTypeService', function () {
     }]
   };
 
-  var memoryFamily = {
+  const r3Category: IInstanceTypeCategory = {
     type: 'memory',
     families: [{
+      type: 'r3',
       instanceTypes: [
         {name: 'r3.large'},
         {name: 'r3.xlarge'},
@@ -28,9 +34,10 @@ describe('Service: instanceTypeService', function () {
     }]
   };
 
-  var microFamily = {
+  const t2Cateogry: IInstanceTypeCategory = {
     type: 'micro',
     families: [{
+      type: 't2',
       instanceTypes: [
         {name: 't2.small'},
         {name: 't2.medium'},
@@ -38,14 +45,14 @@ describe('Service: instanceTypeService', function () {
     }]
   };
 
-  var categories = [generalFamily, memoryFamily, microFamily];
+  const categories: IInstanceTypeCategory[] = [m3Category, r3Category, t2Cateogry];
 
   beforeEach(
-    window.module(require('./instanceTypeService.js'))
+    mock.module(INSTANCE_TYPE_SERVICE)
   );
 
   beforeEach(
-    window.inject(function (_instanceTypeService_, _$q_, $rootScope, serviceDelegate) {
+    mock.inject(function (_instanceTypeService_: InstanceTypeService, _$q_: ng.IQService, $rootScope: ng.IRootScopeService, serviceDelegate: any) {
       instanceTypeService = _instanceTypeService_;
       $q = _$q_;
       $scope = $rootScope.$new();
@@ -62,9 +69,9 @@ describe('Service: instanceTypeService', function () {
       spyOn(instanceTypeService, 'getCategories').and.returnValue($q.when(categories));
     });
 
-    generalFamily.families[0].instanceTypes.forEach( function(instanceType) {
+    m3Category.families[0].instanceTypes.forEach( function(instanceType) {
       it('should return "general" if the ' + instanceType.name + ' is in the "general" category', function () {
-        var result = null;
+        let result: string = null;
         instanceTypeService.getCategoryForInstanceType('aws', instanceType.name).then(function(category) {
           result = category;
         });
@@ -73,9 +80,9 @@ describe('Service: instanceTypeService', function () {
       });
     });
 
-    memoryFamily.families[0].instanceTypes.forEach(function (instanceType) {
+    r3Category.families[0].instanceTypes.forEach(function (instanceType) {
       it('should return "memory" if the ' + instanceType.name + ' is in the "memory" category', function () {
-        var result = null;
+        let result: string = null;
         instanceTypeService.getCategoryForInstanceType('aws', instanceType.name).then(function(category) {
           result = category;
         });
@@ -84,9 +91,9 @@ describe('Service: instanceTypeService', function () {
       });
     });
 
-    microFamily.families[0].instanceTypes.forEach(function (instanceType) {
+    t2Cateogry.families[0].instanceTypes.forEach(function (instanceType) {
       it('should return "micro" if the ' + instanceType.name + ' is in the "micro" category', function () {
-        var result = null;
+        let result: string = null;
         instanceTypeService.getCategoryForInstanceType('aws', instanceType.name).then(function(category) {
           result = category;
         });
@@ -96,10 +103,10 @@ describe('Service: instanceTypeService', function () {
     });
 
 
-    var customTypes = ['c1.large', 'c3.large', 'c4.large', 'm2.large'];
+    const customTypes = ['c1.large', 'c3.large', 'c4.large', 'm2.large'];
     customTypes.forEach(function (instanceType) {
       it('should return "custom" if the ' + instanceType + ' is not in a category', function () {
-        var result = null;
+        let result: string = null;
         instanceTypeService.getCategoryForInstanceType('aws', instanceType).then(function(category) {
           result = category;
         });

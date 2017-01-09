@@ -2,10 +2,12 @@
 
 import _ from 'lodash';
 
+import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.instance.instanceTypeSelectField', [
-  require('core/instance/instanceTypeService.js'),
+  INSTANCE_TYPE_SERVICE,
   require('../common/selectField.component.js')
 ])
   .directive('osInstanceTypeSelectField', function (instanceTypeService) {
