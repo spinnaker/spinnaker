@@ -41,7 +41,8 @@ public class ImageForceCacheRefreshTask extends AbstractCloudProviderAwareTask i
 
   @Override
   public TaskResult execute(Stage stage) {
-//    TODO-AJ Support force cache refresh for 'Image' (clouddriver)
+//    TODO-AJ Support force cache refresh for 'Image' (clouddriver-aws)
+//    TODO (duftler): Support force cache refresh for 'Image' (clouddriver-google)
 //    String cloudProvider = getCloudProvider(stage)
 //
 //    stage.context.targets.each { Map target ->

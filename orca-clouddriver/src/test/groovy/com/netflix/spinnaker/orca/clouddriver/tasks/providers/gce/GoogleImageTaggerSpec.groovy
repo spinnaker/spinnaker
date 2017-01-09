@@ -1,11 +1,11 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-
-package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
+package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonImageTagger
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -30,17 +30,12 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class AmazonImageTaggerSpec extends Specification {
+class GoogleImageTaggerSpec extends Specification {
 
   def oortService = Mock(OortService)
 
   @Subject
-  def imageTagger
-
-  void setup() {
-    imageTagger = new AmazonImageTagger(oortService, new ObjectMapper())
-    imageTagger.defaultBakeAccount = "test"
-  }
+  def imageTagger = new GoogleImageTagger(oortService, new ObjectMapper())
 
   @Unroll
   def "should throw exception if image does not exist"() {
@@ -49,11 +44,11 @@ class AmazonImageTaggerSpec extends Specification {
 
     def stage1 = new PipelineStage(pipeline, "", [
       imageId      : imageId,
-      cloudProvider: "aws"
+      cloudProvider: "gce"
     ])
     def stage2 = new PipelineStage(pipeline, "", [
       imageNames   : imageName ? [imageName] : null,
-      cloudProvider: "aws"
+      cloudProvider: "gce"
     ])
 
     stage1.refId = stage1.id
@@ -69,18 +64,19 @@ class AmazonImageTaggerSpec extends Specification {
     ImageTagger.ImageNotFound e = thrown(ImageTagger.ImageNotFound)
     e.shouldRetry == shouldRetry
 
-    1 * oortService.findImage("aws", "my-ami", null, null, null) >> { [] }
+    1 * oortService.findImage("gce", "my-gce-image", null, null, null) >> { [] }
 
     where:
-    imageId  | imageName || shouldRetry
-    "my-ami" | null      || true
-    null     | "my-ami"  || false       // do not retry if an explicitly provided image does not exist (user error)
+    imageId        | imageName       || shouldRetry
+    "my-gce-image" | null            || true
+    null           | "my-gce-image"  || false       // do not retry if an explicitly provided image does not exist (user error)
   }
 
-  def "should build upsertMachineImageTags and allowLaunchDescription operations"() {
+  def "should build upsertImageTags operation"() {
     given:
     def stage = new OrchestrationStage(new Orchestration(), "", [
-      imageNames: ["my-ami"],
+      account   : "my-google-account",
+      imageNames: ["my-gce-image"],
       tags      : [
         "tag1"      : "value1",
         "appversion": "updated app version" // builtin tags should not be updatable
@@ -91,29 +87,23 @@ class AmazonImageTaggerSpec extends Specification {
     def operationContext = imageTagger.getOperationContext(stage)
 
     then:
-    1 * oortService.findImage("aws", "my-ami", null, null, null) >> {
+    1 * oortService.findImage("gce", "my-gce-image", null, null, null) >> {
       [
-        [imageName: "my-ami-v2", accounts: ["test"], amis: ["us-east-1": ["my-ami-00002"]]],
-        [imageName: "my-ami", accounts: ["test", "prod"], amis: ["us-east-1": ["my-ami-00001"]], tagsByImageId: ["my-ami-00001": [tag1: "originalValue1"]]]
+        [imageName: "my-gce-image-v2", account: "test"],
+        [imageName: "my-gce-image", account: "test", tags: [tag1: "originalValue1"]]
       ]
     }
 
-    operationContext.operations.size() == 2
+    operationContext.operations.size() == 1
     operationContext.operations[0]["upsertImageTags"] == [
-      amiName    : "my-ami",
+      imageName  : "my-gce-image",
       tags       : [
         "tag1": "value1"
       ],
-      regions    : ["us-east-1"] as Set<String>,
-      credentials: imageTagger.defaultBakeAccount
+      credentials: "my-google-account"
     ]
-    operationContext.operations[1]["allowLaunchDescription"] == [
-      amiName    : "my-ami",
-      account    : "prod",
-      region     : "us-east-1",
-      credentials: imageTagger.defaultBakeAccount
-    ]
-    operationContext.extraOutput.regions == ["us-east-1"]
-    operationContext.extraOutput.originalTags == ["my-ami": ["my-ami-00001": [tag1: "originalValue1"]]]
+    operationContext.extraOutput.targets.size() == 1
+    operationContext.extraOutput.targets[0].imageName == "my-gce-image"
+    operationContext.extraOutput.originalTags == ["my-gce-image": ["tag1": "originalValue1"]]
   }
 }
