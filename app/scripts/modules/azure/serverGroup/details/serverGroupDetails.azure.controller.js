@@ -18,16 +18,13 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
   require('core/utils/selectOnDblClick.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
 ])
-  .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
+  .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,
                                                      serverGroupReader, azureServerGroupCommandBuilder, $uibModal, confirmationModalService, serverGroupWriter) {
 
     $scope.state = {
       loading: true
     };
-
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractServerGroupSummary() {
       var summary = _.find(app.serverGroups.data, function (toCheck) {

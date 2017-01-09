@@ -1,6 +1,6 @@
-<div class="row insight" ng-if="!vm.application.notFound">
+<div class="row insight" ng-if="!vm.application.notFound"
+     ng-class="vm.InsightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'">
   <div class="nav"
-       ng-class="{'filters-expanded': vm.InsightFilterStateModel.filtersExpanded}"
        ng-mouseover="vm.InsightFilterStateModel.hoverFilters()"
        ng-mouseleave="vm.InsightFilterStateModel.exitFilters()"
       >

@@ -10,10 +10,9 @@ module.exports = angular.module('spinnaker.securityGroup.cf.details.controller',
   ACCOUNT_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/securityGroup/securityGroup.write.service.js'),
-  require('core/insight/insightFilterState.model.js'),
   require('core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('cfSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app, InsightFilterStateModel,
+  .controller('cfSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app,
                                                     securityGroupWriter, securityGroupReader) {
 
     const application = app;
@@ -22,8 +21,6 @@ module.exports = angular.module('spinnaker.securityGroup.cf.details.controller',
     $scope.state = {
       loading: true
     };
-
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractSecurityGroup() {
       securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.provider, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {

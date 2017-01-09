@@ -95,7 +95,7 @@
     </collapsible-section>
 
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp}}</dd>
         <dt>Region</dt>
@@ -111,17 +111,14 @@
     </collapsible-section>
 
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
       </dl>
     </collapsible-section>
 
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup">
+      <dl class="dl-horizontal dl-flex" ng-if="serverGroup">
         <dt>Instances</dt>
         <dd>
           <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
@@ -130,7 +127,7 @@
     </collapsible-section>
 
     <collapsible-section heading="Security Groups">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Name</dt>
         <dd>{{serverGroup.securityGroupName}}</dd>
       </dl>

@@ -12,13 +12,12 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/securityGroup/securityGroup.write.service.js'),
   CONFIRMATION_MODAL_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
   require('core/history/recentHistory.service'),
 ])
-  .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
+  .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
                                                     recentHistoryService, $uibModal, cloudProviderRegistry) {
 
@@ -32,8 +31,6 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
       loading: true,
       standalone: app.isStandalone,
     };
-
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractSecurityGroup() {
       return securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.provider, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {

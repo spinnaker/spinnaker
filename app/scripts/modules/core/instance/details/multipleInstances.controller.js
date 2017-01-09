@@ -8,15 +8,12 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
   require('angular-ui-router'),
   require('../instance.write.service'),
   CONFIRMATION_MODAL_SERVICE,
-  require('../../insight/insightFilterState.model'),
   require('../../cluster/filter/multiselect.model'),
   require('./multipleInstanceServerGroup.directive'),
 ])
-  .controller('MultipleInstancesCtrl', function ($scope, $state, InsightFilterStateModel,
-                                                 confirmationModalService, MultiselectModel,
+  .controller('MultipleInstancesCtrl', function ($scope, $state, confirmationModalService, MultiselectModel,
                                                  instanceWriter, app) {
 
-    this.InsightFilterStateModel = InsightFilterStateModel;
     this.selectedGroups = [];
 
     /**

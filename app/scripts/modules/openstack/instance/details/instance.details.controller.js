@@ -15,14 +15,13 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
   INSTANCE_READ_SERVICE,
   require('core/subnet/subnetTag.component.js'),
   CONFIRMATION_MODAL_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   require('core/config/settings.js'),
   CLOUD_PROVIDER_REGISTRY,
   require('core/instance/details/instanceLinks.component'),
 ])
-  .controller('openstackInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel, settings,
+  .controller('openstackInstanceDetailsCtrl', function ($scope, $state, $uibModal, settings,
                                                instanceWriter, confirmationModalService, recentHistoryService,
                                                cloudProviderRegistry, instanceReader, instance, app, $q, overrides) {
 
@@ -35,7 +34,6 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
       instancePort: _.get(app, 'attributes.instancePort') || settings.defaultInstancePort || 80,
     };
 
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
     $scope.application = app;
 
     function extractHealthMetrics(instance, latest) {

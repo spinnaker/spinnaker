@@ -14,17 +14,15 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('core/instance/instance.write.service.js'),
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
   require('core/instance/details/instanceLinks.component'),
   require('../../loadBalancer/elSevenUtils.service.js')
 ])
-  .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
-                                                  instanceWriter, confirmationModalService, recentHistoryService,
-                                                  cloudProviderRegistry, instanceReader, instance, app, $q,
-                                                  elSevenUtils) {
+  .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, instanceWriter, confirmationModalService,
+                                                  recentHistoryService, cloudProviderRegistry, instanceReader, instance,
+                                                  app, $q, elSevenUtils) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('gce', 'instance.detailsTemplateUrl');
@@ -34,7 +32,6 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       standalone: app.isStandalone,
     };
 
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
     $scope.application = app;
 
     function extractHealthMetrics(instance, latest) {

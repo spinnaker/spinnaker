@@ -9,16 +9,13 @@ module.exports = angular.module('spinnaker.core.serverGroup.details.multipleServ
     require('angular-ui-router'),
     SERVER_GROUP_WRITER_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
-    require('../../insight/insightFilterState.model'),
     require('../../cluster/filter/multiselect.model'),
     require('../../cloudProvider/serviceDelegate.service.js'),
     require('./multipleServerGroup.component'),
   ])
-  .controller('MultipleServerGroupsCtrl', function ($scope, $state, InsightFilterStateModel,
-                                                    confirmationModalService, MultiselectModel,
+  .controller('MultipleServerGroupsCtrl', function ($scope, $state, confirmationModalService, MultiselectModel,
                                                     serverGroupWriter, serviceDelegate, app) {
 
-      this.InsightFilterStateModel = InsightFilterStateModel;
       this.serverGroups = [];
 
       /**

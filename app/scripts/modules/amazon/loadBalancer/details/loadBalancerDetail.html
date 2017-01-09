@@ -45,7 +45,7 @@
   </div>
   <div ng-if="!state.loading" class="content">
     <collapsible-section heading="Load Balancer Details" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -55,18 +55,18 @@
         <dt>Subnet</dt>
         <dd>{{ctrl.getFirstSubnetPurpose(loadBalancer.subnetDetails)}}</dd>
       </dl>
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt>Availability Zones</dt>
         <dd>
-          <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
+          <ul class="collapse-margin-on-filter-collapse">
             <li ng-repeat="availabilityZone in loadBalancer.elb.availabilityZones">{{availabilityZone}}</li>
           </ul>
         </dd>
       </dl>
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
         <dd ng-if="loadBalancer.serverGroups">
-          <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
+          <ul class="collapse-margin-on-filter-collapse">
             <li ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
               <a ui-sref="^.serverGroup({region: serverGroup.region,
                                           accountId: serverGroup.account,
@@ -78,7 +78,7 @@
           </ul>
         </dd>
       </dl>
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="loadBalancer.elb.dnsname">DNS Name</dt>
         <dd>
           <a target=_blank href="//{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a>
@@ -118,7 +118,7 @@
       </div>
       <div ng-repeat="subnet in loadBalancer.subnetDetails" ng-class="{'bottom-border': !$last}">
         <h5><strong>{{subnet.id}}</strong></h5>
-        <dl class="dl-horizontal dl-wide">
+        <dl class="dl-horizontal dl-flex">
           <dt>Purpose</dt>
           <dd>{{subnet.purpose}}</dt>
 
@@ -131,7 +131,7 @@
       </div>
     </collapsible-section>
     <collapsible-section heading="Health Checks">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt>Target</dt>
         <dd>{{loadBalancer.elb.healthCheck.target}}</dd>
         <dt>Timeout</dt>

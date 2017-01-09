@@ -18,13 +18,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER_SERVICE,
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
-  require('core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('core/modal/closeable/closeable.modal.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),
 ])
-    .controller('cfServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
+    .controller('cfServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
                                                        cfServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
                                                       runningExecutionsService, serverGroupWarningMessageService) {
 
@@ -33,8 +32,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
       $scope.state = {
         loading: true
       };
-
-      $scope.InsightFilterStateModel = InsightFilterStateModel;
 
       function extractServerGroupSummary() {
         var summary = _.find(application.serverGroups.data, function (toCheck) {

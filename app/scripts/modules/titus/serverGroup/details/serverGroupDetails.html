@@ -90,7 +90,7 @@
       </div>
     </collapsible-section>
     <collapsible-section heading="Titus Job Information" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Job Id</dt>
         <dd><a href="{{ serverGroup.apiEndpoint }}v2/jobs/{{serverGroup.id}}?taskState=ANY" target="_blank">{{serverGroup.id}}</a></dd>
         <dt>Created</dt>
@@ -100,7 +100,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Placement Constraints" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Account</dt>
         <dd><account-tag account="serverGroup.account" pad="right"></account-tag></dd>
         <dt>Region</dt>
@@ -108,16 +108,14 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="serverGroup.capacity.min === serverGroup.capacity.max">
         <dt>Desired</dt>
         <dd>{{serverGroup.capacity.desired}}</dd>
         <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
       </dl>
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="serverGroup.capacity.min !== serverGroup.capacity.max">
         <dt>Min</dt>
         <dd>{{serverGroup.capacity.min}}</dd>
@@ -135,9 +133,7 @@
       </div>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup">
+      <dl class="dl-horizontal dl-flex" ng-if="serverGroup">
         <dt>Tasks</dt>
         <dd>
           <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
@@ -145,8 +141,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Docker Image">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
-          ng-if="serverGroup.image">
+      <dl class="horizontal-when-filters-collapsed" ng-if="serverGroup.image">
         <dt ng-if="serverGroup.image.dockerImageName">Image Name</dt>
         <dd ng-if="serverGroup.image.dockerImageName">{{serverGroup.image.dockerImageName}}</dd>
         <dt ng-if="serverGroup.image.dockerImageVersion">Image Version</dt>

@@ -43,7 +43,7 @@
   </div>
   <div ng-if="!state.loading" class="content">
     <collapsible-section heading="Load Balancer Details" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{loadBalancer.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -55,10 +55,10 @@
         <dt>YAML</dt>
         <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
       </dl>
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
         <dd ng-if="loadBalancer.serverGroups">
-          <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
+          <ul class="collapse-margin-on-filter-collapse">
             <li ng-repeat="serverGroup in loadBalancer.serverGroups">{{serverGroup.name}}</li>
           </ul>
         </dd>
@@ -130,8 +130,7 @@
       <health-counts class="pull-left" container="loadBalancer.instanceCounts"></health-counts>
     </collapsible-section>
     <collapsible-section heading="Ports" expanded="true">
-      <dl ng-repeat="port in loadBalancer.service.spec.ports" class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
+      <dl ng-repeat="port in loadBalancer.service.spec.ports" class="dl-horizontal dl-flex">
         <div ng-if="port.name">
           <dt>Name</dt>
           <dd>{{port.name}}</dd>
@@ -155,7 +154,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Service Annotations" ng-if="loadBalancer.description.serviceAnnotations">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <kubernetes-annotation-details annotations="loadBalancer.description.serviceAnnotations">
         </kubernetes-annotation-details>
       </dl>

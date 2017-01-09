@@ -22,14 +22,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   NETWORK_READ_SERVICE,
   SERVER_GROUP_WRITER_SERVICE,
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
-  require('core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('./autoscalingPolicy/autoscalingPolicy.directive.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   require('./autoscalingPolicy/addAutoscalingPolicyButton.component.js')
 ])
-  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
+  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
                                                      runningExecutionsService, serverGroupWarningMessageService, networkReader) {
 
@@ -37,7 +36,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       loading: true
     };
 
-    this.InsightFilterStateModel = InsightFilterStateModel;
     this.application = app;
 
     let extractServerGroupSummary = () => {

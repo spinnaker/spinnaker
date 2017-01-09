@@ -117,7 +117,7 @@
       </div>
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -127,16 +127,14 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="ctrl.serverGroup.capacity.min === ctrl.serverGroup.capacity.max">
         <dt>Min/Max</dt>
         <dd>{{ctrl.serverGroup.capacity.min}}</dd>
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
       </dl>
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="ctrl.serverGroup.capacity.min !== ctrl.serverGroup.capacity.max">
         <dt>Min</dt>
         <dd>{{ctrl.serverGroup.capacity.min}}</dd>
@@ -147,8 +145,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>

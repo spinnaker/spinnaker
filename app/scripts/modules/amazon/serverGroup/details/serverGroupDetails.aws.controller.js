@@ -32,7 +32,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
   require('./scalingPolicy/scalingPolicySummary.component.js'),
   require('./scheduledAction/scheduledAction.directive.js'),
-  require('core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('core/utils/selectOnDblClick.directive.js'),
@@ -40,7 +39,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('./scalingPolicy/addScalingPolicyButton.component.js'),
   require('./securityGroup/editSecurityGroups.modal.controller'),
 ])
-  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
+  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal,
                                                      confirmationModalService, serverGroupWriter, subnetReader,
                                                      autoScalingProcessService, runningExecutionsService,
@@ -51,7 +50,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       loading: true
     };
 
-    this.InsightFilterStateModel = InsightFilterStateModel;
     this.application = app;
 
     let extractServerGroupSummary = () => {

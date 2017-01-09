@@ -30,7 +30,6 @@ class AppengineServerGroupDetailsController {
             'serverGroup',
             'app',
             'serverGroupReader',
-            'InsightFilterStateModel',
             'serverGroupWriter',
             'serverGroupWarningMessageService',
             'confirmationModalService',
@@ -75,7 +74,6 @@ class AppengineServerGroupDetailsController {
               serverGroup: IServerGroupFromStateParams,
               private app: Application,
               private serverGroupReader: ServerGroupReaderService,
-              public InsightFilterStateModel: any,
               private serverGroupWriter: ServerGroupWriterService,
               private serverGroupWarningMessageService: ServerGroupWarningMessageService,
               private confirmationModalService: ConfirmationModalService,
@@ -445,7 +443,6 @@ export const APPENGINE_SERVER_GROUP_DETAILS_CTRL = 'spinnaker.appengine.serverGr
 module(APPENGINE_SERVER_GROUP_DETAILS_CTRL, [
     APPENGINE_SERVER_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
-    require('core/insight/insightFilterState.model.js'),
     SERVER_GROUP_WARNING_MESSAGE_SERVICE,
     SERVER_GROUP_READER_SERVICE,
     SERVER_GROUP_WRITER_SERVICE,

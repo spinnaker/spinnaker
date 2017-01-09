@@ -96,7 +96,7 @@
 
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{serverGroup.launchConfig.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -113,8 +113,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Instances</dt>
         <dd>{{serverGroup.nativeApplication.instances}}</dd>
         <dt>Memory</dt>
@@ -125,9 +124,7 @@
       <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup">
+      <dl class="dl-horizontal dl-flex" ng-if="serverGroup">
         <dt>Instances</dt>
         <dd>
           <health-counts container="serverGroup" class="pull-left"></health-counts>
@@ -142,7 +139,7 @@
       </ul>
     </collapsible-section>
     <collapsible-section heading="Launch Configuration">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt>Name</dt>
         <dd>{{serverGroup.launchConfig.launchConfigurationName}}</dd>
         <dt>User Data</dt>
@@ -168,7 +165,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Environment Variables" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <div ng-repeat="(key, value) in serverGroup.envVariables">
           <!-- env variables starting with 'SPINNAKER' are part of Spinnaker and not for user consumption -->
           <div ng-if="!key.startsWith('SPINNAKER')">
@@ -180,7 +177,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Package" ng-if="serverGroup.buildInfo">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="serverGroup.buildInfo.jenkins">Job</dt>
         <dd ng-if="serverGroup.buildInfo.jenkins">{{serverGroup.buildInfo.jenkins.name}}</dd>
         <dt>Package</dt>

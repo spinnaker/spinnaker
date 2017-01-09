@@ -25,11 +25,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   require('../configure/ServerGroupCommandBuilder.js'),
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
-  require('core/insight/insightFilterState.model.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   require('../serverGroup.transformer.js'),
 ])
-  .controller('openstackServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
+  .controller('openstackServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,
                                                      serverGroupReader, openstackServerGroupCommandBuilder, $uibModal,
                                                      confirmationModalService, serverGroupWriter, subnetReader,
                                                      networkReader, securityGroupReader, loadBalancerReader,
@@ -41,7 +40,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
       loading: true
     };
 
-    this.InsightFilterStateModel = InsightFilterStateModel;
     this.application = app;
 
     let extractServerGroupSummary = () => {
