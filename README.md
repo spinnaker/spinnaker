@@ -66,6 +66,12 @@ To add an account, run:
 $ hal config provider PROVIDER add-account ACCOUNT-NAME [provider-specific flags]
 ```
 
+To edit an account, run:
+
+```
+$ hal config provider PROVIDER edit-account ACCOUNT-NAME [provider-specific flags]
+```
+
 To delete an account, run:
 
 ```

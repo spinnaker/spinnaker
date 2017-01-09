@@ -38,6 +38,10 @@ public class Daemon {
     ResponseUnwrapper.get(service.addAccount(deploymentName, providerName, validate, account));
   }
 
+  public static void setAccount(String deploymentName, String providerName, String accountName, boolean validate, Account account) {
+    ResponseUnwrapper.get(service.setAccount(deploymentName, providerName, accountName, validate, account));
+  }
+
   public static void deleteAccount(String deploymentName, String providerName, String accountName, boolean validate) {
     ResponseUnwrapper.get(service.deleteAccount(deploymentName, providerName, accountName, validate));
   }

@@ -22,12 +22,17 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 /**
- * Describe a specific dockerRegistry account
+ * Describe a specific docker-registry account
  */
 @Parameters()
 public class DockerRegistryCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "dockerRegistry";
+  }
+
+  @Override
+  public String getCommandName() {
+    return "docker-registry";
   }
 
   public DockerRegistryCommand() {

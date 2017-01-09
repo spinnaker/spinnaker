@@ -37,7 +37,7 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
   protected abstract Account buildAccount(String accountName);
 
   public String getDescription() {
-    return "Add a " + getProviderName() + " account";
+    return "Add a " + getProviderName() + " account.";
   }
 
   @Override

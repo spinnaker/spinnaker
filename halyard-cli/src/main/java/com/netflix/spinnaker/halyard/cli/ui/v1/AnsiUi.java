@@ -26,7 +26,8 @@ public class AnsiUi {
 
   public static void info(String message) {
     AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false);
+        .setIndentFirstLine(false)
+        .setIndentWidth(2);
 
     builder.addSnippet(". ")
         .setForegroundColor(AnsiForegroundColor.BLUE)
@@ -39,7 +40,8 @@ public class AnsiUi {
 
   public static void warning(String message) {
     AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false);
+        .setIndentFirstLine(false)
+        .setIndentWidth(2);
 
     builder.addSnippet("- ")
         .setForegroundColor(AnsiForegroundColor.YELLOW)
@@ -52,7 +54,8 @@ public class AnsiUi {
 
   public static void error(String message) {
     AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false);
+        .setIndentFirstLine(false)
+        .setIndentWidth(2);
 
     builder.addSnippet("! ")
         .setForegroundColor(AnsiForegroundColor.RED)
@@ -79,7 +82,8 @@ public class AnsiUi {
 
   public static void success(String message) {
     AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(false);
+        .setIndentFirstLine(false)
+        .setIndentWidth(2);
 
     builder.addSnippet("+ ")
         .setForegroundColor(AnsiForegroundColor.GREEN)
