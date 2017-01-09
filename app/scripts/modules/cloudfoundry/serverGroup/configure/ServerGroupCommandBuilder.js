@@ -2,14 +2,15 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
-
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
+
+let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service', [
   ACCOUNT_SERVICE,
-  require('core/instance/instanceTypeService.js'),
+  INSTANCE_TYPE_SERVICE,
   NAMING_SERVICE,
 ])
   .factory('cfServerGroupCommandBuilder', function (settings, $q,

@@ -1,14 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
+
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
   ACCOUNT_SERVICE,
-  require('core/instance/instanceTypeService.js'),
+  INSTANCE_TYPE_SERVICE,
   NAMING_SERVICE,
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
   require('./wizard/hiddenMetadataKeys.value.js'),

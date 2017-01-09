@@ -1,15 +1,17 @@
 'use strict';
 
-let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {GCE_HEALTH_CHECK_READER} from '../healthCheck/healthCheck.read.service';
+import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
+
+let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.cache.initializer', [
   require('../backendService/backendService.reader.js'),
   ACCOUNT_SERVICE,
-  require('core/instance/instanceTypeService.js'),
+  INSTANCE_TYPE_SERVICE,
   require('core/loadBalancer/loadBalancer.read.service.js'),
   NETWORK_READ_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),

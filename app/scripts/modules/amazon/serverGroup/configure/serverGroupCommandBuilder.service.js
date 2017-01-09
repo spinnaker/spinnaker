@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
@@ -10,7 +11,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
   ACCOUNT_SERVICE,
   SUBNET_READ_SERVICE,
-  require('core/instance/instanceTypeService.js'),
+  INSTANCE_TYPE_SERVICE,
   NAMING_SERVICE,
   require('./serverGroupConfiguration.service.js'),
 ])
