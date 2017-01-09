@@ -38,7 +38,6 @@ import org.springframework.stereotype.Component
 @Deprecated
 class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task, DeploymentDetailsAware {
 
-  static final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
   static final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
 
   @Autowired
@@ -49,9 +48,6 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task, D
 
   @Value('${default.bake.account:default}')
   String defaultBakeAccount
-
-  @Value('${default.vpc.securityGroups:#{T(com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask).DEFAULT_VPC_SECURITY_GROUPS}}')
-  List<String> defaultVpcSecurityGroups = DEFAULT_VPC_SECURITY_GROUPS
 
   @Value('${default.securityGroups:#{T(com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask).DEFAULT_SECURITY_GROUPS}}')
   List<String> defaultSecurityGroups = DEFAULT_SECURITY_GROUPS
@@ -112,12 +108,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task, D
     deployOperation.securityGroups = deployOperation.securityGroups ?: []
 
     if (cloudProvider != 'titus') {
-      //TODO(cfieber)- remove the VPC special case asap
-      if (deployOperation.subnetType && !deployOperation.subnetType.contains('vpc0')) {
-        addAllNonEmpty(deployOperation.securityGroups, defaultVpcSecurityGroups)
-      } else {
-        addAllNonEmpty(deployOperation.securityGroups, defaultSecurityGroups)
-      }
+      addAllNonEmpty(deployOperation.securityGroups, defaultSecurityGroups)
     }
 
     List<Map<String, Object>> descriptions = []
