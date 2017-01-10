@@ -1,4 +1,5 @@
 import {copy, module} from 'angular';
+import {merge, get} from 'lodash';
 
 import {Application} from 'core/application/application.model';
 import {SERVER_GROUP_WRITER_SERVICE, ServerGroupWriterService} from 'core/serverGroup/serverGroupWriter.service';
@@ -34,13 +35,13 @@ class AppengineCloneServerGroupCtrl {
               private serverGroupWriter: ServerGroupWriterService,
               private commandBuilder: AppengineServerGroupCommandBuilder) {
 
-    if (serverGroupCommand) {
+    if (['create', 'editPipeline'].includes(get<string>(serverGroupCommand, 'viewStage.mode'))) {
       $scope.command = serverGroupCommand;
       this.state.loading = false;
     } else {
       commandBuilder.buildNewServerGroupCommand(application, 'appengine', 'createPipeline')
-        .then((command) => {
-          $scope.command = command;
+        .then((constructedCommand) => {
+          $scope.command = merge(constructedCommand, serverGroupCommand);
           this.state.loading = false;
         });
     }

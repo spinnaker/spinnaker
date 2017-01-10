@@ -2,11 +2,16 @@ import {extend, module, IScope, IControllerService} from 'angular';
 import {IStateService} from 'angular-ui-router';
 
 import {NamingService} from 'core/naming/naming.service';
+import {IAppengineServerGroupCommand} from '../serverGroupCommandBuilder.service';
+
+interface IAppengineBasicSettingsScope extends IScope {
+  command: IAppengineServerGroupCommand;
+}
 
 class AppengineServerGroupBasicSettingsCtrl {
   static get $inject() { return ['$scope', '$state', '$controller', '$uibModalStack', 'namingService']; }
 
-  constructor($scope: IScope,
+  constructor(public $scope: IAppengineBasicSettingsScope,
               $state: IStateService,
               $controller: IControllerService,
               $uibModalStack: any,
@@ -19,6 +24,12 @@ class AppengineServerGroupBasicSettingsCtrl {
       $uibModalStack: $uibModalStack,
       $state: $state,
     }));
+  }
+
+  public toggleResolveViaTrigger(): void {
+    this.$scope.command.fromTrigger = !this.$scope.command.fromTrigger;
+    delete this.$scope.command.trigger;
+    delete this.$scope.command.branch;
   }
 }
 

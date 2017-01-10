@@ -2,6 +2,7 @@ import {module} from 'angular';
 
 import {ServerGroup} from 'core/domain/index';
 import {IAppengineServerGroupCommand} from './configure/serverGroupCommandBuilder.service';
+import {IAppengineGitTrigger} from 'appengine/domain/index';
 
 export class AppengineDeployDescription {
   cloudProvider: string = 'appengine';
@@ -21,6 +22,8 @@ export class AppengineDeployDescription {
   strategy?: string;
   strategyApplication?: string;
   strategyPipeline?: string;
+  fromTrigger?: boolean;
+  trigger?: IAppengineGitTrigger;
 
   constructor(command: IAppengineServerGroupCommand) {
     this.credentials = command.credentials;
@@ -38,6 +41,8 @@ export class AppengineDeployDescription {
     this.strategy = command.strategy;
     this.strategyApplication = command.strategyApplication;
     this.strategyPipeline = command.strategyPipeline;
+    this.fromTrigger = command.fromTrigger;
+    this.trigger = command.trigger;
   }
 }
 

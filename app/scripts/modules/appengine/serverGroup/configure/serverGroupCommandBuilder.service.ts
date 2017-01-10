@@ -3,8 +3,8 @@ import {get, intersection} from 'lodash';
 
 import {Application} from 'core/application/application.model';
 import {AccountService, ACCOUNT_SERVICE} from 'core/account/account.service';
-import {IAppengineAccount} from 'appengine/domain/index';
-import {IStage, IPipeline} from 'core/domain/index';
+import {IAppengineAccount, IAppengineGitTrigger} from 'appengine/domain/index';
+import {IStage, IPipeline, IGitTrigger} from 'core/domain/index';
 import {AppengineDeployDescription} from '../transformer';
 
 export interface IAppengineServerGroupCommand {
@@ -25,6 +25,8 @@ export interface IAppengineServerGroupCommand {
   strategy?: string;
   strategyApplication?: string;
   strategyPipeline?: string;
+  fromTrigger?: boolean;
+  trigger?: IAppengineGitTrigger
 }
 
 interface IViewState {
@@ -35,6 +37,14 @@ interface IViewState {
 
 export class AppengineServerGroupCommandBuilder {
   static get $inject() { return ['$q', 'accountService', 'settings']; }
+
+  private static getTriggerOptions(pipeline: IPipeline): IAppengineGitTrigger[] {
+    return (pipeline.triggers || [])
+      .filter(trigger => trigger.type === 'git')
+      .map((trigger: IGitTrigger) => ({
+        source: trigger.source, project: trigger.project, slug: trigger.slug, branch: trigger.branch
+      }));
+  }
 
   constructor(private $q: IQService, private accountService: AccountService, private settings: any) { }
 
@@ -67,10 +77,10 @@ export class AppengineServerGroupCommandBuilder {
       });
   }
 
-  public buildNewServerGroupCommandForPipeline(stage: IStage, pipeline: IPipeline): void {
-    // We can't copy server group configuration for App Engine, and can't build the command here because we don't have
+  public buildNewServerGroupCommandForPipeline(stage: IStage, pipeline: IPipeline): {backingData: {triggerOptions: IAppengineGitTrigger[]}} {
+    // We can't copy server group configuration for App Engine, and can't build the full command here because we don't have
     // access to the application.
-    return null;
+    return {backingData: {triggerOptions: AppengineServerGroupCommandBuilder.getTriggerOptions(pipeline)}};
   }
 
   public buildServerGroupCommandFromPipeline(app: Application,
@@ -80,6 +90,7 @@ export class AppengineServerGroupCommandBuilder {
     return this.buildNewServerGroupCommand(app, 'appengine', 'editPipeline')
       .then((command: IAppengineServerGroupCommand) => {
         Object.assign(command, cluster);
+        command.backingData.triggerOptions = AppengineServerGroupCommandBuilder.getTriggerOptions(pipeline);
         return command;
       });
   }
