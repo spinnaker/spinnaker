@@ -32,7 +32,9 @@
 // var smsEnabled = ${services.echo.notifications.sms.enabled};
 // var slackEnabled = ${services.echo.notifications.slack.enabled};
 // var slackBotName = ${services.echo.notifications.slack.botName};
-// var fiatEnabled = ${services.fiat.enabled}
+// var fiatEnabled = ${services.fiat.enabled};
+// var openstackPrimaryAccount = ${providers.openstack.primaryCredentials.name};
+// var openstackDefaultRegion = ${providers.openstack.defaultRegion};
 
 // END reconfigure_spinnaker
 /**
@@ -84,6 +86,12 @@ window.spinnakerSettings = {
         account: kubernetesPrimaryAccount,
         namespace: kubernetesDefaultNamespace
       },
+    },
+    openstack: {
+      defaults: {
+        account: openstackPrimaryAccount,
+        region: openstackDefaultRegion
+      }
     }
   },
   notifications: {

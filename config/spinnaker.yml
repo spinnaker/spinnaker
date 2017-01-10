@@ -343,6 +343,7 @@ providers:
     # http://docs.openstack.org/user-guide/common/cli-set-environment-variables-using-openstack-rc.html
     # for details on the OpenStack RC file.
     enabled: false
+    defaultRegion: ${SPINNAKER_OPENSTACK_DEFAULT_REGION:RegionOne}
     primaryCredentials:
       name: my-openstack-account
       authUrl: ${OS_AUTH_URL}
