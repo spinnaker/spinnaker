@@ -5,6 +5,8 @@
 
   <h6 sticky-header added-offset-height="39">
     <span class="icon icon-elb"></span> {{loadBalancer.region | uppercase}}
+    <entity-ui-tags component="loadBalancer" application="application" entity-type="loadBalancer"
+                    on-update="application.loadBalancers.refresh()"></entity-ui-tags>
     <span class="text-right">
       <health-counts container="loadBalancer.instanceCounts"></health-counts>
     </span>

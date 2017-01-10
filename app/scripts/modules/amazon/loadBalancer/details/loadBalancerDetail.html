@@ -23,6 +23,8 @@
       <span class="icon icon-elb"></span>
       <h3 select-on-dbl-click>
         {{loadBalancer.name}}
+        <entity-ui-tags component="loadBalancer" application="ctrl.application" entity-type="loadBalancer"
+                        on-update="ctrl.application.loadBalancers.refresh()"></entity-ui-tags>
       </h3>
     </div>
     <div>
@@ -38,6 +40,10 @@
             <li ng-if="loadBalancer.instances.length" class="disabled" uib-tooltip="You must detach all instances before you can delete this load balancer.">
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
             </li>
+            <add-entity-tag-links component="loadBalancer"
+                                  application="ctrl.application"
+                                  entity-type="loadBalancer"
+                                  on-update="ctrl.application.loadBalancers.refresh()"></add-entity-tag-links>
           </ul>
         </div>
       </div>

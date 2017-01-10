@@ -25,6 +25,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       loading: true
     };
 
+    this.application = app;
+
     function extractLoadBalancer() {
       let appLoadBalancer = app.loadBalancers.data.find(function (test) {
         return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId;
@@ -88,7 +90,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       // If the user navigates away from the view before the initial extractLoadBalancer call completes,
       // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
-        app.onRefresh($scope, extractLoadBalancer);
+        app.getDataSource('loadBalancers').onRefresh($scope, extractLoadBalancer);
       }
     });
 
