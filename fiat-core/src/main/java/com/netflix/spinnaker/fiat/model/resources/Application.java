@@ -34,6 +34,16 @@ public class Application implements GroupAccessControlled, Resource, Viewable {
   private String name;
   private List<String> requiredGroupMembership = new ArrayList<>();
 
+  // Some application configs were saved with `requiredGroupMembership = null`, so this ugly
+  // workaround is needed.
+  public Application setRequiredGroupMembership(List<String> membership) {
+    if (membership == null) {
+      membership = new ArrayList<>();
+    }
+    requiredGroupMembership = membership;
+    return this;
+  }
+
   @JsonIgnore
   public View getView() {
     return new View(this);
@@ -44,8 +54,7 @@ public class Application implements GroupAccessControlled, Resource, Viewable {
   @NoArgsConstructor
   public static class View extends BaseView implements Authorizable {
     String name;
-    Set<Authorization> authorizations
-        ;
+    Set<Authorization> authorizations;
 
     public View(Application application) {
       this.name = application.name;

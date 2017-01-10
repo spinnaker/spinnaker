@@ -29,7 +29,7 @@ class DefaultApplicationProviderSpec extends Specification {
   @Subject DefaultApplicationProvider provider
 
   @Unroll
-  def "should get all accounts based on supplied roles"() {
+  def "should get all applications based on supplied roles"() {
     setup:
     Front50Service front50Service = Mock(Front50Service) {
       getAllApplicationPermissions() >> [

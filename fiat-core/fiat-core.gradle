@@ -12,4 +12,5 @@ dependencies {
 
   testCompile spinnaker.dependency("spockSpring")
   testCompile "commons-io:commons-io:2.5"
+  testCompile spinnaker.dependency("retrofitJackson")
 }
