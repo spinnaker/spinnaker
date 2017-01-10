@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
@@ -47,6 +48,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,7 +57,7 @@ import java.util.stream.Collectors;
 /**
  * An Agent that subscribes to a particular SQS queue and tags any server groups that had launch errors.
  */
-class LaunchFailureNotificationAgent implements RunnableAgent {
+class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAgent {
   private static final Logger log = LoggerFactory.getLogger(LaunchFailureNotificationAgent.class);
 
   private static final Pattern ARN_PATTERN = Pattern.compile("arn:aws:.*:(.*):(\\d+):(.*)");
@@ -101,6 +103,16 @@ class LaunchFailureNotificationAgent implements RunnableAgent {
   }
 
   @Override
+  public long getPollIntervalMillis() {
+    return TimeUnit.MINUTES.toMillis(1);
+  }
+
+  @Override
+  public long getTimeoutMillis() {
+    return -1;
+  }
+
+  @Override
   public void run() {
     List<String> allAccountIds = accountCredentialsProvider.getAll().stream()
       .filter(c -> c instanceof NetflixAmazonCredentials)
@@ -123,8 +135,6 @@ class LaunchFailureNotificationAgent implements RunnableAgent {
       );
 
       receiveMessageResult.getMessages().forEach(message -> {
-        log.debug("Received message (queue: {}, message: {})", queueARN.name, message.getBody());
-
         try {
           NotificationMessageWrapper notificationMessageWrapper = objectMapper.readValue(
             message.getBody(), NotificationMessageWrapper.class
@@ -145,15 +155,18 @@ class LaunchFailureNotificationAgent implements RunnableAgent {
         messagesProcessed.incrementAndGet();
       });
 
-      if (receiveMessageResult.getMessages().size() < AWS_MAX_NUMBER_OF_MESSAGES) {
+      if (receiveMessageResult.getMessages().isEmpty()) {
+        // no messages received, stop polling.
         break;
       }
     }
+
+    log.info("Processed {} messages (queueARN: {})", messagesProcessed.get(), queueARN.arn  );
   }
 
   private static void handleMessage(ServerGroupTagger serverGroupTagger, NotificationMessage notificationMessage) {
     log.info(
-      "Failure to launch instance (asgName: {}, reason: {})",
+      "Failed to launch instance (asgName: {}, reason: {})",
       notificationMessage.autoScalingGroupName,
       notificationMessage.statusMessage
     );
