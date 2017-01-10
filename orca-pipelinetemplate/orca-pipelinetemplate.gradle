@@ -1,0 +1,7 @@
+tasks.compileGroovy.enabled = false
+
+dependencies {
+  compile project(":orca-extensionpoint")
+  compile spinnaker.dependency("bootAutoConfigure")
+  compile spinnaker.dependency("springContext")
+}

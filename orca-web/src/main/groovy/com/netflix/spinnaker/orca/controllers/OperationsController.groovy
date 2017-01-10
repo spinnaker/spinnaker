@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
@@ -62,8 +63,15 @@ class OperationsController {
   @Autowired
   BuildArtifactFilter buildArtifactFilter
 
+  @Autowired(required = false)
+  List<PipelinePreprocessor> pipelinePreprocessors
+
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, String> orchestrate(@RequestBody Map pipeline) {
+
+    for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
+      pipeline = preprocessor.process(pipeline)
+    }
 
     def json = objectMapper.writeValueAsString(pipeline)
     log.info('received pipeline {}:{}', pipeline.id, json)
@@ -147,11 +155,6 @@ class OperationsController {
   @RequestMapping(value = "/ops", consumes = "application/context+json", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody Map input) {
     startTask([application: input.application, name: input.description, appConfig: input.appConfig, stages: input.job])
-  }
-
-  @RequestMapping(value = "/health", method = RequestMethod.GET)
-  Boolean health() {
-    true
   }
 
   private void convertLinearToParallel(Map<String, Serializable> pipelineConfig) {

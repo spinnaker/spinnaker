@@ -94,14 +94,10 @@ allprojects {
     }
   }
 }
-
 subprojects {
   dependencies {
     spinnaker.group('spockBase')
-    compile spinnaker.dependency('groovy')
-    compile spinnaker.dependency('guava')
-    compile spinnaker.dependency('slf4jApi')
-    testRuntime spinnaker.dependency('slf4jSimple')
+    testCompile spinnaker.dependency('groovy')
   }
 }
 

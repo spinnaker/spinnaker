@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
+import com.netflix.spinnaker.orca.config.PipelineTemplateConfiguration
 import com.netflix.spinnaker.orca.config.RedisConfiguration
 import com.netflix.spinnaker.orca.data.jackson.StageMixins
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
@@ -77,6 +78,7 @@ import org.springframework.scheduling.annotation.EnableAsync
   ApplicationConfig,
   FiatAuthenticationConfig,
   StackdriverConfig,
+  PipelineTemplateConfiguration,
 ])
 @ComponentScan([
   "com.netflix.spinnaker.config"
