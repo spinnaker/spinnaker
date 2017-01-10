@@ -20,6 +20,8 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.metrics.TimedCallable
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHandler
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.slf4j.MDC
@@ -57,6 +59,9 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   @Autowired
   Registry registry
 
+  @Autowired(required = false)
+  Collection<OperationEventHandler> operationEventHandlers = []
+
   @Override
   Task process(List<AtomicOperation> atomicOperations, String clientRequestId) {
 
@@ -82,6 +87,17 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
           try {
             TimedCallable.forClosure(registry, thisOp) {
               results << atomicOperation.operate(results)
+
+              atomicOperation.events.each { OperationEvent event ->
+                operationEventHandlers.each {
+                  try {
+                    it.handle(event)
+                  } catch (e) {
+                    task.updateStatus TASK_PHASE, "Error handling event (${event}): ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${e.message}]"
+                  }
+                }
+              }
+
               task.updateStatus(TASK_PHASE, "Orchestration completed.")
             }.call()
           } catch (AtomicOperationException e) {

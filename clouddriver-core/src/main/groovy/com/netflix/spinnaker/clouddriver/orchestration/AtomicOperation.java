@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.orchestration
+package com.netflix.spinnaker.clouddriver.orchestration;
+
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An AtomicOperation is the most fundamental, low-level unit of work in a workflow. Implementations of this interface
  * should perform the simplest form of work possible, often described by a description object (like {@link com.netflix.spinnaker.clouddriver.deploy.DeployDescription}
- *
- * @param the return type of the operation
- *
  */
 public interface AtomicOperation<R> {
   /**
@@ -31,5 +34,10 @@ public interface AtomicOperation<R> {
    * @param priorOutputs
    * @return parameterized type
    */
-  R operate(List priorOutputs)
+  R operate(List priorOutputs);
+
+  default Collection<OperationEvent> getEvents() {
+    return Collections.emptyList();
+  }
 }
+

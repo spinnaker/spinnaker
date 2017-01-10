@@ -19,8 +19,10 @@ package com.netflix.spinnaker.clouddriver.elasticsearch;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
+import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.UpsertEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
+import com.netflix.spinnaker.clouddriver.elasticsearch.ops.DeleteEntityTagsAtomicOperation;
 import com.netflix.spinnaker.clouddriver.elasticsearch.ops.UpsertEntityTagsAtomicOperation;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
@@ -70,6 +72,22 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
     }
   }
 
+  @Override
+  public void deleteAll(String cloudProvider, String accountId, String region, String serverGroupName) {
+    DeleteEntityTagsAtomicOperation deleteEntityTagsAtomicOperation = new DeleteEntityTagsAtomicOperation(
+      front50Service,
+      entityTagsProvider,
+      deleteEntityTagsDescription(cloudProvider, accountId, region, serverGroupName)
+    );
+
+    try {
+      TaskRepository.threadLocalTask.set(new DefaultTask(this.getClass().getSimpleName()));
+      deleteEntityTagsAtomicOperation.operate(Collections.emptyList());
+    } finally {
+      TaskRepository.threadLocalTask.set(null);
+    }
+  }
+
   private static UpsertEntityTagsDescription upsertEntityTagsDescription(String cloudProvider,
                                                                          String accountId,
                                                                          String region,
@@ -97,5 +115,20 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
     upsertEntityTagsDescription.setTags(Collections.singletonList(entityTag));
 
     return upsertEntityTagsDescription;
+  }
+
+  private static DeleteEntityTagsDescription deleteEntityTagsDescription(String cloudProvider,
+                                                                         String accountId,
+                                                                         String region,
+                                                                         String serverGroupName) {
+    EntityRefIdBuilder.EntityRefId entityRefId = EntityRefIdBuilder.buildId(
+      cloudProvider, "servergroup", serverGroupName, accountId, region
+    );
+
+    DeleteEntityTagsDescription deleteEntityTagsDescription = new DeleteEntityTagsDescription();
+    deleteEntityTagsDescription.setId(entityRefId.id);
+    deleteEntityTagsDescription.setDeleteAll(true);
+
+    return deleteEntityTagsDescription;
   }
 }
