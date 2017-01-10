@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.config;
 
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
+import com.netflix.spinnaker.clouddriver.elasticsearch.ElasticSearchServerGroupTagger;
+import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntityTagsProvider;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
@@ -39,5 +43,12 @@ public class ElasticSearchConfig {
       (new HttpClientConfig.Builder(elasticSearchConnection)).multiThreaded(true).build()
     );
     return factory.getObject();
+  }
+
+  @Bean
+  ElasticSearchServerGroupTagger elasticSearchServerGroupTagger(Front50Service front50Service,
+                                                                AccountCredentialsProvider accountCredentialsProvider,
+                                                                ElasticSearchEntityTagsProvider elasticSearchEntityTagsProvider) {
+    return new ElasticSearchServerGroupTagger(front50Service, accountCredentialsProvider, elasticSearchEntityTagsProvider);
   }
 }

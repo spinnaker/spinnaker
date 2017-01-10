@@ -69,6 +69,10 @@ class EntityTags {
     private Map<String, Object> attributes = new HashMap<String, Object>()
 
     String cloudProvider
+    String accountId
+    String account
+    String region
+
     String entityType
     String entityId
 
@@ -93,12 +97,20 @@ class EntityTags {
     String lastModifiedBy
     Long created
     String createdBy
+
+    String getName() {
+      return name.toLowerCase()
+    }
   }
 
   static class EntityTag {
     String name
     Object value
     EntityTagValueType valueType
+
+    String getName() {
+      return name.toLowerCase()
+    }
 
     @JsonIgnore
     Object getValueForWrite(ObjectMapper objectMapper) {

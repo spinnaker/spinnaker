@@ -120,15 +120,22 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
   private static EntityRefIdBuilder.EntityRefId entityRefId(AccountCredentialsProvider accountCredentialsProvider,
                                                             UpsertEntityTagsDescription description) {
     EntityTags.EntityRef entityRef = description.getEntityRef();
-    String entityRefAccount = (String) entityRef.attributes().get("account");
-    String entityRefAccountId = (String) entityRef.attributes().get("accountId");
+    String entityRefAccount = entityRef.getAccount();
+    String entityRefAccountId = entityRef.getAccountId();
 
     if (entityRefAccount != null && entityRefAccountId == null) {
-      // add `accountId` if available (and not already specified)
+      // add `accountId` if not explicitly provided
       AccountCredentials accountCredentials = accountCredentialsProvider.getCredentials(entityRefAccount);
+      entityRefAccountId = accountCredentials.getAccountId();
+      entityRef.setAccountId(entityRefAccountId);
+    }
+
+    if (entityRefAccount == null && entityRefAccountId != null) {
+      // add `account` if not explicitly provided
+      AccountCredentials accountCredentials = lookupAccountCredentials(accountCredentialsProvider, entityRefAccountId);
       if (accountCredentials != null) {
-        entityRefAccountId = accountCredentials.getAccountId();
-        entityRef.attributes().put("accountId", entityRefAccountId);
+        entityRefAccount = accountCredentials.getName();
+        entityRef.setAccount(entityRefAccount);
       }
     }
 
@@ -137,7 +144,7 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
       entityRef.getEntityType(),
       entityRef.getEntityId(),
       Optional.ofNullable(entityRefAccountId).orElse(entityRefAccount),
-      (String) entityRef.attributes().get("region")
+      entityRef.getRegion()
     );
   }
 
@@ -178,6 +185,14 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
     entityTags.getTags().forEach(tag -> {
       entityTags.putEntityTagMetadata(tagMetadata(tag.getName(), now));
     });
+  }
+
+  private static AccountCredentials lookupAccountCredentials(AccountCredentialsProvider accountCredentialsProvider,
+                                                             String entityRefAccountId) {
+    return accountCredentialsProvider.getAll().stream()
+      .filter(c -> entityRefAccountId.equals(c.getAccountId()))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("No credentials found for accountId '" + entityRefAccountId + "'"));
   }
 
   private static Task getTask() {

@@ -24,24 +24,22 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.model.ElasticSearchEntity
 import com.netflix.spinnaker.clouddriver.model.EntityTags
 import com.netflix.spinnaker.clouddriver.model.EntityTags.EntityRef
 import com.netflix.spinnaker.clouddriver.model.EntityTags.EntityTagMetadata
+import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Specification
 
 class UpsertEntityTagsAtomicOperationSpec extends Specification {
-
-  Front50Service front50Service
-  AccountCredentialsProvider accountCredentialsProvider
-  ElasticSearchEntityTagsProvider entityTagsProvider
-  UpsertEntityTagsDescription description
-  UpsertEntityTagsAtomicOperation operation
-
-  def setup() {
-    front50Service = Mock(Front50Service)
-    entityTagsProvider = Mock(ElasticSearchEntityTagsProvider)
-    accountCredentialsProvider = Mock(AccountCredentialsProvider)
-    description = new UpsertEntityTagsDescription()
-    operation = new UpsertEntityTagsAtomicOperation(front50Service, accountCredentialsProvider, entityTagsProvider, description)
+  def testCredentials = Mock(AccountCredentials) {
+    getAccountId() >> { return "100" }
+    getName() >> { return "test" }
   }
+
+  def front50Service = Mock(Front50Service)
+  def accountCredentialsProvider = Mock(AccountCredentialsProvider)
+  def entityTagsProvider = Mock(ElasticSearchEntityTagsProvider)
+  def description = new UpsertEntityTagsDescription()
+  def operation = new UpsertEntityTagsAtomicOperation(front50Service, accountCredentialsProvider, entityTagsProvider, description)
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -49,30 +47,32 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
 
   void 'should set id and pattern to default if none supplied'() {
     given:
-    description.entityRef = new EntityRef(cloudProvider: "aws", entityType: "servergroup", entityId: "orca-v001",
-      attributes: [account: "test", region: "us-east-1"])
+    description.entityRef = new EntityRef(
+      cloudProvider: "aws", entityType: "servergroup", entityId: "orca-v001", account: "test", region: "us-east-1"
+    )
     description.tags = buildTags(["tag1": "some tag"])
 
     when:
     def entityRefId = operation.entityRefId(accountCredentialsProvider, description)
 
     then:
-    entityRefId.id == "aws:servergroup:orca-v001:test:us-east-1"
+    entityRefId.id == "aws:servergroup:orca-v001:100:us-east-1"
     entityRefId.idPattern == "{{cloudProvider}}:{{entityType}}:{{entityId}}:{{account}}:{{region}}"
-    1 * accountCredentialsProvider.getCredentials('test') >> null
+    1 * accountCredentialsProvider.getCredentials('test') >> { return testCredentials }
   }
 
   void 'should create new tag if none exists'() {
     given:
-    description.entityRef = new EntityRef(cloudProvider: "aws", entityType: "servergroup", entityId: "orca-v001",
-      attributes: [account: "test", region: "us-east-1"])
+    description.entityRef = new EntityRef(
+      cloudProvider: "aws", entityType: "servergroup", entityId: "orca-v001", accountId: "100", region: "us-east-1"
+    )
     description.tags = buildTags(["tag1": "some tag"])
 
     when:
     operation.operate([])
 
     then:
-    description.id == "aws:servergroup:orca-v001:test:us-east-1"
+    description.id == "aws:servergroup:orca-v001:100:us-east-1"
     description.idPattern == "{{cloudProvider}}:{{entityType}}:{{entityId}}:{{account}}:{{region}}"
     description.tagsMetadata*.name == ["tag1"]
     description.tagsMetadata[0].createdBy == 'unknown'
@@ -80,8 +80,10 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
     description.tagsMetadata[0].lastModified == description.tagsMetadata[0].created
     description.tagsMetadata[0].lastModifiedBy == description.tagsMetadata[0].createdBy
 
-    1 * accountCredentialsProvider.getCredentials('test') >> null
-    1 * front50Service.saveEntityTags(description) >> new EntityTags(lastModified: 123, lastModifiedBy: "unknown")
+    1 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
+    1 * front50Service.saveEntityTags(description) >> {
+      return new EntityTags(lastModified: 123, lastModifiedBy: "unknown")
+    }
     1 * entityTagsProvider.index(description)
     1 * entityTagsProvider.verifyIndex(description)
   }
@@ -143,8 +145,8 @@ class UpsertEntityTagsAtomicOperationSpec extends Specification {
 
     then:
     description.tags.size() == 2
-    description.tags.find {it.name == "tag1"}.value == "updated tag"
-    description.tags.find {it.name == "tag2"}.value == "unchanged tag"
+    description.tags.find { it.name == "tag1" }.value == "updated tag"
+    description.tags.find { it.name == "tag2" }.value == "unchanged tag"
   }
 
   Collection<EntityTags.EntityTag> buildTags(Map<String, String> tags) {

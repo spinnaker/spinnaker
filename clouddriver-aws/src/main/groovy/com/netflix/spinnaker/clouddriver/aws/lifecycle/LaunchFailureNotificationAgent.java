@@ -32,11 +32,13 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.RunnableAgent;
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +66,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent {
   private final AmazonClientProvider amazonClientProvider;
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final LaunchFailureConfigurationProperties properties;
+  private final ServerGroupTagger serverGroupTagger;
 
   private final ARN topicARN;
   private final ARN queueARN;
@@ -74,11 +77,13 @@ class LaunchFailureNotificationAgent implements RunnableAgent {
   LaunchFailureNotificationAgent(ObjectMapper objectMapper,
                                  AmazonClientProvider amazonClientProvider,
                                  AccountCredentialsProvider accountCredentialsProvider,
-                                 LaunchFailureConfigurationProperties properties) {
+                                 LaunchFailureConfigurationProperties properties,
+                                 ServerGroupTagger serverGroupTagger) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.properties = properties;
+    this.serverGroupTagger = serverGroupTagger;
 
     Set<? extends AccountCredentials> accountCredentials = accountCredentialsProvider.getAll();
     this.topicARN = new ARN(accountCredentials, properties.getTopicARN());
@@ -130,7 +135,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent {
           );
 
           if (SUPPORTED_LIFECYCLE_TRANSITION.equalsIgnoreCase(notificationMessage.event)) {
-            handleMessage(notificationMessage);
+            handleMessage(serverGroupTagger, notificationMessage);
           }
         } catch (IOException e) {
           log.error("Unable to convert NotificationMessage (body: {})", message.getBody(), e);
@@ -146,11 +151,27 @@ class LaunchFailureNotificationAgent implements RunnableAgent {
     }
   }
 
-  private void handleMessage(NotificationMessage notificationMessage) {
-    // TODO-AJ This should eventually tag the ASG with an alert
+  private static void handleMessage(ServerGroupTagger serverGroupTagger, NotificationMessage notificationMessage) {
     log.info(
       "Failure to launch instance (asgName: {}, reason: {})",
       notificationMessage.autoScalingGroupName,
+      notificationMessage.statusMessage
+    );
+
+    Matcher sqsMatcher = ARN_PATTERN.matcher(notificationMessage.autoScalingGroupARN);
+    if (!sqsMatcher.matches()) {
+      throw new IllegalArgumentException(notificationMessage.autoScalingGroupARN + " is not a valid ARN");
+    }
+
+    String region = sqsMatcher.group(1);
+    String accountId = sqsMatcher.group(2);
+
+    serverGroupTagger.alert(
+      AmazonCloudProvider.ID,
+      accountId,
+      region,
+      notificationMessage.autoScalingGroupName,
+      notificationMessage.event,
       notificationMessage.statusMessage
     );
   }

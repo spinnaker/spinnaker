@@ -7,6 +7,7 @@ import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.CreateQueueResult
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -124,5 +125,30 @@ class LaunchFailureNotificationAgentSpec extends Specification {
     arn                                   || expectedRegion || expectedName
     "arn:aws:sqs:us-west-2:100:queueName" || "us-west-2"    || "queueName"
     "arn:aws:sns:us-west-2:100:topicName" || "us-west-2"    || "topicName"
+  }
+
+  void "should delegate to ServerGroupTagger w/ status message, accountId and region"() {
+    given:
+    def serverGroupTagger = Mock(ServerGroupTagger)
+    def notificationMessage = new NotificationMessage(
+      autoScalingGroupARN: "arn:aws:autoscaling:us-west-2:100:serverGroupName",
+      autoScalingGroupName: "serverGroupName",
+      event: "MY_EVENT",
+      statusMessage: "My Status Message"
+    )
+
+    when:
+    LaunchFailureNotificationAgent.handleMessage(serverGroupTagger, notificationMessage)
+
+    then:
+    1 * serverGroupTagger.alert("aws", "100", "us-west-2", "serverGroupName", "MY_EVENT", "My Status Message")
+
+    when:
+    LaunchFailureNotificationAgent.handleMessage(
+      serverGroupTagger, new NotificationMessage(autoScalingGroupARN: "invalid:arn")
+    )
+
+    then:
+    thrown(IllegalArgumentException)
   }
 }
