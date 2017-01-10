@@ -34,6 +34,10 @@ class EntityUiTagsCtrl implements ng.IComponentController {
       this.alerts = this.component.entityTags.alerts;
       this.notices = this.component.entityTags.notices;
       this.hasTags = this.alerts.length + this.notices.length > 0;
+    } else {
+      this.alerts = [];
+      this.notices = [];
+      this.hasTags = false;
     }
   }
 
