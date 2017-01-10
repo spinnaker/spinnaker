@@ -32,8 +32,12 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
           tooltipTargets.length = 0;
         };
 
-        function toggleSelection(instanceId) {
-          MultiselectModel.toggleInstance(scope.serverGroup, instanceId);
+        function toggleSelection(instance, $targetRow) {
+          if ($targetRow && !ClusterFilterModel.sortFilter.multiselect) {
+            activeInstance = instance;
+            $targetRow.addClass('active');
+          }
+          MultiselectModel.toggleInstance(scope.serverGroup, instance.instanceId);
         }
 
         function buildTableRowOpenTag(instance, activeClass) {
@@ -226,7 +230,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
               if (activeInstance) {
                 $('tr[data-instance-id="' + activeInstance.instanceId + '"]', elem).removeClass('active');
               }
-              toggleSelection($targetRow.attr('data-instance-id'));
+              toggleSelection({instanceId: $targetRow.attr('data-instance-id'), provider: $targetRow.attr('data-provider')}, $targetRow);
               event.preventDefault();
             }
           });
