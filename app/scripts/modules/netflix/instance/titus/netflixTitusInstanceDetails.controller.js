@@ -5,6 +5,7 @@ import _ from 'lodash';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
+import {INSTANCE_WRITE_SERVICE} from 'core/instance/instance.write.service';
 
 let angular = require('angular');
 
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   ACCOUNT_SERVICE,
-  require('core/instance/instance.write.service.js'),
+  INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   require('core/history/recentHistory.service.js'),

@@ -1,12 +1,13 @@
 'use strict';
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {INSTANCE_WRITE_SERVICE} from 'core/instance/instance.write.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.details.multipleInstances.controller', [
   require('angular-ui-router'),
-  require('../instance.write.service'),
+  INSTANCE_WRITE_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   require('../../cluster/filter/multiselect.model'),
   require('./multipleInstanceServerGroup.directive'),
