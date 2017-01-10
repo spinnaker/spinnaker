@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
 
 import java.util.Collection;
 import java.util.regex.Pattern;
@@ -36,15 +37,18 @@ public class LaunchFailureNotificationAgentProvider implements AgentProvider {
   private final AmazonClientProvider amazonClientProvider;
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final LaunchFailureConfigurationProperties properties;
+  private final ServerGroupTagger serverGroupTagger;
 
   LaunchFailureNotificationAgentProvider(ObjectMapper objectMapper,
                                          AmazonClientProvider amazonClientProvider,
                                          AccountCredentialsProvider accountCredentialsProvider,
-                                         LaunchFailureConfigurationProperties properties) {
+                                         LaunchFailureConfigurationProperties properties,
+                                         ServerGroupTagger serverGroupTagger) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.properties = properties;
+    this.serverGroupTagger = serverGroupTagger;
   }
 
   @Override
@@ -77,7 +81,8 @@ public class LaunchFailureNotificationAgentProvider implements AgentProvider {
           properties.getMaxMessagesPerCycle(),
           properties.getVisibilityTimeout(),
           properties.getWaitTimeSeconds()
-        )
+        ),
+        serverGroupTagger
       ))
       .collect(Collectors.toList());
   }
