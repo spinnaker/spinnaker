@@ -14,7 +14,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   ACCOUNT_SERVICE,
   require('core/loadBalancer/loadBalancer.write.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
-  require('core/insight/insightFilterState.model.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   require('./hostAndPathRules/hostAndPathRulesButton.component.js'),
   require('./loadBalancerType/loadBalancerType.component.js'),
@@ -26,7 +25,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   SESSION_AFFINITY_FILTER,
   GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
 ])
-  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
+  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app,
                                                       accountService, elSevenUtils,
                                                       loadBalancerWriter, loadBalancerReader,
                                                       $q, loadBalancerTypeToWizardMap) {
@@ -36,8 +35,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     $scope.state = {
       loading: true
     };
-
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractLoadBalancer() {
       $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {

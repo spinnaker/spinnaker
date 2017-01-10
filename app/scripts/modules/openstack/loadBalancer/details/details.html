@@ -43,7 +43,7 @@
   </div>
   <div ng-if="!state.loading" class="content">
     <collapsible-section heading="Load Balancer Details" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{loadBalancer.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -79,7 +79,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health Check" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Protocol</dt>
         <dd>{{loadBalancer.healthMonitor.type}}</dd>
         <dt>Delay</dt>
@@ -89,7 +89,7 @@
         <dt>Retries</dt>
         <dd>{{loadBalancer.healthMonitor.maxRetries}}</dd>
       </dl>
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="loadBalancer.healthMonitor.type === 'HTTP' || loadBalancer.healthMonitor.type === 'HTTPS'">
         <dt>Method</dt>
         <dd>{{loadBalancer.healthMonitor.httpMethod}}</dd>

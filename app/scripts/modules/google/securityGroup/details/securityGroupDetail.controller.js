@@ -14,12 +14,11 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
   require('core/securityGroup/securityGroup.read.service.js'),
   require('core/securityGroup/securityGroup.write.service.js'),
   CONFIRMATION_MODAL_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
 ])
-  .controller('gceSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app, InsightFilterStateModel,
+  .controller('gceSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
                                                     $uibModal, cloudProviderRegistry) {
 
@@ -33,8 +32,6 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
       loading: true,
       standalone: app.isStandalone,
     };
-
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractSecurityGroup() {
       return securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.provider, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {

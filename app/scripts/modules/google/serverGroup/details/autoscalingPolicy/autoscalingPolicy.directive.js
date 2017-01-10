@@ -5,7 +5,6 @@ import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationMod
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.directive', [
-  require('core/insight/insightFilterState.model.js'),
   require('core/widgets/actionIcons/actionIcons.component.js'),
   CONFIRMATION_MODAL_SERVICE,
   require('angular-ui-bootstrap'),
@@ -19,9 +18,8 @@ module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.di
       serverGroup: '='
     },
     templateUrl: require('./autoscalingPolicy.directive.html'),
-    controller: function(InsightFilterStateModel, $uibModal, gceAutoscalingPolicyWriter, confirmationModalService) {
+    controller: function($uibModal, gceAutoscalingPolicyWriter, confirmationModalService) {
       let policy = this.policy;
-      this.InsightFilterStateModel = InsightFilterStateModel;
 
       policy.bases = [];
 

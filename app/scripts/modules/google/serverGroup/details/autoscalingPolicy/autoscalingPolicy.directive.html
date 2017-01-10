@@ -1,4 +1,4 @@
-<dl ng-class="$ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'" style="margin-bottom: 20px">
+<dl class="horizontal-when-filters-collapsed" style="margin-bottom: 20px">
   <dt ng-repeat-start="basis in $ctrl.policy.bases">
     Target {{basis.description}}
     <help-field key="{{basis.helpKey}}"></help-field>

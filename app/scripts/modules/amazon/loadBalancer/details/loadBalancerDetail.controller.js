@@ -13,20 +13,17 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('core/loadBalancer/loadBalancer.write.service.js'),
   require('core/loadBalancer/loadBalancer.read.service.js'),
   CONFIRMATION_MODAL_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   SUBNET_READ_SERVICE,
 ])
-  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, $q, loadBalancer, app, InsightFilterStateModel,
+  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, $q, loadBalancer, app,
                                                       securityGroupReader, confirmationModalService, loadBalancerWriter,
                                                       loadBalancerReader, subnetReader) {
 
     $scope.state = {
       loading: true
     };
-
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractLoadBalancer() {
       let appLoadBalancer = app.loadBalancers.data.find(function (test) {

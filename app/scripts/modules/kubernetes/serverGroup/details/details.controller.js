@@ -16,11 +16,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_READER_SERVICE,
   SERVER_GROUP_WRITER_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   require('../paramsMixin.js'),
 ])
-  .controller('kubernetesServerGroupDetailsController', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
+  .controller('kubernetesServerGroupDetailsController', function ($scope, $state, app, serverGroup,
                                                                   serverGroupReader, $uibModal, serverGroupWriter,
                                                                   runningExecutionsService, serverGroupWarningMessageService,
                                                                   kubernetesServerGroupCommandBuilder, kubernetesServerGroupParamsMixin,
@@ -30,8 +29,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
     $scope.state = {
       loading: true
     };
-
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractServerGroupSummary() {
       var summary = _.find(application.serverGroups.data, function (toCheck) {

@@ -14,12 +14,11 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
   require('core/instance/instance.write.service.js'),
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
 ])
-  .controller('kubernetesInstanceDetailsController', function ($scope, $state, $uibModal, InsightFilterStateModel,
+  .controller('kubernetesInstanceDetailsController', function ($scope, $state, $uibModal,
                                                                instanceWriter, confirmationModalService, recentHistoryService,
                                                                cloudProviderRegistry, instanceReader, instance, app, $q) {
     // needed for standalone instances
@@ -29,8 +28,6 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       loading: true,
       standalone: app.isStandalone,
     };
-
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     this.showYaml = function showYaml() {
       $scope.userDataModalTitle = 'Pod YAML';

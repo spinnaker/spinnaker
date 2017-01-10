@@ -14,13 +14,12 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
   require('core/instance/instance.write.service.js'),
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
   require('core/instance/details/instanceLinks.component'),
 ])
-  .controller('titusInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal, InsightFilterStateModel,
+  .controller('titusInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal,
                                                     instanceWriter, confirmationModalService, recentHistoryService,
                                                     cloudProviderRegistry, instanceReader, instance, app, overrides) {
 
@@ -32,7 +31,6 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
       standalone: app.isStandalone
     };
 
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
     $scope.application = app;
 
     function extractHealthMetrics(instance, latest) {

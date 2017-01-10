@@ -13,10 +13,9 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
     CONFIRMATION_MODAL_SERVICE,
     require('core/loadBalancer/loadBalancer.write.service.js'),
     require('core/loadBalancer/loadBalancer.read.service.js'),
-    require('core/insight/insightFilterState.model.js'),
     require('core/utils/selectOnDblClick.directive.js'),
   ])
-  .controller('openstackLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
+  .controller('openstackLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app,
                                                                   confirmationModalService, accountService, loadBalancerReader, loadBalancerWriter, subnetReader, $q) {
 
       let application = app;
@@ -24,8 +23,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
       $scope.state = {
         loading: true
       };
-
-      $scope.InsightFilterStateModel = InsightFilterStateModel;
 
       function extractLoadBalancer() {
         let appLoadBalancer = app.loadBalancers.data.find(function (test) {

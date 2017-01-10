@@ -106,7 +106,7 @@
 
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -120,9 +120,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="ctrl.serverGroup">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>
           <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
@@ -130,7 +128,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
         <dt ng-if="ctrl.serverGroup.scalingConfig.minSize !== ctrl.serverGroup.scalingConfig.maxSize">Min</dt>
@@ -148,7 +146,7 @@
       <!--</div>-->
     </collapsible-section>
     <collapsible-section heading="Launch Configuration">
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt>Image ID</dt>
         <dd>{{ctrl.serverGroup.launchConfig.image}}</dd>
 
@@ -166,7 +164,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Package" ng-if="ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins">
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt>Job</dt>
         <dd>{{ctrl.serverGroup.buildInfo.jenkins.name}}</dd>
         <dt>Package</dt>
@@ -213,7 +211,7 @@
       </ul>
     </collapsible-section>
     <collapsible-section heading="User Data">
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt>User Data</dt>
         <dd>{{ctrl.serverGroup.advancedConfig.userData}}</dd>
 

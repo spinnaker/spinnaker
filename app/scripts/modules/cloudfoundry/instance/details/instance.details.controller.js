@@ -14,13 +14,12 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
   require('core/instance/instance.write.service.js'),
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
   require('core/instance/details/instanceLinks.component'),
 ])
-  .controller('cfInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal, InsightFilterStateModel,
+  .controller('cfInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal,
                                                  instanceWriter, confirmationModalService, recentHistoryService,
                                                  cloudProviderRegistry, instanceReader, instance, app) {
 
@@ -33,7 +32,6 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
     };
 
     $scope.application = app;
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances

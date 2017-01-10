@@ -11,11 +11,10 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
   require('core/securityGroup/securityGroup.read.service.js'),
   require('../securityGroup.write.service.js'),
   CONFIRMATION_MODAL_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('azureSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
+  .controller('azureSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app,
                                                     confirmationModalService, azureSecurityGroupWriter, securityGroupReader,
                                                     $uibModal) {
 
@@ -25,8 +24,6 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
     $scope.state = {
       loading: true
     };
-
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractSecurityGroup() {
       return securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.provider, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {

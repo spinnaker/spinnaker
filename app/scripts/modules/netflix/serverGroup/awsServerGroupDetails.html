@@ -112,7 +112,7 @@
 
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -134,16 +134,14 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="ctrl.serverGroup.asg.minSize === ctrl.serverGroup.asg.maxSize">
         <dt>Min/Max</dt>
         <dd>{{ctrl.serverGroup.asg.desiredCapacity}}</dd>
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
       </dl>
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="ctrl.serverGroup.asg.minSize !== ctrl.serverGroup.asg.maxSize">
         <dt>Min</dt>
         <dd>{{ctrl.serverGroup.asg.minSize}}</dd>
@@ -162,9 +160,7 @@
       </div>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="ctrl.serverGroup">
+      <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>
           <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
@@ -172,7 +168,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Launch Configuration">
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt>Name</dt>
         <dd>{{ctrl.serverGroup.launchConfig.launchConfigurationName}}</dd>
 
@@ -282,7 +278,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Package">
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+      <dl class="horizontal-when-filters-collapsed"
           ng-if="ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins">
         <dt>Job</dt>
         <dd>{{ctrl.serverGroup.buildInfo.jenkins.name}}</dd>
@@ -301,7 +297,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Advanced Settings">
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt>Cooldown</dt>
         <dd>{{ctrl.serverGroup.asg.defaultCooldown}} seconds</dd>
         <dt>Health Check Type</dt>

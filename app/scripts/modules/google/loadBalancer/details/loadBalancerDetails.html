@@ -44,7 +44,7 @@
   </div>
   <div ng-if="!state.loading" class="content">
     <collapsible-section heading="Load Balancer Details" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -123,7 +123,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Backend Services" ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.backendService">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+      <dl class="horizontal-when-filters-collapsed"
           ng-switch on="loadBalancer.loadBalancerType">
         <div ng-repeat="service in loadBalancer.elb.backendServices" ng-switch-when="HTTP">
           <hr ng-if="$index > 0">
@@ -136,7 +136,7 @@
     </collapsible-section>
     <collapsible-section ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.healthCheck || loadBalancer.backendService.healthCheck"
                          heading="Health Checks">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+      <dl class="horizontal-when-filters-collapsed"
           ng-switch on="loadBalancer.loadBalancerType">
 
         <gce-health-check ng-switch-when="NETWORK" health-check="loadBalancer.healthCheck"></gce-health-check>

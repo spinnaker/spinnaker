@@ -1,6 +1,5 @@
-<div class="row insight" ng-if="!insightTarget.notFound">
+<div class="row insight" ng-if="!insightTarget.notFound" ng-class="InsightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'">
   <div class="nav"
-       ng-class="{'filters-expanded': InsightFilterStateModel.filtersExpanded}"
        ng-mouseover="InsightFilterStateModel.hoverFilters()"
        ng-mouseleave="InsightFilterStateModel.exitFilters()"
       >
@@ -17,5 +16,5 @@
     <div ui-view="nav" class="filters-content"></div>
   </div>
   <div ui-view="master" class="nav-content" data-scroll-id="nav-content"></div>
-  <div ui-view="detail" class="detail-content" ng-class="{'filters-expanded': InsightFilterStateModel.filtersExpanded}"></div>
+  <div ui-view="detail" class="detail-content"></div>
 </div>

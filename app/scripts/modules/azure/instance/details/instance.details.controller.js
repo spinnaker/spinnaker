@@ -13,12 +13,11 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
   require('core/instance/instance.write.service.js'),
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
-  require('core/insight/insightFilterState.model.js'),
   require('core/history/recentHistory.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
 ])
-  .controller('azureInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
+  .controller('azureInstanceDetailsCtrl', function ($scope, $state, $uibModal,
                                                     instanceWriter, confirmationModalService, recentHistoryService,
                                                     cloudProviderRegistry, instanceReader, instance, app, $q) {
 
@@ -29,8 +28,6 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
       loading: true,
       standalone: app.isStandalone,
     };
-
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances

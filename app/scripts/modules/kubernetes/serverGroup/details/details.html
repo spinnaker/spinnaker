@@ -96,7 +96,7 @@
 
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp }}</dd>
         <dt>In</dt>
@@ -112,9 +112,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup">
+      <dl class="dl-horizontal dl-flex" ng-if="serverGroup">
         <dt>Pods</dt>
         <dd>
           <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
@@ -122,8 +120,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Deployment" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
+      <dl class="dl-horizontal dl-flex">
         <div ng-show="serverGroup.deploymentStatus === null">
           No deployment found.
         </div>
@@ -149,8 +146,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Replicas" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
+      <dl class="dl-horizontal dl-flex">
         <div ng-show="serverGroup.autoscalerStatus === null">
           <dt>Current</dt>
           <dd>{{serverGroup.instances.length}}</dd>
@@ -168,8 +164,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Horizontal Pod Autoscaling" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
+      <dl class="dl-horizontal dl-flex">
         <div ng-show="serverGroup.autoscalerStatus === null">
           No autoscaler found.
         </div>
@@ -186,8 +181,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section ng-repeat="container in serverGroup.deployDescription.containers" heading="{{container.name}}">
-    <dl class="dl-horizontal"
-        ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
+      <dl class="dl-horizontal dl-flex">
         <dt>Name</dt>
         <dd>{{container.name}}</dd>
         <dt>Registry</dt>
@@ -247,19 +241,19 @@
     </dl>
       </collapsible-section>
     <collapsible-section heading="Labels" ng-if="serverGroup.labels">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <kubernetes-key-value-details map="serverGroup.labels">
         </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Replica Set Annotations" ng-if="serverGroup.deployDescription.replicaSetAnnotations">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <kubernetes-key-value-details map="serverGroup.deployDescription.replicaSetAnnotations">
         </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Pod Annotations" ng-if="serverGroup.deployDescription.podAnnotations">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <kubernetes-key-value-details map="serverGroup.deployDescription.podAnnotations">
         </kubernetes-key-value-details>
       </dl>

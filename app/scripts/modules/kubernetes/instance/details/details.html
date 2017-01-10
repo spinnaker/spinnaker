@@ -51,7 +51,7 @@
   </div>
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Instance Information" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Launched</dt>
         <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
@@ -75,7 +75,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '': 'dl-horizontal'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt ng-repeat-start="metric in instance.health | orderBy: 'type'">{{metric.source | robotToHuman}}</dt>
         <dd ng-repeat-end>
           <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
@@ -91,7 +91,7 @@
       </div>
     </div>
     <collapsible-section heading="DNS" ng-if="!instance.notFound">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="instance.dnsPolicy">DNS Policy</dt>
         <dd ng-if="instance.dnsPolicy">
           {{instance.dnsPolicy}}
@@ -116,13 +116,13 @@
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="!instance.notFound" heading="Labels">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <kubernetes-key-value-details map="instance.metadata.labels">
         </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
     <collapsible-section ng-repeat="container in instance.containers" heading="Container {{container.name}}">
-      <div ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
+      <div class="horizontal-when-filters-collapsed">
         <dt>Name</dt>
         <dd>{{container.name}}</dd>
         <dt>Image</dt>
@@ -159,8 +159,7 @@
               tool-tip="Copy to clipboard">
           </copy-to-clipboard>
         </dd>
-        <dl ng-repeat="volumeMount in container.volumeMounts" class="dl-horizontal"
-            ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dl ng-repeat="volumeMount in container.volumeMounts" class="dl-horizontal dl-flex">
         </dl>
         <dt>Ready</dt>
         <dd>{{instance.containerStatuses[$index].ready}}</dd>

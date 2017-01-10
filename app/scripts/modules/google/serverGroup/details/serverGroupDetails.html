@@ -96,7 +96,7 @@
 
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{ctrl.serverGroup.launchConfig.createdTime | timestamp}}</dd>
         <dt>In</dt>
@@ -117,16 +117,14 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="ctrl.serverGroup.asg.minSize === ctrl.serverGroup.asg.maxSize">
         <dt>Min/Max</dt>
         <dd>{{ctrl.serverGroup.asg.desiredCapacity}}</dd>
         <dt>Current</dt>
         <dd>{{ctrl.serverGroup.instances.length}}</dd>
       </dl>
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="ctrl.serverGroup.asg.minSize !== ctrl.serverGroup.asg.maxSize">
         <dt>Min</dt>
         <dd>{{ctrl.serverGroup.asg.minSize}}</dd>
@@ -140,15 +138,13 @@
       <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
     </collapsible-section>
     <collapsible-section heading="Current Actions" ng-if="ctrl.serverGroup.currentActionsSummary">
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal dl-flex">
         <dt ng-repeat-start="currentAction in ctrl.serverGroup.currentActionsSummary">{{currentAction.action}}</dt>
         <dd ng-repeat-end>{{currentAction.count}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
-      <dl class="dl-horizontal"
-          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+      <dl class="dl-horizontal dl-flex"
           ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>
@@ -157,7 +153,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Launch Configuration">
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt>Name</dt>
         <dd>{{ctrl.serverGroup.launchConfig.launchConfigurationName}}</dd>
         <dt>Image</dt>
@@ -243,7 +239,7 @@
     <collapsible-section heading="Availability Policies">
       <div ng-if="!ctrl.serverGroup.availabilityPolicies">No availability policies associated with this server group</div>
       <div ng-if="ctrl.serverGroup.availabilityPolicies">
-        <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+        <dl class="horizontal-when-filters-collapsed">
           <dt>
             Preemptibility
             <help-field key="gce.serverGroup.preemptibility"></help-field>
@@ -263,7 +259,7 @@
       </div>
     </collapsible-section>
     <collapsible-section heading="Package" ng-if="ctrl.serverGroup.buildInfo">
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="ctrl.serverGroup.buildInfo.jenkins">Job</dt>
         <dd ng-if="ctrl.serverGroup.buildInfo.jenkins">{{ctrl.serverGroup.buildInfo.jenkins.name}}</dd>
         <dt>Package</dt>
@@ -279,13 +275,13 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Port Name Mapping" ng-if="ctrl.serverGroup.loadBalancingPolicy">
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+      <dl class="horizontal-when-filters-collapsed">
           ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
         <dd>http &rarr; {{ ctrl.serverGroup.loadBalancingPolicy.listeningPort }}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Capacity Metrics" ng-if="ctrl.serverGroup.loadBalancingPolicy">
-      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+      <dl class="horizontal-when-filters-collapsed">
           ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
         <dt>Balancing Mode</dt>
         <dd>{{ctrl.serverGroup.loadBalancingPolicy.balancingMode}}</dd>
