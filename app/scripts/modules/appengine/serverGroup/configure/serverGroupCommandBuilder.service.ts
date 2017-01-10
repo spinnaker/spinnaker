@@ -26,7 +26,7 @@ export interface IAppengineServerGroupCommand {
   strategyApplication?: string;
   strategyPipeline?: string;
   fromTrigger?: boolean;
-  trigger?: IAppengineGitTrigger
+  trigger?: IAppengineGitTrigger;
 }
 
 interface IViewState {
