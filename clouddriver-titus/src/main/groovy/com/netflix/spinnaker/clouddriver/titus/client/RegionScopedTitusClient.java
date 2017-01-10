@@ -232,11 +232,6 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     @Override
-    public void terminateTask(String taskId) {
-        execute("terminateTask", titusRestAdapter.terminateTask(taskId));
-    }
-
-    @Override
     public void terminateTasksAndShrink(TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob) {
       if(terminateTasksAndShrinkJob.getUser() == null){
         terminateTasksAndShrinkJob.withUser("spinnaker");

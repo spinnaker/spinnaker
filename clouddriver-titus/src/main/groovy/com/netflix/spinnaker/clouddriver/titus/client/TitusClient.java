@@ -82,12 +82,6 @@ public interface TitusClient {
 
     /**
      *
-     * @param taskId
-     */
-    public void terminateTask(String taskId);
-
-    /**
-     *
      * @param terminateTasksAndShrinkJob
      */
     public void terminateTasksAndShrink(TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob);

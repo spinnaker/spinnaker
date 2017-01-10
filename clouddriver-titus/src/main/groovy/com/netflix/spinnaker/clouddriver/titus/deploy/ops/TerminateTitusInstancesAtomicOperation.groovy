@@ -15,10 +15,12 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.ops
+
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateTasksAndShrinkJobRequest
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TerminateTitusInstancesDescription
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 
@@ -39,10 +41,8 @@ class TerminateTitusInstancesAtomicOperation implements AtomicOperation<Void> {
     TitusClient titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
     task.updateStatus PHASE, "Terminating titus tasks: ${description.instanceIds}..."
 
-    description.instanceIds.each {
-      titusClient.terminateTask(it)
-      task.updateStatus PHASE, "Successfully issued terminate task request to titus for task: ${it}"
-    }
+    titusClient.terminateTasksAndShrink(new TerminateTasksAndShrinkJobRequest().withTaskIds(description.instanceIds).withShrink(false).withUser(description.user))
+    task.updateStatus PHASE, "Successfully issued terminate task request to titus for task: ${description.instanceIds.toString()}"
 
     task.updateStatus PHASE, "Completed terminate instances operation for ${description.instanceIds}"
     null
