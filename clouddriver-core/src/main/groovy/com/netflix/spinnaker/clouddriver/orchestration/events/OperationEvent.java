@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.tags;
+package com.netflix.spinnaker.clouddriver.orchestration.events;
 
-interface ServerGroupTagger {
-  void alert(String cloudProvider, String accountId, String region, String serverGroupName, String key, String value)
+public interface OperationEvent {
+  Type getType();
+  Action getAction();
 
-  void deleteAll(String cloudProvider, String accountId, String region, String serverGroupName)
+  String getCloudProvider();
+
+  enum Type {
+    SERVER_GROUP
+  }
+
+  enum Action {
+    DELETE,
+    CREATE
+  }
 }

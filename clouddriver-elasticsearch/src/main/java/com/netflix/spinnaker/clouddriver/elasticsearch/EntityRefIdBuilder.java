@@ -22,13 +22,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class EntityRefIdBuilder {
-  public static EntityRefId buildId(String cloudProvider, String entityType, String entityId, String account, String region) {
+  public static EntityRefId buildId(String cloudProvider, String entityType, String entityId, String accountId, String region) {
     Objects.requireNonNull(cloudProvider, "cloudProvider must be non-null");
     Objects.requireNonNull(entityType, "entityType must be non-null");
     Objects.requireNonNull(entityId, "entityId must be non-null");
 
     String id = Stream
-      .of(cloudProvider, entityType, entityId, account, region)
+      .of(cloudProvider, entityType, entityId, accountId, region)
       .map(s -> Optional.ofNullable(s).orElse("*"))
       .collect(Collectors.joining(":"));
 

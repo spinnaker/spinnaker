@@ -22,11 +22,14 @@ import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.events.DeleteServerGroupEvent
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import org.springframework.beans.factory.annotation.Autowired
 
 class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
@@ -41,6 +44,7 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
   AmazonClientProvider amazonClientProvider
 
   private final DestroyAsgDescription description
+  private final Collection<DeleteServerGroupEvent> events = []
 
   DestroyAsgAtomicOperation(DestroyAsgDescription description) {
     this.description = description
@@ -52,10 +56,18 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Initializing ASG Destroy operation for $descriptor..."
     for (asg in description.asgs) {
       deleteAsg(asg.serverGroupName, asg.region)
+      events << new DeleteServerGroupEvent(
+        AmazonCloudProvider.ID, description.credentials.accountId, asg.region, asg.serverGroupName
+      )
     }
 
     task.updateStatus BASE_PHASE, "Finished Destroy ASG operation for $descriptor."
     null
+  }
+
+  @Override
+  Collection<OperationEvent> getEvents() {
+    return events
   }
 
   private void deleteAsg(String asgName, String region) {

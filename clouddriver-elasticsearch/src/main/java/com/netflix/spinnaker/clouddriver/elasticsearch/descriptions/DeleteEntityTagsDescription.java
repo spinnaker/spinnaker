@@ -42,4 +42,16 @@ public class DeleteEntityTagsDescription implements NonCredentialed {
   public boolean isDeleteAll() {
     return deleteAll;
   }
+
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public void setTags(List<String> tags) {
+    this.tags = tags;
+  }
+
+  public void setDeleteAll(boolean deleteAll) {
+    this.deleteAll = deleteAll;
+  }
 }
