@@ -1,0 +1,17 @@
+<div ng-mouseenter="$ctrl.popoverHovered()" ng-mouseleave="$ctrl.hidePopover(false)" class="entity-tags-popover">
+  <div ng-repeat="tag in $ctrl.alerts" class="entity-tag-message">
+    <div>
+      <strong>{{tag.entityRef.entityId}}</strong>
+      <span ng-if="tag.entityRef.account || tag.entityRef.region">
+        (
+        <account-tag account="tag.entityRef.account" ng-if="tag.entityRef.account"></account-tag>
+        <span ng-bind="tag.entityRef.region"></span>
+        )
+      </span>
+    </div>
+    <div ng-repeat="alert in tag.alerts">
+      <div marked="alert.value.message"></div>
+      <div class="small text-right" title="{{alert.lastModified | timestamp}}">{{alert.lastModified | relativeTime}}</div>
+    </div>
+  </div>
+</div>

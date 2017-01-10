@@ -1,8 +1,11 @@
+import {DATA_SOURCE_ALERTS_COMPONENT} from 'core/entityTag/dataSourceAlerts.component';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.nav.component', [
     require('angular-ui-router'),
+    DATA_SOURCE_ALERTS_COMPONENT,
   ])
   .component('applicationNav', {
     bindings: {
@@ -17,6 +20,7 @@ module.exports = angular
              analytics-event="{{dataSource.title}}"
              ng-class="{active: $ctrl.isActive(dataSource)}">
             {{dataSource.label}}
+             <ds-alerts alerts="dataSource.alerts"></ds-alerts>
             <span class="badge"
                   ng-if="dataSource.badge && $ctrl.application[dataSource.badge].data.length">
               {{$ctrl.application[dataSource.badge].data.length}}

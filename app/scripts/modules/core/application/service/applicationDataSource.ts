@@ -1,5 +1,7 @@
 import {Subject} from 'rxjs';
 import {Application} from '../application.model';
+import {IEntityTags} from 'core/domain/IEntityTags';
+import {get} from 'lodash';
 
 export class DataSourceConfig {
 
@@ -235,7 +237,14 @@ export class ApplicationDataSource {
   /**
    * The actual data (if any) for the data source. This field should only be populated by the "loader" method.
    */
-  public data: Array<any> = [];
+  public data: any[] = [];
+
+  /**
+   * If entity tags are enabled, and any of the data has entity tags with alerts, they will be added to the data source
+   * on load, and the alerts will be displayed in the tab next to the tab name.
+   */
+  public alerts: IEntityTags[];
+
 
   /**
    * A timestamp indicating the last time the data source was successfully refreshed
@@ -397,6 +406,7 @@ export class ApplicationDataSource {
           if (this.afterLoad) {
             this.afterLoad(this.application);
           }
+          this.addAlerts();
           this.dataUpdated();
         });
       })
@@ -417,6 +427,15 @@ export class ApplicationDataSource {
       if (!this.loaded) {
         this.refresh();
       }
+    }
+  }
+
+  private addAlerts(): void {
+    this.alerts = [];
+    if (this.data && this.data.length) {
+      this.alerts = this.data
+        .filter((d: any) => get(d, 'entityTags.alerts.length', 0))
+        .map((d: any) => d['entityTags'] as IEntityTags);
     }
   }
 }

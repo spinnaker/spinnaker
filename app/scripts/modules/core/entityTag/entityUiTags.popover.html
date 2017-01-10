@@ -1,9 +1,12 @@
 <div ng-mouseenter="$ctrl.popoverHovered()" ng-mouseleave="$ctrl.hidePopover(false)" class="entity-tags-popover">
   <div ng-repeat="tag in $ctrl.popoverContents" class="entity-tag-message">
     <div marked="tag.value.message"></div>
-    <div class="actions actions-popover">
-      <a href ng-click="$ctrl.editTag(tag)"><span class="glyphicon glyphicon-cog" uib-popover="Edit {{tag.type}}"></span></a>
-      <a href ng-click="$ctrl.deleteTag(tag)"><span class="glyphicon glyphicon-trash" uib-popover="Delete {{tag.type}}"></span></a>
+    <div class="small">
+      <span class="small pull-left" title="{{tag.lastModified | timestamp}}">{{tag.lastModified | relativeTime}}</span>
+      <div class="actions actions-popover">
+        <a href ng-click="$ctrl.editTag(tag)"><span class="glyphicon glyphicon-cog" uib-popover="Edit {{tag.type}}"></span></a>
+        <a href ng-click="$ctrl.deleteTag(tag)"><span class="glyphicon glyphicon-trash" uib-popover="Delete {{tag.type}}"></span></a>
+      </div>
     </div>
   </div>
 </div>

@@ -9,6 +9,7 @@ import {
   InstanceCounts,
   LoadBalancer
 } from '../domain';
+import {IEntityTag, IEntityTags} from '../domain/IEntityTags';
 
 describe ('Application Model', function () {
 
@@ -110,6 +111,62 @@ describe ('Application Model', function () {
 
         expect(application.getDataSource('lazySource').data).toEqual([]);
         expect(application.getDataSource('lazySource').loaded).toBe(false);
+      });
+
+      it('adds entityTags that contain alerts if found on data', function () {
+        const alertTag: IEntityTag = { name: 'spinnaker_ui_alert:alert1', value: { message: 'an alert' } };
+        const tags: IEntityTags = {
+          id: 'zzzz',
+          tags: [ alertTag ],
+          tagsMetadata: null,
+          entityRef: null,
+          alerts: [ alertTag ],
+          notices: []
+        };
+        const nonAlertTags: IEntityTags = {
+          id: 'zzzz',
+          tags: [ { name: 'spinnaker_ui_notice:notice1', value: { message: 'a notice' } } ],
+          tagsMetadata: null,
+          entityRef: null,
+          alerts: [],
+          notices: [ { name: 'spinnaker_ui_notice:notice1', value: { message: 'a notice' } } ]
+        };
+        const serverGroups: ServerGroup[] = [
+          {
+            account: 'test',
+            cloudProvider: 'aws',
+            cluster: 'myapp',
+            instanceCounts: null,
+            instances: [],
+            name: 'myapp-v001',
+            region: 'us-east-1',
+            type: 'aws',
+            entityTags: tags
+          },
+          {
+            account: 'test',
+            cloudProvider: 'aws',
+            cluster: 'myapp',
+            instanceCounts: null,
+            instances: [],
+            name: 'myapp-v001',
+            region: 'us-east-1',
+            type: 'aws',
+            entityTags: nonAlertTags
+          },
+          {
+            account: 'test',
+            cloudProvider: 'aws',
+            cluster: 'myapp',
+            instanceCounts: null,
+            instances: [],
+            name: 'myapp-no-alerts-v002',
+            region: 'us-east-1',
+            type: 'aws',
+          }
+        ];
+        configureApplication(serverGroups, [], []);
+        expect(application.getDataSource('serverGroups').alerts).toEqual([tags]);
       });
     });
 
