@@ -23,6 +23,7 @@ class ServiceAccount implements Timestamped {
   String name
   Long lastModified
   String lastModifiedBy
+  List<String> memberOf = []
 
   @Override
   @JsonIgnore()
