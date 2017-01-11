@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
+import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.DeleteEntityTagsDescription;
 import com.netflix.spinnaker.clouddriver.elasticsearch.descriptions.UpsertEntityTagsDescription;
@@ -31,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
   private static final String SERVER_GROUP_TYPE = "servergroup";
@@ -80,12 +83,20 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
       deleteEntityTagsDescription(cloudProvider, accountId, region, serverGroupName)
     );
 
+    Task originalTask = TaskRepository.threadLocalTask.get();
     try {
-      TaskRepository.threadLocalTask.set(new DefaultTask(this.getClass().getSimpleName()));
-      deleteEntityTagsAtomicOperation.operate(Collections.emptyList());
+      TaskRepository.threadLocalTask.set(
+        Optional.ofNullable(originalTask).orElse(new DefaultTask(ElasticSearchServerGroupTagger.class.getSimpleName()))
+      );
+      run(deleteEntityTagsAtomicOperation);
     } finally {
-      TaskRepository.threadLocalTask.set(null);
+      TaskRepository.threadLocalTask.set(originalTask);
     }
+  }
+
+  @VisibleForTesting
+  protected void run(DeleteEntityTagsAtomicOperation deleteEntityTagsAtomicOperation) {
+    deleteEntityTagsAtomicOperation.operate(Collections.emptyList());
   }
 
   private static UpsertEntityTagsDescription upsertEntityTagsDescription(String cloudProvider,

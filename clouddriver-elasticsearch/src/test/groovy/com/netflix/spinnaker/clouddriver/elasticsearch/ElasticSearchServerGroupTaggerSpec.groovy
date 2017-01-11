@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch
 
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.elasticsearch.ops.DeleteEntityTagsAtomicOperation
 import spock.lang.Specification;
 
 class ElasticSearchServerGroupTaggerSpec extends Specification {
@@ -51,5 +55,35 @@ class ElasticSearchServerGroupTaggerSpec extends Specification {
     description.deleteAll
     description.id == "mycloudprovider:servergroup:myservergroup-v001:100:us-east-1"
     !description.tags
+  }
+
+  void "should only mutate threadLocalTask if null"() {
+    given:
+    Task threadLocalTask = null
+    def serverGroupTagger = new ElasticSearchServerGroupTagger(null, null, null) {
+      @Override
+      protected void run(DeleteEntityTagsAtomicOperation deleteEntityTagsAtomicOperation) {
+        threadLocalTask = TaskRepository.threadLocalTask.get()
+      }
+    }
+
+    when:
+    TaskRepository.threadLocalTask.set(null) // cleanup
+    serverGroupTagger.deleteAll("aws", "100", "us-east-1", "myServerGroup-v001")
+
+    then:
+    threadLocalTask.id == "ElasticSearchServerGroupTagger"
+    TaskRepository.threadLocalTask.get() == null
+
+    when:
+    def defaultTask = new DefaultTask("MyDefaultTask")
+    TaskRepository.threadLocalTask.set(defaultTask)
+
+    serverGroupTagger.deleteAll("aws", "100", "us-east-1", "myServerGroup-v001")
+
+    then:
+    threadLocalTask == defaultTask
+    TaskRepository.threadLocalTask.get() == defaultTask
+    TaskRepository.threadLocalTask.set(null) // cleanup
   }
 }
