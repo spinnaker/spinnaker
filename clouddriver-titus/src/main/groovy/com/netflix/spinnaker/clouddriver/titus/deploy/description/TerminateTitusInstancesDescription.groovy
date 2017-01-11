@@ -19,4 +19,5 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.description
 class TerminateTitusInstancesDescription extends AbstractTitusCredentialsDescription {
   String region
   List<String> instanceIds
+  String user
 }

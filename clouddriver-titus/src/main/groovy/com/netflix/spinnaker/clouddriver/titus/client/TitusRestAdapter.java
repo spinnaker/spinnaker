@@ -56,9 +56,6 @@ public interface TitusRestAdapter {
     @GET("/v2/jobs")
     Call<List<Job>> getJobsByApplication(@Query("appName") String application);
 
-    @POST("/v2/tasks/terminate/{taskId}")
-    Call<Void> terminateTask(@Path("taskId") String taskId);
-
     @POST("/api/v2/tasks/kill")
     Call<Void> terminateTasksAndShrink(@Body TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJobRequest);
 
