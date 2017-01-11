@@ -5,13 +5,14 @@ import _ from 'lodash';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
+import {INSTANCE_WRITE_SERVICE} from 'core/instance/instance.write.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.openstack.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('core/instance/instance.write.service.js'),
+  INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,
   require('core/subnet/subnetTag.component.js'),
   CONFIRMATION_MODAL_SERVICE,
