@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,14 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
 
 import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractAddAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import java.util.ArrayList;
 import java.util.List;
 
-@Parameters()
-public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
+public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleAccount> {
+  @Override
   protected String getProviderName() {
     return "google";
   }
@@ -51,18 +50,37 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
   private List<String> imageProjects = new ArrayList<>();
 
   @Parameter(
-      names = "--alpha-listed",
-      description = GoogleCommandProperties.ALPHA_LISTED_DESCRIPTION
+      names = "--add-image-project",
+      description = "Add this image project to the list of image projects to cache and deploy images from."
   )
-  private boolean alphaListed = false;
+  private String addImageProject;
+
+  @Parameter(
+      names = "--remove-image-project",
+      description = "Remove this image project from the list of image projects to cache and deploy images from."
+  )
+  private String removeImageProject;
+
+  @Parameter(
+      names = "--set-alpha-listed",
+      description = GoogleCommandProperties.ALPHA_LISTED_DESCRIPTION,
+      arity = 1
+  )
+  private Boolean alphaListed = null;
 
   @Override
-  protected Account buildAccount(String accountName) {
-    GoogleAccount account = (GoogleAccount) new GoogleAccount().setName(accountName);
-    account.setJsonPath(jsonPath)
-        .setAlphaListed(alphaListed)
-        .setProject(project)
-        .setImageProjects(imageProjects);
+  protected Account editAccount(GoogleAccount account) {
+    account.setJsonPath(isSet(jsonPath) ? jsonPath : account.getJsonPath());
+    account.setProject(isSet(project) ? project : account.getProject());
+    account.setAlphaListed(alphaListed != null ? alphaListed : account.isAlphaListed());
+
+    try {
+      account.setImageProjects(
+          updateStringList(account.getImageProjects(), imageProjects, addImageProject,
+              removeImageProject));
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Set either --image-projects or --[add/remove]-image-project");
+    }
 
     return account;
   }
