@@ -32,8 +32,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
 
   @Parameter(
       names = "--context",
-      description = "The kubernetes context to be managed by Spinnaker. "
-          + "See http://kubernetes.io/docs/user-guide/kubeconfig-file/#context for more information."
+      description = KubernetesCommandProperties.CONTEXT_DESCRIPTION
   )
   private String context;
 
@@ -47,7 +46,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   @Parameter(
       names = "--namespaces",
       variableArity = true,
-      description = "A list of namespaces this Spinnaker account can deploy to and will cache."
+      description = KubernetesCommandProperties.NAMESPACES_DESCRIPTION
   )
   private List<String> namespaces = new ArrayList<>();
 
@@ -72,8 +71,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   @Parameter(
       names = "--docker-registries",
       variableArity = true,
-      description = "A list of the Spinnaker docker registry account names this Spinnaker account can use as image sources. "
-          + "These docker registry accounts must be registered in your halconfig before you can add them here."
+      description = KubernetesCommandProperties.DOCKER_REGISTRIES_DESCRIPTION
   )
   public List<String> dockerRegistries = new ArrayList<>();
 

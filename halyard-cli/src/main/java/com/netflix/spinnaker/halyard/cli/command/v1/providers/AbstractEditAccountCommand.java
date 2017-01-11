@@ -61,7 +61,7 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
    * @param addTo is a single entry to add to old.
    * @param removeFrom is a single entry to remove from old.
    * @return the updated set of entries.
-   * @throws IllegalArgumentException when setTo && (addTo || removeFrom) are provided.
+   * @throws IllegalArgumentException when setTo and (addTo or removeFrom) are provided.
    */
   protected static List<String> updateStringList(List<String> old, List<String> setTo, String addTo, String removeFrom) {
     if (old == null) {
@@ -72,10 +72,12 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
     boolean add = addTo != null && !addTo.isEmpty();
     boolean remove = removeFrom != null && !removeFrom.isEmpty();
 
-    if (set && !(add || remove)) {
+    if (set && (add || remove)) {
+      throw new IllegalArgumentException("If set is specified, neither addTo nor removeFrom can be specified");
+    }
+
+    if (set) {
       return setTo;
-    } else if (set && (add || remove)) {
-      throw new IllegalArgumentException("If set is specified, neither addTo nor removeFrom cannot be specified");
     } else {
       if (add) {
         old.add(addTo);
