@@ -43,6 +43,7 @@ class AppEngineServerGroup implements ServerGroup, Serializable {
   Environment env
   String httpUrl
   String httpsUrl
+  String instanceClass
 
   AppEngineServerGroup() {}
 
@@ -58,6 +59,7 @@ class AppEngineServerGroup implements ServerGroup, Serializable {
     this.env = version.getEnv() ? Environment.valueOf(version.getEnv().toUpperCase()) : null
     this.httpUrl = AppEngineModelUtil.getHttpUrl(version.getName())
     this.httpsUrl = AppEngineModelUtil.getHttpsUrl(version.getName())
+    this.instanceClass = version.getInstanceClass()
   }
 
   @Override
@@ -82,22 +84,21 @@ class AppEngineServerGroup implements ServerGroup, Serializable {
         * For the flexible environment, a version using automatic scaling can be stopped.
         * A stopped version scales down to zero instances and ignores its scaling policy.
         * */
-        def min = Math.min(instanceCount, scalingPolicy.minTotalInstances)
-        def desired = servingStatus == ServingStatus.SERVING ? scalingPolicy.maxTotalInstances : 0
+        def min = servingStatus == ServingStatus.SERVING ? (scalingPolicy.minTotalInstances ?: 0) : 0
         return new ServerGroup.Capacity(min: min,
-                                        max: scalingPolicy.maxTotalInstances ?: 0,
-                                        desired: desired ?: 0)
+                                        max: scalingPolicy.maxTotalInstances ?: instanceCount,
+                                        desired: min)
         break
       case ScalingPolicyType.BASIC:
-        def desired = servingStatus == ServingStatus.SERVING ? scalingPolicy.maxInstances : 0
+        def desired = servingStatus == ServingStatus.SERVING ? instanceCount : 0
         return new ServerGroup.Capacity(min: 0,
-                                        max: scalingPolicy.maxInstances ?: 0,
+                                        max: scalingPolicy.maxInstances,
                                         desired: desired)
         break
       case ScalingPolicyType.MANUAL:
         def desired = servingStatus == ServingStatus.SERVING ? scalingPolicy.instances : 0
         return new ServerGroup.Capacity(min: 0,
-                                        max: scalingPolicy.instances ?: 0,
+                                        max: scalingPolicy.instances,
                                         desired: desired)
         break
       default:
