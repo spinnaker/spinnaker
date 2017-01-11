@@ -1,7 +1,7 @@
 import {module} from 'angular';
 import { Application } from '../application/application.model';
 import {
-  LoadBalancer,
+  ILoadBalancer,
   ServerGroup,
   Health
 } from '../domain';
@@ -11,7 +11,7 @@ export class LoadBalancersTagController implements ng.IComponentController {
 
   public application: Application;
   public serverGroup: ServerGroup;
-  public loadBalancers: LoadBalancer[];
+  public loadBalancers: ILoadBalancer[];
 
   public $onInit() {
     this.application.getDataSource('loadBalancers').ready().then(() => {
@@ -19,7 +19,7 @@ export class LoadBalancersTagController implements ng.IComponentController {
       this.loadBalancers = serverGroup.loadBalancers.map( (lbName: string) => {
         let match = this.application.getDataSource('loadBalancers')
           .data
-          .find((lb: LoadBalancer): boolean => {
+          .find((lb: ILoadBalancer): boolean => {
             return lb.name === lbName
               && lb.account === serverGroup.account
               && (lb.region === serverGroup.region || lb.region === 'global');
@@ -35,14 +35,14 @@ export class LoadBalancersTagController implements ng.IComponentController {
       return null;
     }
 
-    let loadBalancer: LoadBalancer = new LoadBalancer(match.name, match.vpcId);
+    let loadBalancer: ILoadBalancer = { name: match.name, vpcId: match.vpcId, cloudProvider: match.cloudProvider };
     loadBalancer.instanceCounts = <InstanceCounts>{up: 0, down: 0, succeeded: 0, failed: 0, unknown: 0};
 
     this.serverGroup.instances.forEach(instance => {
       let lbHealth: Health = instance.health.find(h => h.type === 'LoadBalancer');
       if (lbHealth) {
 
-        let matchedHealth: LoadBalancer = lbHealth.loadBalancers.find(lb => lb.name === match.name);
+        let matchedHealth: ILoadBalancer = lbHealth.loadBalancers.find(lb => lb.name === match.name);
 
         if (matchedHealth !== undefined && matchedHealth.healthState !== undefined && loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()] !== undefined) {
           loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()]++;

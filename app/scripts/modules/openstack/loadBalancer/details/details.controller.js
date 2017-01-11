@@ -12,11 +12,10 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
     ACCOUNT_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     require('core/loadBalancer/loadBalancer.write.service.js'),
-    require('core/loadBalancer/loadBalancer.read.service.js'),
     require('core/utils/selectOnDblClick.directive.js'),
   ])
   .controller('openstackLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app,
-                                                                  confirmationModalService, accountService, loadBalancerReader, loadBalancerWriter, subnetReader, $q) {
+                                                                  confirmationModalService, accountService, loadBalancerWriter, subnetReader, $q) {
 
       let application = app;
 

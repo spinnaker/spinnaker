@@ -1,6 +1,6 @@
-import {LoadBalancer} from 'core/domain/index';
+import {ILoadBalancer} from 'core/domain/index';
 
-export interface IAppengineLoadBalancer extends LoadBalancer {
+export interface IAppengineLoadBalancer extends ILoadBalancer {
   split: IAppengineTrafficSplit;
   migrateTraffic: boolean;
 }

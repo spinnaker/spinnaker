@@ -1,26 +1,22 @@
 'use strict';
 
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.securityGroup.openstack.create.controller', [
   require('angular-ui-router'),
   require('core/securityGroup/securityGroup.write.service.js'),
   require('core/securityGroup/securityGroup.read.service.js'),
-  require('core/loadBalancer/loadBalancer.read.service.js'),
   ACCOUNT_SERVICE,
-  V2_MODAL_WIZARD_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
-  require('core/search/search.service.js'),
   require('../../../region/regionSelectField.directive.js'),
   require('../../transformer.js'),
 ])
   .controller('openstackUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
                                                                  application, securityGroup,
-                                                                 accountService, openstackSecurityGroupTransformer, securityGroupReader, loadBalancerReader,
-                                                                 searchService, v2modalWizardService, securityGroupWriter, taskMonitorService, namingService) {
+                                                                 accountService, openstackSecurityGroupTransformer, securityGroupReader,
+                                                                 securityGroupWriter, taskMonitorService, namingService) {
     var ctrl = this;
     $scope.isNew = !securityGroup.edit;
     $scope.securityGroup = securityGroup;

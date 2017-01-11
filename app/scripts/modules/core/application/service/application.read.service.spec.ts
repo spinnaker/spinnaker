@@ -4,6 +4,8 @@ import {IApplicationDataSourceAttribute, ApplicationReader, APPLICATION_READ_SER
 import {Api} from '../../api/api.service';
 import {ApplicationDataSourceRegistry} from './applicationDataSource.registry';
 import {Application} from '../application.model';
+import {LOAD_BALANCER_READ_SERVICE, LoadBalancerReader} from 'core/loadBalancer/loadBalancer.read.service';
+
 describe('Service: applicationReader', function () {
 
   let applicationReader: ApplicationReader;
@@ -23,14 +25,14 @@ describe('Service: applicationReader', function () {
       require('../../loadBalancer/loadBalancer.dataSource'),
       require('../../securityGroup/securityGroup.read.service'),
       require('../../cluster/cluster.service'),
-      require('../../loadBalancer/loadBalancer.read.service')
+      LOAD_BALANCER_READ_SERVICE,
     )
   );
 
   beforeEach(
     mock.inject(function (_applicationReader_: ApplicationReader, _securityGroupReader_: any,
                                   _clusterService_: any, _API_: Api, _$q_: ng.IQService,
-                                  _loadBalancerReader_: any, $rootScope: ng.IRootScopeService,
+                                  _loadBalancerReader_: LoadBalancerReader, $rootScope: ng.IRootScopeService,
                                   _applicationDataSourceRegistry_: ApplicationDataSourceRegistry) {
       applicationReader = _applicationReader_;
       securityGroupReader = _securityGroupReader_;

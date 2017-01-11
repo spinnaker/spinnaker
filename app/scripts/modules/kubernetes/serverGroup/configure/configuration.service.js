@@ -2,14 +2,16 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
+import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+
+let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.configuration.service', [
   ACCOUNT_SERVICE,
   CACHE_INITIALIZER_SERVICE,
-  require('core/loadBalancer/loadBalancer.read.service.js'),
+  LOAD_BALANCER_READ_SERVICE,
   require('../../image/image.reader.js'),
 ])
   .factory('kubernetesServerGroupConfigurationService', function($q, accountService, kubernetesImageReader,

@@ -1,5 +1,5 @@
 import {ServerGroup} from '../domain/serverGroup';
-import {LoadBalancer} from '../domain/loadBalancer';
+import {ILoadBalancer} from '../domain/loadBalancer';
 import {Application} from '../application/application.model';
 import {IEntityRef} from '../domain/IEntityTags';
 
@@ -15,7 +15,7 @@ export class EntityRefBuilder {
     };
   }
 
-  public static buildLoadBalancerRef(loadBalancer: LoadBalancer): IEntityRef {
+  public static buildLoadBalancerRef(loadBalancer: ILoadBalancer): IEntityRef {
     return {
       cloudProvider: loadBalancer.cloudProvider,
       entityType: 'loadbalancer',

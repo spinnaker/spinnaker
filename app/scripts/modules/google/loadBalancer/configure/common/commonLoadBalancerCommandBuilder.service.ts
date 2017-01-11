@@ -2,6 +2,10 @@ import {module, IPromise} from 'angular';
 import * as _ from 'lodash';
 
 import {ACCOUNT_SERVICE, AccountService, IAccount} from 'core/account/account.service';
+import {
+  LOAD_BALANCER_READ_SERVICE, LoadBalancerReader,
+  ILoadBalancersByAccount
+} from 'core/loadBalancer/loadBalancer.read.service';
 import {SUBNET_READ_SERVICE, SubnetReader, ISubnet} from 'core/subnet/subnet.read.service';
 import {GCE_HEALTH_CHECK_READER, GceHealthCheckReader} from 'google/healthCheck/healthCheck.read.service';
 import {INetwork} from 'core/network/network.read.service';
@@ -9,9 +13,9 @@ import {IGceHealthCheck} from 'google/domain/healthCheck';
 
 export class GceCommonLoadBalancerCommandBuilder {
   private dataFetchers: { [key: string]: Function } = {
-    existingLoadBalancerNamesByAccount: (): IPromise<string> => {
+    existingLoadBalancerNamesByAccount: (): IPromise<_.Dictionary<any>> => {
       return this.loadBalancerReader.listLoadBalancers('gce')
-        .then((loadBalancerList: any[]) => {
+        .then((loadBalancerList: ILoadBalancersByAccount[]) => {
           return _.chain(loadBalancerList)
             .map('accounts')
             .flatten()
@@ -42,7 +46,7 @@ export class GceCommonLoadBalancerCommandBuilder {
                                  'gceCertificateReader']; }
 
   constructor(private $q: ng.IQService,
-              private loadBalancerReader: any,
+              private loadBalancerReader: LoadBalancerReader,
               private accountService: AccountService,
               private subnetReader: SubnetReader,
               private gceHealthCheckReader: GceHealthCheckReader,
@@ -79,7 +83,7 @@ export const GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER = 'spinnaker.gce.commonLoa
 
 module(GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER, [
   ACCOUNT_SERVICE,
-  require('core/loadBalancer/loadBalancer.read.service.js'),
+  LOAD_BALANCER_READ_SERVICE,
   require('google/certificate/certificate.reader.js'),
   SUBNET_READ_SERVICE,
   GCE_HEALTH_CHECK_READER,

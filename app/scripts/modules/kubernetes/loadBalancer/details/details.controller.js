@@ -10,12 +10,11 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
   ACCOUNT_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   require('core/loadBalancer/loadBalancer.write.service.js'),
-  require('core/loadBalancer/loadBalancer.read.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('kubernetesLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app,
                                                                    confirmationModalService, accountService, loadBalancerWriter,
-                                                                   loadBalancerReader, kubernetesProxyUiService, $q) {
+                                                                   kubernetesProxyUiService, $q) {
 
     let application = app;
 

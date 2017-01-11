@@ -1,7 +1,7 @@
 import {module} from 'angular';
 import {chain, get, has, camelCase, filter, mapValues, cloneDeep} from 'lodash';
 
-import {InstanceCounts, LoadBalancer, ServerGroup, Instance} from 'core/domain/index';
+import {InstanceCounts, ILoadBalancer, ServerGroup, Instance} from 'core/domain/index';
 import {IAppengineLoadBalancer, IAppengineTrafficSplit} from 'appengine/domain/index';
 
 export class AppengineLoadBalancerUpsertDescription {
@@ -24,7 +24,7 @@ export class AppengineLoadBalancerUpsertDescription {
 }
 
 export class AppengineLoadBalancerTransformer {
-  public normalizeLoadBalancer(loadBalancer: LoadBalancer): LoadBalancer {
+  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): ILoadBalancer {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
     loadBalancer.instances = [];
@@ -69,7 +69,7 @@ export class AppengineLoadBalancerTransformer {
     return instanceCounts;
   }
 
-  private transformInstance(instance: any, loadBalancer: LoadBalancer) {
+  private transformInstance(instance: any, loadBalancer: ILoadBalancer) {
     instance.provider = loadBalancer.type;
     instance.account = loadBalancer.account;
     instance.region = loadBalancer.region;
