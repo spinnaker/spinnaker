@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.permissions.PermissionResolutionException;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
@@ -134,7 +135,7 @@ public class UserRolesSyncer {
     return serviceAccountProvider
         .getAll()
         .stream()
-        .map(serviceAccount -> new UserPermission().setId(serviceAccount.getName()))
+        .map(ServiceAccount::toUserPermission)
         .collect(Collectors.toMap(UserPermission::getId, Functions.identity()));
   }
 

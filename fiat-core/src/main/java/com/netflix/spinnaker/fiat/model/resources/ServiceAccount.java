@@ -17,19 +17,31 @@
 package com.netflix.spinnaker.fiat.model.resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.fiat.model.UserPermission;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 public class ServiceAccount implements GroupAccessControlled, Viewable {
   private final ResourceType resourceType = ResourceType.SERVICE_ACCOUNT;
 
   private String name;
+  private List<String> memberOf = new ArrayList<>();
+
+  public UserPermission toUserPermission() {
+    val roles = memberOf.stream()
+                        .map(membership -> new Role(membership).setSource(Role.Source.EXTERNAL))
+                        .collect(Collectors.toSet());
+    return new UserPermission().setId(name).setRoles(roles);
+  }
 
   @JsonIgnore
   public List<String> getRequiredGroupMembership() {

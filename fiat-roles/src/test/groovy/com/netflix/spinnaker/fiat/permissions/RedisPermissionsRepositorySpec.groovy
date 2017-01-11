@@ -98,7 +98,7 @@ class RedisPermissionsRepositorySpec extends Specification {
     jedis.hgetAll("unittests:permissions:testUser:applications") ==
         ['app': '{"name":"app","requiredGroupMembership":[]}']
     jedis.hgetAll("unittests:permissions:testUser:service_accounts") ==
-        ['serviceAccount': '{"name":"serviceAccount"}']
+        ['serviceAccount': '{"name":"serviceAccount","memberOf":[]}']
     jedis.hgetAll("unittests:permissions:testUser:roles") ==
         ['role1': '{"name":"role1"}']
   }
