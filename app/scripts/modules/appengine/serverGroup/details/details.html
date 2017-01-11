@@ -124,6 +124,8 @@
         <dd><account-tag account="ctrl.serverGroup.account"></account-tag></dd>
         <dt>Region</dt>
         <dd>{{ctrl.serverGroup.region}}</dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup" key="env" label="Environment"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup" key="instanceClass"></appengine-conditional-dt-dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
@@ -156,6 +158,37 @@
     <collapsible-section heading="DNS" expanded="true">
       <dl class="dl-narrow">
         <appengine-component-url-details component="ctrl.serverGroup"></appengine-component-url-details>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Scaling Policy" expanded="true">
+      <dl>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="type"></appengine-conditional-dt-dd>
+        <!--MANUAL SCALING PROPERTIES-->
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="instances"></appengine-conditional-dt-dd>
+        <!--BASIC SCALING PROPERTIES-->
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="idleTimeout"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="maxInstances"></appengine-conditional-dt-dd>
+        <!--AUTOMATIC SCALING PROPERTIES-->
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="coolDownPeriod"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="maxConcurrentRequests"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="maxTotalInstances"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="minTotalInstances"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="maxIdleInstances"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="minIdleInstances"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="maxPendingLatency"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="minPendingLatency"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.cpuUtilization" key="aggregationWindowLength"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.cpuUtilization" key="targetUtilization" label="Target CPU Utilization"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.diskUtilization" key="targetReadBytesPerSecond"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.diskUtilization" key="targetReadOpsPerSecond"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.diskUtilization" key="targetWriteBytesPerSecond"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.diskUtilization" key="targetWriteOpsPerSecond"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.networkUtilization" key="targetReceivedBytesPerSecond"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.networkUtilization" key="targetReceivedPacketsPerSecond"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.networkUtilization" key="targetSentBytesPerSecond"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.networkUtilization" key="targetSentPacketsPerSecond"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.requestUtilization" key="targetConcurrentRequests"></appengine-conditional-dt-dd>
+        <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy.requestUtilization" key="targetRequestCountPerSecond"></appengine-conditional-dt-dd>
       </dl>
     </collapsible-section>
   </div>

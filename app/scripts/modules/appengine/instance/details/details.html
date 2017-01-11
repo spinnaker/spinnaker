@@ -73,24 +73,25 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Metrics" expanded="true">
-      <dl class="dl-horizontal dl-narrow">
+      <dl>
         <appengine-conditional-dt-dd component="ctrl.instance" key="instanceStatus" label="Availability">
-          <help-field key="appengine.instance.availability"></help-field>
+          <key-label><help-field key="appengine.instance.availability"></help-field></key-label>
         </appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.instance" key="averageLatency" label="Average Latency">
-          <help-field key="appengine.instance.averageLatency"></help-field>
+        <appengine-conditional-dt-dd component="ctrl.instance" key="averageLatency">
+          <key-label><help-field key="appengine.instance.averageLatency"></help-field></key-label>
+          <value-label>ms</value-label>
         </appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.instance" key="errors" label="Errors">
-          <help-field key="appengine.instance.errors"></help-field>
+        <appengine-conditional-dt-dd component="ctrl.instance" key="errors">
+          <key-label><help-field key="appengine.instance.errors"></help-field></key-label>
         </appengine-conditional-dt-dd>
         <appengine-conditional-dt-dd component="ctrl.instance" key="qps" label="QPS">
-          <help-field key="appengine.instance.qps"></help-field>
+          <key-label><help-field key="appengine.instance.qps"></help-field></key-label>
         </appengine-conditional-dt-dd>
-        <appengine-conditional-dt-dd component="ctrl.instance" key="requests" label="Requests">
-          <help-field key="appengine.instance.requests"></help-field>
+        <appengine-conditional-dt-dd component="ctrl.instance" key="requests">
+          <key-label><help-field key="appengine.instance.requests"></help-field></key-label>
         </appengine-conditional-dt-dd>
         <appengine-conditional-dt-dd component="ctrl.instance" key="vmStatus" label="VM Status">
-          <help-field key="appengine.instance.vmStatus"></help-field>
+          <key-label><help-field key="appengine.instance.vmStatus"></help-field></key-label>
         </appengine-conditional-dt-dd>
         <appengine-conditional-dt-dd component="ctrl.instance" key="vmDebugEnabled" label="Debug Enabled"></appengine-conditional-dt-dd>
       </dl>
