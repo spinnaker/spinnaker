@@ -2,6 +2,7 @@
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 
 let angular = require('angular');
 
@@ -10,7 +11,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
   ACCOUNT_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   require('core/loadBalancer/loadBalancer.write.service.js'),
-  require('core/loadBalancer/loadBalancer.read.service.js'),
+  LOAD_BALANCER_READ_SERVICE,
   require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('cfLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app,

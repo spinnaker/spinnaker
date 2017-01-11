@@ -15,7 +15,7 @@ module.exports = angular
       params.loadBalancerName = loadBalancer.name;
       params.regions = [loadBalancer.region];
       params.credentials = loadBalancer.accountId;
-      params.cloudProvider = loadBalancer.providerType;
+      params.cloudProvider = loadBalancer.cloudProvider;
 
       var operation = taskExecutor.executeTask({
         job: [params],
@@ -31,7 +31,6 @@ module.exports = angular
 
     function upsertLoadBalancer(loadBalancer, application, descriptor, params = {}) {
       var name = loadBalancer.clusterName || loadBalancer.name;
-      loadBalancer.cloudProvider = loadBalancer.provider;
       let protocol = loadBalancer.healthCheckProtocol || '';
       if (protocol.startsWith('HTTP')) {
         loadBalancer.healthCheck = `${protocol}:${loadBalancer.healthCheckPort}${loadBalancer.healthCheckPath}`;

@@ -7,7 +7,7 @@ import {ApplicationDataSourceRegistry} from './service/applicationDataSource.reg
 import {
   ServerGroup,
   InstanceCounts,
-  LoadBalancer
+  ILoadBalancer
 } from '../domain';
 import {IEntityTag, IEntityTags} from '../domain/IEntityTags';
 
@@ -196,7 +196,7 @@ describe ('Application Model', function () {
           instances: [],
           instanceCounts: <InstanceCounts>{}
         }],
-        loadBalancers: LoadBalancer[] = [],
+        loadBalancers: ILoadBalancer[] = [],
         securityGroupsByApplicationName: any[] = [];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
@@ -206,7 +206,7 @@ describe ('Application Model', function () {
 
     it('sets default credentials and region from load balancer when only one account/region found', function () {
       let serverGroups: ServerGroup[] = [],
-        loadBalancers: LoadBalancer[] = [new LoadBalancer('deck-frontend', 'gce', 'vpc0', 'us-central-1', 'prod', [])],
+        loadBalancers: ILoadBalancer[] = [{name: 'deck-frontend', cloudProvider: 'gce', vpcId: 'vpc0', region: 'us-central-1', account: 'prod' }],
         securityGroupsByApplicationName: any[] = [];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
@@ -216,7 +216,7 @@ describe ('Application Model', function () {
 
     it('sets default credentials and region from security group', function () {
       let serverGroups: any[] = [],
-        loadBalancers: LoadBalancer[] = [],
+        loadBalancers: ILoadBalancer[] = [],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'cf', accountName: 'test', region: 'us-south-7'}];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
@@ -226,7 +226,7 @@ describe ('Application Model', function () {
 
     it('does not set defaults when multiple values found for the same provider', function () {
       let serverGroups: ServerGroup[] = [],
-        loadBalancers: LoadBalancer[] = [ new LoadBalancer('deck-frontend', 'aws', 'vpcId', 'us-west-1', 'prod', []) ],
+        loadBalancers: ILoadBalancer[] = [ {name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-west-1', account: 'prod'} ],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1'}];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
@@ -236,7 +236,7 @@ describe ('Application Model', function () {
 
     it('sets default region or default credentials if possible', function () {
       let serverGroups: ServerGroup[] = [],
-        loadBalancers: LoadBalancer[] = [new LoadBalancer('deck-frontend', 'aws', 'vpcId', 'us-east-1', 'prod', [])],
+        loadBalancers: ILoadBalancer[] = [{name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-east-1', account: 'prod'}],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1'}];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
@@ -246,7 +246,7 @@ describe ('Application Model', function () {
 
     it('sets default credentials, even if region cannot be set', function () {
       let serverGroups: ServerGroup[] = [],
-        loadBalancers: LoadBalancer[] = [new LoadBalancer('deck-frontend', 'aws', 'vpc0', 'us-east-1', 'test', [])],
+        loadBalancers: ILoadBalancer[] = [{name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpc0', region: 'us-east-1', account: 'test'}],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-1'}];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
@@ -273,7 +273,7 @@ describe ('Application Model', function () {
             instanceCounts: { up: 0, down: 0, starting: 0, unknown: 0, outOfService: 0 },
           }
         ],
-        loadBalancers: any[] = [{name: 'deck-frontend', account: 'gce-test', type: 'gce', region: 'us-central-1', serverGroups: []}],
+        loadBalancers: ILoadBalancer[] = [{name: 'deck-frontend', account: 'gce-test', cloudProvider: 'gce', region: 'us-central-1', serverGroups: []}],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-2'}];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);

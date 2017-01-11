@@ -1,11 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
+
 import {DELETE_MODAL_CONTROLLER} from './deleteModal/deleteModal.controller';
 import {GCE_BACKEND_SERVICE_DETAILS_COMPONENT} from './backendService/backendService.component';
 import {SESSION_AFFINITY_FILTER} from './backendService/sessionAffinity.filter';
 import {GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT} from '../configure/choice/loadBalancerTypeToWizardMap.constant';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 
 let angular = require('angular');
 
@@ -13,7 +15,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
   require('core/loadBalancer/loadBalancer.write.service.js'),
-  require('core/loadBalancer/loadBalancer.read.service.js'),
+  LOAD_BALANCER_READ_SERVICE,
   require('core/utils/selectOnDblClick.directive.js'),
   require('./hostAndPathRules/hostAndPathRulesButton.component.js'),
   require('./loadBalancerType/loadBalancerType.component.js'),

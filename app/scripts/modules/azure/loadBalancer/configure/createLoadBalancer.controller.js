@@ -1,17 +1,18 @@
 'use strict';
 
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 
 let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
   require('angular-ui-router'),
   require('../loadBalancer.write.service.js'),
-  require('core/loadBalancer/loadBalancer.read.service.js'),
+  LOAD_BALANCER_READ_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
   V2_MODAL_WIZARD_SERVICE,

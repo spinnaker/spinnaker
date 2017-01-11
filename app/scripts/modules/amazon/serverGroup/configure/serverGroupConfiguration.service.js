@@ -1,13 +1,15 @@
 'use strict';
 
 import _ from 'lodash';
-let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {SERVER_GROUP_COMMAND_REGISTRY_PROVIDER} from 'core/serverGroup/configure/common/serverGroupCommandRegistry.provider';
+
+let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
@@ -17,7 +19,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   SUBNET_READ_SERVICE,
   require('../../instance/awsInstanceType.service.js'),
   require('../../keyPairs/keyPairs.read.service.js'),
-  require('core/loadBalancer/loadBalancer.read.service.js'),
+  LOAD_BALANCER_READ_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   require('../details/scalingProcesses/autoScalingProcess.service.js'),

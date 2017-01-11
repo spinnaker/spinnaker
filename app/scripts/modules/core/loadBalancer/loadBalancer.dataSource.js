@@ -1,6 +1,7 @@
 import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 import {ENTITY_TAGS_READ_SERVICE} from '../entityTag/entityTags.read.service';
+import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 
 let angular = require('angular');
 
@@ -8,7 +9,7 @@ module.exports = angular
   .module('spinnaker.core.loadBalancer.dataSource', [
     APPLICATION_DATA_SOURCE_REGISTRY,
     ENTITY_TAGS_READ_SERVICE,
-    require('./loadBalancer.read.service'),
+    LOAD_BALANCER_READ_SERVICE,
     require('core/config/settings'),
   ])
   .run(function($q, applicationDataSourceRegistry, loadBalancerReader, entityTagsReader, settings) {
@@ -41,7 +42,7 @@ module.exports = angular
       optional: true,
       loader: loadLoadBalancers,
       onLoad: addLoadBalancers,
-      providerField: 'type',
+      providerField: 'cloudProvider',
       credentialsField: 'account',
       regionField: 'region',
       description: 'Traffic distribution management between servers'

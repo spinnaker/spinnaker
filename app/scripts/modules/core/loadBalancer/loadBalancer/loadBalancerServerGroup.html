@@ -5,9 +5,9 @@
       <div class="row">
         <div class="col-md-8">
           <a
-              ui-sref=".serverGroup({region: region, accountId: loadBalancer.account, serverGroup: serverGroup.name, provider: loadBalancer.type})"
+              ui-sref=".serverGroup({region: region, accountId: loadBalancer.account, serverGroup: serverGroup.name, provider: loadBalancer.cloudProvider})"
               ui-sref-active="active">
-            <span class="icon icon-server-group icon-{{loadBalancer.type}} small"></span> {{serverGroup.name}}
+            <cloud-provider-logo provider="loadBalancer.cloudProvider" height="14px" width="14px"></cloud-provider-logo> {{serverGroup.name}}
           </a>
         </div>
         <div class="col-md-4 text-right">

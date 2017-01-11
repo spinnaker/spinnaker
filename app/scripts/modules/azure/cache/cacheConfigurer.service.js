@@ -2,13 +2,14 @@
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
+import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.cache.initializer', [
   ACCOUNT_SERVICE,
-  require('core/loadBalancer/loadBalancer.read.service.js'),
+  LOAD_BALANCER_READ_SERVICE,
   INSTANCE_TYPE_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
   SUBNET_READ_SERVICE,

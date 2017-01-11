@@ -40,7 +40,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.directive', [])
               accountId: loadBalancer.account,
               name: loadBalancer.name,
               vpcId: loadBalancer.vpcId,
-              provider: loadBalancer.provider,
+              provider: loadBalancer.cloudProvider,
             };
 
             if (angular.equals(scope.$state.params, params)) {

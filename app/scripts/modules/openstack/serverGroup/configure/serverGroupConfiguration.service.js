@@ -1,11 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
-let angular = require('angular');
 
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
+import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+
+let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.configuration.service', [
   require('../../image/image.reader.js'),
@@ -13,7 +15,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
   require('../../../netflix/serverGroup/diff/diff.service.js'),
   NAMING_SERVICE,
   require('core/securityGroup/securityGroup.read.service.js'),
-  require('core/loadBalancer/loadBalancer.read.service.js'),
+  LOAD_BALANCER_READ_SERVICE,
   CACHE_INITIALIZER_SERVICE
 ])
   .factory('openstackServerGroupConfigurationService', function($q, openstackImageReader, accountService,

@@ -4,7 +4,7 @@ import {cloneDeep} from 'lodash';
 import {Application} from 'core/application/application.model';
 import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
 import {IAppengineLoadBalancer} from 'appengine/domain/index';
-import {LoadBalancer} from 'core/domain/index';
+import {ILoadBalancer} from 'core/domain/index';
 
 interface ILoadBalancerFromStateParams {
   accountId: string;
@@ -78,7 +78,7 @@ class AppengineLoadBalancerDetailsController {
   }
 
   private extractLoadBalancer(): void {
-    this.loadBalancer = this.app.getDataSource('loadBalancers').data.find((test: LoadBalancer) => {
+    this.loadBalancer = this.app.getDataSource('loadBalancers').data.find((test: ILoadBalancer) => {
       return test.name === this.loadBalancerFromParams.name &&
         test.account === this.loadBalancerFromParams.accountId;
     }) as IAppengineLoadBalancer;

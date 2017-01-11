@@ -2,13 +2,14 @@
 
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', [
   require('angular-ui-router'),
   require('core/loadBalancer/loadBalancer.write.service.js'),
-  require('core/loadBalancer/loadBalancer.read.service.js'),
+  LOAD_BALANCER_READ_SERVICE,
   ACCOUNT_SERVICE,
   require('../../loadBalancer.transformer.js'),
   V2_MODAL_WIZARD_SERVICE,

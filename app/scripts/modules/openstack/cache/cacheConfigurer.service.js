@@ -1,6 +1,7 @@
 'use strict';
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
@@ -8,7 +9,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.cache.initializer', [
   ACCOUNT_SERVICE,
-  require('core/loadBalancer/loadBalancer.read.service.js'),
+  LOAD_BALANCER_READ_SERVICE,
   NETWORK_READ_SERVICE,
   SUBNET_READ_SERVICE,
 ])
