@@ -84,7 +84,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
 
     @Override
     public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      log.error("Failed to fetch groups: " + e.getMessage());
+      log.warn("Failed to fetch groups for user " + email + ": " + e.getMessage());
     }
 
     @Override

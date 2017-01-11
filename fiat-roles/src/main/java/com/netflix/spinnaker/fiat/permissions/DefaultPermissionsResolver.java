@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.permissions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
@@ -73,7 +74,9 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   public UserPermission resolveAndMerge(@NonNull ExternalUser user) {
     List<Role> roles;
     try {
+      log.debug("Loading roles for user " + user);
       roles = userRolesProvider.loadRoles(user.getId());
+      log.debug("Got roles " + roles + " for user " + user);
     } catch (ProviderException pe) {
       throw new PermissionResolutionException("Failed to resolve user permission for user " + user.getId(), pe);
     }
@@ -155,6 +158,11 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
                  .addAll(user.getExternalRoles());
     });
 
+    if (log.isDebugEnabled()) {
+      try {
+        log.debug("Multi-loaded roles: \n" + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(userToRoles));
+      } catch (Exception e) {}
+    }
     return userToRoles;
   }
 }

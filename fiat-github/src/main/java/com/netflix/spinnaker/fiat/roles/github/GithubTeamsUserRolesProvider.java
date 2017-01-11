@@ -53,6 +53,7 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
 
   @Override
   public List<Role> loadRoles(String userName) {
+    log.debug("loadRoles for user " + userName);
     if (StringUtils.isEmpty(userName)|| StringUtils.isEmpty(gitHubProperties.getOrganization())) {
       return new ArrayList<>();
     }
@@ -68,6 +69,16 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
                                 .isMemberOfOrganization(gitHubProperties.getOrganization(),
                                                         userName);
       isMemberOfOrg = (response.getStatus() == 204);
+      if(log.isDebugEnabled()) {
+        StringBuilder sb = new StringBuilder(userName).append(" is ");
+        if (!isMemberOfOrg) {
+          sb.append("not ");
+        }
+        sb.append("a member of ")
+          .append(gitHubProperties.getOrganization())
+          .append(" organization.");
+        log.debug(sb.toString());
+      }
     } catch (RetrofitError e) {
       if (e.getKind() == RetrofitError.Kind.NETWORK) {
         log.error(String.format("Could not find the server %s", master.getBaseUrl()), e);
@@ -115,10 +126,16 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
       }
     }
 
+    log.debug("Found " + teams.size() + " teams in org.");
     teams.forEach(t -> {
+      StringBuilder sb = new StringBuilder(userName).append(" is member of team ").append(t.getName());
       if (isMemberOfTeam(t, userName)) {
+        sb.append(": true");
         result.add(toRole(t.getSlug()));
+      } else {
+        sb.append(": false");
       }
+      log.debug(sb.toString());
     });
 
     return result;
