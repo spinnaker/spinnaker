@@ -43,6 +43,7 @@ class PermissionService {
     }
   }
 
+  // TODO(ttomsu): Rename to remove SAML prefix
   void loginSAML(String userId, Collection<String> roles) {
     if (fiatConfig.enabled) {
       fiatService.loginSAMLUser(userId, roles)
