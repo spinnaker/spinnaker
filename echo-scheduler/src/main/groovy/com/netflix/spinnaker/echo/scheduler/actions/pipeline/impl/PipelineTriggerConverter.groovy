@@ -26,7 +26,7 @@ import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineTriggerActi
 class PipelineTriggerConverter {
 
   static Map<String, String> toParameters(Pipeline pipeline, Trigger trigger, String timeZoneId) {
-    [
+    def params = [
       id                   : pipeline.id,
       triggerId            : trigger.id,
       triggerType          : trigger.type,
@@ -34,22 +34,29 @@ class PipelineTriggerConverter {
       triggerTimeZoneId    : timeZoneId,
       triggerEnabled       : Boolean.toString(trigger.enabled)
     ]
+    if (trigger.runAsUser) {
+      params.runAsUser = trigger.runAsUser
+    }
+    return params
   }
 
   static Pipeline fromParameters(PipelineCache pipelineCache, Map<String, String> parameters) {
-    def trigger = Trigger
+    def triggerBuilder = Trigger
       .builder()
       .enabled(Boolean.parseBoolean(parameters.triggerEnabled))
       .id(parameters.triggerId)
       .type(Trigger.Type.CRON.toString())
       .cronExpression(parameters.triggerCronExpression)
-      .build()
+
+    if (parameters.runAsUser) {
+      triggerBuilder.runAsUser(parameters.runAsUser)
+    }
 
     def existingPipeline = pipelineCache.getPipelines().find { it.id == parameters.id }
     if (!existingPipeline) {
       throw new IllegalStateException("No pipeline found (id: ${parameters.id})")
     }
-    return existingPipeline.withTrigger(trigger)
+    return existingPipeline.withTrigger(triggerBuilder.build())
   }
 
   static ActionInstance toScheduledAction(Pipeline pipeline, Trigger trigger, String timeZoneId) {
@@ -72,7 +79,8 @@ class PipelineTriggerConverter {
       return (
         actionInstance.trigger instanceof CronTrigger &&
           trigger.cronExpression == ((CronTrigger) actionInstance.trigger).cronExpression &&
-          timeZoneId == actionInstance?.context?.parameters?.triggerTimeZoneId
+          timeZoneId == actionInstance?.context?.parameters?.triggerTimeZoneId &&
+          trigger.runAsUser == actionInstance?.context?.parameters?.runAsUser
       )
     }
     return true

@@ -107,23 +107,28 @@ class PipelineTriggerActionConverterSpec extends Specification {
     }
 
     @Unroll
-    void 'isInSync() should return true if cronExpression and timezone of the trigger and ActionInstance match'() {
+    void 'isInSync() should return true if cronExpression, timezone of the trigger, and runAsUser match the ActionInstance'() {
         setup:
-        Trigger trigger = Trigger.builder().type(Trigger.Type.CRON.toString()).cronExpression('* 0/30 * * * ? *').build()
+        Trigger trigger = Trigger.builder()
+                                 .type(Trigger.Type.CRON.toString())
+                                 .cronExpression('* 0/30 * * * ? *')
+                                 .runAsUser("batman")
+                                 .build()
         ActionInstance actionInstance = ActionInstance.newActionInstance()
             .withTrigger(new CronTrigger(trigger.cronExpression))
-            .withParameters([triggerTimeZoneId: actionInstanceTimeZoneId])
+            .withParameters([triggerTimeZoneId: actionInstanceTimeZoneId, runAsUser: runAsUser])
             .build()
 
         expect:
         isInSync(actionInstance, trigger, currentTimeZoneId) == expectedInSync
 
         where:
-        actionInstanceTimeZoneId | currentTimeZoneId  | expectedInSync
-        'America/New_York'       | 'America/New_York' | true
-        'America/Los_Angeles'    | 'America/New_York' | false
-        null                     | 'America/New_York' | false
-        ''                       | 'America/New_York' | false
+        actionInstanceTimeZoneId | currentTimeZoneId  | runAsUser | expectedInSync
+        'America/New_York'       | 'America/New_York' | 'batman'  | true
+        'America/Los_Angeles'    | 'America/New_York' | 'batman'  | false
+        null                     | 'America/New_York' | 'batman'  | false
+        ''                       | 'America/New_York' | 'batman'  | false
+        'America/New_York'       | 'America/New_York' | 'robin'   | false
     }
 
     void 'isInSync() should return true if trigger is not a cron trigger'() {
