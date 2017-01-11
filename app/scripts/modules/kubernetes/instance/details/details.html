@@ -72,6 +72,8 @@
         <dd ng-if="instance.kind">{{instance.kind}}</dd>
         <dt>YAML</dt>
         <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
+        <dt>Kube UI</dt>
+        <dd><a href={{ctrl.uiLink()}} target="_blank">{{instance.name}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">

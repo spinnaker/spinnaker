@@ -21,13 +21,17 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
 ])
   .controller('kubernetesInstanceDetailsController', function ($scope, $state, $uibModal,
                                                                instanceWriter, confirmationModalService, recentHistoryService,
-                                                               cloudProviderRegistry, instanceReader, instance, app, $q) {
+                                                               cloudProviderRegistry, instanceReader, instance, app, kubernetesProxyUiService, $q) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('kubernetes', 'instance.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,
       standalone: app.isStandalone,
+    };
+
+    this.uiLink = function uiLink() {
+      return kubernetesProxyUiService.buildLink($scope.instance.account, 'pod', $scope.instance.region, $scope.instance.name);
     };
 
     this.showYaml = function showYaml() {

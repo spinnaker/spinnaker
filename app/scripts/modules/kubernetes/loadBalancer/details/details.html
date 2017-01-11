@@ -54,6 +54,8 @@
         <dd>{{loadBalancer.service.kind}}</dd>
         <dt>YAML</dt>
         <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
+        <dt>Kube UI</dt>
+        <dd><a href={{ctrl.uiLink()}} target="_blank">{{loadBalancer.name}}</a></dd>
       </dl>
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>

@@ -109,6 +109,8 @@
         <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
         <dt ng-show="serverGroup.revision">Revision</dt>
         <dd ng-show="serverGroup.revision">{{serverGroup.revision}}</dd>
+        <dt>Kube UI</dt>
+        <dd><a href={{ctrl.uiLink()}} target="_blank">{{serverGroup.name}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">

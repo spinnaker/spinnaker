@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
                                                                   serverGroupReader, $uibModal, serverGroupWriter,
                                                                   runningExecutionsService, serverGroupWarningMessageService,
                                                                   kubernetesServerGroupCommandBuilder, kubernetesServerGroupParamsMixin,
-                                                                  confirmationModalService) {
+                                                                  confirmationModalService, kubernetesProxyUiService) {
     let application = app;
 
     $scope.state = {
@@ -49,6 +49,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       return summary;
     }
 
+    this.uiLink = function uiLink() {
+      return kubernetesProxyUiService.buildLink($scope.serverGroup.account, $scope.serverGroup.kind, $scope.serverGroup.region, $scope.serverGroup.name);
+    };
+
     this.showYaml = function showYaml() {
       $scope.userDataModalTitle = 'Replication Controller YAML';
       $scope.userData = $scope.serverGroup.yaml;
@@ -62,7 +66,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
     function normalizeDeploymentStatus(serverGroup) {
       let deploymentStatus = serverGroup.deploymentStatus;
 
-      if (deploymentStatus !== undefined) {
+      if (deploymentStatus !== undefined && deploymentStatus !== null) {
         deploymentStatus.unavailableReplicas |= 0;
         deploymentStatus.availableReplicas |= 0;
         deploymentStatus.updatedReplicas |= 0;

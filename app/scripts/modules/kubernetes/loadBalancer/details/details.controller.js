@@ -13,8 +13,9 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
   require('core/loadBalancer/loadBalancer.read.service.js'),
   require('core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('kubernetesLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app,
-                                                                   confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader, $q) {
+  .controller('kubernetesLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app, 
+                                                                   confirmationModalService, accountService, loadBalancerWriter, 
+                                                                   loadBalancerReader, kubernetesProxyUiService, $q) {
 
     let application = app;
 
@@ -37,6 +38,10 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
 
       return $q.when(null);
     }
+
+    this.uiLink = function uiLink() {
+      return kubernetesProxyUiService.buildLink($scope.loadBalancer.account, 'service', $scope.loadBalancer.region, $scope.loadBalancer.name);
+    };
 
     this.showYaml = function showYaml() {
       $scope.userDataModalTitle = 'Service YAML';
