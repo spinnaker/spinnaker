@@ -60,6 +60,7 @@ class AppEngineServerGroup implements ServerGroup, Serializable {
     this.httpUrl = AppEngineModelUtil.getHttpUrl(version.getName())
     this.httpsUrl = AppEngineModelUtil.getHttpsUrl(version.getName())
     this.instanceClass = version.getInstanceClass()
+    this.zones = [region] as Set
   }
 
   @Override

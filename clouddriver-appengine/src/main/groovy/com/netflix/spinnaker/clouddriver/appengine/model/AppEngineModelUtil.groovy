@@ -47,11 +47,6 @@ class AppEngineModelUtil {
     }
   }
 
-  static HealthState getInstanceHealthState(Version version, Service service) {
-    def allocations = service.getSplit()?.getAllocations()
-    allocations?.containsKey(version.getId()) ? HealthState.Up : HealthState.OutOfService
-  }
-
   static String getHttpUrl(String selfLink) {
     "http://${getUrl(selfLink, ".")}"
   }

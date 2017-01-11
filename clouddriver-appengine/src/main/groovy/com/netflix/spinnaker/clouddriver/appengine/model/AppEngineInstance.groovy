@@ -31,7 +31,6 @@ class AppEngineInstance implements Instance, Serializable {
   String zone
   String serverGroup
   List<String> loadBalancers
-  HealthState healthState
   final String providerType = AppEngineCloudProvider.ID
   final String cloudProvider = AppEngineCloudProvider.ID
   String vmName
@@ -43,11 +42,12 @@ class AppEngineInstance implements Instance, Serializable {
   String memoryUsage
   String vmStatus
   String vmDebugEnabled
+  List<Map<String, String>> health
 
   AppEngineInstance() {}
 
-  AppEngineInstance(AppEngineApiInstance instance, Version version, Service service) {
-    this.healthState = AppEngineModelUtil.getInstanceHealthState(version, service)
+  AppEngineInstance(AppEngineApiInstance instance, Version version, Service service, String region) {
+    this.health = [new AppEngineHealth(version, service).toMap()]
     this.instanceStatus = instance.getAvailability() ?
       AppEngineInstanceStatus.valueOf(instance.getAvailability()) :
       null
@@ -64,6 +64,7 @@ class AppEngineInstance implements Instance, Serializable {
     this.launchTime = AppEngineModelUtil.translateTime(instance.getStartTime())
     this.vmName = instance.getVmName()
     this.vmZoneName = instance.getVmZoneName()
+    this.zone = instance.getVmZoneName() ?: region
     this.requests = instance.getRequests()
     this.errors = instance.getErrors()
     this.qps = instance.getQps()
@@ -73,8 +74,8 @@ class AppEngineInstance implements Instance, Serializable {
     this.vmDebugEnabled = instance.getVmDebugEnabled()
   }
 
-  List<Map<String, String>> getHealth() {
-    [['appengine': healthState.toString()]]
+  HealthState getHealthState() {
+    this.health[0].state as HealthState
   }
 
   enum AppEngineInstanceStatus {

@@ -250,7 +250,7 @@ class AppEngineServerGroupCachingAgent extends AbstractAppEngineCachingAgent imp
             def key = Keys.getInstanceKey(accountName, instanceName)
             cachedInstances[key].with {
               attributes.name = instanceName
-              attributes.instance = new AppEngineInstance(instance, serverGroup, loadBalancer)
+              attributes.instance = new AppEngineInstance(instance, serverGroup, loadBalancer, credentials.region)
               relationships[APPLICATIONS.ns].add(applicationKey)
               relationships[CLUSTERS.ns].add(clusterKey)
               relationships[SERVER_GROUPS.ns].add(serverGroupKey)

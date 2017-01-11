@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.model
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.appengine.v1.model.Service
 import com.netflix.spinnaker.clouddriver.appengine.AppEngineCloudProvider
@@ -28,6 +29,7 @@ import groovy.transform.EqualsAndHashCode
 
 @CompileStatic
 @EqualsAndHashCode(includes = ["name", "account"])
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class AppEngineLoadBalancer implements LoadBalancer, Serializable {
   String name
   String selfLink
