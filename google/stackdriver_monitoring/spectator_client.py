@@ -188,10 +188,10 @@ class SpectatorClient(object):
     lines = []
 
     if lost_keys:
-      lines.append('Lost metrics for:\n  - {0}\n'
+      lines.append('Stopped metrics for:\n  - {0}\n'
                    .format('\n  - '.join(lost_keys)))
     if new_keys:
-      lines.append('Added metrics for:\n  - {0}\n'
+      lines.append('Started metrics for:\n  - {0}\n'
                    .format('\n  - '.join(new_keys)))
 
     def normalize_tags(tag_list):
@@ -212,10 +212,10 @@ class SpectatorClient(object):
       lost_tags = prev_tag_sets.difference(tag_sets)
 
       if added_tags:
-        lines.append('"{0}" added data points for\n  - {1}\n'
+        lines.append('"{0}" started data points for\n  - {1}\n'
                      .format(check_key, '\n  - '.join(added_tags)))
       if lost_tags:
-        lines.append('"{0}" lost data points for\n  - {1}\n'
+        lines.append('"{0}" stopped data points for\n  - {1}\n'
                      .format(check_key, '\n  - '.join(lost_tags)))
 
     if lines:
