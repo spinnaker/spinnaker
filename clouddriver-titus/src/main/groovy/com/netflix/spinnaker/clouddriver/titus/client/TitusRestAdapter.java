@@ -26,34 +26,28 @@ import java.util.Map;
 
 public interface TitusRestAdapter {
 
-    @GET("/v2/jobs/{jobId}")
+    @GET("/api/v2/jobs/{jobId}")
     Call<Job> getJob(@Path("jobId") String jobId);
 
-    @POST("/v2/jobs")
+    @POST("/api/v2/jobs")
     Call<SubmitJobResponse> submitJob(@Body JobDescription jobDescription);
 
-    @PATCH("/v2/jobs/{jobId}")
+    @PATCH("/api/v2/jobs/{jobId}")
     Call<Void> updateJob(@Path("jobId") String jobId, @Body Map<String, Object>jobAttributes);
 
-    @POST("/v2/jobs/kill")
+    @POST("/api/v2/jobs/kill")
     Call<Void> killJob(@Body TerminateJobRequest terminateJobRequest);
 
-    @GET("/v2/tasks/{taskId}")
+    @GET("/api/v2/tasks/{taskId}")
     Call<Task> getTask(@Path("taskId") String taskId);
 
-    @GET("/v2/jobs")
-    Call<List<Job>> getJobsByTaskState(@Query("taskState") TaskState taskState);
-
-    @GET("/v2/jobs")
+    @GET("/api/v2/jobs")
     Call<List<Job>> getJobsByType(@Query("type") String type);
 
-    @GET("/v2/jobs")
+    @GET("/api/v2/jobs")
     Call<List<Job>> getJobsByLabel(@Query("labels") String labels);
 
-    @GET("/v2/jobs")
-    Call<List<Job>> getJobsByUser(@Query("user") String user);
-
-    @GET("/v2/jobs")
+    @GET("/api/v2/jobs")
     Call<List<Job>> getJobsByApplication(@Query("appName") String application);
 
     @POST("/api/v2/tasks/kill")
@@ -62,9 +56,9 @@ public interface TitusRestAdapter {
     @GET("/api/v2/logs/download/{taskId}")
     Call<Map> logsDownload(@Path("taskId") String taskId);
 
-    @POST("/v2/jobs/setinstancecounts")
+    @POST("/api/v2/jobs/setinstancecounts")
     Call<Void> resizeJob(@Body ResizeJobRequest resizeJob);
 
-    @POST("/v2/jobs/setinservice")
+    @POST("/api/v2/jobs/setinservice")
     Call<Void> activateJob(@Body ActivateJobRequest activateJob);
 }
