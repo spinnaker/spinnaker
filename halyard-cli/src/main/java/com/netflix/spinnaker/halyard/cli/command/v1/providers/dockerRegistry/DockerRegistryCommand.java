@@ -18,8 +18,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers.dockerRegistry;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractNamedProviderCommand;
-import lombok.AccessLevel;
-import lombok.Getter;
 
 /**
  * Describe a specific docker-registry account
@@ -37,6 +35,6 @@ public class DockerRegistryCommand extends AbstractNamedProviderCommand {
 
   public DockerRegistryCommand() {
     super();
-    registerSubcommand(new DockerAddAccountCommand());
+    registerSubcommand(new DockerRegistryAddAccountCommand());
   }
 }

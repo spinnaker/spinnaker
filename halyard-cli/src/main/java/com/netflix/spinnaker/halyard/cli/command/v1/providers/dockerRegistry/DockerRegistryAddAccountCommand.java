@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Parameters()
-public class DockerAddAccountCommand extends AbstractAddAccountCommand {
+class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
   protected String getProviderName() {
     return "dockerRegistry";
   }
@@ -33,45 +33,39 @@ public class DockerAddAccountCommand extends AbstractAddAccountCommand {
   @Parameter(
       names = "--address",
       required = true,
-      description = "The registry address you want to pull and deploy images from. For example:\n\n"
-          + "  index.docker.io     - DockerHub\n"
-          + "  quay.io             - Quay\n"
-          + "  gcr.io              - Google Container Registry (GCR)\n"
-          + "  [us|eu|asia].gcr.io - Regional GCR\n"
-          + "  localhost           - Locally deployed registry"
+      description = DockerRegistryCommandProperties.ADDRESS_DESCRIPTION
   )
   private String address="gcr.io";
 
   @Parameter(
       names = "--repositories",
       variableArity = true,
-      description = "An optional list of repositories to cache images from. "
-          + "If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint"
+      description = DockerRegistryCommandProperties.REPOSITORIES_DESCRIPTION
   )
   private List<String> repositories = new ArrayList<>();
 
   @Parameter(
       names = "--password",
       password = true,
-      description = "Your docker registry password"
+      description = DockerRegistryCommandProperties.PASSWORD_DESCRIPTION
   )
   private String password;
 
   @Parameter(
       names = "--password-file",
-      description = "The path to a file containing your docker password in plaintext (not a docker/config.json file)"
+      description = DockerRegistryCommandProperties.PASSWORD_FILE_DESCRIPTION
   )
   private String passwordFile;
 
   @Parameter(
       names = "--username",
-      description = "Your docker registry username"
+      description = DockerRegistryCommandProperties.USERNAME_DESCRIPTION
   )
   private String username;
 
   @Parameter(
       names = "--email",
-      description = "Your docker registry email (often this only needs to be well-formed, rather than be a real address)"
+      description = DockerRegistryCommandProperties.EMAIL_DESCRIPTION
   )
   private String email="fake.email@spinnaker.io";
 
