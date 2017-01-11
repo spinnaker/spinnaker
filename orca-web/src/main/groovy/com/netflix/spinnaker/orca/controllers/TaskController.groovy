@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
@@ -42,6 +41,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
+import static java.time.Instant.now
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.V2_EXECUTION_ENGINE
 import static java.time.ZoneOffset.UTC
 
@@ -55,9 +55,6 @@ class TaskController {
 
   @Autowired
   PipelineStartTracker startTracker
-
-  @Autowired
-  PipelineStarter pipelineStarter
 
   @Autowired
   ExecutionRunner executionRunner
@@ -256,11 +253,7 @@ class TaskController {
       def stageBuilder = stageBuilders.find { it.type == stage.type }
       stage = stageBuilder.prepareStageForRestart(executionRepository, stage, stageBuilders)
       executionRepository.storeStage(stage)
-      if (pipeline.executionEngine == V2_EXECUTION_ENGINE) {
-        executionRunner.resume(pipeline)
-      } else {
-        pipelineStarter.resume(pipeline)
-      }
+      executionRunner.resume(pipeline)
     }
     pipeline
   }

@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.orca.front50
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -40,7 +39,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
   ObjectMapper objectMapper
 
   @Autowired
-  PipelineStarter pipelineStarter
+  ExecutionLauncher executionLauncher
 
   Pipeline trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
     def json = objectMapper.writeValueAsString(pipelineConfig)
@@ -93,11 +92,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
                   ", principal: " + principal?.toString())
     def runnable = AuthenticatedRequest.propagate({
       log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
-      if (parentPipeline.executionEngine == Execution.V2_EXECUTION_ENGINE) {
-        pipeline = pipelineLauncher().start(json)
-      } else {
-        pipeline = pipelineStarter.start(json)
-      }
+      pipeline = executionLauncher.start(json)
     }, true, principal) as Runnable
 
     def t1 = new Thread(runnable)
@@ -131,14 +126,6 @@ class DependentPipelineStarter implements ApplicationContextAware {
     }
 
     return null
-  }
-
-  /**
-   * There is a circular dependency between DependentPipelineStarter <-> DependentPipelineExecutionListener <->
-   * SpringBatchExecutionListener that prevents a PipelineLauncher from being @Autowired.
-   */
-  PipelineLauncher pipelineLauncher() {
-    return applicationContext.getBean(PipelineLauncher)
   }
 
   @Override

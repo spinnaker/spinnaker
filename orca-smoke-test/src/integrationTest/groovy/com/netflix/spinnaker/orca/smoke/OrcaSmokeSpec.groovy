@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.batch.core.BatchStatus
@@ -40,7 +40,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeSpec extends Specification {
 
-  @Autowired PipelineStarter jobStarter
+  @Autowired PipelineLauncher pipelineLauncher
   @Autowired ObjectMapper mapper
   @Autowired JobExplorer jobExplorer
 
@@ -49,7 +49,7 @@ class OrcaSmokeSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def pipeline = jobStarter.start(configJson)
+    def pipeline = pipelineLauncher.start(configJson)
     def jobName = OrcaSmokeUtils.buildJobName(config.application, config.name, pipeline.id)
 
     then:
@@ -98,7 +98,7 @@ class OrcaSmokeSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def pipeline = jobStarter.start(configJson)
+    def pipeline = pipelineLauncher.start(configJson)
     def jobName = OrcaSmokeUtils.buildJobName(config.application, config.name, pipeline.id)
 
     then:

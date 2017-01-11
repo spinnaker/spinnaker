@@ -17,16 +17,11 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.image;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.FindImageFromTagsTask;
-import com.netflix.spinnaker.orca.pipeline.LinearStage;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.batch.core.Step;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.List;
 
 @Component
 public class FindImageFromTagsStage implements StageDefinitionBuilder {

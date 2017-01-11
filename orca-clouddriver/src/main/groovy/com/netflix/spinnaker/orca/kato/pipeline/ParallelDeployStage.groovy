@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -31,6 +28,9 @@ import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Component
@@ -53,11 +53,6 @@ class ParallelDeployStage implements BranchingStageDefinitionBuilder {
   @Override
   <T extends Execution<T>> void postBranchGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder.withTask("completeParallelDeploy", CompleteParallelDeployTask)
-  }
-
-  @Override
-  Task completeParallelTask() {
-    return new CompleteParallelDeployTask()
   }
 
   @Override

@@ -16,125 +16,139 @@
 
 package com.netflix.spinnaker.orca.restart
 
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.config.SpringBatchConfiguration
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.config.JesqueConfiguration
-import com.netflix.spinnaker.orca.config.OrcaConfiguration
-import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.batch.SpringBatchExecutionRunner
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.*
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
+import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionTask
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.test.JobCompletionListener
-import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
-import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import groovy.transform.CompileStatic
 import org.spockframework.spring.xml.SpockMockFactoryBean
-import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.StepExecution
-import org.springframework.batch.core.job.builder.FlowBuilder
-import org.springframework.batch.core.listener.StepExecutionListenerSupport
 import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
+import org.springframework.retry.backoff.Sleeper
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import static java.lang.System.currentTimeMillis
 
 @ContextConfiguration(classes = [
-  EmbeddedRedisConfiguration, JesqueConfiguration, BatchTestConfiguration,
-  SpringBatchConfiguration, OrcaConfiguration, OrcaPersistenceConfiguration,
-  JobCompletionListener, TestConfiguration, Config
+  StageNavigator, WaitForRequisiteCompletionTask, Config,
+  WaitForRequisiteCompletionStage, RestrictExecutionDuringTimeWindow,
+  BatchTestConfiguration, TaskTaskletAdapterImpl,
+  SpringBatchExecutionListenerProvider, Config, NoOpTask,
+  PipelineLauncher, SpringBatchExecutionRunner, OrcaObjectMapper, JobCompletionListener
 ])
 class RollingRestartSpec extends Specification {
 
-  @Autowired PipelineStarter pipelineStarter
+  @Autowired PipelineLauncher pipelineLauncher
+  @Autowired ExecutionRunner executionRunner
   @Autowired ObjectMapper mapper
   @Autowired ExecutionRepository repository
   @Autowired JobCompletionListener jobCompletionListener
 
   @Autowired StartTask startTask
   @Autowired EndTask endTask
+  @Autowired FinalTask finalTask
 
   def "a previously run rolling push pipeline can be restarted and redirects work"() {
     given:
-    def pipeline = pipelineStarter.create(mapper.readValue(pipelineConfigFor("test"), Map))
-    pipeline.stages[0].tasks << new DefaultTask(id: 2, name: "task1", status: REDIRECT,
-      startTime: System.currentTimeMillis(),
-      endTime: System.currentTimeMillis(),
-      implementingClass: StartTask)
-    pipeline.stages[0].tasks << new DefaultTask(id: 3, name: "task2", status: NOT_STARTED,
-      startTime: System.currentTimeMillis(),
-      implementingClass: EndTask)
-    repository.store(pipeline)
+    pipeline.stages.first().with {
+      tasks << new DefaultTask(
+        id: 1,
+        name: "start",
+        status: SUCCEEDED,
+        startTime: currentTimeMillis(),
+        endTime: currentTimeMillis(),
+        loopStart: true,
+        implementingClass: StartTask)
+      tasks << new DefaultTask(
+        id: 2,
+        name: "end",
+        status: REDIRECT,
+        startTime: currentTimeMillis(),
+        endTime: currentTimeMillis(),
+        loopEnd: true,
+        implementingClass: EndTask)
+      tasks << new DefaultTask(
+        id: 3,
+        name: "final",
+        status: NOT_STARTED,
+        startTime: currentTimeMillis(),
+        implementingClass: FinalTask)
+    }
+    repository.retrievePipeline(pipeline.id) >> pipeline
 
     when:
-    pipelineStarter.resume(pipeline)
+    executionRunner.resume(pipeline)
     jobCompletionListener.await()
 
     then:
-    2 * startTask.execute(_) >> new DefaultTaskResult(REDIRECT) >> new DefaultTaskResult(SUCCEEDED)
-    1 * endTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    2 * endTask.execute(_) >> new DefaultTaskResult(REDIRECT) >> new DefaultTaskResult(SUCCEEDED)
+    1 * startTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * finalTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
 
-    and:
-    repository.retrievePipeline(pipeline.id).status.toString() == SUCCEEDED.name()
-  }
+    where:
+    pipeline = Pipeline
+      .builder()
+      .withId(1)
+      .withApplication("app")
+      .withName("my-pipeline")
+      .withStage("redirectingTest")
+      .build()
 
-  private String pipelineConfigFor(String... stages) {
-    def config = [
-      application: "app",
-      name       : "my-pipeline",
-      stages     : stages.collect { [type: it] }
-    ]
-    mapper.writeValueAsString(config)
   }
 
   static interface StartTask extends Task {}
 
   static interface EndTask extends Task {}
 
-  @CompileStatic
-  static class RedirectingTestStage extends StageBuilder {
-    private final StartTask startTask
-    private final EndTask endTask
+  static interface FinalTask extends Task {}
 
-    RedirectingTestStage(String name, StartTask startTask, EndTask endTask) {
-      super(name)
-      this.startTask = startTask
-      this.endTask = endTask
-    }
-
-    @Override
-    protected FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
-      def resetListener = new StepExecutionListenerSupport() {
-        @Override
-        @CompileDynamic
-        ExitStatus afterStep(StepExecution stepExecution) {
-          if (stepExecution.exitStatus.exitCode == REDIRECT.name()) {
-            stage.tasks[0].with {
-              status = NOT_STARTED
-              endTime = null
-            }
-          }
-          stepExecution.exitStatus
-        }
+  static class RedirectingTestStage implements StageDefinitionBuilder {
+    def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+      builder
+        .withLoop { subGraph ->
+        subGraph
+          .withTask("start", StartTask)
+          .withTask("end", EndTask)
       }
-      def start = buildStep(stage, "redirecting", startTask, resetListener)
-      def end = buildStep(stage, "final", endTask)
-      jobBuilder.next(start)
-      jobBuilder.on(REDIRECT.name()).to(start)
-      jobBuilder.from(start).on("**").to(end)
+      .withTask("final", FinalTask)
     }
   }
 
   @CompileStatic
   static class Config {
+    @Bean
+    FactoryBean<ExecutionRepository> executionRepository() {
+      new SpockMockFactoryBean(ExecutionRepository)
+    }
+
+    @Bean
+    FactoryBean<ExceptionHandler> exceptionHandler() {
+      new SpockMockFactoryBean(ExceptionHandler)
+    }
+
+    @Bean
+    FactoryBean<Sleeper> sleeper() { new SpockMockFactoryBean(Sleeper) }
+
+    @Bean String currentInstanceId() { "localhost" }
+
     @Bean
     FactoryBean<StartTask> startTask() {
       new SpockMockFactoryBean<>(StartTask)
@@ -144,8 +158,11 @@ class RollingRestartSpec extends Specification {
     FactoryBean<EndTask> endTask() { new SpockMockFactoryBean<>(EndTask) }
 
     @Bean
-    StageBuilder redirectingTestStage(StartTask startTask, EndTask endTask) {
-      new RedirectingTestStage("test", startTask, endTask)
+    FactoryBean<FinalTask> finalTask() { new SpockMockFactoryBean<>(FinalTask) }
+
+    @Bean
+    StageDefinitionBuilder redirectingTestStage() {
+      new RedirectingTestStage()
     }
   }
 }

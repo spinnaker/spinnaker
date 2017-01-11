@@ -9,7 +9,6 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.V1_EXECUTION_ENGINE
 
 class EchoNotifyingStageListenerSpec extends Specification {
 
@@ -20,7 +19,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
   def echoListener = new EchoNotifyingStageListener(echoService)
 
   @Shared
-  def pipelineStage = new PipelineStage(new Pipeline(executionEngine: V1_EXECUTION_ENGINE), "test", "test", [:])
+  def pipelineStage = new PipelineStage(new Pipeline(), "test", "test", [:])
 
   @Shared
   def orchestrationStage = new OrchestrationStage(new Orchestration(), "test")
@@ -75,14 +74,16 @@ class EchoNotifyingStageListenerSpec extends Specification {
     invocations * echoService.recordEvent(_)
 
     where:
-    invocations | stage              | taskName   | executionStatus | wasSuccessful | isEnd
-    0           | orchestrationStage | "stageEnd" | RUNNING         | true          | false
-    1           | orchestrationStage | "stageEnd" | STOPPED         | true          | false
-    1           | pipelineStage      | "xxx"      | SUCCEEDED       | true          | false
-    2           | pipelineStage      | "stageEnd" | SUCCEEDED       | true          | false
-    2           | pipelineStage      | "stageEnd" | SUCCEEDED       | false         | false
-    1           | pipelineStage      | "xxx"      | SUCCEEDED       | true          | true // is end but v2 version so not triggered by afterTask
-    1           | orchestrationStage | "xxx"      | SUCCEEDED       | true          | true
+    invocations | stage              | executionStatus | wasSuccessful | isEnd
+    0           | orchestrationStage | RUNNING         | true          | false
+    1           | orchestrationStage | STOPPED         | true          | false
+    1           | orchestrationStage | SUCCEEDED       | true          | false
+    1           | pipelineStage      | SUCCEEDED       | true          | false
+    1           | pipelineStage      | SUCCEEDED       | true          | true
+    1           | pipelineStage      | TERMINAL        | false         | false
+    1           | orchestrationStage | SUCCEEDED       | true          | true
+
+    taskName = "xxx"
   }
 
   @Unroll
@@ -117,17 +118,18 @@ class EchoNotifyingStageListenerSpec extends Specification {
     then:
     message.details.source == "orca"
     message.details.application == pipelineStage.execution.application
-    message.details.type == "orca:${type}:$echoMessage"
+    message.details.type == "orca:task:$echoMessage"
     message.details.type instanceof String
     message.content.standalone == standalone
     message.content.taskName == "${stage.type}.$taskName"
     message.content.taskName instanceof String
 
     where:
-    stage              | taskName   | executionStatus | wasSuccessful || echoMessage || type    || standalone
-    orchestrationStage | "xxx"      | STOPPED         | true          || "complete"  || "task"  || true
-    pipelineStage      | "xxx"      | SUCCEEDED       | true          || "complete"  || "task"  || false
-    pipelineStage      | "stageEnd" | SUCCEEDED       | true          || "complete"  || "stage" || false
-    pipelineStage      | "stageEnd" | SUCCEEDED       | false         || "failed"    || "stage" || false
+    stage              | executionStatus | wasSuccessful | echoMessage | standalone
+    orchestrationStage | STOPPED         | true          | "complete"  | true
+    pipelineStage      | SUCCEEDED       | true          | "complete"  | false
+    pipelineStage      | TERMINAL        | false         | "failed"    | false
+
+    taskName = "xxx"
   }
 }

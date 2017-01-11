@@ -17,59 +17,17 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import java.text.SimpleDateFormat
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.config.SpringBatchConfiguration
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.lifecycle.AbstractBatchLifecycleSpec
-import com.netflix.spinnaker.orca.batch.stages.SpringBatchStageBuilderProvider
-import com.netflix.spinnaker.orca.config.JesqueConfiguration
-import com.netflix.spinnaker.orca.config.OrcaConfiguration
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import com.netflix.spinnaker.orca.test.TestConfiguration
-import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
-import org.spockframework.spring.xml.SpockMockFactoryBean
-import org.springframework.batch.core.Job
-import org.springframework.batch.core.job.builder.JobBuilder
-import org.springframework.beans.factory.FactoryBean
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
-import org.springframework.context.annotation.Bean
-import org.springframework.context.support.AbstractApplicationContext
-import org.springframework.test.context.ContextConfiguration
-import spock.lang.Shared
+import spock.lang.Specification
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.HourMinute
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
 
 @Unroll
-@ContextConfiguration(classes = [
-  EmbeddedRedisConfiguration, JesqueConfiguration, OrcaConfiguration,
-  TestConfiguration, SpringBatchConfiguration, TestConfig
-])
-class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
-
-  @Shared
-  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
-
-  @Autowired AbstractApplicationContext applicationContext;
-  @Autowired TestTask task
-
-  boolean initialized
-
-  def setup() {
-    System.properties."pollers.stalePipelines.enabled" = "false"
-  }
-
-  def "pipeline should inject a stage before if current stage context has restrictExecutionDuringWindow set to true"() {
-    expect:
-    pipeline.stages.size() == 2
-  }
+class RestrictExecutionDuringTimeWindowSpec extends Specification {
 
   void 'stage should be scheduled at #expectedTime when triggered at #scheduledTime with time windows #timeWindows'() {
     when:
@@ -194,40 +152,6 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
     date("02/13 16:01:00") | date("02/14 10:00:00") | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")]) //*
   }
 
-//  def "pipline should be STOPPED if restrictExecutionDuringWindow is set to true and current time is not within window"() {
-//
-//  }
-
-  // helper methods
-  // ------------------------------------------------------------------------------------------------------------------
-
-  @Override
-  Pipeline createPipeline() {
-    Pipeline.builder().withStages([[name: "stage2", type: "stage2", restrictExecutionDuringTimeWindow: true]]).build()
-  }
-
-  @Override
-  protected Job configureJob(JobBuilder jobBuilder) {
-    def stage = pipeline.namedStage("stage2")
-    def builder = jobBuilder.flow(initializationStep(steps, pipeline))
-    def stageBuilder = new SpringBatchStageBuilderProvider(applicationContext, [], [], null).wrap(
-      new InjectStageBuilder()
-    )
-    stageBuilder.build(builder, stage).build().build()
-  }
-
-  private static class InjectStageBuilder implements StageDefinitionBuilder {
-    @Override
-    <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
-      builder.withTask("step", TestTask)
-    }
-
-    @Override
-    String getType() {
-      return "stage2"
-    }
-  }
-
   private hourMinute(String hourMinuteStr) {
     int hour = hourMinuteStr.tokenize(":").get(0) as Integer
     int min = hourMinuteStr.tokenize(":").get(1) as Integer
@@ -257,13 +181,5 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
     Map context = [restrictedExecutionWindow: restrictedExecutionWindow]
     Pipeline pipeline = new Pipeline()
     return new PipelineStage(pipeline, "testRestrictExecution", context)
-  }
-
-  static interface TestTask extends Task {}
-
-  @CompileStatic
-  static class TestConfig {
-    @Bean
-    FactoryBean<TestTask> testTask() { new SpockMockFactoryBean<>(TestTask)}
   }
 }

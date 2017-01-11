@@ -134,11 +134,6 @@ class Pipeline extends Execution<Pipeline> {
       return this
     }
 
-    Builder withExecutionEngine(String executionEngine) {
-      pipeline.executionEngine = executionEngine
-      return this
-    }
-
     Builder withId(id = UUID.randomUUID().toString()) {
       pipeline.id = id
       return this
