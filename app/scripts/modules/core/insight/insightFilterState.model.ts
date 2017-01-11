@@ -11,7 +11,7 @@ export class InsightFilterStateModel {
   public constructor(private $rootScope: ng.IRootScopeService,
                      private $timeout: ng.ITimeoutService,
                      private collapsibleSectionStateCache: any) {
-    this.filtersExpanded = collapsibleSectionStateCache.isExpanded('insightFilters');
+    this.filtersExpanded = !collapsibleSectionStateCache.isSet('insightFilters') || collapsibleSectionStateCache.isExpanded('insightFilters');
     this.filtersPinned = this.filtersExpanded;
     this.filtersHovered = false;
   }
