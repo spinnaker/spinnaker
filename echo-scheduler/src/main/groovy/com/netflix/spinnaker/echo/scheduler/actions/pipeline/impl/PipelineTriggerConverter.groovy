@@ -37,7 +37,7 @@ class PipelineTriggerConverter {
     if (trigger.runAsUser) {
       params.runAsUser = trigger.runAsUser
     }
-    params
+    return params
   }
 
   static Pipeline fromParameters(PipelineCache pipelineCache, Map<String, String> parameters) {
@@ -79,7 +79,8 @@ class PipelineTriggerConverter {
       return (
         actionInstance.trigger instanceof CronTrigger &&
           trigger.cronExpression == ((CronTrigger) actionInstance.trigger).cronExpression &&
-          timeZoneId == actionInstance?.context?.parameters?.triggerTimeZoneId
+          timeZoneId == actionInstance?.context?.parameters?.triggerTimeZoneId &&
+          trigger.runAsUser == actionInstance?.context?.parameters?.runAsUser
       )
     }
     return true
