@@ -54,6 +54,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   String capacityGroup
   int retries
   int runtimeLimitSecs
+  Map buildInfo
 
   TitusServerGroup() {}
 
@@ -87,6 +88,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     retries = job.retries
     runtimeLimitSecs = job.runtimeLimitSecs
     efs = job.efs
+    buildInfo = [images: ["${image.dockerImageName}:${image.dockerImageVersion}".toString()]]
   }
 
   @Override
@@ -138,29 +140,6 @@ class TitusServerGroup implements ServerGroup, Serializable {
 
   @Override
   ServerGroup.ImagesSummary getImagesSummary() {
-    def i = image
-    String imageDetails = "${i.dockerImageName}:${i.dockerImageVersion}"
-    return new ServerGroup.ImagesSummary() {
-      @Override
-      List<ServerGroup.ImageSummary> getSummaries() {
-        return [new ServerGroup.ImageSummary() {
-          String serverGroupName = name
-          String imageName = imageDetails
-          String imageId = imageDetails
-
-          @Override
-          Map<String, Object> getBuildInfo() {
-            // TODO(sthadeshwar): Where to get build info?
-            return null
-          }
-
-          @Override
-          Map<String, Object> getImage() {
-            return i
-          }
-        }]
-      }
-    }
   }
 
   @Override
