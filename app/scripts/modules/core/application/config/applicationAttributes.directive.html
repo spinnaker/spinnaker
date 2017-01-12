@@ -26,6 +26,8 @@
             </dd>
             <dt>Instance Port</dt>
             <dd>{{vm.application.attributes.instancePort}}</dd>
+            <dt ng-if="vm.application.attributes.enableRestartRunningExecutions">Pipeline Behavior</dt>
+            <dd ng-if="vm.application.attributes.enableRestartRunningExecutions">Allows restarting running pipelines</dd>
             <dt ng-if="vm.application.attributes.legacyUdf">User Data Format</dt>
             <dd ng-if="vm.application.attributes.legacyUdf">This application requires legacy user data format.</dd>
             <dt ng-if="vm.application.attributes.requiredGroupMembership.length">Group Membership</dt>

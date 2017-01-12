@@ -492,4 +492,6 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'titus.bake.tags': '(Optional) Comma separated. By default, the <samp>latest</samp> tag is updated. Adds additional tags to label this image <samp>1.0.0-unstable,1.0.0-rc1</samp>',
     'titus.bake.buildParameters': '(Optional) Build time variables to be passed to the Docker image. These are the set of values passed to --build-args in the command line.',
     'markdown.examples': 'Some examples of markdown syntax: <br/> *<em>emphasis</em>* <br/> **<b>strong</b>** <br/> [link text](http://url-goes-here)',
+    'application.enableRestartRunningExecutions': 'When this option is enabled, users will be able to restart pipeline stages while a pipeline is still running. ' +
+    'This behavior can have varying unexpected results and is <b>not recommended</b> to enable.',
   });

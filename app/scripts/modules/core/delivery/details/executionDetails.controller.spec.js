@@ -25,6 +25,11 @@ describe('Controller: ExecutionDetails', function () {
     this.$scope.execution = {
       isRunning: false
     };
+    this.$scope.application = {
+      attributes: {
+        enableRestartRunningExecutions: false
+      }
+    };
   }));
 
   describe('isRestartable', function() {
@@ -47,6 +52,13 @@ describe('Controller: ExecutionDetails', function () {
     });
 
     it('returns true when stage is restartable', function() {
+      expect(this.controller.isRestartable({restartable: true})).toBe(true);
+    });
+
+    it('returns true when stage is running, is restartable and enableRestartRunningExecutions=true', function() {
+      this.$scope.execution.isRunning = true;
+      this.$scope.application.attributes.enableRestartRunningExecutions = true;
+      this.$scope.$digest();
       expect(this.controller.isRestartable({restartable: true})).toBe(true);
     });
   });
