@@ -31,8 +31,7 @@ function process_args() {
       VARS="$VARS -var '${key#--}=$value'"
   done
 }
-  
+
 process_args "$@"
 
 eval "packer build $VARS $(dirname $0)/build_google_image.packer"
-
