@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.listeners.ExecutionListener
+
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -69,6 +72,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
   @Autowired EndLoopTask endLoopTask
   @Autowired PostLoopTask postLoopTask
   @Autowired @Qualifier("stageListener") StageListener stageListener
+  @Autowired @Qualifier("executionListener") ExecutionListener executionListener
 
   def "throws an exception if there's no builder for a stage type"() {
     given:
@@ -931,6 +935,57 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
       .build()
   }
 
+  @Issue("SPIN-2129")
+  // Stages such as Canary with no tasks of their own (only synthetic stages)
+  // failed to join correctly as they remain NOT_STARTED
+  def "should support pipelines where a parent and child stage share requisiteRefIds"() {
+    given:
+    execution.with {
+      stages[0].refId = "1"
+      stages[0].requisiteStageRefIds = []
+
+      stages[1].refId = "2"
+      stages[1].requisiteStageRefIds = ["1"]
+
+      stages[2].refId = "3"
+      stages[2].requisiteStageRefIds = ["1"]
+
+      stages[3].refId = "4"
+      stages[3].requisiteStageRefIds = ["1", "2"]
+    }
+
+    and:
+    executionRepository.retrievePipeline(execution.id) >> execution
+
+    and:
+    def noOpStageDefinitionBuilder = Stub(StageDefinitionBuilder) {
+      getType() >> stageType
+      buildTaskGraph(_) >> TaskNode.emptyGraph(FULL)
+    }
+    def joinStageDefinitionBuilder = Stub(StageDefinitionBuilder) {
+      getType() >> "join"
+      buildTaskGraph(_) >> TaskNode.singleton(FULL, "test", TestTask)
+    }
+
+    def runner = create(noOpStageDefinitionBuilder, joinStageDefinitionBuilder)
+
+    when:
+    runner.start(execution)
+
+    then:
+    1 * testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * executionListener.afterExecution(_, execution, SUCCEEDED, true)
+
+    where:
+    stageType = "noop"
+    execution = Pipeline
+      .builder()
+      .withId("1")
+      .withStages(stageType, stageType, stageType, "join")
+      .withParallel(true)
+      .build()
+  }
+
   static PipelineStage before(PipelineStage stage) {
     stage.syntheticStageOwner = SyntheticStageOwner.STAGE_BEFORE
     return stage
@@ -1051,6 +1106,12 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     @Qualifier("stageListener")
     FactoryBean<StageListener> stageListener() {
       new SpockMockFactoryBean(StageListener)
+    }
+
+    @Bean
+    @Qualifier("executionListener")
+    FactoryBean<ExecutionListener> executionListener() {
+      new SpockMockFactoryBean(ExecutionListener)
     }
   }
 
