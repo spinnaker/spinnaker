@@ -87,7 +87,8 @@ class AppengineServerGroupDetailsController {
         if (!this.$scope.$$destroyed) {
           this.app.getDataSource('serverGroups').onRefresh(this.$scope, () => this.extractServerGroup(serverGroup));
         }
-      });
+      })
+      .catch(() => this.autoClose());
   }
 
   public canDisableServerGroup(): boolean {
@@ -433,8 +434,7 @@ class AppengineServerGroupDetailsController {
 
         this.serverGroup = Object.assign(fromApp, serverGroupDetails);
         this.state.loading = false;
-      })
-      .catch(() => this.autoClose());
+      });
   }
 }
 
