@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -148,7 +149,7 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
   private <E extends Execution<E>> Job createJob(E execution) throws NoSuchJobException, DuplicateJobException {
     String jobName = jobNameFor(execution);
     if (!jobRegistry.getJobNames().contains(jobName)) {
-      FlowJobBuilder flowJobBuilder = buildStepsForExecution(jobs.get(jobName), execution).build();
+      FlowJobBuilder flowJobBuilder = buildStepsForExecution(execution, jobs.get(jobName)).build();
 
       executionListenerProvider.allJobExecutionListeners().forEach(flowJobBuilder::listener);
 
@@ -158,7 +159,7 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
     return jobRegistry.getJob(jobName);
   }
 
-  private <E extends Execution<E>> FlowBuilder<FlowJobBuilder> buildStepsForExecution(JobBuilder builder, E execution) {
+  private <E extends Execution<E>> FlowBuilder<FlowJobBuilder> buildStepsForExecution(E execution, JobBuilder builder) {
     List<Stage<E>> stages = execution.getStages();
     FlowBuilder<FlowJobBuilder> flow = builder.flow(initStep());
     List<Stage<E>> initialStages = stages
@@ -166,10 +167,11 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
       .filter(Stage::isInitialStage)
       .collect(toList());
     Set<Serializable> alreadyBuilt = new HashSet<>();
+    Map<Serializable, AtomicInteger> taskIdGenerators = new HashMap<>();
     if (initialStages.size() > 1) {
-      flow = buildDownstreamFork(flow, execution.getId(), initialStages, alreadyBuilt);
+      flow = buildDownstreamFork(execution.getId(), initialStages, taskIdGenerators, alreadyBuilt, flow);
     } else if (initialStages.size() == 1) {
-      flow = buildStepsForStageAndDownstream(flow, initialStages.get(0), alreadyBuilt);
+      flow = buildStepsForStageAndDownstream(initialStages.get(0), taskIdGenerators, alreadyBuilt, flow);
     } else {
       throw new IllegalStateException("Could not identify initial stages for pipeline");
     }
@@ -182,43 +184,43 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
       .build();
   }
 
-  private <E extends Execution<E>, Q> FlowBuilder<Q> buildStepsForStageAndDownstream(FlowBuilder<Q> flow, Stage<E> stage, Set<Serializable> alreadyBuilt) {
+  private <E extends Execution<E>, Q> FlowBuilder<Q> buildStepsForStageAndDownstream(Stage<E> stage, Map<Serializable, AtomicInteger> taskIdGenerators, Set<Serializable> alreadyBuilt, FlowBuilder<Q> flow) {
     if (alreadyBuilt.contains(stage.getRefId())) {
       log.info("Already built {}", stage.getRefId());
       return flow;
     } else {
       alreadyBuilt.add(stage.getRefId());
       if (stage.isJoin()) {
-        flow.next(buildUpstreamJoin(stage));
+        flow.next(buildUpstreamJoin(stage, taskIdGenerators));
       } else {
-        flow.next(buildStepsForStage(stage));
+        flow.next(buildStepsForStage(stage, taskIdGenerators));
       }
-      return buildDownstreamStages(flow, stage, alreadyBuilt);
+      return buildDownstreamStages(stage, taskIdGenerators, alreadyBuilt, flow);
     }
   }
 
-  private <E extends Execution<E>, Q> FlowBuilder<Q> buildDownstreamStages(FlowBuilder<Q> flow, final Stage<E> stage, Set<Serializable> alreadyBuilt) {
+  private <E extends Execution<E>, Q> FlowBuilder<Q> buildDownstreamStages(final Stage<E> stage, Map<Serializable, AtomicInteger> taskIdGenerators, Set<Serializable> alreadyBuilt, FlowBuilder<Q> flow) {
     List<Stage<E>> downstreamStages = stage.downstreamStages();
     boolean isFork = downstreamStages.size() > 1;
     if (isFork) {
-      return buildDownstreamFork(flow, stage.getId(), downstreamStages, alreadyBuilt);
+      return buildDownstreamFork(stage.getId(), downstreamStages, taskIdGenerators, alreadyBuilt, flow);
     } else if (downstreamStages.isEmpty()) {
       return flow;
     } else {
       // TODO: loop is misleading as we've already established there is only one
       for (Stage<E> downstreamStage : downstreamStages) {
-        flow = buildStepsForStageAndDownstream(flow, downstreamStage, alreadyBuilt);
+        flow = buildStepsForStageAndDownstream(downstreamStage, taskIdGenerators, alreadyBuilt, flow);
       }
       return flow;
     }
   }
 
-  private <E extends Execution<E>, Q> FlowBuilder<Q> buildDownstreamFork(FlowBuilder<Q> flow, String parentId, List<Stage<E>> downstreamStages, Set<Serializable> alreadyBuilt) {
+  private <E extends Execution<E>, Q> FlowBuilder<Q> buildDownstreamFork(String parentId, List<Stage<E>> downstreamStages, Map<Serializable, AtomicInteger> taskIdGenerators, Set<Serializable> alreadyBuilt, FlowBuilder<Q> flow) {
     List<Flow> flows = downstreamStages
       .stream()
       .flatMap(downstreamStage -> {
         FlowBuilder<Flow> flowBuilder = flowBuilder(format("ChildExecution.%s.%s", downstreamStage.getRefId(), downstreamStage.getId()));
-        flowBuilder = buildStepsForStageAndDownstream(flowBuilder, downstreamStage, alreadyBuilt);
+        flowBuilder = buildStepsForStageAndDownstream(downstreamStage, taskIdGenerators, alreadyBuilt, flowBuilder);
         if (((FlowBuilderWrapper)flowBuilder).empty) {
           /*
            * No sense building downstream flows for stages that have been previously built.
@@ -246,7 +248,7 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
     return flow.next(parallelFlowBuilder.build());
   }
 
-  private <E extends Execution<E>> Flow buildUpstreamJoin(Stage<E> stage) {
+  private <E extends Execution<E>> Flow buildUpstreamJoin(Stage<E> stage, Map<Serializable, AtomicInteger> taskIdGenerators) {
     // insert an artificial join stage that will wait for all parents to complete
     Stage<E> waitForStage = newStage(
       stage.getExecution(),
@@ -267,22 +269,22 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
       List<Stage<E>> stages = stage.getExecution().getStages();
       int stageIdx = stages.indexOf(stage);
       stages.add(stageIdx, waitForStage);
-      addStepsToFlow(waitForFlow, waitForStage, taskGraph);
+      addStepsToFlow(waitForStage, taskGraph, taskIdGenerators, waitForFlow);
       // TODO: single callback would make more sense
     });
 
-    return waitForFlow.next(buildStepsForStage(stage)).build();
+    return waitForFlow.next(buildStepsForStage(stage, taskIdGenerators)).build();
   }
 
-  private <E extends Execution<E>> Flow buildStepsForStage(Stage<E> stage) {
+  private <E extends Execution<E>> Flow buildStepsForStage(Stage<E> stage, Map<Serializable, AtomicInteger> taskIdGenerators) {
     final FlowBuilder<Flow> subFlow = flowBuilder(format("ChildExecution.%s.%s", stage.getRefId(), stage.getId()));
-    buildStepsForFlow(stage, subFlow);
+    buildStepsForFlow(stage, taskIdGenerators, subFlow);
     return subFlow.build();
   }
 
-  private <E extends Execution<E>> void buildStepsForFlow(Stage<E> stage, FlowBuilder<Flow> flow) {
+  private <E extends Execution<E>> void buildStepsForFlow(Stage<E> stage, Map<Serializable, AtomicInteger> taskIdGenerators, FlowBuilder<Flow> flow) {
     planBeforeOrAfterStages(stage, STAGE_BEFORE, (preStage) -> {
-      buildStepsForFlow(preStage, flow);
+      buildStepsForFlow(preStage, taskIdGenerators, flow);
     });
     planStage(
       stage,
@@ -291,28 +293,30 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
         boolean needsPlanning = !firstStage.getType().equals(stage.getType());
         if (stages.size() > 1) {
           // TODO: this is just ignoring the taskGraph
-          addParallelStepsToFlow(flow, stages, taskGraph, needsPlanning);
+          addParallelStepsToFlow(stages, taskGraph, taskIdGenerators, needsPlanning, flow);
         } else if (stages.size() == 1) {
           // TODO: if this is a parallel stage with a strategy stage the taskGraph is incomplete
           if (needsPlanning) {
-            buildStepsForFlow(firstStage, flow);
+            buildStepsForFlow(firstStage, taskIdGenerators, flow);
           } else {
-            addStepsToFlow(flow, firstStage, taskGraph);
+            addStepsToFlow(firstStage, taskGraph, taskIdGenerators, flow);
           }
         }
       }
     );
-    planBeforeOrAfterStages(stage, STAGE_AFTER, (postStage) -> {
-      buildStepsForFlow(postStage, flow);
-    });
+    planBeforeOrAfterStages(stage, STAGE_AFTER, (postStage) ->
+      buildStepsForFlow(postStage, taskIdGenerators, flow)
+    );
   }
 
-  private <E extends Execution<E>, Q> FlowBuilder<Q> addStepsToFlow(FlowBuilder<Q> flow, Stage<E> stage, TaskNode.TaskGraph taskGraph) {
+  private <E extends Execution<E>, Q> FlowBuilder<Q> addStepsToFlow(Stage<E> stage, TaskNode.TaskGraph taskGraph, Map<Serializable, AtomicInteger> taskIdGenerators, FlowBuilder<Q> flow) {
     // TODO: I'm sure there's a better way to handle this
     AtomicReference<Step> loopStart = new AtomicReference<>();
     AtomicReference<Step> loopEnd = new AtomicReference<>();
 
-    planTasks(stage, taskGraph, task -> {
+    AtomicInteger idGenerator = taskIdGenerators.computeIfAbsent(stage.getId(), key -> new AtomicInteger());
+
+    planTasks(stage, taskGraph, () -> String.valueOf(idGenerator.incrementAndGet()), task -> {
       Step step = buildStepForTask(stage, task);
       if (task.isLoopStart()) {
         loopStart.set(step);
@@ -332,15 +336,15 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
     return flow;
   }
 
-  private <E extends Execution<E>, Q> FlowBuilder<Q> addParallelStepsToFlow(FlowBuilder<Q> flow, Collection<Stage<E>> stages, TaskNode.TaskGraph taskGraph, boolean needsPlanning) {
+  private <E extends Execution<E>, Q> FlowBuilder<Q> addParallelStepsToFlow(Collection<Stage<E>> stages, TaskNode.TaskGraph taskGraph, Map<Serializable, AtomicInteger> taskIdGenerators, boolean needsPlanning, FlowBuilder<Q> flow) {
     List<Flow> flows = stages
       .stream()
       .map(stage -> {
         FlowBuilder<Flow> branchFlow = new FlowBuilderWrapper<>(stage.getName());
         if (!needsPlanning) {
-          addStepsToFlow(branchFlow, stage, taskGraph);
+          addStepsToFlow(stage, taskGraph, taskIdGenerators, branchFlow);
         } else {
-          buildStepsForFlow(stage, branchFlow);
+          buildStepsForFlow(stage, taskIdGenerators, branchFlow);
         }
         return branchFlow.build();
       })

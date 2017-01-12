@@ -22,11 +22,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskDefinition;
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
+import com.netflix.spinnaker.orca.pipeline.model.*;
 import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask;
 import lombok.extern.slf4j.Slf4j;
 import static com.google.common.collect.Lists.reverse;
@@ -179,7 +177,7 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
   }
 
   // TODO: change callback type to Consumer<TaskDefinition>
-  protected <T extends Execution<T>> void planTasks(Stage<T> stage, TaskNode.TaskGraph taskGraph, Consumer<com.netflix.spinnaker.orca.pipeline.model.Task> callback) {
+  protected <T extends Execution<T>> void planTasks(Stage<T> stage, TaskNode.TaskGraph taskGraph, Supplier<String> idGenerator, Consumer<com.netflix.spinnaker.orca.pipeline.model.Task> callback) {
     if (taskGraph.isEmpty()) {
       taskGraph = TaskNode.singleton(FULL, "no-op", NoOpTask.class);
     }
@@ -190,16 +188,37 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
       boolean isEnd = !itr.hasNext();
 
       if (taskDef instanceof TaskDefinition) {
-        planTask(stage, (TaskDefinition) taskDef, taskGraph.getType(), isStart, isEnd, callback);
+        planTask(stage, (TaskDefinition) taskDef, taskGraph.getType(), idGenerator, isStart, isEnd, callback);
       } else if (taskDef instanceof TaskNode.TaskGraph) {
-        planTasks(stage, (TaskNode.TaskGraph) taskDef, callback);
+        planTasks(stage, (TaskNode.TaskGraph) taskDef, idGenerator, callback);
       } else {
         throw new UnsupportedOperationException(format("Unknown TaskNode type %s", taskDef.getClass().getName()));
       }
     }
   }
 
-  private <T extends Execution<T>> void planTask(Stage<T> stage, TaskDefinition taskDef, TaskNode.GraphType type, boolean isStart, boolean isEnd, Consumer<com.netflix.spinnaker.orca.pipeline.model.Task> callback) {
+  private <T extends Execution<T>> void planTask(
+    Stage<T> stage,
+    TaskDefinition taskDef,
+    TaskNode.GraphType type,
+    Supplier<String> idGenerator,
+    boolean isStart,
+    boolean isEnd,
+    Consumer<com.netflix.spinnaker.orca.pipeline.model.Task> callback) {
+
+    String taskId = idGenerator.get();
+
+    com.netflix.spinnaker.orca.pipeline.model.Task task = stage
+      .getTasks()
+      .stream()
+      .filter(it -> it.getId().equals(taskId))
+      .findFirst()
+      .orElseGet(() -> createTask(stage, taskDef, type, isStart, isEnd, taskId));
+
+    callback.accept(task);
+  }
+
+  private <T extends Execution<T>> Task createTask(Stage<T> stage, TaskDefinition taskDef, TaskNode.GraphType type, boolean isStart, boolean isEnd, String taskId) {
     DefaultTask task = new DefaultTask();
     if (isStart) {
       switch (type) {
@@ -212,7 +231,7 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
           break;
       }
     }
-    task.setId(String.valueOf((stage.getTasks().size() + 1)));
+    task.setId(taskId);
     task.setName(taskDef.getName());
     task.setStatus(NOT_STARTED);
     task.setImplementingClass(taskDef.getImplementingClass());
@@ -228,8 +247,7 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
       }
     }
     stage.getTasks().add(task);
-
-    callback.accept(task);
+    return task;
   }
 
   private <T extends Execution<T>> StageDefinitionBuilder findBuilderForStage(Stage<T> stage) {
