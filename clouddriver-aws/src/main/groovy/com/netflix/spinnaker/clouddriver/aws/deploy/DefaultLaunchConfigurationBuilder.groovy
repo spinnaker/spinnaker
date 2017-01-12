@@ -31,12 +31,14 @@ import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import groovy.util.logging.Slf4j
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
 
 import java.nio.charset.Charset
 import java.util.regex.Pattern
 
+@Slf4j
 class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
   private static final Pattern SG_PATTERN = Pattern.compile(/^sg-[0-9a-f]+$/)
 
@@ -280,6 +282,10 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     }
 
     OperationPoller.retryWithBackoff({o ->
+      CreateLaunchConfigurationRequest debugRequest = request.clone()
+      debugRequest.setUserData(null);
+      log.debug("Creating launch configuration (${name}): ${debugRequest}")
+
       autoScaling.createLaunchConfiguration(request)
     }, 1500, 3);
 
