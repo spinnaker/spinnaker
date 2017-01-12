@@ -51,6 +51,9 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
   @Autowired(required = false)
   X509RolesExtractor rolesExtractor
 
+  @Autowired(required = false)
+  X509UserIdentifierExtractor userIdentifierExtractor
+
   @Override
   UserDetails loadUserDetails(PreAuthenticatedAuthenticationToken token) throws UsernameNotFoundException {
     if (!(token.credentials instanceof X509Certificate)) {
@@ -58,7 +61,14 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
     }
 
     def x509 = (X509Certificate) token.credentials
-    def email = emailFromSubjectAlternativeName(x509) ?: token.principal
+
+    def email
+    if (userIdentifierExtractor) {
+      email = userIdentifierExtractor.fromCertificate(x509)
+    }
+    if (email == null) {
+      email = emailFromSubjectAlternativeName(x509) ?: token.principal
+    }
 
     def roles = userRolesProvider.loadRoles(email as String)
     if (rolesExtractor) {
