@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.batch.SpringBatchExecutionRunner
 import com.netflix.spinnaker.orca.batch.StageBuilderProvider
@@ -44,6 +43,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import groovy.transform.CompileStatic
 import org.spockframework.spring.xml.SpockMockFactoryBean
 import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired

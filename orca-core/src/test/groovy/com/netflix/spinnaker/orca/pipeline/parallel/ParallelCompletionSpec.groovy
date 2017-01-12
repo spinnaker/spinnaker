@@ -16,12 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline.parallel
 
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.SpringBatchConfiguration
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
@@ -35,11 +33,11 @@ import com.netflix.spinnaker.orca.test.JobCompletionListener
 import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import groovy.transform.CompileStatic
 import org.spockframework.spring.xml.SpockMockFactoryBean
 import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Ignore
 import spock.lang.Shared
@@ -76,8 +74,8 @@ class ParallelCompletionSpec extends Specification {
       new SpockMockFactoryBean<>(TestTask)
     }
 
-    @Bean StageBuilder testStage() {
-      new PipelineRestartingSpec.TestStage(null ,null)
+    @Bean StageDefinitionBuilder testStage() {
+      new PipelineRestartingSpec.TestStage()
     }
   }
 
