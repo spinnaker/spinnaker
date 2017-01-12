@@ -42,7 +42,9 @@ export class LoadBalancerReader {
   }
 
   private normalizeLoadBalancer(loadBalancer: ILoadBalancer): ng.IPromise<ILoadBalancer> {
-    return this.loadBalancerTransformer.normalizeLoadBalancer(loadBalancer).then((lb: ILoadBalancer) => {
+    let normalized = this.loadBalancerTransformer.normalizeLoadBalancer(loadBalancer);
+    normalized = normalized.then ? normalized : this.$q.resolve(normalized);
+    return normalized.then((lb: ILoadBalancer) => {
       const nameParts: IComponentName = this.namingService.parseLoadBalancerName(lb.name);
       lb.stack = nameParts.stack;
       lb.detail = nameParts.freeFormDetails;
