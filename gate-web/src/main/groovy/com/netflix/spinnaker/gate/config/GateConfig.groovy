@@ -54,9 +54,7 @@ import org.springframework.session.data.redis.config.ConfigureRedisAction
 import org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
-import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
-import redis.clients.util.Pool
 import retrofit.Endpoint
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
