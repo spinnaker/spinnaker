@@ -113,6 +113,11 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
         return false;
       }
 
+      const allowRestart = $scope.application.attributes.enableRestartRunningExecutions || false;
+      if ($scope.execution.isRunning && !allowRestart) {
+        return false;
+      }
+
       return stageConfig.restartable || false;
     };
 
