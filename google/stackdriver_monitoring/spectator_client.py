@@ -13,14 +13,15 @@
 # limitations under the License.
 
 # pylint: disable=missing-docstring
+# pylint: disable=star-args
 
+import copy
 import json
 import logging
 import threading
 import time
 import socket
 import urllib2
-
 
 def __foreach_metric_tag_binding(
     service, metric_name, metric_data, service_data,
@@ -138,6 +139,14 @@ class SpectatorClient(object):
                         ' containing the services.')
     parser.add_argument('--prototype_path', default='',
                         help='Optional filter to restrict metrics of interest.')
+    parser.add_argument(
+        '--log_metric_diff',
+        default=False, action='store_true',
+        help='Keep track of the last set of metrics/bindings were'
+             ' and show the differences with the current metric/bindings.'
+             ' This is to show a change in what metrics are available, not'
+             ' the values of the metrics themselves.')
+
     for service in SpectatorClient.DEFAULT_SERVICE_PORT_MAP.keys():
       add_microservice(parser, service)
 
@@ -151,11 +160,66 @@ class SpectatorClient(object):
     self.__host = options['host']
     self.__prototype = None
     self.__default_scan_params = {'tagNameRegex': '.+'}
+    self.__previous_scan_lock = threading.Lock()
+    self.__previous_scan = {} if options.get('log_metric_diff') else None
 
     if options['prototype_path']:
       # pylint: disable=invalid-name
       with open(options['prototype_path']) as fd:
         self.__prototype = json.JSONDecoder().decode(fd.read())
+
+  def __log_scan_diff(self, host, port, metrics):
+    """Diff this scan with the previous one for debugging purposes."""
+    if self.__previous_scan is None:
+      return
+
+    key = '{0}:{1}'.format(host, port)
+    with self.__previous_scan_lock:
+      previous_metrics = self.__previous_scan.get(key, {})
+      self.__previous_scan[key] = copy.deepcopy(metrics)
+    if not previous_metrics:
+      return
+
+    previous_keys = set(previous_metrics.keys())
+    keys = set(metrics.keys())
+    new_keys = keys.difference(previous_keys)
+    same_keys = keys.intersection(previous_keys)
+    lost_keys = previous_keys.difference(keys)
+    lines = []
+
+    if lost_keys:
+      lines.append('Stopped metrics for:\n  - {0}\n'
+                   .format('\n  - '.join(lost_keys)))
+    if new_keys:
+      lines.append('Started metrics for:\n  - {0}\n'
+                   .format('\n  - '.join(new_keys)))
+
+    def normalize_tags(tag_list):
+      result = set([])
+      for item in sorted(tag_list):
+        result.add('{0}={1}'.format(item['key'], item['value']))
+
+      return ', '.join(result)
+
+    for check_key in same_keys:
+      tag_sets = set(
+          [normalize_tags(item.get('tags', []))
+           for item in metrics[check_key].get('values', [])])
+      prev_tag_sets = set(
+          [normalize_tags(item.get('tags', []))
+           for item in previous_metrics[check_key].get('values', [])])
+      added_tags = tag_sets.difference(prev_tag_sets)
+      lost_tags = prev_tag_sets.difference(tag_sets)
+
+      if added_tags:
+        lines.append('"{0}" started data points for\n  - {1}\n'
+                     .format(check_key, '\n  - '.join(added_tags)))
+      if lost_tags:
+        lines.append('"{0}" stopped data points for\n  - {1}\n'
+                     .format(check_key, '\n  - '.join(lost_tags)))
+
+    if lines:
+      logging.info('==== DIFF {0} ===\n{1}\n'.format(key, '\n'.join(lines)))
 
   def collect_metrics(self, host, port, params=None):
     """Return JSON metrics from the given server."""
@@ -178,11 +242,30 @@ class SpectatorClient(object):
     url = 'http://{host}:{port}/spectator/metrics{query}'.format(
         host=host, port=port, query=query)
     response = urllib2.urlopen(url)
+
     all_metrics = json.JSONDecoder(encoding='utf-8').decode(response.read())
+    try:
+      self.__log_scan_diff(host, port, all_metrics.get('metrics', {}))
+    except Exception as ex:
+      logging.error(str(ex))
+
     all_metrics['__port'] = port
     all_metrics['__host'] = (socket.getfqdn()
                              if host in ['localhost', '127.0.0.1', None, '']
                              else host)
+
+    # Record how many data values we collected.
+    # Add success tag so we have a tag and dont get filtered out.
+    num_metrics = 0
+    for metric_data in all_metrics.get('metrics', {}).values():
+      num_metrics += len(metric_data.get('values', []))
+    all_metrics['metrics']['spectator.datapoints'] = {
+        'kind': 'Gauge',
+        'values': [{
+            'tags': [{'key': 'success', 'value': "true"}],
+            'values': [{'v': num_metrics, 't': int(time.time() * 1000)}]
+        }]
+    }
 
     return (self.filter_metrics(all_metrics, self.__prototype)
             if self.__prototype else all_metrics)

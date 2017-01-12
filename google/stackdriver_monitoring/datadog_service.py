@@ -88,7 +88,8 @@ class DatadogMetricsService(object):
         service_metrics, self.__append_timeseries_point, points)
 
     try:
-      self.api.Metric.send(points)
+      if points:
+        self.api.Metric.send(points)
     except IOError as ioerr:
       logging.error('Error sending to datadog: %s', ioerr)
       raise
