@@ -6,7 +6,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
 ])
-  .factory('azureLoadBalancerTransformer', function (settings) {
+  .factory('azureLoadBalancerTransformer', function ($q, settings) {
 
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.serverGroups.forEach(function(serverGroup) {
@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
       loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
-      return loadBalancer;
+      return $q.resolve(loadBalancer);
     }
 
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {

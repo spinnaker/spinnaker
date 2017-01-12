@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', [])
-  .factory('openstackLoadBalancerTransformer', function (settings) {
+  .factory('openstackLoadBalancerTransformer', function ($q, settings) {
     var defaults = {
       provider: 'openstack',
       account: settings.providers.openstack ? settings.providers.openstack.defaults.account : null,
@@ -100,7 +100,7 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
       loadBalancer.healthMonitor = _.defaults(healthMonitor, defaults.healthMonitor);
 
       updateHealthCounts(loadBalancer);
-      return loadBalancer;
+      return $q.resolve(loadBalancer);
     }
 
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {

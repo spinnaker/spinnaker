@@ -5,12 +5,12 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer', [])
-  .factory('kubernetesLoadBalancerTransformer', function (settings) {
+  .factory('kubernetesLoadBalancerTransformer', function ($q, settings) {
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = [];
       loadBalancer.instanceCounts = buildInstanceCounts(loadBalancer.serverGroups);
-      return loadBalancer;
+      return $q.resolve(loadBalancer);
     }
 
     function buildInstanceCounts(serverGroups) {

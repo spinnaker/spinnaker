@@ -24,7 +24,11 @@ export class AppengineLoadBalancerUpsertDescription {
 }
 
 export class AppengineLoadBalancerTransformer {
-  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): ILoadBalancer {
+  static get $inject() { return ['$q']; }
+
+  constructor(private $q: ng.IQService) {}
+
+  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): ng.IPromise<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
     loadBalancer.instances = [];
@@ -42,7 +46,7 @@ export class AppengineLoadBalancerTransformer {
 
     let activeServerGroups = filter(loadBalancer.serverGroups, {isDisabled: false});
     loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as Instance[];
-    return loadBalancer;
+    return this.$q.resolve(loadBalancer);
   }
 
   public convertLoadBalancerForEditing(loadBalancer: IAppengineLoadBalancer): IAppengineLoadBalancer {
