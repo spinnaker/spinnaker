@@ -41,6 +41,7 @@ public interface GitHubClient {
 
   @GET("/orgs/{org}/teams")
   List<GitHubMaster.Team> getOrgTeams(@Path("org") String org,
+                                      @Query("page") int page,
                                       @Query("per_page") int paginationValue);
 
   @GET("/teams/{idTeam}/memberships/{username}")

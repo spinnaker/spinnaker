@@ -33,7 +33,6 @@ import retrofit.client.Response;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +83,8 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
         log.error(String.format("Could not find the server %s", master.getBaseUrl()), e);
         return new ArrayList<>();
       } else if (e.getResponse().getStatus() == 404) {
-        log.error(String.format("Could not find the GitHub organization %s",
+        log.error(String.format("%s is not a member of GitHub organization %s",
+                                userName,
                                 gitHubProperties.getOrganization()),
                   e);
         return new ArrayList<>();
@@ -105,26 +105,40 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
 
     // Get teams of the current user
     List<GitHubMaster.Team> teams = new ArrayList<>();
-    try {
-      teams = master.getGitHubClient().getOrgTeams(gitHubProperties.getOrganization(),
-                                                   gitHubProperties.paginationValue);
-    } catch (RetrofitError e) {
-      log.error(String.format("RetrofitError %s %s ",
-                              e.getResponse().getStatus(),
-                              e.getResponse().getReason()),
-                e);
-      if (e.getKind() == RetrofitError.Kind.NETWORK) {
-        log.error(String.format("Could not find the server %s", master.getBaseUrl()), e);
-      } else if (e.getResponse().getStatus() == 404) {
-        log.error("404 when getting teams");
-        return result;
-      } else if (e.getResponse().getStatus() == 401) {
-        log.error(String.format("Cannot get GitHub organization %s teams: Not authorized.",
-                                gitHubProperties.getOrganization()),
+    int page = 1;
+    boolean hasMorePages = true;
+
+    do {
+      try {
+        log.debug("Requesting page " + page + " of teams.");
+        List<GitHubMaster.Team> teamsPage = master.getGitHubClient()
+                                                  .getOrgTeams(gitHubProperties.getOrganization(),
+                                                               page++,
+                                                               gitHubProperties.paginationValue);
+        teams.addAll(teamsPage);
+        if (teamsPage.size() != gitHubProperties.paginationValue) {
+          hasMorePages = false;
+        }
+        log.debug("Got " + teamsPage.size() + " teams back. hasMorePages: " + hasMorePages);
+      } catch (RetrofitError e) {
+        hasMorePages = false;
+        log.error(String.format("RetrofitError %s %s ",
+                                e.getResponse().getStatus(),
+                                e.getResponse().getReason()),
                   e);
-        return result;
+        if (e.getKind() == RetrofitError.Kind.NETWORK) {
+          log.error(String.format("Could not find the server %s", master.getBaseUrl()), e);
+        } else if (e.getResponse().getStatus() == 404) {
+          log.error("404 when getting teams");
+          return result;
+        } else if (e.getResponse().getStatus() == 401) {
+          log.error(String.format("Cannot get GitHub organization %s teams: Not authorized.",
+                                  gitHubProperties.getOrganization()),
+                    e);
+          return result;
+        }
       }
-    }
+    } while (hasMorePages);
 
     log.debug("Found " + teams.size() + " teams in org.");
     teams.forEach(t -> {
@@ -180,4 +194,6 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
 
     return emailGroupsMap;
   }
+
+
 }
