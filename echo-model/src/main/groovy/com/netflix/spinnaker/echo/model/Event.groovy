@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.model
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 
 /**
  * Represents an event
@@ -24,5 +24,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 public class Event {
   Metadata details
   Map content
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   Map payload
 }
