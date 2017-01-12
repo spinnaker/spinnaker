@@ -39,6 +39,8 @@ class RestProperties {
     Boolean wrap = false
     @NotEmpty
     String url
+    String username
+    String password
     Boolean flatten = false
 
   }

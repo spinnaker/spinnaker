@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.config
 
 import static retrofit.Endpoints.newFixedEndpoint
 
+import org.apache.commons.codec.binary.Base64
 import com.netflix.spinnaker.echo.rest.RestService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Value
@@ -26,6 +27,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
@@ -59,16 +61,28 @@ class RestConfig {
 
     restProperties
 
-    restProperties.endpoints.each { endpoint ->
+    restProperties.endpoints.each { RestProperties.RestEndpointConfiguration endpoint ->
+      RestAdapter.Builder restAdapterBuilder = new RestAdapter.Builder()
+        .setEndpoint(newFixedEndpoint(endpoint.url as String))
+        .setClient(retrofitClient)
+        .setLogLevel(retrofitLogLevel)
+        .setConverter(new JacksonConverter())
+
+      if (endpoint.username && endpoint.password) {
+        RequestInterceptor authInterceptor = new RequestInterceptor() {
+          @Override
+          public void intercept(RequestInterceptor.RequestFacade request) {
+            String auth = "Basic " + Base64.encodeBase64String("${endpoint.username}:${endpoint.password}".getBytes())
+            request.addHeader("Authorization", auth)
+          }
+        }
+
+        restAdapterBuilder.setRequestInterceptor(authInterceptor)
+      }
+
       restUrls.services.add(
         [
-          client: new RestAdapter.Builder()
-            .setEndpoint(newFixedEndpoint(endpoint.url as String))
-            .setClient(retrofitClient)
-            .setLogLevel(retrofitLogLevel)
-            .setConverter(new JacksonConverter())
-            .build()
-            .create(RestService),
+          client: restAdapterBuilder.build().create(RestService),
           config: endpoint
         ]
       )
