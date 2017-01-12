@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.batch;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
+
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.listeners.StageListener;
@@ -78,7 +80,6 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
   private final TaskTaskletAdapter taskTaskletAdapter;
   private final Collection<com.netflix.spinnaker.orca.Task> tasks;
   private final ExecutionListenerProvider executionListenerProvider;
-
 
   @Autowired
   public SpringBatchExecutionRunner(
@@ -215,9 +216,23 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
   private <E extends Execution<E>, Q> FlowBuilder<Q> buildDownstreamFork(FlowBuilder<Q> flow, String parentId, List<Stage<E>> downstreamStages, Set<Serializable> alreadyBuilt) {
     List<Flow> flows = downstreamStages
       .stream()
-      .map(downstreamStage -> {
+      .flatMap(downstreamStage -> {
         FlowBuilder<Flow> flowBuilder = flowBuilder(format("ChildExecution.%s.%s", downstreamStage.getRefId(), downstreamStage.getId()));
-        return buildStepsForStageAndDownstream(flowBuilder, downstreamStage, alreadyBuilt).build();
+        flowBuilder = buildStepsForStageAndDownstream(flowBuilder, downstreamStage, alreadyBuilt);
+        if (((FlowBuilderWrapper)flowBuilder).empty) {
+          /*
+           * No sense building downstream flows for stages that have been previously built.
+           *
+           * This commonly occurs when a parent and child stage share the same requisiteRefId.
+           *
+           * ie) [C] depends on [A] + [B] and [B] depends on [A]
+           *
+           * This example would be more cleanly written as [C] depends on [B] and [B] depends on [A].
+           */
+          return Stream.empty();
+        }
+
+        return Stream.of(flowBuilder.build());
       })
       .collect(toList());
     SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
