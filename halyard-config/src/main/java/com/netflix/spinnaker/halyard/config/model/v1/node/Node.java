@@ -17,11 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.ComponentName;
 import lombok.Getter;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * The "Node" class represents a YAML node in our config hierarchy that can be validated.
@@ -35,21 +31,6 @@ abstract public class Node implements Validatable {
 
   @JsonIgnore
   public abstract NodeIterator getChildren();
-
-  @JsonIgnore
-  private Set<ComponentName> spinnakerComponents = new HashSet<>();
-
-  protected void registerWithSpinnakerComponent(ComponentName component) {
-    if (spinnakerComponents.contains(component)) {
-      throw new RuntimeException("Node " + getNodeName() + " cannot be registered with spinnaker component name \"" + component + "\" more than once");
-    }
-
-    spinnakerComponents.add(component);
-  }
-
-  public Set<ComponentName> registeredSpinnakerComponents() {
-    return spinnakerComponents;
-  }
 
   /**
    * Checks if the filter matches this node alone.

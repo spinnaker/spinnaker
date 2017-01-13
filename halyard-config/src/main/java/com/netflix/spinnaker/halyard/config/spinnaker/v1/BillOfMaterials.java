@@ -25,27 +25,27 @@ import java.util.Optional;
 @Data
 public class BillOfMaterials {
   String version;
-  SpinnakerComponents services;
+  Services services;
 
   @Data
-  static class SpinnakerComponents {
-    Component clouddriver;
+  public static class Services {
     Component echo;
+    Component clouddriver;
     Component deck;
     Component fiat;
     Component front50;
     Component gate;
     Component igor;
+    Component orca;
     Component rosco;
-    Component spinnaker;
 
-    public String getComponentVersion(ComponentName name) {
-      Optional<Field> field = Arrays.stream(SpinnakerComponents.class.getDeclaredFields())
-          .filter(f -> f.getName().equals(name.getId()))
+    public String getComponentVersion(String componentName) {
+      Optional<Field> field = Arrays.stream(Services.class.getDeclaredFields())
+          .filter(f -> f.getName().equals(componentName))
           .findFirst();
 
       if (!field.isPresent()) {
-        throw new RuntimeException("No supported spinnaker component named " + name.getId());
+        throw new RuntimeException("No supported spinnaker component named " + componentName);
       }
 
       try {
@@ -53,7 +53,7 @@ public class BillOfMaterials {
       } catch (IllegalAccessException e) {
         throw new RuntimeException(e);
       } catch (NullPointerException e) {
-        throw new RuntimeException("Spinnaker component " + name.getId() + " is not listed in the BOM");
+        throw new RuntimeException("Spinnaker component " + componentName + " is not listed in the BOM");
       }
     }
 

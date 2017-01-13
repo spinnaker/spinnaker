@@ -16,90 +16,49 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.ComponentName;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.ComponentProfile;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
-
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.SpinnakerComponent;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class GenerateService {
   @Autowired
-  ComponentProfile componentProfile;
-
-  @Autowired
-  LookupService lookupService;
-
-  @Autowired
   String spinnakerOutputPath;
 
-  @Autowired
-  Yaml yamlParser;
-
-  @Autowired
-  ObjectMapper objectMapper;
+  @Autowired(required = false)
+  List<SpinnakerComponent> spinnakerComponents = new ArrayList<>();
 
   public void generateConfig(NodeReference nodeReference) {
-    NodeFilter filter = NodeFilter.makeAcceptAllFilter()
-        .refineWithReference(nodeReference);
-
-    List<Node> matching = lookupService.getMatchingNodesOfType(filter, Node.class);
-
-    Map<ComponentName, List<Node>> configInjectMap = new HashMap<>();
-    for (Node node : matching) {
-      for (ComponentName componentName : node.registeredSpinnakerComponents()) {
-        log.trace("Registering " + node.getNodeName() + " with component " + componentName);
-
-        List<Node> injectable = configInjectMap.getOrDefault(componentName, new ArrayList<>());
-        injectable.add(node);
-        configInjectMap.put(componentName, injectable);
-      }
-    }
-
-    for (ComponentName componentName : ComponentName.values()) {
+    for (SpinnakerComponent component : spinnakerComponents) {
       FileSystem defaultFileSystem = FileSystems.getDefault();
       AtomicFileWriter writer = null;
+      Path path = defaultFileSystem.getPath(spinnakerOutputPath, component.getConfigFileName());
+
+      log.info("Writing profile to  " + path);
+
       try {
-        Path path = defaultFileSystem.getPath(spinnakerOutputPath, componentName.getProfile());
-        log.info("Writing profile to  " + path);
-
         writer = new AtomicFileWriter(path);
-
-        for (Node config : configInjectMap.getOrDefault(componentName, new ArrayList<>())) {
-          writer.write(yamlParser.dump(objectMapper.convertValue(config, Map.class)));
-        }
-
-        writer.write("\n### Fetched config begins here\n\n");
-
-        String componentYaml = componentProfile.getProfile(componentName);
-        writer.write(componentYaml);
-
+        writer.write(component.getFullConfig(nodeReference));
         writer.commit();
-      }
-      catch (IOException ioe) {
+      } catch (IOException ioe) {
         ioe.printStackTrace();
         throw new HalconfigException(
             new ProblemBuilder(Problem.Severity.FATAL,
-                "Failed to write config for component " + componentName + ": " + ioe.getMessage()).build()
+                "Failed to write config for component " + component.getComponentName() + ": " + ioe
+                    .getMessage()).build()
         );
       } finally {
         if (writer != null) {
