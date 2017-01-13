@@ -149,7 +149,7 @@ export class Application {
   }
 
   private setApplicationAccounts(): void {
-    let accounts = this.accounts;
+    let accounts = this.accounts.concat(this.attributes.accounts || []);
     this.dataSources
       .filter(ds => ds.credentialsField !== undefined)
       .forEach(ds => accounts = accounts.concat(ds.data.map(d => d[ds.credentialsField])));
