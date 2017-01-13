@@ -46,7 +46,7 @@ class DeleteLoadBalancerTask extends AbstractCloudProviderAwareTask implements T
         "notification.type"  : "deleteloadbalancer",
         "kato.last.task.id"  : taskId,
         "delete.name"        : stage.context.loadBalancerName,
-        "delete.regions"     : stage.context.regions.join(','),
+        "delete.regions"     : stage.context.regions?.join(',') ?: [],
         "delete.account.name": account
     ]
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
