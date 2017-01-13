@@ -2,6 +2,7 @@ import {module} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {TaskStep} from '../domain/taskStep';
 import {IOrchestratedItem} from '../domain/IOrchestratedItem';
+import {ORCHESTRATED_ITEM_TRANSFORMER, OrchestratedItemTransformer} from 'core/orchestratedItem/orchestratedItem.transformer';
 
 export interface ITask extends IOrchestratedItem {
   id: string;
@@ -21,7 +22,7 @@ export class TaskReader {
   static get $inject() { return ['API', '$log', '$q', '$timeout', 'orchestratedItemTransformer']; }
 
   public constructor(private API: Api, private $log: ng.ILogService, private $q: ng.IQService,
-                     private $timeout: ng.ITimeoutService, private orchestratedItemTransformer: any) {}
+                     private $timeout: ng.ITimeoutService, private orchestratedItemTransformer: OrchestratedItemTransformer) {}
 
   public getTasks(applicationName: string, statuses: string[] = []): ng.IPromise<ITask[]> {
     return this.API.one('applications', applicationName).all('tasks')
@@ -108,5 +109,5 @@ export const TASK_READ_SERVICE = 'spinnaker.core.task.read.service';
 
 module(TASK_READ_SERVICE, [
   API_SERVICE,
-  require('../orchestratedItem/orchestratedItem.transformer.js'),
+  ORCHESTRATED_ITEM_TRANSFORMER,
 ]).service('taskReader', TaskReader);

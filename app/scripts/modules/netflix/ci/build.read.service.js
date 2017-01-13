@@ -1,16 +1,17 @@
 'use strict';
 
+let angular = require('angular');
+
 import {API_SERVICE} from 'core/api/api.service';
 import {CI_FILTER_MODEL} from './ci.filter.model';
-
-let angular = require('angular');
+import {ORCHESTRATED_ITEM_TRANSFORMER} from 'core/orchestratedItem/orchestratedItem.transformer';
 
 module.exports = angular
   .module('spinnaker.netflix.ci.build.read.service', [
     API_SERVICE,
     CI_FILTER_MODEL,
     require('core/config/settings'),
-    require('core/orchestratedItem/orchestratedItem.transformer'),
+    ORCHESTRATED_ITEM_TRANSFORMER,
   ])
   .factory('buildService', function (API, settings, orchestratedItemTransformer, CiFilterModel) {
 

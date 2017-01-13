@@ -4,13 +4,14 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
+import {ORCHESTRATED_ITEM_TRANSFORMER} from 'core/orchestratedItem/orchestratedItem.transformer';
+
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.transformer', [
-  require('core/orchestratedItem/orchestratedItem.transformer.js'),
+  ORCHESTRATED_ITEM_TRANSFORMER,
 ])
   .service('acaTaskTransformer', function($log, orchestratedItemTransformer) {
 
     function getException (stage) {
-      orchestratedItemTransformer.defineProperties(stage);
       return stage && stage.isFailed ? stage.failureMessage : null;
     }
 
