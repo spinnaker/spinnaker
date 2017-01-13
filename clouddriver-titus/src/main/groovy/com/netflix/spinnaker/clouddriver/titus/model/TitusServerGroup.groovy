@@ -140,6 +140,28 @@ class TitusServerGroup implements ServerGroup, Serializable {
 
   @Override
   ServerGroup.ImagesSummary getImagesSummary() {
+    def i = image
+    String imageDetails = "${i.dockerImageName}:${i.dockerImageVersion}"
+    return new ServerGroup.ImagesSummary() {
+      @Override
+      List<ServerGroup.ImageSummary> getSummaries() {
+        return [new ServerGroup.ImageSummary() {
+          String serverGroupName = name
+          String imageName = imageDetails
+          String imageId = imageDetails
+
+          @Override
+          Map<String, Object> getBuildInfo() {
+            return null
+          }
+
+          @Override
+          Map<String, Object> getImage() {
+            return i
+          }
+        }]
+      }
+    }
   }
 
   @Override
