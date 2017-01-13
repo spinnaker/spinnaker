@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.aws', [
   require('./pipeline/stages/enableAsg/awsEnableAsgStage.js'),
   require('./pipeline/stages/findAmi/awsFindAmiStage.js'),
   require('./pipeline/stages/findImageFromTags/awsFindImageFromTagsStage.js'),
-  require('core/pipeline/config/stages/modifyScalingProcess/modifyScalingProcess.module.js'),
+  require('./pipeline/stages/modifyScalingProcess/modifyScalingProcessStage.js'),
   require('./pipeline/stages/resizeAsg/awsResizeAsgStage.js'),
   require('./pipeline/stages/scaleDownCluster/awsScaleDownClusterStage.js'),
   require('./pipeline/stages/shrinkCluster/awsShrinkClusterStage.js'),
