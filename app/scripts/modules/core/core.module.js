@@ -129,8 +129,6 @@ module.exports = angular
 
     require('./task/task.module.js'),
 
-    require('./overrideRegistry/override.registry.js'),
-
     require('./utils/utils.module.js'),
 
     require('./widgets'),

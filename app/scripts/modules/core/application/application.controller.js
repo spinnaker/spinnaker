@@ -9,11 +9,9 @@ module.exports = angular.module('spinnaker.application.controller', [
   require('exports?"cfp.hotkeys"!angular-hotkeys'),
   require('angular-ui-router'),
   require('../history/recentHistory.service.js'),
-  require('../overrideRegistry/override.registry.js'),
   require('../presentation/refresher/componentRefresher.directive.js'),
 ])
-  .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService, overrideRegistry,
-                                          $uibModal) {
+  .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService, $uibModal) {
     $scope.application = app;
     $scope.insightTarget = app;
     $scope.refreshTooltipTemplate = require('./applicationRefresh.tooltip.html');

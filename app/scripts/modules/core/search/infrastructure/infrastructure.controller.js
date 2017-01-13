@@ -2,10 +2,11 @@
 
 import _ from 'lodash';
 
+let angular = require('angular');
+
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
-
-let angular = require('angular');
+import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./infrastructureSearch.service.js'),
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('../searchRank.filter.js'),
   CLUSTER_FILTER_SERVICE,
   CACHE_INITIALIZER_SERVICE,
-  require('core/overrideRegistry/override.registry.js'),
+  OVERRIDE_REGISTRY,
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
                                              cacheInitializer, overrideRegistry,

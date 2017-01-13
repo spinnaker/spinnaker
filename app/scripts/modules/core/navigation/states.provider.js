@@ -4,6 +4,7 @@ let angular = require('angular');
 
 import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 require('./navigation.less');
@@ -17,7 +18,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
   require('../projects/project.controller.js'),
   require('../projects/dashboard/dashboard.controller.js'),
   require('../projects/service/project.read.service.js'),
-  require('../overrideRegistry/override.registry.js'),
+  OVERRIDE_REGISTRY,
   APPLICATION_READ_SERVICE,
   SECURITY_GROUP_READER
 ])

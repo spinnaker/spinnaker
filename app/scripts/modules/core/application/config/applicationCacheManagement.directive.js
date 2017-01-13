@@ -1,13 +1,16 @@
 'use strict';
 
 const angular = require('angular');
+
 import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
+import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 
 module.exports = angular
   .module('spinnaker.core.application.config.cache.management.directive', [
     CACHE_INITIALIZER_SERVICE,
-    INFRASTRUCTURE_CACHE_SERVICE
+    INFRASTRUCTURE_CACHE_SERVICE,
+    OVERRIDE_REGISTRY,
   ])
   .directive('applicationCacheManagement', function (overrideRegistry) {
     return {
