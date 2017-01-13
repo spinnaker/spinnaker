@@ -103,13 +103,6 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
       return $q.resolve(loadBalancer);
     }
 
-    function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-      return serverGroup.type === 'openstack' &&
-        serverGroup.account === loadBalancer.account &&
-        serverGroup.region === loadBalancer.region &&
-        serverGroup.loadBalancers.includes(loadBalancer.name);
-    }
-
     function constructNewLoadBalancerTemplate() {
       return angular.copy(defaults);
     }
@@ -122,7 +115,6 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
-      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing
     };
   });
