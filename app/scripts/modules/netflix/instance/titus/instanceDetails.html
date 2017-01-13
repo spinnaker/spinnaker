@@ -71,8 +71,6 @@
         <dd><account-tag account="instance.account" pad="right"></account-tag></dd>
         <dt>Region</dt>
         <dd>{{instance.placement.region}}</dd>
-        <dt>Host</dt>
-        <dd>{{instance.placement.host}}</dd>
         <dt ng-if="instance.placement.containerIp">Container IP</dt>
         <dd ng-if="instance.placement.containerIp">{{instance.placement.containerIp}}
           <copy-to-clipboard
@@ -80,6 +78,12 @@
             text="{{instance.placement.containerIp}}"
             tool-tip="Copy container IP clipboard">
           </copy-to-clipboard>
+        </dd>
+        <dt ng-if="instance.resources.ports && instance.resources.ports.size() > 0">Port(s)</dt>
+        <dd ng-if="instance.resources.ports && instance.resources.ports.size() > 0">
+          <div ng-repeat="(key, val) in instance.resources.ports">
+            {{key}} -> {{val}}
+          </div>
         </dd>
       </dl>
     </collapsible-section>
@@ -93,12 +97,6 @@
         <dd>{{instance.resources.disk}} MB</dd>
         <dt>Network</dt>
         <dd>{{instance.resources.networkMbps}} Mbps</dd>
-        <dt ng-if="instance.resources.ports && instance.resources.ports.size() > 0">Port(s)</dt>
-        <dd ng-if="instance.resources.ports && instance.resources.ports.size() > 0">
-          <div ng-repeat="(key, val) in instance.resources.ports">
-            {{key}} -> {{val}}
-          </div>
-        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
