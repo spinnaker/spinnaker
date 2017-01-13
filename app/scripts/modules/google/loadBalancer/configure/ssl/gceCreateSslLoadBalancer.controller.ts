@@ -193,7 +193,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
   public submit (): void {
     let descriptor = this.isNew ? 'Create' : 'Update';
     let toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as any;
-    toSubmitLoadBalancer.provider = 'gce';
+    toSubmitLoadBalancer.cloudProvider = 'gce';
     toSubmitLoadBalancer.name = toSubmitLoadBalancer.loadBalancerName;
     toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.loadBalancerName;
     delete toSubmitLoadBalancer.instances;

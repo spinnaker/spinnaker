@@ -221,7 +221,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
     let descriptor = this.isNew ? 'Create' : 'Update';
     let toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as any;
     toSubmitLoadBalancer.ports = toSubmitLoadBalancer.ports.split(',').map((port: string) => port.trim());
-    toSubmitLoadBalancer.provider = 'gce';
+    toSubmitLoadBalancer.cloudProvider = 'gce';
     toSubmitLoadBalancer.name = toSubmitLoadBalancer.loadBalancerName;
     toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.loadBalancerName;
     delete toSubmitLoadBalancer.instances;
