@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
-import com.netflix.spinnaker.orca.pipeline.OrchestrationLauncher
+import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -31,7 +31,13 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Slf4j
@@ -43,7 +49,7 @@ class OperationsController {
   PipelineStarter pipelineStarter
 
   @Autowired
-  OrchestrationLauncher orchestrationLauncher
+  OrchestrationStarter orchestrationStarter
 
   @Autowired(required = false)
   BuildService buildService
@@ -182,7 +188,7 @@ class OperationsController {
   private Map<String, String> startTask(Map config) {
     def json = objectMapper.writeValueAsString(config)
     log.info('requested task:{}', json)
-    def pipeline = orchestrationLauncher.start(json)
+    def pipeline = orchestrationStarter.start(json)
     [ref: "/tasks/${pipeline.id}".toString()]
   }
 
