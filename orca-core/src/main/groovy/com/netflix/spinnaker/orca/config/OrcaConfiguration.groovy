@@ -20,6 +20,8 @@ import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.function.ToDoubleFunction
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
@@ -31,14 +33,13 @@ import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
 import com.netflix.spinnaker.orca.listeners.ExecutionCleanupListener
 import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler
+import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.explore.JobExplorer
@@ -124,6 +125,11 @@ class OrcaConfiguration {
   @ConditionalOnMissingBean(name = "pipelineStack")
   PipelineStack pipelineStack() {
     new InMemoryPipelineStack()
+  }
+
+  @Bean
+  OrchestrationStarter orchestrationStarter() {
+    new OrchestrationStarter()
   }
 
   @Bean
