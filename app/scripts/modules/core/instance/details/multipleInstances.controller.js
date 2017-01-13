@@ -94,7 +94,7 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
 
     this.canRegisterWithDiscovery = () => allDiscoveryHealthsMatch('OutOfService');
 
-    this.canDeregisterWithDiscovery = () => allDiscoveryHealthsMatch('Up');
+    this.canDeregisterWithDiscovery = () => allDiscoveryHealthsMatch('Up') || allDiscoveryHealthsMatch('Down');
 
     this.registerWithDiscovery = () => {
       let submitMethod = () => instanceWriter.enableInstancesInDiscovery(this.selectedGroups, app);

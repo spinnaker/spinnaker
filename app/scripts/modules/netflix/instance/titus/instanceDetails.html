@@ -35,7 +35,7 @@
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()">Enable in Discovery</a></li>
-            <li><a href ng-click="ctrl.disableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Up')">Disable in Discovery</a></li>
+            <li><a href ng-click="ctrl.disableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Up') || ctrl.hasHealthState('Discovery', 'Down')">Disable in Discovery</a></li>
             <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
           </ul>
         </div>
