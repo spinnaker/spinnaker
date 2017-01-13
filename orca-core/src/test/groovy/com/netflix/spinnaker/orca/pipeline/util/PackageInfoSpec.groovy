@@ -16,18 +16,108 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.util.regex.Pattern
 
 class PackageInfoSpec extends Specification {
 
   @Autowired
   ObjectMapper mapper
+
+  @Unroll
+  def "Test that the artifact matching method returns whether or not there is a match"() {
+
+    given:
+    def pattern = Pattern.compile(artifactPattern)
+    def artifacts = artifactFilenames.collect { [fileName: it] }
+
+    expect:
+    PackageInfo.artifactMatch(artifacts, pattern) == expectedMatch
+
+    where:
+    artifactPattern  || artifactFilenames                          || expectedMatch
+    "foo.*"          || []                                         || false
+    "bat.*"          || [[], []]                                   || false
+    "testFileName.*" || ["testFileName_1"]                         || true
+    "baz.*"          || [[fileName: "badTestFileName_1"]]          || false
+    "testFileName.*" || ["testFileName_1", "testFileName_2"]       || true
+    "blah.*"         || ["badTestFileName_1", "badTestFileName_1"] || false
+    "testFileName.*" || ["badTestFileName", "testFileName_1"]      || true
+    "testFileName.*" || ["testFileName_1", "badTestFileName"]      || true
+  }
+
+  def "If no artifacts in current build info or ancestor stages, code should execute as normal"() {
+
+    given:
+    def quipStage = new PipelineStage(
+      execution: Pipeline.builder().withTrigger(["buildInfo": ["artifacts": [["fileName": "testFileName"]]]]).build(),
+      context: [buildInfo: [name: "someName"], package: "testPackageName"]
+    )
+
+    def packageType = PackageType.DEB
+    def packageInfo =
+      new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, false, new ObjectMapper())
+
+    when:
+    packageInfo.findTargetPackage(false)
+
+    then:
+    def ex = thrown(IllegalStateException)
+    ex.message.startsWith("Unable to find deployable artifact starting with")
+  }
+
+  @Unroll
+  def "If no artifacts in current build info, find from first ancestor that does"() {
+    given:
+    Stage quipStage = new PipelineStage(new Pipeline(), "type", "name", [buildInfo: [name: "someName"], package: "testPackageName"])
+    quipStage.stageNavigator = Mock(StageNavigator) {
+      findAll(_, _) >> {
+        return inputFileNames.collect() {
+          new StageNavigator.Result(new PipelineStage(context: [
+            buildInfo: [
+              artifacts: [
+                [fileName: "${it}.deb"],
+                [fileName: "${it}.war"],
+                [fileName: "build.properties"]
+              ],
+              url: "http://localhost",
+              name: "testBuildName",
+              number: "1"
+            ]
+          ]))
+        }
+      }
+    }
+
+    PackageType packageType = PackageType.DEB
+    PackageInfo packageInfo =
+      new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, false, new ObjectMapper())
+
+    when:
+    def requestMap = packageInfo.findTargetPackage(true)
+
+    then:
+    requestMap.package == expected
+
+    where:
+    inputFileNames                                                                         || expected
+    ["testPackageName_1.0abc298"]                                                          || "testPackageName_1.0abc298"
+    ["testPackageName_1.0abc298", "badPackageName_1.0abc298"]                              || "testPackageName_1.0abc298"
+    ["testPackageName_1.0abc298"]                                                          || "testPackageName_1.0abc298"
+    ["testPackageName_1.0abc298", "badPackageName_1.0abc298"]                              || "testPackageName_1.0abc298"
+    ["badPackageName_1.0abc298", "testPackageName_1.0abc298"]                              || "testPackageName_1.0abc298"
+    ["badPackageName_1.0abc298", "testPackageName_1.0abc298", "badPackageName_1.0abc298"]  || "testPackageName_1.0abc298"
+    ["testPackageName_1.0abc298", "badPackageName_1.0abc298", "testPackageName_1.0abc298"] || "testPackageName_1.0abc298"
+    ["badPackageName_1.0abc298", "testPackageName_1.0abc298", "testPackageName_2.0abc298"] || "testPackageName_1.0abc298"
+    ["testPackageName_1.0abc298", "badPackageName_1.0abc298", "testPackageName_2.0abc298"] || "testPackageName_1.0abc298"
+  }
 
   @Unroll("#filename -> #result")
   def "All the matching packages get replaced with the build ones, while others just pass-through"() {
@@ -266,7 +356,8 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "getArtifactSourceBuildInfo: get buildInfo from nearest trigger with artifact"() {
     given:
-    PackageInfo packageInfo = new PackageInfo(null, null, null, true, true, null)
+    Stage stage = new PipelineStage(context: [package: "package"])
+    PackageInfo packageInfo = new PackageInfo(stage, null, null, true, true, null)
 
     when:
     Map artifactSourceBuildInfo = packageInfo.getArtifactSourceBuildInfo(trigger)

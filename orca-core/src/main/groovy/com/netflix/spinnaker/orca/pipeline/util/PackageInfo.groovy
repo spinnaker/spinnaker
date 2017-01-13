@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
 
+import java.util.regex.Pattern
+
 @Slf4j
 class PackageInfo {
   ObjectMapper mapper
@@ -32,6 +34,7 @@ class PackageInfo {
   boolean extractBuildDetails
   boolean extractVersion
   BuildDetailExtractor buildDetailExtractor
+  Pattern packageFilePattern
 
   PackageInfo(Stage stage, String packageType, String versionDelimiter, boolean extractBuildDetails, boolean extractVersion, ObjectMapper mapper) {
     this.stage = stage
@@ -41,6 +44,8 @@ class PackageInfo {
     this.extractVersion = extractVersion
     this.mapper = mapper
     this.buildDetailExtractor = new BuildDetailExtractor()
+
+    packageFilePattern = Pattern.compile("${stage.context.package}.*\\.${packageType}")
   }
 
   @VisibleForTesting
@@ -60,6 +65,11 @@ class PackageInfo {
       if (requestMap.buildInfo) { // package was built as part of the pipeline
         buildInfo = mapper.convertValue(requestMap.buildInfo, HashMap)
       }
+
+      if (!buildInfo?.artifacts) {
+        buildInfo = findBuildInfoInUpstreamStage(stage, packageFilePattern) ?: buildInfo
+      }
+
       return createAugmentedRequest(trigger, buildInfo, requestMap, allowMissingPackageInstallation)
     }
     return requestMap
@@ -215,4 +225,16 @@ class PackageInfo {
     }
   }
 
+  private static Map findBuildInfoInUpstreamStage(Stage currentStage, Pattern packageFilePattern) {
+    def upstreamStage = currentStage.ancestors().find {
+      artifactMatch(it.stage.context.buildInfo?.artifacts as List<Map<String, String>>, packageFilePattern)
+    }?.stage
+    return upstreamStage ? upstreamStage.context.buildInfo as Map : null
+  }
+
+  private static boolean artifactMatch(List<Map<String, String>> artifacts, Pattern pattern) {
+    artifacts?.find {
+      Map artifact -> pattern.matcher(artifact.get('fileName') as String ?: "").matches()
+    }
+  }
 }

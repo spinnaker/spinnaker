@@ -58,7 +58,7 @@ class QuickPatchStage implements StageDefinitionBuilder {
 
   @Override
   def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
-    builder.withTask("foo", ResolveQuipVersionTask)
+    builder.withTask("resolveQuipVersion", ResolveQuipVersionTask)
   }
 
   @Override
