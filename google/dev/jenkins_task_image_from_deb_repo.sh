@@ -26,40 +26,21 @@
 # IMAGE_NAME [String] - Name of the resulting Spinnaker image.
 # IMAGE_PROJECT [String] - Name of the GCP project to publish the image to.
 # LOCAL_ZONE [String] - Zone used in this script to build the image. The final resulting image is independent of any zone.
+# SOURCE_IMAGE [String] - Base image to install Spinnaker onto.
 #
 # DEBIAN_REPO_URL [String] - Public bintray repository to install from. Defaults to the official spinnaker repository.
 # BINTRAY_KEY [String] - Key to use in the case where $DEBIAN_REPO_URL points to a private repository.
 # BINTRAY_USER [String] - Username to authenticate with in the case where $DEBIAN_REPO_URL points to a private repository.
-#
-# GITHUB_REPOSIROTY_BRANCH [String] - Branch within the repository this script should use.
-# GITHUB_REPOSITORY_OWNER [String] - Owner of the 'spinnaker' repository that contains the build_google_image.sh script used within this script.
 
 # Note that this script is GCP-specific -- it only produces GCP Spinnaker images currently.
+# Note also that this script expects `spinnaker/` to be checked out and in a
+# subdirectory of the current working directory.
 #
 # A minimal Jenkins job configuration to run this script:
 #
 # rm -rf spinnaker/
 # git clone https://github.com/spinnaker/spinnaker.git
 # ./spinnaker/dev/jenkins_task_image_from_deb_repo.sh
-
-
-function clone_spinnaker_with_owner() {
-  rm -rf spinnaker
-  if [[ "$GITHUB_REPOSITORY_OWNER" == "default" ]] || [[ "$GITHUB_REPOSITORY_OWNER" == "upstream" ]]; then
-    GITHUB_REPOSITORY_OWNER="spinnaker"
-  fi
-  git clone https://github.com/$GITHUB_REPOSITORY_OWNER/spinnaker.git -b $GITHUB_REPOSITORY_BRANCH
-}
-
-
-function clone_or_checkout_if_necessary() {
-    if [[ -d spinnaker ]]; then
-      echo "Spinnaker repository exists, checking out branch $GITHUB_REPOSITORY_BRANCH ..."
-      cd spinnaker && git checkout $GITHUB_REPOSITORY_BRANCH && cd ..
-    else
-      clone_spinnaker_with_owner
-    fi
-}
 
 
 function build_spinnaker_google_image() {
@@ -70,11 +51,12 @@ function build_spinnaker_google_image() {
 
   spinnaker/dev/build_google_image.sh \
     --debian_repo $DEBIAN_REPO_URL \
-    --project_id $BUILD_PROJECT \
-    --update_os true \
-    --json_credentials $BUILDER_JSON_CREDENTIALS \
     --image_project $BUILD_PROJECT \
+    --json_credentials $BUILDER_JSON_CREDENTIALS \
+    --project_id $BUILD_PROJECT \
+    --source_image $SOURCE_IMAGE \
     --target_image $IMAGE_NAME \
+    --update_os true \
     --zone $LOCAL_ZONE
 }
 
@@ -95,14 +77,6 @@ function publish_image() {
 }
 
 function main() {
-  local cwd = $(pwd)
-  # We don't want to destroy our local changes if we aren't running an automated Jenkins job.
-  if [[ $cwd == "/var/lib/jenkins/jobs/*" ]]; then
-    clone_spinnaker_with_owner
-  else
-    clone_or_checkout_if_necessary
-  fi
-
   build_spinnaker_google_image
   publish_image
 }

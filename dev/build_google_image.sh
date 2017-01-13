@@ -14,11 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CURRENT_IMAGE=$(gcloud compute images list 2>&1 | grep ubuntu-1404 | tail -1 | awk '{print $1}')
 
 VARS="-var 'install_path=$(dirname $0)/../InstallSpinnaker.sh'"
-VARS="$VARS -var 'source_image=$CURRENT_IMAGE'"
 VARS="$VARS -var 'base_srcdir=$(dirname $0)/..'"
+
+# Check if we passed source image into this script, default to
+# `gcloud compute images list` if we didn't specify an image.
+if [[ $* != *--source_image* ]]; then
+  CURRENT_IMAGE=$(gcloud compute images list 2>&1 | grep ubuntu-1404 | tail -1 | awk '{print $1}')
+  VARS="$VARS -var 'source_image=$CURRENT_IMAGE'"
+fi
 
 function process_args() {
   PROJECT_ID="ok"
