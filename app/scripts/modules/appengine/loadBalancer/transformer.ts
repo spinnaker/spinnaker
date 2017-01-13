@@ -3,17 +3,20 @@ import {chain, get, has, camelCase, filter, mapValues, cloneDeep} from 'lodash';
 
 import {InstanceCounts, ILoadBalancer, ServerGroup, Instance} from 'core/domain/index';
 import {IAppengineLoadBalancer, IAppengineTrafficSplit} from 'appengine/domain/index';
+import {ILoadBalancerUpsertDescription} from 'core/loadBalancer/loadBalancer.write.service';
 
-export class AppengineLoadBalancerUpsertDescription {
+export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpsertDescription {
   public credentials: string;
   public loadBalancerName: string;
   public name: string;
   public split: IAppengineTrafficSplit;
   public migrateTraffic: boolean;
   public region: string;
+  public cloudProvider: string;
 
   constructor(loadBalancer: IAppengineLoadBalancer) {
     this.credentials = loadBalancer.account;
+    this.cloudProvider = loadBalancer.cloudProvider;
     this.loadBalancerName = loadBalancer.name;
     this.name = loadBalancer.name;
     this.split = cloneDeep(loadBalancer.split);

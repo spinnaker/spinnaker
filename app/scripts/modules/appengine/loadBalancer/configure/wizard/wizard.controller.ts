@@ -5,6 +5,7 @@ import {reduce} from 'lodash';
 import {Application} from 'core/application/application.model';
 import {IAppengineLoadBalancer} from 'appengine/domain/index';
 import {AppengineLoadBalancerTransformer} from 'appengine/loadBalancer/transformer';
+import {LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter} from 'core/loadBalancer/loadBalancer.write.service';
 
 import './wizard.less';
 
@@ -34,8 +35,8 @@ class AppengineLoadBalancerWizardController {
               public isNew: boolean,
               private forPipelineConfig: boolean,
               private transformer: AppengineLoadBalancerTransformer,
-              taskMonitorService: any,
-              private loadBalancerWriter: any,
+              private taskMonitorService: any,
+              private loadBalancerWriter: LoadBalancerWriter,
               private wizardSubFormValidation: any) {
     if (this.isNew) {
       this.heading = 'Create New Load Balancer';
@@ -72,7 +73,7 @@ class AppengineLoadBalancerWizardController {
     let description = this.transformer.convertLoadBalancerToUpsertDescription(this.loadBalancer);
     this.taskMonitor.submit(() => {
       return this.loadBalancerWriter
-        .upsertLoadBalancer(description, this.application, 'Update', {cloudProvider: 'appengine'});
+        .upsertLoadBalancer(description, this.application, 'Update');
     });
   }
 
@@ -115,7 +116,7 @@ export const APPENGINE_LOAD_BALANCER_WIZARD_CTRL = 'spinnaker.appengine.loadBala
 
 module(APPENGINE_LOAD_BALANCER_WIZARD_CTRL, [
   require('core/task/monitor/taskMonitorService.js'),
-  require('core/loadBalancer/loadBalancer.write.service.js'),
+  LOAD_BALANCER_WRITE_SERVICE,
   require('core/modal/wizard/wizardSubFormValidation.service.js'),
 ]).controller('appengineLoadBalancerWizardCtrl', AppengineLoadBalancerWizardController);
 

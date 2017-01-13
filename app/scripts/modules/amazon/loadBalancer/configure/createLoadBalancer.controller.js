@@ -7,6 +7,7 @@ import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.serv
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
@@ -15,7 +16,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
   require('angular-ui-router'),
-  require('core/loadBalancer/loadBalancer.write.service.js'),
+  LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
@@ -427,10 +428,36 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
         $scope.taskMonitor.submit(
           function() {
             return formatListeners().then(function () {
+              setAvailabilityZones($scope.loadBalancer);
+              clearSecurityGroupsIfNotInVpc($scope.loadBalancer);
+              addHealthCheckToCommand($scope.loadBalancer);
               return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor);
             });
           }
         );
+      }
+    };
+
+    let addHealthCheckToCommand = (loadBalancer) => {
+      let healthCheck = null;
+      const protocol = loadBalancer.healthCheckProtocol || '';
+      if (protocol.startsWith('HTTP')) {
+        healthCheck = `${protocol}:${loadBalancer.healthCheckPort}${loadBalancer.healthCheckPath}`;
+      } else {
+        healthCheck = `${protocol}:${loadBalancer.healthCheckPort}`;
+      }
+      loadBalancer.healthCheck = healthCheck;
+    };
+
+    let setAvailabilityZones = (loadBalancer) => {
+      const availabilityZones = {};
+      availabilityZones[loadBalancer.region] = loadBalancer.regionZones || [];
+      loadBalancer.availabilityZones = availabilityZones;
+    };
+
+    let clearSecurityGroupsIfNotInVpc = (loadBalancer) => {
+      if (!loadBalancer.vpcId && !loadBalancer.subnetType) {
+        loadBalancer.securityGroups = null;
       }
     };
 

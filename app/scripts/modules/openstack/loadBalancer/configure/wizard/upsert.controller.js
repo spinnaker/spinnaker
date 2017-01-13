@@ -4,6 +4,7 @@ let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 
@@ -11,7 +12,7 @@ require('../../loadBalancer.less');
 
 module.exports = angular.module('spinnaker.loadBalancer.openstack.create.controller', [
     require('angular-ui-router'),
-    require('core/loadBalancer/loadBalancer.write.service.js'),
+    LOAD_BALANCER_WRITE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     ACCOUNT_SERVICE,
     V2_MODAL_WIZARD_SERVICE,

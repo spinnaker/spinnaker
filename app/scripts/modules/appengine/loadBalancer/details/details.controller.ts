@@ -5,6 +5,10 @@ import {Application} from 'core/application/application.model';
 import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
 import {IAppengineLoadBalancer} from 'appengine/domain/index';
 import {ILoadBalancer} from 'core/domain/index';
+import {
+  LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter,
+  ILoadBalancerDeleteDescription
+} from 'core/loadBalancer/loadBalancer.write.service';
 
 interface ILoadBalancerFromStateParams {
   accountId: string;
@@ -25,7 +29,7 @@ class AppengineLoadBalancerDetailsController {
               private $scope: any,
               private loadBalancerFromParams: ILoadBalancerFromStateParams,
               private app: Application,
-              private loadBalancerWriter: any,
+              private loadBalancerWriter: LoadBalancerWriter,
               private confirmationModalService: ConfirmationModalService) {
     this.app.getDataSource('loadBalancers')
       .ready()
@@ -55,12 +59,12 @@ class AppengineLoadBalancerDetailsController {
     };
 
     let submitMethod = () => {
-      let loadBalancer = cloneDeep(this.loadBalancer) as any;
-      loadBalancer.providerType = loadBalancer.provider;
-      loadBalancer.accountId = loadBalancer.account;
-      return this.loadBalancerWriter.deleteLoadBalancer(loadBalancer, this.app, {
-        loadBalancerName: loadBalancer.name,
-      });
+      const loadBalancer: ILoadBalancerDeleteDescription = {
+        cloudProvider: this.loadBalancer.cloudProvider,
+        loadBalancerName: this.loadBalancer.name,
+        credentials: this.loadBalancer.account,
+      };
+      return this.loadBalancerWriter.deleteLoadBalancer(loadBalancer, this.app);
     };
 
     this.confirmationModalService.confirm({
@@ -137,6 +141,6 @@ class AppengineLoadBalancerDetailsController {
 export const APPENGINE_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.appengine.loadBalancerDetails.controller';
 
 module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [
-  require('core/loadBalancer/loadBalancer.write.service.js'),
+  LOAD_BALANCER_WRITE_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
 ]).controller('appengineLoadBalancerDetailsCtrl', AppengineLoadBalancerDetailsController);

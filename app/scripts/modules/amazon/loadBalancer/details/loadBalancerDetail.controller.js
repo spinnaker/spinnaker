@@ -5,13 +5,14 @@ let angular = require('angular');
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller', [
   require('angular-ui-router'),
   SECURITY_GROUP_READER,
-  require('core/loadBalancer/loadBalancer.write.service.js'),
+  LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   require('core/presentation/collapsibleSection/collapsibleSection.directive.js'),
@@ -132,18 +133,21 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
         return;
       }
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Deleting ' + loadBalancer.name,
         forceRefreshMessage: 'Refreshing application...',
         forceRefreshEnabled: true
       };
 
-      var submitMethod = function () {
-        loadBalancer.providerType = $scope.loadBalancer.type;
-        let vpcId = angular.isDefined($scope.loadBalancer.elb) ? $scope.loadBalancer.elb.vpcid : loadBalancer.vpcId || null;
-        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, app, { vpcId: vpcId });
+      const command = {
+        cloudProvider: $scope.loadBalancer.cloudProvider,
+        loadBalancerName: $scope.loadBalancer.name,
+        regions: [$scope.loadBalancer.region],
+        credentials: $scope.loadBalancer.account,
       };
+
+      const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, app);
 
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',

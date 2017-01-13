@@ -11,6 +11,10 @@ import {GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
 import {ACCOUNT_SERVICE, AccountService, IRegion, IAccount} from 'core/account/account.service';
 import {CommonGceLoadBalancerCtrl} from '../common/commonLoadBalancer.controller';
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
+import {
+  LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter,
+  ILoadBalancerUpsertDescription
+} from 'core/loadBalancer/loadBalancer.write.service';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
@@ -24,6 +28,10 @@ interface IPrivateScope extends ng.IScope {
   $$destroyed: boolean;
 }
 
+interface ISslLoadBalancerUpsertDescription extends ILoadBalancerUpsertDescription {
+  backendService: IGceBackendService;
+}
+
 class SslLoadBalancer implements IGceLoadBalancer {
   stack: string;
   detail: string;
@@ -35,7 +43,8 @@ class SslLoadBalancer implements IGceLoadBalancer {
   account: string;
   certificate: string;
   backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
-
+  get cloudProvider(): string { return 'gce'; };
+  get name(): string { return this.loadBalancerName; }
   constructor (public region = 'global') {}
 }
 
@@ -89,7 +98,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
                private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
                private isNew: boolean,
                private accountService: AccountService,
-               private loadBalancerWriter: any,
+               private loadBalancerWriter: LoadBalancerWriter,
                private wizardSubFormValidation: any,
                private taskMonitorService: any,
                private settings: any,
@@ -192,11 +201,9 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
 
   public submit (): void {
     let descriptor = this.isNew ? 'Create' : 'Update';
-    let toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as any;
-    toSubmitLoadBalancer.cloudProvider = 'gce';
-    toSubmitLoadBalancer.name = toSubmitLoadBalancer.loadBalancerName;
-    toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.loadBalancerName;
-    delete toSubmitLoadBalancer.instances;
+    let toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as ISslLoadBalancerUpsertDescription;
+    toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.name;
+    delete toSubmitLoadBalancer['instances'];
 
     this.taskMonitor.submit(() => this.loadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer,
                                                                              this.application,
@@ -219,6 +226,6 @@ module(GCE_SSL_LOAD_BALANCER_CTRL, [
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   require('core/modal/wizard/wizardSubFormValidation.service.js'),
-  require('core/loadBalancer/loadBalancer.write.service.js'),
+  LOAD_BALANCER_WRITE_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
 ]).controller('gceSslLoadBalancerCtrl', SslLoadBalancerCtrl);

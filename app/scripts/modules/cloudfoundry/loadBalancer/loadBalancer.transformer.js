@@ -64,25 +64,21 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
 
     function constructNewLoadBalancerTemplate() {
       return {
-        provider: 'cf',
+        cloudProvider: 'cf',
         stack: '',
         detail: '',
         credentials: settings.providers.cf ? settings.providers.cf.defaults.account : null,
         region: settings.providers.cf ? settings.providers.cf.defaults.region : null,
-        healthCheckProtocol: 'DUMMY',
-        healthCheckPort: '0'
       };
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {
       return {
-        provider: 'cf',
+        cloudProvider: 'cf',
         stack: loadBalancer.stack,
         detail: loadBalancer.detail,
         credentials: loadBalancer.credentials,
         region: loadBalancer.region,
-        healthCheckProtocol: loadBalancer.healthCheckProtocol,
-        healthCheckPort: loadBalancer.healthCheckPort
       };
     }
 
