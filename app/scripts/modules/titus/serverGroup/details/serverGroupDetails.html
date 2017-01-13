@@ -107,7 +107,7 @@
         <dd>{{serverGroup.region}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Size" expanded="true">
+    <collapsible-section heading="Capacity" expanded="true">
       <dl class="dl-horizontal dl-flex"
           ng-if="serverGroup.capacity.min === serverGroup.capacity.max">
         <dt>Desired</dt>
@@ -125,7 +125,7 @@
         <dd>{{serverGroup.capacity.max}}</dd>
         <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
-        <dt ng-if="serverGroup.capacityGroup">Capacity Group</dt>
+        <dt ng-if="serverGroup.capacityGroup">Cap. Group</dt>
         <dd ng-if="serverGroup.capacityGroup">{{serverGroup.capacityGroup}}</dd>
       </dl>
       <div>
