@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import static java.lang.Boolean.parseBoolean;
 
 @Component
 public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
@@ -69,14 +68,6 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
   @Override
   protected void persistExecution(Pipeline execution) {
     executionRepository.store(execution);
-  }
-
-  private boolean getBoolean(Map<String, ?> map, String key) {
-    return parseBoolean(getString(map, key));
-  }
-
-  private String getString(Map<String, ?> map, String key) {
-    return map.containsKey(key) ? map.get(key).toString() : null;
   }
 
   @Override protected boolean shouldQueue(Pipeline execution) {
