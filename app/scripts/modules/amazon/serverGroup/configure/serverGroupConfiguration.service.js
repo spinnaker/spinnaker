@@ -8,6 +8,7 @@ import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {SERVER_GROUP_COMMAND_REGISTRY_PROVIDER} from 'core/serverGroup/configure/common/serverGroupCommandRegistry.provider';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 let angular = require('angular');
 
@@ -15,7 +16,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
-  require('core/securityGroup/securityGroup.read.service.js'),
+  SECURITY_GROUP_READER,
   SUBNET_READ_SERVICE,
   require('../../instance/awsInstanceType.service.js'),
   require('../../keyPairs/keyPairs.read.service.js'),

@@ -1,15 +1,17 @@
 import {mock} from 'angular';
 
+import Spy = jasmine.Spy;
 import {IApplicationDataSourceAttribute, ApplicationReader, APPLICATION_READ_SERVICE} from './application.read.service';
 import {Api} from '../../api/api.service';
 import {ApplicationDataSourceRegistry} from './applicationDataSource.registry';
 import {Application} from '../application.model';
 import {LOAD_BALANCER_READ_SERVICE, LoadBalancerReader} from 'core/loadBalancer/loadBalancer.read.service';
+import {SECURITY_GROUP_READER, SecurityGroupReader} from 'core/securityGroup/securityGroupReader.service';
 
 describe('Service: applicationReader', function () {
 
   let applicationReader: ApplicationReader;
-  let securityGroupReader: any;
+  let securityGroupReader: SecurityGroupReader;
   let loadBalancerReader: any;
   let clusterService: any;
   let API: Api;
@@ -23,14 +25,14 @@ describe('Service: applicationReader', function () {
       require('../../securityGroup/securityGroup.dataSource'),
       require('../../serverGroup/serverGroup.dataSource'),
       require('../../loadBalancer/loadBalancer.dataSource'),
-      require('../../securityGroup/securityGroup.read.service'),
+      SECURITY_GROUP_READER,
       require('../../cluster/cluster.service'),
       LOAD_BALANCER_READ_SERVICE,
     )
   );
 
   beforeEach(
-    mock.inject(function (_applicationReader_: ApplicationReader, _securityGroupReader_: any,
+    mock.inject(function (_applicationReader_: ApplicationReader, _securityGroupReader_: SecurityGroupReader,
                                   _clusterService_: any, _API_: Api, _$q_: ng.IQService,
                                   _loadBalancerReader_: LoadBalancerReader, $rootScope: ng.IRootScopeService,
                                   _applicationDataSourceRegistry_: ApplicationDataSourceRegistry) {
@@ -73,14 +75,14 @@ describe('Service: applicationReader', function () {
       loadApplication();
       expect(application.attributes.dataSources).toBeUndefined();
       expect(clusterService.loadServerGroups.calls.count()).toBe(1);
-      expect(securityGroupReader.getApplicationSecurityGroups.calls.count()).toBe(1);
+      expect((<Spy>securityGroupReader.getApplicationSecurityGroups).calls.count()).toBe(1);
       expect(loadBalancerReader.loadLoadBalancers.calls.count()).toBe(1);
     });
 
     it ('loads all data sources if disabled dataSource attribute is an empty array', function () {
       loadApplication({ enabled: [], disabled: []});
       expect(clusterService.loadServerGroups.calls.count()).toBe(1);
-      expect(securityGroupReader.getApplicationSecurityGroups.calls.count()).toBe(1);
+      expect((<Spy>securityGroupReader.getApplicationSecurityGroups).calls.count()).toBe(1);
       expect(loadBalancerReader.loadLoadBalancers.calls.count()).toBe(1);
     });
 
@@ -88,7 +90,7 @@ describe('Service: applicationReader', function () {
       let dataSources = { enabled: ['serverGroups'], disabled: ['securityGroups', 'loadBalancers'] };
       loadApplication(dataSources);
       expect(clusterService.loadServerGroups.calls.count()).toBe(1);
-      expect(securityGroupReader.getApplicationSecurityGroups.calls.count()).toBe(0);
+      expect((<Spy>securityGroupReader.getApplicationSecurityGroups).calls.count()).toBe(0);
       expect(loadBalancerReader.loadLoadBalancers.calls.count()).toBe(0);
 
       expect(application.getDataSource('serverGroups').disabled).toBe(false);

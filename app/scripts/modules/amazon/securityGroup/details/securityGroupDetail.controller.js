@@ -1,16 +1,17 @@
 'use strict';
 
 import _ from 'lodash';
-
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-
 let angular = require('angular');
+
+import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
 
 module.exports = angular.module('spinnaker.securityGroup.aws.details.controller', [
   require('angular-ui-router'),
-  require('core/securityGroup/securityGroup.read.service.js'),
-  require('core/securityGroup/securityGroup.write.service.js'),
+  SECURITY_GROUP_READER,
+  SECURITY_GROUP_WRITER,
   CONFIRMATION_MODAL_SERVICE,
   require('../clone/cloneSecurityGroup.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),

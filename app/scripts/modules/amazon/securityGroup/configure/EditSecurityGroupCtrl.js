@@ -1,18 +1,19 @@
 'use strict';
 
 import _ from 'lodash';
-
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
 
 module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
-  require('core/securityGroup/securityGroup.write.service.js'),
+  SECURITY_GROUP_WRITER
 ])
   .controller('awsEditSecurityGroupCtrl', function($scope, $uibModalInstance, $state,
-                                                accountService, securityGroupReader,
+                                                accountService,
                                                 taskMonitorService, application,
                                                 securityGroup, securityGroupWriter, $controller) {
 

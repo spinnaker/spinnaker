@@ -8,13 +8,14 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.configuration.service', [
   LOAD_BALANCER_SET_TRANSFORMER,
   ACCOUNT_SERVICE,
-  require('core/securityGroup/securityGroup.read.service.js'),
+  SECURITY_GROUP_READER,
   CACHE_INITIALIZER_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   NETWORK_READ_SERVICE,

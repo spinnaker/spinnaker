@@ -10,10 +10,9 @@ module.exports = angular
     require('../securityGroup.write.service.js'),
     require('core/region/regionSelectField.directive.js'),
     ACCOUNT_SERVICE,
-    require('core/securityGroup/securityGroup.read.service.js'),
   ])
 
-  .controller('azureCreateSecurityGroupCtrl', function ($scope, $uibModalInstance, $state, $controller, accountService, securityGroupReader,
+  .controller('azureCreateSecurityGroupCtrl', function ($scope, $uibModalInstance, $state, $controller, accountService,
     taskMonitorService, application, securityGroup, azureSecurityGroupWriter) {
 
     $scope.pages = {

@@ -1,10 +1,10 @@
 'use strict';
 
+let angular = require('angular');
+
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {TITUS_MIGRATION_CONFIG_COMPONENT} from './migration/titusMigrationConfig.component';
 import {TITUS_APPLICATION_NAME_VALIDATOR} from './validation/applicationName.validator';
-
-let angular = require('angular');
 
 require('./logo/titus.logo.less');
 

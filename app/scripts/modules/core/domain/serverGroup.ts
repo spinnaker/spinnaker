@@ -25,6 +25,7 @@ export interface ServerGroup {
   instanceCounts: InstanceCounts;
   instanceType?: string;
   instances: Instance[];
+  isDisabled?: boolean;
   launchConfig?: any;
   loadBalancers?: string[];
   name: string;
@@ -32,6 +33,7 @@ export interface ServerGroup {
   region: string;
   runningTasks?: ITask[];
   searchField?: string;
+  securityGroups?: string[];
   stringVal?: string;
   tags?: any;
   type: string;

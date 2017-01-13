@@ -5,10 +5,11 @@ let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuration.service', [
   ACCOUNT_SERVICE,
-  require('core/securityGroup/securityGroup.read.service.js'),
+  SECURITY_GROUP_READER,
   CACHE_INITIALIZER_SERVICE,
   require('../../image/image.reader.js'),
   require('../../instance/cfInstanceTypeService.js'),

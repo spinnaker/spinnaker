@@ -8,7 +8,5 @@ module.exports = angular
     require('./filter/SecurityGroupFilterCtrl.js'),
     require('./securityGroup.pod.directive.js'),
     require('./securityGroup.directive.js'),
-    require('./securityGroup.read.service.js'),
-    require('./securityGroup.write.service.js'),
     require('./securityGroup.dataSource'),
   ]);

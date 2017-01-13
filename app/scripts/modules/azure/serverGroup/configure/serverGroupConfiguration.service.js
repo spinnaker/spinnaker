@@ -1,21 +1,21 @@
 'use strict';
 
 import _ from 'lodash';
+let angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
-
-let angular = require('angular');
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
   ACCOUNT_SERVICE,
   require('../../../netflix/serverGroup/diff/diff.service.js'),
   NAMING_SERVICE,
-  require('core/securityGroup/securityGroup.read.service.js'),
   LOAD_BALANCER_READ_SERVICE,
+  SECURITY_GROUP_READER,
   CACHE_INITIALIZER_SERVICE,
 ])
   .factory('azureServerGroupConfigurationService', function($q, azureImageReader, accountService, securityGroupReader,

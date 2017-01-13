@@ -1,16 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
+let angular = require('angular');
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
-
-let angular = require('angular');
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller', [
   require('angular-ui-router'),
-  require('core/securityGroup/securityGroup.read.service.js'),
+  SECURITY_GROUP_READER,
   require('core/loadBalancer/loadBalancer.write.service.js'),
   LOAD_BALANCER_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,

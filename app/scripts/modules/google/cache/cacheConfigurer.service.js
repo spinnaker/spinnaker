@@ -15,7 +15,6 @@ module.exports = angular.module('spinnaker.gce.cache.initializer', [
   INSTANCE_TYPE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   NETWORK_READ_SERVICE,
-  require('core/securityGroup/securityGroup.read.service.js'),
   SUBNET_READ_SERVICE,
   GCE_HEALTH_CHECK_READER,
   require('../httpHealthCheck/httpHealthCheck.reader.js'),

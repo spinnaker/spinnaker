@@ -1,9 +1,9 @@
 'use strict';
 
+let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
-
-let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.cache.initializer', [
   ACCOUNT_SERVICE,

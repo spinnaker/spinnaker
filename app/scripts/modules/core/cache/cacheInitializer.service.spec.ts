@@ -6,6 +6,7 @@ import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import {APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/service/application.read.service';
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 import {ICache} from 'core/cache/deckCache.service';
+import {SECURITY_GROUP_READER, SecurityGroupReader} from 'core/securityGroup/securityGroupReader.service';
 
 interface IKeys {
   [key: string]: string[];
@@ -26,7 +27,7 @@ describe('Service: cacheInitializer', function () {
   let cacheInitializer: CacheInitializerService;
   let infrastructureCache: InfrastructureCacheService;
   let accountService: AccountService;
-  let securityGroupReader: any;
+  let securityGroupReader: SecurityGroupReader;
   let applicationReader: ApplicationReader;
   let igorService: any;
 
@@ -35,7 +36,7 @@ describe('Service: cacheInitializer', function () {
       CACHE_INITIALIZER_SERVICE,
       INFRASTRUCTURE_CACHE_SERVICE,
       ACCOUNT_SERVICE,
-      require('../securityGroup/securityGroup.read.service'),
+      SECURITY_GROUP_READER,
       APPLICATION_READ_SERVICE,
       require('core/ci/jenkins/igor.service')
     ));
@@ -45,7 +46,7 @@ describe('Service: cacheInitializer', function () {
                           _cacheInitializer_: CacheInitializerService,
                           _infrastructureCaches_: InfrastructureCacheService,
                           _accountService_: AccountService,
-                          _securityGroupReader_: any,
+                          _securityGroupReader_: SecurityGroupReader,
                           _applicationReader_: ApplicationReader,
                           _igorService_: any) {
       $q = _$q_;

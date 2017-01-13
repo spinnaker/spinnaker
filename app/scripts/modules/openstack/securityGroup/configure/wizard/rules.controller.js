@@ -2,9 +2,12 @@
 
 let angular = require('angular');
 
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+
 module.exports = angular.module('spinnaker.securityGroup.configure.openstack.ports', [
-    require('../../transformer.js'),
-    require('../../../common/validateType.directive.js'),
+  require('../../transformer.js'),
+  require('../../../common/validateType.directive.js'),
+  SECURITY_GROUP_READER
 ])
   .controller('openstackSecurityGroupRulesController', function($scope, openstackSecurityGroupTransformer, infrastructureCaches, securityGroupReader, cacheInitializer) {
     this.infiniteScroll = {

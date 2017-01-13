@@ -3,6 +3,7 @@ import {mock} from 'angular';
 import {Application} from './application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from './applicationModel.builder';
 import {ApplicationDataSourceRegistry} from './service/applicationDataSource.registry';
+import {SecurityGroupReader} from 'core/securityGroup/securityGroupReader.service';
 
 import {
   ServerGroup,
@@ -14,7 +15,7 @@ import {IEntityTag, IEntityTags} from '../domain/IEntityTags';
 describe ('Application Model', function () {
 
   let application: Application;
-  let securityGroupReader: any,
+  let securityGroupReader: SecurityGroupReader,
       loadBalancerReader: any,
       clusterService: any,
       $q: ng.IQService,
@@ -31,7 +32,7 @@ describe ('Application Model', function () {
   ));
 
   beforeEach(
-    mock.inject(function (_securityGroupReader_: any, _clusterService_: any, _$q_: ng.IQService, _loadBalancerReader_: any, $rootScope: any,
+    mock.inject(function (_securityGroupReader_: SecurityGroupReader, _clusterService_: any, _$q_: ng.IQService, _loadBalancerReader_: any, $rootScope: any,
                             _applicationModelBuilder_: ApplicationModelBuilder, _applicationDataSourceRegistry_: ApplicationDataSourceRegistry) {
       securityGroupReader = _securityGroupReader_;
       clusterService = _clusterService_;
