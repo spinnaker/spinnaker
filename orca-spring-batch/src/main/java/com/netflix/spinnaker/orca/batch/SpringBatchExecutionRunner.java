@@ -21,7 +21,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
-
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.listeners.StageListener;
@@ -139,7 +138,11 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
 
   private <E extends Execution<E>> JobParameters createJobParameters(E subject) {
     JobParametersBuilder params = new JobParametersBuilder();
-    params.addString("pipeline", subject.getId());
+    if (subject instanceof Pipeline) {
+      params.addString("pipeline", subject.getId());
+    } else if (subject instanceof Orchestration) {
+      params.addString("orchestration", subject.getId());
+    }
 //    params.addString("name", subject.getName());
     params.addString("application", subject.getApplication());
     params.addString("timestamp", String.valueOf(System.currentTimeMillis()));
