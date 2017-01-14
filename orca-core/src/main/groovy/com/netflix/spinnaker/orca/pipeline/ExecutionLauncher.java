@@ -17,10 +17,15 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import lombok.extern.slf4j.Slf4j;
+import static java.lang.Boolean.parseBoolean;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 @Slf4j
 public abstract class ExecutionLauncher<T extends Execution> {
@@ -68,6 +73,24 @@ public abstract class ExecutionLauncher<T extends Execution> {
    * Persist the initial execution configuration.
    */
   protected abstract void persistExecution(T execution);
+
+  protected final boolean getBoolean(Map<String, ?> map, String key) {
+    return parseBoolean(getString(map, key));
+  }
+
+  protected final String getString(Map<String, ?> map, String key) {
+    return map.containsKey(key) ? map.get(key).toString() : null;
+  }
+
+  protected final <K, V> Map<K, V> getMap(Map<String, ?> map, String key) {
+    Map<K, V> result = (Map<K, V>) map.get(key);
+    return result == null ? emptyMap() : result;
+  }
+
+  protected final List<Map<String, Object>> getList(Map<String, ?> map, String key) {
+    List<Map<String, Object>> result = (List<Map<String, Object>>) map.get(key);
+    return result == null ? emptyList() : result;
+  }
 
   /**
    * Hook for subclasses to decide if this execution should be queued or start immediately.
