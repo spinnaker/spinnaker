@@ -1,13 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
-
 let angular = require('angular');
+
+import {NAMING_SERVICE} from 'core/naming/naming.service';
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.validator.service', [
   require('../pipelineConfigProvider.js'),
-  require('../services/pipelineConfigService.js'),
+  PIPELINE_CONFIG_SERVICE,
   NAMING_SERVICE,
 ])
   .factory('pipelineConfigValidator', function($log, pipelineConfig, pipelineConfigService, namingService, $q) {

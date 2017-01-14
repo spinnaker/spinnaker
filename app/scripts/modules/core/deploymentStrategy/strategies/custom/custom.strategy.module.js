@@ -6,7 +6,6 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom', [
   require('./customStrategySelector.directive.js'),
   require('./customStrategySelector.controller.js'),
   require('core/utils/timeFormatters.js'),
-  require('core/pipeline/config/services/pipelineConfigService.js'),
   require('core/config/settings.js'),
 ])
   .config(function(deploymentStrategyConfigProvider, settings) {

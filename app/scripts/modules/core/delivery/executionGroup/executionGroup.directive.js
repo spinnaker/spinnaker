@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+
 require('./executionGroup.less');
 
 module.exports = angular
@@ -11,6 +13,7 @@ module.exports = angular
     require('../triggers/triggersTag.directive.js'),
     require('../triggers/nextRun.component'),
     require('./execution/execution.directive.js'),
+    PIPELINE_CONFIG_SERVICE,
   ])
   .directive('executionGroup', function() {
     return {
@@ -25,8 +28,8 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('executionGroupCtrl', function($scope, $timeout, $state, settings, $stateParams, $uibModal, executionService, collapsibleSectionStateCache,
-                                               ExecutionFilterModel, pipelineConfigService) {
+  .controller('executionGroupCtrl', function($scope, $timeout, $state, $stateParams, $uibModal, executionService,
+                                             collapsibleSectionStateCache, ExecutionFilterModel, pipelineConfigService) {
     this.showDetails = function(executionId) {
       return executionId === $stateParams.executionId &&
         $state.includes('**.execution.**');

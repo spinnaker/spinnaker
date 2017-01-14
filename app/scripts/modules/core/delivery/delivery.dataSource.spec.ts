@@ -1,31 +1,36 @@
 import {mock} from 'angular';
 
 import {Application} from '../application/application.model';
-import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
-import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
+import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
+import {
+  APPLICATION_DATA_SOURCE_REGISTRY,
+  ApplicationDataSourceRegistry
+} from '../application/service/applicationDataSource.registry';
+import {PIPELINE_CONFIG_SERVICE, PipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
 
 describe('Delivery Data Source', function () {
 
   let application: Application,
       executionService: any,
-      pipelineConfigService: any,
-      $scope: any,
-      applicationModelBuilder: any,
-      applicationDataSourceRegistry: any,
+      pipelineConfigService: PipelineConfigService,
+      $scope: ng.IScope,
+      applicationModelBuilder: ApplicationModelBuilder,
+      applicationDataSourceRegistry: ApplicationDataSourceRegistry,
       $q: ng.IQService;
 
   beforeEach(
     mock.module(
       require('./delivery.dataSource'),
       require('./service/execution.service'),
-      require('../pipeline/config/services/pipelineConfigService'),
+      PIPELINE_CONFIG_SERVICE,
       APPLICATION_DATA_SOURCE_REGISTRY,
       APPLICATION_MODEL_BUILDER
   ));
 
   beforeEach(
-    mock.inject(function (_executionService_: any, _pipelineConfigService_: any, _$q_: any, $rootScope: any,
-                            _applicationModelBuilder_: any, _applicationDataSourceRegistry_: any) {
+    mock.inject(function (_executionService_: any, _pipelineConfigService_: PipelineConfigService, _$q_: ng.IQService,
+                          $rootScope: ng.IRootScopeService, _applicationModelBuilder_: ApplicationModelBuilder,
+                          _applicationDataSourceRegistry_: ApplicationDataSourceRegistry) {
       $q = _$q_;
       $scope = $rootScope.$new();
       executionService = _executionService_;

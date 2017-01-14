@@ -4,8 +4,11 @@ import * as _ from 'lodash';
 
 let angular = require('angular');
 
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+
 module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigurer', [
   require('../../overrideRegistry/override.registry.js'),
+  PIPELINE_CONFIG_SERVICE
 ])
   .directive('pipelineConfigurer', function() {
     return {

@@ -2,9 +2,11 @@
 
 let angular = require('angular');
 
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+
 module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.customStrategySelectorController', [
-    ])
-    .controller('CustomStrategySelectorController', function($scope, pipelineConfigService, applicationReader) {
+  PIPELINE_CONFIG_SERVICE,
+]).controller('CustomStrategySelectorController', function($scope, pipelineConfigService, applicationReader) {
 
         if(!$scope.command.strategyApplication) {
             $scope.command.strategyApplication = $scope.command.application;

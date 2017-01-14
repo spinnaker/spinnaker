@@ -4,8 +4,10 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+
 module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
-  require('../../pipeline/config/services/pipelineConfigService.js'),
+  PIPELINE_CONFIG_SERVICE,
 ])
   .controller('CreatePipelineModalCtrl', function($scope, application,
                                                   pipelineConfigService, $uibModalInstance, $log) {
@@ -17,6 +19,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
       application: application.name,
       limitConcurrent: true,
       keepWaitingPipelines: false,
+      parallel: true,
       executionEngine: 'v2'
     };
 
@@ -39,17 +42,14 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
     this.createPipeline = () => {
       var template = $scope.command.template;
       template = angular.copy(template);
-      if ($scope.command.template === noTemplate && $scope.command.parallel) {
-        pipelineConfigService.enableParallelExecution(template);
-      }
 
       template.name = $scope.command.name;
       template.index = application.pipelineConfigs.data.length;
       delete template.id;
 
-      if($scope.command.strategy === true) {
-          template.strategy = true;
-          template.limitConcurrent = false;
+      if ($scope.command.strategy === true) {
+        template.strategy = true;
+        template.limitConcurrent = false;
       }
 
       $scope.viewState.submitting = true;

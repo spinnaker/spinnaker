@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.core.delivery.execution.triggers', [
       controllerAs: 'triggersTagCtrl',
     };
   })
-  .controller('TriggersTagCtrl', function($scope, pipelineConfigService, pipelineConfig) {
+  .controller('TriggersTagCtrl', function($scope, pipelineConfig) {
     $scope.popover = {
       show: false,
     };

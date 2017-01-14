@@ -1,6 +1,8 @@
 import {module} from 'angular';
 import {IMigrationStrategy, PipelineStrategy, RollingPushStrategy, IMigrationStrategyType} from './titusMigrationConfig.component';
 import {Application} from 'core/application/application.model';
+import {PIPELINE_CONFIG_SERVICE, PipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
+import {APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/service/application.read.service';
 
 interface IPipelineOption {
   name: string;
@@ -25,6 +27,9 @@ class TitusMigrationConfigurerController implements ng.IComponentController {
   public migrationOptions: string[] = [RollingPushStrategy.type, PipelineStrategy.type];
 
   static get $inject() { return ['applicationReader', 'pipelineConfigService']; }
+
+  public constructor(private applicationReader: ApplicationReader,
+                     private pipelineConfigService: PipelineConfigService) {}
 
   public pipelineSelected(config: PipelineStrategy): void {
     const selectedPipeline = this.pipelineOptions.find(o => o.id === config.pipelineId);
@@ -112,8 +117,6 @@ class TitusMigrationConfigurerController implements ng.IComponentController {
     Object.assign(config, this.config.config);
     this.config.config = config;
   }
-
-  public constructor(private applicationReader: any, private pipelineConfigService: any) {}
 }
 
 class TitusMigrationConfigurerComponent implements ng.IComponentOptions {
@@ -128,5 +131,7 @@ class TitusMigrationConfigurerComponent implements ng.IComponentOptions {
 
 export const TITUS_MIGRATION_CONFIGURER_COMPONENT = 'spinnaker.titus.migration.configurer.component';
 
-module(TITUS_MIGRATION_CONFIGURER_COMPONENT, [])
-  .component('titusMigrationConfigurer', new TitusMigrationConfigurerComponent());
+module(TITUS_MIGRATION_CONFIGURER_COMPONENT, [
+  APPLICATION_READ_SERVICE,
+  PIPELINE_CONFIG_SERVICE,
+]).component('titusMigrationConfigurer', new TitusMigrationConfigurerComponent());

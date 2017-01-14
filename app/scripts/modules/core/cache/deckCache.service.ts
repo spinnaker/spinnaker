@@ -82,7 +82,7 @@ export interface ICacheFactory {
 }
 
 export interface ICacheConfig {
-  cacheFactory: ICacheFactory;
+  cacheFactory?: ICacheFactory;
   disabled?: boolean;
   get?: (key: string) => string;
   initializers?: Function[];
