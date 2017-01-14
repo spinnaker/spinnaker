@@ -132,7 +132,7 @@
         <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
       </div>
     </collapsible-section>
-    <collapsible-section heading="Health" expanded="true">
+    <collapsible-section heading="Health" expanded="true" ng-if="serverGroup.instanceCounts.total > 0">
       <dl class="dl-horizontal dl-flex" ng-if="serverGroup">
         <dt>Tasks</dt>
         <dd>

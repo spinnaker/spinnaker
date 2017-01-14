@@ -159,7 +159,7 @@
         <view-scaling-activities-link server-group="ctrl.serverGroup"></view-scaling-activities-link>
       </div>
     </collapsible-section>
-    <collapsible-section heading="Health" expanded="true">
+    <collapsible-section heading="Health" expanded="true" ng-if="ctrl.serverGroup.instanceCounts.total > 0">
       <dl class="dl-horizontal dl-flex" ng-if="ctrl.serverGroup">
         <dt>Instances</dt>
         <dd>
