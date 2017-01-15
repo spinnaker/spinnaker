@@ -16,11 +16,28 @@
 
 package com.netflix.spinnaker.orca.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.github.jknack.handlebars.Handlebars;
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateModule;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
 @ConditionalOnProperty("pipelineTemplate.enabled")
 @ComponentScan(basePackageClasses = PipelineTemplateModule.class)
 public class PipelineTemplateConfiguration {
+
+  @Bean
+  Handlebars handlebars() {
+    return new Handlebars();
+  }
+
+  @Bean
+  ObjectMapper pipelineTemplateObjectMapper() {
+    return new ObjectMapper()
+      .enable(SerializationFeature.INDENT_OUTPUT)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  }
 }
