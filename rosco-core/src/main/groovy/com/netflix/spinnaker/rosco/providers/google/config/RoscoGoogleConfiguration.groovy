@@ -56,14 +56,20 @@ class RoscoGoogleConfiguration {
     List<GCEOperatingSystemVirtualizationSettings> baseImages = []
   }
 
+  static class GCEBaseImage extends BakeOptions.BaseImage {
+    boolean isImageFamily
+  }
+
   static class GCEOperatingSystemVirtualizationSettings {
-    BakeOptions.BaseImage baseImage
+    GCEBaseImage baseImage
     GCEVirtualizationSettings virtualizationSettings
   }
 
   @AutoClone(style = AutoCloneStyle.SIMPLE)
   static class GCEVirtualizationSettings {
+    // Either sourceImage or sourceImageFamily should be set. If both are set, sourceImage will take precedence.
     String sourceImage
+    String sourceImageFamily
   }
 
   @PostConstruct

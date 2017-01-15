@@ -14,11 +14,11 @@ RUN mkdir /packer
 
 WORKDIR /packer
 
-RUN wget https://releases.hashicorp.com/packer/0.10.2/packer_0.10.2_linux_amd64.zip
+RUN wget https://releases.hashicorp.com/packer/0.12.1/packer_0.12.1_linux_amd64.zip
 
 RUN apt-get install unzip -y
 
-RUN unzip packer_0.10.2_linux_amd64.zip
+RUN unzip packer_0.12.1_linux_amd64.zip
 
 ENV PATH "/packer:$PATH"
 

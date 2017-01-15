@@ -210,27 +210,38 @@ google:
       useInternalIp: false
       templateFile: gce.json
       baseImages:
+      # This is an example of configuring an explicit source image, as opposed to a source image family:
+      # - baseImage:
+      #     id: precise
+      #     shortDescription: v12.04
+      #     detailedDescription: Ubuntu Precise Pangolin v12.04
+      #     packageType: deb
+      #   virtualizationSettings:
+      #     sourceImage: ubuntu-1204-precise-v20170110
       - baseImage:
           id: precise
           shortDescription: v12.04
           detailedDescription: Ubuntu Precise Pangolin v12.04
           packageType: deb
+          isImageFamily: true
         virtualizationSettings:
-          sourceImage: ubuntu-1204-precise-v20161020
+          sourceImageFamily: ubuntu-1204-lts
       - baseImage:
           id: trusty
           shortDescription: v14.04
           detailedDescription: Ubuntu Trusty Tahr v14.04
           packageType: deb
+          isImageFamily: true
         virtualizationSettings:
-          sourceImage: ubuntu-1404-trusty-v20161020
+          sourceImageFamily: ubuntu-1404-lts
       - baseImage:
           id: xenial
           shortDescription: v16.04
           detailedDescription: Ubuntu Xenial Xerus v16.04
           packageType: deb
+          isImageFamily: true
         virtualizationSettings:
-          sourceImage: ubuntu-1604-xenial-v20161020
+          sourceImageFamily: ubuntu-1604-lts
 
 openstack:
   # The property referenced below, OS_ENABLED, is not set in the

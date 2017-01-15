@@ -82,9 +82,16 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       gce_project_id  : managedGoogleAccount.project,
       gce_zone        : gceBakeryDefaults.zone,
       gce_network     : gceBakeryDefaults.network,
-      gce_source_image: gceVirtualizationSettings.sourceImage,
       gce_target_image: imageName
     ]
+
+    if (gceVirtualizationSettings.sourceImage) {
+      parameterMap.gce_source_image = gceVirtualizationSettings.sourceImage
+    } else if (gceVirtualizationSettings.sourceImageFamily) {
+      parameterMap.gce_source_image_family = gceVirtualizationSettings.sourceImageFamily
+    } else {
+      throw new IllegalArgumentException("No source image or source image family found for '$bakeRequest.base_os'.")
+    }
 
     if (managedGoogleAccount.jsonPath) {
       parameterMap.gce_account_file = managedGoogleAccount.jsonPath
