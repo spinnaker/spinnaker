@@ -67,7 +67,7 @@ describe('Filter: timeFormatters', function() {
       beforeEach(
         window.inject(
           function($filter) {
-            filter = $filter('timestamp');
+            filter = $filter('duration');
           }
         )
       );
