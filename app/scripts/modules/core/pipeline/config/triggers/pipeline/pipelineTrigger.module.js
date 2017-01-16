@@ -1,12 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
-import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
-
 let angular = require('angular');
 
+import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline', [
-  require('../../services/pipelineConfigService.js'),
+  PIPELINE_CONFIG_SERVICE,
   require('../../pipelineConfigProvider.js'),
   APPLICATION_READ_SERVICE,
   require('../trigger.directive.js'),

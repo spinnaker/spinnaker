@@ -2,8 +2,13 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [])
-  .config(function(pipelineConfigProvider) {
+import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+
+module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
+  PIPELINE_CONFIG_SERVICE,
+  APPLICATION_READ_SERVICE,
+]).config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Pipeline',
       description: 'Runs a pipeline',

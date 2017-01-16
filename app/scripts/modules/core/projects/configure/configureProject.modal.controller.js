@@ -1,13 +1,15 @@
 'use strict';
 
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 
 module.exports = angular.module('spinnaker.core.projects.configure.modal.controller', [
   require('../service/project.write.service.js'),
   require('../service/project.read.service.js'),
   ACCOUNT_SERVICE,
-  require('../../pipeline/config/services/pipelineConfigService.js'),
+  PIPELINE_CONFIG_SERVICE,
   require('../../modal/wizard/wizardSubFormValidation.service.js'),
 ])
   .controller('ConfigureProjectModalCtrl', function ($scope, projectConfig, $uibModalInstance, $q,

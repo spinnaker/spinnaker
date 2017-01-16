@@ -1,13 +1,13 @@
 import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
-
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.delivery.dataSource', [
     APPLICATION_DATA_SOURCE_REGISTRY,
     require('./service/execution.service'),
-    require('../pipeline/config/services/pipelineConfigService'),
+    PIPELINE_CONFIG_SERVICE,
     require('../cluster/cluster.service'),
     require('../config/settings'),
   ])

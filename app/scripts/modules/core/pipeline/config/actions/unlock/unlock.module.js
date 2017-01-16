@@ -2,8 +2,10 @@
 
 let angular = require('angular');
 
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+
 module.exports = angular.module('spinnaker.core.pipeline.config.actions.unlock', [
-  require('../../services/services.module.js'),
+  PIPELINE_CONFIG_SERVICE,
 ])
   .controller('unlockPipelineModalCtrl', function($uibModalInstance, pipelineConfigService, pipeline) {
     this.viewState = {};
