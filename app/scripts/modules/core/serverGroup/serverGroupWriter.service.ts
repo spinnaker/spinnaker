@@ -41,7 +41,7 @@ export interface IServerGroupJob extends IJob {
   type?: string;
 }
 
-export class ServerGroupWriterService {
+export class ServerGroupWriter {
 
   static get $inject(): string[] {
     return ['namingService', 'taskExecutor', 'serverGroupTransformer'];
@@ -184,10 +184,10 @@ export class ServerGroupWriterService {
   }
 }
 
-export const SERVER_GROUP_WRITER_SERVICE = 'spinnaker.core.serverGroup.write.service';
-module(SERVER_GROUP_WRITER_SERVICE, [
+export const SERVER_GROUP_WRITER = 'spinnaker.core.serverGroup.write.service';
+module(SERVER_GROUP_WRITER, [
   NAMING_SERVICE,
   TASK_EXECUTOR,
   require('./serverGroup.transformer.js')
 ])
-  .service('serverGroupWriter', ServerGroupWriterService);
+  .service('serverGroupWriter', ServerGroupWriter);

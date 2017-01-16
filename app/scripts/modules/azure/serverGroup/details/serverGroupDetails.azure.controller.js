@@ -3,8 +3,8 @@
 import _ from 'lodash';
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 
 let angular = require('angular');
 
@@ -14,10 +14,10 @@ require('../configure/serverGroup.configure.azure.module.js');
 module.exports = angular.module('spinnaker.azure.serverGroup.details.controller', [
   require('angular-ui-router'),
   require('../configure/serverGroupCommandBuilder.service.js'),
-  SERVER_GROUP_READER_SERVICE,
+  SERVER_GROUP_READER,
   require('core/utils/selectOnDblClick.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WRITER_SERVICE,
+  SERVER_GROUP_WRITER,
 ])
   .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,
                                                      serverGroupReader, azureServerGroupCommandBuilder, $uibModal, confirmationModalService, serverGroupWriter) {

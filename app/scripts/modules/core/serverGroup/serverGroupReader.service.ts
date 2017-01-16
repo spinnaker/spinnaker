@@ -3,7 +3,7 @@ import {module} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {ServerGroup} from 'core/domain';
 
-export class ServerGroupReaderService {
+export class ServerGroupReader {
 
   static get $inject(): string[] {
     return ['$log', 'API'];
@@ -45,6 +45,6 @@ export class ServerGroupReaderService {
   }
 }
 
-export const SERVER_GROUP_READER_SERVICE = 'spinnaker.core.serverGroup.read.service';
-module(SERVER_GROUP_READER_SERVICE, [API_SERVICE])
-  .service('serverGroupReader', ServerGroupReaderService);
+export const SERVER_GROUP_READER = 'spinnaker.core.serverGroup.read.service';
+module(SERVER_GROUP_READER, [API_SERVICE])
+  .service('serverGroupReader', ServerGroupReader);

@@ -3,11 +3,11 @@
 import _ from 'lodash';
 let angular = require('angular');
 
-import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.details.resize.capacity.component', [
-    SERVER_GROUP_WRITER_SERVICE,
+    SERVER_GROUP_WRITER,
   ])
   .component('gceResizeCapacity', {
     bindings: {

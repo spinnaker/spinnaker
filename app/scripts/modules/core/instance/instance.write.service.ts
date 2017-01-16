@@ -1,7 +1,7 @@
 import {module} from 'angular';
 
 import {TASK_EXECUTOR, TaskExecutor, IJob} from 'core/task/taskExecutor';
-import {SERVER_GROUP_READER_SERVICE, ServerGroupReaderService} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
 import {Instance} from 'core/domain/instance';
 import {Application} from 'core/application/application.model';
 import {ITask} from '../task/task.read.service';
@@ -33,7 +33,7 @@ export class InstanceWriter {
   static get $inject() { return ['taskExecutor', 'serverGroupReader', 'serviceDelegate']; }
 
   public constructor(private taskExecutor: TaskExecutor,
-                     private serverGroupReader: ServerGroupReaderService,
+                     private serverGroupReader: ServerGroupReader,
                      private serviceDelegate: any) {}
 
   public terminateInstance(instance: Instance, application: Application, params: IJob = {}): ng.IPromise<ITask> {
@@ -262,6 +262,6 @@ export class InstanceWriter {
 export const INSTANCE_WRITE_SERVICE = 'spinnaker.core.instance.write.service';
 module(INSTANCE_WRITE_SERVICE, [
   TASK_EXECUTOR,
-  SERVER_GROUP_READER_SERVICE,
+  SERVER_GROUP_READER,
   require('core/cloudProvider/serviceDelegate.service'),
 ]).service('instanceWriter', InstanceWriter);

@@ -3,10 +3,10 @@
 import _ from 'lodash';
 let angular = require('angular');
 
-import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.deployInitialization.controller', [
-  SERVER_GROUP_READER_SERVICE,
+  SERVER_GROUP_READER,
   require('../../serverGroupCommandBuilder.service.js'),
 ])
   .controller('awsDeployInitializerCtrl', function($scope, awsServerGroupCommandBuilder, serverGroupReader) {
