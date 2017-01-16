@@ -26,6 +26,7 @@
     "types": [
       "angular",
       "angular-mocks",
+      "angular-ui-bootstrap",
       "angular-ui-router",
       "jasmine",
       "jquery",

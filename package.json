@@ -59,6 +59,7 @@
   "devDependencies": {
     "@types/angular": "^1.5.20",
     "@types/angular-mocks": "0.0.0",
+    "@types/angular-ui-bootstrap": "^0.13.38",
     "@types/angular-ui-router": "^1.1.35",
     "@types/core-js": "^0.9.35",
     "@types/jasmine": "^2.5.38",

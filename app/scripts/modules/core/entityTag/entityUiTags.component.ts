@@ -3,7 +3,7 @@ import {IEntityTag} from 'core/domain';
 import './entityUiTags.component.less';
 import {Application} from '../application/application.model';
 import {EntityTagWriter} from './entityTags.write.service';
-import {IModalService} from '../../../../types/angular-ui-bootstrap';
+import {IModalService} from 'angular-ui-bootstrap';
 import {EntityTagEditorCtrl} from './entityTagEditor.controller';
 
 import './entityUiTags.popover.less';

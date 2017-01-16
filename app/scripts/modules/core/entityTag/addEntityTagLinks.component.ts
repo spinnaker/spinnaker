@@ -1,7 +1,7 @@
 import {module} from 'angular';
 import {has} from 'lodash';
 
-import {IModalService} from '../../../../types/angular-ui-bootstrap';
+import {IModalService} from 'angular-ui-bootstrap';
 
 import {IEntityTag} from 'core/domain';
 import {ENTITY_TAG_EDITOR_CTRL, EntityTagEditorCtrl} from './entityTagEditor.controller';
