@@ -1,9 +1,18 @@
-export interface IOrchestratedItem {
+export interface ITimedItem {
+  startTime: number;
+  endTime: number;
+  runningTimeInMs: number;
+}
+
+export interface IOrchestratedItemVariable {
+  key: string;
+  value: any;
+}
+
+export interface IOrchestratedItem extends ITimedItem {
   getValueFor: (k: string) => any;
   originalStatus: string;
   status: string;
-  startTime: number;
-  endTime: number;
   failureMessage: string;
   isCompleted: boolean;
   isRunning: boolean;
@@ -15,5 +24,4 @@ export interface IOrchestratedItem {
   isSuspended: boolean;
   isPaused: boolean;
   runningTime: string;
-  runningTimeInMs: number;
 }

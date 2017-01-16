@@ -4,10 +4,12 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
+import {ORCHESTRATED_ITEM_TRANSFORMER} from 'core/orchestratedItem/orchestratedItem.transformer';
+
 let executionBarLabelTemplate = require('../../pipeline/config/stages/core/executionBarLabel.html');
 
 module.exports = angular.module('spinnaker.core.delivery.executionTransformer.service', [
-  require('../../orchestratedItem/orchestratedItem.transformer.js'),
+  ORCHESTRATED_ITEM_TRANSFORMER,
   require('../../pipeline/config/pipelineConfigProvider.js'),
 ])
   .factory('executionsTransformer', function(orchestratedItemTransformer, pipelineConfig) {
@@ -32,7 +34,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
         stage.index = index;
         orchestratedItemTransformer.defineProperties(stage);
         if (stage.tasks && stage.tasks.length) {
-          stage.tasks.forEach(orchestratedItemTransformer.addRunningTime);
+          stage.tasks.forEach(t => orchestratedItemTransformer.addRunningTime(t));
         }
       });
 

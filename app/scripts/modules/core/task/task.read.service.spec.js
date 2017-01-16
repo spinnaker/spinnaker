@@ -185,7 +185,7 @@ describe('Service: taskReader', function () {
       $http.whenGET(API.baseUrl + '/tasks/1').respond(200, {
         id: 2,
         status: 'SUCCEEDED',
-        startTime: new Date(),
+        startTime: Date.now(),
         endTime: 0
       });
 
@@ -198,7 +198,7 @@ describe('Service: taskReader', function () {
       $http.whenGET(API.baseUrl + '/tasks/1').respond(200, {
         id: 2,
         status: 'SUCCEEDED',
-        startTime: new Date()
+        startTime: Date.now()
       });
 
       execute();
@@ -207,7 +207,7 @@ describe('Service: taskReader', function () {
     });
 
     it('calculates running time based on start and end times', function () {
-      var start = new Date().getTime(),
+      var start = Date.now(),
           end = start + 120 * 1000;
       $http.whenGET(API.baseUrl + '/tasks/1').respond(200, {
         id: 2,
@@ -222,7 +222,7 @@ describe('Service: taskReader', function () {
     });
 
     it('handles offset between server and client by taking the max value of current time and start time', function () {
-      let now = new Date().getTime(),
+      let now = Date.now(),
           offset = 200000;
       $http.whenGET(API.baseUrl + '/tasks/1').respond(200, {
         id: 2,

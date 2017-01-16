@@ -1,38 +1,38 @@
-'use strict';
+import {mock} from 'angular';
 
-describe('orchestratedItem transformer', function () {
-  var transformer;
+import {ORCHESTRATED_ITEM_TRANSFORMER, OrchestratedItemTransformer} from './orchestratedItem.transformer';
 
-  beforeEach(window.module(
-    require('./orchestratedItem.transformer')
-  ));
+describe('orchestratedItem transformer', () => {
+  let transformer: OrchestratedItemTransformer;
 
-  beforeEach(window.inject(function(orchestratedItemTransformer) {
+  beforeEach(mock.module(ORCHESTRATED_ITEM_TRANSFORMER));
+
+  beforeEach(mock.inject((orchestratedItemTransformer: OrchestratedItemTransformer) => {
     transformer = orchestratedItemTransformer;
   }));
 
-  describe('failure message extraction', function () {
+  describe('failure message extraction', () => {
 
-    let getMessage = (obj) => {
+    let getMessage = (obj: any) => {
       transformer.defineProperties(obj);
       return obj.failureMessage;
     };
 
 
-    it('returns null when no stage context', function() {
+    it('returns null when no stage context', () => {
       expect(getMessage({})).toBe(null);
     });
 
-    it('returns null when no kato.tasks field in stage context', function() {
+    it('returns null when no kato.tasks field in stage context', () => {
       expect(getMessage({context: {}})).toBe(null);
     });
 
-    it('returns null when kato.tasks field in stage context is empty', function() {
+    it('returns null when kato.tasks field in stage context is empty', () => {
       expect(getMessage({context: { 'kato.tasks': []}})).toBe(null);
     });
 
-    it('returns null when last kato task has no exception', function() {
-      var stage = {
+    it('returns null when last kato task has no exception', () => {
+      let stage = {
         context: {
           'kato.tasks': [
             {
@@ -49,14 +49,14 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(stage)).toBe(null);
     });
 
-    it('returns general exception if present', function() {
+    it('returns general exception if present', () => {
       expect(getMessage({context: { 'exception': { 'details' : { 'errors': ['E1', 'E2']}}}})).toBe('E1, E2');
       expect(getMessage({context: { 'exception': { 'details' : { 'errors': []}}}})).toBe(null);
       expect(getMessage({context: { }})).toBe(null);
     });
 
-    it('returns general exception even if a kato task is present', function() {
-      var stage = {
+    it('returns general exception even if a kato task is present', () => {
+      let stage = {
         context: {
           'kato.tasks': [
             {
@@ -75,8 +75,8 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(stage)).toBe('E1, E2');
     });
 
-    it('returns exception when it is in the last kato task', function() {
-      var stage = {
+    it('returns exception when it is in the last kato task', () => {
+      let stage = {
         context: {
           'kato.tasks': [
             {
@@ -93,7 +93,7 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(stage)).toBe('failed!');
     });
 
-    it ('extracts exception object from variables', function () {
+    it ('extracts exception object from variables', () => {
       let task = {
         variables: [
           {
@@ -110,7 +110,7 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(task)).toBe('From exception object');
     });
 
-    it('prefers "errors" to "error" and expects them to be an array in exception object', function () {
+    it('prefers "errors" to "error" and expects them to be an array in exception object', () => {
       let task = {
         variables: [
           {
@@ -130,7 +130,7 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(task)).toBe('error 1, error 2');
     });
 
-    it('returns null if an exception variable is present but has no details', function () {
+    it('returns null if an exception variable is present but has no details', () => {
       let task = {
         variables: [
           {
@@ -142,7 +142,7 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(task)).toBe(null);
     });
 
-    it('falls back to extracting last orchestration message if no exception found in variables', function () {
+    it('falls back to extracting last orchestration message if no exception found in variables', () => {
       let task = {
         variables: [
           {
@@ -161,7 +161,7 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(task)).toBe('i am terrible');
     });
 
-    it('prefers message from kato exception object if present', function () {
+    it('prefers message from kato exception object if present', () => {
       let task = {
         variables: [
           {
@@ -182,7 +182,7 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(task)).toBe('I am the exception');
     });
 
-    it('returns null if kato exception object does not have a message property', function () {
+    it('returns null if kato exception object does not have a message property', () => {
       let task = {
         variables: [
           {
@@ -201,14 +201,14 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(task)).toBe(null);
     });
 
-    it('returns null if no kato exception and no history', function () {
+    it('returns null if no kato exception and no history', () => {
       let task = {
         variables: [
           {
             key: 'kato.tasks',
             value: [
               {
-                history: [],
+                history: [] as any[],
               }
             ]
           }
@@ -217,7 +217,7 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(task)).toBe(null);
     });
 
-    it('gets orchestration message from last kato task', function () {
+    it('gets orchestration message from last kato task', () => {
       let task = {
         variables: [
           {
@@ -240,52 +240,8 @@ describe('orchestratedItem transformer', function () {
       expect(getMessage(task)).toBe('i am the second');
     });
 
-    it('returns null if no failure message is present', function () {
+    it('returns null if no failure message is present', () => {
       expect(getMessage({ status: 'SUCCEEDED' })).toBe(null);
     });
-
-    it('returns null if tide task succeeded', function () {
-      let task = {
-        variables: [
-          {
-            key: 'tide.task',
-            value: {
-              taskComplete: { status: 'success', message: 'the message' }
-            }
-          }
-        ]
-      };
-      expect(getMessage(task)).toBe(null);
-      task.variables[0].value.taskComplete.status = 'failure';
-
-      expect(getMessage(task)).toBe('the message');
-
-    });
-
-    it('prefers task exception over tide exception if present', function () {
-      let task = {
-        variables: [
-          {
-            key: 'exception',
-            value: {
-              details: {
-                error: 'From exception object'
-              }
-            }
-          },
-          {
-            key: 'tide.task',
-            value: {
-              taskComplete: { status: 'success', message: 'the message' }
-            }
-          }
-        ]
-      };
-      expect(getMessage(task)).toBe('From exception object');
-    });
-
-
-
-
   });
 });
