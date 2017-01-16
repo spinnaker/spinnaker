@@ -43,15 +43,6 @@ public class RenderEngine {
   }
 
 
-  /**
-   * Render each template, merge into PipelineTemplate, then overlay TemplateConfiguration.
-   *
-   * The PipelineTemplate needs to be part of the context.
-   *
-   * Template render order
-   * 1. Render modules, FIFO
-   * 2. Render stages, FIFO
-   */
   public void render(PipelineTemplate template, TemplateConfiguration templateConfiguration) {
     RenderContext context = new RenderContext(templateConfiguration.getPipeline().getApplication(), template);
     context.putAll(templateConfiguration.getPipeline().getVariables());

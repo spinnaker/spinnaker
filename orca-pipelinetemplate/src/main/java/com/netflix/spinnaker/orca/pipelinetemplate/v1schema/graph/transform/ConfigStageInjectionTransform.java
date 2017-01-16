@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Replaces & injects configuration-defined stages into the pipeline template.
+ * Replaces and injects configuration-defined stages into the pipeline template.
  *
  * If the template does not have any stages, all stages from the configuration
  * will be added. This can be useful in situations where users want to publish
