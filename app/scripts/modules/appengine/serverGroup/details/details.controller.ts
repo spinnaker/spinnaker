@@ -3,8 +3,8 @@ import {find, cloneDeep, reduce, mapValues, get, map} from 'lodash';
 
 import {Execution, ServerGroup} from 'core/domain/index';
 import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
-import {SERVER_GROUP_READER_SERVICE, ServerGroupReaderService} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER_SERVICE, ServerGroupWriterService} from 'core/serverGroup/serverGroupWriter.service';
+import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER, ServerGroupWriter} from 'core/serverGroup/serverGroupWriter.service';
 import {Application} from 'core/application/application.model';
 import {IAppengineLoadBalancer, IAppengineServerGroup} from 'appengine/domain/index';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE, ServerGroupWarningMessageService} from 'core/serverGroup/details/serverGroupWarningMessage.service';
@@ -73,8 +73,8 @@ class AppengineServerGroupDetailsController {
               private $scope: IPrivateScope,
               serverGroup: IServerGroupFromStateParams,
               private app: Application,
-              private serverGroupReader: ServerGroupReaderService,
-              private serverGroupWriter: ServerGroupWriterService,
+              private serverGroupReader: ServerGroupReader,
+              private serverGroupWriter: ServerGroupWriter,
               private serverGroupWarningMessageService: ServerGroupWarningMessageService,
               private confirmationModalService: ConfirmationModalService,
               private runningExecutionsService: any,
@@ -446,8 +446,8 @@ module(APPENGINE_SERVER_GROUP_DETAILS_CTRL, [
     APPENGINE_SERVER_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-    SERVER_GROUP_READER_SERVICE,
-    SERVER_GROUP_WRITER_SERVICE,
+    SERVER_GROUP_READER,
+    SERVER_GROUP_WRITER,
     require('core/serverGroup/configure/common/runningExecutions.service.js'),
   ])
   .controller('appengineServerGroupDetailsCtrl', AppengineServerGroupDetailsController);

@@ -3,14 +3,14 @@
 import {Observable, Subject} from 'rxjs';
 import _ from 'lodash';
 
-import {DOCKER_IMAGE_READER_SERVICE} from 'docker/image/docker.image.reader.service';
+import {DOCKER_IMAGE_READER} from 'docker/image/docker.image.reader.service';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.triggers.docker.options.directive', [
     require('core/config/settings.js'),
-    DOCKER_IMAGE_READER_SERVICE,
+    DOCKER_IMAGE_READER,
   ])
   .directive('dockerTriggerOptions', function () {
     return {

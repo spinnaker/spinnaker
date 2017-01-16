@@ -6,8 +6,8 @@ let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
-import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 
 require('../configure/serverGroup.configure.openstack.module.js');
@@ -16,12 +16,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   require('angular-ui-router'),
   require('core/application/modal/platformHealthOverride.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WRITER_SERVICE,
+  SERVER_GROUP_WRITER,
   SECURITY_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   require('core/overrideRegistry/override.registry.js'),
   ACCOUNT_SERVICE,
-  SERVER_GROUP_READER_SERVICE,
+  SERVER_GROUP_READER,
   require('../configure/ServerGroupCommandBuilder.js'),
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable

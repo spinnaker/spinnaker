@@ -4,8 +4,8 @@ import _ from 'lodash';
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 
 let angular = require('angular');
@@ -15,9 +15,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
   ACCOUNT_SERVICE,
   require('../configure/ServerGroupCommandBuilder.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_READER_SERVICE,
+  SERVER_GROUP_READER,
   CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WRITER_SERVICE,
+  SERVER_GROUP_WRITER,
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('./resize/resizeServerGroup.controller'),
   require('core/modal/closeable/closeable.modal.controller.js'),

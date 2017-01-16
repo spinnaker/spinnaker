@@ -1,6 +1,6 @@
 'use strict';
 
-import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 
 let template = require('./resizeServerGroup.html');
 
@@ -18,7 +18,7 @@ describe('Controller: gceResizeServerGroupCtrl', function () {
     window.module(
       require('./resizeServerGroup.controller'),
       require('../../../autoscalingPolicy/autoscalingPolicy.write.service.js'),
-      SERVER_GROUP_WRITER_SERVICE
+      SERVER_GROUP_WRITER
     )
   );
 

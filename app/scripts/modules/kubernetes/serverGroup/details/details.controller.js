@@ -3,8 +3,8 @@
 import _ from 'lodash';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
-import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
+import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 
 let angular = require('angular');
 
@@ -14,8 +14,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
   CONFIRMATION_MODAL_SERVICE,
   require('core/serverGroup/configure/common/runningExecutions.service.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_READER_SERVICE,
-  SERVER_GROUP_WRITER_SERVICE,
+  SERVER_GROUP_READER,
+  SERVER_GROUP_WRITER,
   require('core/utils/selectOnDblClick.directive.js'),
   require('../paramsMixin.js'),
 ])

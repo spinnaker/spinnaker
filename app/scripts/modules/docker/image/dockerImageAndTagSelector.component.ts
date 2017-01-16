@@ -2,7 +2,7 @@ import {isString, trim} from 'lodash';
 import {module} from 'angular';
 import {ACCOUNT_SERVICE, AccountService, IAccount} from 'core/account/account.service';
 import {IFindImageParams} from 'core/image/image.reader';
-import {DOCKER_IMAGE_READER_SERVICE, DockerImageReaderService, IDockerImage} from './docker.image.reader.service';
+import {DOCKER_IMAGE_READER, DockerImageReaderService, IDockerImage} from './docker.image.reader.service';
 
 interface IViewState {
   imagesLoading: boolean;
@@ -245,5 +245,5 @@ class DockerImageAndTagSelectorComponent implements ng.IComponentOptions {
 }
 
 export const DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT = 'spinnaker.deck.docker.imageAndTagSelector.component';
-module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, [ACCOUNT_SERVICE, DOCKER_IMAGE_READER_SERVICE])
+module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, [ACCOUNT_SERVICE, DOCKER_IMAGE_READER])
   .component('dockerImageAndTagSelector', new DockerImageAndTagSelectorComponent());

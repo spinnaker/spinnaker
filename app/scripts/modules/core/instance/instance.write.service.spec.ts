@@ -1,7 +1,7 @@
 import {mock} from 'angular';
 
 import {INSTANCE_WRITE_SERVICE, InstanceWriter, IMultiInstanceGroup} from 'core/instance/instance.write.service';
-import {ServerGroupReaderService} from '../serverGroup/serverGroupReader.service';
+import {ServerGroupReader} from '../serverGroup/serverGroupReader.service';
 import {TaskExecutor, ITaskCommand, IJob} from '../task/taskExecutor';
 import {Instance} from '../domain/instance';
 import {Application} from '../application/application.model';
@@ -10,7 +10,7 @@ import {ServerGroup} from '../domain/serverGroup';
 
 describe('Service: instance writer', function () {
   let service: InstanceWriter,
-    serverGroupReader: ServerGroupReaderService,
+    serverGroupReader: ServerGroupReader,
     taskExecutor: TaskExecutor,
     $q: ng.IQService,
     $scope: ng.IScope,
@@ -28,7 +28,7 @@ describe('Service: instance writer', function () {
   beforeEach(
     mock.inject((instanceWriter: InstanceWriter,
                  _taskExecutor_: TaskExecutor,
-                 _serverGroupReader_: ServerGroupReaderService,
+                 _serverGroupReader_: ServerGroupReader,
                  _$q_: ng.IQService,
                  $rootScope: ng.IRootScopeService,
                  _applicationModelBuilder_: ApplicationModelBuilder,

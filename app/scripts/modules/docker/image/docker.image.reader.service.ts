@@ -34,6 +34,6 @@ export class DockerImageReaderService implements IImageReader {
   }
 }
 
-export const DOCKER_IMAGE_READER_SERVICE = 'spinnaker.docker.image.reader';
-module(DOCKER_IMAGE_READER_SERVICE, [API_SERVICE, RETRY_SERVICE])
+export const DOCKER_IMAGE_READER = 'spinnaker.docker.image.reader';
+module(DOCKER_IMAGE_READER, [API_SERVICE, RETRY_SERVICE])
   .service('dockerImageReader', DockerImageReaderService);

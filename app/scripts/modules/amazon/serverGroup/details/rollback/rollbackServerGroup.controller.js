@@ -2,11 +2,11 @@
 
 let angular = require('angular');
 
-import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
+import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.controller', [
       require('core/application/modal/platformHealthOverride.directive.js'),
-      SERVER_GROUP_WRITER_SERVICE,
+      SERVER_GROUP_WRITER,
       require('core/task/monitor/taskMonitorService.js'),
       require('../../../common/footer.directive.js'),
     ])

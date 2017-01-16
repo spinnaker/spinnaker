@@ -2,7 +2,7 @@ import {copy, module} from 'angular';
 import {merge, get} from 'lodash';
 
 import {Application} from 'core/application/application.model';
-import {SERVER_GROUP_WRITER_SERVICE, ServerGroupWriterService} from 'core/serverGroup/serverGroupWriter.service';
+import {SERVER_GROUP_WRITER, ServerGroupWriter} from 'core/serverGroup/serverGroupWriter.service';
 import {IAppengineServerGroupCommand, AppengineServerGroupCommandBuilder} from '../serverGroupCommandBuilder.service';
 
 import './serverGroupWizard.less';
@@ -32,7 +32,7 @@ class AppengineCloneServerGroupCtrl {
               public serverGroupCommand: IAppengineServerGroupCommand,
               private application: Application,
               private taskMonitorService: any,
-              private serverGroupWriter: ServerGroupWriterService,
+              private serverGroupWriter: ServerGroupWriter,
               private commandBuilder: AppengineServerGroupCommandBuilder) {
 
     if (['create', 'editPipeline'].includes(get<string>(serverGroupCommand, 'viewStage.mode'))) {
@@ -74,5 +74,5 @@ class AppengineCloneServerGroupCtrl {
 }
 
 export const APPENGINE_CLONE_SERVER_GROUP_CTRL = 'spinnaker.appengine.cloneServerGroup.controller';
-module(APPENGINE_CLONE_SERVER_GROUP_CTRL, [SERVER_GROUP_WRITER_SERVICE])
+module(APPENGINE_CLONE_SERVER_GROUP_CTRL, [SERVER_GROUP_WRITER])
   .controller('appengineCloneServerGroupCtrl', AppengineCloneServerGroupCtrl);
