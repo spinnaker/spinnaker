@@ -42,13 +42,6 @@ module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer',
       return instanceCounts;
     }
 
-    function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-      return serverGroup.type === 'kubernetes' &&
-        serverGroup.account === loadBalancer.account &&
-        serverGroup.namespace === loadBalancer.namespace &&
-        serverGroup.loadBalancers.includes(loadBalancer.name);
-    }
-
     function constructNewLoadBalancerTemplate() {
       return {
         provider: 'kubernetes',
@@ -78,7 +71,6 @@ module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer',
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
-      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing
     };
   });

@@ -30,14 +30,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
       return $q.resolve(loadBalancer);
     }
 
-    function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-      return serverGroup.type === 'azure' &&
-        serverGroup.account === loadBalancer.account &&
-        serverGroup.region === loadBalancer.region &&
-        (typeof loadBalancer.vpcId === 'undefined' || serverGroup.vpcId === loadBalancer.vpcId) &&
-        serverGroup.loadBalancers.includes(loadBalancer.name);
-    }
-
     function convertLoadBalancerForEditing(loadBalancer) {
       var toEdit = {
         editMode: true,
@@ -106,7 +98,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
 
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
-      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };

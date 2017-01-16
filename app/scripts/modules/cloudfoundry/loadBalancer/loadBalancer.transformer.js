@@ -62,13 +62,6 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
       return $q.when(loadBalancer);
     }
 
-    function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-      return serverGroup.type === 'cf' &&
-        serverGroup.account === loadBalancer.account &&
-        serverGroup.region === loadBalancer.region &&
-        serverGroup.loadBalancers.includes(loadBalancer.name);
-    }
-
     function constructNewLoadBalancerTemplate() {
       return {
         provider: 'cf',
@@ -95,7 +88,6 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
 
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
-      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
     };

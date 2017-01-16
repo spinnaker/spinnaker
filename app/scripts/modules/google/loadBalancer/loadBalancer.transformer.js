@@ -65,13 +65,6 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
       return $q.when(loadBalancer);
     }
 
-    function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-      return serverGroup.type === 'gce' &&
-        serverGroup.account === loadBalancer.account &&
-        (serverGroup.region === loadBalancer.region || loadBalancer.region === 'global') &&
-        serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
-    }
-
     function convertLoadBalancerForEditing(loadBalancer) {
       var toEdit = {
         provider: 'gce',
@@ -157,7 +150,6 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
 
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
-      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };

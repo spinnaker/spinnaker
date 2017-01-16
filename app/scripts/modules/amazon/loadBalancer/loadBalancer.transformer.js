@@ -74,14 +74,6 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
       return vpcReader.listVpcs().then(addVpcNameToLoadBalancer(loadBalancer));
     }
 
-    function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-      return serverGroup.type === 'aws' &&
-        serverGroup.account === loadBalancer.account &&
-        serverGroup.region === loadBalancer.region &&
-        (typeof loadBalancer.vpcId === 'undefined' || serverGroup.vpcId === loadBalancer.vpcId) &&
-        serverGroup.loadBalancers.includes(loadBalancer.name);
-    }
-
     function convertLoadBalancerForEditing(loadBalancer) {
       var toEdit = {
         editMode: true,
@@ -177,7 +169,6 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
 
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
-      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };
