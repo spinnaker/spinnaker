@@ -55,9 +55,27 @@ describe('Filter: timeFormatters', function() {
       it('returns nothing when invalid values are provided', function() {
         expect(filter()).toBe('-');
         expect(filter(null)).toBe('-');
+        expect(filter(-1)).toBe('-');
+        expect(filter('a')).toBe('-');
       });
       it('returns formatted date when valid value is provided', function () {
         expect(filter(1445707299020)).toBe('2015-10-24 17:21:39 GMT');
+      });
+    });
+
+    describe('duration', function () {
+      beforeEach(
+        window.inject(
+          function($filter) {
+            filter = $filter('timestamp');
+          }
+        )
+      );
+      it('returns nothing when invalid values are provided', function () {
+        expect(filter()).toBe('-');
+        expect(filter(null)).toBe('-');
+        expect(filter(-1)).toBe('-');
+        expect(filter('a')).toBe('-');
       });
     });
   });

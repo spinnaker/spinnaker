@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.core.utils.timeFormatters', [
   .filter('timestamp', function(momentService, settings) {
     return function(input) {
       var tz = settings.defaultTimeZone || 'America/Los_Angeles';
-      if (!input) {
+      if (!input || isNaN(input) || input < 0) {
         return '-';
       }
       var moment = momentService.tz(isNaN(parseInt(input)) ? input : parseInt(input), tz);
@@ -24,6 +24,9 @@ module.exports = angular.module('spinnaker.core.utils.timeFormatters', [
   })
   .filter('duration', function(momentService) {
     return function(input) {
+      if (!input || isNaN(input) || input < 0) {
+        return '-';
+      }
       var moment = momentService.utc(isNaN(parseInt(input)) ? input : parseInt(input));
       var format = moment.hours() ? 'HH:mm:ss' : 'mm:ss';
       var dayLabel = '';

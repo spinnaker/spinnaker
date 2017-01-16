@@ -124,6 +124,9 @@ export class OrchestratedItemTransformer {
 
   private calculateRunningTime(item: IOrchestratedItem): () => number {
     return () => {
+      if (!item.startTime) {
+        return null;
+      }
       const normalizedNow: number = Math.max(Date.now(), item.startTime);
       return (item.endTime || normalizedNow) - item.startTime;
     };
