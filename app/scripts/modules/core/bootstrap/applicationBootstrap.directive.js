@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
+import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
+
 module.exports = angular.module('spinnaker.applicationBootstrap', [
   require('../navigation/stateactive.directive.js'),
+  OVERRIDE_REGISTRY,
 ])
 .directive('spinnaker', function() {
   return {

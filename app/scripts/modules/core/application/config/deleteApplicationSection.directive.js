@@ -1,15 +1,17 @@
 'use strict';
 
+const angular = require('angular');
+
 import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-
-const angular = require('angular');
+import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 
 module.exports = angular
   .module('spinnaker.core.application.config.delete.directive', [
     require('angular-ui-router'),
     APPLICATION_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
+    OVERRIDE_REGISTRY,
 
   ])
   .directive('deleteApplicationSection', function (overrideRegistry) {

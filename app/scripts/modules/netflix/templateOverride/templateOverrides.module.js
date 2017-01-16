@@ -2,9 +2,11 @@
 
 const angular = require('angular');
 
+import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
+
 module.exports = angular
   .module('spinnaker.netflix.templateOverride.templateOverrides', [
-    require('core/overrideRegistry/override.registry.js'),
+    OVERRIDE_REGISTRY,
     require('core/config/settings.js'),
   ])
   .run(function(overrideRegistry, settings) {

@@ -1,11 +1,12 @@
 'use strict';
 
+let angular = require('angular');
+
 import {ANY_FIELD_FILTER} from '../presentation/anyFieldFilter/anyField.filter';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
 import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
-
-let angular = require('angular');
+import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 
 module.exports = angular.module('spinnaker.applications.controller', [
   require('angular-ui-router'),
@@ -15,7 +16,7 @@ module.exports = angular.module('spinnaker.applications.controller', [
   VIEW_STATE_CACHE_SERVICE,
   require('../presentation/sortToggle/sorttoggle.directive.js'),
   require('../insight/insightmenu.directive.js'),
-  require('../overrideRegistry/override.registry.js'),
+  OVERRIDE_REGISTRY,
 ])
   .controller('ApplicationsCtrl', function($scope, $uibModal, $log, $filter, accountService,
                                            $state, applicationReader, viewStateCache, overrideRegistry) {

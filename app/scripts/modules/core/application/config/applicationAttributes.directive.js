@@ -4,10 +4,12 @@ import {get} from 'lodash';
 
 const angular = require('angular');
 
+import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
+
 module.exports = angular
   .module('spinnaker.core.application.config.attributes.directive', [
     require('../modal/editApplication.controller.modal.js'),
-    require('../../overrideRegistry/override.registry.js'),
+    OVERRIDE_REGISTRY,
   ])
   .directive('applicationAttributes', function (overrideRegistry) {
     return {
