@@ -16,7 +16,7 @@ don't trust the ones I provide.
    `./images/redis`.
 
 2. `quay.io/spinnaker/SERVICE:master` can be rebuilt at head of
-   https://github.com/spinnaker/SERVICE
+   https://github.com/spinnaker/SERVICE . ( SERVICE refers to an individual Spinnaker component, e.g, deck, orca, clouddriver, etc. The full list can be found at https://quay.io/organization/spinnaker ).  
 
 ## Configuring Kubernetes
 
