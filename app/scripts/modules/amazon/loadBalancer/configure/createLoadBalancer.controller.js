@@ -9,6 +9,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 let angular = require('angular');
 
@@ -18,7 +19,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   LOAD_BALANCER_READ_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
-  require('core/securityGroup/securityGroup.read.service.js'),
+  SECURITY_GROUP_READER,
   V2_MODAL_WIZARD_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
   SUBNET_READ_SERVICE,

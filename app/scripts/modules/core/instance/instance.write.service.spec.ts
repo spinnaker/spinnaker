@@ -6,7 +6,6 @@ import {TaskExecutor, ITaskCommand, IJob} from '../task/taskExecutor';
 import {Instance} from '../domain/instance';
 import {Application} from '../application/application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from '../application/applicationModel.builder';
-import {ITask} from '../task/task.read.service';
 import {ServerGroup} from '../domain/serverGroup';
 
 describe('Service: instance writer', function () {

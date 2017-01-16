@@ -1,19 +1,19 @@
 'use strict';
 
 import _ from 'lodash';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-
 let angular = require('angular');
+
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 module.exports = angular.module('spinnaker.securityGroup.cf.details.controller', [
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
-  require('core/securityGroup/securityGroup.read.service.js'),
-  require('core/securityGroup/securityGroup.write.service.js'),
+  SECURITY_GROUP_READER,
   require('core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('cfSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app,
-                                                    securityGroupWriter, securityGroupReader) {
+  .controller('cfSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService,
+                                                      app, securityGroupReader) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;

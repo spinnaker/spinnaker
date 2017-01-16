@@ -1,9 +1,12 @@
  'use strict';
 
+ import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+
  describe('Controller: Azure.CreateSecurityGroup', function () {
 
    beforeEach(
      window.module(
+       SECURITY_GROUP_READER,
        require('./CreateSecurityGroupCtrl.js')
      )
    );

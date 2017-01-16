@@ -423,10 +423,12 @@ class AppengineServerGroupDetailsController {
           this.app.getDataSource('loadBalancers').data.some((loadBalancer) => {
             if (loadBalancer.account === fromParams.accountId) {
               return loadBalancer.serverGroups.some((toCheck: ServerGroup) => {
+                let result = false;
                 if (toCheck.name === fromParams.name) {
                   fromApp = toCheck;
-                  return true;
+                  result = true;
                 }
+                return result;
               });
             }
           });

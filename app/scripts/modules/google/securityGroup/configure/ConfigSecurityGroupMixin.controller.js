@@ -1,20 +1,24 @@
 'use strict';
 
 import _ from 'lodash';
+var angular = require('angular');
+
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
 
-var angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.baseConfig.controller', [
     require('angular-ui-router'),
     require('core/task/monitor/taskMonitorService.js'),
-    require('core/securityGroup/securityGroup.write.service.js'),
     ACCOUNT_SERVICE,
     NETWORK_READ_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
+    SECURITY_GROUP_READER,
+    SECURITY_GROUP_WRITER
   ])
   .controller('gceConfigSecurityGroupMixin', function ($scope,
                                                        $state,

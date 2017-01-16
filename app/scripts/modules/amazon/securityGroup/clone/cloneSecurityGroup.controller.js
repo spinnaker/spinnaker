@@ -9,11 +9,10 @@ module.exports = angular
   .module('spinnaker.amazon.securityGroup.clone.controller', [
     ACCOUNT_SERVICE,
     require('core/task/monitor/taskMonitorService.js'),
-    require('core/securityGroup/securityGroup.write.service.js'),
     require('../../vpc/vpc.read.service.js'),
     require('../configure/configSecurityGroup.mixin.controller.js')
   ])
-  .controller('awsCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, securityGroup, application) {
+  .controller('awsCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, taskMonitorService, accountService, securityGroup, application) {
     var vm = this;
 
     $scope.pages = {

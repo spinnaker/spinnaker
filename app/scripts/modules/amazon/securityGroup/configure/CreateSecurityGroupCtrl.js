@@ -9,11 +9,9 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
   INFRASTRUCTURE_CACHE_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
-  require('core/securityGroup/securityGroup.read.service.js'),
   require('core/config/settings.js'),
 ])
   .controller('awsCreateSecurityGroupCtrl', function($scope, $uibModalInstance, $state, $controller,
-                                                  securityGroupReader,
                                                   taskMonitorService, cacheInitializer, infrastructureCaches,
                                                   application, securityGroup, settings ) {
 

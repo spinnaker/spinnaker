@@ -4,12 +4,13 @@ import _ from 'lodash';
 let angular = require('angular');
 
 import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.securityGroup.editSecurityGroups.modal.controller', [
   require('core/task/monitor/taskMonitor.module.js'),
   SERVER_GROUP_WRITER_SERVICE,
-  require('core/securityGroup/securityGroup.read.service'),
+  SECURITY_GROUP_READER,
   TASK_EXECUTOR,
 ])
   .controller('EditSecurityGroupsCtrl', function($scope, $uibModalInstance, taskMonitorService, taskExecutor,

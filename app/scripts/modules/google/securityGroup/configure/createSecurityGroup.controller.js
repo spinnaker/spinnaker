@@ -9,10 +9,9 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   require('core/task/monitor/taskMonitorService.js'),
-  require('core/securityGroup/securityGroup.read.service.js'),
 ])
   .controller('gceCreateSecurityGroupCtrl', function($scope, $uibModalInstance, $state, $controller,
-                                                  accountService, securityGroupReader,
+                                                  accountService,
                                                   taskMonitorService, infrastructureCaches,
                                                   application, securityGroup ) {
 

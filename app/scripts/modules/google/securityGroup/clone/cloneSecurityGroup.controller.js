@@ -9,10 +9,9 @@ module.exports = angular
   .module('spinnaker.google.securityGroup.clone.controller', [
     ACCOUNT_SERVICE,
     require('core/task/monitor/taskMonitorService.js'),
-    require('core/securityGroup/securityGroup.write.service.js'),
     require('../configure/ConfigSecurityGroupMixin.controller.js')
   ])
-  .controller('gceCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, securityGroup, application) {
+  .controller('gceCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, taskMonitorService, accountService, securityGroup, application) {
     var vm = this;
 
     $scope.pages = {

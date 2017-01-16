@@ -2,18 +2,19 @@ import { InstanceCounts } from './instanceCounts';
 import { Instance } from './instance';
 
 export interface ILoadBalancer {
-  name: string;
   account?: string;
-  region?: string;
-  cloudProvider: string;
-  type?: string;
-  provider?: string;
-  vpcId?: string;
+  cloudProvider?: string;
+  name?: string;
+  detail?: string;
+  healthState?: string;
   instances?: Instance[];
   instanceCounts?: InstanceCounts;
-  healthState?: string;
   loadBalancerType?: string;
+  provider?: string;
+  region?: string;
+  securityGroups?: string[];
   serverGroups?: any[];
   stack?: string;
-  detail?: string;
+  type?: string;
+  vpcId?: string;
 }

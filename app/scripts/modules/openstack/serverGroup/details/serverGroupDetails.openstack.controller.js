@@ -1,14 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
+let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SERVER_GROUP_READER_SERVICE} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER_SERVICE} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
-
-let angular = require('angular');
 
 require('../configure/serverGroup.configure.openstack.module.js');
 
@@ -16,8 +16,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   require('angular-ui-router'),
   require('core/application/modal/platformHealthOverride.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
-  require('core/securityGroup/securityGroup.read.service.js'),
   SERVER_GROUP_WRITER_SERVICE,
+  SECURITY_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   require('core/overrideRegistry/override.registry.js'),
   ACCOUNT_SERVICE,

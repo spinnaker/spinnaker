@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-
-let angular = require('angular');
 
 require('../../loadBalancer.less');
 
@@ -21,7 +22,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     require('../../../subnet/subnetSelectField.directive.js'),
     require('../../../network/networkSelectField.directive.js'),
     require('../../../common/isolateForm.directive.js'),
-    require('core/securityGroup/securityGroup.read.service.js')
+    SECURITY_GROUP_READER
   ])
   .controller('openstackUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
                                                                 application, loadBalancer, isNew, loadBalancerReader,

@@ -4,12 +4,15 @@ import _ from 'lodash';
 
 var angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.baseConfig.controller', [
     require('angular-ui-router'),
     require('core/task/monitor/taskMonitorService.js'),
-    require('core/securityGroup/securityGroup.write.service.js'),
+    SECURITY_GROUP_READER,
+    SECURITY_GROUP_WRITER,
     ACCOUNT_SERVICE,
     require('core/modal/wizard/modalWizard.service.js'),
   ])

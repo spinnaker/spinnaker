@@ -9,6 +9,7 @@ import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider
 import {INFRASTRUCTURE_CACHE_CONFIG, IInfrastructureCacheConfig} from './infrastructureCacheConfig';
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from './infrastructureCaches.service';
 import {ICacheConfig} from './deckCache.service';
+import {SECURITY_GROUP_READER, SecurityGroupReader} from 'core/securityGroup/securityGroupReader.service';
 
 interface IInitializers {
   [key: string]: any[];
@@ -88,7 +89,7 @@ export class CacheInitializerService {
               private applicationReader: ApplicationReader,
               private infrastructureCaches: InfrastructureCacheService,
               private accountService: AccountService,
-              private securityGroupReader: any,
+              private securityGroupReader: SecurityGroupReader,
               private cloudProviderRegistry: CloudProviderRegistry,
               private igorService: any,
               private serviceDelegate: any) {}
@@ -124,7 +125,7 @@ export class CacheInitializerService {
 export const CACHE_INITIALIZER_SERVICE = 'spinnaker.core.cache.initializer';
 module(CACHE_INITIALIZER_SERVICE, [
   ACCOUNT_SERVICE,
-  require('../securityGroup/securityGroup.read.service.js'),
+  SECURITY_GROUP_READER,
   APPLICATION_READ_SERVICE,
   require('../ci/jenkins/igor.service.js'),
   INFRASTRUCTURE_CACHE_SERVICE,

@@ -8,6 +8,7 @@ import {
   IAccountDetails
 } from 'core/account/account.service';
 import {CACHE_INITIALIZER_SERVICE, CacheInitializerService} from 'core/cache/cacheInitializer.service';
+import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 class SecurityGroupPickerController implements ng.IComponentController {
   public securityGroups: any;
@@ -158,7 +159,7 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
 export const TITUS_SECURITY_GROUP_PICKER = 'spinnaker.titus.securityGroup.picker.component';
 module(TITUS_SECURITY_GROUP_PICKER, [
   ACCOUNT_SERVICE,
-  require('core/securityGroup/securityGroup.read.service'),
+  SECURITY_GROUP_READER,
   CACHE_INITIALIZER_SERVICE,
   require('amazon/vpc/vpc.read.service'),
 ])

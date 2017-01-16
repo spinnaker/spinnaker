@@ -152,10 +152,14 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
     if (this.query) {
       this.querying = true;
       this.filteredCategories = compact(this.categories.map((category: any) => {
-        let results = category.results.filter((result: string) => result.toLowerCase().includes(this.query.toLowerCase()));
+        const results: any[] =
+          category.results.filter((result: string) => result.toLowerCase().includes(this.query.toLowerCase()));
+        let result: any = null;
         if (results.length > 0) {
-          return {category: category.category, results: results};
+          result = {category: category.category, results: results};
         }
+
+        return result;
       }));
     }
     this.querying = false;

@@ -7,11 +7,14 @@ export function displayableTaskFilter() {
     'stageStart', 'stageEnd', 'determineTargetServerGroup'
   ];
   return function (input: TaskStep[]): TaskStep[] {
+    let result: TaskStep[] = [];
     if (input) {
-      return input.filter((test: TaskStep) => {
+      result = input.filter((test: TaskStep) => {
         return !blacklist.includes(test.name) || test.status === 'TERMINAL';
       });
     }
+
+    return result;
   };
 }
 
