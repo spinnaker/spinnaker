@@ -1,6 +1,6 @@
 import {module} from 'angular';
 import {ENTITY_TAG_WRITER, EntityTagWriter} from './entityTags.write.service';
-import {IModalServiceInstance} from '../../../../types/angular-ui-bootstrap';
+import {IModalServiceInstance} from 'angular-ui-bootstrap';
 import {Application} from '../application/application.model';
 import {UUIDGenerator} from '../utils/uuid.service';
 import {IEntityTag} from 'core/domain';

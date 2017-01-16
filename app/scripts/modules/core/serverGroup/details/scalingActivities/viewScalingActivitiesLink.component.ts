@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {IModalService} from '../../../../../../types/angular-ui-bootstrap';
+import {IModalService} from 'angular-ui-bootstrap';
 import {SCALING_ACTIVITIES_CTRL, ScalingActivitiesCtrl} from './scalingActivities.controller';
 
 class ViewScalingActivitiesLinkCtrl implements ng.IComponentController {

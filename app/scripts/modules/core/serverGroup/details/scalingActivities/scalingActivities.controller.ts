@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import {module} from 'angular';
-import {IModalServiceInstance} from '../../../../../../types/angular-ui-bootstrap';
+import {IModalServiceInstance} from 'angular-ui-bootstrap';
 
 import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
 import {ServerGroup} from 'core/domain';
