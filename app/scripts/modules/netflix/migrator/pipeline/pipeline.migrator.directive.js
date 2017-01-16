@@ -8,7 +8,7 @@ import {SCROLL_TO_SERVICE} from 'core/utils/scrollTo/scrollTo.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
-import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipeline.config.service';
+import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 
 require('../migrator.less');
 
