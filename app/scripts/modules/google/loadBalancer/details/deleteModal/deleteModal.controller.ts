@@ -1,5 +1,9 @@
 import {module} from 'angular';
 import {Application} from 'core/application/application.model';
+import {
+  LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter,
+  ILoadBalancerDeleteDescription
+} from 'core/loadBalancer/loadBalancer.write.service';
 
 class Verification {
   verified: boolean = false;
@@ -7,6 +11,13 @@ class Verification {
 
 class Params {
   deleteHealthChecks: boolean = false;
+}
+
+interface IGoogleLoadBalancerDeleteOperation extends ILoadBalancerDeleteDescription {
+  region: string;
+  accountName: string;
+  deleteHealthChecks: boolean;
+  loadBalancerType: string;
 }
 
 class DeleteLoadBalancerModalController implements ng.IComponentController {
@@ -30,14 +41,11 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
                private elSevenUtils: any,
                private gceHttpLoadBalancerWriter: any,
                private loadBalancer: any,
-               private loadBalancerWriter: any,
+               private loadBalancerWriter: LoadBalancerWriter,
                private taskMonitorService: any,
                private $uibModalInstance: any) {}
 
   public $onInit (): void {
-    // The core load balancer writer expects these fields on the load balancer.
-    this.loadBalancer.accountId = this.loadBalancer.account;
-    this.loadBalancer.providerType = this.loadBalancer.provider;
 
     let taskMonitorConfig = {
       modalInstance: this.$uibModalInstance,
@@ -75,12 +83,16 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
       };
     } else {
       return () => {
-        return this.loadBalancerWriter.deleteLoadBalancer(this.loadBalancer, this.application, {
+        const command: IGoogleLoadBalancerDeleteOperation = {
+          cloudProvider: 'gce',
           loadBalancerName: this.loadBalancer.name,
+          accountName: this.loadBalancer.account,
+          credentials: this.loadBalancer.account,
           region: this.loadBalancer.region,
           loadBalancerType: this.loadBalancer.loadBalancerType || 'NETWORK',
           deleteHealthChecks: this.params.deleteHealthChecks,
-        });
+        };
+        return this.loadBalancerWriter.deleteLoadBalancer(command, this.application);
       };
     }
   }
@@ -90,7 +102,7 @@ export const DELETE_MODAL_CONTROLLER = 'spinnaker.gce.loadBalancer.deleteModal.c
 module(DELETE_MODAL_CONTROLLER, [
     require('angular-ui-bootstrap'),
     require('core/task/monitor/taskMonitorService.js'),
-    require('core/loadBalancer/loadBalancer.write.service.js'),
+    LOAD_BALANCER_WRITE_SERVICE,
     require('../../configure/http/httpLoadBalancer.write.service.js'),
   ])
   .controller('gceLoadBalancerDeleteModalCtrl', DeleteLoadBalancerModalController);

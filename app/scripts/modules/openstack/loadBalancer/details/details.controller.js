@@ -1,9 +1,8 @@
 'use strict';
 
-import _ from 'lodash';
-
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 
 let angular = require('angular');
 
@@ -11,7 +10,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
     require('angular-ui-router'),
     ACCOUNT_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
-    require('core/loadBalancer/loadBalancer.write.service.js'),
+    LOAD_BALANCER_WRITE_SERVICE,
     require('core/utils/selectOnDblClick.directive.js'),
   ])
   .controller('openstackLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app,
@@ -83,22 +82,23 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
           return;
         }
 
-        var taskMonitor = {
+        const taskMonitor = {
           application: application,
           title: 'Deleting ' + loadBalancer.name,
           forceRefreshMessage: 'Refreshing application...',
           forceRefreshEnabled: true
         };
 
-        var submitMethod = function () {
-          loadBalancer.providerType = $scope.loadBalancer.provider;
-          return loadBalancerWriter.deleteLoadBalancer(_.omit(loadBalancer, 'accountId'), application, {
-            loadBalancerName: loadBalancer.name,
-            id: $scope.loadBalancer.id,
-            account: loadBalancer.accountId,
-            region: loadBalancer.region
-          });
+        const command = {
+          cloudProvider: 'openstack',
+          loadBalancerName: $scope.loadBalancer.name,
+          id: $scope.loadBalancer.name,
+          region: $scope.loadBalancer.region,
+          account: $scope.loadBalancer.account,
+          credentials: $scope.loadBalancer.account,
         };
+
+        const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, application);
 
         confirmationModalService.confirm({
           header: 'Really delete ' + loadBalancer.name + '?',

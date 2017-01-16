@@ -97,7 +97,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
       };
 
       var submitMethod = function () {
-        loadBalancer.providerType = $scope.loadBalancer.type;
         return azureLoadBalancerWriter.deleteLoadBalancer(loadBalancer, app);
       };
 

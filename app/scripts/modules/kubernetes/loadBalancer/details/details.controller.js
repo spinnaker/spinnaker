@@ -2,6 +2,7 @@
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 
 let angular = require('angular');
 
@@ -9,7 +10,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
-  require('core/loadBalancer/loadBalancer.write.service.js'),
+  LOAD_BALANCER_WRITE_SERVICE,
   require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('kubernetesLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app,
@@ -86,26 +87,27 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
         return;
       }
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: application,
         title: 'Deleting ' + loadBalancer.name,
         forceRefreshMessage: 'Refreshing application...',
         forceRefreshEnabled: true
       };
 
-      var submitMethod = function () {
-        loadBalancer.providerType = $scope.loadBalancer.provider;
-        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application, {
-          loadBalancerName: loadBalancer.name,
-          namespace: loadBalancer.region,
-        });
+      const command = {
+        cloudProvider: 'kubernetes',
+        loadBalancerName: $scope.loadBalancer.name,
+        credentials: $scope.loadBalancer.account,
+        namespace: loadBalancer.region,
       };
+
+      const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, application);
 
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',
         buttonText: 'Delete ' + loadBalancer.name,
         provider: 'kubernetes',
-        account: loadBalancer.accountId,
+        account: loadBalancer.account,
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod

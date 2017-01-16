@@ -3,6 +3,7 @@
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 
 let angular = require('angular');
 
@@ -10,7 +11,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
-  require('core/loadBalancer/loadBalancer.write.service.js'),
+  LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   require('core/utils/selectOnDblClick.directive.js'),
 ])
@@ -78,20 +79,21 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
         return;
       }
 
-      var taskMonitor = {
+      const taskMonitor = {
         application: application,
         title: 'Deleting ' + loadBalancer.name,
         forceRefreshMessage: 'Refreshing application...',
         forceRefreshEnabled: true
       };
 
-      var submitMethod = function () {
-        loadBalancer.providerType = $scope.loadBalancer.provider;
-        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application, {
-          loadBalancerName: loadBalancer.name,
-          region: loadBalancer.region,
-        });
+      const command = {
+        cloudProvider: 'cf',
+        loadBalancerName: loadBalancer.name,
+        credentials: loadBalancer.accountId,
+        region: loadBalancer.region,
       };
+
+      const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, application);
 
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',

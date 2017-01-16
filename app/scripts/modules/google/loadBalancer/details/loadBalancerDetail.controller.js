@@ -8,13 +8,14 @@ import {SESSION_AFFINITY_FILTER} from './backendService/sessionAffinity.filter';
 import {GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT} from '../configure/choice/loadBalancerTypeToWizardMap.constant';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller', [
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
-  require('core/loadBalancer/loadBalancer.write.service.js'),
+  LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   require('core/utils/selectOnDblClick.directive.js'),
   require('./hostAndPathRules/hostAndPathRulesButton.component.js'),

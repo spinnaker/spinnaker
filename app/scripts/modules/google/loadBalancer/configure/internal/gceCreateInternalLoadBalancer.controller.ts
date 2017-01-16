@@ -11,6 +11,7 @@ import {GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
 import {ACCOUNT_SERVICE, AccountService, IRegion, IAccount} from 'core/account/account.service';
 import {CommonGceLoadBalancerCtrl} from '../common/commonLoadBalancer.controller';
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
+import {LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter} from 'core/loadBalancer/loadBalancer.write.service';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
@@ -25,6 +26,7 @@ interface IPrivateScope extends ng.IScope {
 }
 
 class InternalLoadBalancer implements IGceLoadBalancer {
+  name: string;
   stack: string;
   detail: string;
   loadBalancerName: string;
@@ -35,6 +37,7 @@ class InternalLoadBalancer implements IGceLoadBalancer {
   account: string;
   network: string = 'default';
   subnet: string;
+  cloudProvider: string = 'gce';
   backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
 
   constructor (public region: string) {}
@@ -93,7 +96,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
                private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
                private isNew: boolean,
                private accountService: AccountService,
-               private loadBalancerWriter: any,
+               private loadBalancerWriter: LoadBalancerWriter,
                private wizardSubFormValidation: any,
                private taskMonitorService: any,
                private settings: any,
@@ -248,7 +251,7 @@ module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
     ACCOUNT_SERVICE,
     INFRASTRUCTURE_CACHE_SERVICE,
     require('core/modal/wizard/wizardSubFormValidation.service.js'),
-    require('core/loadBalancer/loadBalancer.write.service.js'),
+    LOAD_BALANCER_WRITE_SERVICE,
     require('core/task/monitor/taskMonitorService.js'),
   ])
   .controller('gceInternalLoadBalancerCtrl', InternalLoadBalancerCtrl);
