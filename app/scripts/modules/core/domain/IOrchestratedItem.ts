@@ -1,6 +1,9 @@
 export interface ITimedItem {
   startTime: number;
   endTime: number;
+  /**
+   * runningTimeInMs will be null if the item has not started
+   */
   runningTimeInMs: number;
 }
 
