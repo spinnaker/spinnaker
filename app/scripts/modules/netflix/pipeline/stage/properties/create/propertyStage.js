@@ -1,8 +1,10 @@
 'use strict';
 
 import _ from 'lodash';
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 let angular = require('angular');
+
+import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage', [
   require('core/application/listExtractor/listExtractor.service.js'),
@@ -25,13 +27,12 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
         controller: 'PropertyStageCtrl',
         controllerAs: 'propertyStage',
         validators: [
-          { type: 'requiredField', fieldName: 'cmcTicket' },
           { type: 'requiredField', fieldName: 'email' },
         ],
       });
     }
   })
-  .controller('PropertyStageCtrl', function ($scope, $uibModal, stage,
+  .controller('PropertyStageCtrl', function ($scope, $uibModal, stage, authenticationService,
                                              namingService, providerSelectionService, fastPropertyReader,
                                              awsServerGroupTransformer, accountService,
                                              appListExtractorService, fastPropertyScopeBuilderService) {
@@ -64,7 +65,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
     vm.stage.scope.env = vm.stage.scope.env || 'prod';
     vm.stage.scope.appIdList = [$scope.application.name];
     vm.stage.email = vm.stage.email || '';
-    vm.stage.cmcTicket = vm.stage.cmcTicket || '';
+    vm.stage.cmcTicket = vm.stage.cmcTicket || authenticationService.getAuthenticatedUser().name;
 
     vm.scopeLists = {
       application: [],
