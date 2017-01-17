@@ -44,6 +44,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   int retries
   int runtimeLimitSecs
   Boolean useApplicationDefaultSecurityGroup = true
+  String interestingHealthProviderNames
 
   @Canonical
   static class Capacity {
