@@ -1,7 +1,7 @@
 import {module, IScope} from 'angular';
 import {find, cloneDeep, reduce, mapValues, get, map} from 'lodash';
 
-import {Execution, ServerGroup} from 'core/domain/index';
+import {ServerGroup} from 'core/domain/index';
 import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
 import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER, ServerGroupWriter} from 'core/serverGroup/serverGroupWriter.service';
@@ -9,6 +9,7 @@ import {Application} from 'core/application/application.model';
 import {IAppengineLoadBalancer, IAppengineServerGroup} from 'appengine/domain/index';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE, ServerGroupWarningMessageService} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 import {APPENGINE_SERVER_GROUP_WRITER, AppengineServerGroupWriter} from '../writer/serverGroup.write.service';
+import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
 
 interface IPrivateScope extends IScope {
   $$destroyed: boolean;
@@ -33,7 +34,6 @@ class AppengineServerGroupDetailsController {
             'serverGroupWriter',
             'serverGroupWarningMessageService',
             'confirmationModalService',
-            'runningExecutionsService',
             'appengineServerGroupWriter'];
   }
 
@@ -77,7 +77,6 @@ class AppengineServerGroupDetailsController {
               private serverGroupWriter: ServerGroupWriter,
               private serverGroupWarningMessageService: ServerGroupWarningMessageService,
               private confirmationModalService: ConfirmationModalService,
-              private runningExecutionsService: any,
               private appengineServerGroupWriter: AppengineServerGroupWriter) {
 
     this.app
@@ -339,10 +338,6 @@ class AppengineServerGroupDetailsController {
     return isFlex || usesManualScaling || usesBasicScaling;
   }
 
-  public runningExecutions(): Execution[] {
-    return this.runningExecutionsService.filterRunningExecutions((this.serverGroup as any).executions);
-  }
-
   private getBodyTemplate(serverGroup: IAppengineServerGroup, app: Application): string {
     let template = '';
     if (AppengineServerGroupDetailsController.isLastServerGroup(serverGroup, app)) {
@@ -445,9 +440,9 @@ export const APPENGINE_SERVER_GROUP_DETAILS_CTRL = 'spinnaker.appengine.serverGr
 module(APPENGINE_SERVER_GROUP_DETAILS_CTRL, [
     APPENGINE_SERVER_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
+    RUNNING_TASKS_DETAILS_COMPONENT,
     SERVER_GROUP_WARNING_MESSAGE_SERVICE,
     SERVER_GROUP_READER,
     SERVER_GROUP_WRITER,
-    require('core/serverGroup/configure/common/runningExecutions.service.js'),
   ])
   .controller('appengineServerGroupDetailsCtrl', AppengineServerGroupDetailsController);

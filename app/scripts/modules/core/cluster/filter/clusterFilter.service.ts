@@ -432,8 +432,8 @@ export class ClusterFilterService {
           this.$log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region, serverGroup.category);
           oldGroup.serverGroups[idx] = newServerGroup;
         }
-        if (serverGroup.executions || newServerGroup.executions) {
-          serverGroup.executions = newServerGroup.executions;
+        if (serverGroup.runningExecutions || newServerGroup.runningExecutions) {
+          serverGroup.runningExecutions = newServerGroup.runningExecutions;
         }
         if (serverGroup.runningTasks || newServerGroup.runningTasks) {
           serverGroup.runningTasks = newServerGroup.runningTasks;

@@ -843,13 +843,13 @@ describe('Service: clusterFilterService', function () {
         ]}
       });
       application.getDataSource('serverGroups').data[0].runningTasks = runningTasks;
-      application.getDataSource('serverGroups').data[0].executions = executions;
+      application.getDataSource('serverGroups').data[0].runningExecutions = executions;
       application['clusters'] = clusterService.createServerGroupClusters(application.getDataSource('serverGroups').data);
       service.updateClusterGroups(application);
       $timeout.flush();
       expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0]).toBe(this.serverGroup001);
       expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0].runningTasks).toBe(runningTasks);
-      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0].executions).toBe(executions);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0].runningExecutions).toBe(executions);
     });
   });
 });

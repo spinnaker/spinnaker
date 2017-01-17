@@ -21,7 +21,7 @@ export interface ServerGroup {
   cluster: string;
   entityTags?: IEntityTags;
   detail?: string;
-  executions?: Execution[];
+  runningExecutions?: Execution[];
   instanceCounts: InstanceCounts;
   instanceType?: string;
   instances: Instance[];

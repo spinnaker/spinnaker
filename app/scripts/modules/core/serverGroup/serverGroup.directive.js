@@ -78,7 +78,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
           }
 
           viewModel.serverGroup.runningTasks = serverGroup.runningTasks;
-          viewModel.serverGroup.executions = serverGroup.executions;
+          viewModel.serverGroup.runningExecutions = serverGroup.runningExecutions;
 
         }
 

@@ -35,8 +35,8 @@
           <div class="col-md-{{ viewModel.images ? 3 : 4 }} col-sm-6 text-right">
             <health-counts container="viewModel.serverGroup.instanceCounts"></health-counts>
             <running-tasks-tag
-                ng-if="viewModel.serverGroup.runningTasks.length || viewModel.serverGroup.executions.length"
-                application="application" tasks="viewModel.serverGroup.runningTasks" executions="viewModel.serverGroup.executions"></running-tasks-tag>
+                ng-if="viewModel.serverGroup.runningTasks.length || viewModel.serverGroup.runningExecutions.length"
+                application="application" tasks="viewModel.serverGroup.runningTasks" executions="viewModel.serverGroup.runningExecutions"></running-tasks-tag>
             <load-balancers-tag
                 ng-if="viewModel.serverGroup.loadBalancers.length"
                 server-group="viewModel.serverGroup" application="application"></load-balancers-tag>
