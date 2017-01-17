@@ -79,8 +79,8 @@
             tool-tip="Copy container IP clipboard">
           </copy-to-clipboard>
         </dd>
-        <dt ng-if="instance.resources.ports && instance.resources.ports.size() > 0">Port(s)</dt>
-        <dd ng-if="instance.resources.ports && instance.resources.ports.size() > 0">
+        <dt ng-if="instance.resources.ports && ctrl.hasPorts()">Port(s)</dt>
+        <dd ng-if="instance.resources.ports && ctrl.hasPorts()">
           <div ng-repeat="(key, val) in instance.resources.ports">
             {{key}} -> {{val}}
           </div>
