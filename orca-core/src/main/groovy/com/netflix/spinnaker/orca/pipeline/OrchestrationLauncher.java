@@ -55,7 +55,7 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
       orchestration.setApplication(getString(config, "application"));
     }
     if (config.containsKey("name")) {
-      orchestration.setDescription(getString(config, "description"));
+      orchestration.setDescription(getString(config, "name"));
     }
     if (config.containsKey("description")) {
       orchestration.setDescription(getString(config, "description"));

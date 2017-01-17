@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
+@Deprecated
 class OrchestrationStarter extends ExecutionStarter<Orchestration> {
 
   @Autowired ExecutionRepository executionRepository
