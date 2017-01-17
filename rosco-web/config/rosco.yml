@@ -213,6 +213,20 @@ google:
       useInternalIp: false
       templateFile: gce.json
       baseImages:
+      # Either sourceImage or sourceImageFamily should be set. If both are set, sourceImage will take precedence.
+      # If you specify isImageFamily, deck will annotate the popup tooltip to indicate that the selected option
+      # represents an image family.
+      #
+      # This is an example of configuring a source image family:
+      # - baseImage:
+      #     id: precise
+      #     shortDescription: v12.04
+      #     detailedDescription: Ubuntu Precise Pangolin v12.04
+      #     packageType: deb
+      #     isImageFamily: true
+      #   virtualizationSettings:
+      #     sourceImageFamily: ubuntu-1204-lts
+      #
       # This is an example of configuring an explicit source image, as opposed to a source image family:
       # - baseImage:
       #     id: precise
