@@ -1,35 +1,37 @@
-apiVersion: v1
-kind: ReplicationController
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
 metadata:
-  name: spin-gate-v000
+  name: spin-echo-v000
   namespace: spinnaker
   labels:
     app: spin
-    stack: gate
+    stack: echo
     version: v000
 spec:
   replicas: 1
   selector:
-    replication-controller: spin-gate-v000
+    matchLabels:
+      replication-controller: spin-echo-v000
   template:
     metadata:
       labels:
-        replication-controller: spin-gate-v000
-        load-balancer-spin-gate: "true"
+        replication-controller: spin-echo-v000
+        load-balancer-spin-echo: "true"
     spec:
       containers:
-        - image: quay.io/spinnaker/gate:master
-          name: gate
+        - image: quay.io/spinnaker/echo:master
+          imagePullPolicy: Always
+          name: echo
           ports:
-            - containerPort: 8084
-              name: gate
+            - containerPort: 8089
+              name: echo
           volumeMounts:
             - mountPath: /opt/spinnaker/config
               name: spinnaker-config
           readinessProbe:
             httpGet:
               path: /env
-              port: 8084
+              port: 8089
             initialDelaySeconds: 20
             timeoutSeconds: 1
       volumes:
