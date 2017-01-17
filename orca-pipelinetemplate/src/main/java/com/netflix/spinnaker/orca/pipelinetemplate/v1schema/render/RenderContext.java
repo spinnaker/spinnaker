@@ -21,28 +21,8 @@ import java.util.HashMap;
 
 public class RenderContext extends HashMap<String, Object> {
 
-  private PipelineTemplate pipelineTemplate;
-
   public RenderContext(String application, PipelineTemplate pipelineTemplate) {
     put("application", application);
-    this.pipelineTemplate = pipelineTemplate;
-  }
-
-  public boolean hasModule(String id) {
-    return pipelineTemplate.getModules()
-      .stream()
-      .filter(m -> m.getId().equals(id))
-      .findFirst()
-      .map(m -> true)
-      .orElse(false);
-  }
-
-  public boolean hasStage(String id) {
-    return pipelineTemplate.getStages()
-      .stream()
-      .filter(s -> s.getId().equals(id))
-      .findFirst()
-      .map(s -> true)
-      .orElse(false);
+    put("pipelineTemplate", pipelineTemplate);
   }
 }

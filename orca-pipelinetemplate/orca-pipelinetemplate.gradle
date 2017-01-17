@@ -10,6 +10,7 @@ dependencies {
   compile spinnaker.dependency("bootAutoConfigure")
   compile spinnaker.dependency("springContext")
   compile spinnaker.dependency("jacksonDatabind")
+  compile spinnaker.dependency("spectatorApi")
 
   testCompile spinnaker.dependency("slf4jSimple")
 }

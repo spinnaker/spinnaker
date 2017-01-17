@@ -15,31 +15,40 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph;
 
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.ConditionalStanzaTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.ConfigModuleReplacementTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.ConfigStageInjectionTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.ModuleInjectionTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.PipelineConfigInheritanceTransform;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.RenderTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class GraphMutator {
 
   List<PipelineTemplateVisitor> visitors = new ArrayList<>();
 
-  public GraphMutator(TemplateConfiguration configuration) {
-    visitors.add(new ConditionalStanzaTransform(configuration));
-    visitors.add(new PipelineConfigInheritanceTransform(configuration));
+  @Autowired
+  public GraphMutator(TemplateConfiguration configuration, Renderer renderer, Registry registry) {
+    visitors.add(new ConditionalStanzaTransform(configuration, renderer));
     visitors.add(new ConfigModuleReplacementTransform(configuration));
+    visitors.add(new PipelineConfigInheritanceTransform(configuration));
     visitors.add(new ConfigStageInjectionTransform(configuration));
     visitors.add(new ModuleInjectionTransform());
+    visitors.add(new RenderTransform(configuration, renderer, registry));
   }
 
   public void mutate(PipelineTemplate template) {
     visitors.forEach(template::accept);
   }
+
 }

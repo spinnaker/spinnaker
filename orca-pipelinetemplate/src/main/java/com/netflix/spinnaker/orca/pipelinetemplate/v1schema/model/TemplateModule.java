@@ -17,13 +17,12 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import java.util.List;
 
-public class TemplateModule implements NamedContent, Conditional {
+public class TemplateModule implements NamedContent {
 
   private String id;
   private String usage;
   private List<NamedHashMap> variables;
   private Object definition;
-  private Object when;
 
   @Override
   public String getName() {
@@ -60,29 +59,5 @@ public class TemplateModule implements NamedContent, Conditional {
 
   public void setDefinition(Object definition) {
     this.definition = definition;
-  }
-
-  public Object getWhen() {
-    return when;
-  }
-
-  public void setWhen(Object when) {
-    this.when = when;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-
-    TemplateModule module = (TemplateModule) o;
-
-    return id != null ? id.equals(module.id) : module.id == null;
-
-  }
-
-  @Override
-  public int hashCode() {
-    return id != null ? id.hashCode() : 0;
   }
 }

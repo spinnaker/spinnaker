@@ -18,25 +18,24 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jknack.handlebars.Context;
+import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.JsonHelper;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.ModuleHelper;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 /**
  * Runs a two-phase render, first to process the handlebars template, then a second
  * phase to convert the resulted JSON string into a Java object.
  */
-@Component
 public class HandlebarsRenderer implements Renderer {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -45,14 +44,18 @@ public class HandlebarsRenderer implements Renderer {
 
   ObjectMapper pipelineTemplateObjectMapper;
 
-  @Autowired
-  public HandlebarsRenderer(Handlebars handlebars, ObjectMapper pipelineTemplateObjectMapper) {
-    this.handlebars = handlebars;
+  public HandlebarsRenderer(ObjectMapper pipelineTemplateObjectMapper) {
     this.pipelineTemplateObjectMapper = pipelineTemplateObjectMapper;
+
+    handlebars = new Handlebars()
+      .with(EscapingStrategy.NOOP)
+      .registerHelper("json", new JsonHelper(pipelineTemplateObjectMapper))
+      .registerHelper("module", new ModuleHelper(this, pipelineTemplateObjectMapper))
+    ;
   }
 
   @Override
-  public Object render(String template, RenderContext configuration) {
+  public String render(String template, RenderContext configuration) {
     log.debug("rendering '" + template + "'");
 
     Template tmpl;
@@ -64,11 +67,32 @@ public class HandlebarsRenderer implements Renderer {
 
     Context context = Context.newContext(configuration);
 
-    String rendered;
     try {
-      rendered = tmpl.apply(context);
+      return tmpl.apply(context);
     } catch (IOException e) {
       throw new TemplateRenderException("could not apply context to template", e);
+    }
+  }
+
+  @Override
+  public Object renderGraph(String template, RenderContext context) {
+    String rendered = render(template, context);
+
+    // Short-circuit primitive values.
+    // TODO rz - having trouble getting jackson to parse primitive values outside of unit tests
+    if (NumberUtils.isNumber(rendered)) {
+      if (rendered.contains(".")) {
+        return NumberUtils.createDouble(rendered);
+      }
+      try {
+        return NumberUtils.createInteger(rendered);
+      } catch (NumberFormatException ignored) {
+        return NumberUtils.createLong(rendered);
+      }
+    } else if (rendered.equals("true") || rendered.equals("false")) {
+      return Boolean.parseBoolean(rendered);
+    } else if (!rendered.startsWith("{") && !rendered.startsWith("[")) {
+      return rendered;
     }
 
     JsonNode node;
@@ -108,16 +132,5 @@ public class HandlebarsRenderer implements Renderer {
     }
 
     throw new TemplateRenderException("unknown rendered object type");
-  }
-
-  private Context buildContext(TemplateConfiguration configuration) {
-    HashMap<String, Object> m = new HashMap<>();
-    m.put("application", configuration.getPipeline().getApplication());
-
-    for (Entry<String, Object> variable : configuration.getPipeline().getVariables().entrySet()) {
-      m.put(variable.getKey(), variable.getValue());
-    }
-
-    return Context.newBuilder(m).build();
   }
 }
