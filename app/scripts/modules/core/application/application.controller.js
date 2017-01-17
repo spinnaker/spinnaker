@@ -2,13 +2,15 @@
 
 let angular = require('angular');
 
+import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
+
 require('./newapplication.less');
 require('./application.less');
 
 module.exports = angular.module('spinnaker.application.controller', [
   require('exports?"cfp.hotkeys"!angular-hotkeys'),
   require('angular-ui-router'),
-  require('../history/recentHistory.service.js'),
+  RECENT_HISTORY_SERVICE,
   require('../presentation/refresher/componentRefresher.directive.js'),
 ])
   .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService, $uibModal) {

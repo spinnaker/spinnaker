@@ -7,10 +7,11 @@ let angular = require('angular');
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
+import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./infrastructureSearch.service.js'),
-  require('core/history/recentHistory.service.js'),
+  RECENT_HISTORY_SERVICE,
   require('../searchResult/searchResult.directive.js'),
   require('core/pageTitle/pageTitle.service.js'),
   require('./project/infrastructureProject.directive.js'),

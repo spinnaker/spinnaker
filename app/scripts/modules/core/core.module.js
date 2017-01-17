@@ -74,7 +74,6 @@ module.exports = angular
 
     require('./healthCounts/healthCounts.directive.js'),
     require('./help/help.module.js'),
-    require('./history/recentHistory.service.js'),
 
     require('./insight/insight.module.js'),
     require('./instance/instance.module.js'),

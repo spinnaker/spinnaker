@@ -94,12 +94,12 @@ export interface ICacheConfig {
 export interface ICache {
   config?: ICacheConfig;
   destroy: () => void;
-  get?: (key: string) => string;
+  get?: (key: string) => any;
   getStats?: () => IStats;
   info?: (key: string) => IInfo;
   keys: () => string[];
   onReset?: Function[];
-  put?: (key: string, value: string) => string;
+  put?: (key: string, value: any) => string;
   remove: (key: string) => void;
   removeAll: () => void;
 }
