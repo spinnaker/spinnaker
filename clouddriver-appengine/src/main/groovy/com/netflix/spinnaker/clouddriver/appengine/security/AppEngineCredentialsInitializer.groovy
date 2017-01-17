@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.appengine.security
 
 import com.netflix.spinnaker.cats.module.CatsModule
+import com.netflix.spinnaker.clouddriver.appengine.AppEngineJobExecutor
 import com.netflix.spinnaker.clouddriver.appengine.config.AppEngineConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
@@ -33,11 +34,13 @@ class AppEngineCredentialsInitializer implements CredentialsInitializerSynchroni
   @Bean
   List<? extends AppEngineNamedAccountCredentials> appEngineNamedAccountCredentials(String clouddriverUserAgentApplicationName,
                                                                                     AppEngineConfigurationProperties appEngineConfigurationProperties,
-                                                                                    AccountCredentialsRepository accountCredentialsRepository) {
+                                                                                    AccountCredentialsRepository accountCredentialsRepository,
+                                                                                    AppEngineJobExecutor jobExecutor) {
     synchronizeAppEngineAccounts(clouddriverUserAgentApplicationName,
                                  appEngineConfigurationProperties,
                                  null,
-                                 accountCredentialsRepository)
+                                 accountCredentialsRepository,
+                                 jobExecutor)
   }
 
   @Override
@@ -50,7 +53,8 @@ class AppEngineCredentialsInitializer implements CredentialsInitializerSynchroni
   List<? extends AppEngineNamedAccountCredentials> synchronizeAppEngineAccounts(String clouddriverUserAgentApplicationName,
                                                                                 AppEngineConfigurationProperties appEngineConfigurationProperties,
                                                                                 CatsModule catsModule,
-                                                                                AccountCredentialsRepository accountCredentialsRepository) {
+                                                                                AccountCredentialsRepository accountCredentialsRepository,
+                                                                                AppEngineJobExecutor jobExecutor) {
     def (ArrayList<AppEngineConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
       ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
                                            AppEngineNamedAccountCredentials,
@@ -58,6 +62,8 @@ class AppEngineCredentialsInitializer implements CredentialsInitializerSynchroni
 
     accountsToAdd.each { AppEngineConfigurationProperties.ManagedAccount managedAccount ->
       try {
+        managedAccount.initialize(jobExecutor)
+
         def jsonKey = AppEngineCredentialsInitializer.getJsonKey(managedAccount)
         def appEngineAccount = new AppEngineNamedAccountCredentials.Builder()
           .name(managedAccount.name)
@@ -68,6 +74,7 @@ class AppEngineCredentialsInitializer implements CredentialsInitializerSynchroni
           .applicationName(clouddriverUserAgentApplicationName)
           .jsonPath(managedAccount.jsonPath)
           .requiredGroupMembership(managedAccount.requiredGroupMembership)
+          .serviceAccountEmail(managedAccount.serviceAccountEmail)
           .build()
 
         accountCredentialsRepository.save(managedAccount.name, appEngineAccount)

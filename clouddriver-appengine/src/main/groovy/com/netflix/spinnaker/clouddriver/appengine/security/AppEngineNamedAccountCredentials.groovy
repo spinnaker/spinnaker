@@ -38,6 +38,7 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
   final AppEngineCredentials credentials
   final String applicationName
   final Appengine appengine
+  final String serviceAccountEmail
 
   static class Builder {
     String name
@@ -52,6 +53,7 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
     String jsonPath
     String applicationName
     Appengine appengine
+    String serviceAccountEmail
 
     /*
     * If true, the builder will overwrite region with a value from the platform.
@@ -114,6 +116,11 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
       return this
     }
 
+    Builder serviceAccountEmail(String serviceAccountEmail) {
+      this.serviceAccountEmail = serviceAccountEmail
+      return this
+    }
+
     AppEngineNamedAccountCredentials build() {
       credentials = credentials ?:
         jsonKey ?
@@ -137,7 +144,8 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
                                                   jsonPath,
                                                   credentials,
                                                   applicationName,
-                                                  appengine)
+                                                  appengine,
+                                                  serviceAccountEmail)
     }
   }
 }
