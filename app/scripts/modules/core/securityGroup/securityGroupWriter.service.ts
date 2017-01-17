@@ -42,14 +42,14 @@ export class SecurityGroupWriter {
   public upsertSecurityGroup(securityGroup: ISecurityGroup,
                              application: Application,
                              description: string,
-                             params: ISecurityGroupJob): ng.IPromise<ITask> {
+                             params: any = {}): ng.IPromise<ITask> {
 
     params.type = 'upsertSecurityGroup';
     params.credentials = securityGroup.credentials || securityGroup.accountName;
-    Object.assign(params, securityGroup);
+    let job: ISecurityGroupJob = Object.assign(params, securityGroup);
 
     const operation: ng.IPromise<ITask> = this.executor.executeTask({
-      job: [params],
+      job: [job],
       application: application,
       description: `${description} Security Group: ${securityGroup.name}`
     });
