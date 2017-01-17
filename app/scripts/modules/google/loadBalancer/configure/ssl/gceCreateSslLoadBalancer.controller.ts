@@ -43,7 +43,7 @@ class SslLoadBalancer implements IGceLoadBalancer {
   account: string;
   certificate: string;
   backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
-  get cloudProvider(): string { return 'gce'; };
+  cloudProvider: string;
   get name(): string { return this.loadBalancerName; }
   constructor (public region = 'global') {}
 }
@@ -203,6 +203,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
     let descriptor = this.isNew ? 'Create' : 'Update';
     let toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as ISslLoadBalancerUpsertDescription;
     toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.name;
+    toSubmitLoadBalancer.cloudProvider = 'gce';
     delete toSubmitLoadBalancer['instances'];
 
     this.taskMonitor.submit(() => this.loadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer,

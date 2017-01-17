@@ -7,6 +7,7 @@ import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage', [
+  AUTHENTICATION_SERVICE,
   require('core/application/listExtractor/listExtractor.service.js'),
   CLOUD_PROVIDER_REGISTRY,
   require('core/config/settings.js'),

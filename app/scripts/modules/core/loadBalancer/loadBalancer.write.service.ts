@@ -14,7 +14,7 @@ export interface ILoadBalancerUpsertDescription extends IJob {
   healthCheckPath?: string;
 }
 
-export interface ILoadBalancerDeleteDescription {
+export interface ILoadBalancerDeleteDescription extends IJob {
   cloudProvider: string;
   loadBalancerName: string;
   credentials: string;
@@ -29,34 +29,27 @@ export class LoadBalancerWriter {
   public constructor(private infrastructureCaches: InfrastructureCacheService, private taskExecutor: TaskExecutor) {}
 
   public deleteLoadBalancer(command: ILoadBalancerDeleteDescription, application: Application): ng.IPromise<ITask> {
-    const job: IJob = {
-      type: 'deleteLoadBalancer',
-    };
-
-    Object.assign(job, command);
+    command.type = 'deleteLoadBalancer';
 
     this.infrastructureCaches.clearCache('loadBalancers');
 
     return this.taskExecutor.executeTask({
-      job: [job],
+      job: [command],
       application: application,
       description: `Delete load balancer: ${command.loadBalancerName}`
     });
   }
 
   public upsertLoadBalancer(command: ILoadBalancerUpsertDescription, application: Application, descriptor: string, params: any = {}): ng.IPromise<ITask> {
-    const job: IJob = {
-      type: 'upsertLoadBalancer'
-    };
-
-    Object.assign(job, command, params);
+    Object.assign(command, params);
+    command.type = 'upsertLoadBalancer';
 
     this.infrastructureCaches.clearCache('loadBalancers');
 
     return this.taskExecutor.executeTask({
-      job: [job],
+      job: [command],
       application: application,
-      description: `${descriptor} Load Balancer: ${job['name']}`,
+      description: `${descriptor} Load Balancer: ${command['name']}`,
     });
   }
 }
