@@ -15,6 +15,8 @@
 """Implements HTTP Server."""
 
 import BaseHTTPServer
+import traceback
+
 
 def build_html_document(body, title=None):
   """Produces the HTML document wrapper for a text/html response."""
@@ -88,7 +90,15 @@ class DelegatingRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     if handler is None:
       self.respond(404, {'Content-Type': 'text/html'}, "Unknown")
     else:
-      handler(self, path, parameters, fragment)
+      try:
+        handler(self, path, parameters, fragment)
+      except:
+        self.send_error(500, traceback.format_exc())
+        raise
+
+  def log_message(self, format, *args):
+    """Suppress HTTP request logging."""
+    pass
 
 
 class StdoutRequestHandler(DelegatingRequestHandler):
