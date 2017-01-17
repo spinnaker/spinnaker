@@ -1,12 +1,13 @@
 'use strict';
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-
 let angular = require('angular');
 
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
+import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', [
-  require('core/application/listExtractor/listExtractor.service'),
+  LIST_EXTRACTOR_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   require('core/pipeline/config/pipelineConfigProvider'),

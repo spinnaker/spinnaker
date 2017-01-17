@@ -37,6 +37,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
       serverGroup.app = nameParts.application;
       serverGroup.stack = nameParts.stack;
       serverGroup.detail = nameParts.freeFormDetails;
+      serverGroup.cluster = nameParts.cluster;
     }
 
     function addHealthStatusCheck(serverGroup) {

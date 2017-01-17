@@ -2,10 +2,11 @@
 
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.selector', [
   ACCOUNT_SERVICE,
-  require('core/application/listExtractor/listExtractor.service'),
+  LIST_EXTRACTOR_SERVICE,
 ])
   .directive('preconditionSelector', function() {
     return {

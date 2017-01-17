@@ -1,14 +1,15 @@
 'use strict';
 
 import _ from 'lodash';
-import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
-
 let angular = require('angular');
+
+import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
+import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
 
 module.exports = angular
   .module('spinnaker.fastProperty.scopeBuilder.service', [
     require('../fastProperty.read.service'),
-    require('core/application/listExtractor/listExtractor.service'),
+    LIST_EXTRACTOR_SERVICE,
     APPLICATION_READ_SERVICE,
     require('core/config/settings.js'),
   ])
@@ -40,8 +41,8 @@ module.exports = angular
      */
 
     let createClusterFilter = (scopeHolder) => {
-      return (cluster) => {
-        return isSkip(scopeHolder.cluster) || cluster.name === scopeHolder.cluster;
+      return (serverGroup) => {
+        return isSkip(scopeHolder.cluster) || serverGroup.cluster === scopeHolder.cluster;
       };
     };
 
@@ -64,8 +65,8 @@ module.exports = angular
     };
 
     let createClusterHasStackFilter = (scopeHolder) => {
-      return (cluster) => {
-        return isSkip(scopeHolder.stack) || _.some(cluster.serverGroups, {stack: scopeHolder.stack});
+      return (serverGroup) => {
+        return isSkip(scopeHolder.stack) || serverGroup.stack === scopeHolder.stack;
       };
     };
 

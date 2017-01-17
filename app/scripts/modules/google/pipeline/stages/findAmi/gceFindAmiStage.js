@@ -4,7 +4,7 @@ let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage', [
-  require('core/application/listExtractor/listExtractor.service.js'),
+  require('core/pipeline/config/pipelineConfigProvider'),
   require('./findAmiExecutionDetails.controller.js'),
   ACCOUNT_SERVICE,
 ])
