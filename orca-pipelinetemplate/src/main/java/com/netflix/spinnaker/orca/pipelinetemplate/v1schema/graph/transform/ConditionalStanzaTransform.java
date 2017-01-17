@@ -19,6 +19,8 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisi
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.Conditional;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 
 import java.util.List;
 
@@ -26,26 +28,32 @@ public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
 
   TemplateConfiguration templateConfiguration;
 
-  public ConditionalStanzaTransform(TemplateConfiguration templateConfiguration) {
+  Renderer renderer;
+
+  public ConditionalStanzaTransform(TemplateConfiguration templateConfiguration, Renderer renderer) {
     this.templateConfiguration = templateConfiguration;
+    this.renderer = renderer;
   }
 
-  // TODO rz - Don't really like that it's implicitly modifying the configuration as well...
-  // ConditionalContainer interface? getAllConditionals() -> List<List<T extends Conditional>>?
   @Override
   public void visitPipelineTemplate(PipelineTemplate pipelineTemplate) {
-    trimConditionals(pipelineTemplate.getModules());
-    trimConditionals(pipelineTemplate.getStages());
-    trimConditionals(templateConfiguration.getModules());
-    trimConditionals(templateConfiguration.getStages());
+    trimConditionals(pipelineTemplate.getStages(), pipelineTemplate);
+    trimConditionals(templateConfiguration.getStages(), pipelineTemplate);
   }
 
-  private static <T extends Conditional> void trimConditionals(List<T> list) {
-    for (Conditional el : list) {
-      if (el.getWhen() == null || (Boolean) el.getWhen()) {
+  private <T extends Conditional> void trimConditionals(List<T> list, PipelineTemplate template) {
+    for (T el : list) {
+      if (el.getWhen() == null) {
         continue;
       }
-      list.remove(el);
+
+      RenderContext context = new RenderContext(templateConfiguration.getPipeline().getApplication(), template);
+      context.putAll(templateConfiguration.getPipeline().getVariables());
+
+      String rendered = renderer.render(el.getWhen(), context);
+      if (!Boolean.parseBoolean(rendered)) {
+        list.remove(el);
+      }
     }
   }
 }

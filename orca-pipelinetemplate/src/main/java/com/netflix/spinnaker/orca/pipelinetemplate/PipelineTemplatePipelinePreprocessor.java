@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.TemplateMerge;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.GraphMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,12 +41,12 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
   private ObjectMapper pipelineTemplateObjectMapper;
 
-  private RenderEngine renderEngine;
+  private GraphMutator graphMutator;
 
   @Autowired
-  public PipelineTemplatePipelinePreprocessor(ObjectMapper pipelineTemplateObjectMapper, RenderEngine renderEngine) {
+  public PipelineTemplatePipelinePreprocessor(ObjectMapper pipelineTemplateObjectMapper, GraphMutator graphMutator) {
     this.pipelineTemplateObjectMapper = pipelineTemplateObjectMapper;
-    this.renderEngine = renderEngine;
+    this.graphMutator = graphMutator;
   }
 
   @Override
@@ -57,18 +56,15 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
       return pipeline;
     }
 
-    TemplateConfiguration templateConfiguration = request.getRoot();
+    TemplateConfiguration templateConfiguration = request.getConfig();
 
-    // TODO find all templates via request.root.pipeline.template.source
+    // TODO find all templates via request.config.pipeline.template.source
     // list needs to be FIFO, where the first template is the root
     List<PipelineTemplate> templates = Collections.emptyList();
 
     PipelineTemplate template = TemplateMerge.merge(templates);
 
-    renderEngine.render(template, templateConfiguration);
-
-    GraphMutator mutator = new GraphMutator(templateConfiguration);
-    mutator.mutate(template);
+    graphMutator.mutate(template);
 
     // TODO final validation & marshal to pipeline json
 
@@ -77,7 +73,7 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
   private static class TemplatedPipelineRequest {
     String type;
-    TemplateConfiguration root;
+    TemplateConfiguration config;
 
     public boolean isTemplatedPipelineRequest() {
       return type.equals("templatedPipeline");
@@ -91,12 +87,12 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
       this.type = type;
     }
 
-    public TemplateConfiguration getRoot() {
-      return root;
+    public TemplateConfiguration getConfig() {
+      return config;
     }
 
-    public void setRoot(TemplateConfiguration root) {
-      this.root = root;
+    public void setConfig(TemplateConfiguration config) {
+      this.config = config;
     }
   }
 }

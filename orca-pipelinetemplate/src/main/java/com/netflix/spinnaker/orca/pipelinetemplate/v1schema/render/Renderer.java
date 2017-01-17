@@ -17,5 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
 public interface Renderer {
 
-  Object render(String template, RenderContext configuration);
+  String render(String template, RenderContext context);
+
+  Object renderGraph(String template, RenderContext context);
 }

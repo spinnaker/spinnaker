@@ -27,7 +27,7 @@ public class StageDefinition implements NamedContent, Conditional {
   private Map<String, Object> config;
   private List<Map<String, Object>> notifications;
   private String comments;
-  private Object when;
+  private String when;
 
   @Override
   public String getName() {
@@ -130,11 +130,11 @@ public class StageDefinition implements NamedContent, Conditional {
     this.comments = comments;
   }
 
-  public Object getWhen() {
+  public String getWhen() {
     return when;
   }
 
-  public void setWhen(Object when) {
+  public void setWhen(String when) {
     this.when = when;
   }
 
