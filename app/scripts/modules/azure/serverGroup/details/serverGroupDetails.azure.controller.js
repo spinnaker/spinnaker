@@ -3,6 +3,7 @@
 import _ from 'lodash';
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
 import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 
@@ -17,6 +18,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
   SERVER_GROUP_READER,
   require('core/utils/selectOnDblClick.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
+  RUNNING_TASKS_DETAILS_COMPONENT,
   SERVER_GROUP_WRITER,
 ])
   .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,

@@ -11,6 +11,7 @@ import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.serv
 import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
+import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
 
 require('../configure/serverGroup.configure.openstack.module.js');
 
@@ -24,8 +25,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   OVERRIDE_REGISTRY,
   ACCOUNT_SERVICE,
   SERVER_GROUP_READER,
+  RUNNING_TASKS_DETAILS_COMPONENT,
   require('../configure/ServerGroupCommandBuilder.js'),
-  require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
   require('core/utils/selectOnDblClick.directive.js'),
   require('../serverGroup.transformer.js'),
@@ -34,7 +35,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
                                                      serverGroupReader, openstackServerGroupCommandBuilder, $uibModal,
                                                      confirmationModalService, serverGroupWriter, subnetReader,
                                                      networkReader, securityGroupReader, loadBalancerReader,
-                                                     runningExecutionsService, accountService,
+                                                     accountService,
                                                      serverGroupWarningMessageService, openstackServerGroupTransformer,
                                                      overrideRegistry) {
     var ctrl = this;
@@ -118,10 +119,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         app.serverGroups.onRefresh($scope, retrieveServerGroup);
       }
     });
-
-    this.runningExecutions = () => {
-      return runningExecutionsService.filterRunningExecutions(this.serverGroup.executions);
-    };
 
     this.isEnableLocked = () => {
       if (this.serverGroup.isDisabled) {

@@ -11,6 +11,7 @@ import {VIEW_SCALING_ACTIVITIES_LINK} from 'core/serverGroup/details/scalingActi
 import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
+import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
 
 require('../configure/serverGroup.configure.aws.module.js');
 
@@ -28,7 +29,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('./scalingProcesses/autoScalingProcess.service.js'),
   SERVER_GROUP_READER,
   require('../configure/serverGroupCommandBuilder.service.js'),
-  require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
   require('./scalingPolicy/scalingPolicySummary.component.js'),
   require('./scheduledAction/scheduledAction.directive.js'),
@@ -38,11 +38,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../serverGroup.transformer.js'),
   require('./scalingPolicy/addScalingPolicyButton.component.js'),
   require('./securityGroup/editSecurityGroups.modal.controller'),
+  RUNNING_TASKS_DETAILS_COMPONENT,
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal,
                                                      confirmationModalService, serverGroupWriter, subnetReader,
-                                                     autoScalingProcessService, runningExecutionsService,
+                                                     autoScalingProcessService,
                                                      awsServerGroupTransformer, accountService,
                                                      serverGroupWarningMessageService, overrideRegistry) {
 
@@ -167,10 +168,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         app.serverGroups.onRefresh($scope, retrieveServerGroup);
       }
     });
-
-    this.runningExecutions = () => {
-      return runningExecutionsService.filterRunningExecutions(this.serverGroup.executions);
-    };
 
     this.isEnableLocked = () => {
       if (this.serverGroup.isDisabled) {

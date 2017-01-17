@@ -321,7 +321,7 @@ describe('Service: Cluster', function () {
         application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups.data[0].executions.length).toBe(1);
+        expect(result.serverGroups.data[0].runningExecutions.length).toBe(1);
       });
 
 
@@ -345,7 +345,7 @@ describe('Service: Cluster', function () {
         application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups.data[0].executions.length).toBe(0);
+        expect(result.serverGroups.data[0].runningExecutions.length).toBe(0);
       });
 
 
@@ -369,7 +369,7 @@ describe('Service: Cluster', function () {
         application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups.data[0].executions.length).toBe(0);
+        expect(result.serverGroups.data[0].runningExecutions.length).toBe(0);
       });
     });
 
@@ -406,7 +406,7 @@ describe('Service: Cluster', function () {
         application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups.data[0].executions.length).toBe(1);
+        expect(result.serverGroups.data[0].runningExecutions.length).toBe(1);
       });
 
 
@@ -429,7 +429,7 @@ describe('Service: Cluster', function () {
         application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups.data[0].executions.length).toBe(0);
+        expect(result.serverGroups.data[0].runningExecutions.length).toBe(0);
       });
 
 
@@ -452,7 +452,7 @@ describe('Service: Cluster', function () {
         application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups.data[0].executions.length).toBe(0);
+        expect(result.serverGroups.data[0].runningExecutions.length).toBe(0);
       });
     });
   });

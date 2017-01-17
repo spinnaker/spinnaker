@@ -6,6 +6,7 @@ import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationMod
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
+import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
 
 let angular = require('angular');
 
@@ -16,16 +17,16 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_READER,
   CONFIRMATION_MODAL_SERVICE,
+  RUNNING_TASKS_DETAILS_COMPONENT,
   SERVER_GROUP_WRITER,
-  require('core/serverGroup/configure/common/runningExecutions.service.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('core/modal/closeable/closeable.modal.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),
 ])
     .controller('cfServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
-                                                       cfServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
-                                                      runningExecutionsService, serverGroupWarningMessageService) {
+                                                      cfServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
+                                                      serverGroupWarningMessageService) {
 
       let application = app;
 
@@ -62,9 +63,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
           angular.extend(details, summary);
 
           $scope.serverGroup = details;
-          $scope.runningExecutions = function() {
-            return runningExecutionsService.filterRunningExecutions($scope.serverGroup.executions);
-          };
 
           if (!_.isEmpty($scope.serverGroup)) {
             if (details.securityGroups) {

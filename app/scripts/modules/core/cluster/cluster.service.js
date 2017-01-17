@@ -207,7 +207,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
       }
 
       application.serverGroups.data.forEach(function(serverGroup) {
-        serverGroup.executions = [];
+        serverGroup.runningExecutions = [];
         executions.forEach(function (execution) {
 
           var stages = findStagesWithServerGroupInfo(execution.stages);
@@ -220,7 +220,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
             if(_.includes(stageServerGroup, serverGroup.name) &&
               stageAccount === serverGroup.account &&
               stageRegion === serverGroup.region) {
-              serverGroup.executions.push(execution);
+              serverGroup.runningExecutions.push(execution);
             }
 
           });
