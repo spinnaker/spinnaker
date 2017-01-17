@@ -16,12 +16,67 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.config
 
+import com.netflix.spinnaker.clouddriver.appengine.AppEngineJobExecutor
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount
+import com.squareup.okhttp.OkHttpClient
+import groovy.json.JsonSlurper
 import groovy.transform.ToString
+import retrofit.RestAdapter
+import retrofit.client.OkClient
+import retrofit.client.Response
+import retrofit.http.GET
+import retrofit.http.Headers
+import retrofit.mime.TypedByteArray
 
 class AppEngineConfigurationProperties {
   @ToString(includeNames = true)
-  static class ManagedAccount extends GoogleCommonManagedAccount { }
+  static class ManagedAccount extends GoogleCommonManagedAccount {
+    static final String metadataUrl = "http://metadata.google.internal/computeMetadata/v1"
+
+    String serviceAccountEmail
+
+    void initialize(AppEngineJobExecutor jobExecutor) {
+      if (this.jsonPath) {
+        jobExecutor.runCommand(["gcloud", "auth", "activate-service-account", "--key-file", this.jsonPath])
+
+        def accountJson = new JsonSlurper().parse(new File(this.jsonPath))
+        this.project = this.project ?: accountJson["project_id"]
+        this.serviceAccountEmail = this.serviceAccountEmail ?: accountJson["client_email"]
+      } else {
+        def metadataService = createMetadataService()
+
+        try {
+          this.project = responseToString(metadataService.getProject())
+          this.serviceAccountEmail = responseToString(metadataService.getApplicationDefaultServiceAccountEmail())
+        } catch (e) {
+          throw new RuntimeException("Could not find application default credentials for App Engine.", e)
+        }
+      }
+    }
+
+    static MetadataService createMetadataService() {
+      RestAdapter restAdapter = new RestAdapter.Builder()
+        .setEndpoint(metadataUrl)
+        .setClient(new OkClient(new OkHttpClient(retryOnConnectionFailure: true)))
+        .build()
+
+      return restAdapter.create(MetadataService.class)
+    }
+
+    static interface MetadataService {
+      @Headers("Metadata-Flavor: Google")
+      @GET("/project/project-id")
+      Response getProject()
+
+      @Headers("Metadata-Flavor: Google")
+      @GET("/instance/service-accounts/default/email")
+      Response getApplicationDefaultServiceAccountEmail()
+    }
+
+    static String responseToString(Response response) {
+      new String(((TypedByteArray) response.body).bytes)
+    }
+  }
 
   List<ManagedAccount> accounts = []
 }

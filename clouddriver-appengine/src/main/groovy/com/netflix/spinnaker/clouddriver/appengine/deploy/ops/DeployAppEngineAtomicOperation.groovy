@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
+import com.netflix.spinnaker.clouddriver.appengine.AppEngineJobExecutor
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineMutexRepository
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppEngineDescription
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
-import com.netflix.spinnaker.clouddriver.jobs.JobExecutor
-import com.netflix.spinnaker.clouddriver.jobs.JobRequest
-import com.netflix.spinnaker.clouddriver.jobs.JobStatus
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -36,7 +34,7 @@ class DeployAppEngineAtomicOperation implements AtomicOperation<DeploymentResult
   }
 
   @Autowired
-  JobExecutor jobExecutor
+  AppEngineJobExecutor jobExecutor
 
   DeployAppEngineDescription description
 
@@ -76,12 +74,12 @@ class DeployAppEngineAtomicOperation implements AtomicOperation<DeploymentResult
       if (!directory.exists()) {
         task.updateStatus BASE_PHASE, "Cloning repository $repositoryUrl into local directory..."
         directory.mkdir()
-        runCommand(["git", "clone", repositoryUrl, directoryName])
+        jobExecutor.runCommand(["git", "clone", repositoryUrl, directoryName])
       }
 
       task.updateStatus BASE_PHASE, "Checking out branch $branch and merging..."
-      runCommand(["git", "-C", directoryName, "fetch", "origin", branch])
-      runCommand(["git", "-C", directoryName, "checkout", "origin/$branch"])
+      jobExecutor.runCommand(["git", "-C", directoryName, "fetch", "origin", branch])
+      jobExecutor.runCommand(["git", "-C", directoryName, "checkout", "origin/$branch"])
     } catch (Exception e) {
       directory.deleteDir()
       if (retryCount > 0) {
@@ -94,46 +92,24 @@ class DeployAppEngineAtomicOperation implements AtomicOperation<DeploymentResult
   }
 
   String deploy(String directoryName) {
-    def jsonPath = description.credentials.jsonPath
     def project = description.credentials.project
+    def accountEmail = description.credentials.serviceAccountEmail
     def region = description.credentials.region
     def serverGroupNameResolver = new AppEngineServerGroupNameResolver(project, region, description.credentials)
     def versionName = serverGroupNameResolver.resolveNextServerGroupName(description.application,
                                                                          description.stack,
                                                                          description.freeFormDetails,
                                                                          false)
-
-    task.updateStatus BASE_PHASE, "Activating service account..."
-    runCommand(["gcloud", "auth", "activate-service-account", "--key-file", jsonPath])
-
     def deployCommand = ["gcloud", "app", "deploy", "$directoryName/$description.appYamlPath"]
     deployCommand << "--version=$versionName"
     deployCommand << (description.promote ? "--promote" : "--no-promote")
     deployCommand << (description.stopPreviousVersion ? "--stop-previous-version": "--no-stop-previous-version")
     deployCommand << "--project=$project"
+    deployCommand << "--account=$accountEmail"
 
     task.updateStatus BASE_PHASE, "Deploying version $versionName..."
-    runCommand(deployCommand)
+    jobExecutor.runCommand(deployCommand)
     versionName
-  }
-
-  void runCommand(List<String> command) {
-    String jobId = jobExecutor.startJob(new JobRequest(tokenizedCommand: command),
-                                        System.getenv(),
-                                        new ByteArrayInputStream())
-    waitForJobCompletion(jobId)
-  }
-
-  void waitForJobCompletion(String jobId) {
-    sleep(1000)
-    JobStatus jobStatus = jobExecutor.updateJob(jobId)
-    while (jobStatus.state == JobStatus.State.RUNNING) {
-      sleep(1000)
-      jobStatus = jobExecutor.updateJob(jobId)
-    }
-    if (jobStatus.result == JobStatus.Result.FAILURE && jobStatus.stdOut) {
-      throw new IllegalArgumentException("$jobStatus.stdOut + $jobStatus.stdErr")
-    }
   }
 
   static String getLegalDirectoryName(String repositoryUrl) {
