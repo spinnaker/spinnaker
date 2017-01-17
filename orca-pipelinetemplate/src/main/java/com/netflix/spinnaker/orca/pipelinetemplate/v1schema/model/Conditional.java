@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
+import java.util.List;
+
 public interface Conditional {
 
-  String getWhen();
+  List<String> getWhen();
 }
