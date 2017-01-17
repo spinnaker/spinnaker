@@ -1,9 +1,15 @@
-FROM node:7.0.0
+FROM java:8
 
 COPY . deck/
 
 WORKDIR deck
 
-RUN npm install
+RUN docker/setup-apache2.sh
 
-CMD npm start
+RUN ./gradlew build -PskipTests
+
+RUN mkdir -p /opt/deck/html/
+
+RUN cp build/webpack/* /opt/deck/html/
+
+CMD docker/run-apache2.sh
