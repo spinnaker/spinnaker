@@ -10,13 +10,13 @@ kubectl create -f svcs/spin-igor.yaml
 kubectl create -f svcs/spin-orca.yaml
 
 echo
-echo "Starting all replication controllers..."
+echo "Starting all replica sets..."
 echo
 
-kubectl create -f rcs/spin-clouddriver.yaml
-kubectl create -f rcs/spin-deck.yaml
-kubectl create -f rcs/spin-echo.yaml
-kubectl create -f rcs/spin-front50.yaml
-kubectl create -f rcs/spin-gate.yaml
-kubectl create -f rcs/spin-igor.yaml
-kubectl create -f rcs/spin-orca.yaml
+kubectl create -f rs/spin-clouddriver.yaml
+kubectl create -f rs/spin-deck.yaml
+kubectl create -f rs/spin-echo.yaml
+kubectl create -f rs/spin-front50.yaml
+kubectl create -f rs/spin-gate.yaml
+kubectl create -f rs/spin-igor.yaml
+kubectl create -f rs/spin-orca.yaml

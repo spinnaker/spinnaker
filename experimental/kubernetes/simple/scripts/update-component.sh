@@ -1,3 +1,3 @@
-kubectl delete rc -l stack=$1 --namespace=spinnaker
+kubectl delete rs -l stack=$1 --namespace=spinnaker
 
-kubectl create -f rcs/spin-$1.yaml
+kubectl create -f rs/spin-$1.yaml
