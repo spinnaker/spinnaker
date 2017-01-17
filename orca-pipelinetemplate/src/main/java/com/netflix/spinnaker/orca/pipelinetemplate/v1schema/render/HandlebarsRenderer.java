@@ -22,6 +22,7 @@ import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.ConditionHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.JsonHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.ModuleHelper;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -52,6 +53,7 @@ public class HandlebarsRenderer implements Renderer {
       .registerHelper("json", new JsonHelper(pipelineTemplateObjectMapper))
       .registerHelper("module", new ModuleHelper(this, pipelineTemplateObjectMapper))
     ;
+    ConditionHelper.register(handlebars);
   }
 
   @Override
