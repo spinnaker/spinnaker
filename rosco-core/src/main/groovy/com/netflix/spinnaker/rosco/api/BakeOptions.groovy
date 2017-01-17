@@ -28,6 +28,7 @@ class BakeOptions {
     String shortDescription
     String detailedDescription
     BakeRequest.PackageType packageType
+    String templateFile
   }
 
   static class Selected {

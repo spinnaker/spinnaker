@@ -113,8 +113,8 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  String getTemplateFileName() {
-    return gceBakeryDefaults.templateFile
+  String getTemplateFileName(BakeOptions.BaseImage baseImage) {
+    return baseImage.templateFile ?: gceBakeryDefaults.templateFile
   }
 
   @Override

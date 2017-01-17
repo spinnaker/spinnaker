@@ -127,7 +127,7 @@ abstract class CloudProviderBakeHandler {
   /**
    * Returns the name of the template file for this provider.
    */
-  abstract String getTemplateFileName()
+  abstract String getTemplateFileName(BakeOptions.BaseImage baseImage)
 
   /**
    * Build provider-specific command for packer.
@@ -179,7 +179,7 @@ abstract class CloudProviderBakeHandler {
       }
     }
 
-    def finalTemplateFileName = bakeRequest.template_file_name ?: templateFileName
+    def finalTemplateFileName = bakeRequest.template_file_name ?: getTemplateFileName(selectedOptions.baseImage)
     def finaltemplateFilePath = "$configDir/$finalTemplateFileName"
     def finalVarFileName = bakeRequest.var_file_name ? "$configDir/$bakeRequest.var_file_name" : null
     def baseCommand = getBaseCommand(finalTemplateFileName)

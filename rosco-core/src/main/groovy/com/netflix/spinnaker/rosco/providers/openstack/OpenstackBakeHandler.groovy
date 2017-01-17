@@ -136,8 +136,8 @@ public class OpenstackBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  String getTemplateFileName() {
-    return openstackBakeryDefaults.templateFile
+  String getTemplateFileName(BakeOptions.BaseImage baseImage) {
+    return baseImage.templateFile ?: openstackBakeryDefaults.templateFile
   }
 
   @Override

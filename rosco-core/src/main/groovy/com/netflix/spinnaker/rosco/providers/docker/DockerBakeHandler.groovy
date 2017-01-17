@@ -87,8 +87,8 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  String getTemplateFileName() {
-    return dockerBakeryDefaults.templateFile
+  String getTemplateFileName(BakeOptions.BaseImage baseImage) {
+    return baseImage.templateFile ?: dockerBakeryDefaults.templateFile
   }
 
   @Override

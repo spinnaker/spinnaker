@@ -80,6 +80,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
             sku: "7.1",
             version: "7.1.20150731",
             packageType: "RPM",
+            templateFile: "azure-centos.json",
           ]
         ]
       ]
@@ -145,10 +146,10 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
       AzureBakeHandler azureBakeHandler = new AzureBakeHandler(azureBakeryDefaults: azureBakeryDefaults)
 
     when:
-      String templateFileName = azureBakeHandler.getTemplateFileName()
+      String templateFileName = azureBakeHandler.getTemplateFileName(azureBakeHandler.bakeOptions.baseImages[1])
 
     then:
-      templateFileName == "azure-linux.json"
+      templateFileName == "azure-centos.json"
   }
 
   void 'image config data is serialized as expected'() {

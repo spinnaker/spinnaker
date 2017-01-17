@@ -132,8 +132,8 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  String getTemplateFileName() {
-    return awsBakeryDefaults.templateFile
+  String getTemplateFileName(BakeOptions.BaseImage baseImage) {
+    return baseImage.templateFile ?: awsBakeryDefaults.templateFile
   }
 
   @Override

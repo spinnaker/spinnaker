@@ -103,7 +103,7 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
   }
 
   @Override
-  String getTemplateFileName() {
-    return azureBakeryDefaults.templateFile
+  String getTemplateFileName(BakeOptions.BaseImage baseImage) {
+    return baseImage.templateFile ?: azureBakeryDefaults.templateFile
   }
 }
