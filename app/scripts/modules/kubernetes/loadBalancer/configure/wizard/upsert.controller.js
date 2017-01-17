@@ -1,11 +1,12 @@
 'use strict';
 
+let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-
-let angular = require('angular');
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.controller', [
   require('angular-ui-router'),
@@ -13,7 +14,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
   LOAD_BALANCER_READ_SERVICE,
   ACCOUNT_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   require('core/search/search.service.js'),
   require('../../../namespace/selectField.directive.js'),
   require('../../transformer.js'),
@@ -21,7 +22,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
   .controller('kubernetesUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
                                                                  application, loadBalancer, isNew, loadBalancerReader,
                                                                  accountService, kubernetesLoadBalancerTransformer,
-                                                                 searchService, v2modalWizardService, loadBalancerWriter, taskMonitorService) {
+                                                                 searchService, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
     var ctrl = this;
     $scope.isNew = isNew;
 
@@ -61,7 +62,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       modalInstance: $uibModalInstance,

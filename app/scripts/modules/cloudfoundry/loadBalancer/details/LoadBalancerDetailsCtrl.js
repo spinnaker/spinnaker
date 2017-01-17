@@ -82,8 +82,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
       const taskMonitor = {
         application: application,
         title: 'Deleting ' + loadBalancer.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true
       };
 
       const command = {

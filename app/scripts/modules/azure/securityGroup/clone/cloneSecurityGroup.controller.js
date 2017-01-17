@@ -3,17 +3,19 @@
 import _ from 'lodash';
 
 var angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.clone.controller', [
     ACCOUNT_SERVICE,
-    require('core/task/monitor/taskMonitorService.js'),
+    TASK_MONITOR_BUILDER,
     require('../securityGroup.write.service.js'),
     require('../configure/CreateSecurityGroupCtrl.js')
   ])
-  .controller('azureCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, $state, taskMonitorService, accountService,
-    azureSecurityGroupWriter, securityGroup, application) {
+  .controller('azureCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, $state, taskMonitorBuilder, accountService,
+                                                            azureSecurityGroupWriter, securityGroup, application) {
     var ctrl = this;
 
     $scope.pages = {
@@ -56,7 +58,7 @@ module.exports = angular
       refreshingSecurityGroups: false,
     };
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Updating your security group',
       modalInstance: $uibModalInstance,
@@ -138,8 +140,6 @@ module.exports = angular
       ruleset[a].priority = priorityA;
       ruleset[b].priority = priorityB;
     }
-
-    $scope.taskMonitor.onApplicationRefresh = $uibModalInstance.dismiss;
 
     ctrl.upsert = function () {
       $scope.taskMonitor.submit(

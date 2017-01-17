@@ -2,11 +2,13 @@
 
 let angular = require('angular');
 
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+
 module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.controller', [
   require('./elasticIp.write.service.js'),
-  require('core/task/monitor/taskMonitorService.js')
+  TASK_MONITOR_BUILDER,
 ])
-  .controller('ElasticIpCtrl', function($scope, $uibModalInstance, elasticIpWriter, taskMonitorService,
+  .controller('ElasticIpCtrl', function($scope, $uibModalInstance, elasticIpWriter, taskMonitorBuilder,
                                         application, serverGroup, elasticIp, onTaskComplete, settings) {
     $scope.serverGroup = serverGroup;
     $scope.elasticIp = elasticIp;
@@ -16,8 +18,9 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
 
     this.isValid = () => $scope.verification.verified;
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
+      title: null, // populated by action
       modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete
     });

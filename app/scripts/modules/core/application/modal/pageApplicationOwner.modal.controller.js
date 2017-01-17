@@ -1,13 +1,14 @@
 'use strict';
 
 import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.pageApplicationOwner.modal.controller', [
   APPLICATION_WRITE_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
 ])
   .controller('PageApplicationOwner', function ($scope, $uibModalInstance,
-                                                taskMonitorService, applicationWriter, application) {
+                                                taskMonitorBuilder, applicationWriter, application) {
     this.application = application;
     this.command = {};
 
@@ -25,7 +26,7 @@ module.exports = angular.module('spinnaker.pageApplicationOwner.modal.controller
         );
       };
 
-      this.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
+      this.taskMonitor = taskMonitorBuilder.buildTaskMonitor(taskMonitorConfig);
       this.taskMonitor.submit(submitMethod);
     };
   });

@@ -8,12 +8,12 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
-
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.baseConfig.controller', [
     require('angular-ui-router'),
-    require('core/task/monitor/taskMonitorService.js'),
+    TASK_MONITOR_BUILDER,
     ACCOUNT_SERVICE,
     NETWORK_READ_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
@@ -23,7 +23,7 @@ module.exports = angular
   .controller('gceConfigSecurityGroupMixin', function ($scope,
                                                        $state,
                                                        $uibModalInstance,
-                                                       taskMonitorService,
+                                                       taskMonitorBuilder,
                                                        application,
                                                        securityGroup,
                                                        securityGroupReader,
@@ -80,7 +80,7 @@ module.exports = angular
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your security group',
       modalInstance: $uibModalInstance,

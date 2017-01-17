@@ -191,7 +191,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
       var taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
-        onApplicationRefresh: function() {
+        onTaskComplete: function() {
           if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
             $state.go('^');
           }

@@ -4,16 +4,17 @@ let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.rollback.controller', [
       ACCOUNT_SERVICE,
       require('core/application/modal/platformHealthOverride.directive.js'),
       require('core/task/modal/reason.directive.js'),
       SERVER_GROUP_WRITER,
-      require('core/task/monitor/taskMonitorService.js'),
+      TASK_MONITOR_BUILDER,
     ])
     .controller('kubernetesRollbackServerGroupController', function ($scope, $uibModalInstance, serverGroupWriter,
-                                                                     taskMonitorService,
+                                                                     taskMonitorBuilder,
                                                                      application, serverGroup, disabledServerGroups) {
       $scope.serverGroup = serverGroup;
       $scope.disabledServerGroups = disabledServerGroups.sort((a, b) => b.name.localeCompare(a.name));
@@ -40,10 +41,10 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.rollba
         return command.rollbackContext.restoreServerGroupName !== undefined;
       };
 
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
-        modalInstance: $uibModalInstance,
+      $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
         application: application,
         title: 'Rollback ' + serverGroup.name,
+        modalInstance: $uibModalInstance,
       });
 
       this.rollback = function () {

@@ -92,8 +92,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
       var taskMonitor = {
         application: app,
         title: 'Deleting ' + loadBalancer.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true
       };
 
       var submitMethod = function () {

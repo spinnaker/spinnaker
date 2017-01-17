@@ -1,19 +1,19 @@
 'use strict';
 
+let angular = require('angular');
 import _ from 'lodash';
 import {Subject} from 'rxjs';
 
+import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
-
-var angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.baseConfig.controller', [
     require('angular-ui-router'),
-    require('core/task/monitor/taskMonitorService'),
+    TASK_MONITOR_BUILDER,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
     ACCOUNT_SERVICE,
@@ -25,7 +25,7 @@ module.exports = angular
   .controller('awsConfigSecurityGroupMixin', function ($scope,
                                                        $state,
                                                        $uibModalInstance,
-                                                       taskMonitorService,
+                                                       taskMonitorBuilder,
                                                        application,
                                                        securityGroup,
                                                        securityGroupReader,
@@ -86,7 +86,7 @@ module.exports = angular
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your security group',
       modalInstance: $uibModalInstance,

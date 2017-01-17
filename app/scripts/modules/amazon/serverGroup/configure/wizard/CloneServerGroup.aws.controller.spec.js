@@ -17,7 +17,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
   beforeEach(function() {
     window.inject(function ($controller, $rootScope, accountService, serverGroupWriter, awsImageReader, settings,
-                     searchService, awsInstanceTypeService, v2modalWizardService, securityGroupReader, taskMonitorService,
+                     searchService, awsInstanceTypeService, v2modalWizardService, securityGroupReader, taskMonitorBuilder,
                      awsServerGroupConfigurationService, $q, subnetReader, keyPairsReader, loadBalancerReader) {
 
       this.$scope = $rootScope.$new();
@@ -29,7 +29,7 @@ describe('Controller: awsCloneServerGroup', function () {
       this.v2modalWizardService = v2modalWizardService;
       this.securityGroupReader = securityGroupReader;
       this.awsServerGroupConfigurationService = awsServerGroupConfigurationService;
-      this.taskMonitorService = taskMonitorService;
+      this.taskMonitorBuilder = taskMonitorBuilder;
       this.settings = settings;
       this.subnetReader = subnetReader;
       this.keyPairsReader = keyPairsReader;
@@ -104,7 +104,7 @@ describe('Controller: awsCloneServerGroup', function () {
           v2modalWizardService: this.v2modalWizardService,
           securityGroupReader: this.securityGroupReader,
           awsServerGroupConfigurationService: this.awsServerGroupConfigurationService,
-          taskMonitorService: this.taskMonitorService,
+          taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroupCommand,
           application: {name: 'x'},
           title: 'n/a'
@@ -218,7 +218,7 @@ describe('Controller: awsCloneServerGroup', function () {
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
           v2modalWizardService: this.v2modalWizardService,
-          taskMonitorService: this.taskMonitorService,
+          taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroupCommand,
           application: {name: 'x'},
           title: 'n/a'
@@ -373,7 +373,7 @@ describe('Controller: awsCloneServerGroup', function () {
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
           v2modalWizardService: this.v2modalWizardService,
-          taskMonitorService: this.taskMonitorService,
+          taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroup,
           application: {name: 'x'},
           title: 'n/a'

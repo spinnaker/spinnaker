@@ -1,16 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
-
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
-
 let angular = require('angular');
 
+import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+
 module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.process.controller', [
-  require('core/task/monitor/taskMonitor.module.js'),
+  TASK_MONITOR_BUILDER,
   TASK_EXECUTOR,
   ])
-  .controller('ModifyScalingProcessesCtrl', function($scope, $uibModalInstance, taskMonitorService, taskExecutor, application, serverGroup, processes) {
+  .controller('ModifyScalingProcessesCtrl', function($scope, $uibModalInstance, taskMonitorBuilder, taskExecutor, application, serverGroup, processes) {
     $scope.command = angular.copy(processes);
     $scope.serverGroup = serverGroup;
     $scope.verification = {};
@@ -34,10 +34,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
       return !!(toEnable.length || toSuspend.length);
     };
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
-      modalInstance: $uibModalInstance,
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Update Auto Scaling Processes for ' + serverGroup.name,
+      modalInstance: $uibModalInstance,
       onTaskComplete: () => application.serverGroups.refresh(),
     });
 

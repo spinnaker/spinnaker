@@ -3,14 +3,15 @@
 let angular = require('angular');
 
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.controller', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   SERVER_GROUP_WRITER,
-  require('core/task/monitor/taskMonitorService.js')
+  TASK_MONITOR_BUILDER,
 ])
-  .controller('openstackResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorService,
-                                                   application, serverGroup) {
+  .controller('openstackResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorBuilder,
+                                                         application, serverGroup) {
 
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
@@ -44,10 +45,10 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.
         command.capacity.desired !== null;
     };
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
-      modalInstance: $uibModalInstance,
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Resizing ' + serverGroup.name,
+      modalInstance: $uibModalInstance,
       onTaskComplete: () => application.serverGroups.refresh(),
     });
 

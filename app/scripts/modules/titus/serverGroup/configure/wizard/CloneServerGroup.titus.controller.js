@@ -8,9 +8,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
   TITUS_SECURITY_GROUP_PICKER
 ])
   .controller('titusCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
-                                                  serverGroupWriter, v2modalWizardService, taskMonitorService,
-                                                  titusServerGroupConfigurationService,
-                                                  serverGroupCommand, application, title) {
+                                                    serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
+                                                    titusServerGroupConfigurationService,
+                                                    serverGroupCommand, application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
@@ -64,7 +64,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
       application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
       modalInstance: $uibModalInstance,

@@ -7,6 +7,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.controller', [
   require('angular-ui-router'),
@@ -15,15 +16,15 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
   SECURITY_GROUP_WRITER,
   ACCOUNT_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   require('core/search/search.service.js'),
   require('../../../namespace/selectField.directive.js'),
   require('../../transformer.js'),
 ])
   .controller('kubernetesUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
-                                                                 application, securityGroup,
-                                                                 accountService, kubernetesSecurityGroupTransformer, securityGroupReader, loadBalancerReader,
-                                                                 searchService, v2modalWizardService, securityGroupWriter, taskMonitorService) {
+                                                                  application, securityGroup,
+                                                                  accountService, kubernetesSecurityGroupTransformer, securityGroupReader, loadBalancerReader,
+                                                                  searchService, v2modalWizardService, securityGroupWriter, taskMonitorBuilder) {
     var ctrl = this;
     $scope.isNew = !securityGroup.edit;
     $scope.securityGroup = securityGroup;
@@ -64,7 +65,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: ($scope.isNew ? 'Creating ' : 'Updating ') + 'your security group',
       modalInstance: $uibModalInstance,

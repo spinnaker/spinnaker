@@ -111,9 +111,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
         var taskMonitor = {
           application: application,
           title: 'Destroying ' + serverGroup.name,
-          forceRefreshMessage: 'Refreshing application...',
-          forceRefreshEnabled: true,
-          katoPhaseToMonitor: 'DESTROY_ASG'
         };
 
         var submitMethod = function () {
@@ -143,11 +140,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
               $state.go('^');
             }
           },
-          onApplicationRefresh: function() {
-            if ($state.includes('**.serverGroup', stateParams)) {
-              $state.go('^');
-            }
-          }
         });
       };
 
@@ -199,7 +191,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
         var taskMonitor = {
           application: application,
           title: 'Enabling ' + serverGroup.name,
-          forceRefreshMessage: 'Refreshing application...',
         };
 
         var submitMethod = function () {

@@ -15,13 +15,13 @@
 
      // Initialize the controller and a mock scope
      beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, securityGroupReader,
-                                 taskMonitorService, azureSecurityGroupWriter) {
+                                        taskMonitorBuilder, azureSecurityGroupWriter) {
 
        this.$scope = $rootScope.$new();
        this.$q = $q;
        this.accountService = accountService;
        this.securityGroupReader = securityGroupReader;
-       this.taskMonitorService = taskMonitorService;
+       this.taskMonitorBuilder = taskMonitorBuilder;
        this.securityGroupWriter = azureSecurityGroupWriter;
 
        spyOn(this.accountService, 'listAccounts').and.returnValue(
@@ -74,7 +74,7 @@
            $uibModalInstance: { result: this.$q.when(null) },
            accountService: this.accountService,
            securityGroupReader: this.securityGroupReader,
-           taskMonitorService: this.taskMonitorService,
+           taskMonitorBuilder: this.taskMonitorBuilder,
            securityGroupWriter: this.securityGroupWriter,
            application: {},
            securityGroup: { regions: [], securityGroupIngress: [] },

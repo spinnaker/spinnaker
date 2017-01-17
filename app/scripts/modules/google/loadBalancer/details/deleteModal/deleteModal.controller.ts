@@ -4,6 +4,7 @@ import {
   LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter,
   ILoadBalancerDeleteDescription
 } from 'core/loadBalancer/loadBalancer.write.service';
+import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
 
 class Verification {
   verified: boolean = false;
@@ -32,7 +33,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
       'gceHttpLoadBalancerWriter',
       'loadBalancer',
       'loadBalancerWriter',
-      'taskMonitorService',
+      'taskMonitorBuilder',
       '$uibModalInstance',
     ];
   }
@@ -42,18 +43,18 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
                private gceHttpLoadBalancerWriter: any,
                private loadBalancer: any,
                private loadBalancerWriter: LoadBalancerWriter,
-               private taskMonitorService: any,
+               private taskMonitorBuilder: TaskMonitorBuilder,
                private $uibModalInstance: any) {}
 
   public $onInit (): void {
 
     let taskMonitorConfig = {
-      modalInstance: this.$uibModalInstance,
       application: this.application,
       title: 'Deleting ' + this.loadBalancer.name,
+      modalInstance: this.$uibModalInstance,
     };
 
-    this.taskMonitor = this.taskMonitorService.buildTaskMonitor(taskMonitorConfig);
+    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor(taskMonitorConfig);
   }
 
   public isValid (): boolean {
@@ -101,7 +102,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
 export const DELETE_MODAL_CONTROLLER = 'spinnaker.gce.loadBalancer.deleteModal.controller';
 module(DELETE_MODAL_CONTROLLER, [
     require('angular-ui-bootstrap'),
-    require('core/task/monitor/taskMonitorService.js'),
+    TASK_MONITOR_BUILDER,
     LOAD_BALANCER_WRITE_SERVICE,
     require('../../configure/http/httpLoadBalancer.write.service.js'),
   ])

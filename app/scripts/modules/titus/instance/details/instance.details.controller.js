@@ -134,9 +134,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
       var taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true,
-        onApplicationRefresh: function() {
+        onTaskComplete: function() {
           if ($state.includes('**.instanceDetails', {id: instance.instanceId})) {
             $state.go('^');
           }

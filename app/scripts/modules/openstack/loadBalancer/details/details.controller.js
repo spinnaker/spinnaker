@@ -85,8 +85,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
         const taskMonitor = {
           application: application,
           title: 'Deleting ' + loadBalancer.name,
-          forceRefreshMessage: 'Refreshing application...',
-          forceRefreshEnabled: true
         };
 
         const command = {

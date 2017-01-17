@@ -97,8 +97,8 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
     this.mockTaskMonitor = {
       submit: jasmine.createSpy('taskMonitor.submit')
     };
-    this.mockTaskMonitorService = {
-      buildTaskMonitor: jasmine.createSpy('taskMonitorService.buildTaskMonitor').and.callFake(function(arg) {
+    this.mockTaskMonitorBuilder = {
+      buildTaskMonitor: jasmine.createSpy('taskMonitorBuilder.buildTaskMonitor').and.callFake(function(arg) {
         testSuite.taskCompletionCallback = arg.onTaskComplete;
         return testSuite.mockTaskMonitor;
       })
@@ -115,7 +115,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
         loadBalancerReader: this.mockLoadBalancerReader,
         accountService: this.mockAccountService,
         loadBalancerWriter: this.mockLoadBalancerWriter,
-        taskMonitorService: this.mockTaskMonitorService,
+        taskMonitorBuilder: this.mockTaskMonitorBuilder,
         securityGroupReader: this.mockSecurityGroupReader,
       });
     };
@@ -148,7 +148,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
     });
 
     it('builds the task monitor', function() {
-      expect(this.mockTaskMonitorService.buildTaskMonitor).toHaveBeenCalled();
+      expect(this.mockTaskMonitorBuilder.buildTaskMonitor).toHaveBeenCalled();
     });
 
     it('requests the list of existing load balancers', function() {

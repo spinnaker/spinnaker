@@ -6,6 +6,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.controller', [
   require('angular-ui-router'),
@@ -13,13 +14,13 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
   INFRASTRUCTURE_CACHE_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   SECURITY_GROUP_READER,
-  require('core/task/monitor/taskMonitorService.js'),
-    require('../securityGroup.write.service.js'),
+  TASK_MONITOR_BUILDER,
+  require('../securityGroup.write.service.js'),
 ])
   .controller('azureEditSecurityGroupCtrl', function($scope, $uibModalInstance, $exceptionHandler, $state,
-                                                accountService, securityGroupReader,
-                                                taskMonitorService, cacheInitializer, infrastructureCaches,
-                                                application, securityGroup, azureSecurityGroupWriter) {
+                                                     accountService, securityGroupReader,
+                                                     taskMonitorBuilder, cacheInitializer, infrastructureCaches,
+                                                     application, securityGroup, azureSecurityGroupWriter) {
 
     $scope.pages = {
       ingress: require('./createSecurityGroupIngress.html'),
@@ -38,7 +39,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
       refreshingSecurityGroups: false,
     };
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Updating your security group',
       modalInstance: $uibModalInstance,
@@ -141,7 +142,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
       ruleset[b].priority = priorityB;
     }
 
-    $scope.taskMonitor.onApplicationRefresh = $uibModalInstance.dismiss;
+    $scope.taskMonitor.onTaskComplete = $uibModalInstance.dismiss;
 
     this.upsert = function () {
       $scope.taskMonitor.submit(

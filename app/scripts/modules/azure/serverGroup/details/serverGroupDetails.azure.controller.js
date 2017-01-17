@@ -105,9 +105,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
       var taskMonitor = {
         application: app,
         title: 'Destroying ' + serverGroup.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true,
-        katoPhaseToMonitor: 'DESTROY_SERVER_GROUP'
       };
 
       var submitMethod = function () {
@@ -133,11 +130,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
             $state.go('^');
           }
         },
-        onApplicationRefresh: function() {
-          if ($state.includes('**.serverGroup', stateParams)) {
-            $state.go('^');
-          }
-        }
       });
     };
 

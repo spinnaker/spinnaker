@@ -15,6 +15,7 @@ import {
   LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter,
   ILoadBalancerUpsertDescription
 } from 'core/loadBalancer/loadBalancer.write.service';
+import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
@@ -86,7 +87,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
                                   'accountService',
                                   'loadBalancerWriter',
                                   'wizardSubFormValidation',
-                                  'taskMonitorService',
+                                  'taskMonitorBuilder',
                                   'settings',
                                   '$state',
                                   'infrastructureCaches']; }
@@ -100,7 +101,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
                private accountService: AccountService,
                private loadBalancerWriter: LoadBalancerWriter,
                private wizardSubFormValidation: any,
-               private taskMonitorService: any,
+               private taskMonitorBuilder: TaskMonitorBuilder,
                private settings: any,
                $state: IStateService,
                infrastructureCaches: InfrastructureCacheService) {
@@ -148,7 +149,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
           .register({page: 'healthCheck', subForm: 'healthCheckForm'})
           .register({page: 'advancedSettings', subForm: 'advancedSettingsForm'});
 
-        this.taskMonitor = this.taskMonitorService.buildTaskMonitor({
+        this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
           application: this.application,
           title: (this.isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
           modalInstance: this.$uibModalInstance,
@@ -228,5 +229,5 @@ module(GCE_SSL_LOAD_BALANCER_CTRL, [
   INFRASTRUCTURE_CACHE_SERVICE,
   require('core/modal/wizard/wizardSubFormValidation.service.js'),
   LOAD_BALANCER_WRITE_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
 ]).controller('gceSslLoadBalancerCtrl', SslLoadBalancerCtrl);

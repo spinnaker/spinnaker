@@ -4,16 +4,17 @@ import _ from 'lodash';
 let angular = require('angular');
 
 import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.securityGroup.editSecurityGroups.modal.controller', [
-  require('core/task/monitor/taskMonitor.module.js'),
+  TASK_MONITOR_BUILDER,
   SERVER_GROUP_WRITER,
   SECURITY_GROUP_READER,
   TASK_EXECUTOR,
 ])
-  .controller('EditSecurityGroupsCtrl', function($scope, $uibModalInstance, taskMonitorService, taskExecutor,
+  .controller('EditSecurityGroupsCtrl', function($scope, $uibModalInstance, taskMonitorBuilder, taskExecutor,
                                                  serverGroupWriter, securityGroupReader,
                                                  application, serverGroup, securityGroups) {
     this.command = {
@@ -39,10 +40,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.securityGroup
 
     this.serverGroup = serverGroup;
 
-    this.taskMonitor = taskMonitorService.buildTaskMonitor({
-      modalInstance: $uibModalInstance,
+    this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Update Security Groups for ' + serverGroup.name,
+      modalInstance: $uibModalInstance,
       onTaskComplete: () => application.serverGroups.refresh(),
     });
 

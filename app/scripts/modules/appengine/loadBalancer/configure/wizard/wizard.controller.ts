@@ -6,13 +6,14 @@ import {Application} from 'core/application/application.model';
 import {IAppengineLoadBalancer} from 'appengine/domain/index';
 import {AppengineLoadBalancerTransformer} from 'appengine/loadBalancer/transformer';
 import {LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter} from 'core/loadBalancer/loadBalancer.write.service';
+import {TASK_MONITOR_BUILDER, TaskMonitor, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
 
 import './wizard.less';
 
 class AppengineLoadBalancerWizardController {
   public loadBalancer: IAppengineLoadBalancer;
   public heading: string;
-  public taskMonitor: any;
+  public taskMonitor: TaskMonitor;
 
   static get $inject() { return [
     '$scope',
@@ -23,7 +24,7 @@ class AppengineLoadBalancerWizardController {
     'isNew',
     'forPipelineConfig',
     'appengineLoadBalancerTransformer',
-    'taskMonitorService',
+    'taskMonitorBuilder',
     'loadBalancerWriter',
     'wizardSubFormValidation']; }
 
@@ -35,7 +36,7 @@ class AppengineLoadBalancerWizardController {
               public isNew: boolean,
               private forPipelineConfig: boolean,
               private transformer: AppengineLoadBalancerTransformer,
-              private taskMonitorService: any,
+              private taskMonitorBuilder: TaskMonitorBuilder,
               private loadBalancerWriter: LoadBalancerWriter,
               private wizardSubFormValidation: any) {
     if (this.isNew) {
@@ -44,7 +45,7 @@ class AppengineLoadBalancerWizardController {
       this.heading = `Edit ${[loadBalancer.name, loadBalancer.region, loadBalancer.account].join(':')}`;
       this.loadBalancer = this.transformer.convertLoadBalancerForEditing(loadBalancer);
 
-      this.taskMonitor = taskMonitorService.buildTaskMonitor({
+      this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
         application: this.application,
         title: 'Updating your load balancer',
         modalInstance: this.$uibModalInstance,
@@ -115,7 +116,7 @@ class AppengineLoadBalancerWizardController {
 export const APPENGINE_LOAD_BALANCER_WIZARD_CTRL = 'spinnaker.appengine.loadBalancer.wizard.controller';
 
 module(APPENGINE_LOAD_BALANCER_WIZARD_CTRL, [
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   LOAD_BALANCER_WRITE_SERVICE,
   require('core/modal/wizard/wizardSubFormValidation.service.js'),
 ]).controller('appengineLoadBalancerWizardCtrl', AppengineLoadBalancerWizardController);

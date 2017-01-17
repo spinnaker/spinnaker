@@ -43,7 +43,6 @@ class V2ModalWizardComponent implements ng.IComponentOptions {
     heading: '@',
     notReallyModal: '<',
     taskMonitor: '<',
-    modalInstance: '<',
     dismiss: '&',
   };
 

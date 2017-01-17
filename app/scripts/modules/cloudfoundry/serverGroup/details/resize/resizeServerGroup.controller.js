@@ -3,14 +3,15 @@
 let angular = require('angular');
 
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.controller', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   SERVER_GROUP_WRITER,
-  require('core/task/monitor/taskMonitorService.js')
+  TASK_MONITOR_BUILDER,
 ])
-  .controller('cfResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorService,
-                                                   application, serverGroup) {
+  .controller('cfResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorBuilder,
+                                                  application, serverGroup) {
 
     $scope.serverGroup = serverGroup;
 
@@ -35,10 +36,10 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
       return command.newSize !== null;
     };
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
-      modalInstance: $uibModalInstance,
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Resizing ' + serverGroup.name,
+      modalInstance: $uibModalInstance,
       onTaskComplete: () => application.serverGroups.refresh(),
     });
 

@@ -3,30 +3,32 @@
 import _ from 'lodash';
 
 var angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.baseConfig.controller', [
     require('angular-ui-router'),
-    require('core/task/monitor/taskMonitorService.js'),
+    TASK_MONITOR_BUILDER,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
     ACCOUNT_SERVICE,
     require('core/modal/wizard/modalWizard.service.js'),
   ])
   .controller('azureConfigSecurityGroupMixin', function ($scope,
-                                                             $state,
-                                                             $uibModalInstance,
-                                                             taskMonitorService,
-                                                             application,
-                                                             securityGroup,
-                                                             securityGroupReader,
-                                                             securityGroupWriter,
-                                                             accountService,
-                                                             modalWizardService,
-                                                             cacheInitializer) {
+                                                         $state,
+                                                         $uibModalInstance,
+                                                         taskMonitorBuilder,
+                                                         application,
+                                                         securityGroup,
+                                                         securityGroupReader,
+                                                         securityGroupWriter,
+                                                         accountService,
+                                                         modalWizardService,
+                                                         cacheInitializer) {
 
 
 
@@ -73,7 +75,7 @@ module.exports = angular
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your security group',
       modalInstance: $uibModalInstance,

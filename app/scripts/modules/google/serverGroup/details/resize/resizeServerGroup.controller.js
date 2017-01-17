@@ -2,15 +2,17 @@
 
 let angular = require('angular');
 
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+
 module.exports = angular.module('spinnaker.google.serverGroup.details.resize.controller', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('core/task/modal/reason.directive.js'),
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   require('./resizeCapacity.component.js'),
   require('./resizeAutoscalingPolicy.component.js'),
   require('../../../common/footer.directive.js'),
 ])
-  .controller('gceResizeServerGroupCtrl', function($scope, $uibModalInstance, taskMonitorService,
+  .controller('gceResizeServerGroupCtrl', function($scope, $uibModalInstance, taskMonitorBuilder,
                                                    application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.application = application;
@@ -33,10 +35,10 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
       return $scope.formMethods.formIsValid();
     };
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
-      modalInstance: $uibModalInstance,
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Resizing ' + serverGroup.name,
+      modalInstance: $uibModalInstance,
     });
 
     this.resize = function () {

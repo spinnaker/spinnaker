@@ -4,19 +4,20 @@ let angular = require('angular');
 
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
   require('angular-ui-router'),
   require('../serverGroupConfiguration.service.js'),
   require('../../serverGroup.transformer.js'),
   SERVER_GROUP_WRITER,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   V2_MODAL_WIZARD_SERVICE,
 ])
   .controller('azureCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
-                                                  serverGroupWriter, v2modalWizardService, taskMonitorService,
-                                                  azureServerGroupConfigurationService, serverGroupCommand,
-                                                  application, title) {
+                                                    serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
+                                                    azureServerGroupConfigurationService, serverGroupCommand,
+                                                    application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings/basicSettings.html'),
@@ -73,10 +74,9 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     }
 
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
-      forceRefreshMessage: 'Getting your new server group from Azure...',
       modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });

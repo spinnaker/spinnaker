@@ -78,7 +78,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
     this.mockTaskMonitor = {
       submit: jasmine.createSpy()
     };
-    this.mockTaskMonitorService = {
+    this.mockTaskMonitorBuilder = {
       buildTaskMonitor: jasmine.createSpy().and.callFake(function (arg) {
         testSuite.taskCompletionCallback = arg.onTaskComplete;
         return testSuite.mockTaskMonitor;
@@ -96,7 +96,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
         securityGroupReader: this.mockSecurityGroupReader,
         accountService: this.mockAccountService,
         securityGroupWriter: this.mockSecurityGroupWriter,
-        taskMonitorService: this.mockTaskMonitorService
+        taskMonitorBuilder: this.mockTaskMonitorBuilder
       });
     };
   }));
@@ -128,7 +128,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
     });
 
     it('builds the task monitor', function () {
-      expect(this.mockTaskMonitorService.buildTaskMonitor).toHaveBeenCalled();
+      expect(this.mockTaskMonitorBuilder.buildTaskMonitor).toHaveBeenCalled();
     });
 
     it('requests the list of accounts', function () {

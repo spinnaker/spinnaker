@@ -55,9 +55,7 @@ class AppengineInstanceDetailsController {
     let taskMonitor = {
       application: this.app,
       title: 'Terminating ' + shortName,
-      forceRefreshMessage: 'Refreshing application...',
-      forceRefreshEnabled: true,
-      onApplicationRefresh: function() {
+      onTaskComplete: function() {
         if (this.$state.includes('**.instanceDetails', {instanceId: instance.name})) {
           this.$state.go('^');
         }

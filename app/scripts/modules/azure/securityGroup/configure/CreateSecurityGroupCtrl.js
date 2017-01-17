@@ -1,19 +1,21 @@
 'use strict';
 
 var angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.create.controller', [
     require('angular-ui-router'),
-    require('core/task/monitor/taskMonitorService.js'),
+    TASK_MONITOR_BUILDER,
     require('../securityGroup.write.service.js'),
     require('core/region/regionSelectField.directive.js'),
     ACCOUNT_SERVICE,
   ])
 
   .controller('azureCreateSecurityGroupCtrl', function ($scope, $uibModalInstance, $state, $controller, accountService,
-    taskMonitorService, application, securityGroup, azureSecurityGroupWriter) {
+                                                        taskMonitorBuilder, application, securityGroup, azureSecurityGroupWriter) {
 
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),
@@ -63,7 +65,7 @@ module.exports = angular
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your security group',
       modalInstance: $uibModalInstance,

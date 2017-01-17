@@ -10,6 +10,7 @@ import {IAppengineLoadBalancer, IAppengineServerGroup} from 'appengine/domain/in
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE, ServerGroupWarningMessageService} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 import {APPENGINE_SERVER_GROUP_WRITER, AppengineServerGroupWriter} from '../writer/serverGroup.write.service';
 import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
+import {ITaskMonitorConfig} from 'core/task/monitor/taskMonitor.builder';
 
 interface IPrivateScope extends IScope {
   $$destroyed: boolean;
@@ -128,9 +129,6 @@ class AppengineServerGroupDetailsController {
     let taskMonitor = {
       application: this.app,
       title: 'Destroying ' + this.serverGroup.name,
-      forceRefreshMessage: 'Refreshing application...',
-      forceRefreshEnabled: true,
-      katoPhaseToMonitor: 'DESTROY_ASG'
     };
 
     let submitMethod = (params: any) => this.serverGroupWriter.destroyServerGroup(this.serverGroup, this.app, params);
@@ -157,11 +155,6 @@ class AppengineServerGroupDetailsController {
           this.$state.go('^');
         }
       },
-      onApplicationRefresh: () => {
-        if (this.$state.includes('**.serverGroup', stateParams)) {
-          this.$state.go('^');
-        }
-      },
       interestingHealthProviderNames: [] as string[],
     };
 
@@ -173,10 +166,9 @@ class AppengineServerGroupDetailsController {
   };
 
   public enableServerGroup(): void {
-    let taskMonitor = {
+    let taskMonitor: ITaskMonitorConfig = {
       application: this.app,
       title: 'Enabling ' + this.serverGroup.name,
-      forceRefreshMessage: 'Refreshing application...',
     };
 
     let submitMethod = (params: any) => this.serverGroupWriter.enableServerGroup(this.serverGroup, this.app, Object.assign(params));

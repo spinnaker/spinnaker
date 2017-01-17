@@ -146,8 +146,6 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
       var taskMonitor = {
         application: application,
         title: 'Deleting ' + securityGroup.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true
       };
 
       var submitMethod = function () {

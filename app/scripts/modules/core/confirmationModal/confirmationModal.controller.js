@@ -2,13 +2,15 @@
 
 let angular = require('angular');
 
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+
 module.exports = angular
   .module('spinnaker.core.confirmationModal.controller', [
     require('angular-ui-bootstrap'),
     require('../application/modal/platformHealthOverride.directive.js'),
-    require('../task/monitor/taskMonitorService.js'),
+    TASK_MONITOR_BUILDER,
   ])
-  .controller('ConfirmationModalCtrl', function($scope, $uibModalInstance, taskMonitorService, params) {
+  .controller('ConfirmationModalCtrl', function($scope, $uibModalInstance, taskMonitorBuilder, params) {
     $scope.params = params;
 
     $scope.state = {
@@ -18,12 +20,12 @@ module.exports = angular
     if (params.taskMonitorConfig) {
       params.taskMonitorConfig.modalInstance = $uibModalInstance;
 
-      $scope.taskMonitor = taskMonitorService.buildTaskMonitor(params.taskMonitorConfig);
+      $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor(params.taskMonitorConfig);
     }
 
     if (params.taskMonitors) {
       params.taskMonitors.forEach(monitor => monitor.modalInstance = $uibModalInstance);
-      $scope.taskMonitors = params.taskMonitors.map(taskMonitorService.buildTaskMonitor);
+      $scope.taskMonitors = params.taskMonitors.map((config) => taskMonitorBuilder.buildTaskMonitor(config));
     }
 
 

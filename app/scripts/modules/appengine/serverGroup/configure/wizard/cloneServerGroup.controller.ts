@@ -4,6 +4,7 @@ import {merge, get} from 'lodash';
 import {Application} from 'core/application/application.model';
 import {SERVER_GROUP_WRITER, ServerGroupWriter} from 'core/serverGroup/serverGroupWriter.service';
 import {IAppengineServerGroupCommand, AppengineServerGroupCommandBuilder} from '../serverGroupCommandBuilder.service';
+import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
 
 import './serverGroupWizard.less';
 
@@ -22,7 +23,7 @@ class AppengineCloneServerGroupCtrl {
                                  'title',
                                  'serverGroupCommand',
                                  'application',
-                                 'taskMonitorService',
+                                 'taskMonitorBuilder',
                                  'serverGroupWriter',
                                  'appengineServerGroupCommandBuilder']; }
 
@@ -31,7 +32,7 @@ class AppengineCloneServerGroupCtrl {
               private title: string,
               public serverGroupCommand: IAppengineServerGroupCommand,
               private application: Application,
-              private taskMonitorService: any,
+              private taskMonitorBuilder: TaskMonitorBuilder,
               private serverGroupWriter: ServerGroupWriter,
               private commandBuilder: AppengineServerGroupCommandBuilder) {
 
@@ -47,12 +48,10 @@ class AppengineCloneServerGroupCtrl {
     }
 
     $scope.application = application;
-    this.taskMonitor = taskMonitorService.buildTaskMonitor({
+    this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: this.application,
       title: 'Creating your server group',
-      forceRefreshMessage: 'Getting your new server group from App Engine...',
       modalInstance: this.$uibModalInstance,
-      forceRefreshEnabled: true
     });
   }
 
@@ -74,5 +73,8 @@ class AppengineCloneServerGroupCtrl {
 }
 
 export const APPENGINE_CLONE_SERVER_GROUP_CTRL = 'spinnaker.appengine.cloneServerGroup.controller';
-module(APPENGINE_CLONE_SERVER_GROUP_CTRL, [SERVER_GROUP_WRITER])
+module(APPENGINE_CLONE_SERVER_GROUP_CTRL, [
+  SERVER_GROUP_WRITER,
+  TASK_MONITOR_BUILDER,
+])
   .controller('appengineCloneServerGroupCtrl', AppengineCloneServerGroupCtrl);

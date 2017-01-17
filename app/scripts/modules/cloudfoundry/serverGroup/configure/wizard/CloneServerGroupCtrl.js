@@ -9,9 +9,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
   V2_MODAL_WIZARD_SERVICE,
 ])
   .controller('cfCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
-                                                  serverGroupWriter, v2modalWizardService, taskMonitorService,
-                                                  cfServerGroupConfigurationService,
-                                                  serverGroupCommand, application, title) {
+                                                 serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
+                                                 cfServerGroupConfigurationService,
+                                                 serverGroupCommand, application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
@@ -69,7 +69,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
       modalInstance: $uibModalInstance,
