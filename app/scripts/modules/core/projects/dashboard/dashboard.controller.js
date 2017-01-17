@@ -4,6 +4,8 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
+import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
+
 require('./dashboard.less');
 
 module.exports = angular.module('spinnaker.core.projects.dashboard.controller', [
@@ -12,7 +14,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
   require('../service/project.read.service.js'),
   require('../../delivery/service/execution.service.js'),
   require('../../scheduler/scheduler.factory.js'),
-  require('../../history/recentHistory.service.js'),
+  RECENT_HISTORY_SERVICE,
   require('../../presentation/refresher/componentRefresher.directive.js'),
   require('./regionFilter/regionFilter.component.js'),
   require('./regionFilter/regionFilter.service.js'),

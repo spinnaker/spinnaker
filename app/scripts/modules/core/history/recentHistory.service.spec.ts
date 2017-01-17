@@ -1,16 +1,22 @@
-import _ from 'lodash';
+import {mock} from 'angular';
+import {range, some} from 'lodash';
 
-describe('recent history service', function() {
+import {RECENT_HISTORY_SERVICE, RecentHistoryService} from 'core/history/recentHistory.service';
+import {DeckCacheService, ICache} from '../cache/deckCache.service';
 
-  var service, deckCacheFactory, backingCache;
+describe('recent history service', () => {
+
+  let service: RecentHistoryService,
+      deckCacheFactory: DeckCacheService,
+      backingCache: ICache;
 
   beforeEach(
-    window.module(
-      require('./recentHistory.service.js')
+    mock.module(
+      RECENT_HISTORY_SERVICE
     )
   );
 
-  beforeEach(window.inject((recentHistoryService, _deckCacheFactory_) => {
+  beforeEach(mock.inject((recentHistoryService: RecentHistoryService, _deckCacheFactory_: DeckCacheService) => {
     service = recentHistoryService;
     deckCacheFactory = _deckCacheFactory_;
     deckCacheFactory.clearCache('history', 'user');
@@ -31,10 +37,10 @@ describe('recent history service', function() {
 
   describe('addItem is fancy', () => {
 
-    function initializeCache(count) {
-      let start = new Date().getTime() - 1;
-      let currentItems = _.range(0, count).map((idx) => {
-        return { params: {id: idx}, accessTime: start - idx};
+    function initializeCache(count: number) {
+      let start = Date.now() - 1;
+      let currentItems = range(0, count).map((idx: number) => {
+        return { id: '' + idx, params: {id: idx}, accessTime: start - idx};
       });
       backingCache.put('whatever', currentItems);
     }
@@ -61,8 +67,8 @@ describe('recent history service', function() {
     });
 
     it('only matches on specified params if supplied', () => {
-      let start = new Date().getTime() - 1;
-      let currentItems = _.range(0, 3).map((idx) => {
+      let start = Date.now() - 1;
+      let currentItems = range(0, 3).map((idx: number) => {
         return { params: {id: idx, importantParam: idx, ignoredParam: idx + 1}, accessTime: start - idx};
       });
       backingCache.put('whatever', currentItems);
@@ -75,10 +81,9 @@ describe('recent history service', function() {
     });
   });
 
-  describe('remove item from history cache by app name', function () {
-    beforeEach(
-      function initilizeCache() {
-        let start = new Date().getTime() - 1;
+  describe('remove item from history cache by app name', () => {
+    beforeEach(() => {
+        let start = Date.now() - 1;
         let currentItems = ['foo', 'bar', 'baz'].map((appName, index) => {
           return { params: {application: appName, accessTime: start - index}};
         });
@@ -86,16 +91,16 @@ describe('recent history service', function() {
       }
     );
 
-    it('should have 3 items in the "applications" cache', function () {
+    it('should have 3 items in the "applications" cache', () => {
       let items = service.getItems('applications');
       expect(items.length).toBe(3);
     });
 
-    it('should have 2 items in the "application" cache when we remove "foo" by application name', function () {
+    it('should have 2 items in the "application" cache when we remove "foo" by application name', () => {
       service.removeByAppName('foo');
       let items = service.getItems('applications');
       expect(items.length).toBe(2);
-      expect(_.some(items, {params: {application: 'foo'}})).toBeFalsy();
+      expect(some(items, {params: {application: 'foo'}})).toBeFalsy();
     });
   });
 

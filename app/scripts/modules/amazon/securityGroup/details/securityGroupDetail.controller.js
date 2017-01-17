@@ -5,6 +5,7 @@ let angular = require('angular');
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
 
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
   require('../clone/cloneSecurityGroup.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
-  require('core/history/recentHistory.service'),
+  RECENT_HISTORY_SERVICE,
 ])
   .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,

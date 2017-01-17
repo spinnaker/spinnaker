@@ -6,6 +6,7 @@ import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
 import {INSTANCE_WRITE_SERVICE} from 'core/instance/instance.write.service';
+import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 
 let angular = require('angular');
 
@@ -15,7 +16,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
-  require('core/history/recentHistory.service.js'),
+  RECENT_HISTORY_SERVICE,
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
 ])

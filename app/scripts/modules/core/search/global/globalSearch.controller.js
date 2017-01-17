@@ -3,6 +3,7 @@
 /* eslint consistent-return:0 */
 
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
+import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 
 let angular = require('angular');
 
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
   require('../../utils/jQuery.js'),
   require('../searchResult/searchResult.directive.js'),
   require('../searchRank.filter.js'),
-  require('../../history/recentHistory.service.js'),
+  RECENT_HISTORY_SERVICE,
 ])
   .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, recentHistoryService,
                                            $stateParams, $, $log, clusterFilterService, $analytics, $sce) {
