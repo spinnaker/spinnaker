@@ -119,6 +119,57 @@ class AuthorizationSupportSpec extends Specification {
     items.isEmpty()
   }
 
+  def "filter list items"() {
+    setup:
+    AuthorizationSupport support = new AuthorizationSupport(permissionEvaluator: permissionEvaluator)
+    def list = [
+        [account: "account1"],
+        [accountName: "account2"],
+        [noAccount: 123]
+    ]
+
+    when:
+    def result = support.filterForAccounts(list)
+
+    then:
+    1 * permissionEvaluator.hasPermission(_, "account1", 'ACCOUNT', 'READ') >> true
+    1 * permissionEvaluator.hasPermission(_, "account2", 'ACCOUNT', 'READ') >> true
+    result == true
+    list.size() == 3
+
+    when:
+    result = support.filterForAccounts(list)
+
+    then:
+    1 * permissionEvaluator.hasPermission(_, "account1", 'ACCOUNT', 'READ') >> false
+    1 * permissionEvaluator.hasPermission(_, "account2", 'ACCOUNT', 'READ') >> false
+    result == true
+    list.size() == 1
+
+    when:
+    list = [
+        new ClassWithAccount(account: "account1"),
+        new ClassWithAccount(account: "account2"),
+        new ClassWithoutAccount(name: "batman"),
+    ]
+    result = support.filterForAccounts(list)
+
+    then:
+    1 * permissionEvaluator.hasPermission(_, "account1", 'ACCOUNT', 'READ') >> true
+    1 * permissionEvaluator.hasPermission(_, "account2", 'ACCOUNT', 'READ') >> true
+    result == true
+    list.size() == 3
+
+    when:
+    result = support.filterForAccounts(list)
+
+    then:
+    1 * permissionEvaluator.hasPermission(_, "account1", 'ACCOUNT', 'READ') >> false
+    1 * permissionEvaluator.hasPermission(_, "account2", 'ACCOUNT', 'READ') >> false
+    result == true
+    list.size() == 1
+  }
+
   static List<TestItem> newTestItems() {
     return [newTestItem("test1-item"), newTestItem("test2-item")]
   }
@@ -146,5 +197,13 @@ class AuthorizationSupportSpec extends Specification {
 
   static class TestDetails implements LoadBalancerProvider.Details {
 
+  }
+
+  static class ClassWithAccount {
+    String account
+  }
+
+  static class ClassWithoutAccount {
+    String name
   }
 }
