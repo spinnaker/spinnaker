@@ -17,7 +17,7 @@
         <input type="radio"
                ng-model="stage.baseOs"
                ng-value="baseOsOption.id"/>
-        {{baseOsOption.id}} ({{baseOsOption.shortDescription}}) <help-field content="{{baseOsOption.detailedDescription}}" />
+        {{bakeStageCtrl.getBaseOsDescription(baseOsOption)}} <help-field content="{{baseOsOption.detailedDescription}}" />
       </label>
     </stage-config-field>
 

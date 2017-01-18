@@ -136,6 +136,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.bakeStage',
       return $scope.viewState.roscoMode || $scope.stage.varFileName;
     };
 
+    this.getBaseOsDescription = function(baseOsOption) {
+      return baseOsOption.id + (baseOsOption.shortDescription ? ' (' + baseOsOption.shortDescription + ')': '');
+    };
+
     $scope.$watch('stage', deleteEmptyProperties, true);
 
     initialize();
