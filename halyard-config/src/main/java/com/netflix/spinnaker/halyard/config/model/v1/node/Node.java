@@ -97,6 +97,20 @@ abstract public class Node implements Validatable {
     }
   }
 
+  @JsonIgnore
+  public <T> T parentOfType(Class<? extends T> type) {
+    Node parent = this.getParent();
+    while (parent != null && !type.isAssignableFrom(parent.getClass())) {
+      parent = parent.getParent();
+    }
+
+    if (parent == null) {
+      return null;
+    } else {
+      return (T) parent;
+    }
+  }
+
   @Getter
   @JsonIgnore
   protected Node parent = null;

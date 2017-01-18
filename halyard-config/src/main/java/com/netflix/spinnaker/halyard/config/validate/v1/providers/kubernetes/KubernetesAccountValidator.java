@@ -90,19 +90,19 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
           .findFirst();
 
       if (!namedContext.isPresent()) {
-        psBuilder.addProblem(ERROR, "Context \"" + context + "\" not found in kubeconfig \"" + kubeconfigFile + "\"", "context")
-            .setRemediation("Either add this context to your kubeconfig, rely on the default context, or pick another kubeconfig file");
+        psBuilder.addProblem(ERROR, "Context \"" + context + "\" not found in kubeconfig \"" + kubeconfigFile + "\".", "context")
+            .setRemediation("Either add this context to your kubeconfig, rely on the default context, or pick another kubeconfig file.");
         smoketest = false;
       }
     } else {
       String currentContext = kubeconfig.getCurrentContext();
       if (currentContext.isEmpty()) {
-        psBuilder.addProblem(ERROR, "You have not specified a Kubernetes context, and your kubeconfig \"" + kubeconfigFile + "\" has no current-context")
-            .setRemediation("Either specify a context in your halconfig, or set a current-context in your kubeconfig");
+        psBuilder.addProblem(ERROR, "You have not specified a Kubernetes context, and your kubeconfig \"" + kubeconfigFile + "\" has no current-context.", "context")
+            .setRemediation("Either specify a context in your halconfig, or set a current-context in your kubeconfig.");
         smoketest = false;
       } else {
-        psBuilder.addProblem(WARNING, "You have not specified a Kubernetes context in your halconfig, Spinnaker will use \"" + currentContext + "\" instead")
-            .setRemediation("We recommend explicitly setting a context in your halconfig, to ensure changes to your kubeconfig won't break your deployment");
+        psBuilder.addProblem(WARNING, "You have not specified a Kubernetes context in your halconfig, Spinnaker will use \"" + currentContext + "\" instead.", "context")
+            .setRemediation("We recommend explicitly setting a context in your halconfig, to ensure changes to your kubeconfig won't break your deployment.");
       }
     }
 
@@ -113,8 +113,8 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
       try {
         client.namespaces().list();
       } catch (Exception e) {
-        psBuilder.addProblem(ERROR, "Unable to communicate with your Kubernetes cluster: " + e.getMessage())
-            .setRemediation("Verify that your kubernetes credentials work manually using \"kubectl\"");
+        psBuilder.addProblem(ERROR, "Unable to communicate with your Kubernetes cluster: " + e.getMessage() + ".")
+            .setRemediation("Verify that your kubernetes credentials work manually using \"kubectl\".");
       }
     }
   }
@@ -125,14 +125,14 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
 
     // TODO(lwander) document how to use hal to add registries and link to that here.
     if (dockerRegistries == null || dockerRegistries.isEmpty()) {
-      psBuilder.addProblem(ERROR, "You have not specified any docker registries to deploy to")
-          .setRemediation("Add a docker registry that can be found in this deployment's dockerRegistries provider");
+      psBuilder.addProblem(ERROR, "You have not specified any docker registries to deploy to.", "dockerRegistries")
+          .setRemediation("Add a docker registry that can be found in this deployment's dockerRegistries provider.");
     }
 
     DockerRegistryProvider dockerRegistryProvider = deployment.getProviders().getDockerRegistry();
     if (dockerRegistryProvider == null || dockerRegistryProvider.getAccounts() == null || dockerRegistryProvider.getAccounts().isEmpty()) {
-      psBuilder.addProblem(ERROR, "The docker registry provider has not yet been configured for this deployment")
-          .setRemediation("Kubernetes needs a Docker Registry as an image source to run");
+      psBuilder.addProblem(ERROR, "The docker registry provider has not yet been configured for this deployment.", "dockerRegistries")
+          .setRemediation("Kubernetes needs a Docker Registry as an image source to run.");
     } else {
       List<String> availableRegistries = dockerRegistryProvider
           .getAccounts()
@@ -141,15 +141,15 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
 
       for (DockerRegistryReference registryReference : dockerRegistries) {
         if (!availableRegistries.contains(registryReference.getAccountName())) {
-          psBuilder.addProblem(ERROR, "The chosen registry \"" + registryReference.getAccountName() + "\" has not been configured in your halconfig")
-              .setRemediation("Either add \"" + registryReference.getAccountName() + "\" as a new Docker Registry account, or pick a different one");
+          psBuilder.addProblem(ERROR, "The chosen registry \"" + registryReference.getAccountName() + "\" has not been configured in your halconfig.", "dockerRegistries")
+              .setRemediation("Either add \"" + registryReference.getAccountName() + "\" as a new Docker Registry account, or pick a different one.");
         }
 
         if (!registryReference.getNamespaces().isEmpty() && !namespaces.isEmpty()) {
           for (String namespace : registryReference.getNamespaces()) {
             if (!namespaces.contains(namespace)) {
-              psBuilder.addProblem(ERROR, "The deployable namespace \"" + namespace + "\" for registry \"" + registryReference.getAccountName() + "\" is not accessibly by this kubernetes account")
-                  .setRemediation("Either remove this namespace from this docker registry, add the namespace to the account's list of namespaces, or drop the list of namespaces");
+              psBuilder.addProblem(ERROR, "The deployable namespace \"" + namespace + "\" for registry \"" + registryReference.getAccountName() + "\" is not accessibly by this kubernetes account.", "namespaces")
+                  .setRemediation("Either remove this namespace from this docker registry, add the namespace to the account's list of namespaces, or drop the list of namespaces.");
             }
           }
         }

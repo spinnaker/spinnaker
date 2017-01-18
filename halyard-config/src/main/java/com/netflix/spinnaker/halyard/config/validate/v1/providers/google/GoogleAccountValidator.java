@@ -46,17 +46,17 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
         jsonKey = IOUtils.toString(new FileInputStream(n.getJsonPath()));
 
         if (jsonKey.isEmpty()) {
-          p.addProblem(Severity.WARNING, "The supplied credentials file is empty");
+          p.addProblem(Severity.WARNING, "The supplied credentials file is empty.");
         }
       }
     } catch (FileNotFoundException e) {
-      p.addProblem(Severity.ERROR, "Json path not found: " + e.getMessage());
+      p.addProblem(Severity.ERROR, "Json path not found: " + e.getMessage() + ".");
     } catch (IOException e) {
-      p.addProblem(Severity.ERROR, "Error opening specified json path: " + e.getMessage());
+      p.addProblem(Severity.ERROR, "Error opening specified json path: " + e.getMessage() + ".");
     }
 
     if (project == null || project.isEmpty()) {
-      p.addProblem(Severity.ERROR, "No google project supplied");
+      p.addProblem(Severity.ERROR, "No google project supplied.");
       return;
     }
 
@@ -69,7 +69,7 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
           .applicationName("halyard " + halyardVersion)
           .build();
     } catch (Exception e) {
-      p.addProblem(Severity.ERROR, "Error instantiating Google credentials: " + e.getMessage());
+      p.addProblem(Severity.ERROR, "Error instantiating Google credentials: " + e.getMessage() + ".");
       return;
     }
 
@@ -80,7 +80,7 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
         credentials.getCompute().projects().get(imageProject);
       }
     } catch (IOException e) {
-      p.addProblem(Severity.ERROR, "Failed to load project \"" + n.getProject() + "\": " + e.getMessage());
+      p.addProblem(Severity.ERROR, "Failed to load project \"" + n.getProject() + "\": " + e.getMessage() + ".");
     }
   }
 }

@@ -41,7 +41,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
     boolean passwordFileProvided = passwordFile != null && !passwordFile.isEmpty();
 
     if (passwordProvided && passwordFileProvided) {
-      p.addProblem(Severity.ERROR, "You have provided both a password and a password file for your docker registry. You can specify at most one");
+      p.addProblem(Severity.ERROR, "You have provided both a password and a password file for your docker registry. You can specify at most one.");
       return;
     }
 
@@ -52,19 +52,19 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
         resolvedPassword = IOUtils.toString(new FileInputStream(passwordFile));
 
         if (resolvedPassword.isEmpty()) {
-          p.addProblem(Severity.WARNING, "The supplied password file is empty");
+          p.addProblem(Severity.WARNING, "The supplied password file is empty.");
         }
       } else {
         resolvedPassword = "";
       }
     } catch (FileNotFoundException e) {
-      p.addProblem(Severity.ERROR, "Cannot find provided password file: " + e.getMessage());
+      p.addProblem(Severity.ERROR, "Cannot find provided password file: " + e.getMessage() + ".");
     } catch (IOException e) {
-      p.addProblem(Severity.ERROR, "Error reading provided password file: " + e.getMessage());
+      p.addProblem(Severity.ERROR, "Error reading provided password file: " + e.getMessage() + ".");
     }
 
     if (resolvedPassword != null && !resolvedPassword.isEmpty()) {
-      String message = "Your registry password has %s whitespace; if this is unintentional, authentication may fail";
+      String message = "Your registry password has %s whitespace; if this is unintentional, authentication may fail.";
       if (Character.isWhitespace(resolvedPassword.charAt(0))) {
         p.addProblem(Severity.WARNING, String.format(message, "leading"));
       }
@@ -74,11 +74,11 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
       }
 
       if (username == null || username.isEmpty()) {
-        p.addProblem(Severity.WARNING, "You have supplied a password but no username");
+        p.addProblem(Severity.WARNING, "You have supplied a password but no username.");
       }
     } else {
       if (username != null && !username.isEmpty()) {
-        p.addProblem(Severity.WARNING, "You have a supplied a username but no password");
+        p.addProblem(Severity.WARNING, "You have a supplied a username but no password.");
       }
     }
 
@@ -94,15 +94,15 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
           .username(n.getUsername())
           .build();
     } catch (Exception e) {
-      p.addProblem(Severity.ERROR, "Failed to instantiate docker credentials for account \"" + n.getName() + "\"");
+      p.addProblem(Severity.ERROR, "Failed to instantiate docker credentials for account \"" + n.getName() + "\".");
       return;
     }
 
     try {
       credentials.getCredentials().getClient().checkV2Availability();
     } catch (Exception e) {
-      p.addProblem(Severity.ERROR, "Failed to assert docker registry v2 availability for registry \"" + n.getName() + "\" at address " + n.getAddress() + ": " + e.getMessage())
-        .setRemediation("Make sure that the " + credentials.getV2Endpoint() + " is reachable");
+      p.addProblem(Severity.ERROR, "Failed to assert docker registry v2 availability for registry \"" + n.getName() + "\" at address " + n.getAddress() + ": " + e.getMessage() + ".")
+        .setRemediation("Make sure that the " + credentials.getV2Endpoint() + " is reachable, and that your credentials are correct.");
     }
 
     try {
@@ -110,13 +110,13 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
         DockerRegistryCatalog catalog = credentials.getCredentials().getClient().getCatalog();
 
         if (catalog.getRepositories() == null || catalog.getRepositories().size() == 0) {
-          p.addProblem(Severity.ERROR, "Your docker registry has no repositories specified, and the registry's catalog is empty")
-            .setRemediation("Manually specify some repositories for this docker registry to index");
+          p.addProblem(Severity.ERROR, "Your docker registry has no repositories specified, and the registry's catalog is empty.")
+            .setRemediation("Manually specify some repositories for this docker registry to index.");
         }
       }
     } catch (Exception e) {
-      p.addProblem(Severity.ERROR, "Unable to connect the registries catalog endpoint: " + e.getMessage())
-        .setRemediation("Manually specify some repositories for this docker registry to index");
+      p.addProblem(Severity.ERROR, "Unable to connect the registries catalog endpoint: " + e.getMessage() + ".")
+        .setRemediation("Manually specify some repositories for this docker registry to index.");
     }
   }
 }

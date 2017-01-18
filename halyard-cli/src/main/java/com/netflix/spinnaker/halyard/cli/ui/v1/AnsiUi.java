@@ -57,7 +57,7 @@ public class AnsiUi {
         .setIndentFirstLine(false)
         .setIndentWidth(2);
 
-    builder.addSnippet("- ")
+    builder.addSnippet("- WARNING ")
         .setForegroundColor(AnsiForegroundColor.YELLOW)
         .addStyle(AnsiStyle.BOLD);
 
@@ -71,7 +71,7 @@ public class AnsiUi {
         .setIndentFirstLine(false)
         .setIndentWidth(2);
 
-    builder.addSnippet("! ")
+    builder.addSnippet("! ERROR ")
         .setForegroundColor(AnsiForegroundColor.RED)
         .addStyle(AnsiStyle.BOLD);
 

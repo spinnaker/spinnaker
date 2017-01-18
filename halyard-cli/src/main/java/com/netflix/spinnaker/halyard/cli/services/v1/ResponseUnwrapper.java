@@ -40,7 +40,7 @@ public class ResponseUnwrapper<T> {
     for (Entry<String, List<Problem>> entry: locationGroup.entrySet()) {
 
       AnsiUi.location(entry.getKey());
-      for (Problem problem : problemSet.getProblems()) {
+      for (Problem problem : entry.getValue()) {
         Severity severity = problem.getSeverity();
         String message = problem.getMessage();
         String remediation = problem.getRemediation();
