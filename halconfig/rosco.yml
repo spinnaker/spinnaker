@@ -1,0 +1,11 @@
+# halconfig
+
+server:
+  port: ${services.rosco.port:8087}
+  address: ${services.rosco.host:localhost}
+
+redis:
+  connection: ${services.redis.connection:redis://localhost:6379}
+
+rosco:
+  configDir: ${services.rosco.configDir:/opt/rosco/config/packer}
