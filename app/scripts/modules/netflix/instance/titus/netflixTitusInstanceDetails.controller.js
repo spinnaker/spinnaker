@@ -29,6 +29,10 @@ module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
       this.getBastionAddressForAccount($scope.instance.account, $scope.instance.region);
     };
 
+    this.hasPorts = () => {
+      return Object.keys($scope.instance.resources.ports).length > 0;
+    };
+
     angular.extend(this, $controller('titusInstanceDetailsCtrl', {
       $scope: $scope,
       $state: $state,

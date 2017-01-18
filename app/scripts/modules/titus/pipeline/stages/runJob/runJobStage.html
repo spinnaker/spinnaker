@@ -43,7 +43,7 @@
     <input type="number" class="form-control input-sm" name="disk" ng-model="stage.cluster.resources.disk" required/>
   </stage-config-field>
 
-  <stage-config-field label="Network (Mbps)">
+  <stage-config-field label="Network (Mbps)" help-key="titus.deploy.network">
     <input type="number" class="form-control input-sm" name="networkMbps" ng-model="stage.cluster.resources.networkMbps" required/>
   </stage-config-field>
 
@@ -52,7 +52,7 @@
            required/>
   </stage-config-field>
 
-  <stage-config-field label="Property File">
+  <stage-config-field label="Property File" help-key="titus.deploy.propertyFile">
     <input type="text" class="form-control input-sm" name="propertyFile" ng-model="stage.propertyFile"/>
   </stage-config-field>
 
@@ -69,7 +69,7 @@
 
   <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
 
-    <stage-config-field label="Allocate IP">
+    <stage-config-field label="Allocate IP" help-key="titus.deploy.allocateIP">
       <input type="checkbox" class="input-sm" name="allocateIpAddress"
              ng-model="stage.cluster.resources.allocateIpAddress"/>
     </stage-config-field>
@@ -77,7 +77,7 @@
     <stage-config-field label="Ports" ng-if="!stage.cluster.resources.allocateIpAddress" field-columns="3">
       <number-list model="stage.cluster.resources.ports" label="Port" constraints="{min: 1, max: 65535}"></number-list>
     </stage-config-field>
-    <stage-config-field label="IAM Instance Profile (optional)">
+    <stage-config-field label="IAM Instance Profile (optional)" help-key="titus.deploy.iamProfile">
       <input type="text"
              class="form-control input-sm"
              ng-model="stage.cluster.iamProfile"/>

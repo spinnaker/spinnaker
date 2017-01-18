@@ -469,6 +469,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'openstack.network.floatpool': 'The network from which to allocate a floating ip',
     'openstack.serverGroup.userData': '<p>Provides a script that will run when each server group instance starts.</p>',
     'openstack.serverGroup.tags': '<p>Key-value pairs of metadata that will be associate to each server group instance.</p>',
+    'titus.deploy.propertyFile': '<p>(Optional) Configures the name to the file used to pass in properties to later stages in the Spinnaker pipeline. The file must be saved into the /logs directory during execution</p>',
     'titus.deploy.iamProfile': 'AWS IAM instance profile to assign to this service',
     'titus.deploy.capacityGroup': 'Used by Titus to ensure capacity guarantees, defaults to the application name if not provided',
     'titus.deploy.network': 'Amount of networking bandwidth to allocate in Mbps',
