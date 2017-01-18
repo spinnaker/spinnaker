@@ -22,9 +22,10 @@ import traceback
 import http_server
 
 import command_processor
+import datadog_service
+import prometheus_service
 import spectator_client
 import stackdriver_service
-import datadog_service
 
 
 class HomePageHandler(command_processor.CommandHandler):
@@ -61,6 +62,12 @@ class HomePageHandler(command_processor.CommandHandler):
 
 class WebserverCommandHandler(command_processor.CommandHandler):
   """Implements the embedded Web Server."""
+
+  @property
+  def command_handlers(self):
+    """Return list of CommandHandlers available to the server."""
+    return self.__handler_list
+
   def __init__(self, handler_list, url_path, command_name, description):
     """Constructor.
 
@@ -79,10 +86,12 @@ class WebserverCommandHandler(command_processor.CommandHandler):
     """
     command_processor.set_global_options(options)
 
-    logging.info('Starting HTTP server on port %d', options['port'])
+    port = options['port']
+    logging.info('Starting HTTP server on port %d', port)
     url_path_to_handler = {handler.url_path: handler.process_web_request
                            for handler in self.__handler_list}
-    httpd = http_server.HttpServer(options['port'], url_path_to_handler)
+    
+    httpd = http_server.HttpServer(port, url_path_to_handler)
     httpd.serve_forever()
 
   def add_argparser(self, subparsers):
@@ -97,13 +106,24 @@ class WebserverCommandHandler(command_processor.CommandHandler):
 class MonitorCommandHandler(WebserverCommandHandler):
   """Runs the embedded Web Server with a metric publishing loop."""
 
-  def make_metric_service(self, options):
-    """Create the metric service we'll use to publish metrics to a backend.
+  def make_metric_services(self, options):
+    """Create the metric services we'll use to publish metrics to a backend.
     """
+    service_list = []
     if options['stackdriver']:
-      return stackdriver_service.make_service(options)
+      service_list.append(stackdriver_service.make_service(options))
     if options['datadog']:
-      return datadog_service.make_datadog_service(options)
+      service_list.append(datadog_service.make_datadog_service(options))
+    if options['prometheus']:
+      service_list.append(prometheus_service.make_service(options))
+      # This endpoint will be conditionally added only when prometheus is
+      # configured. It doesnt have to be like this, but might as well to
+      # avoid exposing it if it isnt needed.
+      self.command_handlers.append(prometheus_service.ScrapeHandler())
+
+    if service_list:
+      return service_list
+
     raise ValueError('No metric service specified.')
 
   def __data_map_to_service_metrics(self, data_map):
@@ -125,18 +145,18 @@ class MonitorCommandHandler(WebserverCommandHandler):
         result[service] = actual_metrics
     return result
 
-  def process_commandline_request(self, options, metric_service=None):
+  def process_commandline_request(self, options, metric_service_list=None):
     """Impements CommandHandler."""
-    if metric_service is None:
-      metric_service = self.make_metric_service(options)
+    if metric_service_list is None:
+      metric_service_list = self.make_metric_services(options)
 
     daemon = threading.Thread(target=self, name='monitor',
-                     args=(options, metric_service))
+                              args=(options, metric_service_list))
     daemon.daemon = True
     daemon.start()
     super(MonitorCommandHandler, self).process_commandline_request(options)
 
-  def __call__(self, options, metric_service):
+  def __call__(self, options, metric_service_list):
     """This is the actual method that implements the CommandHandler.
 
     It is put here in a callable so that we can run this in a separate thread.
@@ -146,44 +166,63 @@ class MonitorCommandHandler(WebserverCommandHandler):
     service_endpoints = spectator_client.determine_service_endpoints(options)
     spectator = spectator_client.SpectatorClient(options)
 
+    publishing_services = [service
+                           for service in metric_service_list
+                           if 'publish_metrics' in dir(service)]
+
     logging.info('Starting Monitor')
     time_offset = int(time.time())
     while True:
+      if not publishing_services:
+        # we still need this loop to keep the server running
+        # but the loop doesnt do anything.
+        time.sleep(period)
+        continue
+
       start = time.time()
       done = start
       service_metric_map = spectator.scan_by_service(service_endpoints)
       collected = time.time()
-      try:
-        count = metric_service.publish_metrics(service_metric_map)
-        if count is None:
-          count = 0
 
-        done = time.time()
-        logging.info(
-            'Wrote %d metrics in %d ms + %d ms',
-            count, (collected - start) * 1000, (done - collected) * 1000)
-      except BaseException as ex:
-        traceback.print_exc(ex)
-        logging.error(ex)
+      for service in publishing_services:
+        try:
+          start_publish = time.time()
+          count = service.publish_metrics(service_metric_map)
+          if count is None:
+            count = 0
+
+          done = time.time()
+          logging.info(
+              'Wrote %d metrics to %s in %d ms + %d ms',
+              count, service.__class__.__name__,
+              (collected - start) * 1000, (done - start_publish) * 1000)
+        except:
+          logging.error(traceback.format_exc())
+          # ignore exception, continue server.
 
       # Try to align time increments so we always collect around the same time
       # so that the measurements we report are in even intervals.
       # There is still going to be jitter on the collection end but we'll at
       # least always start with a steady rhythm.
-      delta_time = (period - (int(done) - time_offset)) % period
-      if delta_time == 0 and (int(done) == time_offset
-                              or (done - start <= 1)):
+      now = time.time()
+      delta_time = (period - (int(now) - time_offset)) % period
+      if delta_time == 0 and (int(now) == time_offset
+                              or (now - start <= 1)):
         delta_time = period
       time.sleep(delta_time)
 
   def add_argparser(self, subparsers):
     """Implements CommandHandler."""
     parser = super(MonitorCommandHandler, self).add_argparser(subparsers)
-    backend = parser.add_mutually_exclusive_group()
-    backend.add_argument('--stackdriver', default=False, action='store_true',
+    parser.add_argument('--stackdriver', default=False, action='store_true',
                         help='Publish metrics to stackdriver.')
-    backend.add_argument('--datadog', default=False, action='store_true',
-                         help='Publish metrics to Datadog.')
+    parser.add_argument('--datadog', default=False, action='store_true',
+                        help='Publish metrics to Datadog.')
+    parser.add_argument('--prometheus', default=False, action='store_true',
+                        help='Publish metrics to Prometheus.')
+    prometheus_service.PrometheusMetricsService.add_service_parser_arguments(
+        parser)
+
     parser.add_argument(
         '--fix_stackdriver_labels_unsafe', default=True,
         action='store_true',
