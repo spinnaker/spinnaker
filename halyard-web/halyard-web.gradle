@@ -21,6 +21,7 @@ dependencies {
   compile spinnaker.dependency('lombok')
 
   compile project(':halyard-config')
+  compile project(':halyard-deploy')
 }
 
 tasks.bootRepackage.enabled = project.repackage

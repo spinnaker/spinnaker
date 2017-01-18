@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,23 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
+import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * This is the base command, where we will register all the subcommands.
- */
-public class HalCommand extends NestableCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
+@Parameters()
+public class DeployCommand extends NestableCommand {
+  @Getter(AccessLevel.PUBLIC)
+  private String commandName = "deploy";
 
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "hal";
-
-  public HalCommand() {
-    registerSubcommand(new ConfigCommand());
-    registerSubcommand(new DeployCommand());
-  }
-
-  @Override
-  public String getDescription() {
-    return "Manage Spinnaker's configuration and updates";
-  }
+  private String description = "Deploy the currently configured instance of Spinnaker to a selected environment.";
 
   @Override
   protected void executeThis() {
-    showHelp();
+    String deploymentName = Daemon.getCurrentDeployment();
+
+    Daemon.deployDeployment(deploymentName, false);
   }
 }

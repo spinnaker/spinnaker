@@ -59,6 +59,10 @@ public class Daemon {
     ResponseUnwrapper.get(service.generateDeployment(deploymentName, validate, ""));
   }
 
+  public static void deployDeployment(String deploymentName, boolean validate) {
+    ResponseUnwrapper.get(service.deployDeployment(deploymentName, validate, ""));
+  }
+
   private static DaemonService getService() {
     if (service == null) {
       boolean debug =  GlobalOptions.getGlobalOptions().isDebug();

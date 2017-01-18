@@ -1,11 +1,11 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-rootProject.name="halyard"
+package com.netflix.spinnaker.halyard.deploy.job.v1;
 
-include 'halyard-cli'
-include 'halyard-config'
-include 'halyard-deploy'
-include 'halyard-web'
+import lombok.Data;
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+@Data
+public class JobStatus {
+  String id;
+  State state;
+  Result result;
+  String stdOut;
+  String stdErr;
+
+  public enum State {
+    RUNNING, COMPLETED
   }
-}
 
-rootProject.children.each {
-  setBuildFile(it)
+  public enum Result {
+    SUCCESS, FAILURE
+  }
 }
 

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.config.services.v1.GenerateService;
+import com.netflix.spinnaker.halyard.deploy.service.v1.DeployService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +40,9 @@ public class DeploymentController {
 
   @Autowired
   GenerateService generateService;
+
+  @Autowired
+  DeployService deployService;
 
   @RequestMapping(value = "/{deployment:.+}", method = RequestMethod.GET)
   DaemonResponse<DeploymentConfiguration> deploymentConfiguration(@PathVariable String deployment,
@@ -79,6 +83,18 @@ public class DeploymentController {
 
     builder.setBuildResponse(() -> {
       generateService.generateConfig(reference);
+      return null;
+    });
+
+    return builder.build();
+  }
+
+  @RequestMapping(value = "/{deployment:.+}/deploy/", method = RequestMethod.POST)
+  DaemonResponse<Void> deploy(@PathVariable String deployment) {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+
+    builder.setBuildResponse(() -> {
+      deployService.deploySpinnaker();
       return null;
     });
 

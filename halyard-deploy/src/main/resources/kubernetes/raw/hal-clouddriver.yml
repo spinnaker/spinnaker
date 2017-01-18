@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  name: hal-clouddriver-bootstrap
+  namespace: spinnaker
+  labels:
+    app: hal
+    stack: clouddriver
+    detail: bootstrap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      server-group: hal-clouddriver-bootstrap
+  template:
+    metadata:
+      labels:
+        server-group: hal-clouddriver-bootstrap
+        load-balancer-spin-clouddriver: "true"
+    spec:
+      containers:
+          #TODO(lwander) pick a 'stable' image
+        - image: quay.io/spinnaker/clouddriver:v1.498.0
+          name: clouddriver
+          ports:
+            - containerPort: 7002
+              name: clouddriver
+          volumeMounts:
+            - mountPath: /opt/spinnaker/config
+              name: spinnaker-config
+            - mountPath: /root/.kube
+              name: creds-config
+          readinessProbe:
+            httpGet:
+              path: /credentials
+              port: 7002
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
+      volumes:
+        - name: spinnaker-config
+          secret:
+            secretName: spinnaker-config
+        - name: creds-config
+          secret:
+            secretName: creds-config

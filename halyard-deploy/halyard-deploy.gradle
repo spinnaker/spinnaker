@@ -2,7 +2,5 @@ dependencies {
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
-  compile spinnaker.dependency('clouddriverDocker')
-  compile spinnaker.dependency('clouddriverGoogle')
   compile spinnaker.dependency('clouddriverKubernetes')
 }

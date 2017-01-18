@@ -50,6 +50,12 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body String _ignore);
 
+  @POST("/v1/config/deployments/{deploymentName}/deploy/")
+  DaemonResponse<Void> deployDeployment(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body String _ignore);
+
   @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/")
   DaemonResponse<Object> getProvider(
       @Path("deploymentName") String deploymentName,
