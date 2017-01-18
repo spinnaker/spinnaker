@@ -137,7 +137,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
     };
 
     this.getBaseOsDescription = function(baseOsOption) {
-      return baseOsOption.id + (baseOsOption.shortDescription ? ' (' + baseOsOption.shortDescription + ')': '');
+      return baseOsOption.id + (baseOsOption.shortDescription ? ' (' + baseOsOption.shortDescription + ')' : '');
     };
 
     $scope.$watch('stage', deleteEmptyProperties, true);

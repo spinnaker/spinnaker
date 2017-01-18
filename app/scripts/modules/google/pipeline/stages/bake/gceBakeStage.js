@@ -113,7 +113,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
     };
 
     this.getBaseOsDescription = function(baseOsOption) {
-      return baseOsOption.id + (baseOsOption.shortDescription ? ' (' + baseOsOption.shortDescription + ')': '');
+      return baseOsOption.id + (baseOsOption.shortDescription ? ' (' + baseOsOption.shortDescription + ')' : '');
     };
 
     this.getHelpFieldContent = function(baseOsOption) {
