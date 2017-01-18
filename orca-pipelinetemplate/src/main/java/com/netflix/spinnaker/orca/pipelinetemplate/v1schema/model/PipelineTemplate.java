@@ -17,8 +17,10 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class PipelineTemplate {
 
@@ -150,7 +152,7 @@ public class PipelineTemplate {
   }
 
   public List<StageDefinition> getStages() {
-    return stages;
+    return Optional.ofNullable(stages).orElse(Collections.emptyList());
   }
 
   public void setStages(List<StageDefinition> stages) {

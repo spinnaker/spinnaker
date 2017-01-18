@@ -17,10 +17,12 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class StageDefinition implements NamedContent, Conditional {
 
   private String id;
+  private String name;
   private InjectionRule inject;
   private String dependsOn; // TODO rz - comma-delimited for now
   private String type;
@@ -31,7 +33,7 @@ public class StageDefinition implements NamedContent, Conditional {
 
   @Override
   public String getName() {
-    return id;
+    return Optional.ofNullable(name).orElse(id);
   }
 
   public static class InjectionRule {

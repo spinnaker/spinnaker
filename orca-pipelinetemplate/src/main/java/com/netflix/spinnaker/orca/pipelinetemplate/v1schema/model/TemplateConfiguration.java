@@ -15,8 +15,11 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TemplateConfiguration {
@@ -24,7 +27,7 @@ public class TemplateConfiguration {
   private String schema;
   private String id;
   private PipelineDefinition pipeline;
-  private PipelineConfiguration configuration;
+  private PipelineConfiguration configuration = new PipelineConfiguration();
   private List<StageDefinition> stages;
   private List<TemplateModule> modules;
 
@@ -35,7 +38,7 @@ public class TemplateConfiguration {
     private String application;
     private String name;
     private TemplateSource template;
-    private Map<String, Object> variables;
+    private Map<String, Object> variables = new HashMap<>();
 
     public String getApplication() {
       return application;
@@ -93,7 +96,7 @@ public class TemplateConfiguration {
     private String description;
 
     public List<String> getInherit() {
-      return inherit;
+      return Optional.ofNullable(inherit).orElse(Collections.emptyList());
     }
 
     public void setInherit(List<String> inherit) {
@@ -178,7 +181,7 @@ public class TemplateConfiguration {
   }
 
   public List<StageDefinition> getStages() {
-    return stages;
+    return Optional.ofNullable(stages).orElse(Collections.emptyList());
   }
 
   public void setStages(List<StageDefinition> stages) {
