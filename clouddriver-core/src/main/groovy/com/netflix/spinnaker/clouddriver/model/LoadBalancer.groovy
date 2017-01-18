@@ -45,6 +45,12 @@ interface LoadBalancer {
   String getCloudProvider()
 
   /**
+   * Account under which this load balancer exists.
+   * @return
+   */
+  String getAccount()
+
+  /**
    * The names of the server groups that this load balancer is servicing.
    *
    * @return set of names or an empty set if none exist

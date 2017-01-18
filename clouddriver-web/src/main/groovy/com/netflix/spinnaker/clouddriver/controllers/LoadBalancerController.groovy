@@ -35,6 +35,7 @@ class LoadBalancerController {
   List<LoadBalancerProvider> loadBalancerProviders
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
+  @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(value = "/applications/{application}/loadBalancers", method = RequestMethod.GET)
   List<LoadBalancer> list(@PathVariable String application) {
     loadBalancerProviders.findResults {

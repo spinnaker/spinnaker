@@ -53,6 +53,30 @@ class AuthorizationSupport {
     return true
   }
 
+  /**
+   *   Used for filtering result lists by searching for "account"-like properties.
+   */
+  boolean filterForAccounts(List items) {
+    if (!items) {
+      return true
+    }
+
+    Authentication auth = SecurityContextHolder.context.authentication;
+
+    new ArrayList<>(items).each { Object item ->
+      Map propertySource = item.properties
+      if (item instanceof Map) {
+        propertySource = item
+      }
+      String account = propertySource.account ?: propertySource.accountName
+
+      if (account && !permissionEvaluator.hasPermission(auth, account, 'ACCOUNT', 'READ')) {
+        items.remove(item)
+      }
+    }
+    return true
+  }
+
   boolean filterLoadBalancerProviderItems(List<LoadBalancerProvider.Item> lbItems) {
     if (!lbItems) {
       return true
