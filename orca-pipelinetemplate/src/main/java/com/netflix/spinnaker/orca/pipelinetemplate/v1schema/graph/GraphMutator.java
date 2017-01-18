@@ -32,12 +32,10 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
 public class GraphMutator {
 
   List<PipelineTemplateVisitor> visitors = new ArrayList<>();
 
-  @Autowired
   public GraphMutator(TemplateConfiguration configuration, Renderer renderer, Registry registry) {
     visitors.add(new ConditionalStanzaTransform(configuration, renderer));
     visitors.add(new ConfigModuleReplacementTransform(configuration));

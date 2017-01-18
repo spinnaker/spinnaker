@@ -17,15 +17,17 @@
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor;
+import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.TemplateMerge;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.GraphMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -39,14 +41,20 @@ import java.util.Map;
 @Component
 public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocessor {
 
-  private ObjectMapper pipelineTemplateObjectMapper;
-
-  private GraphMutator graphMutator;
+  private final ObjectMapper pipelineTemplateObjectMapper;
+  private final TemplateLoader templateLoader;
+  private final Renderer renderer;
+  private final Registry registry;
 
   @Autowired
-  public PipelineTemplatePipelinePreprocessor(ObjectMapper pipelineTemplateObjectMapper, GraphMutator graphMutator) {
+  public PipelineTemplatePipelinePreprocessor(ObjectMapper pipelineTemplateObjectMapper,
+                                              TemplateLoader templateLoader,
+                                              Renderer renderer,
+                                              Registry registry) {
     this.pipelineTemplateObjectMapper = pipelineTemplateObjectMapper;
-    this.graphMutator = graphMutator;
+    this.templateLoader = templateLoader;
+    this.renderer = renderer;
+    this.registry = registry;
   }
 
   @Override
@@ -60,10 +68,11 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
     // TODO find all templates via request.config.pipeline.template.source
     // list needs to be FIFO, where the first template is the root
-    List<PipelineTemplate> templates = Collections.emptyList();
+    List<PipelineTemplate> templates = templateLoader.load(templateConfiguration.getPipeline().getTemplate());
 
     PipelineTemplate template = TemplateMerge.merge(templates);
 
+    GraphMutator graphMutator = new GraphMutator(templateConfiguration, renderer, registry);
     graphMutator.mutate(template);
 
     // TODO final validation & marshal to pipeline json

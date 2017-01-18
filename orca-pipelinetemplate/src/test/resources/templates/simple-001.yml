@@ -1,0 +1,30 @@
+schema: "1"
+id: simpleTemplate
+variables:
+- name: application
+  description: The application name
+- name: regions
+  description: A list of regions to bake in
+  type: list
+configuration:
+  triggers:
+  - type: jenkins
+    master: spinnaker
+    job: SPINNAKER-package-{{ var.application }}
+    enabled: true
+stages:
+- id: bake
+  name: Bake
+  config:
+    regions: "{{ var.regions }}"
+    package: "{{ var.application }}-package"
+    baseOs: trusty
+    vmType: hvm
+    storeType: ebs
+    baseLabel: release
+- id: tagImage
+  name: Tag Image
+  dependsOn: bake
+  config:
+    tags:
+      stack: test

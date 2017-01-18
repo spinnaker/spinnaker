@@ -5,6 +5,7 @@ dependencies {
 
   compile('com.github.jknack:handlebars:4.0.6')
   compile('com.github.jknack:handlebars-jackson2:1.0.0')
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
 
   compile spinnaker.dependency("slf4jApi")
   compile spinnaker.dependency("bootAutoConfigure")
