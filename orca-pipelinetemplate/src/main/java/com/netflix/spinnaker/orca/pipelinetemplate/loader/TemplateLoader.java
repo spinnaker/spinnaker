@@ -24,9 +24,11 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.lang.String.format;
 
@@ -43,11 +45,34 @@ public class TemplateLoader {
    * @return a LIFO list of pipeline templates
    */
   public List<PipelineTemplate> load(TemplateConfiguration.TemplateSource template) {
+    List<PipelineTemplate> pipelineTemplates = new ArrayList<>();
+
+    PipelineTemplate pipelineTemplate = load(template.getSource());
+    pipelineTemplates.add(0, pipelineTemplate);
+
+    Set<String> seenTemplateSources = new HashSet<>();
+    while (pipelineTemplate.getSource() != null) {
+      seenTemplateSources.add(pipelineTemplate.getSource());
+
+      pipelineTemplate = load(pipelineTemplate.getSource());
+      pipelineTemplates.add(0, pipelineTemplate);
+
+      if (seenTemplateSources.contains(pipelineTemplate.getSource())) {
+        throw new TemplateLoaderException(
+          format("Illegal cycle detected loading pipeline template '%s'", pipelineTemplate.getSource())
+        );
+      }
+    }
+
+    return pipelineTemplates;
+  }
+
+  private PipelineTemplate load(String source) {
     URI uri;
     try {
-      uri = new URI(template.getSource());
+      uri = new URI(source);
     } catch (URISyntaxException e) {
-      throw new TemplateLoaderException(format("Unable to load template from URI '%s'", template.getSource()), e);
+      throw new TemplateLoaderException(format("Invalid URI '%s'", source), e);
     }
 
     TemplateSchemeLoader schemeLoader = schemeLoaders.stream()
@@ -55,7 +80,6 @@ public class TemplateLoader {
       .findFirst()
       .orElseThrow(() -> new TemplateLoaderException(format("No TemplateSchemeLoader found for '%s'", uri.getScheme())));
 
-    // TODO-AJ If loaded `PipelineTemplate` has a source, we should be loading it as well ... all the way up!
-    return Collections.singletonList(schemeLoader.load(uri));
+    return schemeLoader.load(uri);
   }
 }

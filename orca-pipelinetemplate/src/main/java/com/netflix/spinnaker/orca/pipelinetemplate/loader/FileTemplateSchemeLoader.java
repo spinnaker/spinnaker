@@ -28,7 +28,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 
-import static java.lang.String.format;
 
 @Component
 public class FileTemplateSchemeLoader implements TemplateSchemeLoader {
