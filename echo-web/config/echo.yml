@@ -10,5 +10,8 @@ echo:
 front50:
   baseUrl: 'http://localhost:8081'
 
+orca:
+  baseUrl: 'http://localhost:8083'
+
 search:
   index: 'event_history'
