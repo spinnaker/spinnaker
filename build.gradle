@@ -58,6 +58,16 @@ allprojects {
     dependenciesVersion = spinnakerDependenciesVersion
   }
 
+  configurations.all {
+    resolutionStrategy {
+      eachDependency {
+        if (it.requested.group == 'org.springframework') {
+          it.useVersion '4.1.9.RELEASE'
+        }
+      }
+    }
+  }
+
   test {
     testLogging {
       exceptionFormat = 'full'

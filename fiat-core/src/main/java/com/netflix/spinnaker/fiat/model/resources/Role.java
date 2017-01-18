@@ -34,7 +34,8 @@ public class Role implements GroupAccessControlled, Resource, Viewable {
   public enum Source {
     EXTERNAL,
     GOOGLE_GROUPS,
-    GITHUB_TEAMS
+    GITHUB_TEAMS,
+    LDAP
   }
 
   private Source source;
