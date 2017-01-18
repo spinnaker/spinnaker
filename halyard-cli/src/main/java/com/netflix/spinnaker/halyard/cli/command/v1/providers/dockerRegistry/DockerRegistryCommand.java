@@ -36,5 +36,6 @@ public class DockerRegistryCommand extends AbstractNamedProviderCommand {
   public DockerRegistryCommand() {
     super();
     registerSubcommand(new DockerRegistryAddAccountCommand());
+    registerSubcommand(new DockerRegistryEditAccountCommand());
   }
 }
