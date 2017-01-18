@@ -19,17 +19,13 @@ package com.netflix.spinnaker.orca
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.FiatAuthenticationConfig
-import com.netflix.spinnaker.config.TomcatConfiguration
 import com.netflix.spinnaker.config.StackdriverConfig
+import com.netflix.spinnaker.config.TomcatConfiguration
 import com.netflix.spinnaker.kork.PlatformComponents
 import com.netflix.spinnaker.orca.applications.config.ApplicationConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
-import com.netflix.spinnaker.orca.config.JesqueConfiguration
-import com.netflix.spinnaker.orca.config.OrcaConfiguration
-import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
-import com.netflix.spinnaker.orca.config.PipelineTemplateConfiguration
-import com.netflix.spinnaker.orca.config.RedisConfiguration
+import com.netflix.spinnaker.orca.config.*
 import com.netflix.spinnaker.orca.data.jackson.StageMixins
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
 import com.netflix.spinnaker.orca.eureka.DiscoveryPollingConfiguration
@@ -40,6 +36,7 @@ import com.netflix.spinnaker.orca.mahe.config.MaheConfiguration
 import com.netflix.spinnaker.orca.mine.config.MineConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
+import com.netflix.spinnaker.zombie.ZombiePipelineCleanupConfig
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
@@ -79,6 +76,7 @@ import org.springframework.scheduling.annotation.EnableAsync
   FiatAuthenticationConfig,
   StackdriverConfig,
   PipelineTemplateConfiguration,
+  ZombiePipelineCleanupConfig
 ])
 @ComponentScan([
   "com.netflix.spinnaker.config"

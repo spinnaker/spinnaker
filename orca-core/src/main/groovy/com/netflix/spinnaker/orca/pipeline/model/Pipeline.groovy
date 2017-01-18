@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import java.util.concurrent.atomic.AtomicInteger
+import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -146,6 +147,16 @@ class Pipeline extends Execution<Pipeline> {
     Builder withGlobalContext(Map<String, Object> context) {
       pipeline.context.clear()
       pipeline.context.putAll(context)
+      return this
+    }
+
+    Builder withStatus(ExecutionStatus executionStatus) {
+      pipeline.status = executionStatus
+      return this
+    }
+
+    Builder withStartTime(long startTime) {
+      pipeline.startTime = startTime
       return this
     }
   }
