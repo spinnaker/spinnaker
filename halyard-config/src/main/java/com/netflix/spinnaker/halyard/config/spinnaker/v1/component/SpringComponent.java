@@ -26,6 +26,11 @@ abstract public class SpringComponent extends SpinnakerComponent {
     return getComponentName() + ".yml";
   }
 
+  @Override
+  public String commentPrefix() {
+    return "## ";
+  }
+
   protected String yamlToString(Object o) {
     return yamlParser.dump(objectMapper.convertValue(o, Map.class));
   }

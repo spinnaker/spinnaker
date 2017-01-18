@@ -21,6 +21,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeckComponent extends SpinnakerComponent {
   @Override
+  public String commentPrefix() {
+    return "// ";
+  }
+
+  @Override
   public String getComponentName() {
     return "deck";
   }

@@ -22,6 +22,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.introspector.Property;
+import org.yaml.snakeyaml.nodes.NodeTuple;
+import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.representer.Representer;
 
 @Component
 public class ResourceConfig {
@@ -68,6 +72,8 @@ public class ResourceConfig {
   Yaml yamlParser() {
     DumperOptions options = new DumperOptions();
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+    options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
+
     return new Yaml(options);
   }
 

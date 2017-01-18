@@ -38,7 +38,7 @@ public class DeploymentConfiguration extends Node {
    *
    * @see Halconfig#halyardVersion
    */
-  String version;
+  String version = "latest";
 
   /**
    * Providers, e.g. Kubernetes, GCE, AWS, ...
