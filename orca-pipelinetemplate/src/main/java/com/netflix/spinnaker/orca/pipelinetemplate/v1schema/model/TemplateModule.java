@@ -17,7 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import java.util.List;
 
-public class TemplateModule implements NamedContent {
+public class TemplateModule implements Identifiable {
 
   private String id;
   private String usage;
@@ -25,10 +25,6 @@ public class TemplateModule implements NamedContent {
   private Object definition;
 
   @Override
-  public String getName() {
-    return id;
-  }
-
   public String getId() {
     return id;
   }
