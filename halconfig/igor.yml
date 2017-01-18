@@ -1,0 +1,14 @@
+server:
+  port: ${services.igor.port:8088}
+  address: ${services.igor.host:localhost}
+
+redis:
+  connection: ${services.redis.connection:redis://localhost:6379}
+
+services:
+  clouddriver:
+    baseUrl: ${services.clouddriver.baseUrl:localhost:7002}
+
+  echo:
+    baseUrl: ${services.echo.baseUrl:localhost:8089}
+
