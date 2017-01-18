@@ -110,12 +110,12 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
         DockerRegistryCatalog catalog = credentials.getCredentials().getClient().getCatalog();
 
         if (catalog.getRepositories() == null || catalog.getRepositories().size() == 0) {
-          p.addProblem(Severity.WARNING, "Your docker registry has no repositories specified, and the registry's catalog is empty")
+          p.addProblem(Severity.ERROR, "Your docker registry has no repositories specified, and the registry's catalog is empty")
             .setRemediation("Manually specify some repositories for this docker registry to index");
         }
       }
     } catch (Exception e) {
-      p.addProblem(Severity.ERROR, "Unabled to connect the registries catalog endpoint: " + e.getMessage())
+      p.addProblem(Severity.ERROR, "Unable to connect the registries catalog endpoint: " + e.getMessage())
         .setRemediation("Manually specify some repositories for this docker registry to index");
     }
   }

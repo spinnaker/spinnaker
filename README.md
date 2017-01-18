@@ -86,3 +86,51 @@ Spinnaker's config with this command
 ```
 $ hal config generate
 ```
+
+Since Halyard isn't at a stable release, all config will be written to
+`~/.halyard`, rather than `~/.spinnaker`. You can change this behavior by
+configuring the Spring parameter `spinnaker.config.output.directory`.
+
+## Getting Started
+
+Since Halyard is not yet being distributed, to use it you will have to build it
+yourself.
+
+### Running the Daemon
+
+Run (and leave running) the following command:
+
+```
+$ ./gradlew         # this will take a long time the first time it's run
+```
+
+### Running the CLI
+
+```
+$ cd halyard-cli
+$ make              # if this command hangs, restart the daemon
+$ ./hal
+```
+
+The `./hal` script must be run from inside the `halyard-cli` folder.
+
+There is no command-completion yet, but at any point the `--help` flag should
+point you in the right direction.
+
+### Sample usage
+
+Assuming you're running the Daemon & have compiled the CLI, you can try the
+following:
+
+```
+$ ./hal config provider docker-registry enable 
+$ ./hal config provider docker-registry add-account my-dockerhub-account \
+    --address index.docker.io \
+    --repositories library/nginx
+$ ./hal config provider kubernetes enable
+$ ./hal config provider kubernetes add-account my-kubernetes-account \
+    --docker-registries my-dockerhub-account
+$ cat ~/.hal/config
+$ ./hal config generate
+$ cat ~/.halyard/*
+```

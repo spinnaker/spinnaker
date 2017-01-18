@@ -38,6 +38,14 @@ public class DockerRegistryAccount extends Account {
   private String email;
   private List<String> repositories = new ArrayList<>();
 
+  public String getAddress() {
+    if (address.startsWith("https://") || address.startsWith("http://")) {
+      return address;
+    } else {
+      return "https://" + address;
+    }
+  }
+
   @Override
   public void accept(ProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
