@@ -263,7 +263,7 @@ class DockerRegistryClient {
           registryService.getCatalog(paginateSize, token, clouddriverUserAgentApplicationName)
       }, "_catalog")
     } catch (Exception e) {
-      log.warn("Error encountered during catalog of $path", e)
+      log.warn("Error encountered during catalog of $path" + e.getMessage())
       return new DockerRegistryCatalog(repositories: [])
     }
 
