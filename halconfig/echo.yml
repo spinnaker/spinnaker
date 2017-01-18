@@ -27,4 +27,4 @@ scheduler:
     enabled: true
     pollingIntervalMs: 30000
   cron:
-    timezone: ${services.echo.cron.timezone}
+    timezone: ${global.spinnaker.timezone:America/Los_Angeles}
