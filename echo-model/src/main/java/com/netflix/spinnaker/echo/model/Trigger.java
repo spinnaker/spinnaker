@@ -68,25 +68,30 @@ public class Trigger {
   Map constraints;
   String branch;
   String runAsUser;
+  String secret;
 
   public Trigger atBuildNumber(final int buildNumber) {
-    return new Trigger(enabled, id, type, master, job, buildNumber, propertyFile, cronExpression, source, project, slug, null, account, repository, null, digest, null, branch, runAsUser);
+    return new Trigger(enabled, id, type, master, job, buildNumber, propertyFile, cronExpression, source, project, slug, null, account, repository, null, digest, null, branch, runAsUser, secret);
   }
 
   public Trigger atHash(final String hash) {
-    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash, account, repository, null, digest, null, branch, runAsUser);
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash, account, repository, null, digest, null, branch, runAsUser, secret);
   }
 
   public Trigger atBranch(final String branch) {
-    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash, account, repository, null, digest, null, branch, runAsUser);
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash, account, repository, null, digest, null, branch, runAsUser, secret);
   }
 
   public Trigger atTag(final String tag) {
-    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, account, repository, tag, digest, null, branch, runAsUser);
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, account, repository, tag, digest, null, branch, runAsUser, secret);
   }
 
   public Trigger atConstraints(final Map constraints) {
-    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, account, repository, tag, null, constraints, branch, runAsUser);
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, account, repository, tag, null, constraints, branch, runAsUser, secret);
+  }
+
+  public Trigger atSecret(final String secret) {
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, account, repository, tag, null, constraints, branch, runAsUser, secret);
   }
 
   @JsonPOJOBuilder(withPrefix = "")

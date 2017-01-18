@@ -25,7 +25,10 @@ import com.netflix.spinnaker.echo.model.trigger.GitEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.codec.digest.HmacUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
@@ -38,9 +41,12 @@ import java.util.function.Predicate;
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
  */
 @Component
+@Slf4j
 public class GitEventMonitor extends TriggerMonitor {
 
   public static final String GIT_TRIGGER_TYPE = "git";
+
+  private static final String GITHUB_SECURE_SIGNATURE_HEADER = "X-Hub-Signature";
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -94,7 +100,8 @@ public class GitEventMonitor extends TriggerMonitor {
       && trigger.getSource().equalsIgnoreCase(source)
       && trigger.getProject().equalsIgnoreCase(project)
       && trigger.getSlug().equalsIgnoreCase(slug)
-      && (trigger.getBranch() == null || trigger.getBranch().equals("") || matchesPattern(branch, trigger.getBranch()));
+      && (trigger.getBranch() == null || trigger.getBranch().equals("") || matchesPattern(branch, trigger.getBranch()))
+      && hasValidGitHubSecureSignature(event, trigger);
   }
 
   @Override
@@ -115,4 +122,31 @@ public class GitEventMonitor extends TriggerMonitor {
     registry.counter(id).increment();
   }
 
+  private boolean hasValidGitHubSecureSignature(TriggerEvent event, Trigger trigger) {
+    val headers = event.getDetails().getRequestHeaders();
+    if (!headers.containsKey(GITHUB_SECURE_SIGNATURE_HEADER)) {
+      return true;
+    }
+
+    String header = headers.getFirst(GITHUB_SECURE_SIGNATURE_HEADER);
+    log.debug("GitHub Signature detected. " + GITHUB_SECURE_SIGNATURE_HEADER + ": " + header);
+    String signature = StringUtils.removeStart(header, "sha1=");
+
+    String triggerSecret = trigger.getSecret();
+    if (StringUtils.isEmpty(triggerSecret)) {
+      log.warn("Received GitEvent from Github with secure signature, but trigger did not contain the secret");
+      return false;
+    }
+
+    String computedDigest = HmacUtils.hmacSha1Hex(triggerSecret, event.getRawContent());
+
+    // TODO: Find constant time comparison algo?
+    boolean digestsMatch = signature.equalsIgnoreCase(computedDigest);
+    if (!digestsMatch) {
+      log.warn("Github Digest mismatch! Pipeline NOT triggered: " + trigger);
+      log.debug("computedDigest: " + computedDigest + ", from GitHub: " + signature);
+    }
+
+    return digestsMatch;
+  }
 }
