@@ -24,16 +24,30 @@ public class AnsiUi {
     AnsiPrinter.println(new AnsiSnippet(message).toString());
   }
 
-  public static void info(String message) {
+  public static void listItem(String message) {
+    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
+        .setIndentFirstLine(true)
+        .setIndentWidth(4);
+
+    builder.addSnippet("- ")
+        .addStyle(AnsiStyle.BOLD);
+
+    builder.addSnippet(message);
+
+    AnsiPrinter.println(builder.toString());
+  }
+
+  public static void location(String message) {
     AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
         .setIndentFirstLine(false)
         .setIndentWidth(2);
 
-    builder.addSnippet(". ")
-        .setForegroundColor(AnsiForegroundColor.BLUE)
+    builder.addSnippet("Problems in ");
+
+    builder.addSnippet(message)
         .addStyle(AnsiStyle.BOLD);
 
-    builder.addSnippet(message);
+    builder.addSnippet(":");
 
     AnsiPrinter.println(builder.toString());
   }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
@@ -34,6 +35,9 @@ import org.springframework.stereotype.Component;
 public class ValidateService {
   @Autowired
   HalconfigParser parser;
+
+  @Autowired
+  DeploymentService deploymentService;
 
   @Autowired
   ValidatorCollection validatorCollection;

@@ -17,9 +17,16 @@
 package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import java.util.List;
 import lombok.Setter;
 
 public class ProblemBuilder {
+  @Setter
+  Problem.Severity severity;
+
+  @Setter
+  NodeReference reference;
+
   @Setter
   String message;
 
@@ -27,10 +34,7 @@ public class ProblemBuilder {
   String remediation;
 
   @Setter
-  NodeReference reference;
-
-  @Setter
-  Problem.Severity severity;
+  List<String> options;
 
   public ProblemBuilder(Problem.Severity severity, String message) {
     this.severity = severity;
@@ -38,6 +42,6 @@ public class ProblemBuilder {
   }
 
   public Problem build() {
-    return new Problem(severity, reference, message, remediation);
+    return new Problem(severity, reference, message, remediation, options);
   }
 }

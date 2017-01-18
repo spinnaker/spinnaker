@@ -21,6 +21,9 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class ResponseUnwrapper<T> {
   public static <T> T get(DaemonResponse<T> response) {
@@ -33,33 +36,40 @@ public class ResponseUnwrapper<T> {
       return;
     }
 
-    problemSet.sortIncreasingSeverity();
-    for (Problem problem : problemSet.getProblems()) {
-      Severity severity = problem.getSeverity();
-      String problemLocation = problem.getReferenceTitle();
-      String message = problem.getMessage();
-      String remediation = problem.getRemediation();
+    Map<String, List<Problem>> locationGroup = problemSet.groupByLocation();
+    for (Entry<String, List<Problem>> entry: locationGroup.entrySet()) {
 
-      switch(severity) {
-        case FATAL:
-        case ERROR:
-          AnsiUi.error(problemLocation);
-          AnsiUi.error(message);
-          break;
-        case WARNING:
-          AnsiUi.warning(problemLocation);
-          AnsiUi.warning(message);
-          break;
-        default:
-          throw new RuntimeException("Unknown severity level " + severity);
+      AnsiUi.location(entry.getKey());
+      for (Problem problem : problemSet.getProblems()) {
+        Severity severity = problem.getSeverity();
+        String message = problem.getMessage();
+        String remediation = problem.getRemediation();
+        List<String> options = problem.getOptions();
+
+        switch (severity) {
+          case FATAL:
+          case ERROR:
+            AnsiUi.error(message);
+            break;
+          case WARNING:
+            AnsiUi.warning(message);
+            break;
+          default:
+            throw new RuntimeException("Unknown severity level " + severity);
+        }
+
+        if (remediation != null && !remediation.isEmpty()) {
+          AnsiUi.remediation(remediation);
+        }
+
+        if (options != null && !options.isEmpty()) {
+          AnsiUi.remediation("Options include: ");
+          options.forEach(AnsiUi::listItem);
+        }
+
+        // Newline between errors
+        AnsiUi.raw("");
       }
-
-      if (remediation != null && !remediation.isEmpty()) {
-        AnsiUi.remediation(remediation);
-      }
-
-      // Newline between errors
-      AnsiUi.raw("");
     }
   }
 }

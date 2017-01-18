@@ -16,31 +16,21 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
-import io.fabric8.kubernetes.api.model.NamedContext;
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.ERROR;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import io.fabric8.kubernetes.api.model.Config;
+import io.fabric8.kubernetes.api.model.NamedContext;
+import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.ERROR;
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.WARNING;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -63,5 +53,21 @@ public class KubernetesAccount extends Account implements Cloneable {
   @Override
   public void accept(ProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
+  }
+
+  protected List<String> contextOptions(ProblemSetBuilder psBuilder) {
+    Config kubeconfig;
+    try {
+      File kubeconfigFileOpen = new File(getKubeconfigFile());
+      kubeconfig = KubeConfigUtils.parseConfig(kubeconfigFileOpen);
+    } catch (IOException e) {
+      psBuilder.addProblem(ERROR, e.getMessage());
+      return null;
+    }
+
+    return kubeconfig.getContexts()
+        .stream()
+        .map(NamedContext::getName)
+        .collect(Collectors.toList());
   }
 }

@@ -17,7 +17,13 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The "Node" class represents a YAML node in our config hierarchy that can be validated.
@@ -25,6 +31,7 @@ import lombok.Getter;
  * The motivation for this is to allow us to navigate YAML paths in our halconfig, and validate each node (if necessary)
  * along the way.
  */
+@Slf4j
 abstract public class Node implements Validatable {
   @JsonIgnore
   public abstract String getNodeName();
@@ -60,6 +67,35 @@ abstract public class Node implements Validatable {
 
   @JsonIgnore
   public abstract NodeReference getReference();
+
+  @JsonIgnore
+  public List<String> fieldOptions(ProblemSetBuilder problemSetBuilder, String fieldName) {
+    if (fieldName == null || fieldName.isEmpty()) {
+      throw new IllegalArgumentException("Input fieldName may not be empty");
+    }
+
+    log.info("Looking for options for field " + fieldName + " in node " + getNodeName() + " for type " + getClass());
+    String fieldOptions = fieldName + "Options";
+    Method optionsMethod = null;
+
+    try {
+      optionsMethod = this.getClass().getDeclaredMethod(fieldOptions, ProblemSetBuilder.class);
+      optionsMethod.setAccessible(true);
+
+      return (List<String>) optionsMethod.invoke(this, problemSetBuilder);
+    } catch (IllegalAccessException | InvocationTargetException e) {
+      log.warn("Failed to call " + fieldOptions + "() on " + this.getClass());
+
+      throw new RuntimeException(e);
+    } catch (NoSuchMethodException e) {
+      // It's expected that many fields won't supply options endpoints.
+      return new ArrayList<>();
+    } finally {
+      if (optionsMethod != null) {
+        optionsMethod.setAccessible(false);
+      }
+    }
+  }
 
   @Getter
   @JsonIgnore

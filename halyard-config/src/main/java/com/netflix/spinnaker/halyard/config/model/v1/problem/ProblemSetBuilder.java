@@ -17,14 +17,12 @@
 package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import lombok.AccessLevel;
-import lombok.Setter;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.Setter;
 
 public class ProblemSetBuilder {
   private List<ProblemBuilder> builders = new ArrayList<>();
@@ -36,10 +34,19 @@ public class ProblemSetBuilder {
   private Node node;
 
   public ProblemBuilder addProblem(Problem.Severity severity, String message) {
+    return addProblem(severity, message, null);
+  }
+
+  public ProblemBuilder addProblem(Problem.Severity severity, String message, String field) {
     ProblemBuilder problemBuilder = new ProblemBuilder(severity, message);
     if (node != null) {
       problemBuilder.setReference(node.getReference());
+
+      if (field != null && !field.isEmpty()) {
+        problemBuilder.setOptions(node.fieldOptions(new ProblemSetBuilder(), field));
+      }
     }
+
     builders.add(problemBuilder);
     return problemBuilder;
   }

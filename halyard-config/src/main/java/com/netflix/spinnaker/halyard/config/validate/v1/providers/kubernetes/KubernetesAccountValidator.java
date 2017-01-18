@@ -90,7 +90,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
           .findFirst();
 
       if (!namedContext.isPresent()) {
-        psBuilder.addProblem(ERROR, "Context \"" + context + "\" not found in kubeconfig \"" + kubeconfigFile + "\"")
+        psBuilder.addProblem(ERROR, "Context \"" + context + "\" not found in kubeconfig \"" + kubeconfigFile + "\"", "context")
             .setRemediation("Either add this context to your kubeconfig, rely on the default context, or pick another kubeconfig file");
         smoketest = false;
       }

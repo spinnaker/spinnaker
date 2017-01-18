@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -30,11 +32,20 @@ public class ProblemSet {
   @Getter
   private List<Problem> problems = new ArrayList<>();
 
-  /**
-   * Sort the listed problems in increasing order of severity.
-   */
-  public void sortIncreasingSeverity() {
-    Collections.sort(problems, (Problem a, Problem b) -> a.getSeverity().compareTo(b.getSeverity()));
+  public Map<String, List<Problem>> groupByLocation() {
+    Map<String, List<Problem>> result = new HashMap<>();
+    for (Problem problem : problems) {
+      result.merge(problem.getReferenceTitle(),
+          new ArrayList<Problem>() {{
+            add(problem);
+          }},
+          (List a, List b) -> {
+            a.addAll(b);
+            return a;
+          });
+    }
+
+    return result;
   }
 
   public void add(Problem problem) {
