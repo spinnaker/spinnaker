@@ -1,6 +1,7 @@
 'use strict';
 
 let angular = require('angular');
+
 import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 
@@ -8,12 +9,11 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
   require('angular-ui-router'),
   INFRASTRUCTURE_CACHE_SERVICE,
   CACHE_INITIALIZER_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
   require('core/config/settings.js'),
 ])
   .controller('awsCreateSecurityGroupCtrl', function($scope, $uibModalInstance, $state, $controller,
-                                                  taskMonitorService, cacheInitializer, infrastructureCaches,
-                                                  application, securityGroup, settings ) {
+                                                     cacheInitializer, infrastructureCaches,
+                                                     application, securityGroup, settings ) {
 
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),

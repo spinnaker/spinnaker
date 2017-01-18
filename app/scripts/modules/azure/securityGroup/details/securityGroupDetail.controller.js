@@ -89,8 +89,6 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
       var taskMonitor = {
         application: application,
         title: 'Deleting ' + securityGroup.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true
       };
 
       var submitMethod = function () {

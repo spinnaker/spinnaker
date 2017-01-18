@@ -90,8 +90,6 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
       const taskMonitor = {
         application: application,
         title: 'Deleting ' + loadBalancer.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true
       };
 
       const command = {

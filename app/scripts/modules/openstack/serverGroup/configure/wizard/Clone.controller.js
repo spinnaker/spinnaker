@@ -4,19 +4,20 @@ let angular = require('angular');
 
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone', [
   require('angular-ui-router'),
   require('core/application/modal/platformHealthOverride.directive.js'),
   SERVER_GROUP_WRITER,
   V2_MODAL_WIZARD_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   require('../serverGroupConfiguration.service.js'),
 ])
   .controller('openstackCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
-                                                               serverGroupWriter, v2modalWizardService, taskMonitorService,
-                                                               openstackServerGroupConfigurationService,
-                                                               serverGroupCommand, application, title) {
+                                                        serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
+                                                        openstackServerGroupConfigurationService,
+                                                        serverGroupCommand, application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./location/basicSettings.html'),
@@ -39,12 +40,10 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
       requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
-      forceRefreshMessage: 'Getting your new server group from Openstack...',
       modalInstance: $uibModalInstance,
-      forceRefreshEnabled: true
     });
 
     function configureCommand() {

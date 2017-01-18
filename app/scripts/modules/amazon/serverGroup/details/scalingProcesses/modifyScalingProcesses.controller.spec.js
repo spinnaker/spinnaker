@@ -11,7 +11,7 @@ describe('Controller: modifyScalingProcesses', function() {
 
   beforeEach(window.inject(function($controller, $rootScope) {
     this.$uibModalInstance = { close: angular.noop };
-    this.taskMonitorService = { buildTaskMonitor: angular.noop };
+    this.taskMonitorBuilder = { buildTaskMonitor: angular.noop };
     this.taskExecutor = { executeTask: angular.noop };
     this.$scope = $rootScope.$new();
 
@@ -25,7 +25,7 @@ describe('Controller: modifyScalingProcesses', function() {
         serverGroup: serverGroup,
         processes: this.processes,
         application: { serverGroups: { refresh: angular.noop } },
-        taskMonitorService: this.taskMonitorService,
+        taskMonitorBuilder: this.taskMonitorBuilder,
         taskExecutor: this.taskExecutor,
         $uibModalInstance: this.$uibModalInstance,
         _: _,
@@ -74,7 +74,7 @@ describe('Controller: modifyScalingProcesses', function() {
         { name: 'AddToLoadBalancer', enabled: false }
       ];
       this.taskMonitor = { submit: angular.noop };
-      spyOn(this.taskMonitorService, 'buildTaskMonitor').and.returnValue(this.taskMonitor);
+      spyOn(this.taskMonitorBuilder, 'buildTaskMonitor').and.returnValue(this.taskMonitor);
       spyOn(this.taskMonitor, 'submit').and.callFake(function(method) { method(); });
       spyOn(this.taskExecutor, 'executeTask');
     });

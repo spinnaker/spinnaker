@@ -3,15 +3,15 @@
 import _ from 'lodash';
 
 var angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.clone.controller', [
     ACCOUNT_SERVICE,
-    require('core/task/monitor/taskMonitorService.js'),
     require('../configure/ConfigSecurityGroupMixin.controller.js')
   ])
-  .controller('gceCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, taskMonitorService, accountService, securityGroup, application) {
+  .controller('gceCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, accountService, securityGroup, application) {
     var vm = this;
 
     $scope.pages = {

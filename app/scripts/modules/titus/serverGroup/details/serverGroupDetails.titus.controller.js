@@ -99,9 +99,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       var taskMonitor = {
         application: application,
         title: 'Destroying ' + serverGroup.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true,
-        katoPhaseToMonitor: 'DESTROY_TITUS_SERVER_GROUP'
       };
 
       var submitMethod = function () {
@@ -133,11 +130,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
             $state.go('^');
           }
         },
-        onApplicationRefresh: function () {
-          if ($state.includes('**.serverGroup', stateParams)) {
-            $state.go('^');
-          }
-        }
       };
 
       confirmationModalService.confirm(confirmationModalParams);
@@ -195,7 +187,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       var taskMonitor = {
         application: application,
         title: 'Enabling ' + serverGroup.name,
-        forceRefreshMessage: 'Refreshing application...',
       };
 
       var submitMethod = function () {

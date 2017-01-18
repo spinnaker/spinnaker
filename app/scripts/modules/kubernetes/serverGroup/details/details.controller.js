@@ -114,9 +114,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       var taskMonitor = {
         application: application,
         title: 'Destroying ' + serverGroup.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true,
-        katoPhaseToMonitor: 'DESTROY_ASG'
       };
 
       var submitMethod = (params) => serverGroupWriter.destroyServerGroup(
@@ -145,11 +142,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
             $state.go('^');
           }
         },
-        onApplicationRefresh: () => {
-          if ($state.includes('**.serverGroup', stateParams)) {
-            $state.go('^');
-          }
-        }
       });
     };
 
@@ -201,7 +193,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       var taskMonitor = {
         application: application,
         title: 'Enabling ' + serverGroup.name,
-        forceRefreshMessage: 'Refreshing application...',
       };
 
       var submitMethod = (params) => serverGroupWriter.enableServerGroup(

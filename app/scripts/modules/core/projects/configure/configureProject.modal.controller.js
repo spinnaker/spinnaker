@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
 ])
   .controller('ConfigureProjectModalCtrl', function ($scope, projectConfig, $uibModalInstance, $q,
                                                      pipelineConfigService, applicationReader, projectWriter,
-                                                     projectReader, accountService, taskMonitorService,
+                                                     projectReader, accountService, taskMonitorBuilder,
                                                      v2modalWizardService, wizardSubFormValidation) {
 
     if (!projectConfig.name) {
@@ -137,7 +137,9 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       $scope.accounts = accounts;
     });
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+      application: null,
+      title: null, // will be configured by delete/update call
       modalInstance: $uibModalInstance,
     });
 

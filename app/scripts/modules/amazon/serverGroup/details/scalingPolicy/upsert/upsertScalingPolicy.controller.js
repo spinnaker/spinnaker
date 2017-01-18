@@ -2,6 +2,8 @@
 
 const angular = require('angular');
 
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+
 require('./upsertScalingPolicy.modal.less');
 
 module.exports = angular
@@ -11,9 +13,10 @@ module.exports = angular
     require('./simple/simplePolicyAction.component.js'),
     require('./step/stepPolicyAction.component.js'),
     require('./alarm/alarmConfigurer.component.js'),
+    TASK_MONITOR_BUILDER,
   ])
   .controller('awsUpsertScalingPolicyCtrl', function ($uibModalInstance, scalingPolicyWriter,
-                                                      taskMonitorService, serverGroup, application, policy) {
+                                                      taskMonitorBuilder, serverGroup, application, policy) {
 
     this.serverGroup = serverGroup;
 
@@ -184,10 +187,10 @@ module.exports = angular
       return command;
     };
 
-    this.taskMonitor = taskMonitorService.buildTaskMonitor({
-      modalInstance: $uibModalInstance,
+    this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: this.action + ' scaling policy for ' + serverGroup.name,
+      modalInstance: $uibModalInstance,
     });
 
     this.save = () => {

@@ -4,18 +4,19 @@ let angular = require('angular');
 
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clone', [
   require('angular-ui-router'),
   require('core/application/modal/platformHealthOverride.directive.js'),
   SERVER_GROUP_WRITER,
   V2_MODAL_WIZARD_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   require('../configuration.service.js'),
   require('core/modal/wizard/wizardSubFormValidation.service.js'),
 ])
   .controller('kubernetesCloneServerGroupController', function($scope, $uibModalInstance, $q, $state,
-                                                               serverGroupWriter, v2modalWizardService, taskMonitorService,
+                                                               serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
                                                                kubernetesServerGroupConfigurationService,
                                                                serverGroupCommand, application, title, $timeout,
                                                                wizardSubFormValidation) {
@@ -42,12 +43,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
       requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
-      forceRefreshMessage: 'Getting your new server group from Kubernetes...',
       modalInstance: $uibModalInstance,
-      forceRefreshEnabled: true
     });
 
     function configureCommand() {

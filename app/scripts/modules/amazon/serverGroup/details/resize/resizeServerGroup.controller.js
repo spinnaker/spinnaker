@@ -3,17 +3,18 @@
 let angular = require('angular');
 
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.controller', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('core/task/modal/reason.directive.js'),
   SERVER_GROUP_WRITER,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   require('./resizeCapacity.directive.js'),
   require('../../../common/footer.directive.js'),
 ])
   .controller('awsResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter,
-                                                   taskMonitorService,
+                                                   taskMonitorBuilder,
                                                    application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
@@ -46,10 +47,10 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
         command.newSize !== null;
     };
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
-      modalInstance: $uibModalInstance,
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Resizing ' + serverGroup.name,
+      modalInstance: $uibModalInstance,
     });
 
     this.resize = function () {

@@ -81,8 +81,6 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.details.contr
         var taskMonitor = {
           application: application,
           title: 'Deleting ' + securityGroup.name,
-          forceRefreshMessage: 'Refreshing application...',
-          forceRefreshEnabled: true
         };
 
         var submitMethod = function () {

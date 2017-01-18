@@ -5,20 +5,21 @@ let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.securityGroup.openstack.create.controller', [
   require('angular-ui-router'),
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   ACCOUNT_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   require('../../../region/regionSelectField.directive.js'),
   require('../../transformer.js'),
 ])
   .controller('openstackUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
                                                                  application, securityGroup,
                                                                  accountService, openstackSecurityGroupTransformer, securityGroupReader,
-                                                                 securityGroupWriter, taskMonitorService, namingService) {
+                                                                 securityGroupWriter, taskMonitorBuilder, namingService) {
     var ctrl = this;
     $scope.isNew = !securityGroup.edit;
     $scope.securityGroup = securityGroup;
@@ -58,7 +59,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: ($scope.isNew ? 'Creating ' : 'Updating ') + 'your security group',
       modalInstance: $uibModalInstance,

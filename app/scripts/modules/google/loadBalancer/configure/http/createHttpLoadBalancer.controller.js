@@ -1,9 +1,11 @@
 'use strict';
 
+let angular = require('angular');
+
 import {HealthCheckTemplate, BackendServiceTemplate, HostRuleTemplate, ListenerTemplate} from './templates';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
-let angular = require('angular');
 require('./httpLoadBalancerWizard.component.less');
 
 module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.controller', [
@@ -14,7 +16,7 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
   require('google/cache/cacheRefresh.component.js'),
   require('core/modal/wizard/wizardSubFormValidation.service.js'),
   V2_MODAL_WIZARD_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   require('./commandBuilder.service.js'),
   require('../../details/hostAndPathRules/hostAndPathRulesButton.component.js'),
   require('../../elSevenUtils.service.js'),
@@ -24,7 +26,7 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
   require('./listeners/listener.component.js'),
   require('./transformer.service.js'),
 ])
-  .controller('gceCreateHttpLoadBalancerCtrl', function ($scope, $uibModal, settings, $uibModalInstance, application, taskMonitorService,
+  .controller('gceCreateHttpLoadBalancerCtrl', function ($scope, $uibModal, settings, $uibModalInstance, application, taskMonitorBuilder,
                                                          loadBalancer, isNew, loadBalancerWriter, taskExecutor,
                                                          gceHttpLoadBalancerWriter, $state, wizardSubFormValidation,
                                                          gceHttpLoadBalancerCommandBuilder, gceHttpLoadBalancerTransformer) {
@@ -85,7 +87,7 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     };
 
-    $scope.taskMonitor = this.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: this.application,
       title: (this.isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       modalInstance: $uibModalInstance,

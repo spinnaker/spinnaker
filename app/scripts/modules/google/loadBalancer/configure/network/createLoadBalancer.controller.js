@@ -1,11 +1,12 @@
 'use strict';
 
+let angular = require('angular');
+
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
-
-let angular = require('angular');
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', [
   require('angular-ui-router'),
@@ -14,14 +15,14 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   ACCOUNT_SERVICE,
   require('../../loadBalancer.transformer.js'),
   V2_MODAL_WIZARD_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   require('../../../gceRegionSelectField.directive.js'),
   require('core/search/search.service.js'),
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, gceLoadBalancerTransformer,
                                                     application, loadBalancer, isNew, loadBalancerReader,
-                                                    searchService, v2modalWizardService, loadBalancerWriter, taskMonitorService) {
+                                                    searchService, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
 
     var ctrl = this;
 
@@ -64,7 +65,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       modalInstance: $uibModalInstance,

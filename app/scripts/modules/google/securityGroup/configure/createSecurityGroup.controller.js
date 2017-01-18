@@ -1,6 +1,7 @@
 'use strict';
 
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
@@ -8,12 +9,9 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
 ])
   .controller('gceCreateSecurityGroupCtrl', function($scope, $uibModalInstance, $state, $controller,
-                                                  accountService,
-                                                  taskMonitorService, infrastructureCaches,
-                                                  application, securityGroup ) {
+                                                     accountService, infrastructureCaches, application, securityGroup ) {
 
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),

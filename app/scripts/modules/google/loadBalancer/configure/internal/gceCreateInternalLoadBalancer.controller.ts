@@ -12,6 +12,7 @@ import {ACCOUNT_SERVICE, AccountService, IRegion, IAccount} from 'core/account/a
 import {CommonGceLoadBalancerCtrl} from '../common/commonLoadBalancer.controller';
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 import {LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter} from 'core/loadBalancer/loadBalancer.write.service';
+import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
@@ -84,7 +85,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
                                   'accountService',
                                   'loadBalancerWriter',
                                   'wizardSubFormValidation',
-                                  'taskMonitorService',
+                                  'taskMonitorBuilder',
                                   'settings',
                                   '$state',
                                   'infrastructureCaches']; }
@@ -98,7 +99,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
                private accountService: AccountService,
                private loadBalancerWriter: LoadBalancerWriter,
                private wizardSubFormValidation: any,
-               private taskMonitorService: any,
+               private taskMonitorBuilder: TaskMonitorBuilder,
                private settings: any,
                $state: IStateService,
                infrastructureCaches: InfrastructureCacheService) {
@@ -147,7 +148,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
           .register({page: 'healthCheck', subForm: 'healthCheckForm'})
           .register({page: 'advancedSettings', subForm: 'advancedSettingsForm'});
 
-        this.taskMonitor = this.taskMonitorService.buildTaskMonitor({
+        this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
           application: this.application,
           title: (this.isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
           modalInstance: this.$uibModalInstance,
@@ -252,6 +253,6 @@ module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
     INFRASTRUCTURE_CACHE_SERVICE,
     require('core/modal/wizard/wizardSubFormValidation.service.js'),
     LOAD_BALANCER_WRITE_SERVICE,
-    require('core/task/monitor/taskMonitorService.js'),
+    TASK_MONITOR_BUILDER,
   ])
   .controller('gceInternalLoadBalancerCtrl', InternalLoadBalancerCtrl);

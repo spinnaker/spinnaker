@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
-
-let angular = require('angular');
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   require('angular-ui-router'),
@@ -13,13 +14,13 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
   require('core/modal/wizard/modalWizard.service.js'),
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   require('core/search/search.service.js'),
 ])
   .controller('cfCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
-                                                 application, loadBalancer, isNew, loadBalancerReader,
-                                                 accountService, cfLoadBalancerTransformer,
-                                                 searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
+                                                   application, loadBalancer, isNew, loadBalancerReader,
+                                                   accountService, cfLoadBalancerTransformer,
+                                                   searchService, modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
 
     var ctrl = this;
 
@@ -59,7 +60,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       modalInstance: $uibModalInstance,

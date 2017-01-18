@@ -186,7 +186,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
       var taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
-        onApplicationRefresh: function() {
+        onTaskComplete: function() {
           if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
             $state.go('^');
           }
@@ -213,7 +213,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
       var taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
-        onApplicationRefresh: function() {
+        onTaskComplete: function() {
           if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
             $state.go('^');
           }

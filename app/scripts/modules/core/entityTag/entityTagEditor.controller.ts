@@ -5,19 +5,20 @@ import {Application} from '../application/application.model';
 import {UUIDGenerator} from '../utils/uuid.service';
 import {IEntityTag} from 'core/domain';
 import './entityTagEditor.modal.less';
+import {TaskMonitorBuilder} from '../task/monitor/taskMonitor.builder';
 
 export class EntityTagEditorCtrl implements ng.IComponentController {
 
   public taskMonitor: any;
 
   static get $inject() {
-    return ['$uibModalInstance', 'entityTagWriter', 'taskMonitorService', 'owner', 'application', 'entityType',
+    return ['$uibModalInstance', 'entityTagWriter', 'taskMonitorBuilder', 'owner', 'application', 'entityType',
       'tag', 'onUpdate', 'isNew'];
   }
 
   public constructor(private $uibModalInstance: IModalServiceInstance,
                      private entityTagWriter: EntityTagWriter,
-                     private taskMonitorService: any,
+                     private taskMonitorBuilder: TaskMonitorBuilder,
                      private owner: any,
                      private application: Application,
                      private entityType: string,
@@ -34,10 +35,10 @@ export class EntityTagEditorCtrl implements ng.IComponentController {
   }
 
   public upsertTag(): void {
-    this.taskMonitor = this.taskMonitorService.buildTaskMonitor({
-      modalInstance: this.$uibModalInstance,
+    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
       application: this.application,
       title: `${this.isNew ? 'Create' : 'Update'} ${this.tag.value.type} for ${this.owner.name}`,
+      modalInstance: this.$uibModalInstance,
       onTaskComplete: () => this.onUpdate(),
     });
 

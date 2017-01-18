@@ -154,9 +154,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       var taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true,
-        onApplicationRefresh: function() {
+        onTaskComplete: function() {
           if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
             $state.go('^');
           }

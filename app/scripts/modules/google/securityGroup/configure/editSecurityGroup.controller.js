@@ -5,17 +5,18 @@ let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.google.securityGroup.edit.controller', [
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   SECURITY_GROUP_WRITER
 ])
   .controller('gceEditSecurityGroupCtrl', function($scope, $uibModalInstance, $state,
                                                    accountService,
-                                                   taskMonitorService, infrastructureCaches,
+                                                   taskMonitorBuilder, infrastructureCaches,
                                                    application, securityGroup, securityGroupWriter, $controller) {
 
     $scope.pages = {
@@ -37,7 +38,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
 
     $scope.isNew = false;
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Updating your security group',
       modalInstance: $uibModalInstance,
@@ -90,8 +91,6 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
     this.removeRule = function(ruleset, index) {
       ruleset.splice(index, 1);
     };
-
-    $scope.taskMonitor.onApplicationRefresh = $uibModalInstance.dismiss;
 
     this.upsert = function () {
       $scope.taskMonitor.submit(

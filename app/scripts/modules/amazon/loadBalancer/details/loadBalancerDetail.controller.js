@@ -136,8 +136,6 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       const taskMonitor = {
         application: app,
         title: 'Deleting ' + loadBalancer.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true
       };
 
       const command = {

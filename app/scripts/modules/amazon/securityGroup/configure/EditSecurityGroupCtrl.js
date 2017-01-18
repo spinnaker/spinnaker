@@ -5,17 +5,18 @@ let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
   require('angular-ui-router'),
   ACCOUNT_SERVICE,
-  require('core/task/monitor/taskMonitorService.js'),
+  TASK_MONITOR_BUILDER,
   SECURITY_GROUP_WRITER
 ])
   .controller('awsEditSecurityGroupCtrl', function($scope, $uibModalInstance, $state,
-                                                accountService,
-                                                taskMonitorService, application,
-                                                securityGroup, securityGroupWriter, $controller) {
+                                                   accountService,
+                                                   taskMonitorBuilder, application,
+                                                   securityGroup, securityGroupWriter, $controller) {
 
     $scope.pages = {
       ingress: require('./createSecurityGroupIngress.html'),
@@ -39,7 +40,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
 
     $scope.state.isNew = false;
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Updating your security group',
       modalInstance: $uibModalInstance,
@@ -81,8 +82,6 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
       })
       .flatten()
       .value();
-
-    $scope.taskMonitor.onApplicationRefresh = $uibModalInstance.dismiss;
 
     this.upsert = function () {
 

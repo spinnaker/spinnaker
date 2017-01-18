@@ -54,8 +54,6 @@ class AppengineLoadBalancerDetailsController {
     let taskMonitor = {
       application: this.app,
       title: 'Deleting ' + this.loadBalancer.name,
-      forceRefreshMessage: 'Refreshing application...',
-      forceRefreshEnabled: true
     };
 
     let submitMethod = () => {

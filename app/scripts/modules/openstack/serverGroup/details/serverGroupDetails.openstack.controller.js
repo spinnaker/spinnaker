@@ -138,9 +138,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
       var taskMonitor = {
         application: app,
         title: 'Destroying ' + serverGroup.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true,
-        katoPhaseToMonitor: 'DESTROY_ASG'
       };
 
       var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
@@ -167,11 +164,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
             $state.go('^');
           }
         },
-        onApplicationRefresh: () => {
-          if ($state.includes('**.serverGroup', stateParams)) {
-            $state.go('^');
-          }
-        }
       };
 
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {

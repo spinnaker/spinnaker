@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
   require('./securityGroups/tagManager.service.js')
 ])
   .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
-                                                  serverGroupWriter, v2modalWizardService, taskMonitorService,
+                                                  serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
                                                   gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title,
                                                   gceCustomInstanceBuilderService, instanceTypeService,
@@ -81,7 +81,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
       modalInstance: $uibModalInstance,
