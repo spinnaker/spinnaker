@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.Identifiable;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedContent;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 
@@ -36,9 +37,9 @@ public class TemplateMerge {
       mergeConfiguration(result, template);
 
       // TODO rz - might make sense that any child template must use inject syntax / modules.
-      result.setStages(mergeNamedContent(result.getStages(), template.getStages()));
+      result.setStages(mergeIdentifiable(result.getStages(), template.getStages()));
 
-      result.setModules(mergeNamedContent(result.getModules(), template.getModules()));
+      result.setModules(mergeIdentifiable(result.getModules(), template.getModules()));
     }
     return result;
   }
@@ -94,4 +95,34 @@ public class TemplateMerge {
 
     return merged;
   }
+
+  public static <T extends Identifiable> List<T> mergeIdentifiable(List<T> a, List<T> b) {
+    if (a == null || a.size() == 0) {
+      return b;
+    }
+
+    if (b == null || b.size() == 0) {
+      return a;
+    }
+
+    List<T> merged = new ArrayList<>();
+    merged.addAll(a);
+    for (T bNode : b) {
+      boolean updated = false;
+      for (int i = 0; i < merged.size(); i++) {
+        if (merged.get(i).getId().equals(bNode.getId())) {
+          merged.set(i, bNode);
+          updated = true;
+          break;
+        }
+      }
+
+      if (!updated) {
+        merged.add(bNode);
+      }
+    }
+
+    return merged;
+  }
+
 }
