@@ -18,15 +18,18 @@ package com.netflix.spinnaker.halyard;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import java.util.function.Supplier;
 import lombok.Data;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This serves to return exceptions encountered during validation that the client can explicitly chose to ignore alongside the desired response.
  * @param <T> is the type of the response expected by the client.
  */
+@Slf4j
 public class DaemonResponse<T> {
   @Getter
   private T responseBody;
@@ -45,16 +48,24 @@ public class DaemonResponse<T> {
     private Supplier<ProblemSet> validateResponse;
 
     public DaemonResponse<K> build() {
-      K responseBody = null;
       if (buildResponse == null) {
         throw new IllegalArgumentException("No response provided to build");
-      } else {
-        responseBody = buildResponse.get();
       }
 
-      ProblemSet problemSet = new ProblemSet();
-      if (validateResponse != null) {
-        problemSet = validateResponse.get();
+      K responseBody;
+      ProblemSet problemSet;
+      try {
+        responseBody = buildResponse.get();
+        problemSet = new ProblemSet();
+        if (validateResponse != null) {
+          problemSet = validateResponse.get();
+        }
+      } catch (HalconfigException e) {
+        // This is OK, propagate the exception to the HalconfigExceptionHandler
+        throw e;
+      } catch (Exception e) {
+        log.error("Unknown exception encountered: ", e);
+        throw e;
       }
 
       return new DaemonResponse<>(responseBody, problemSet);
@@ -74,6 +85,10 @@ public class DaemonResponse<T> {
         result = validate.get();
       } catch (HalconfigException e) {
         halconfigParser.undoChanges();
+        throw e;
+      } catch (Exception e) {
+        halconfigParser.undoChanges();
+        log.error("Unknown exception encountered: ", e);
         throw e;
       }
 

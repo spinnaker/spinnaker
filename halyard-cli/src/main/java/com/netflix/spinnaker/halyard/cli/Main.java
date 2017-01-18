@@ -24,13 +24,16 @@ public class Main {
 
     try {
       hal.execute();
+    } catch (IllegalArgumentException e) {
+      AnsiUi.error("Illegal argument: " + e.getMessage());
+      System.exit(1);
     } catch (Exception e) {
       if (globalOptions.isDebug()) {
         e.printStackTrace();
       }
 
       AnsiUi.error(e.getMessage());
-      AnsiUi.remediation("That wasn't supposed to happen.\nPlease report an issue on https://github.com/spinnaker/spinnaker/issues");
+      AnsiUi.remediation("That wasn't supposed to happen.\nPlease report an issue on https://github.com/spinnaker/halyard/issues");
       System.exit(1);
     }
   }
