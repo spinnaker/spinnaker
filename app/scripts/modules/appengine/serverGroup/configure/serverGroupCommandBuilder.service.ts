@@ -3,8 +3,8 @@ import {get, intersection} from 'lodash';
 
 import {Application} from 'core/application/application.model';
 import {AccountService, ACCOUNT_SERVICE} from 'core/account/account.service';
-import {IAppengineAccount, IAppengineGitTrigger} from 'appengine/domain/index';
-import {IStage, IPipeline, IGitTrigger} from 'core/domain/index';
+import {IAppengineAccount, IAppengineGitTrigger, IAppengineJenkinsTrigger} from 'appengine/domain/index';
+import {IStage, IPipeline, IGitTrigger, IJenkinsTrigger} from 'core/domain/index';
 import {AppengineDeployDescription} from '../transformer';
 
 export interface IAppengineServerGroupCommand {
@@ -26,7 +26,7 @@ export interface IAppengineServerGroupCommand {
   strategyApplication?: string;
   strategyPipeline?: string;
   fromTrigger?: boolean;
-  trigger?: IAppengineGitTrigger;
+  trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
 }
 
 interface IViewState {
@@ -38,12 +38,16 @@ interface IViewState {
 export class AppengineServerGroupCommandBuilder {
   static get $inject() { return ['$q', 'accountService', 'settings']; }
 
-  private static getTriggerOptions(pipeline: IPipeline): IAppengineGitTrigger[] {
+  private static getTriggerOptions(pipeline: IPipeline): Array<IAppengineGitTrigger | IAppengineJenkinsTrigger> {
     return (pipeline.triggers || [])
-      .filter(trigger => trigger.type === 'git')
-      .map((trigger: IGitTrigger) => ({
-        source: trigger.source, project: trigger.project, slug: trigger.slug, branch: trigger.branch
-      }));
+      .filter(trigger => trigger.type === 'git' || trigger.type === 'jenkins')
+      .map((trigger: IGitTrigger | IJenkinsTrigger) => {
+        if (trigger.type === 'git') {
+          return {source: trigger.source, project: trigger.project, slug: trigger.slug, branch: trigger.branch, type: 'git'};
+        } else {
+          return {master: trigger.master, job: trigger.job, type: 'jenkins'};
+        }
+      });
   }
 
   constructor(private $q: IQService, private accountService: AccountService, private settings: any) { }
@@ -77,7 +81,7 @@ export class AppengineServerGroupCommandBuilder {
       });
   }
 
-  public buildNewServerGroupCommandForPipeline(stage: IStage, pipeline: IPipeline): {backingData: {triggerOptions: IAppengineGitTrigger[]}} {
+  public buildNewServerGroupCommandForPipeline(stage: IStage, pipeline: IPipeline): {backingData: {triggerOptions: Array<IAppengineGitTrigger | IAppengineJenkinsTrigger>}} {
     // We can't copy server group configuration for App Engine, and can't build the full command here because we don't have
     // access to the application.
     return {backingData: {triggerOptions: AppengineServerGroupCommandBuilder.getTriggerOptions(pipeline)}};

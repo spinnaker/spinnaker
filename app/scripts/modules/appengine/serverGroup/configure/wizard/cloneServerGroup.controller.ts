@@ -5,6 +5,7 @@ import {Application} from 'core/application/application.model';
 import {SERVER_GROUP_WRITER, ServerGroupWriter} from 'core/serverGroup/serverGroupWriter.service';
 import {IAppengineServerGroupCommand, AppengineServerGroupCommandBuilder} from '../serverGroupCommandBuilder.service';
 import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
+import {APPENGINE_DYNAMIC_BRANCH_LABEL} from './dynamicBranchLabel.component';
 
 import './serverGroupWizard.less';
 
@@ -76,5 +77,5 @@ export const APPENGINE_CLONE_SERVER_GROUP_CTRL = 'spinnaker.appengine.cloneServe
 module(APPENGINE_CLONE_SERVER_GROUP_CTRL, [
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
-])
-  .controller('appengineCloneServerGroupCtrl', AppengineCloneServerGroupCtrl);
+  APPENGINE_DYNAMIC_BRANCH_LABEL
+]).controller('appengineCloneServerGroupCtrl', AppengineCloneServerGroupCtrl);

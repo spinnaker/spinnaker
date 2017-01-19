@@ -85,12 +85,13 @@
         <ui-select ng-if="command.fromTrigger"
                    ng-model="command.trigger"
                    class="form-control input-sm"
+                   on-select="basicSettingsCtrl.onTriggerChange()"
                    required>
-          <ui-select-match>
-            <span>Resolved at runtime by ({{command.trigger.source}}) {{command.trigger.project}}/{{command.trigger.slug}}:{{command.trigger.branch}}</span>
+          <ui-select-match allow-clear>
+            <appengine-dynamic-branch-label trigger="command.trigger"></appengine-dynamic-branch-label>
           </ui-select-match>
           <ui-select-choices repeat="trigger in command.backingData.triggerOptions">
-            <span>Resolved at runtime by ({{trigger.source}}) {{trigger.project}}/{{trigger.slug}}:{{trigger.branch}}</span>
+            <appengine-dynamic-branch-label trigger="trigger"></appengine-dynamic-branch-label>
           </ui-select-choices>
         </ui-select>
       </div>
@@ -102,6 +103,16 @@
         <span class="pull-right small" ng-if="command.fromTrigger">
           <a href ng-click="basicSettingsCtrl.toggleResolveViaTrigger()">Click for text input</a>
         </span>
+      </div>
+    </div>
+
+    <div ng-if="command.trigger.type === 'jenkins'" class="form-group">
+      <div class="col-md-7 col-md-offset-3">
+        <div class="form-inline">
+          <small>Match branch from trigger on regex</small>
+          <help-field key="appengine.serverGroup.matchBranchOnRegex"></help-field>
+          <input type="text" style="width: 140px;" class="form-control input-sm pull-right" name="matchOnRegex" ng-model="command.trigger.matchBranchOnRegex"/>
+        </div>
       </div>
     </div>
 

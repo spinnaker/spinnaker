@@ -12,4 +12,11 @@ export interface IGitTrigger extends Trigger {
   project: string;
   slug: string;
   branch: string;
+  type: 'git';
+}
+
+export interface IJenkinsTrigger extends Trigger {
+  job: string;
+  master: string;
+  type: 'jenkins';
 }

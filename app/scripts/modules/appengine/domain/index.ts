@@ -3,4 +3,4 @@ export * from './IAppengineInstance';
 export * from './IAppengineLoadBalancer';
 export * from './IAppengineServerGroup';
 export * from './IAppengineStageScope';
-export * from './IAppengineGitTrigger';
+export * from './IAppengineTriggers';

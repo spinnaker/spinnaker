@@ -4,3 +4,9 @@ export interface IAppengineGitTrigger {
   slug: string;
   branch: string;
 }
+
+export interface IAppengineJenkinsTrigger {
+  master: string;
+  job: string;
+  matchBranchOnRegex?: string;
+}

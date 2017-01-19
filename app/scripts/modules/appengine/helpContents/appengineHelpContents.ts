@@ -20,6 +20,12 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
         value: 'The path to the app.yaml file within the git repository. For example, <b>path/to/app.yaml</b>',
       },
       {
+        key: 'appengine.serverGroup.matchBranchOnRegex',
+        value: `(Optional) A Jenkins trigger may produce details from multiple repositories and branches. 
+                Spinnaker will use the regex specified here to help resolve a branch for the deployment.
+                If Spinnaker cannot resolve exactly one branch from the trigger, this pipeline will fail.`,
+      },
+      {
         key: 'appengine.serverGroup.promote',
         value: 'If selected, the newly deployed server group will receive all traffic.',
       },

@@ -1,5 +1,6 @@
 import {extend, module, IScope, IControllerService} from 'angular';
 import {IStateService} from 'angular-ui-router';
+import {set} from 'lodash';
 
 import {NamingService} from 'core/naming/naming.service';
 import {IAppengineServerGroupCommand} from '../serverGroupCommandBuilder.service';
@@ -30,6 +31,10 @@ class AppengineServerGroupBasicSettingsCtrl {
     this.$scope.command.fromTrigger = !this.$scope.command.fromTrigger;
     delete this.$scope.command.trigger;
     delete this.$scope.command.branch;
+  }
+
+  public onTriggerChange() {
+    set(this, '$scope.command.trigger.matchBranchOnRegex', undefined);
   }
 }
 
