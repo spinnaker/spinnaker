@@ -9,6 +9,8 @@
                 <account-label-color account="{{parentHeading}}"></account-label-color>
                 <span class="glyphicon glyphicon-th"></span>
                 {{grouping.heading}}
+                <entity-ui-tags component="grouping" application="application" entity-type="cluster" class="inverse"
+                                on-update="application.serverGroups.refresh()"></entity-ui-tags>
                 <health-counts container="grouping.cluster.instanceCounts"></health-counts>
               </div>
             </h5>
@@ -20,7 +22,11 @@
   <div class="rollup-details">
     <div class="pod-subgroup" ng-repeat="subgroup in grouping.subgroups">
       <h6 class="subgroup-title"
-          sticky-header added-offset-height="39">{{subgroup.heading}}</h6>
+          sticky-header added-offset-height="39">
+        {{subgroup.heading}}
+        <entity-ui-tags component="subgroup" application="application" entity-type="cluster"
+                        on-update="application.serverGroups.refresh()"></entity-ui-tags>
+      </h6>
       <server-group
         ng-repeat="serverGroup in subgroup.serverGroups | orderBy:'-name'"
         ng-if="grouping.cluster.category === 'serverGroup'"

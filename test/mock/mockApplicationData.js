@@ -27,10 +27,12 @@ module.exports = angular
         key: 'in-eu-east-2-only:serverGroup',
         hasDiscovery: false,
         hasLoadBalancers: false,
+        entityTags: undefined,
         subgroups : [ {
           heading : 'eu-east-2',
           category: 'serverGroup',
           key: 'eu-east-2:serverGroup',
+          entityTags: undefined,
           serverGroups : [ {
             cluster: 'in-eu-east-2-only',
             category: 'serverGroup',
@@ -62,10 +64,12 @@ module.exports = angular
           key: 'in-us-west-1-only:serverGroup',
           hasDiscovery: false,
           hasLoadBalancers: false,
+          entityTags: undefined,
           subgroups : [ {
             heading : 'us-west-1',
             category: 'serverGroup',
             key: 'us-west-1:serverGroup',
+            entityTags: undefined,
             serverGroups : [ {
               cluster: 'in-us-west-1-only',
               category: 'serverGroup',

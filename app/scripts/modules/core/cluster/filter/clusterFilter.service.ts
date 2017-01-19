@@ -4,6 +4,7 @@ import {Application} from 'core/application/application.model';
 import {ServerGroup} from '../../domain/serverGroup';
 import {ICluster} from 'core/domain';
 import {Instance} from '../../domain/instance';
+import {IEntityTags} from '../../domain/IEntityTags';
 
 interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -13,6 +14,7 @@ export interface IClusterGroup extends IParentGrouping {
   heading: string;
   key: string;
   subgroups: IClusterSubgroup[];
+  entityTags?: IEntityTags;
 }
 
 export interface IClusterSubgroup extends IParentGrouping {
@@ -23,6 +25,7 @@ export interface IClusterSubgroup extends IParentGrouping {
   subgroups: IServerGroupSubgroup[];
   hasDiscovery?: boolean;
   hasLoadBalancers?: boolean;
+  entityTags: IEntityTags;
 }
 
 export interface IServerGroupSubgroup {
@@ -30,6 +33,7 @@ export interface IServerGroupSubgroup {
   key: string;
   category: string;
   serverGroups: ServerGroup[];
+  entityTags: IEntityTags;
 }
 
 type Grouping = IClusterGroup | IClusterSubgroup | IServerGroupSubgroup;
@@ -66,6 +70,7 @@ export class ClusterFilterService {
               category: category,
               serverGroups: regionGroup,
               key: `${region}:${category}`,
+              entityTags: (regionGroup[0].clusterEntityTags || []).find(t => t.entityRef['region'] === region),
             });
           });
 
@@ -79,6 +84,7 @@ export class ClusterFilterService {
               key: `${cluster}:${category}`,
               cluster: appCluster,
               subgroups: sortBy(regionGroups, 'heading'),
+              entityTags: (clusterGroup[0].clusterEntityTags || []).find(t => t.entityRef['region'] === '*'),
             });
           }
         });
@@ -400,6 +406,9 @@ export class ClusterFilterService {
         }
         if (newGroup.hasOwnProperty('serverGroups')) {
           this.diffServerGroups(oldGroup as IServerGroupSubgroup, newGroup as IServerGroupSubgroup);
+        }
+        if (oldGroup.entityTags || newGroup.entityTags) {
+          oldGroup.entityTags = newGroup.entityTags;
         }
       }
     });

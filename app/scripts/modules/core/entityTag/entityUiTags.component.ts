@@ -7,14 +7,12 @@ import {IModalService} from 'angular-ui-bootstrap';
 import {EntityTagEditorCtrl} from './entityTagEditor.controller';
 
 import './entityUiTags.popover.less';
+import {IEntityRef} from '../domain/IEntityTags';
 
 class EntityUiTagsCtrl implements ng.IComponentController {
 
-  public alerts: IEntityTag[] = [];
-  public notices: IEntityTag[] = [];
   public application: Application;
   public entityType: string;
-  public hasTags: boolean = false;
   public popoverTemplate: string = require('./entityUiTags.popover.html');
   public popoverType: string;
   public displayPopover: boolean;
@@ -28,22 +26,6 @@ class EntityUiTagsCtrl implements ng.IComponentController {
 
   public constructor(private $timeout: ng.ITimeoutService, private $uibModal: IModalService,
                      private confirmationModalService: any, private entityTagWriter: EntityTagWriter) {}
-
-  public $onInit(): void {
-    if (this.component.entityTags) {
-      this.alerts = this.component.entityTags.alerts;
-      this.notices = this.component.entityTags.notices;
-      this.hasTags = this.alerts.length + this.notices.length > 0;
-    } else {
-      this.alerts = [];
-      this.notices = [];
-      this.hasTags = false;
-    }
-  }
-
-  public $onChanges(): void {
-    this.$onInit();
-  }
 
   public $onDestroy(): void {
     if (this.popoverClose) {
@@ -89,7 +71,9 @@ class EntityUiTagsCtrl implements ng.IComponentController {
         owner: (): any => this.component,
         entityType: (): string => this.entityType,
         application: (): Application => this.application,
-        onUpdate: (): any => this.onUpdate
+        onUpdate: (): any => this.onUpdate,
+        ownerOptions: (): any => null,
+        entityRef: (): IEntityRef => this.component.entityTags.entityRef,
       }
     });
   }
@@ -100,8 +84,9 @@ class EntityUiTagsCtrl implements ng.IComponentController {
 
   public showPopover(type: string): void {
     this.popoverType = type;
-    this.popoverContents = type === 'alert' ? this.alerts : this.notices;
+    this.popoverContents = type === 'alert' ? this.component.entityTags.alerts : this.component.entityTags.notices;
     this.displayPopover = true;
+    this.popoverHovered();
   }
 
   public popoverHovered(): void {
@@ -134,8 +119,8 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
   };
   public controller: any = EntityUiTagsCtrl;
   public template: string = `
-    <span ng-if="$ctrl.hasTags">
-      <span ng-if="$ctrl.alerts.length > 0"
+    <span ng-if="$ctrl.component.entityTags.alerts.length + $ctrl.component.entityTags.notices.length > 0">
+      <span ng-if="$ctrl.component.entityTags.alerts.length > 0"
             class="tag-marker" 
             ng-mouseover="$ctrl.showPopover('alert')" 
             ng-mouseleave="$ctrl.hidePopover(true)">
@@ -147,7 +132,7 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
           <i class="fa fa-exclamation-triangle"></i>
         </span>
       </span>
-      <span ng-if="$ctrl.notices.length > 0"
+      <span ng-if="$ctrl.component.entityTags.notices.length > 0"
             class="tag-marker"
             ng-mouseover="$ctrl.showPopover('notice')" 
             ng-mouseleave="$ctrl.hidePopover(true)">

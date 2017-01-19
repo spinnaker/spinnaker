@@ -2,6 +2,7 @@ import {ServerGroup} from '../domain/serverGroup';
 import {ILoadBalancer} from '../domain/loadBalancer';
 import {Application} from '../application/application.model';
 import {IEntityRef} from '../domain/IEntityTags';
+import {ICluster} from '../domain/ICluster';
 
 export class EntityRefBuilder {
 
@@ -33,6 +34,16 @@ export class EntityRefBuilder {
     };
   }
 
+  public static buildClusterRef(cluster: ICluster): IEntityRef {
+    return {
+      cloudProvider: cluster.cloudProvider,
+      entityType: 'cluster',
+      entityId: cluster.name,
+      account: cluster.account,
+      region: cluster.region,
+    };
+  }
+
   public static getBuilder(type: string): (entity: any) => IEntityRef {
     switch (type) {
       case 'application':
@@ -41,6 +52,8 @@ export class EntityRefBuilder {
         return this.buildServerGroupRef;
       case 'loadBalancer':
         return this.buildLoadBalancerRef;
+      case 'cluster':
+        return this.buildClusterRef;
       default:
         return null;
     }
