@@ -22,21 +22,69 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import java.util.regex.Pattern
 
 class AppEngineBranchFinder {
-  static void populateFromStage(Map operation, Stage stage) {
+  static String findInStage(Map operation, Stage stage) {
     if (operation.fromTrigger && operation.trigger && stage.execution instanceof Pipeline) {
       Map trigger = (stage.execution as Pipeline).trigger
-      def matchConditions = [
-        trigger?.source == operation.trigger.source,
-        trigger?.project == operation.trigger.project,
-        trigger?.slug == operation.trigger.slug,
-        trigger?.branch ==~ Pattern.compile(operation.trigger.branch as String)
-      ]
 
-      if (matchConditions.every()) {
-        operation.branch = trigger.branch
+      if (trigger.type == "git") {
+        return fromGitTrigger(operation, trigger)
+      } else if (trigger.type == "jenkins" || (trigger.type == "manual" && trigger.master && trigger.job)) {
+        return fromJenkinsTrigger(operation, trigger)
       } else {
-        throw new IllegalStateException("No branch found for repository ${operation.repositoryUrl} in trigger context.")
+        throw new IllegalArgumentException("Trigger type '${trigger.type}' not supported " +
+                                           "for resolving App Engine deployment details dynamically.")
       }
     }
+  }
+
+  static String fromGitTrigger(Map operation, Map trigger) {
+    def matchConditions = [
+      trigger.source == operation.trigger.source,
+      trigger.project == operation.trigger.project,
+      trigger.slug == operation.trigger.slug,
+    ]
+
+    if (operation.trigger.branch) {
+      matchConditions << (trigger.branch ==~ Pattern.compile(operation.trigger.branch as String))
+    }
+
+    if (matchConditions.every()) {
+      return trigger.branch
+    } else {
+      throwBranchNotFoundException(operation.repositoryUrl)
+    }
+  }
+
+  /*
+  * This method throws an error if it does not resolve exactly one branch from a Jenkin trigger's SCM details.
+  * A user can provide a regex to help narrow down the list of branches.
+  * */
+  static String fromJenkinsTrigger(Map operation, Map trigger) {
+    def matchConditions = [
+      trigger.master == operation.trigger.master,
+      trigger.job == operation.trigger.job
+    ]
+
+    if (matchConditions.every()) {
+      def branches = trigger.buildInfo?.scm*.branch
+      if (operation.trigger.matchBranchOnRegex) {
+        def regex = Pattern.compile(operation.trigger.matchBranchOnRegex as String)
+        branches = branches.findAll { it ==~ regex }
+      }
+
+      if (!branches) {
+        throwBranchNotFoundException(operation.repositoryUrl)
+      } else if (branches.size() > 1) {
+        throw new IllegalStateException("Cannot resolve branch from options: ${branches.join(", ")}.")
+      } else {
+        return branches[0]
+      }
+    } else {
+      throwBranchNotFoundException(operation.repositoryUrl)
+    }
+  }
+
+  static void throwBranchNotFoundException(String repositoryUrl) {
+    throw new IllegalStateException("No branch found for repository $repositoryUrl in trigger context.")
   }
 }
