@@ -1,12 +1,12 @@
 'use strict';
 
+import Spinner from 'spin.js';
+let angular = require('angular');
+
 import {AUTHENTICATION} from 'core/authentication/authentication.module';
 import {API_SERVICE} from 'core/api/api.service';
 import {CLOUD_PROVIDER_LOGO} from 'core/cloudProvider/cloudProviderLogo.component';
-
-import Spinner from 'spin.js';
-
-let angular = require('angular');
+import {HELP_FIELD_COMPONENT} from 'core/help/helpField.component';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -49,7 +49,6 @@ module.exports = angular
     require('./account/accountLabelColor.directive.js'),
     require('./analytics/analytics.service'),
     AUTHENTICATION,
-
     require('./bootstrap/applicationBootstrap.directive.js'),
 
     API_SERVICE,
@@ -73,7 +72,7 @@ module.exports = angular
     require('./forms/forms.module.js'),
 
     require('./healthCounts/healthCounts.directive.js'),
-    require('./help/help.module.js'),
+    HELP_FIELD_COMPONENT,
 
     require('./insight/insight.module.js'),
     require('./instance/instance.module.js'),

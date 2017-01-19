@@ -2,11 +2,13 @@
 
 const angular = require('angular');
 
+import {HELP_FIELD_COMPONENT} from 'core/help/helpField.component';
+
 require('./stageConfigField.directive.less');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.stages.core.stageField.directive', [
-    require('core/help/helpField.directive.js'),
+    HELP_FIELD_COMPONENT,
   ])
   .directive('stageConfigField', function () {
     return {
