@@ -28,7 +28,7 @@ public class StageDefinition implements Identifiable, Conditional {
   private Map<String, Object> config;
   private List<Map<String, Object>> notifications;
   private String comments;
-  private String when;
+  private List<String> when;
 
   public static class InjectionRule {
 
@@ -135,11 +135,11 @@ public class StageDefinition implements Identifiable, Conditional {
     this.comments = comments;
   }
 
-  public String getWhen() {
+  public List<String> getWhen() {
     return when;
   }
 
-  public void setWhen(String when) {
+  public void setWhen(List<String> when) {
     this.when = when;
   }
 

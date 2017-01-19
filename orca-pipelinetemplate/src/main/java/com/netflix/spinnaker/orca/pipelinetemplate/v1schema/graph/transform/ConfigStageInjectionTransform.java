@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform;
 
-import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
@@ -24,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Replaces and injects configuration-defined stages into the pipeline template.
@@ -59,13 +57,6 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
   private void addAll(PipelineTemplate pipelineTemplate) {
     List<StageDefinition> templateStages = pipelineTemplate.getStages();
     if (templateStages.size() == 0) {
-      List<StageDefinition> illegalStages = templateStages.stream()
-        .filter(s -> s.getInject() != null)
-        .collect(Collectors.toList());
-      if (illegalStages.size() > 0) {
-        throw new IllegalTemplateConfigurationException("Stage injection is not allowed when parent templates do not have any stages");
-      }
-
       templateStages.addAll(templateConfiguration.getStages());
     }
   }

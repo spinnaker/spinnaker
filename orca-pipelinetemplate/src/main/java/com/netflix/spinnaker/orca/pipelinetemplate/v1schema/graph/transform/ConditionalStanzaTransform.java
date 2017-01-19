@@ -26,9 +26,9 @@ import java.util.List;
 
 public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
 
-  TemplateConfiguration templateConfiguration;
+  private TemplateConfiguration templateConfiguration;
 
-  Renderer renderer;
+  private Renderer renderer;
 
   public ConditionalStanzaTransform(TemplateConfiguration templateConfiguration, Renderer renderer) {
     this.templateConfiguration = templateConfiguration;
@@ -42,17 +42,24 @@ public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
   }
 
   private <T extends Conditional> void trimConditionals(List<T> list, PipelineTemplate template) {
+    if (list == null) {
+      return;
+    }
+
     for (T el : list) {
-      if (el.getWhen() == null) {
+      if (el.getWhen() == null || el.getWhen().size() == 0) {
         continue;
       }
 
       RenderContext context = new RenderContext(templateConfiguration.getPipeline().getApplication(), template);
       context.putAll(templateConfiguration.getPipeline().getVariables());
 
-      String rendered = renderer.render(el.getWhen(), context);
-      if (!Boolean.parseBoolean(rendered)) {
-        list.remove(el);
+      for (String conditional : el.getWhen()) {
+        String rendered = renderer.render(conditional, context);
+        if (!Boolean.parseBoolean(rendered)) {
+          list.remove(el);
+          return;
+        }
       }
     }
   }
