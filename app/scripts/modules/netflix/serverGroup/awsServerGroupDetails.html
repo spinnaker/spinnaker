@@ -25,7 +25,9 @@
       <cloud-provider-logo provider="ctrl.serverGroup.type" height="36px" width="36px" style="margin-right: 10px"></cloud-provider-logo>
       <h3 select-on-dbl-click>
         {{ctrl.serverGroup.name}}
-        <entity-ui-tags component="ctrl.serverGroup" application="ctrl.application" entity-type="serverGroup"
+        <entity-ui-tags component="ctrl.serverGroup"
+                        application="ctrl.application"
+                        entity-type="serverGroup"
                         on-update="ctrl.application.serverGroups.refresh()"></entity-ui-tags>
       </h3>
     </div>
@@ -54,6 +56,7 @@
             <add-entity-tag-links component="ctrl.serverGroup"
                                   application="ctrl.application"
                                   entity-type="serverGroup"
+                                  owner-options="ctrl.entityTagTargets"
                                   on-update="ctrl.application.serverGroups.refresh()"></add-entity-tag-links>
           </ul>
         </div>

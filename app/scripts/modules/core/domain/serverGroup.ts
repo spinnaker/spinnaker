@@ -20,6 +20,7 @@ export interface ServerGroup {
   cloudProvider: string;
   cluster: string;
   entityTags?: IEntityTags;
+  clusterEntityTags?: IEntityTags[];
   detail?: string;
   runningExecutions?: Execution[];
   instanceCounts: InstanceCounts;

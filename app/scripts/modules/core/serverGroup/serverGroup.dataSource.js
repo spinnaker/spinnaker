@@ -1,8 +1,9 @@
+import {uniq} from 'lodash';
+let angular = require('angular');
+
 import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 import {ENTITY_TAGS_READ_SERVICE} from '../entityTag/entityTags.read.service';
-
-let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.dataSource', [
@@ -32,14 +33,24 @@ module.exports = angular
       if (!settings.feature.entityTags) {
         return $q.when(null);
       }
-      const entityIds = serverGroups.map(g => g.name);
-      return entityTagsReader.getAllEntityTags('serverGroup', entityIds).then(tags => {
+      const serverGroupNames = uniq(serverGroups.map(g => g.name));
+      const clusterNames = uniq(serverGroups.map(g => g.cluster));
+      const serverGroupTagger = entityTagsReader.getAllEntityTags('serverGroup', serverGroupNames).then(tags => {
         serverGroups.forEach(serverGroup => {
           serverGroup.entityTags = tags.find(t => t.entityRef.entityId === serverGroup.name &&
             t.entityRef.account === serverGroup.account &&
             t.entityRef.region === serverGroup.region);
         });
       });
+      const clusterTagger = entityTagsReader.getAllEntityTags('cluster', clusterNames).then(tags => {
+        serverGroups.forEach(serverGroup => {
+          serverGroup.clusterEntityTags = tags.filter(t => t.entityRef.entityId === serverGroup.cluster &&
+            t.entityRef.account === serverGroup.account &&
+            (t.entityRef.region === '*' || t.entityRef.region === serverGroup.region)
+          );
+        });
+      });
+      return $q.all([serverGroupTagger, clusterTagger]);
     };
 
     applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({

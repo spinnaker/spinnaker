@@ -12,6 +12,7 @@ import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
+import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 require('../configure/serverGroup.configure.aws.module.js');
 
@@ -25,6 +26,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   ACCOUNT_SERVICE,
   VIEW_SCALING_ACTIVITIES_LINK,
   ADD_ENTITY_TAG_LINKS_COMPONENT,
+  NAMING_SERVICE,
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
   SERVER_GROUP_READER,
@@ -43,7 +45,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal,
                                                      confirmationModalService, serverGroupWriter, subnetReader,
-                                                     autoScalingProcessService,
+                                                     autoScalingProcessService, namingService,
                                                      awsServerGroupTransformer, accountService,
                                                      serverGroupWarningMessageService, overrideRegistry) {
 
@@ -151,7 +153,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
                 this.scheduledActionsDisabled = this.serverGroup.scheduledActions.length && this.autoScalingProcesses
                     .filter(p => !p.enabled)
                     .some(p => ['Launch','Terminate','ScheduledAction'].includes(p.name));
-
+                configureEntityTagTargets();
               } else {
                 autoClose();
               }
@@ -168,6 +170,37 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         app.serverGroups.onRefresh($scope, retrieveServerGroup);
       }
     });
+
+    let configureEntityTagTargets = () => {
+      const clusterName = namingService.getClusterNameFromServerGroupName(this.serverGroup.name);
+      this.entityTagTargets = [
+        {
+          type: 'serverGroup',
+          label: `just ${this.serverGroup.name}`,
+          owner: this.serverGroup
+        },
+        {
+          type: 'cluster',
+          label: `all server groups in **${this.serverGroup.region}** in ${clusterName}`,
+          owner: {
+            name: namingService.getClusterNameFromServerGroupName(this.serverGroup.name),
+            cloudProvider: 'aws',
+            region: this.serverGroup.region,
+            account: this.serverGroup.account,
+          }
+        },
+        {
+          type: 'cluster',
+          label: `all server groups in **all regions** in ${clusterName}`,
+          owner: {
+            name: namingService.getClusterNameFromServerGroupName(this.serverGroup.name),
+            cloudProvider: 'aws',
+            region: '*',
+            account: this.serverGroup.account,
+          }
+        },
+      ];
+    };
 
     this.isEnableLocked = () => {
       if (this.serverGroup.isDisabled) {

@@ -27,6 +27,27 @@
           </div>
         </div>
       </div>
+      <div ng-if="$ctrl.ownerOptions.length">
+        <div class="row">
+          <div class="col-md-10 col-md-offset-1">
+            <div class="form-group">
+              <div class="col-md-3 sm-label-right">
+                <b>Applies to</b>
+              </div>
+              <div class="col-md-9">
+                <div ng-repeat="option in $ctrl.ownerOptions">
+                  <div class="radio">
+                    <label>
+                      <input type="radio" ng-model="$ctrl.owner" ng-value="option.owner" ng-change="$ctrl.ownerChanged(option)"/>
+                      <span marked="option.label"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </form>
   </div>
   <div class="modal-footer">

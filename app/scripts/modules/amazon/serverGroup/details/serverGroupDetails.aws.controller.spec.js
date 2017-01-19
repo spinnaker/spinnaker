@@ -19,7 +19,7 @@ describe('Controller: AWS ServerGroupDetailsCtrl', function () {
       controller = $controller('awsServerGroupDetailsCtrl', {
         $scope: $scope,
         app: application,
-        serverGroup: {}
+        serverGroup: { name: 'foo-v001' }
       });
     })
   );

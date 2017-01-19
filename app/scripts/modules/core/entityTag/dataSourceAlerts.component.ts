@@ -19,6 +19,7 @@ class DataSourceAlertsCtrl implements ng.IComponentController {
 
   public showPopover(): void {
     this.displayPopover = true;
+    this.popoverHovered();
   }
 
   public popoverHovered(): void {
