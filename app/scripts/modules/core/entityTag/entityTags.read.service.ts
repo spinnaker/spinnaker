@@ -14,6 +14,9 @@ export class EntityTagsReader {
                      private settings: any) {}
 
   public getAllEntityTags(entityType: string, entityIds: string[]): ng.IPromise<IEntityTags[]> {
+    if (!entityIds || !entityIds.length) {
+      return this.$q.when([]);
+    }
     const idGroups: string[] = this.collateEntityIds(entityType, entityIds);
     const sources = idGroups.map(idGroup => this.API.one('tags')
         .withParams({
@@ -29,8 +32,8 @@ export class EntityTagsReader {
         const allTags: IEntityTags[] = this.flattenTagsAndAddMetadata(entityTagGroups);
         result.resolve(allTags);
       })
-      .catch((error: any) => {
-        this.$exceptionHandler(new Error(error), 'Failed to load entity tags');
+      .catch(() => {
+        this.$exceptionHandler(new Error('Failed to load entity tags.'));
         result.resolve([]);
       });
 
