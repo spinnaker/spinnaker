@@ -18,9 +18,10 @@ module.exports = angular
   ])
   .controller('ApplicationConfigController', function ($state, app, settings) {
     this.application = app;
-    this.application.attributes.instancePort = this.application.attributes.instancePort || settings.defaultInstancePort || null;
     this.feature = settings.feature;
     if (app.notFound) {
       $state.go('home.infrastructure', null, {location: 'replace'});
+    } else {
+      this.application.attributes.instancePort = this.application.attributes.instancePort || settings.defaultInstancePort || null;
     }
   });
