@@ -50,10 +50,15 @@ class WebhooksController {
         }
       }
       if (source == 'github') {
-        event.content.hash = postedEvent.after
-        event.content.branch = postedEvent.ref.replace('refs/heads/', '')
-        event.content.repoProject = postedEvent.repository.owner.name
-        event.content.slug = postedEvent.repository.name
+        if (event.content.hook_id) {
+          log.info("Webook ping received from github hook_id=${event.content.hook_id} repository=${event.content.repository.full_name}")
+          sendEvent = false
+        } else {
+          event.content.hash = postedEvent.after
+          event.content.branch = postedEvent.ref.replace('refs/heads/', '')
+          event.content.repoProject = postedEvent.repository.owner.name
+          event.content.slug = postedEvent.repository.name
+        }
       }
     }
 

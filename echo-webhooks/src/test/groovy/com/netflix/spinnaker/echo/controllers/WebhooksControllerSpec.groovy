@@ -43,4 +43,23 @@ class WebhooksControllerSpec extends Specification {
 
   }
 
+  void 'handles initial github ping'() {
+    given:
+    WebhooksController controller = new WebhooksController()
+    controller.propagator = Mock(EventPropagator)
+
+    when:
+    controller.forwardEvent(
+      'git',
+      'github',
+      [
+        'hook_id': 1337,
+        'repository' : ['full_name': 'org/repo']
+      ]
+    )
+
+    then:
+    0 * controller.propagator.processEvent(_)
+  }
+
 }
