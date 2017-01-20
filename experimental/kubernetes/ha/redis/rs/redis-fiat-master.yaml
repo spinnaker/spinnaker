@@ -1,24 +1,25 @@
-apiVersion: v1
-kind: ReplicationController
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
 metadata:
-  name: redis-rosco-master-v000
+  name: redis-fiat-master-v000
   namespace: spinnaker
   labels:
     app: redis
-    stack: rosco
+    stack: fiat
     detail: master
     version: v000
 spec:
   replicas: 1
   selector:
-    replication-controller: redis-rosco-master-v000
+    matchLabels:
+      replication-controller: redis-fiat-master-v000
   template:
     metadata:
       labels:
-        replication-controller: redis-rosco-master-v000
-        load-balancer-redis-rosco-master: "true"
+        replication-controller: redis-fiat-master-v000
+        load-balancer-redis-fiat-master: "true"
         app: redis
-        stack: rosco
+        stack: fiat
         detail: master
     spec:
       containers:

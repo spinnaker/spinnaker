@@ -1,2 +1,2 @@
 kubectl create -f redis/svc
-kubectl create -f redis/rcs
+kubectl create -f redis/rs
