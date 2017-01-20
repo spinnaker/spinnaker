@@ -180,6 +180,7 @@ class OperationsController {
   }
 
   private Map<String, String> startTask(Map config) {
+    convertLinearToParallel(config)
     def json = objectMapper.writeValueAsString(config)
     log.info('requested task:{}', json)
     def pipeline = orchestrationLauncher.start(json)
