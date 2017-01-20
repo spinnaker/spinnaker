@@ -1,5 +1,6 @@
 import {module} from 'angular';
 import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
+import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 
 export interface IApplicationNameValidationMessage {
   cloudProvider?: string;
@@ -27,9 +28,9 @@ export interface IApplicationNameValidator {
 export class ApplicationNameValidator {
   private providerMap: Map<string, IApplicationNameValidator[]> = new Map<string, IApplicationNameValidator[]>();
 
-  static get $inject() { return ['cloudProviderRegistry']; }
+  static get $inject() { return ['cloudProviderRegistry', 'accountService']; }
 
-  public constructor(private cloudProviderRegistry: CloudProviderRegistry) {}
+  public constructor(private cloudProviderRegistry: CloudProviderRegistry, private accountService: AccountService) {}
 
   /**
    * Registers a validator for a cloud provider.
@@ -52,28 +53,31 @@ export class ApplicationNameValidator {
    * @param providersToTest the configured cloud providers; if empty, validators for all providers will fire
    * @returns {{errors: Array, warnings: Array}}
    */
-  public validate(applicationName: string, providersToTest: string[]): IApplicationNameValidationResult {
-    const toCheck = providersToTest && providersToTest.length ? providersToTest : this.cloudProviderRegistry.listRegisteredProviders();
+  public validate(applicationName: string, providersToTest: string[]): ng.IPromise<IApplicationNameValidationResult> {
+    return this.accountService.listProviders().then((availableProviders: string[]) => {
+      const toCheck = providersToTest && providersToTest.length ? providersToTest : availableProviders;
 
-    const errors: IApplicationNameValidationMessage[] = [],
-          warnings: IApplicationNameValidationMessage[] = [];
+      const errors: IApplicationNameValidationMessage[] = [],
+        warnings: IApplicationNameValidationMessage[] = [];
 
-    toCheck.forEach((provider: string) => {
-      if (this.providerMap.has(provider)) {
-        this.providerMap.get(provider).forEach(validator => {
-          const results = validator.validate(applicationName);
-          results.warnings.forEach(message => warnings.push({ cloudProvider: provider, message: message }));
-          results.errors.forEach(message => errors.push({ cloudProvider: provider, message: message }));
-        });
-      }
+      toCheck.forEach((provider: string) => {
+        if (this.providerMap.has(provider)) {
+          this.providerMap.get(provider).forEach(validator => {
+            const results = validator.validate(applicationName);
+            results.warnings.forEach(message => warnings.push({ cloudProvider: provider, message: message }));
+            results.errors.forEach(message => errors.push({ cloudProvider: provider, message: message }));
+          });
+        }
+      });
+      return { errors, warnings };
     });
-
-    return { errors, warnings };
   }
 
 }
 
 export const APPLICATION_NAME_VALIDATOR = 'spinnaker.core.application.name.validator';
 
-module(APPLICATION_NAME_VALIDATOR, [CLOUD_PROVIDER_REGISTRY])
-  .service('applicationNameValidator', ApplicationNameValidator);
+module(APPLICATION_NAME_VALIDATOR, [
+  CLOUD_PROVIDER_REGISTRY,
+  ACCOUNT_SERVICE,
+]).service('applicationNameValidator', ApplicationNameValidator);
