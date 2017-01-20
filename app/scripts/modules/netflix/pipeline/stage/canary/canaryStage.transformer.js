@@ -150,6 +150,11 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
           if (getException(monitorStage)) {
             stage.exceptions.push('Monitor Canary failure: ' + getException(monitorStage));
           }
+
+          if (getException(deployParent)) {
+            stage.exceptions.push('Deploy Canary failure' + getException(deployParent));
+          }
+
           deployStages.forEach((deployStage) => {
             if (getException(deployStage)) {
               stage.exceptions.push(deployStage.name + ': ' + getException(deployStage));

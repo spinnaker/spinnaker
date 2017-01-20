@@ -40,7 +40,7 @@ class StageFailureMessageComponent implements ng.IComponentOptions {
   };
   public controller: any = StageFailureMessageCtrl;
   public template: string = `
-    <div class="row" ng-if="$ctrl.isFailed">
+    <div class="row" ng-if="$ctrl.isFailed || $ctrl.messages.length || $ctrl.message">
       <div class="col-md-12">
         <div class="alert alert-danger">
           <div ng-if="$ctrl.message || !$ctrl.messages.length">
