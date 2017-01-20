@@ -165,15 +165,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     }
 
     String name = createName(settings)
-    String userData = getUserData(
-      settings.baseName,
-      name,
-      settings.region,
-      settings.account,
-      settings.environment,
-      settings.accountType,
-      settings.base64UserData ?: "",
-      legacyUdf)
+    String userData = getUserData(name, settings, legacyUdf)
     createLaunchConfiguration(name, userData, settings)
   }
 
@@ -220,11 +212,11 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     }
   }
 
-  private String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType, String base64UserData, Boolean legacyUdf) {
+  private String getUserData(String launchConfigName, LaunchConfigurationSettings settings, Boolean legacyUdf) {
     String data = userDataProviders?.collect { udp ->
-      udp.getUserData(asgName, launchConfigName, region, account, environment, accountType, legacyUdf)
+      udp.getUserData(launchConfigName, settings, legacyUdf)
     }?.join("\n")
-    String userDataDecoded = new String(base64UserData.decodeBase64(), Charset.forName("UTF-8"))
+    String userDataDecoded = new String((settings.base64UserData ?: '').decodeBase64(), Charset.forName("UTF-8"))
     data = [data, userDataDecoded].findResults { it }.join("\n")
     if (data && data.startsWith("\n")) {
       data = data.substring(1)

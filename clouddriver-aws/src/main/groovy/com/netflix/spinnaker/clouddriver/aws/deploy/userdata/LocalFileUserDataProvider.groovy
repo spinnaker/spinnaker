@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.userdata
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
@@ -61,11 +62,11 @@ class LocalFileUserDataProvider implements UserDataProvider {
   }
 
   @Override
-  String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType, Boolean legacyUdf) {
-    def names = Names.parseName(asgName)
-    boolean useLegacyUdf = legacyUdf != null ? legacyUdf : isLegacyUdf(account, names.app)
-    def rawUserData = assembleUserData(useLegacyUdf, names, region, account)
-    replaceUserDataTokens useLegacyUdf, names, launchConfigName, region, account, environment, accountType, rawUserData
+  String getUserData(String launchConfigName, LaunchConfigurationBuilder.LaunchConfigurationSettings settings, Boolean legacyUdf) {
+    def names = Names.parseName(settings.baseName)
+    boolean useLegacyUdf = legacyUdf != null ? legacyUdf : isLegacyUdf(settings.account, names.app)
+    def rawUserData = assembleUserData(useLegacyUdf, names, settings.region, settings.account)
+    replaceUserDataTokens useLegacyUdf, names, launchConfigName, settings.region, settings.account, settings.environment, settings.accountType, rawUserData
   }
 
   String assembleUserData(boolean legacyUdf, Names names, String region, String account) {

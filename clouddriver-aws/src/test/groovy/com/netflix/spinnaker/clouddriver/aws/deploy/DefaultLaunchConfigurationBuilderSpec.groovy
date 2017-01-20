@@ -31,7 +31,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
   def asgService = Mock(AsgService)
   def securityGroupService = Mock(SecurityGroupService)
   def userDataProvider = Stub(UserDataProvider) {
-    getUserData(_, _, _, _, _, _, _) >> 'userdata'
+    getUserData(_, _, _) >> 'userdata'
   }
   def deployDefaults = new AwsConfiguration.DeployDefaults()
 

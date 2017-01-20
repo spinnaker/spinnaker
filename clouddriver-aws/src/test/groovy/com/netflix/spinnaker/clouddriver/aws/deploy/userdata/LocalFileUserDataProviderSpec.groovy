@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.userdata
 
+import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings
 import spock.lang.Specification
 
 class LocalFileUserDataProviderSpec extends Specification {
@@ -38,6 +39,13 @@ class LocalFileUserDataProviderSpec extends Specification {
   static final String ASG_NAME = "${APP}-${STACK}-${DETAIL}-c0${COUNTRIES}-d0${DEV_PHASE}-h0${HARDWARE}-p0${PARTNERS}-r0${REVISION}-z0${ZONE}"
   static final String LAUNCH_CONFIG_NAME = 'launchConfigName'
 
+  static final LaunchConfigurationSettings SETTINGS = new LaunchConfigurationSettings(
+      baseName: ASG_NAME,
+      region: REGION,
+      account: ACCOUNT,
+      environment: ENVIRONMENT,
+      accountType: ACCOUNT_TYPE)
+
   void "replaces expected strings"() {
     given:
     LocalFileUserDataProvider localFileUserDataProvider = GroovySpy()
@@ -46,7 +54,7 @@ class LocalFileUserDataProviderSpec extends Specification {
     localFileUserDataProvider.assembleUserData(legacyUdf, _, _, _) >> getRawUserData()
 
     when:
-    def userData = localFileUserDataProvider.getUserData(ASG_NAME, LAUNCH_CONFIG_NAME, REGION, ACCOUNT, ENVIRONMENT, ACCOUNT_TYPE, null)
+    def userData = localFileUserDataProvider.getUserData(LAUNCH_CONFIG_NAME, SETTINGS, null)
 
     then:
     userData == getFormattedUserData(expectedEnvironment)
