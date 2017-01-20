@@ -12,9 +12,9 @@
         </div>
         <div class="col-sm-6">
           <ui-select ng-model="command.rollbackContext.restoreServerGroupName" class="form-control input-sm">
-            <ui-select-match placeholder="Select...">{{$select.selected.name}}</ui-select-match>
-            <ui-select-choices repeat="serverGroup.name as serverGroup in disabledServerGroups">
-              <span ng-bind-html="serverGroup.name"></span>
+            <ui-select-match placeholder="Select...">{{ctrl.label($select.selected)}}</ui-select-match>
+            <ui-select-choices group-by="ctrl.group" repeat="serverGroup.name as serverGroup in allServerGroups">
+              <span ng-bind-html="ctrl.label(serverGroup)"></span>
             </ui-select-choices>
           </ui-select>
         </div>
