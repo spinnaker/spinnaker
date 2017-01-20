@@ -2,7 +2,7 @@ import {module} from 'angular';
 import { DirectiveFactory } from '../../../utils/tsDecorators/directiveFactoryDecorator';
 import {
   APPLICATION_NAME_VALIDATOR,
-  ApplicationNameValidator
+  ApplicationNameValidator, IApplicationNameValidationResult
 } from 'core/application/modal/validation/applicationName.validator';
 
 interface IValidateNameAttrs  {
@@ -22,11 +22,20 @@ class ValidateApplicationNameController implements ng.IComponentController {
   public $attrs: IValidateNameAttrs;
   public $scope: ng.IScope;
 
-  public constructor(private applicationNameValidator: ApplicationNameValidator) {}
+  public constructor(private applicationNameValidator: ApplicationNameValidator, private $q: ng.IQService) {}
 
   public initialize() {
-    this.model.$validators['validateApplicationName'] = (value: string) => {
-      return this.applicationNameValidator.validate(value, this.cloudProviders).errors.length === 0;
+    this.model.$asyncValidators['validateApplicationName'] = (value: string) => {
+      let deferred: ng.IDeferred<boolean> = this.$q.defer();
+      this.applicationNameValidator.validate(value, this.cloudProviders)
+        .then((result: IApplicationNameValidationResult) => {
+          if (result.errors.length) {
+            deferred.reject();
+          } else {
+            deferred.resolve();
+          }
+      });
+      return deferred.promise;
     };
     this.$scope.$watch(this.$attrs.cloudProviders, () => this.model.$validate());
   }

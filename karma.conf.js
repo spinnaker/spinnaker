@@ -40,6 +40,10 @@ module.exports = function(config) {
       Chrome_travis_ci: {
         base: 'Chrome',
         flags: ['--no-sandbox']
+      },
+      ChromeActive: {
+        base: 'Chrome',
+        flags: [ '--override-plugin-power-saver-for-testing=0' ]
       }
     },
 
@@ -59,7 +63,7 @@ module.exports = function(config) {
     port: 8081,
 
     browsers: [
-      process.env.TRAVIS ? 'Chrome_travis_ci' : 'Chrome',
+      process.env.TRAVIS ? 'Chrome_travis_ci' : 'ChromeActive',
     ],
 
     colors: true,
