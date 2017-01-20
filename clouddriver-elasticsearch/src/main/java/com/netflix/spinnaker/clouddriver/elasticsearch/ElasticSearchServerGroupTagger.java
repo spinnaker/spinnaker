@@ -29,15 +29,20 @@ import com.netflix.spinnaker.clouddriver.elasticsearch.ops.UpsertEntityTagsAtomi
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
-  private static final String SERVER_GROUP_TYPE = "servergroup";
+  private static final Logger log = LoggerFactory.getLogger(ElasticSearchServerGroupTagger.class);
 
+  private static final String SERVER_GROUP_TYPE = "servergroup";
   private static final String ALERT_TYPE = "alert";
   private static final String ALERT_KEY_PREFIX = "spinnaker_ui_alert:";
 
@@ -76,11 +81,53 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
   }
 
   @Override
+  public Collection<EntityTags> taggedEntities(String cloudProvider,
+                                               String accountId,
+                                               String tagName,
+                                               int maxResults) {
+    return entityTagsProvider.getAll(
+      cloudProvider, ENTITY_TYPE, null, null, accountId, null, Collections.singletonMap(tagName, "*"), maxResults
+    );
+  }
+
+  @Override
   public void deleteAll(String cloudProvider, String accountId, String region, String serverGroupName) {
+    DeleteEntityTagsDescription deleteEntityTagsDescription = deleteEntityTagsDescription(
+      cloudProvider,
+      accountId,
+      region,
+      serverGroupName,
+      null
+    );
+    log.info("Removing all entity tags for '{}'", deleteEntityTagsDescription.getId());
+
+    delete(deleteEntityTagsDescription);
+  }
+
+  @Override
+  public void delete(String cloudProvider, String accountId, String region, String serverGroupName, String tagName) {
+    DeleteEntityTagsDescription deleteEntityTagsDescription = deleteEntityTagsDescription(
+      cloudProvider,
+      accountId,
+      region,
+      serverGroupName,
+      Collections.singletonList(tagName)
+    );
+    log.info("Removing '{}' for '{}'", tagName, deleteEntityTagsDescription.getId());
+
+    delete(deleteEntityTagsDescription);
+  }
+
+  @VisibleForTesting
+  protected void run(DeleteEntityTagsAtomicOperation deleteEntityTagsAtomicOperation) {
+    deleteEntityTagsAtomicOperation.operate(Collections.emptyList());
+  }
+
+  private void delete(DeleteEntityTagsDescription deleteEntityTagsDescription) {
     DeleteEntityTagsAtomicOperation deleteEntityTagsAtomicOperation = new DeleteEntityTagsAtomicOperation(
       front50Service,
       entityTagsProvider,
-      deleteEntityTagsDescription(cloudProvider, accountId, region, serverGroupName)
+      deleteEntityTagsDescription
     );
 
     Task originalTask = TaskRepository.threadLocalTask.get();
@@ -94,10 +141,6 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
     }
   }
 
-  @VisibleForTesting
-  protected void run(DeleteEntityTagsAtomicOperation deleteEntityTagsAtomicOperation) {
-    deleteEntityTagsAtomicOperation.operate(Collections.emptyList());
-  }
 
   private static UpsertEntityTagsDescription upsertEntityTagsDescription(String cloudProvider,
                                                                          String accountId,
@@ -131,7 +174,8 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
   private static DeleteEntityTagsDescription deleteEntityTagsDescription(String cloudProvider,
                                                                          String accountId,
                                                                          String region,
-                                                                         String serverGroupName) {
+                                                                         String serverGroupName,
+                                                                         List<String> tags) {
     EntityRefIdBuilder.EntityRefId entityRefId = EntityRefIdBuilder.buildId(
       cloudProvider, "servergroup", serverGroupName, accountId, region
     );
@@ -139,6 +183,7 @@ public class ElasticSearchServerGroupTagger implements ServerGroupTagger {
     DeleteEntityTagsDescription deleteEntityTagsDescription = new DeleteEntityTagsDescription();
     deleteEntityTagsDescription.setId(entityRefId.id);
     deleteEntityTagsDescription.setDeleteAll(true);
+    deleteEntityTagsDescription.setTags(tags);
 
     return deleteEntityTagsDescription;
   }

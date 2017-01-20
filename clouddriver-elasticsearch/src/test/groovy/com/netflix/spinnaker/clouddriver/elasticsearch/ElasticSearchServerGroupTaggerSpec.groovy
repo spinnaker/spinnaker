@@ -20,7 +20,8 @@ import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.elasticsearch.ops.DeleteEntityTagsAtomicOperation
-import spock.lang.Specification;
+import spock.lang.Specification
+import spock.lang.Unroll;
 
 class ElasticSearchServerGroupTaggerSpec extends Specification {
   void "should construct valid UpsertEntityTagsDescription"() {
@@ -45,16 +46,22 @@ class ElasticSearchServerGroupTaggerSpec extends Specification {
     ]
   }
 
+  @Unroll
   void "should construct valid DeleteEntityTagsDescription"() {
     when:
     def description = ElasticSearchServerGroupTagger.deleteEntityTagsDescription(
-      "myCloudProvider", "100", "us-east-1", "myServerGroup-v001"
+      "myCloudProvider", "100", "us-east-1", "myServerGroup-v001", tags
     )
 
     then:
     description.deleteAll
     description.id == "mycloudprovider:servergroup:myservergroup-v001:100:us-east-1"
-    !description.tags
+    description.tags == expectedTags
+
+    where:
+    tags       || expectedTags
+    null       || null
+    ["foobar"] || ["foobar"]
   }
 
   void "should only mutate threadLocalTask if null"() {
