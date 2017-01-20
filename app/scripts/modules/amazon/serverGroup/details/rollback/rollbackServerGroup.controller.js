@@ -13,9 +13,10 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
     ])
     .controller('awsRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter,
                                                         taskMonitorBuilder,
-                                                        application, serverGroup, disabledServerGroups) {
+                                                        application, serverGroup, disabledServerGroups, allServerGroups) {
       $scope.serverGroup = serverGroup;
       $scope.disabledServerGroups = disabledServerGroups.sort((a, b) => b.name.localeCompare(a.name));
+      $scope.allServerGroups = allServerGroups.sort((a, b) => b.name.localeCompare(a.name));
       $scope.verification = {};
 
       $scope.command = {
@@ -62,5 +63,21 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
 
       this.cancel = function () {
         $uibModalInstance.dismiss();
+      };
+
+      this.label = function (serverGroup) {
+        if (!serverGroup) {
+          return '';
+        }
+
+        if (!serverGroup.buildInfo || !serverGroup.buildInfo.jenkins || !serverGroup.buildInfo.jenkins.number) {
+          return serverGroup.name;
+        }
+
+        return serverGroup.name + ' (build #' + serverGroup.buildInfo.jenkins.number + ')';
+      };
+
+      this.group = function (serverGroup) {
+        return serverGroup.isDisabled ? 'Disabled Server Groups' : 'Enabled Server Groups';
       };
     });

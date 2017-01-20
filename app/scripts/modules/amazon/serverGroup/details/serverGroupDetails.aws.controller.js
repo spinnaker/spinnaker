@@ -341,6 +341,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
             var cluster = _.find(app.clusters, {name: this.serverGroup.cluster, account: this.serverGroup.account});
             return _.filter(cluster.serverGroups, {isDisabled: true, region: this.serverGroup.region});
           },
+          allServerGroups: () => app.getDataSource('serverGroups').data.filter(g =>
+            g.cluster === this.serverGroup.cluster &&
+            g.region === this.serverGroup.region &&
+            g.account === this.serverGroup.account &&
+            g.name !== this.serverGroup.name
+          ),
           application: () => app
         }
       });
