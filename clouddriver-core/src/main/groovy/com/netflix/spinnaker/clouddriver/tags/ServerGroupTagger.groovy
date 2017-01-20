@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.tags;
+package com.netflix.spinnaker.clouddriver.tags
+
+import com.netflix.spinnaker.clouddriver.model.EntityTags;
 
 interface ServerGroupTagger {
+  public static final String ENTITY_TYPE = "servergroup"
+
   void alert(String cloudProvider, String accountId, String region, String serverGroupName, String key, String value)
 
+  Collection<EntityTags> taggedEntities(String cloudProvider, String accountId, String tagName, int maxResults)
+
   void deleteAll(String cloudProvider, String accountId, String region, String serverGroupName)
+
+  void delete(String cloudProvider, String accountId, String region, String serverGroupName, String tagName)
 }

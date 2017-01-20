@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -62,8 +63,8 @@ public class LaunchFailureNotificationAgentProvider implements AgentProvider {
       properties.getAccountName()
     );
 
-    // create an agent for each region in the specified account
-    return credentials.getRegions().stream()
+    // an agent for each region in the specified account
+    List<Agent> agents = credentials.getRegions().stream()
       .map(region -> new LaunchFailureNotificationAgent(
         objectMapper,
         amazonClientProvider,
@@ -85,5 +86,12 @@ public class LaunchFailureNotificationAgentProvider implements AgentProvider {
         serverGroupTagger
       ))
       .collect(Collectors.toList());
+
+    // an agent that will cleanup stale notifications across all accounts + region
+    agents.add(new LaunchFailureNotificationCleanupAgent(
+      amazonClientProvider, accountCredentialsProvider, serverGroupTagger
+    ));
+
+    return agents;
   }
 }

@@ -309,7 +309,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     Search.Builder searchBuilder = new Search.Builder(searchQuery).addIndex(activeElasticSearchIndex);
     if (type != null) {
       // restrict to a specific index type (optional)
-      searchBuilder.addType(type);
+      searchBuilder.addType(type.toLowerCase());
     }
 
     try {
