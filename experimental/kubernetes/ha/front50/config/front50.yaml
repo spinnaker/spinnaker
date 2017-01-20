@@ -16,6 +16,8 @@ spinnaker:
 
   redis:
     enabled: false
+    host: ${services.redis.host}
+    port: ${services.redis.port}
 
   gcs:
     enabled: ${services.front50.gcs.enabled:false}
