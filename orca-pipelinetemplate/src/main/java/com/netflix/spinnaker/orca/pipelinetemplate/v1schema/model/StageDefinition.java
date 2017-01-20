@@ -15,8 +15,11 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class StageDefinition implements Identifiable, Conditional {
 
@@ -29,6 +32,7 @@ public class StageDefinition implements Identifiable, Conditional {
   private List<Map<String, Object>> notifications;
   private String comments;
   private List<String> when;
+  private InheritanceControl inheritanceControl;
 
   public static class InjectionRule {
 
@@ -67,6 +71,58 @@ public class StageDefinition implements Identifiable, Conditional {
 
     public void setAfter(String after) {
       this.after = after;
+    }
+  }
+
+  public static class InheritanceControl {
+
+    private Collection<Rule> merge;
+    private Collection<Rule> replace;
+    private Collection<Rule> remove;
+
+    public static class Rule {
+      String path;
+      Object value;
+
+      public String getPath() {
+        return path;
+      }
+
+      public void setPath(String path) {
+        this.path = path;
+      }
+
+      public Object getValue() {
+        return value;
+      }
+
+      public void setValue(Object value) {
+        this.value = value;
+      }
+    }
+
+    public Collection<Rule> getMerge() {
+      return Optional.ofNullable(merge).orElse(new ArrayList<>());
+    }
+
+    public void setMerge(Collection<Rule> merge) {
+      this.merge = merge;
+    }
+
+    public Collection<Rule> getReplace() {
+      return Optional.ofNullable(replace).orElse(new ArrayList<>());
+    }
+
+    public void setReplace(Collection<Rule> replace) {
+      this.replace = replace;
+    }
+
+    public Collection<Rule> getRemove() {
+      return Optional.ofNullable(remove).orElse(new ArrayList<>());
+    }
+
+    public void setRemove(Collection<Rule> remove) {
+      this.remove = remove;
     }
   }
 
@@ -141,6 +197,14 @@ public class StageDefinition implements Identifiable, Conditional {
 
   public void setWhen(List<String> when) {
     this.when = when;
+  }
+
+  public InheritanceControl getInheritanceControl() {
+    return inheritanceControl;
+  }
+
+  public void setInheritanceControl(InheritanceControl inheritanceControl) {
+    this.inheritanceControl = inheritanceControl;
   }
 
   @Override
