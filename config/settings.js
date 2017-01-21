@@ -84,7 +84,8 @@ window.spinnakerSettings = {
     kubernetes: {
       defaults: {
         account: kubernetesPrimaryAccount,
-        namespace: kubernetesDefaultNamespace
+        namespace: kubernetesDefaultNamespace,
+        proxy: 'localhost:8001'
       },
     },
     openstack: {

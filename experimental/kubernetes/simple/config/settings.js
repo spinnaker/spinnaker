@@ -46,7 +46,8 @@ window.spinnakerSettings = {
     kubernetes: {
       defaults: {
         account: 'my-kubernetes-account',
-        namespace: 'default'
+        namespace: 'default',
+        proxy: 'localhost:8001'
       },
     }
   },
