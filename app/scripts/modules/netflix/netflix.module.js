@@ -1,5 +1,6 @@
 import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {TABLEAU_STATES} from './tableau/tableau.states';
 
 let angular = require('angular');
 
@@ -40,7 +41,7 @@ module.exports = angular
 
     require('core/config/settings.js'),
 
-    require('./tableau/states'),
+    TABLEAU_STATES,
     require('./ci/ci.module'),
     APPLICATION_DATA_SOURCE_REGISTRY,
     CLOUD_PROVIDER_REGISTRY,

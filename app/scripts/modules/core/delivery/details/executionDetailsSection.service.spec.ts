@@ -1,11 +1,12 @@
 import {mock, noop} from 'angular';
 
 import {EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService} from './executionDetailsSection.service';
+import {IExecutionDetailsStateParams} from '../delivery.states';
 
 describe('executionDetailsSectionService', function() {
 
   let $state: angular.ui.IStateService,
-      $stateParams: angular.ui.IStateParamsService,
+      $stateParams: IExecutionDetailsStateParams,
       $timeout: ng.ITimeoutService,
       service: ExecutionDetailsSectionService;
 
@@ -13,7 +14,7 @@ describe('executionDetailsSectionService', function() {
   beforeEach(mock.inject((
     executionDetailsSectionService: ExecutionDetailsSectionService,
     _$state_: angular.ui.IStateService,
-    _$stateParams_: angular.ui.IStateParamsService,
+    _$stateParams_: IExecutionDetailsStateParams,
     _$timeout_: ng.ITimeoutService) => {
 
       service = executionDetailsSectionService;
@@ -39,7 +40,7 @@ describe('executionDetailsSectionService', function() {
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');
 
-      $stateParams['details'] = 'b';
+      $stateParams.details = 'b';
 
       service.synchronizeSection(['a', 'b']);
 
@@ -51,7 +52,7 @@ describe('executionDetailsSectionService', function() {
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');
 
-      $stateParams['details'] = 'c';
+      $stateParams.details = 'c';
 
       service.synchronizeSection(['a', 'b']);
 
@@ -64,7 +65,7 @@ describe('executionDetailsSectionService', function() {
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');
 
-      $stateParams['details'] = undefined;
+      $stateParams.details = undefined;
 
       service.synchronizeSection(['a', 'b']);
 

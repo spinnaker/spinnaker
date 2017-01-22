@@ -1,15 +1,11 @@
 import {IScope} from 'angular';
-import {IStateParamsService} from 'angular-ui-router';
+import {IExecutionDetailsStateParams} from 'core/delivery/delivery.states';
 
 import {ExecutionDetailsSectionService} from 'core/delivery/details/executionDetailsSection.service';
 
 export interface IExecutionDetailsScope extends IScope {
   configSections: string[];
   detailsSection: string;
-}
-
-export interface IExecutionDetailsStateParams extends IStateParamsService {
-  details: string;
 }
 
 export class BaseExecutionDetailsCtrl {

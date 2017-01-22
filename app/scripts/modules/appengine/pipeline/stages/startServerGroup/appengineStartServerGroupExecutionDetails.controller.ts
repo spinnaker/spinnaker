@@ -3,8 +3,8 @@ import {module} from 'angular';
 import {EXECUTION_DETAILS_SECTION_SERVICE,
         ExecutionDetailsSectionService} from 'core/delivery/details/executionDetailsSection.service';
 import {BaseExecutionDetailsCtrl,
-        IExecutionDetailsScope,
-        IExecutionDetailsStateParams} from 'core/pipeline/config/stages/core/baseExecutionDetails.controller';
+        IExecutionDetailsScope} from 'core/pipeline/config/stages/core/baseExecutionDetails.controller';
+import {IExecutionDetailsStateParams} from 'core/delivery/delivery.states';
 
 class AppengineStartServerGroupExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
   static get $inject() { return ['$scope', '$stateParams', 'executionDetailsSectionService']; }

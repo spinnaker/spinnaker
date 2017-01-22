@@ -1,6 +1,7 @@
 'use strict';
 
 import { FAST_PROPERTY_SEARCH_COMPONENT } from './dataNav/fastPropertyFilterSearch.component';
+import {FAST_PROPERTY_STATES} from './fastProperties.states';
 
 let angular = require('angular');
 
@@ -11,7 +12,7 @@ require('../../netflix/canary/canary.less');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties', [
-    require('./states.js'),
+    FAST_PROPERTY_STATES,
     require('./fastPropertyDetails.controller.js'),
     require('./dataNav/fastProperties.controller.js'),
     require('./modal/fastPropertyUpsert.controller.js'),
