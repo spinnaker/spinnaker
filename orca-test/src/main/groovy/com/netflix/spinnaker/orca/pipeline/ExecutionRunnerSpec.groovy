@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.listeners.ExecutionListener
-
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.StageListener
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
@@ -166,7 +164,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
 
     then:
     execution.stages.type == stageTypes.collect { stageType ->
-      ["${stageType}_pre2", "${stageType}_pre1", stageType]
+      ["${stageType}_pre1", "${stageType}_pre2", stageType]
     }.flatten()
 
     where:
@@ -183,10 +181,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
         Stub(StageDefinitionBuilder) {
           getType() >> stageType
           buildTaskGraph() >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("${stageType}_1", Task)])
-          // TODO: stages are inserted directly after parent but need to be done
-          // in forward order as batch job is built at the same time, being in
-          // wrong order in json is better than running in wrong order
-          aroundStages(_) >> [postStage2, postStage1]
+          aroundStages(_) >> [postStage1, postStage2]
         },
         Stub(StageDefinitionBuilder) {
           getType() >> "${stageType}_post1"
@@ -283,9 +278,10 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
         buildTaskGraph(_) >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("test", TestTask)])
         aroundStages(_) >> { Stage<Pipeline> parentStage ->
           [
-            newStage(execution, "before_${stageType}_2", "before", [:], parentStage, STAGE_BEFORE),
             newStage(execution, "before_${stageType}_1", "before", [:], parentStage, STAGE_BEFORE),
-            newStage(execution, "after_$stageType", "after", [:], parentStage, STAGE_AFTER)
+            newStage(execution, "before_${stageType}_2", "before", [:], parentStage, STAGE_BEFORE),
+            newStage(execution, "after_${stageType}_1", "after", [:], parentStage, STAGE_AFTER),
+            newStage(execution, "after_${stageType}_2", "after", [:], parentStage, STAGE_AFTER)
           ]
         }
       },
@@ -298,8 +294,12 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
         buildTaskGraph(_) >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("before_test_2", TestTask)])
       },
       Stub(StageDefinitionBuilder) {
-        getType() >> "after_$stageType"
-        buildTaskGraph(_) >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("after_test", TestTask)])
+        getType() >> "after_${stageType}_1"
+        buildTaskGraph(_) >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("after_test_1", TestTask)])
+      },
+      Stub(StageDefinitionBuilder) {
+        getType() >> "after_${stageType}_2"
+        buildTaskGraph(_) >> new TaskNode.TaskGraph(FULL, [new TaskDefinition("after_test_2", TestTask)])
       }
     ]
     @Subject runner = create(*stageDefinitionBuilders)
@@ -315,7 +315,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     runner.start(execution)
 
     then:
-    executedStageTypes == ["before_${stageType}_1", "before_${stageType}_2", stageType, "after_$stageType"]
+    executedStageTypes == ["before_${stageType}_1", "before_${stageType}_2", stageType, "after_${stageType}_1", "after_${stageType}_2"]
 
     where:
     stageType = "foo"
