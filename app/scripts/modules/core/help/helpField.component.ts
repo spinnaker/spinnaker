@@ -51,6 +51,7 @@ class HelpFieldCtrl implements ng.IComponentController {
   public showPopover(): void {
     this.displayPopover = true;
     this.popoverShownStart = Date.now();
+    this.popoverHovered();
   }
 
   public hidePopover(defer: boolean): void {
