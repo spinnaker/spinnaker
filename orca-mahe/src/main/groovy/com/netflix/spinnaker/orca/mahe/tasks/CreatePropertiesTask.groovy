@@ -41,8 +41,14 @@ class CreatePropertiesTask implements Task {
     List propertyIdList = []
 
     properties.forEach { Map prop ->
-      log.info("Upserting Property: ${prop}")
-      Response response = maheService.upsertProperty(prop)
+      Response response
+      if (stage.context.delete) {
+        log.info("Deleting Property: ${prop.property.propertyId} on execution ${stage.execution.id}")
+        response = maheService.deleteProperty(prop.property.propertyId, 'delete', prop.property.env)
+      } else {
+        log.info("Upserting Property: ${prop}")
+        response = maheService.upsertProperty(prop)
+      }
       if (response.status == 200 && response.body.mimeType().startsWith('application/')) {
         propertyIdList << mapper.readValue(response.body.in().text, Map)
       } else {
