@@ -60,6 +60,9 @@ describe('orchestratedItem transformer', () => {
         context: {
           'kato.tasks': [
             {
+              status: {
+                failed: true,
+              },
               exception: {
                 message: 'failed!'
               }
@@ -83,6 +86,9 @@ describe('orchestratedItem transformer', () => {
               message: 'this one is fine'
             },
             {
+              status: {
+                failed: true,
+              },
               exception: {
                 message: 'failed!'
               }
@@ -149,6 +155,9 @@ describe('orchestratedItem transformer', () => {
             key: 'kato.tasks',
             value: [
               {
+                status: {
+                  failed: true,
+                },
                 history: [
                   { status: 'i am fine' },
                   { status: 'i am terrible' }
@@ -168,6 +177,9 @@ describe('orchestratedItem transformer', () => {
             key: 'kato.tasks',
             value: [
               {
+                status: {
+                  failed: true,
+                },
                 exception: {
                   message: 'I am the exception'
                 },
@@ -217,7 +229,7 @@ describe('orchestratedItem transformer', () => {
       expect(getMessage(task)).toBe(null);
     });
 
-    it('gets orchestration message from last kato task', () => {
+    it('gets orchestration message from failed kato task', () => {
       let task = {
         variables: [
           {
@@ -229,6 +241,9 @@ describe('orchestratedItem transformer', () => {
                 ],
               },
               {
+                status: {
+                  failed: true,
+                },
                 history: [
                   { status: 'i am the second' },
                 ],
