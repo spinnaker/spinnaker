@@ -184,7 +184,8 @@ class JobExecutorLocal implements JobExecutor {
 
   @PostConstruct
   void initializeMetrics() {
-    registry.gauge(registry.createId("bakes.local").withTag("active", "true"), jobIdToHandlerMap, new ToDoubleFunction<Map>() {
+    // We need to have at least one tag.
+    registry.gauge(registry.createId("bakesActive", [active: "true"]), jobIdToHandlerMap, new ToDoubleFunction<Map>() {
 
       @Override
       double applyAsDouble(Map value) {

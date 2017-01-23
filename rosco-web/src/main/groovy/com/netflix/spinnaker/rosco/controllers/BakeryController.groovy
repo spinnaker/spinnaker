@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.controllers
 
-import com.netflix.spectator.api.Id
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -164,8 +163,7 @@ class BakeryController {
       def bakeKey = cloudProviderBakeHandler.produceBakeKey(region, bakeRequest)
 
       if (rebake == "1") {
-        Id bakesId = registry.createId('bakes').withTag("rebake", "true")
-        registry.counter(bakesId).increment()
+        registry.counter(registry.createId("bakesRequested", [flavor: "rebake"])).increment()
 
         String bakeId = bakeStore.deleteBakeByKeyPreserveDetails(bakeKey)
 
@@ -176,10 +174,11 @@ class BakeryController {
         def existingBakeStatus = queryExistingBakes(bakeKey)
 
         if (existingBakeStatus) {
-          Id bakesId = registry.createId('bakes').withTag("duplicate", "true")
-          registry.counter(bakesId).increment()
+          registry.counter(registry.createId("bakesRequested", [flavor: "duplicate"])).increment()
 
           return existingBakeStatus
+        } else {
+          registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).increment()
         }
       }
 
@@ -305,8 +304,8 @@ class BakeryController {
 
       // This will have the most up-to-date timestamp.
       BakeStatus bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
-      Id failedBakesId = registry.createId('bakes').withTag("success", "false").withTag("cause", "explicitlyCanceled")
-      registry.timer(failedBakesId).record(bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp, TimeUnit.MILLISECONDS)
+      long millis = bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp
+      registry.timer(registry.createId("bakesCompleted", [success: "false", cause: "explicitlyCanceled"])).record(millis, TimeUnit.MILLISECONDS)
 
       return "Canceled bake '$statusId'."
     }
