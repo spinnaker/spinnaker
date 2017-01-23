@@ -130,17 +130,22 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
     if (type == STAGE_BEFORE) {
       planExecutionWindow(stage, callback);
 
-      reverse(aroundStages.getOrDefault(type, emptyList()))
+      aroundStages
+        .getOrDefault(type, emptyList())
         .forEach(syntheticStage -> {
           injectStage(stage, syntheticStage, type);
           callback.accept(syntheticStage);
         });
     } else {
-      aroundStages.getOrDefault(type, emptyList())
-        .forEach(syntheticStage -> {
-          injectStage(stage, syntheticStage, type);
-          callback.accept(syntheticStage);
-        });
+      List<Stage<T>> afterStages = aroundStages
+        .getOrDefault(type, emptyList());
+      // inject after stages in reverse order as it's easier to calculate index
+      reverse(afterStages)
+        .forEach(syntheticStage ->
+          injectStage(stage, syntheticStage, type)
+        );
+      // process the stages in execution order
+      afterStages.forEach(callback);
     }
   }
 

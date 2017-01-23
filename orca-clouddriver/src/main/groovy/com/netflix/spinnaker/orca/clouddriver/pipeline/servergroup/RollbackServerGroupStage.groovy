@@ -36,16 +36,16 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
   AutowireCapableBeanFactory autowireCapableBeanFactory
 
   @Override
-  def <T extends Execution> List<Stage<T>> aroundStages(Stage<T> parentStage) {
-    def stageData = parentStage.mapTo(StageData)
+  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+    def stageData = stage.mapTo(StageData)
 
     if (!stageData.rollbackType) {
       throw new IllegalStateException("Missing `rollbackType` (execution: ${stage.execution.id})")
     }
 
-    def explicitRollback = parentStage.mapTo("/rollbackContext", stageData.rollbackType.implementationClass) as Rollback
+    def explicitRollback = stage.mapTo("/rollbackContext", stageData.rollbackType.implementationClass) as Rollback
     autowireCapableBeanFactory.autowireBean(explicitRollback)
-    return explicitRollback.buildStages(parentStage)
+    return explicitRollback.buildStages(stage)
   }
 
   static enum RollbackType {
