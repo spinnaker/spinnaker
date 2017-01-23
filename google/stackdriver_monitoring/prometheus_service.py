@@ -53,7 +53,7 @@ from prometheus_client.core import (
 
 
 InstanceRecord = collections.namedtuple(
-    'InstanceRecord', ['service', 'netloc', 'data'])
+    'InstanceRecord', ['service', 'netloc', 'tags', 'data'])
 MetricInfo = collections.namedtuple('MetricInfo', ['kind', 'tags', 'records'])
 
 
@@ -113,7 +113,7 @@ class PrometheusMetricsService(object):
     record = InstanceRecord(service,
                             '{0}:{1}'.format(service_metadata['__host'],
                                              service_metadata['__port']),
-                            instance)
+                            tags, instance)
 
     name_to_info = service_to_name_to_info.get(service)
     if name_to_info is None:
@@ -165,8 +165,10 @@ class PrometheusMetricsService(object):
 
           instance = record.data
           labels = [''] * len(tags)
-          for elem in instance['tags']:
-            labels[tags.index(elem['key'])] = elem['value']
+          for elem in record.tags:
+            index = tags.index(elem['key'])
+            if index >= 0:
+              labels[index] = elem['value']
           if self.__add_metalabels:
             labels.append(record.service)
             labels.append(record.netloc)

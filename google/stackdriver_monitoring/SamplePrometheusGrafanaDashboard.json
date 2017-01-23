@@ -80,7 +80,7 @@
               "legendFormat": "front50/{{metricGroup}}({{metricType}})",
               "metric": "",
               "refId": "A",
-              "step": 10
+              "step": 20
             },
             {
               "expr": "sum(gate:hystrix:countShortCircuited) by (metricGroup, metricType)",
@@ -88,7 +88,7 @@
               "legendFormat": "gate/{{metricGroup}}({{metricType}})",
               "metric": "",
               "refId": "B",
-              "step": 10
+              "step": 20
             },
             {
               "expr": "sum(igor:hystrix:countShortCircuited) by (metricGroup, metricType)",
@@ -96,7 +96,7 @@
               "legendFormat": "igor/{{metricGroup}}({{metricType}})",
               "metric": "",
               "refId": "C",
-              "step": 10
+              "step": 20
             }
           ],
           "thresholds": [],
@@ -170,7 +170,7 @@
               "legendFormat": "front50/{{metricType}}({{metricGroup}})",
               "metric": "front50:hystrix:countExceptionsThrown",
               "refId": "A",
-              "step": 10
+              "step": 20
             },
             {
               "expr": "delta(gate:hystrix:countExceptionsThrown[1m])",
@@ -178,7 +178,7 @@
               "legendFormat": "gate/{{metricType}}({{metricGroup}})",
               "metric": "gate:hystrix:countExceptionsThrown",
               "refId": "B",
-              "step": 10
+              "step": 20
             },
             {
               "expr": "delta(igor:hystrix:countExceptionsThrown[1m])",
@@ -186,7 +186,7 @@
               "legendFormat": "igor/{{metricType}}({{metricGroup}})",
               "metric": "igor:hystrix:countExceptionsThrown",
               "refId": "C",
-              "step": 10
+              "step": 20
             }
           ],
           "thresholds": [],
@@ -519,7 +519,8 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(clouddriver:operations__count{success=\"true\"}[1m])",
+              "expr": "sum(idelta(clouddriver:operations__count{success=\"true\"}[1m])) by (OperationType)",
+              "hide": false,
               "intervalFactor": 2,
               "legendFormat": "{{OperationType}}",
               "refId": "A",
@@ -592,7 +593,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(clouddriver:operations__count{success=\"false\"}[1m])",
+              "expr": "sum(idelta(clouddriver:operations__count{success=\"false\"}[1m])) by (OperationType)",
               "intervalFactor": 2,
               "legendFormat": "{{OperationType}}/{{cause}}",
               "refId": "A",
@@ -682,7 +683,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "C",
-              "step": 30
+              "step": 40
             }
           ],
           "thresholds": [],
@@ -756,7 +757,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "C",
-              "step": 30
+              "step": 40
             }
           ],
           "thresholds": [],
@@ -1226,7 +1227,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
-              "step": 10
+              "step": 20
             }
           ],
           "thresholds": [],
@@ -1296,7 +1297,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
-              "step": 10
+              "step": 20
             }
           ],
           "thresholds": [],
@@ -1451,7 +1452,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
-              "step": 10
+              "step": 20
             }
           ],
           "thresholds": [],
@@ -1521,7 +1522,7 @@
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
-              "step": 10
+              "step": 20
             }
           ],
           "thresholds": [],
@@ -1838,7 +1839,7 @@
               "intervalFactor": 2,
               "metric": "front50:storageServiceSupport:cacheSize",
               "refId": "A",
-              "step": 10
+              "step": 20
             }
           ],
           "thresholds": [],
@@ -1936,7 +1937,7 @@
           "timeShift": null,
           "title": "Item Cache Adds (+) and Removes (-)",
           "tooltip": {
-            "shared": true,
+            "shared": false,
             "sort": 0,
             "value_type": "individual"
           },
@@ -1945,7 +1946,9 @@
             "mode": "time",
             "name": null,
             "show": true,
-            "values": []
+            "values": [
+              "total"
+            ]
           },
           "yaxes": [
             {
@@ -2268,7 +2271,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": " sum(delta(front50:google:storage:invocation__count[1m])) by (method)",
+              "expr": "sum(delta(front50:google:storage:invocation__count[1m])) by (method)",
               "intervalFactor": 2,
               "legendFormat": "{{method}}",
               "refId": "A",
@@ -2278,7 +2281,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Front50 Google Storage Service  Invocations",
+          "title": "Front50 Google Storage Service Invocations",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2350,7 +2353,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Front50 Google Storage Service  Invocation Latency",
+          "title": "Front50 Google Storage Service Invocation Latency",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3046,5 +3049,5 @@
   },
   "timezone": "browser",
   "title": "Spinnaker",
-  "version": 14
+  "version": 3
 }

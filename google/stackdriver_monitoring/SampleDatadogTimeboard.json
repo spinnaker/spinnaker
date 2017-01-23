@@ -1,0 +1,846 @@
+{
+    "read_only": "true", 
+    "description": "Example Dashboard for a Spinnaker Deployment", 
+    "title": "Sample Spinnaker Dashboard", 
+    "graphs": [
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:gate.hystrix.rollingCountShortCircuited{*} by {metricgroup})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars"
+            }, 
+            {
+              "q": "diff(sum:igor.hystrix.rollingCountShortCircuited{*} by {metricgroup})", 
+              "type": "bars"
+            }, 
+            {
+              "q": "diff(sum:front50.hystrix.rollingCountShortCircuited{*} by {metricgroup})", 
+              "type": "bars"
+            }
+          ]
+        }, 
+        "title": "Hystrix Rolling Count Short Circuited"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "sum:front50.hystrix.countExceptionsThrown{*}", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "sum:igor.hystrix.countExceptionsThrown{*}", 
+              "type": "line"
+            }, 
+            {
+              "q": "sum:gate.hystrix.countExceptionsThrown{*}", 
+              "type": "line"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Hystrix Exceptions Thrown (total)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:gate.hystrix.rollingCountFailure{*})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars", 
+              "style": {
+                "palette": "dog_classic"
+              }
+            }, 
+            {
+              "q": "diff(sum:gate.hystrix.countFallbackSuccess{*})", 
+              "style": {
+                "palette": "dog_classic"
+              }, 
+              "type": "bars"
+            }, 
+            {
+              "q": "diff(sum:igor.hystrix.rollingCountFailure{*})", 
+              "style": {
+                "palette": "cool"
+              }, 
+              "type": "bars"
+            }, 
+            {
+              "q": "diff(sum:igor.hystrix.countFallbackSuccess{*})", 
+              "style": {
+                "width": "thick", 
+                "palette": "cool", 
+                "type": "dashed"
+              }, 
+              "type": "line"
+            }, 
+            {
+              "q": "diff(sum:front50.hystrix.rollingCountFailure{*})", 
+              "style": {
+                "palette": "warm"
+              }, 
+              "type": "line"
+            }, 
+            {
+              "q": "diff(sum:front50.hystrix.countFallbackSuccess{*})", 
+              "style": {
+                "width": "thick", 
+                "palette": "warm", 
+                "type": "dashed"
+              }, 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Rolling Count Failures"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_minute(sum:gate.controller.invocations_totalTime{*}) / 1000000 / per_minute(sum:gate.controller.invocations_count{*})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "per_minute(sum:orca.controller.invocations_totalTime{*}) / 1000000 / per_minute(sum:orca.controller.invocations_count{*})", 
+              "type": "line"
+            }, 
+            {
+              "q": "per_minute(sum:clouddriver.controller.invocations_totalTime{*}) / 1000000 / per_minute(sum:clouddriver.controller.invocations_count{*})", 
+              "type": "line"
+            }, 
+            {
+              "q": "per_minute(sum:front50.controller.invocations_totalTime{*}) / 1000000 / per_minute(sum:front50.controller.invocations_count{*})", 
+              "type": "line"
+            }, 
+            {
+              "q": "per_minute(sum:igor.controller.invocations_totalTime{*}) / 1000000 / per_minute(sum:igor.controller.invocations_count{*})", 
+              "type": "line"
+            }, 
+            {
+              "q": "per_minute(sum:rosco.controller.invocations_totalTime{*}) / 1000000 / per_minute(sum:rosco.controller.invocations_count{*})", 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Avg Microservice Controller Invocation Time (ms per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:clouddriver.operations_count{*} by {operationtype})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Clouddriver Operations"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:clouddriver.google.operationPoller_count{*} by {basephase})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars", 
+              "style": {
+                "palette": "cool"
+              }
+            }, 
+            {
+              "q": "diff(sum:clouddriver.google.operationPoller_count{*} by {scope})", 
+              "style": {
+                "palette": "warm"
+              }, 
+              "type": "line"
+            }
+          ], 
+          "autoscale": "true", 
+          "yaxis": {
+            "filter": {
+              "below": "0.01"
+            }
+          }
+        }, 
+        "title": "Clouddriver Operation Poller Invocations (diff, bars by phase, lines by scope)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:echo.pipelines.triggered{*} by {application})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars"
+            }, 
+            {
+              "q": "diff(sum:echo.pipelines.triggered{*})", 
+              "style": {
+                "palette": "grey", 
+                "type": "dotted"
+              }, 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Echo Pipelines Triggered"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "sum:orca.threadpool.activeCount{*}", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Active Orca Threads"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:rosco.bakes{*} by {success})", 
+              "aggregator": "avg", 
+              "style": {
+                "palette": "cool"
+              }, 
+              "type": "bars", 
+              "conditional_formats": []
+            }, 
+            {
+              "q": "diff(sum:rosco.bakes.local{*} by {active})", 
+              "style": {
+                "palette": "warm"
+              }, 
+              "type": "bars"
+            }
+          ]
+        }, 
+        "title": "Rosco Bakes (local warm)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:front50.storageServiceSupport.numAdded{*} by {objecttype})", 
+              "aggregator": "avg", 
+              "style": {
+                "palette": "warm"
+              }, 
+              "type": "line", 
+              "conditional_formats": []
+            }, 
+            {
+              "q": "diff(sum:front50.storageServiceSupport.numRemoved{*} by {objecttype}) * - 1", 
+              "style": {
+                "palette": "cool"
+              }, 
+              "type": "line"
+            }, 
+            {
+              "q": "diff(sum:front50.storageServiceSupport.numUpdated{*} by {objecttype})", 
+              "style": {
+                "palette": "purple"
+              }, 
+              "type": "line"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Front50 ItemCache Changes"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "sum:front50.storageServiceSupport.cacheSize{*} by {objecttype}", 
+              "aggregator": "avg", 
+              "style": {
+                "width": "thick", 
+                "palette": "dog_classic"
+              }, 
+              "type": "line", 
+              "conditional_formats": []
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Front50 ItemCache Size"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:front50.storageServiceSupport.cacheRefreshTime_count{*} by {objecttype}) - diff(sum:front50.storageServiceSupport.autoRefreshTime_count{*} by {objecttype}) - diff(sum:front50.storageServiceSupport.scheduledRefreshTime_count{*} by {objecttype})", 
+              "aggregator": "avg", 
+              "style": {
+                "palette": "warm"
+              }, 
+              "type": "bars", 
+              "conditional_formats": []
+            }, 
+            {
+              "q": "diff(sum:front50.storageServiceSupport.autoRefreshTime_count{*} by {objecttype})", 
+              "aggregator": "avg", 
+              "style": {
+                "width": "thick", 
+                "palette": "cool"
+              }, 
+              "type": "line", 
+              "conditional_formats": []
+            }, 
+            {
+              "q": "diff(sum:front50.storageServiceSupport.scheduledRefreshTime_count{*} by {objecttype})", 
+              "aggregator": "avg", 
+              "style": {
+                "palette": "cool"
+              }, 
+              "type": "bars", 
+              "conditional_formats": []
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Front50 cache refreshes (onDemand warm, scheduled cool)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:front50.storageServiceSupport.cacheRefreshTime_totalTime{*} by {objecttype}) / 1000000", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars"
+            }
+          ], 
+          "autoscale": "true", 
+          "yaxis": {
+            "filter": {
+              "below": "0.01"
+            }
+          }
+        }, 
+        "title": "Front50 cache refresh time (ms per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_minute(sum:front50.google.storage.invocation_totalTime{*} by {method}) / 1000000 / per_minute(sum:front50.google.storage.invocation_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Google Storage Service Call Latency (ms per call per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "0 * ( per_minute(sum:clouddriver.aws.request.httpClientReceiveResponseTime_totalTime{*} by {requesttype}) / 1000000 ) / per_minute(sum:clouddriver.aws.request.httpClientReceiveResponseTime_count{*} by {requesttype})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line", 
+              "style": {
+                "type": "dotted"
+              }
+            }, 
+            {
+              "q": "( per_minute(sum:clouddriver.aws.request.httpRequestTime_totalTime{*} by {serviceendpoint}) / 1000000 ) / per_minute(sum:clouddriver.aws.request.httpRequestTime_count{*} by {serviceendpoint})", 
+              "conditional_formats": [], 
+              "type": "line", 
+              "style": {
+                "type": "solid"
+              }
+            }
+          ]
+        }, 
+        "title": "AWS httpRequest totalTime ms / call (per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:front50.google.storage.invocation_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ], 
+          "yaxis": {
+            "filter": {
+              "below": "0.01"
+            }
+          }
+        }, 
+        "title": "Google Storage Service Invocation Count"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "avg:system.load.1{*}", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "avg:system.mem.used{*} / avg:system.mem.total{*}", 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "System Load and Pct Memory Used"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "sum:front50.jvm.memory.used{*}", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "sum:clouddriver.jvm.memory.used{*}", 
+              "type": "line"
+            }, 
+            {
+              "q": "sum:orca.jvm.memory.used{*}", 
+              "type": "line"
+            }, 
+            {
+              "q": "sum:gate.jvm.memory.used{*}", 
+              "type": "line"
+            }, 
+            {
+              "q": "sum:igor.jvm.memory.used{*}", 
+              "type": "line"
+            }, 
+            {
+              "q": "sum:rosco.jvm.memory.used{*}", 
+              "type": "line"
+            }, 
+            {
+              "q": "sum:echo.jvm.memory.used{*}", 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "jvm memory used"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:gate.controller.invocations_count{*})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "diff(sum:orca.controller.invocations_count{*})", 
+              "type": "line"
+            }, 
+            {
+              "q": "diff(sum:clouddriver.controller.invocations_count{*})", 
+              "type": "line"
+            }, 
+            {
+              "q": "diff(sum:front50.controller.invocations_count{*})", 
+              "type": "line"
+            }, 
+            {
+              "q": "diff(sum:igor.controller.invocations_count{*})", 
+              "type": "line"
+            }, 
+            {
+              "q": "diff(sum:rosco.controller.invocations_count{*})", 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Microservice Controller Invocations"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_minute(sum:clouddriver.controller.invocations_count{status:false} by {statuscode})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "per_minute(sum:front50.controller.invocations_count{success:false} by {statuscode})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "per_minute(sum:gate.controller.invocations_count{success:false} by {statuscode})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "per_minute(sum:orca.controller.invocations_count{success:false} by {statuscode})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "per_minute(sum:igor.controller.invocations_count{success:false} by {statuscode})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "per_minute(sum:rosco.controller.invocations_count{success:false} by {statuscode})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Microservice Controller Invocation Failures"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:clouddriver.controller.invocations_count{*} by {controller,method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "diff(sum:clouddriver.controller.invocations_count{*})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line", 
+              "style": {
+                "palette": "grey", 
+                "type": "dotted"
+              }
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Clouddriver Controller Invocations"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_minute(sum:clouddriver.controller.invocations_totalTime{*} by {controller,method}) / 1000000 / per_minute(sum:clouddriver.controller.invocations_count{*} by {controller,method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Clouddriver Controller Invocation Time (ms per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:front50.controller.invocations_count{*} by {controller,method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }, 
+            {
+              "q": "diff(sum:front50.controller.invocations_count{*})", 
+              "style": {
+                "palette": "grey", 
+                "type": "dotted"
+              }, 
+              "type": "line"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Front50 Controller Invocations"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_second(sum:front50.controller.invocations_totalTime{*} by {controller,method}) / 1000000 / per_second(avg:front50.controller.invocations_count{*} by {controller,method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Front50 Controller Invocation Time (ms per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:gate.controller.invocations_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars"
+            }, 
+            {
+              "q": "diff(sum:gate.controller.invocations_count{*})", 
+              "style": {
+                "palette": "grey", 
+                "type": "dotted"
+              }, 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Gate Controller Invocations"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_minute(sum:gate.controller.invocations_totalTime{*} by {method}) / 1000000 / per_minute(sum:gate.controller.invocations_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Gate Controller Invocation Time (ms per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:orca.controller.invocations_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars"
+            }, 
+            {
+              "q": "diff(sum:orca.controller.invocations_count{*})", 
+              "style": {
+                "palette": "grey", 
+                "type": "dotted"
+              }, 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Orca Controller Invocations"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_minute(sum:orca.controller.invocations_totalTime{*} by {method}) / 1000000 / per_minute(sum:orca.controller.invocations_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Orca Controller Invocation Time (ms per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:igor.controller.invocations_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars"
+            }, 
+            {
+              "q": "diff(sum:igor.controller.invocations_count{*})", 
+              "style": {
+                "palette": "grey", 
+                "type": "dotted"
+              }, 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Igor Controller Invocations"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_minute(sum:igor.controller.invocations_totalTime{*} by {method}) / 1000000 / per_minute(avg:igor.controller.invocations_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Igor Controller Invocation Time (ms per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:echo.controller.invocations_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars"
+            }, 
+            {
+              "q": "diff(sum:echo.controller.invocations_count{*})", 
+              "style": {
+                "palette": "grey", 
+                "type": "dotted"
+              }, 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Echo Controller Invocations"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_minute(sum:echo.controller.invocations_totalTime{*} by {method}) / 1000000 / per_minute(avg:echo.controller.invocations_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Echo Controller Invocation Time (ms per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "diff(sum:rosco.controller.invocations_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars"
+            }, 
+            {
+              "q": "diff(sum:rosco.controller.invocations_count{*})", 
+              "style": {
+                "palette": "grey", 
+                "type": "dotted"
+              }, 
+              "type": "line"
+            }
+          ]
+        }, 
+        "title": "Rosco Controller Invocations"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_minute(sum:rosco.controller.invocations_totalTime{*} by {method}) / 1000000 / per_minute(avg:rosco.controller.invocations_count{*} by {method})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "line"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Rosco Controller Invocation Time (ms per minute)"
+      }, 
+      {
+        "definition": {
+          "viz": "query_value", 
+          "requests": [
+            {
+              "q": "sum:orca.threadpool.activeCount{*}", 
+              "aggregator": "last", 
+              "conditional_formats": []
+            }
+          ], 
+          "autoscale": "true", 
+          "precision": "0"
+        }, 
+        "title": "Last known Orca Active Threads"
+      }, 
+      {
+        "definition": {
+          "viz": "timeseries", 
+          "requests": [
+            {
+              "q": "per_minute(sum:clouddriver.onDemand_total_totalTime{*} by {ondemandtype}) / 1000000000 / per_minute(sum:clouddriver.onDemand_total_count{*} by {ondemandtype})", 
+              "aggregator": "avg", 
+              "conditional_formats": [], 
+              "type": "bars"
+            }
+          ], 
+          "autoscale": "true"
+        }, 
+        "title": "Clouddriver OnDemand Invocation Time (ms per call per minute)"
+      }
+    ], 
+    "template_variables": [
+      {
+        "default": "*", 
+        "prefix": "",
+        "name": "var"
+      }
+    ]
+}
