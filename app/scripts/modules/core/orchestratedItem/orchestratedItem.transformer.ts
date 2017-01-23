@@ -97,8 +97,12 @@ export class OrchestratedItemTransformer {
   private getOrchestrationException(task: ITask): string {
     const katoTasks: any[] = task.getValueFor('kato.tasks');
     if (katoTasks && katoTasks.length) {
-      const steps: TaskStep[] = katoTasks[katoTasks.length - 1].history;
-      const exception: any = katoTasks[katoTasks.length - 1].exception;
+      const failedTask: any = katoTasks.find(t => t.status && t.status.failed);
+      if (!failedTask) {
+        return null;
+      }
+      const steps: TaskStep[] = failedTask.history;
+      const exception: any = failedTask.exception;
       if (exception) {
         return exception.message;
       }
