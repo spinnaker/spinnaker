@@ -1,24 +1,25 @@
-apiVersion: v1
-kind: ReplicationController
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
 metadata:
-  name: redis-fiat-master-v000
+  name: redis-clouddriver-master-v000
   namespace: spinnaker
   labels:
     app: redis
-    stack: fiat
+    stack: clouddriver
     detail: master
     version: v000
 spec:
   replicas: 1
   selector:
-    replication-controller: redis-fiat-master-v000
+    matchLabels:
+      replication-controller: redis-clouddriver-master-v000
   template:
     metadata:
       labels:
-        replication-controller: redis-fiat-master-v000
-        load-balancer-redis-fiat-master: "true"
+        replication-controller: redis-clouddriver-master-v000
+        load-balancer-redis-clouddriver-master: "true"
         app: redis
-        stack: fiat
+        stack: clouddriver
         detail: master
     spec:
       containers:
