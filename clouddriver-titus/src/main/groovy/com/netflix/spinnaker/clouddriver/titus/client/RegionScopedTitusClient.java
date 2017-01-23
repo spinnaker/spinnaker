@@ -71,17 +71,20 @@ public class RegionScopedTitusClient implements TitusClient {
 
     private final Registry registry;
 
+    private final List<TitusJobCustomizer> titusJobCustomizers;
+
     private final Retrofit retrofit;
 
-    public RegionScopedTitusClient(TitusRegion titusRegion, Registry registry) {
-        this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure(), registry);
+    public RegionScopedTitusClient(TitusRegion titusRegion, Registry registry, List<TitusJobCustomizer> titusJobCustomizers) {
+        this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure(), registry, titusJobCustomizers);
     }
 
     public RegionScopedTitusClient(TitusRegion titusRegion,
                                    long connectTimeoutMillis,
                                    long readTimeoutMillis,
                                    ObjectMapper objectMapper,
-                                   Registry registry) {
+                                   Registry registry,
+                                   List<TitusJobCustomizer> titusJobCustomizers) {
         this.titusRegion = titusRegion;
         this.connectTimeoutMillis = connectTimeoutMillis;
         this.readTimeoutMillis = readTimeoutMillis;
@@ -89,6 +92,7 @@ public class RegionScopedTitusClient implements TitusClient {
         this.retrofit = createRetrofit(titusRegion);
         this.titusRestAdapter = createTitusRestAdapter(this.retrofit);
         this.registry = registry;
+        this.titusJobCustomizers = titusJobCustomizers;
     }
 
     private Retrofit createRetrofit(TitusRegion titusRegion){
@@ -191,6 +195,9 @@ public class RegionScopedTitusClient implements TitusClient {
         jobDescription.getLabels().put("name", jobDescription.getName());
         jobDescription.getLabels().put("source", "spinnaker");
         jobDescription.getLabels().put("spinnakerAccount", submitJobRequest.getCredentials());
+        for (TitusJobCustomizer customizer : titusJobCustomizers) {
+          customizer.customize(jobDescription);
+        }
         SubmitJobResponse response = execute("submitJob", titusRestAdapter.submitJob(jobDescription));
         if (response == null) throw new RuntimeException(String.format("Failed to submit a titus job request for %s", jobDescription));
         String jobUri = response.getJobUri();

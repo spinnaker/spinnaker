@@ -37,7 +37,7 @@ class RegionScopedTitusClientSpec extends Specification {
     TitusRegion titusRegion = new TitusRegion(
       "us-east-1", "test", "http://titusapi.mainvpc.us-east-1.dyntest.netflix.net:7101/"
     );
-    TitusClient titusClient = new RegionScopedTitusClient(titusRegion, new NoopRegistry());
+    TitusClient titusClient = new RegionScopedTitusClient(titusRegion, new NoopRegistry(), Collections.emptyList());
 
     // ******************************************************************************************************************
 

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusClient
+import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
@@ -29,15 +30,17 @@ class TitusClientProvider {
 
   private final Map<TitusClientKey, TitusClient> titusClients = new ConcurrentHashMap<>()
   private final Registry registry
+  private final List<TitusJobCustomizer> titusJobCustomizers
 
-  TitusClientProvider(Registry registry) {
+  TitusClientProvider(Registry registry, List<TitusJobCustomizer> titusJobCustomizers) {
     this.registry = registry
+    this.titusJobCustomizers = titusJobCustomizers == null ? Collections.emptyList() : Collections.unmodifiableList(titusJobCustomizers)
   }
 
   TitusClient getTitusClient(NetflixTitusCredentials account, String region) {
     final TitusRegion titusRegion = Objects.requireNonNull(account.regions.find { it.name == region }, "region")
     final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)
-    return titusClients.computeIfAbsent(key, { k -> new RegionScopedTitusClient(k.region, registry) })
+    return titusClients.computeIfAbsent(key, { k -> new RegionScopedTitusClient(k.region, registry, titusJobCustomizers) })
   }
 
   @Immutable(knownImmutableClasses = [TitusRegion])
