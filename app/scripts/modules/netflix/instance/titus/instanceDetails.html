@@ -71,6 +71,14 @@
         <dd><account-tag account="instance.account" pad="right"></account-tag></dd>
         <dt>Region</dt>
         <dd>{{instance.placement.region}}</dd>
+        <dt>Host</dt>
+        <dd>{{instance.placement.host}}</dd>
+        <dt ng-if="instance.resources.ports && ctrl.hasPorts()">Port(s)</dt>
+        <dd ng-if="instance.resources.ports && ctrl.hasPorts()">
+          <div ng-repeat="(key, val) in instance.resources.ports">
+            {{key}} -> {{val}}
+          </div>
+        </dd>
         <dt ng-if="instance.placement.containerIp">Container IP</dt>
         <dd ng-if="instance.placement.containerIp">{{instance.placement.containerIp}}
           <copy-to-clipboard
@@ -78,12 +86,6 @@
             text="{{instance.placement.containerIp}}"
             tool-tip="Copy container IP clipboard">
           </copy-to-clipboard>
-        </dd>
-        <dt ng-if="instance.resources.ports && ctrl.hasPorts()">Port(s)</dt>
-        <dd ng-if="instance.resources.ports && ctrl.hasPorts()">
-          <div ng-repeat="(key, val) in instance.resources.ports">
-            {{key}} -> {{val}}
-          </div>
         </dd>
       </dl>
     </collapsible-section>
