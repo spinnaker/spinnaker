@@ -50,6 +50,7 @@ def normalize_name_and_tags(name, metric_instance, metric_metadata):
 
   is_timer = metric_metadata['kind'] == 'Timer'
   if is_timer:
+    tags = list(tags)
     for index, tag in enumerate(tags):
       if tag['key'] == 'statistic':
         name = name + '__{0}'.format(tag['value'])
