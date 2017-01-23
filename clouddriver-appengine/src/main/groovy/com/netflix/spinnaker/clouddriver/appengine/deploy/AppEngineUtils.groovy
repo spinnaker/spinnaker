@@ -46,7 +46,7 @@ class AppEngineUtils {
         }
 
       credentials.appengine.apps().services().versions().list(project, service.getId()).queue(batch, callback)
-    }.flatten() as List<Version>
+    }
 
     batch.execute()
     return allVersions.flatten()
