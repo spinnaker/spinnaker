@@ -1,4 +1,5 @@
 import {module} from 'angular';
+import {IExecutionDetailsStateParams} from '../delivery.states';
 
 export class ExecutionDetailsSectionService {
 
@@ -6,13 +7,13 @@ export class ExecutionDetailsSectionService {
 
   static get $inject() { return ['$stateParams', '$state', '$q', '$timeout']; }
 
-  public constructor(private $stateParams: angular.ui.IStateParamsService,
+  public constructor(private $stateParams: IExecutionDetailsStateParams,
                      private $state: angular.ui.IStateService,
                      private $q: ng.IQService,
                      private $timeout: ng.ITimeoutService) {}
 
   private sectionIsValid(availableSections: string[]): boolean {
-    return availableSections.includes(this.$stateParams['details']);
+    return availableSections.includes(this.$stateParams.details);
   }
 
   public synchronizeSection(availableSections: string[], onComplete?: () => any): void {
@@ -20,7 +21,7 @@ export class ExecutionDetailsSectionService {
     if (!this.$state.includes('**.execution')) {
       return;
     }
-    let details: any = this.$stateParams['details'] || availableSections[0];
+    let details: any = this.$stateParams.details || availableSections[0];
     if (!availableSections.includes(details)) {
       details = availableSections[0];
     }

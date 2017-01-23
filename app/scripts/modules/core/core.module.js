@@ -7,6 +7,9 @@ import {AUTHENTICATION} from 'core/authentication/authentication.module';
 import {API_SERVICE} from 'core/api/api.service';
 import {CLOUD_PROVIDER_LOGO} from 'core/cloudProvider/cloudProviderLogo.component';
 import {HELP_FIELD_COMPONENT} from 'core/help/helpField.component';
+import {STATE_CONFIG_PROVIDER} from 'core/navigation/state.provider';
+import {APPLICATIONS_STATE_PROVIDER} from 'core/application/applications.state.provider';
+import {INFRASTRUCTURE_STATES} from 'core/search/infrastructure/infrastructure.states';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -81,7 +84,9 @@ module.exports = angular
 
     require('./modal/modal.module.js'),
 
-    require('./navigation/states.provider.js'),
+    STATE_CONFIG_PROVIDER,
+    APPLICATIONS_STATE_PROVIDER,
+    INFRASTRUCTURE_STATES,
     require('./notification/notifications.module.js'),
     require('./notification/types/email/email.notification.type.module.js'),
     require('./notification/types/hipchat/hipchat.notification.type.module.js'),
@@ -173,8 +178,7 @@ module.exports = angular
   .run(function (cacheInitializer) {
     cacheInitializer.initialize();
   })
-  .config(function ($logProvider, statesProvider) {
-    statesProvider.setStates();
+  .config(function ($logProvider) {
     $logProvider.debugEnabled(true);
   })
   .config(function($uibTooltipProvider) {

@@ -9,6 +9,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
   require('core/application/listExtractor/listExtractor.service'),
   CLOUD_PROVIDER_REGISTRY,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
+  require('core/pipeline/config/pipelineConfigProvider'),
   require('core/config/settings.js'),
 ])
   .config(function (pipelineConfigProvider, settings) {

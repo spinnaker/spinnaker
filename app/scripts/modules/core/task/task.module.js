@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+import {TASK_STATES} from './task.states';
+
 require('./tasks.less');
 
 module.exports = angular
@@ -11,5 +13,6 @@ module.exports = angular
     require('./statusGlyph.directive.js'),
     require('./task.write.service.js'),
     require('./tasks.controller.js'),
-    require('./task.dataSource')
+    require('./task.dataSource'),
+    TASK_STATES
   ]);

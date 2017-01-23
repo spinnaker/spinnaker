@@ -60,6 +60,12 @@ export class Application {
    */
   public notFound: boolean = false;
 
+  /**
+   * Indicates that the application does not exist and is used as a stub
+   * @type {boolean}
+   */
+  public isStandalone: boolean = false;
+
   private refreshStream: Subject<any> = new Subject();
 
   private refreshFailureStream: Subject<any> = new Subject();

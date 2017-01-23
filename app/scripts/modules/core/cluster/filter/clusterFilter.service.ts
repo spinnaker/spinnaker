@@ -5,6 +5,7 @@ import {ServerGroup} from '../../domain/serverGroup';
 import {ICluster} from 'core/domain';
 import {Instance} from '../../domain/instance';
 import {IEntityTags} from '../../domain/IEntityTags';
+import {IApplicationStateParams} from '../../application/application.state.provider';
 
 interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -115,7 +116,7 @@ export class ClusterFilterService {
   }
 
   public constructor(private ClusterFilterModel: any, private MultiselectModel: any, private waypointService: any,
-                     private $log: ng.ILogService, private $stateParams: angular.ui.IStateParamsService,
+                     private $log: ng.ILogService, private $stateParams: IApplicationStateParams,
                      private filterModelService: any) {}
 
   public clearFilters(): void {
@@ -175,7 +176,7 @@ export class ClusterFilterService {
         category[result.category] = true;
         this.ClusterFilterModel.sortFilter.category = category;
       }
-      if (this.$stateParams['application'] === result.application) {
+      if (this.$stateParams.application === result.application) {
         this.updateClusterGroups();
       }
     }
