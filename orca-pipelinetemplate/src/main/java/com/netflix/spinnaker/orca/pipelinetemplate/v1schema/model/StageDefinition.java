@@ -26,7 +26,7 @@ public class StageDefinition implements Identifiable, Conditional {
   private String id;
   private String name;
   private InjectionRule inject;
-  private String dependsOn; // TODO rz - comma-delimited for now
+  private List<String> dependsOn;
   private String type;
   private Map<String, Object> config;
   private List<Map<String, Object>> notifications;
@@ -151,11 +151,11 @@ public class StageDefinition implements Identifiable, Conditional {
     this.inject = inject;
   }
 
-  public String getDependsOn() {
-    return dependsOn;
+  public List<String> getDependsOn() {
+    return Optional.ofNullable(dependsOn).orElse(new ArrayList<>());
   }
 
-  public void setDependsOn(String dependsOn) {
+  public void setDependsOn(List<String> dependsOn) {
     this.dependsOn = dependsOn;
   }
 

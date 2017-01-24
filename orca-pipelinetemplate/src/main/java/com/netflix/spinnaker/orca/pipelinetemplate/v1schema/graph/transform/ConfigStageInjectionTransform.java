@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Replaces and injects configuration-defined stages into the pipeline template.
@@ -74,6 +75,17 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
   }
 
   private void injectStages(PipelineTemplate pipelineTemplate) {
-    // TODO rz - injection isn't going to be a first-pass feature
+    List<StageDefinition> configStages = templateConfiguration.getStages()
+      .stream()
+      .filter(s -> s.getInject() != null)
+      .collect(Collectors.toList());
+    List<StageDefinition> templateStages = pipelineTemplate.getStages()
+      .stream()
+      .filter(s -> s.getInject() != null)
+      .collect(Collectors.toList());
+
+    if (!configStages.isEmpty() || !templateStages.isEmpty()) {
+      throw new UnsupportedOperationException("stage injection is not yet supported");
+    }
   }
 }

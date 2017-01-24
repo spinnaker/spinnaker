@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,7 +80,7 @@ public class PipelineTemplate {
     private List<NamedHashMap> notifications;
 
     public Map<String, Object> getConcurrentExecutions() {
-      return concurrentExecutions;
+      return Optional.ofNullable(concurrentExecutions).orElse(new HashMap<>());
     }
 
     public void setConcurrentExecutions(Map<String, Object> concurrentExecutions) {

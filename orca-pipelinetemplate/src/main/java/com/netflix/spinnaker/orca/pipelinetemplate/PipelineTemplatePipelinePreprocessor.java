@@ -19,8 +19,10 @@ package com.netflix.spinnaker.orca.pipelinetemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor;
+import com.netflix.spinnaker.orca.pipelinetemplate.generator.ExecutionGenerator;
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.TemplateMerge;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.V1SchemaExecutionGenerator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.GraphMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
@@ -66,8 +68,6 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
     TemplateConfiguration templateConfiguration = request.getConfig();
 
-    // TODO find all templates via request.config.pipeline.template.source
-    // list needs to be FIFO, where the first template is the root
     List<PipelineTemplate> templates = templateLoader.load(templateConfiguration.getPipeline().getTemplate());
 
     PipelineTemplate template = TemplateMerge.merge(templates);
@@ -75,9 +75,11 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     GraphMutator graphMutator = new GraphMutator(templateConfiguration, renderer, registry);
     graphMutator.mutate(template);
 
-    // TODO final validation & marshal to pipeline json
+    // TODO validation
 
-    return pipeline;
+    ExecutionGenerator executionGenerator = new V1SchemaExecutionGenerator();
+
+    return executionGenerator.generate(template, templateConfiguration);
   }
 
   private static class TemplatedPipelineRequest {
