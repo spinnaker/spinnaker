@@ -37,7 +37,10 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
     trigger.cronExpression = trigger.cronExpression || '0 0 10 ? * MON-FRI *';
 
     this.cronOptions = {
-      templateUrl: require('./cronPicker.html'),
+      formSelectClass: 'form-control input-sm',
+      hideAdvancedTab: false,
+      hideSeconds: true,
+      use24HourTime: true
     };
 
-  });
+  }).run($templateCache => $templateCache.put('spinnaker-custom-cron-picker-template', $templateCache.get(require('./cronPicker.html'))));
