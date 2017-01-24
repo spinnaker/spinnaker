@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
+import com.netflix.frigga.Names;
 import com.netflix.spinnaker.gate.services.EntityTagsService;
 import com.netflix.spinnaker.gate.services.TaskService;
 import io.swagger.annotations.ApiOperation;
@@ -68,13 +69,20 @@ public class EntityTagsController {
   @RequestMapping(value = "/{id}/{tag}", method = RequestMethod.DELETE)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map delete(@PathVariable String id, @PathVariable String tag) {
-    Map<String, Object> operation = new HashMap<>();
     List<Map<String, Object>> jobs = new ArrayList<>();
     Map<String, Object> job = new HashMap<>();
     job.put("type", "deleteEntityTags");
     job.put("id", id);
     job.put("tags", tag.split(","));
     jobs.add(job);
+
+    Map entityTags = entityTagsService.get(id);
+    String entityId = (String) ((Map)entityTags.get("entityRef")).get("entityId");
+    String application = Names.parseName(entityId).getApp();
+
+    Map<String, Object> operation = new HashMap<>();
+    operation.put("application", application);
+    operation.put("description", "Deleting Tags on '" + id + "'");
     operation.put("job", jobs);
     return taskService.create(operation);
   }
@@ -86,6 +94,7 @@ public class EntityTagsController {
                   @RequestParam(value = "account") String account,
                   @RequestParam(value = "region") String region,
                   @RequestParam(value = "cloudProvider") String cloudProvider,
+                  @RequestParam(value = "application", required = false) String application,
                   @RequestParam(value = "isPartial", defaultValue = "true") Boolean isPartial,
                   @RequestBody List<Map> tags) {
 
@@ -105,7 +114,13 @@ public class EntityTagsController {
     List<Map<String, Object>> jobs = new ArrayList<>();
     jobs.add(job);
 
+    if (application == null) {
+      application = Names.parseName(entityId).getApp();
+    }
+
     Map<String, Object> operation = new HashMap<>();
+    operation.put("application", application);
+    operation.put("description", "Updating Tags on '" + entityId + "'");
     operation.put("job", jobs);
     return taskService.create(operation);
   }
