@@ -1,0 +1,23 @@
+{
+  "title": "Example AWS-only schema",
+  "type": "object",
+  "properties": {
+    "field1": {
+      "type": "string",
+      "condition": {
+        "cloudProviders": [
+          "aws"
+        ]
+      },
+      "required": true
+    },
+    "field2": {
+      "type": "boolean",
+      "condition": {
+        "cloudProviders": [
+          "aws"
+        ]
+      }
+    }
+  }
+}
