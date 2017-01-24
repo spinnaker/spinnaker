@@ -14,7 +14,7 @@ export interface IFastPropertiesStateParams extends IApplicationStateParams {
 
 }
 
-export const FAST_PROPERTY_STATES = 'spinnaker.netflix.tableau.states';
+export const FAST_PROPERTY_STATES = 'spinnaker.netflix.fastProperties.states';
 module(FAST_PROPERTY_STATES, [
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
