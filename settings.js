@@ -2,8 +2,7 @@
 
 var feedbackUrl = process.env.FEEDBACK_URL;
 var gateHost = process.env.API_HOST || 'http://localhost:8084';
-var bakeryHost = process.env.BAKERY_HOST || 'http://localhost:8087';
-var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || (bakeryHost + '/#/?region={{context.region}}&package={{context.package}}&detail=bake:{{context.status.resourceId}}');
+var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || (gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}');
 var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
 var authEnabled = process.env.AUTH_ENABLED === 'false' ? false : true;
 var netflixMode = process.env.NETFLIX_MODE === 'true' ? true : false;
