@@ -65,9 +65,35 @@ class DateUtilsSpec extends Specification {
     noExceptionThrown()
   }
 
-  def 'exception when invalid date time format'() {
+  def 'parse zoned date time format'() {
+    given:
+    def time = '2011-12-03T10:15:30+01:00'
+    def expected = ZonedDateTime.parse(time, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
     when:
-    DateUtils.parseZonedDateTime('2011-12-03T10:15:30+01:00')
+    def actual = DateUtils.parseZonedDateTime(time)
+
+    then:
+    actual == expected
+    noExceptionThrown()
+  }
+
+  def 'parse UTC date time'() {
+    given:
+    def time = '2017-01-18T01:38:53Z'
+    def expected = ZonedDateTime.parse(time, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
+    when:
+    def actual = DateUtils.parseZonedDateTime(time)
+
+    then:
+    actual == expected
+    noExceptionThrown()
+  }
+
+  def 'throws exception with unknown format'() {
+    when:
+    DateUtils.parseZonedDateTime('10:15:30+01:00')
 
     then:
     thrown(DateTimeParseException)

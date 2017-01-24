@@ -15,30 +15,54 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.utils
 
+import groovy.util.logging.Slf4j
+
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
+@Slf4j
 class DateUtils {
 
   /**
-   * Parses a date time string in ISO_LOCAL_DATE_TIME format.
+   * Parses a date time string.
    *
-   * It is assumed the date time string does not include a timezone offset, as is the norm for Openstack starting with
-   * Liberty and later.
+   * It tries the following time formats:
+   *
+   *    ISO_LOCAL_DATE_TIME
+   *    ISO_OFFSET_DATE_TIME
+   *
    * @param time the date time string to parse
    * @param defaultTime a default time to use if the given date time is null, defaults to Now
    * @return a parsed date time object
    */
   static ZonedDateTime parseZonedDateTime(String time, ZonedDateTime defaultTime = null) {
-    ZonedDateTime result
+
     if (time) {
-      result = LocalDateTime.parse(time, DateTimeFormatter.ISO_LOCAL_DATE_TIME).atZone(ZoneId.systemDefault())
+      // Try a couple formats because OpenStack keeps change formats. Sigh.
+
+      try {
+        // For date time strings that are the local time without a timezone
+        return LocalDateTime.parse(time, DateTimeFormatter.ISO_LOCAL_DATE_TIME).atZone(ZoneId.systemDefault())
+      } catch (DateTimeParseException e) {
+        log.info("Failed to parse datetime ${time} as ISO_LOCAL_DATE_TIME; ${e.message}")
+      }
+
+      try {
+        // For date time strings that include an offset (or Z which is no offset)
+        return ZonedDateTime.parse(time, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+      } catch (DateTimeParseException e) {
+        log.info("Failed to parse datetime ${time} as ISO_OFFSET_DATE_TIME")
+
+        // This is the last attempt, rethrow the exception
+        throw(e)
+      }
     } else {
-      result = defaultTime ?: ZonedDateTime.now()
+      return defaultTime ?: ZonedDateTime.now()
     }
-    result
+
   }
 }
 
