@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.appengine.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.googleapis.batch.BatchRequest
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -52,6 +53,12 @@ abstract class AbstractAppEngineCachingAgent implements CachingAgent, AccountAwa
       } else {
         cacheDataById[it.id] = it
       }
+    }
+  }
+
+  static void executeIfRequestsAreQueued(BatchRequest batch) {
+    if (batch.size()) {
+      batch.execute()
     }
   }
 

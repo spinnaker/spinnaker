@@ -320,8 +320,8 @@ class AppEngineServerGroupCachingAgent extends AbstractAppEngineCachingAgent imp
       credentials.appengine.apps().services().versions().list(project, loadBalancerName).queue(batch, callback)
     }
 
-    batch.execute()
-    serverGroupsByLoadBalancer
+    executeIfRequestsAreQueued(batch)
+    return serverGroupsByLoadBalancer
   }
 
   Map loadServerGroupAndLoadBalancer(String serverGroupName) {
@@ -357,9 +357,8 @@ class AppEngineServerGroupCachingAgent extends AbstractAppEngineCachingAgent imp
           .queue(batch, callback)
     }
 
-    batch.execute()
-
-    [serverGroup: serverGroup, loadBalancer: loadBalancer]
+    executeIfRequestsAreQueued(batch)
+    return [serverGroup: serverGroup, loadBalancer: loadBalancer]
   }
 
   Map<Version, List<Instance>> loadInstances(Map<Service, List<Version>> serverGroupsByLoadBalancer) {
@@ -388,8 +387,8 @@ class AppEngineServerGroupCachingAgent extends AbstractAppEngineCachingAgent imp
       }
     }
 
-    batch.execute()
-    instancesByServerGroup
+    executeIfRequestsAreQueued(batch)
+    return instancesByServerGroup
   }
 
   @Override
