@@ -421,7 +421,7 @@ class AppengineServerGroupDetailsController {
           });
         }
 
-        this.serverGroup = Object.assign(fromApp, serverGroupDetails);
+        this.serverGroup = Object.assign(serverGroupDetails, fromApp);
         this.state.loading = false;
       });
   }

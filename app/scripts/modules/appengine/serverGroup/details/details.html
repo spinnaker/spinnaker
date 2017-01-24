@@ -123,7 +123,7 @@
         <appengine-component-url-details component="ctrl.serverGroup"></appengine-component-url-details>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Scaling Policy" expanded="true">
+    <collapsible-section heading="Scaling Policy" expanded="true" ng-if="ctrl.serverGroup.scalingPolicy">
       <dl>
         <appengine-conditional-dt-dd component="ctrl.serverGroup.scalingPolicy" key="type"></appengine-conditional-dt-dd>
         <!--MANUAL SCALING PROPERTIES-->

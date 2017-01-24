@@ -15,6 +15,9 @@
           <div ng-if="stage.context.namespace">
             <dd>{{stage.context.namespace}}</dd>
           </div>
+          <div ng-if="stage.context.region">
+            <dd>{{stage.context.region}}</dd>
+          </div>
           <dt>Cluster</dt>
           <dd>{{stage.context | clusterName }}</dd>
         </dl>

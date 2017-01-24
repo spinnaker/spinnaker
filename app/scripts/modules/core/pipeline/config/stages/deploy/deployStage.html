@@ -48,6 +48,9 @@
           <div ng-if="!cluster.capacity">
             {{cluster.targetSize}}
           </div>
+          <div ng-if="!(cluster.useSourceCapacity || cluster.capacity || cluster.targetSize)">
+            N/A
+          </div>
         </td>
         <td ng-if="deployStageCtrl.hasInstanceTypeDeployments()">
            {{ cluster.instanceType  || '[none]' }}
