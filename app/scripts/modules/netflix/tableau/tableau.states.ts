@@ -7,6 +7,8 @@ export const TABLEAU_STATES = 'spinnaker.netflix.tableau.states';
 module(TABLEAU_STATES, [
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
+  require('./summary/summaryTableau.controller'),
+  require('./application/appTableau.controller'),
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
   const appState: INestedState = {
