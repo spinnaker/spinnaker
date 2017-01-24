@@ -23,6 +23,7 @@ import com.google.api.client.http.HttpResponseException
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.frigga.Names
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -54,6 +55,8 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final ZONE = "us-central1-b"
   private static final DONE = "DONE"
 
+  @Shared
+  def registry = new DefaultRegistry()
   @Shared
   def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
   @Shared
@@ -99,6 +102,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -179,6 +183,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -303,6 +308,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -390,6 +396,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -519,6 +526,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       destroy.safeRetry = safeRetry

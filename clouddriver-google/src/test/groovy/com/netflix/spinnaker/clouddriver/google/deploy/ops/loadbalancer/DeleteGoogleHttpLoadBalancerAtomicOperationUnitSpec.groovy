@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -55,6 +56,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
 
   @Shared
   def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+  @Shared
+  def registry = new DefaultRegistry()
   @Shared
   SafeRetry safeRetry
 
@@ -118,6 +121,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -246,6 +250,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -393,6 +398,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -477,6 +483,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -569,6 +576,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -668,6 +676,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
@@ -738,6 +747,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
       operation.safeRetry = safeRetry
