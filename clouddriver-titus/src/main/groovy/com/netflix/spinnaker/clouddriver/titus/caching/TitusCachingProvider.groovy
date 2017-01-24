@@ -42,7 +42,7 @@ class TitusCachingProvider implements Provider, EurekaAwareProvider {
 
   @Override
   Boolean isProviderForEurekaRecord(Map<String, Object> attributes) {
-    attributes.containsKey('titusTaskId') && attributes.get('titusTaskId') != null
+    attributes.containsKey('titusTaskId') && attributes.get('titusTaskId') != null && attributes.get('instanceId') != null
   }
 
   @Override
@@ -52,7 +52,7 @@ class TitusCachingProvider implements Provider, EurekaAwareProvider {
 
   @Override
   String getInstanceHealthKey(Map<String, Object> attributes,  String region, String healthId) {
-    Keys.getInstanceHealthKey(attributes.titusTaskId, healthId)
+    Keys.getInstanceHealthKey(attributes.instanceId, healthId)
   }
 
 }

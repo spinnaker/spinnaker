@@ -241,7 +241,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     instanceData.each { instanceEntry ->
       externalHealthProviders.each { externalHealthProvider ->
         externalHealthProvider.agents.each { externalHealthAgent ->
-          def key = Keys.getInstanceHealthKey(instanceEntry.attributes.task.id, externalHealthAgent.healthId)
+          def key = Keys.getInstanceHealthKey(instanceEntry.attributes.task.instanceId, externalHealthAgent.healthId)
           healthKeysToInstance.put(key, instanceEntry.id)
         }
       }

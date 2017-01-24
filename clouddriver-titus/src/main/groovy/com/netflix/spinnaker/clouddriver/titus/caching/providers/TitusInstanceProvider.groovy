@@ -70,7 +70,7 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
     externalHealthProviders.each { externalHealthProvider ->
       def healthKeys = []
       externalHealthProvider.agents.each { externalHealthAgent ->
-        healthKeys << Keys.getInstanceHealthKey(instance.name, externalHealthAgent.healthId)
+        healthKeys << Keys.getInstanceHealthKey(instance.instanceId, externalHealthAgent.healthId)
       }
       healthKeys.unique().each { key ->
         def externalHealth = cacheView.getAll(HEALTH.ns, key)
