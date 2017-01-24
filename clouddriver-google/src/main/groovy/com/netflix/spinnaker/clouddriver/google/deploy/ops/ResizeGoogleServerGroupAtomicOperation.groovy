@@ -21,10 +21,9 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class ResizeGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
+class ResizeGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "RESIZE_SERVER_GROUP"
 
   private static Task getTask() {
@@ -63,17 +62,23 @@ class ResizeGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     if (isRegional) {
       def instanceGroupManagers = compute.regionInstanceGroupManagers()
 
-      instanceGroupManagers.resize(project,
-                                   region,
-                                   serverGroupName,
-                                   targetSize).execute()
+      timeExecute(
+          instanceGroupManagers.resize(project,
+                                       region,
+                                       serverGroupName,
+                                       targetSize),
+          "compute.regionInstanceGroupManagers.resize",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     } else {
       def instanceGroupManagers = compute.instanceGroupManagers()
 
-      instanceGroupManagers.resize(project,
-                                   zone,
-                                   serverGroupName,
-                                   targetSize).execute()
+      timeExecute(
+          instanceGroupManagers.resize(project,
+                                       zone,
+                                       serverGroupName,
+                                       targetSize),
+          "compute.instanceGroupManagers.resize",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
     }
 
     task.updateStatus BASE_PHASE, "Done resizing server group $serverGroupName in $region."

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ResizeGoogleServerGroupDescription
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
+import spock.lang.Shared
 import spock.lang.Subject
 
 class ResizeGoogleServerGroupAtomicOperationUnitSpec extends Specification {
@@ -33,6 +35,8 @@ class ResizeGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final TARGET_SIZE = 5
   private static final REGION = "us-central1"
   private static final ZONE = "us-central1-b"
+
+  @Shared def registry = new DefaultRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -53,6 +57,7 @@ class ResizeGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                                accountName: ACCOUNT_NAME,
                                                                credentials: credentials)
       @Subject def operation = new ResizeGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:
