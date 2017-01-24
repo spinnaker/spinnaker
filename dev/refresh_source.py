@@ -538,6 +538,9 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
                           help='Pull from this github user\'s repositories.'
                                ' If the user is "default" then use the'
                                ' authoritative (upstream) repository.')
+      parser.add_argument('--update_run_scripts', default=False,
+                          action='store_true',
+                          help='Update the run script for each component.')
 
   @classmethod
   def main(cls):
@@ -579,7 +582,10 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
     if refresher.pull_branch:
         nothing = False
         refresher.pull_all_from_origin()
-    refresher.update_spinnaker_run_scripts()
+
+    if options.update_run_scripts:
+      print 'Updating Spinnaker component run scripts'
+      refresher.update_spinnaker_run_scripts()
 
     if nothing:
       sys.stderr.write('No pull/push options were specified.\n')
