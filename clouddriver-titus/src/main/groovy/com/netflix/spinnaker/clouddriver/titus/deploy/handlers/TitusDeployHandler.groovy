@@ -77,6 +77,10 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       if (!description.env) description.env = [:]
       if (!description.labels) description.labels = [:]
 
+      if (description.interestingHealthProviderNames) {
+        description.labels.put("interestingHealthProviderNames", description.interestingHealthProviderNames )
+      }
+
       SubmitJobRequest submitJobRequest = new SubmitJobRequest()
         .withJobName(nextServerGroupName)
         .withApplication(description.application)
