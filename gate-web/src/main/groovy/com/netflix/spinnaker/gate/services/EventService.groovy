@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 
 @CompileStatic
@@ -33,4 +34,7 @@ class EventService {
     echoService.webhooks(type, source, event)
   }
 
+  void webhooks(String type, String source, Map event, String signature) {
+    echoService.webhooks(type, source, event, signature)
+  }
 }

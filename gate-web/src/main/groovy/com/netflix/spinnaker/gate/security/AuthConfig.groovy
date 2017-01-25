@@ -60,11 +60,13 @@ class AuthConfig {
   }
 
   void configure(HttpSecurity http) throws Exception {
+    // @formatter:off
     http
       .authorizeRequests()
         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-        .antMatchers('/auth/user').permitAll()
         .antMatchers(PermissionRevokingLogoutSuccessHandler.LOGGED_OUT_URL).permitAll()
+        .antMatchers('/auth/user').permitAll()
+        .antMatchers(HttpMethod.POST, '/webhooks/**').permitAll()
         .antMatchers('/health').permitAll()
         .antMatchers('/**').authenticated()
         .and()
@@ -75,6 +77,7 @@ class AuthConfig {
         .and()
       .csrf()
         .disable()
+    // @formatter:on
   }
 
   @Component

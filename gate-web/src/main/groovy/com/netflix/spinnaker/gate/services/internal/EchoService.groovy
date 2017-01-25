@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
+import com.netflix.spinnaker.gate.controllers.EventController
 import retrofit.http.*
 import retrofit.client.Response
 
@@ -23,7 +24,16 @@ interface EchoService {
 
   @Headers("Accept: application/json")
   @POST("/webhooks/{type}/{source}")
-  Response webhooks(@Path('type') String type, @Path('source') String source, @Body Map event)
+  Response webhooks(@Path('type') String type,
+                    @Path('source') String source,
+                    @Body Map event)
+
+  @Headers("Accept: application/json")
+  @POST("/webhooks/{type}/{source}")
+  Response webhooks(@Path('type') String type,
+                    @Path('source') String source,
+                    @Body Map event,
+                    @Header("X-Hub-Signature") String signature)
 
   @GET("/validateCronExpression")
   Map validateCronExpression(@Query("cronExpression") String cronExpression)
