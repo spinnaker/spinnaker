@@ -3,6 +3,8 @@
 _DECK_HOST=$DECK_HOST
 _DECK_PORT=$DECK_PORT
 _API_HOST=$API_HOST
+_DECK_CERT_PATH=$DECK_CERT
+_DECK_KEY_PATH=$DECK_KEY
 
 if [ -z "$_DECK_HOST" ];
 then
@@ -19,9 +21,19 @@ then
     _API_HOST=http://localhost:8084
 fi
 
-# Generate spinnaker.conf site & enable it
+if [ -z "$_DECK_CERT_PATH" ];
+then
+	# SSL not enabled
+	cp docker/spinnaker.conf.gen spinnaker.conf
+else
+	service apache2 stop
+	a2enmod ssl
+	cp docker/spinnaker.conf.ssl spinnaker.conf
+	sed -ie 's|{%DECK_CERT_PATH%}|'$_DECK_CERT_PATH'|g' spinnaker.conf
+	sed -ie 's|{%DECK_KEY_PATH%}|'$_DECK_KEY_PATH'|g' spinnaker.conf
+fi
 
-cp docker/spinnaker.conf.gen spinnaker.conf
+# Generate spinnaker.conf site & enable it
 
 sed -ie 's|{%DECK_HOST%}|'$_DECK_HOST'|g' spinnaker.conf
 sed -ie 's|{%DECK_PORT%}|'$_DECK_PORT'|g' spinnaker.conf
@@ -40,5 +52,10 @@ sed -ie "s/{%DECK_HOST%}/$_DECK_HOST/g" ports.conf
 sed -ie "s/{%DECK_PORT%}/$_DECK_PORT/g" ports.conf
 
 mv ports.conf /etc/apache2/ports.conf
+
+if [ -e /opt/spinnaker/config/settings.js ];
+then 
+	cp /opt/spinnaker/config/settings.js /opt/deck/html/settings.js
+fi
 
 apache2ctl -D FOREGROUND 
