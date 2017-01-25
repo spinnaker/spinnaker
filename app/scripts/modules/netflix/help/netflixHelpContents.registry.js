@@ -45,6 +45,27 @@ module.exports = angular
         key: 'titus.job.securityGroups',
         contents: 'AWS Security Groups to assign to this job'
       },
+      {
+        key: 'fastProperty.constraints',
+        contents: `<ul>
+                    <li>int</li>
+                    <li>int: 100-200</li>
+                    <li>boolean</li>
+                    <li>range: 100-</li>
+                    <li>range: 100-200</li>
+                    <li>min: 0.1</li>
+                    <li>max: 100</li>
+                    <li>length: 2-10</li>
+                    <li>json</li>
+                    <li>url</li>
+                    <li>url: {protocol: &quot;http/&quot;}</li>
+                    <li>pattern: &quot;^\\w*$/&quot;</li>
+                    <li>pattern: &quot;INFO|WARN|ERROR&quot;</li>
+                    <li>email</li>
+                    <li>none</li>
+                  </ul>
+                  <a href="https://confluence.netflix.com/display/PDCLOUD/Validation+for+Persisted+Properties" target="_blank">Full Documentation</a>`
+      }
     ];
     if (settings.feature && settings.feature.netflixMode) {
       helpContents.forEach((entry) => helpContentsRegistry.registerOverride(entry.key, entry.contents));

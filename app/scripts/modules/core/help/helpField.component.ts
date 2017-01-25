@@ -34,7 +34,7 @@ class HelpFieldCtrl implements ng.IComponentController {
     }
     this.contents = {
       content: this.content,
-      placement: this.placement || 'top',
+      placement: this.placement || 'auto',
     };
   }
 

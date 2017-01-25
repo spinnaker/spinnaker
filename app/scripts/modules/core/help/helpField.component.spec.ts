@@ -63,8 +63,8 @@ describe('Component: helpField', () => {
     testContent('<help-field key="aws.serverGroup.stack" fallback="will be ignored" content="overridden!"></help-field>', 'overridden!');
   });
 
-  it('defaults position to "top"', () => {
-    executeTest('<help-field content="overridden!"></help-field>', 'top', 'popover-placement');
+  it('defaults position to "auto"', () => {
+    executeTest('<help-field content="overridden!"></help-field>', 'auto', 'popover-placement');
   });
 
   it('overrides position to "left"', () => {
