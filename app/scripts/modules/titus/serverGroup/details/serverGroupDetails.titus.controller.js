@@ -1,5 +1,6 @@
 'use strict';
 
+let angular = require('angular');
 import _ from 'lodash';
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
@@ -8,8 +9,7 @@ import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
-
-let angular = require('angular');
+import {CLUSTER_TARGET_BUILDER} from 'core/entityTag/clusterTargetBuilder.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
   require('angular-ui-router'),
@@ -23,9 +23,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
   require('./resize/resizeServerGroup.controller'),
   require('core/modal/closeable/closeable.modal.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),
+  CLUSTER_TARGET_BUILDER
 ])
   .controller('titusServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
-                                                       titusServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
+                                                       titusServerGroupCommandBuilder, serverGroupReader, $uibModal,
+                                                       confirmationModalService, serverGroupWriter, clusterTargetBuilder,
                                                        serverGroupWarningMessageService, accountService) {
 
     let application = app;
@@ -64,7 +66,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
                 _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
             }).compact().value();
           }
-
+          configureEntityTagTargets();
         } else {
           autoClose();
         }
@@ -92,6 +94,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         app.serverGroups.onRefresh($scope, retrieveServerGroup);
       }
     });
+
+    let configureEntityTagTargets = () => {
+      this.entityTagTargets = clusterTargetBuilder.buildClusterTargets(this.serverGroup);
+    };
 
     this.destroyServerGroup = function destroyServerGroup() {
       var serverGroup = $scope.serverGroup;
