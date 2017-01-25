@@ -1,0 +1,96 @@
+{
+  "title" : "Schema for 'quickPatch' stage",
+  "type" : "object",
+  "properties" : {
+    "account" : {
+      "type" : "string"
+    },
+    "application" : {
+      "type" : "string"
+    },
+    "baseOs" : {
+      "type" : "string"
+    },
+    "clusterName" : {
+      "type" : "string"
+    },
+    "comments" : {
+      "type" : "string",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "continuePipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "credentials" : {
+      "type" : "string"
+    },
+    "failPipeline" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "healthProviders" : {
+      "type" : "array"
+    },
+    "notifications" : {
+      "type" : "array",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "overrideTimeout" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "package" : {
+      "type" : "string"
+    },
+    "region" : {
+      "type" : "string"
+    },
+    "restrictExecutionDuringTimeWindow" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "restrictedExecutionWindow" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "rollingPatch" : {
+      "type" : "boolean"
+    },
+    "sendNotifications" : {
+      "type" : "boolean",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "skipUpToDate" : {
+      "type" : "boolean"
+    },
+    "stageEnabled" : {
+      "type" : "object",
+      "_meta" : {
+        "builtIn" : true
+      }
+    },
+    "stageTimeoutMs" : {
+      "type" : "number",
+      "_meta" : {
+        "builtIn" : true
+      }
+    }
+  }
+}

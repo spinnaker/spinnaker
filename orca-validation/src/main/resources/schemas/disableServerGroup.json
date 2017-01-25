@@ -1,56 +1,8 @@
 {
-  "title" : "Schema for 'bake' stage",
+  "title" : "Schema for 'disableServerGroup' stage",
   "type" : "object",
   "properties" : {
-    "account" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "amiName" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "amiSuffix" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "baseAmi" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "baseLabel" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "baseName" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "baseOs" : {
+    "cloudProvider" : {
       "type" : "string",
       "_meta" : {
         "condition" : {
@@ -59,7 +11,20 @@
       }
     },
     "cloudProviderType" : {
-      "type" : "string"
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "cluster" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
     },
     "comments" : {
       "type" : "string",
@@ -74,18 +39,7 @@
       }
     },
     "credentials" : {
-      "type" : "string"
-    },
-    "enhancedNetworking" : {
-      "type" : "boolean",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "extendedAttributes" : {
-      "type" : "object",
+      "type" : "string",
       "_meta" : {
         "condition" : {
           "cloudProviders" : [ "aws" ]
@@ -96,14 +50,6 @@
       "type" : "boolean",
       "_meta" : {
         "builtIn" : true
-      }
-    },
-    "image" : {
-      "type" : "object",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "titus" ]
-        }
       }
     },
     "notifications" : {
@@ -118,16 +64,8 @@
         "builtIn" : true
       }
     },
-    "package" : {
+    "preferLargerOverNewer" : {
       "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "rebake" : {
-      "type" : "boolean",
       "_meta" : {
         "condition" : {
           "cloudProviders" : [ "aws" ]
@@ -142,11 +80,11 @@
         }
       }
     },
-    "repository" : {
-      "type" : "object",
+    "remainingEnabledServerGroups" : {
+      "type" : "number",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "titus" ]
+          "cloudProviders" : [ "aws" ]
         }
       }
     },
@@ -168,9 +106,6 @@
         "builtIn" : true
       }
     },
-    "showAdvancedOptions" : {
-      "type" : "boolean"
-    },
     "stageEnabled" : {
       "type" : "object",
       "_meta" : {
@@ -183,7 +118,7 @@
         "builtIn" : true
       }
     },
-    "storeType" : {
+    "target" : {
       "type" : "string",
       "_meta" : {
         "condition" : {

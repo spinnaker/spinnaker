@@ -46,11 +46,19 @@ public class StageValidator {
 
   private final ObjectMapper objectMapper;
   private final JsonSchemaFactory jsonSchemaFactory;
+  private final String schemaRoot;
 
   @Autowired
   public StageValidator(ObjectMapper objectMapper) {
+    this(objectMapper, "/schemas/");
+  }
+
+  StageValidator(ObjectMapper objectMapper, String schemaRoot) {
     this.objectMapper = objectMapper;
     this.jsonSchemaFactory = JsonSchemaFactory.byDefault();
+
+    // support overriding the schema root (primarily for test cases)
+    this.schemaRoot = (schemaRoot + "/").replaceAll("//", "/");
   }
 
   public boolean isValid(Stage stage) {
@@ -88,7 +96,7 @@ public class StageValidator {
     Optional<String> cloudProvider = getCloudProvider(stage);
 
     try {
-      URL schemaUrl = StageValidator.class.getResource("/schemas/" + stageType + ".json");
+      URL schemaUrl = StageValidator.class.getResource(schemaRoot + stageType + ".json");
       if (schemaUrl == null) {
         // schema does not exist
         return Optional.empty();
@@ -102,7 +110,7 @@ public class StageValidator {
       schema.properties = schema.properties.entrySet().stream()
         .filter(e -> {
           // filter out any conditional property that does not support `cloudProvider`
-          Collection<String> cloudProviders = e.getValue().condition.cloudProviders;
+          Collection<String> cloudProviders = e.getValue().meta.condition.cloudProviders;
           return cloudProviders == null || cloudProviders.contains(cloudProvider.orElse(null));
         })
         .map(e -> {
@@ -121,7 +129,7 @@ public class StageValidator {
 
       schema.required.addAll(
         schema.properties.entrySet().stream()
-          .filter(e -> e.getValue().required)
+          .filter(e -> e.getValue().meta.required)
           .map(Map.Entry::getKey)
           .collect(Collectors.toSet())
       );
@@ -171,6 +179,7 @@ public class StageValidator {
     }
   }
 
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private static class Schema extends Generic {
     @JsonProperty
     Map<String, Property> properties;
@@ -186,13 +195,20 @@ public class StageValidator {
       @JsonProperty
       List<Map> anyOf;
 
-      @JsonProperty
+      @JsonProperty("_meta")
       @JsonView(Views.Spinnaker.class)
-      boolean required;
+      Meta meta = new Meta();
 
-      @JsonProperty
-      @JsonView(Views.Spinnaker.class)
-      Condition condition = new Condition();
+      static class Meta {
+        @JsonProperty
+        boolean required;
+
+        @JsonProperty
+        boolean builtIn;
+
+        @JsonProperty
+        Condition condition = new Condition();
+      }
 
       static class Condition extends Generic {
         @JsonProperty

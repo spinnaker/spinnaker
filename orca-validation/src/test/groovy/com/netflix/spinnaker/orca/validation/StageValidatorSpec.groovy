@@ -29,6 +29,7 @@ class StageValidatorSpec extends Specification {
   @Subject
   def stageValidator = new StageValidator(objectMapper)
 
+  @Unroll
   void "should not raise an exception if schema does not exist"() {
     expect:
     stageValidator.loadSchema(new OrchestrationStage(new Orchestration(), type, [:])).isPresent() == expectedIsPresent
@@ -40,9 +41,12 @@ class StageValidatorSpec extends Specification {
   }
 
   void "should apply cloudProvider-specific processing to schema"() {
+    given:
+    def stageValidator = new StageValidator(objectMapper, "/schemas/test/")
+
     when:
     def awsSchema = stageValidator.loadSchema(
-      new OrchestrationStage(new Orchestration(), "aws", [cloudProvider: "aws"])
+      new OrchestrationStage(new Orchestration(), "dummy", [cloudProvider: "aws"])
     ).get()
 
     def awsSchemaMap = objectMapper.readValue(
@@ -69,7 +73,7 @@ class StageValidatorSpec extends Specification {
 
     when:
     def nonAwsSchema = stageValidator.loadSchema(
-      new OrchestrationStage(new Orchestration(), "aws", [cloudProvider: "nonAws"])
+      new OrchestrationStage(new Orchestration(), "dummy", [cloudProvider: "nonAws"])
     ).get()
 
     then: "all fields should have been filtered out as cloudProvider != 'aws'"
