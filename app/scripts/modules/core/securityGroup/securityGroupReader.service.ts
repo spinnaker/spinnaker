@@ -7,6 +7,7 @@ import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cac
 import {Application} from 'core/application/application.model';
 import {ISecurityGroup, ILoadBalancer, ServerGroup, IServerGroupUsage} from 'core/domain';
 import {SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService} from './securityGroupTransformer.service';
+import {ENTITY_TAGS_READ_SERVICE, EntityTagsReader} from 'core/entityTag/entityTags.read.service';
 
 interface IRegionAccount {
   account: string;
@@ -280,31 +281,50 @@ export class SecurityGroupReader {
     } else {
       data.forEach((sg: ISecurityGroup) => this.addStackToSecurityGroup(sg));
       return this.$q.all(data.map((sg: ISecurityGroup) => this.securityGroupTransformer.normalizeSecurityGroup(sg)))
-        .then(() => this.$q.when(data));
+        .then(() => this.addEntityTags(data));
     }
+  }
+
+  private addEntityTags(securityGroups: ISecurityGroup[]): ng.IPromise<ISecurityGroup[]> {
+    if (!this.settings.feature.entityTags) {
+      return this.$q.when(securityGroups);
+    }
+    const entityIds = securityGroups.map(sg => sg.name);
+    return this.entityTagsReader.getAllEntityTags('securitygroup', entityIds).then(tags => {
+      securityGroups.forEach(securityGroup => {
+        securityGroup.entityTags = tags.find(t => t.entityRef.entityId === securityGroup.name &&
+        t.entityRef['account'] === securityGroup.account &&
+        t.entityRef['region'] === securityGroup.region);
+      });
+      return securityGroups;
+    });
   }
 
   static get $inject(): string[] {
     return [
       '$log',
       '$q',
+      'settings',
       'searchService',
       'namingService',
       'API',
       'infrastructureCaches',
       'securityGroupTransformer',
       'serviceDelegate',
+      'entityTagsReader',
     ];
   }
 
   constructor(private $log: ng.ILogService,
               private $q: ng.IQService,
+              private settings: any,
               private searchService: any,
               private namingService: NamingService,
               private API: Api,
               private infrastructureCaches: InfrastructureCacheService,
               private securityGroupTransformer: SecurityGroupTransformerService,
-              private serviceDelegate: any) {
+              private serviceDelegate: any,
+              private entityTagsReader: EntityTagsReader) {
   }
 
   public getAllSecurityGroups(): ng.IPromise<IGroupsByAccount[]> {
@@ -424,6 +444,7 @@ module(SECURITY_GROUP_READER, [
   INFRASTRUCTURE_CACHE_SERVICE,
   SECURITY_GROUP_TRANSFORMER_SERVICE,
   require('../cloudProvider/serviceDelegate.service.js'),
-  API_SERVICE
+  API_SERVICE,
+  ENTITY_TAGS_READ_SERVICE,
 ])
   .service('securityGroupReader', SecurityGroupReader);

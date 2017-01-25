@@ -23,6 +23,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
                                                     recentHistoryService, $uibModal, cloudProviderRegistry) {
 
+    this.application = app;
     const application = app;
     const securityGroup = resolvedSecurityGroup;
 
@@ -41,9 +42,12 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
         if (!details || _.isEmpty( details )) {
           fourOhFour();
         } else {
-          $scope.securityGroup = details;
-          $scope.ipRules = buildIpRulesModel(details);
-          $scope.securityGroupRules = buildSecurityGroupRulesModel(details);
+          const applicationSecurityGroup = securityGroupReader.getApplicationSecurityGroup(application, securityGroup.accountId, securityGroup.region, securityGroup.name);
+
+          angular.extend(securityGroup, applicationSecurityGroup, details);
+          $scope.securityGroup = securityGroup;
+          $scope.ipRules = buildIpRulesModel(securityGroup);
+          $scope.securityGroupRules = buildSecurityGroupRulesModel(securityGroup);
         }
       },
         fourOhFour
