@@ -56,7 +56,7 @@ describe('Directives: userMenu', function () {
       domNode = createUserMenu($scope);
 
       expect(domNode.find('.user-name-small').text()).toBe('sam mulligan');
-      expect(domNode.find('.user-name-large').text()).toBe('sam mulligan');
+      expect(domNode.find('.user-name-large').text().trim()).toBe('sam mulligan');
     });
   });
 });

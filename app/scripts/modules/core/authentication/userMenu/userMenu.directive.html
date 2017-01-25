@@ -1,14 +1,27 @@
 <li ng-if="authEnabled" class="user-menu">
   <!-- Smaller screens use this -->
-  <a href class="hidden-lg remove-border-top dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
-    <span class="glyphicon glyphicon-user"></span>
-    <ul class="dropdown-menu">
+  <div uib-dropdown>
+    <a href class="hidden-lg remove-border-top dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
+      <span class="glyphicon glyphicon-user"></span>
+    </a>
+    <ul class="dropdown-menu" uib-dropdown-menu>
       <li>
         <a class="user-name-small">{{ user.name }}</a>
       </li>
+      <li class="divider" ng-if="showLogOutDropdown()"></li>
+      <li ng-if="showLogOutDropdown()">
+        <a href ng-click="logOut()">Log out</a>
+      </li>
     </ul>
-  </a>
+  </div>
 
   <!-- Larger screens use this -->
-  <a class="hidden-xs hidden-sm hidden-md user-name-large">{{ user.name }}</a>
+  <div uib-dropdown class="text-center">
+    <a href class="hidden-xs hidden-sm hidden-md user-name-large" uib-dropdown-toggle ng-disabled="!showLogOutDropdown()">{{ user.name }}
+      <i class="glyphicon glyphicon-triangle-bottom" ng-if="showLogOutDropdown()"></i>
+    </a>
+    <ul uib-dropdown-menu>
+      <li><a href ng-click="logOut()">Log out</a></li>
+    </ul>
+  </div>
 </li>

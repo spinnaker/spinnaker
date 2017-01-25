@@ -47,11 +47,7 @@ export class AuthenticationInitializer {
   private loginNotification(): void {
     this.authenticationService.authenticationExpired();
     this.userLoggedOut = true;
-    this.$uibModal.open({
-      templateUrl: require('./loggedOut.modal.html'),
-      controller: 'LoggedOutModalCtrl as ctrl',
-      size: 'squared'
-    });
+    this.openLoggedOutModal();
 
     this.visibilityWatch = Observable.fromEvent(document, 'visibilitychange')
       .subscribe(() => {
@@ -59,6 +55,14 @@ export class AuthenticationInitializer {
           this.checkForReauthentication();
         }
       });
+  }
+
+  private openLoggedOutModal(): void {
+    this.$uibModal.open({
+      templateUrl: require('./loggedOut.modal.html'),
+      controller: 'LoggedOutModalCtrl as ctrl',
+      size: 'squared'
+    });
   }
 
   private loginRedirect(): void {
@@ -93,6 +97,24 @@ export class AuthenticationInitializer {
         })
         .catch(() => this.loginNotification());
     }
+  }
+
+  public logOut(): void {
+    if (!this.userLoggedOut) {
+      let config = {
+        headers: {'Content-Type': 'text/plain'},
+        transformResponse: (response: string) => response,
+      };
+
+      this.$http.get(`${this.settings.gateUrl}/auth/logout`, config)
+        .then(() => this.loggedOutSequence(), () => this.loggedOutSequence());
+    }
+  }
+
+  private loggedOutSequence(): void {
+    this.authenticationService.authenticationExpired();
+    this.userLoggedOut = true;
+    this.openLoggedOutModal();
   }
 }
 
