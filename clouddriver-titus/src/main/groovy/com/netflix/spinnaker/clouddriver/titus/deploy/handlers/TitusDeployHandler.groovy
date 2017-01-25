@@ -77,7 +77,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       if (!description.env) description.env = [:]
       if (!description.labels) description.labels = [:]
 
-      if (!description.interestingHealthProviderNames?.empty) {
+      if (description.interestingHealthProviderNames && !description.interestingHealthProviderNames.empty) {
         description.labels.put("interestingHealthProviderNames", description.interestingHealthProviderNames.join(",") )
       }
 
