@@ -120,10 +120,10 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
       .collect(Collectors.toList());
 
     AmazonSQS amazonSQS = amazonClientProvider.getAmazonSQS(queueARN.account, queueARN.region);
-    this.queueId = ensureQueueExists(amazonSQS, queueId, queueARN, topicARN);
+    this.queueId = ensureQueueExists(amazonSQS, queueARN, topicARN);
 
     AmazonSNS amazonSNS = amazonClientProvider.getAmazonSNS(topicARN.account, topicARN.region);
-    this.topicId = ensureTopicExists(amazonSNS, topicId, topicARN, allAccountIds, queueARN);
+    this.topicId = ensureTopicExists(amazonSNS, topicARN, allAccountIds, queueARN);
 
     AtomicInteger messagesProcessed = new AtomicInteger(0);
     while (messagesProcessed.get() < properties.getMaxMessagesPerCycle()) {
@@ -161,7 +161,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
       }
     }
 
-    log.info("Processed {} messages (queueARN: {})", messagesProcessed.get(), queueARN.arn  );
+    log.info("Processed {} messages (queueARN: {})", messagesProcessed.get(), queueARN.arn);
   }
 
   private static void handleMessage(ServerGroupTagger serverGroupTagger, NotificationMessage notificationMessage) {
@@ -193,22 +193,19 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
    * Ensure that the topic exists and has a policy granting all accounts permission to publish messages to it
    */
   private static String ensureTopicExists(AmazonSNS amazonSNS,
-                                          String topicUrl,
                                           ARN topicARN,
                                           List<String> allAccountIds,
                                           ARN queueARN) {
-    if (topicUrl == null) {
-      topicARN.arn = amazonSNS.createTopic(topicARN.name).getTopicArn();
+    topicARN.arn = amazonSNS.createTopic(topicARN.name).getTopicArn();
 
-      amazonSNS.setTopicAttributes(
-        new SetTopicAttributesRequest()
-          .withTopicArn(topicARN.arn)
-          .withAttributeName("Policy")
-          .withAttributeValue(buildSNSPolicy(topicARN, allAccountIds).toJson())
-      );
+    amazonSNS.setTopicAttributes(
+      new SetTopicAttributesRequest()
+        .withTopicArn(topicARN.arn)
+        .withAttributeName("Policy")
+        .withAttributeValue(buildSNSPolicy(topicARN, allAccountIds).toJson())
+    );
 
-      amazonSNS.subscribe(topicARN.arn, "sqs", queueARN.arn);
-    }
+    amazonSNS.subscribe(topicARN.arn, "sqs", queueARN.arn);
 
     return topicARN.arn;
   }
@@ -216,18 +213,18 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
   /**
    * Ensure that the queue exists and has a policy granting the source topic permission to send messages to it
    */
-  private static String ensureQueueExists(AmazonSQS amazonSQS, String queueUrl, ARN queueARN, ARN topicARN) {
-    if (queueUrl == null) {
-      try {
-        queueUrl = amazonSQS.getQueueUrl(queueARN.name).getQueueUrl();
-      } catch (Exception e) {
-        queueUrl = amazonSQS.createQueue(queueARN.name).getQueueUrl();
-      }
+  private static String ensureQueueExists(AmazonSQS amazonSQS, ARN queueARN, ARN topicARN) {
+    String queueUrl;
 
-      amazonSQS.setQueueAttributes(
-        queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, topicARN).toJson())
-      );
+    try {
+      queueUrl = amazonSQS.getQueueUrl(queueARN.name).getQueueUrl();
+    } catch (Exception e) {
+      queueUrl = amazonSQS.createQueue(queueARN.name).getQueueUrl();
     }
+
+    amazonSQS.setQueueAttributes(
+      queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, topicARN).toJson())
+    );
 
     return queueUrl;
   }
@@ -245,7 +242,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
     statement.setPrincipals(Principal.All);
     statement.setResources(Collections.singletonList(new Resource(queue.arn)));
     statement.setConditions(Collections.singletonList(
-      new Condition().withType("StringEqualsIgnoreCase").withConditionKey("aws:SourceArn").withValues(topic.arn)
+      new Condition().withType("ArnEquals").withConditionKey("aws:SourceArn").withValues(topic.arn)
     ));
 
     return new Policy("allow-sns-topic-send", Collections.singletonList(statement));
