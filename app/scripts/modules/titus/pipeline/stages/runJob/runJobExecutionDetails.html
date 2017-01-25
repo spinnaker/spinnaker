@@ -22,8 +22,8 @@
         </dl>
       </div>
     </div>
-    <stage-failure-message stage="stage"
-                           message="stage.context.completionDetails.message"></stage-failure-message>
+    <stage-failure-message stage="stage" ng-if="stage.isFailed"
+                           message="stage.failureMessage || stage.context.completionDetails.message"></stage-failure-message>
 
     <div class="row" ng-if="stage.context.jobStatus.completionDetails.taskId">
       <div class="col-md-12">
