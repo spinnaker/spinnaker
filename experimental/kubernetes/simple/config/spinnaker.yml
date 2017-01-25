@@ -258,11 +258,12 @@ providers:
       name: my-azure-account
 
       # To set Azure credentials, enter your Azure supscription values for:
-      # clientId, appKey, tenantId, and subscriptionId.
+      # clientId, appKey, tenantId, subscriptionId, and objectId.
       clientId:
       appKey:
       tenantId:
       subscriptionId:
+      objectId:
 
   titan:
     # If you want to deploy some services to titan,
