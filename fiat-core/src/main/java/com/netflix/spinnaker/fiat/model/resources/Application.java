@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 public class Application implements GroupAccessControlled, Resource, Viewable {
@@ -40,7 +41,7 @@ public class Application implements GroupAccessControlled, Resource, Viewable {
     if (membership == null) {
       membership = new ArrayList<>();
     }
-    requiredGroupMembership = membership;
+    requiredGroupMembership = membership.stream().map(String::toLowerCase).collect(Collectors.toList());
     return this;
   }
 

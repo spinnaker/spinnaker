@@ -40,7 +40,7 @@ class DefaultPermissionsResolverSpec extends Specification {
                                        .setRequiredGroupMembership(["group1"])
   @Shared
   Account reqGroup1and2Acct = new Account().setName("reqGroup1and2")
-                                           .setRequiredGroupMembership(["group1", "group2"])
+                                           .setRequiredGroupMembership(["group1", "GrouP2"]) // test case insensitivity.
 
   @Shared
   ClouddriverService clouddriverService = Mock(ClouddriverService) {
@@ -97,7 +97,7 @@ class DefaultPermissionsResolverSpec extends Specification {
         .setResourceProviders(resourceProviders)
 
     def role1 = new Role("group1")
-    def role2 = new Role("group2")
+    def role2 = new Role("gRoUP2") // to test case insensitivity.
 
     def testUser = new ExternalUser().setId(testUserId).setExternalRoles([role1])
 

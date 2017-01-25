@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +42,15 @@ public class Role implements GroupAccessControlled, Resource, Viewable {
   private Source source;
 
   public Role(String name) {
-    this.name = name;
+    this.setName(name);
+  }
+
+  public Role setName(String name) {
+    if (StringUtils.isEmpty(name)) {
+      throw new IllegalArgumentException("name cannot be null or empty");
+    }
+    this.name = name.toLowerCase();
+    return this;
   }
 
   @JsonIgnore

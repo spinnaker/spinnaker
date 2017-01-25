@@ -51,6 +51,14 @@ public class ServiceAccount implements GroupAccessControlled, Viewable {
     return Collections.singletonList(StringUtils.substringBefore(name, "@"));
   }
 
+  public ServiceAccount setMemberOf(List<String> membership) {
+    if (membership == null) {
+      membership = new ArrayList<>();
+    }
+    memberOf = membership.stream().map(String::toLowerCase).collect(Collectors.toList());
+    return this;
+  }
+
   @JsonIgnore
   public View getView() {
     return new View(this);

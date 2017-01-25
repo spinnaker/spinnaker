@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 public class Account implements GroupAccessControlled, Resource, Viewable {
@@ -34,6 +35,14 @@ public class Account implements GroupAccessControlled, Resource, Viewable {
   private String name;
   private String cloudProvider;
   private List<String> requiredGroupMembership = new ArrayList<>();
+
+  public Account setRequiredGroupMembership(List<String> membership) {
+    if (membership == null) {
+      membership = new ArrayList<>();
+    }
+    requiredGroupMembership = membership.stream().map(String::toLowerCase).collect(Collectors.toList());
+    return this;
+  }
 
   @JsonIgnore
   public View getView() {
