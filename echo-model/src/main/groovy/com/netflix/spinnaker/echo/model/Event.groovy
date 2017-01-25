@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 public class Event {
   Metadata details
   Map content
+  String rawContent
   @JsonInclude(JsonInclude.Include.NON_NULL)
   Map payload
 }

@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.echo.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.events.EventPropagator
+import org.springframework.http.HttpHeaders
 import spock.lang.Specification
 
 class WebhooksControllerSpec extends Specification {
@@ -24,12 +26,12 @@ class WebhooksControllerSpec extends Specification {
   void 'emits a transformed event for every webhook event'() {
 
     given:
-    WebhooksController controller = new WebhooksController()
+    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper())
     controller.propagator = Mock(EventPropagator)
 
     when:
     controller.forwardEvent(
-      'docker', 'ecr', ['name': 'something']
+      'docker', 'ecr', '{"name": "something"}', new HttpHeaders()
     )
 
     then:
@@ -45,18 +47,15 @@ class WebhooksControllerSpec extends Specification {
 
   void 'handles initial github ping'() {
     given:
-    WebhooksController controller = new WebhooksController()
+    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper())
     controller.propagator = Mock(EventPropagator)
 
     when:
     controller.forwardEvent(
       'git',
       'github',
-      [
-        'hook_id': 1337,
-        'repository' : ['full_name': 'org/repo']
-      ]
-    )
+      '{"hook_id": 1337, "repository": {"full_name": "org/repo"}}',
+      new HttpHeaders())
 
     then:
     0 * controller.propagator.processEvent(_)

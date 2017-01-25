@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.model
 
+import org.springframework.http.HttpHeaders
+
 /**
  * Represents event metadata
  */
@@ -28,4 +30,5 @@ class Metadata {
     String project
     String application
     String _content_id
+    HttpHeaders requestHeaders = new HttpHeaders()
 }
