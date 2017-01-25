@@ -18,7 +18,9 @@ package com.netflix.spinnaker.fiat.roles.github;
 
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
-import com.netflix.spinnaker.fiat.roles.github.client.GitHubMaster;
+import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
+import com.netflix.spinnaker.fiat.roles.github.model.Team;
+import com.netflix.spinnaker.fiat.roles.github.model.TeamMembership;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -29,154 +31,155 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import retrofit.RetrofitError;
+import retrofit.client.Header;
 import retrofit.client.Response;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "auth.groupMembership.service", havingValue = "github")
 public class GithubTeamsUserRolesProvider implements UserRolesProvider, InitializingBean {
 
-  @Autowired
-  @Setter
-  GitHubMaster master;
+  private static List<String> RATE_LIMITING_HEADERS = Arrays.asList(
+      "X-RateLimit-Limit",
+      "X-RateLimit-Remaining",
+      "X-RateLimit-Reset"
+  );
 
   @Autowired
   @Setter
-  GitHubProperties gitHubProperties;
+  private GitHubClient gitHubClient;
+
+  @Autowired
+  @Setter
+  private GitHubProperties gitHubProperties;
 
   @Override
-  public List<Role> loadRoles(String userName) {
-    log.debug("loadRoles for user " + userName);
-    if (StringUtils.isEmpty(userName)|| StringUtils.isEmpty(gitHubProperties.getOrganization())) {
+  public void afterPropertiesSet() throws Exception {
+    Assert.state(gitHubProperties.getOrganization() != null, "Supply an organization");
+  }
+
+  @Override
+  public List<Role> loadRoles(String username) {
+    log.debug("loadRoles for user " + username);
+    if (StringUtils.isEmpty(username) || StringUtils.isEmpty(gitHubProperties.getOrganization())) {
       return new ArrayList<>();
     }
-    // check organization if set.
-    // If organization is unset, all GitHub users can login and have full access
-    // If an organization is set, add it to roles to restrict users to this organization
-    // If organization is set AND requiredGroupMembership set, organization members will have RO access
-    // and requiredGroupMembership members RW access
-    Boolean isMemberOfOrg = false;
 
-    try {
-      Response response = master.getGitHubClient()
-                                .isMemberOfOrganization(gitHubProperties.getOrganization(),
-                                                        userName);
-      isMemberOfOrg = (response.getStatus() == 204);
-      if(log.isDebugEnabled()) {
-        StringBuilder sb = new StringBuilder(userName).append(" is ");
-        if (!isMemberOfOrg) {
-          sb.append("not ");
-        }
-        sb.append("a member of ")
-          .append(gitHubProperties.getOrganization())
-          .append(" organization.");
-        log.debug(sb.toString());
-      }
-    } catch (RetrofitError e) {
-      if (e.getKind() == RetrofitError.Kind.NETWORK) {
-        log.error(String.format("Could not find the server %s", master.getBaseUrl()), e);
-        return new ArrayList<>();
-      } else if (e.getResponse().getStatus() == 404) {
-        log.error(String.format("%s is not a member of GitHub organization %s",
-                                userName,
-                                gitHubProperties.getOrganization()),
-                  e);
-        return new ArrayList<>();
-      } else if (e.getResponse().getStatus() == 401) {
-        log.error(String.format("Cannot get GitHub organization %s information: Not authorized.",
-                                gitHubProperties.getOrganization()),
-                  e);
-        return new ArrayList<>();
-      }
-    }
-
-    if (!isMemberOfOrg) {
+    if (!isMemberOfOrg(username)) {
+      log.debug(username + "is not a member of organization " + gitHubProperties.getOrganization());
       return new ArrayList<>();
     }
+    log.debug(username + "is a member of organization " + gitHubProperties.getOrganization());
 
     List<Role> result = new ArrayList<>();
     result.add(toRole(gitHubProperties.getOrganization()));
 
-    // Get teams of the current user
-    List<GitHubMaster.Team> teams = new ArrayList<>();
-    int page = 1;
-    boolean hasMorePages = true;
-
-    do {
-      try {
-        log.debug("Requesting page " + page + " of teams.");
-        List<GitHubMaster.Team> teamsPage = master.getGitHubClient()
-                                                  .getOrgTeams(gitHubProperties.getOrganization(),
-                                                               page++,
-                                                               gitHubProperties.paginationValue);
-        teams.addAll(teamsPage);
-        if (teamsPage.size() != gitHubProperties.paginationValue) {
-          hasMorePages = false;
-        }
-        log.debug("Got " + teamsPage.size() + " teams back. hasMorePages: " + hasMorePages);
-      } catch (RetrofitError e) {
-        hasMorePages = false;
-        log.error(String.format("RetrofitError %s %s ",
-                                e.getResponse().getStatus(),
-                                e.getResponse().getReason()),
-                  e);
-        if (e.getKind() == RetrofitError.Kind.NETWORK) {
-          log.error(String.format("Could not find the server %s", master.getBaseUrl()), e);
-        } else if (e.getResponse().getStatus() == 404) {
-          log.error("404 when getting teams");
-          return result;
-        } else if (e.getResponse().getStatus() == 401) {
-          log.error(String.format("Cannot get GitHub organization %s teams: Not authorized.",
-                                  gitHubProperties.getOrganization()),
-                    e);
-          return result;
-        }
-      }
-    } while (hasMorePages);
-
+    // Get teams of the org
+    List<Team> teams = getTeams();
     log.debug("Found " + teams.size() + " teams in org.");
+
     teams.forEach(t -> {
-      StringBuilder sb = new StringBuilder(userName).append(" is member of team ").append(t.getName());
-      if (isMemberOfTeam(t, userName)) {
-        sb.append(": true");
+      String debugMsg = username + " is a member of team " + t.getName();
+      if (isMemberOfTeam(t, username)) {
         result.add(toRole(t.getSlug()));
+        debugMsg += ": true";
       } else {
-        sb.append(": false");
+        debugMsg += ": false";
       }
-      log.debug(sb.toString());
+      log.debug(debugMsg);
     });
 
     return result;
   }
 
+  private boolean isMemberOfOrg(String username) {
+    boolean isMemberOfOrg = false;
+    try {
+      Response response = gitHubClient.isMemberOfOrganization(gitHubProperties.getOrganization(),
+                                                              username);
+      isMemberOfOrg = (response.getStatus() == 204);
+    } catch (RetrofitError e) {
+      if (e.getResponse().getStatus() != 404) {
+        handleNon404s(e);
+      }
+    }
 
-  private boolean isMemberOfTeam(GitHubMaster.Team t, String userName) {
+    return isMemberOfOrg;
+  }
+
+  private List<Team> getTeams() {
+    List<Team> teams = new ArrayList<>();
+    int page = 1;
+    boolean hasMorePages = true;
+
+    do {
+      List<Team> teamsPage = getTeamsInOrgPaginated(page++);
+      teams.addAll(teamsPage);
+      if (teamsPage.size() != gitHubProperties.paginationValue) {
+        hasMorePages = false;
+      }
+      log.debug("Got " + teamsPage.size() + " teams back. hasMorePages: " + hasMorePages);
+    } while (hasMorePages);
+
+    return teams;
+  }
+
+  private List<Team> getTeamsInOrgPaginated(int page) {
+    List<Team> teams = new ArrayList<>();
+    try {
+      log.debug("Requesting page " + page + " of teams.");
+      teams = gitHubClient.getOrgTeams(gitHubProperties.getOrganization(),
+                                       page,
+                                       gitHubProperties.paginationValue);
+    } catch (RetrofitError e) {
+      if (e.getResponse().getStatus() != 404) {
+        handleNon404s(e);
+      } else {
+        log.error("404 when getting teams", e);
+      }
+    }
+
+    return teams;
+  }
+
+  private boolean isMemberOfTeam(Team t, String username) {
     String ACTIVE = "active";
     try {
-      GitHubMaster.TeamMembership response = master.getGitHubClient()
-                                                   .isMemberOfTeam(t.getId(), userName);
+      TeamMembership response = gitHubClient.isMemberOfTeam(t.getId(), username);
       return (response.getState().equals(ACTIVE));
     } catch (RetrofitError e) {
-      if (e.getKind() == RetrofitError.Kind.NETWORK) {
-        log.error(String.format("Could not find the server %s", master.getBaseUrl()), e);
-      } else if (e.getResponse().getStatus() == 401) {
-        log.error(String.format("Cannot check if $userName is member of %s teams: Not authorized.",
-                                t.getName()),
-                  e);
+      if (e.getResponse().getStatus() != 404) {
+        handleNon404s(e);
       }
     }
     return false;
   }
 
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    Assert.state(gitHubProperties.getOrganization ()!= null, "Supply an organization");
+  private void handleNon404s(RetrofitError e) {
+    String msg = "";
+    if (e.getKind() == RetrofitError.Kind.NETWORK) {
+      msg = String.format("Could not find the server %s", gitHubProperties.getBaseUrl());
+    } else if (e.getResponse().getStatus() == 401) {
+      msg = "HTTP 401 Unauthorized.";
+    } else if (e.getResponse().getStatus() == 403) {
+      val rateHeaders = e.getResponse()
+                         .getHeaders()
+                         .stream()
+                         .filter(header -> RATE_LIMITING_HEADERS.contains(header.getName()))
+                         .map(Header::toString)
+                         .collect(Collectors.toList());
+
+      msg = "HTTP 403 Forbidden. Rate limit info: " + StringUtils.join(rateHeaders, ", ");
+    }
+    log.error(msg, e);
   }
 
   private static Role toRole(String name) {
@@ -194,6 +197,4 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
 
     return emailGroupsMap;
   }
-
-
 }

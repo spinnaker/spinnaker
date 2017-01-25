@@ -2,8 +2,6 @@ package com.netflix.spinnaker.fiat.config;
 
 import com.netflix.spinnaker.fiat.roles.github.GitHubProperties;
 import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
-import com.netflix.spinnaker.fiat.roles.github.client.GitHubMaster;
-import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -17,8 +15,6 @@ import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
-
-import javax.validation.Valid;
 
 /**
  * Converts the list of GitHub Configuration properties a collection of clients to access the GitHub hosts
@@ -36,22 +32,18 @@ public class GitHubConfig {
   @Setter
   private RestAdapter.LogLevel retrofitLogLevel;
 
+  @Autowired
+  @Setter
+  private GitHubProperties gitHubProperties;
+
   @Bean
-  public GitHubMaster gitHubMasters(@Valid final GitHubProperties gitHubProperties) {
-    log.info("bootstrapping " + gitHubProperties.getBaseUrl() + " as github");
-
-    return new GitHubMaster()
-        .setGitHubClient(gitHubClient(gitHubProperties.getBaseUrl(),
-                                      gitHubProperties.getAccessToken()))
-        .setBaseUrl(gitHubProperties.getBaseUrl());
-  }
-
-  private GitHubClient gitHubClient(String address, String accessToken) {
-    BasicAuthRequestInterceptor interceptor = new BasicAuthRequestInterceptor();
+  public GitHubClient gitHubClient() {
+    BasicAuthRequestInterceptor interceptor = new BasicAuthRequestInterceptor()
+        .setAccessToken(gitHubProperties.getAccessToken());
 
     return new RestAdapter.Builder()
-        .setEndpoint(Endpoints.newFixedEndpoint(address))
-        .setRequestInterceptor(interceptor.setAccessToken(accessToken))
+        .setEndpoint(Endpoints.newFixedEndpoint(gitHubProperties.getBaseUrl()))
+        .setRequestInterceptor(interceptor)
         .setClient(okClient)
         .setConverter(new JacksonConverter())
         .setLogLevel(retrofitLogLevel)
@@ -79,13 +71,13 @@ public class GitHubConfig {
 
   private static class BasicAuthRequestInterceptor implements RequestInterceptor {
 
-    @Getter
     @Setter
     private String accessToken;
 
     @Override
     public void intercept(RequestFacade request) {
-      request.addQueryParam("access_token", accessToken);
+      // See docs at https://developer.github.com/v3/#authentication
+      request.addHeader("Authorization", "token " + accessToken);
     }
   }
 }
