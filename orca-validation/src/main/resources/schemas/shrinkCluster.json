@@ -1,65 +1,38 @@
 {
-  "title" : "Schema for 'bake' stage",
+  "title" : "Schema for 'shrinkCluster' stage",
   "type" : "object",
   "properties" : {
-    "account" : {
-      "type" : "string",
+    "allowDeleteActive" : {
+      "type" : "boolean",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws" ]
+          "cloudProviders" : [ "aws", "titus" ]
         }
       }
     },
-    "amiName" : {
+    "cloudProvider" : {
       "type" : "string",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "amiSuffix" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "baseAmi" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "baseLabel" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "baseName" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "baseOs" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
+          "cloudProviders" : [ "aws", "titus" ]
         }
       }
     },
     "cloudProviderType" : {
-      "type" : "string"
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "cluster" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
     },
     "comments" : {
       "type" : "string",
@@ -74,21 +47,10 @@
       }
     },
     "credentials" : {
-      "type" : "string"
-    },
-    "enhancedNetworking" : {
-      "type" : "boolean",
+      "type" : "string",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "extendedAttributes" : {
-      "type" : "object",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
+          "cloudProviders" : [ "aws", "titus" ]
         }
       }
     },
@@ -96,14 +58,6 @@
       "type" : "boolean",
       "_meta" : {
         "builtIn" : true
-      }
-    },
-    "image" : {
-      "type" : "object",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "titus" ]
-        }
       }
     },
     "notifications" : {
@@ -118,35 +72,11 @@
         "builtIn" : true
       }
     },
-    "package" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "rebake" : {
-      "type" : "boolean",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
     "regions" : {
       "type" : "array",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "repository" : {
-      "type" : "object",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "titus" ]
+          "cloudProviders" : [ "aws", "titus" ]
         }
       }
     },
@@ -162,14 +92,27 @@
         "builtIn" : true
       }
     },
+    "retainLargerOverNewer" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
     "sendNotifications" : {
       "type" : "boolean",
       "_meta" : {
         "builtIn" : true
       }
     },
-    "showAdvancedOptions" : {
-      "type" : "boolean"
+    "shrinkToSize" : {
+      "type" : "number",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
     },
     "stageEnabled" : {
       "type" : "object",
@@ -183,7 +126,7 @@
         "builtIn" : true
       }
     },
-    "storeType" : {
+    "target" : {
       "type" : "string",
       "_meta" : {
         "condition" : {

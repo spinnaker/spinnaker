@@ -1,48 +1,8 @@
 {
-  "title" : "Schema for 'bake' stage",
+  "title" : "Schema for 'jenkins' stage",
   "type" : "object",
   "properties" : {
-    "account" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "amiName" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "amiSuffix" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "baseAmi" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
     "baseLabel" : {
-      "type" : "string",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "baseName" : {
       "type" : "string",
       "_meta" : {
         "condition" : {
@@ -59,6 +19,14 @@
       }
     },
     "cloudProviderType" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "cmcTicket" : {
       "type" : "string"
     },
     "comments" : {
@@ -73,24 +41,8 @@
         "builtIn" : true
       }
     },
-    "credentials" : {
+    "email" : {
       "type" : "string"
-    },
-    "enhancedNetworking" : {
-      "type" : "boolean",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "extendedAttributes" : {
-      "type" : "object",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "aws" ]
-        }
-      }
     },
     "failPipeline" : {
       "type" : "boolean",
@@ -98,11 +50,22 @@
         "builtIn" : true
       }
     },
-    "image" : {
-      "type" : "object",
+    "job" : {
+      "type" : "string",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "titus" ]
+          "cloudProviders" : [ "aws", "titus" ]
+        }
+      }
+    },
+    "markUnstableAsSuccessful" : {
+      "type" : "boolean"
+    },
+    "master" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws", "titus" ]
         }
       }
     },
@@ -118,16 +81,19 @@
         "builtIn" : true
       }
     },
-    "package" : {
-      "type" : "string",
+    "parameters" : {
+      "type" : "object",
       "_meta" : {
         "condition" : {
-          "cloudProviders" : [ "aws" ]
+          "cloudProviders" : [ "aws", "titus" ]
         }
       }
     },
-    "rebake" : {
-      "type" : "boolean",
+    "persistedProperties" : {
+      "type" : "array"
+    },
+    "propertyFile" : {
+      "type" : "string",
       "_meta" : {
         "condition" : {
           "cloudProviders" : [ "aws" ]
@@ -139,14 +105,6 @@
       "_meta" : {
         "condition" : {
           "cloudProviders" : [ "aws" ]
-        }
-      }
-    },
-    "repository" : {
-      "type" : "object",
-      "_meta" : {
-        "condition" : {
-          "cloudProviders" : [ "titus" ]
         }
       }
     },
@@ -162,14 +120,14 @@
         "builtIn" : true
       }
     },
+    "scope" : {
+      "type" : "object"
+    },
     "sendNotifications" : {
       "type" : "boolean",
       "_meta" : {
         "builtIn" : true
       }
-    },
-    "showAdvancedOptions" : {
-      "type" : "boolean"
     },
     "stageEnabled" : {
       "type" : "object",
@@ -190,6 +148,17 @@
           "cloudProviders" : [ "aws" ]
         }
       }
+    },
+    "vmType" : {
+      "type" : "string",
+      "_meta" : {
+        "condition" : {
+          "cloudProviders" : [ "aws" ]
+        }
+      }
+    },
+    "waitForCompletion" : {
+      "type" : "boolean"
     }
   }
 }
