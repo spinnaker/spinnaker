@@ -1,3 +1,4 @@
+import {IEntityTags} from './IEntityTags';
 export interface ILoadBalancerUsage {
   name: string;
 }
@@ -19,6 +20,7 @@ export interface ISecurityGroup {
   accountName?: string;
   cloudProvider?: string;
   credentials?: string;
+  entityTags?: IEntityTags;
   id?: string;
   inferredName?: boolean;
   name?: string;

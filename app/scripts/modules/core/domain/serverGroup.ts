@@ -19,10 +19,9 @@ export interface ServerGroup {
   category?: string;
   cloudProvider: string;
   cluster: string;
-  entityTags?: IEntityTags;
   clusterEntityTags?: IEntityTags[];
   detail?: string;
-  runningExecutions?: Execution[];
+  entityTags?: IEntityTags;
   instanceCounts: InstanceCounts;
   instanceType?: string;
   instances: Instance[];
@@ -32,6 +31,7 @@ export interface ServerGroup {
   name: string;
   provider?: string;
   region: string;
+  runningExecutions?: Execution[];
   runningTasks?: ITask[];
   searchField?: string;
   securityGroups?: string[];

@@ -4,7 +4,10 @@
      ng-class="{active: $state.includes('**.securityGroupDetails', {region: securityGroup.region, accountId: securityGroup.accountName, name: securityGroup.name, vpcId: securityGroup.vpcId, provider: securityGroup.provider})}">
 
   <h6 sticky-header added-offset-height="39">
-    <span class="glyphicon glyphicon-transfer"></span> {{heading | uppercase}}
+    <span class="glyphicon glyphicon-transfer"></span>
+    {{heading | uppercase}}
+    <entity-ui-tags component="securityGroup" application="application" entity-type="securityGroup"
+                    on-update="application.securityGroups.refresh()"></entity-ui-tags>
   </h6>
 
   <div class="cluster-container">

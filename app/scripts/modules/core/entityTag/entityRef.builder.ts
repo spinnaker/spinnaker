@@ -3,6 +3,7 @@ import {ILoadBalancer} from '../domain/loadBalancer';
 import {Application} from '../application/application.model';
 import {IEntityRef} from '../domain/IEntityTags';
 import {ICluster} from '../domain/ICluster';
+import {ISecurityGroup} from '../domain/ISecurityGroup';
 
 export class EntityRefBuilder {
 
@@ -44,6 +45,17 @@ export class EntityRefBuilder {
     };
   }
 
+  public static buildSecurityGroupRef(securityGroup: ISecurityGroup): IEntityRef {
+    return {
+      cloudProvider: securityGroup.cloudProvider,
+      entityType: 'securitygroup',
+      entityId: securityGroup.name,
+      account: securityGroup.accountName,
+      region: securityGroup.region,
+      vpcId: securityGroup.vpcId,
+    };
+  }
+
   public static getBuilder(type: string): (entity: any) => IEntityRef {
     switch (type) {
       case 'application':
@@ -54,6 +66,8 @@ export class EntityRefBuilder {
         return this.buildLoadBalancerRef;
       case 'cluster':
         return this.buildClusterRef;
+      case 'securityGroup':
+        return this.buildSecurityGroupRef;
       default:
         return null;
     }
