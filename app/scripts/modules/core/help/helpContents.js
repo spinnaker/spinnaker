@@ -315,6 +315,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.script.propertyFile': '<p>(Optional) The name to the properties file produced by the script execution to be used by later stages of the Spinnaker pipeline. </p>',
     'pipeline.config.docker.trigger.tag': '<p>(Optional) If specified, only the tags that match this Java Regular Expression will be triggered. Leave empty to trigger builds on any tag pushed.</p>',
     'pipeline.config.git.trigger.branch': '<p>(Optional) If specified, only pushes to the branches that match this Java Regular Expression will be triggered. Leave empty to trigger builds for every branch.</p>',
+    'pipeline.config.git.trigger.githubSecret': '<p>(Optional, but recommended) If specified, verifies GitHub as the sender of this trigger. See <a target="_blank" href="https://developer.github.com/webhooks/securing/">GitHub docs</a> for more information.</p>',
     'serverGroupCapacity.useSourceCapacityTrue': '<p>Spinnaker will use the current capacity of the existing server group when deploying a new server group.</p>' +
     '<p>This setting is intended to support a server group with auto-scaling enabled, where the bounds and desired capacity are controlled by an external process.</p>' +
     '<p>In the event that there is no existing server group, the deploy will fail.</p>',

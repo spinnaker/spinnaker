@@ -52,6 +52,15 @@
       <input type="text" class="form-control input-sm" ng-model="trigger.branch"/>
     </div>
   </div>
+  <div class="form-group" ng-if="vm.trigger.source === 'github'">
+    <div class="col-md-3 sm-label-right">
+      Secret
+      <help-field key="pipeline.config.git.trigger.githubSecret"></help-field>
+    </div>
+    <div class="col-md-9">
+      <input type="text" class="form-control input-sm" ng-model="trigger.secret"/>
+    </div>
+  </div>
   <div class="form-group" ng-if="vm.fiatEnabled">
     <run-as-user-selector service-accounts="vm.serviceAccounts"
                           component="vm.trigger"
