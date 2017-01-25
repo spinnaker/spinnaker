@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.shared.FiatAuthenticationFilter;
 import com.netflix.spinnaker.fiat.shared.FiatService;
@@ -27,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -67,6 +67,8 @@ public class FiatAuthenticationConfig {
   @Bean
   @ConditionalOnMissingBean(FiatService.class) // Allows for override
   public FiatService fiatService(FiatClientConfigurationProperties fiatConfigurationProperties) {
+    // New role providers break deserialization if this is not enabled.
+    objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
         .setClient(okClient)
