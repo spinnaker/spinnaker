@@ -16,11 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineIllegalArgumentExeception
-import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppEngineResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
-import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineLoadBalancer
-import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineScalingPolicy
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineServerGroup
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.model.ScalingPolicyType
@@ -260,5 +256,53 @@ class StandardAppEngineAttributeValidator {
     } else {
       return true
     }
+  }
+
+  def validateShardBy(AppEngineTrafficSplit split, Boolean migrateTraffic, String attribute) {
+    if (!split) {
+      return true
+    }
+
+    if (migrateTraffic && !validateNotEmpty(split.shardBy, attribute)) {
+      errors.rejectValue("${context}.${attribute}",
+                         "${context}.${attribute}.invalid (A shardBy value must be specified for gradual traffic migration).")
+      return false
+    }
+
+    def targetNumberOfEnabledServerGroups = split.allocations?.keySet()?.size() ?: 0
+    if (targetNumberOfEnabledServerGroups > 1 && !validateNotEmpty(split.shardBy, attribute)) {
+      errors.rejectValue("${context}.${attribute}",
+                         "${context}.${attribute}.invalid (A shardBy value must be specified if traffic " +
+                         "will be split between multiple server groups).")
+      return false
+    }
+
+    return true
+  }
+
+  def validateGradualMigrationIsAllowed(AppEngineTrafficSplit split,
+                                        AppEngineNamedAccountCredentials credentials,
+                                        AppEngineClusterProvider clusterProvider,
+                                        String attribute) {
+    if (!validateNotEmpty(split.allocations, "split.allocations")) {
+      return false
+    }
+
+    if (split.allocations.keySet().size() > 1) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid " +
+                         "(Cannot gradually migrate traffic to multiple server groups).")
+      return false
+    }
+
+    def serverGroup = clusterProvider.getServerGroup(credentials.name, credentials.region, split.allocations.keySet()[0])
+    if (!serverGroup.allowsGradualTrafficMigration) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid " +
+                                                    "(Cannot gradually migrate traffic to this server group. " +
+                                                    "Gradual migration is allowed only for server groups in the standard " +
+                                                    "environment that use automatic scaling and have warmup requests enabled).")
+      return false
+    }
+
+    return true
   }
 }

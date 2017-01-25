@@ -44,6 +44,7 @@ class AppEngineServerGroup implements ServerGroup, Serializable {
   String httpUrl
   String httpsUrl
   String instanceClass
+  Boolean allowsGradualTrafficMigration
 
   AppEngineServerGroup() {}
 
@@ -61,6 +62,7 @@ class AppEngineServerGroup implements ServerGroup, Serializable {
     this.httpsUrl = AppEngineModelUtil.getHttpsUrl(version.getName())
     this.instanceClass = version.getInstanceClass()
     this.zones = [region] as Set
+    this.allowsGradualTrafficMigration = versionAllowsGradualTrafficMigration(version)
   }
 
   @Override
@@ -106,6 +108,14 @@ class AppEngineServerGroup implements ServerGroup, Serializable {
         return new ServerGroup.Capacity(min: instanceCount, max: instanceCount, desired: instanceCount)
         break
     }
+  }
+
+  static Boolean versionAllowsGradualTrafficMigration(Version version) {
+    // Versions do not always have an env property if they are in the standard environment.
+    def inStandardEnvironment = version.getEnv()?.toUpperCase() != "FLEXIBLE"
+    def warmupRequestsConfigured = (version.getInboundServices() ?: []).contains("INBOUND_SERVICE_WARMUP")
+    def usesAutomaticScaling = AppEngineModelUtil.getScalingPolicy(version).type == ScalingPolicyType.AUTOMATIC
+    return inStandardEnvironment && warmupRequestsConfigured && usesAutomaticScaling
   }
 
   @Override

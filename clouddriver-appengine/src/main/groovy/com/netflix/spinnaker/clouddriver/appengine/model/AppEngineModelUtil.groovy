@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.model
 
-import com.google.api.services.appengine.v1.model.Service
 import com.google.api.services.appengine.v1.model.Version
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.clouddriver.model.HealthState
 
 import java.text.SimpleDateFormat
 
@@ -44,6 +42,8 @@ class AppEngineModelUtil {
       return new AppEngineScalingPolicy(version.getBasicScaling())
     } else if (version.getManualScaling()) {
       return new AppEngineScalingPolicy(version.getManualScaling())
+    } else {
+      return new AppEngineScalingPolicy()
     }
   }
 

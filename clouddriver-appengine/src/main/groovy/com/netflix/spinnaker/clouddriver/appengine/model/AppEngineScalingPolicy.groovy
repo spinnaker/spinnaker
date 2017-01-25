@@ -47,7 +47,9 @@ class AppEngineScalingPolicy implements Serializable {
   // Manual scaling
   Integer instances
 
-  AppEngineScalingPolicy() {}
+  AppEngineScalingPolicy() {
+    type = ScalingPolicyType.AUTOMATIC
+  }
 
   AppEngineScalingPolicy(AutomaticScaling automaticScaling) {
     type = ScalingPolicyType.AUTOMATIC

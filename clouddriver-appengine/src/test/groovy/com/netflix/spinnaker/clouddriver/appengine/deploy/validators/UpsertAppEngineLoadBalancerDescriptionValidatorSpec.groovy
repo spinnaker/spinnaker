@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRep
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class UpsertAppEngineLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final ACCOUNT_NAME = "my-appengine-account"
@@ -46,6 +47,13 @@ class UpsertAppEngineLoadBalancerDescriptionValidatorSpec extends Specification 
   private static final SERVER_GROUP_2 = new AppEngineServerGroup(
     name: SERVER_GROUP_NAME_2,
     loadBalancers: [LOAD_BALANCER_NAME]
+  )
+
+  private static final SERVER_GROUP_NAME_3 = "allows-gradual-migration"
+  private static final SERVER_GROUP_3 = new AppEngineServerGroup(
+    name: SERVER_GROUP_NAME_3,
+    loadBalancers: [LOAD_BALANCER_NAME],
+    allowsGradualTrafficMigration: true
   )
 
   @Shared
@@ -72,6 +80,7 @@ class UpsertAppEngineLoadBalancerDescriptionValidatorSpec extends Specification 
 
     validator.appEngineClusterProvider.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME_1) >> SERVER_GROUP_1
     validator.appEngineClusterProvider.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME_2) >> SERVER_GROUP_2
+    validator.appEngineClusterProvider.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME_3) >> SERVER_GROUP_3
   }
 
   void "pass validation with proper description inputs"() {
@@ -115,15 +124,109 @@ class UpsertAppEngineLoadBalancerDescriptionValidatorSpec extends Specification 
                              'upsertAppEngineLoadBalancerAtomicOperationDescription.split.allocations.invalid (Allocations must sum to 1)')
   }
 
-  void "allocation with uncached server group fails validation"() {
+  @Unroll
+  void "validates allowed inputs for gradual migration"() {
+    setup:
+      def description = new UpsertAppEngineLoadBalancerDescription(
+        accountName: ACCOUNT_NAME,
+        loadBalancerName: LOAD_BALANCER_NAME,
+        split: split,
+        migrateTraffic: true,
+        credentials: credentials
+      )
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(errorPrefix, errorMessage)
+
+    where:
+      split << [
+        new AppEngineTrafficSplit(allocations: ["app-stack-detail-v000": 0.5, "app-stack-detail-v001": 0.5], shardBy: ShardBy.IP),
+        new AppEngineTrafficSplit(allocations: [(SERVER_GROUP_NAME_1): 1], shardBy: ShardBy.IP),
+        new AppEngineTrafficSplit(shardBy: ShardBy.IP),
+      ]
+
+      errorPrefix << [
+        'upsertAppEngineLoadBalancerAtomicOperationDescription.migrateTraffic',
+        'upsertAppEngineLoadBalancerAtomicOperationDescription.migrateTraffic',
+        'upsertAppEngineLoadBalancerAtomicOperationDescription.split.allocations',
+      ]
+
+      errorMessage << [
+        'upsertAppEngineLoadBalancerAtomicOperationDescription.migrateTraffic.invalid (Cannot gradually migrate traffic to multiple server groups).',
+        'upsertAppEngineLoadBalancerAtomicOperationDescription.migrateTraffic.invalid (Cannot gradually migrate traffic to this server group.'
+          + ' Gradual migration is allowed only for server groups in the standard environment that use automatic scaling and have warmup requests enabled).',
+        'upsertAppEngineLoadBalancerAtomicOperationDescription.split.allocations.empty'
+      ]
+  }
+
+  @Unroll
+  void "validates shardBy based on traffic split allocations and gradual migration option"() {
+    setup:
+      def description = new UpsertAppEngineLoadBalancerDescription(
+        accountName: ACCOUNT_NAME,
+        loadBalancerName: LOAD_BALANCER_NAME,
+        split: split,
+        migrateTraffic: migrateTraffic,
+        credentials: credentials
+      )
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('upsertAppEngineLoadBalancerAtomicOperationDescription.split.shardBy', errorMessage)
+
+    where:
+      split << [
+        new AppEngineTrafficSplit(allocations: [(SERVER_GROUP_NAME_3): 1]),
+        new AppEngineTrafficSplit(allocations: ["app-stack-detail-v000": 0.5, "app-stack-detail-v001": 0.5]),
+      ]
+
+      migrateTraffic << [true, false]
+
+      errorMessage << [
+        'upsertAppEngineLoadBalancerAtomicOperationDescription.split.shardBy.invalid'
+         + ' (A shardBy value must be specified for gradual traffic migration).',
+        'upsertAppEngineLoadBalancerAtomicOperationDescription.split.shardBy.invalid '
+          + '(A shardBy value must be specified if traffic will be split between multiple server groups).'
+      ]
+  }
+
+  void "traffic split with just shardBy value passes validation"() {
     setup:
       def validSplit = new AppEngineTrafficSplit(
+        shardBy: ShardBy.IP
+      )
+      def description = new UpsertAppEngineLoadBalancerDescription(
+        accountName: ACCOUNT_NAME,
+        loadBalancerName: LOAD_BALANCER_NAME,
+        split: validSplit,
+        migrateTraffic: MIGRATE_TRAFFIC,
+        credentials: credentials
+      )
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "allocation with uncached server group fails validation"() {
+    setup:
+      def invalidSplit = new AppEngineTrafficSplit(
         allocations: ["does-not-exist": 1],
         shardBy: ShardBy.IP)
       def description = new UpsertAppEngineLoadBalancerDescription(
         accountName: ACCOUNT_NAME,
         loadBalancerName: LOAD_BALANCER_NAME,
-        split: validSplit,
+        split: invalidSplit,
         migrateTraffic: MIGRATE_TRAFFIC,
         credentials: credentials)
       def errors = Mock(Errors)

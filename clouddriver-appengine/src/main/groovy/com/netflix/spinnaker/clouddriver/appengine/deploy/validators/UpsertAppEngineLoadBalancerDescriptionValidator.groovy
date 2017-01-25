@@ -44,14 +44,26 @@ class UpsertAppEngineLoadBalancerDescriptionValidator extends DescriptionValidat
     }
 
     helper.validateNotEmpty(description.loadBalancerName, "loadBalancerName")
-    helper.validateTrafficSplit(description.split, "split")
-    if (description?.split?.allocations) {
-      def serverGroupNames = description.split.allocations.keySet()
-      helper.validateServerGroupsCanBeEnabled(serverGroupNames,
-                                              description.loadBalancerName,
-                                              description.credentials,
-                                              appEngineClusterProvider,
-                                              "split.allocations")
+
+    def trafficSplitExists = helper.validateTrafficSplit(description.split, "split")
+    if (trafficSplitExists) {
+      helper.validateShardBy(description.split, description.migrateTraffic, "split.shardBy")
+
+      if (description.split.allocations) {
+        def serverGroupNames = description.split.allocations.keySet()
+        helper.validateServerGroupsCanBeEnabled(serverGroupNames,
+                                                description.loadBalancerName,
+                                                description.credentials,
+                                                appEngineClusterProvider,
+                                                "split.allocations")
+      }
+
+      if (description.migrateTraffic) {
+        helper.validateGradualMigrationIsAllowed(description.split,
+                                                 description.credentials,
+                                                 appEngineClusterProvider,
+                                                 "migrateTraffic")
+      }
     }
   }
 }

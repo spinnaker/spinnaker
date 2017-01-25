@@ -69,10 +69,6 @@ class UpsertAppEngineLoadBalancerAtomicOperation implements AtomicOperation<Map>
     def credentials = description.credentials
     def loadBalancerName = description.loadBalancerName
     def updateSplit = description.split
-
-    // TODO(dpeach): do validation for traffic migration.
-    def migrateTraffic = description.migrateTraffic
-
     def ancestorLoadBalancer = appEngineLoadBalancerProvider.getLoadBalancer(credentials.name, loadBalancerName)
     def override = copyAndOverrideAncestorSplit(ancestorLoadBalancer.split, updateSplit)
 
