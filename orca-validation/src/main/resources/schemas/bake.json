@@ -1,0 +1,51 @@
+{
+  "title": "Bake Stage Schema",
+  "type": "object",
+  "properties": {
+    "cloudProviderType": {
+      "type": "string",
+      "required": true
+    },
+    "baseOs": {
+      "type": "string",
+      "required": true
+    },
+    "storeType": {
+      "type": "string"
+    },
+    "package": {
+      "type": "string",
+      "required": true
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "condition": {
+        "cloudProviders": [
+          "aws"
+        ]
+      },
+      "required": true
+    },
+    "enhancedNetworking": {
+      "type": "boolean",
+      "condition": {
+        "cloudProviders": [
+          "aws"
+        ]
+      },
+      "required": true
+    },
+    "vmType": {
+      "type": "string",
+      "condition": {
+        "cloudProviders": [
+          "aws"
+        ]
+      },
+      "required": true
+    }
+  }
+}
