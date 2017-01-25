@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.front50.migrations;
 
-import com.netflix.spinnaker.front50.model.ItemDAO;
+import java.util.List;
+import java.util.Map;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import static java.lang.String.format;
+import rx.Observable;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component
@@ -39,20 +40,56 @@ public class ExecutionEngineMigration implements Migration {
 
   @Override public void run() {
     log.info("Starting Linear -> Parallel Migration");
-    pipelineDAO
-      .all()
-      .stream()
-      .filter(pipeline -> !"v2".equals(pipeline.get("executionEngine")))
-      .forEach(pipeline -> migrate(pipelineDAO, "pipeline", pipeline));
+    Observable
+      .from(pipelineDAO.all())
+      .filter(this::isV1)
+      .filter(this::hasDeployStage)
+      .filter(this::hasNoCanaryStage)
+      .filter(this::deploysOnlyToTest)
+      .subscribe(this::migrate, this::onError);
   }
 
-  private void migrate(ItemDAO<Pipeline> dao, String type, Pipeline pipeline) {
-    log.info(format("Migrating %s '%s' from v1 -> v2", type, pipeline.getId()));
+  private boolean isV1(Pipeline pipeline) {
+    return !"v2".equals(pipeline.get("executionEngine"));
+  }
+
+  private boolean hasDeployStage(Pipeline pipeline) {
+    return Observable
+      .from((List<Map<String, Object>>) pipeline.get("stages"))
+      .exists(stage -> "deploy".equals(stage.get("type")))
+      .toBlocking()
+      .first();
+  }
+
+  private boolean hasNoCanaryStage(Pipeline pipeline) {
+    return !Observable
+      .from((List<Map<String, Object>>) pipeline.get("stages"))
+      .exists(stage -> "canary".equals(stage.get("type")))
+      .toBlocking()
+      .first();
+  }
+
+  private boolean deploysOnlyToTest(Pipeline pipeline) {
+    return Observable
+      .from((List<Map<String, Object>>) pipeline.get("stages"))
+      .filter(stage -> "deploy".equals(stage.get("type")))
+      .flatMapIterable(stage -> (List<Map<String, Object>>) stage.get("clusters"))
+      .all(cluster -> "test".equals(cluster.get("account")))
+      .toBlocking()
+      .first();
+  }
+
+  private void migrate(Pipeline pipeline) {
+    log.info("Migrating {} pipeline '{}' from v1 -> v2", pipeline.getApplication(), pipeline.getName());
 
     pipeline.put("executionEngine", "v2");
-    dao.update(pipeline.getId(), pipeline);
+    pipelineDAO.update(pipeline.getId(), pipeline);
 
-    log.info(format("Migrated %s '%s' from v1 -> v2", type, pipeline.getId()));
+    log.info("Migrated {} pipeline '{}' from v1 -> v2", pipeline.getApplication(), pipeline.getName());
+  }
+
+  private void onError(Throwable throwable) {
+    log.error("Error migrating pipeline to v2", throwable);
   }
 
   private static final Logger log = getLogger(ExecutionEngineMigration.class);
