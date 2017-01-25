@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-import com.google.api.services.compute.model.FixedOrPercent
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
@@ -56,6 +55,15 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
     String healthCheck
     int initialDelaySec = 300
     FixedOrPercent maxUnavailable
+  }
+
+  @Canonical
+  @ToString(includeNames = true)
+  static class FixedOrPercent {
+    Double fixed
+    Double percent
+    // This is only here so casting from the real FixedOrPercent model class works.
+    Integer calculated
   }
 
   @Canonical

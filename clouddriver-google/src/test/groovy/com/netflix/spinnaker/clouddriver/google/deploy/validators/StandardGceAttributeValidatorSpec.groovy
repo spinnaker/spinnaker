@@ -835,6 +835,9 @@ class StandardGceAttributeValidatorSpec extends Specification {
       0     | null
       50    | null
       50    | 100
+      null  | 100.25
+      50.25 | null
+      50.25 | 100.25
   }
 
   void "invalid autoHealer maxUnavailable"() {

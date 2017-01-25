@@ -317,7 +317,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       }
     }
 
-    def autoHealingPolicy =
+    List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicy =
       description.autoHealingPolicy?.healthCheck
       ? [new InstanceGroupManagerAutoHealingPolicy(
              healthCheck: GCEUtil.queryHealthCheck(project,
@@ -327,9 +327,15 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                    cacheView,
                                                    task,
                                                    BASE_PHASE).selfLink,
-             initialDelaySec: description.autoHealingPolicy.initialDelaySec,
-             maxUnavailable: description.autoHealingPolicy.maxUnavailable)]
+             initialDelaySec: description.autoHealingPolicy.initialDelaySec)]
       : null
+
+    if (autoHealingPolicy) {
+      def maxUnavailable = new FixedOrPercent(fixed: description.autoHealingPolicy.maxUnavailable.fixed as Integer,
+                                              percent: description.autoHealingPolicy.maxUnavailable.percent as Integer)
+
+      autoHealingPolicy[0].setMaxUnavailable(maxUnavailable)
+    }
 
     def migCreateOperation
     def instanceGroupManager = new InstanceGroupManager()

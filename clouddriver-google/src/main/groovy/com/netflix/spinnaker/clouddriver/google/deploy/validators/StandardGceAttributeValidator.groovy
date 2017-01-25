@@ -439,9 +439,9 @@ class StandardGceAttributeValidator {
 
         maxUnavailable?.with {
           if (fixed != null) {
-            validateNonNegativeLong(fixed, "autoHealingPolicy.maxUnavailable.fixed")
+            validateNonNegativeLong(fixed as int, "autoHealingPolicy.maxUnavailable.fixed")
           } else if (percent != null) {
-            validateInRangeInclusive(percent,
+            validateInRangeInclusive(percent as int,
                                      0, 100, "autoHealingPolicy.maxUnavailable.percent")
           } else {
             this.errors.rejectValue("autoHealingPolicy.maxUnavailable",
