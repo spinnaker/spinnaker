@@ -15,6 +15,5 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.property', [
   require('core/deploymentStrategy/deploymentStrategy.module.js'),
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
-  require('../../../fastProperties/modal/fastPropertyConstraint.directive'),
   require('../../../fastProperties/modal/wizard/fastPropertyConstraintsSelector.directive'),
 ]);

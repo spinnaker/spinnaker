@@ -21,7 +21,6 @@ module.exports = angular
     require('./modal/deleteFastProperty.controller.js'),
     require('./dataNav/fastPropertyRollouts.controller.js'),
     require('./fastPropertyProgressBar.directive.js'),
-    require('./modal/fastPropertyConstraint.directive.js'),
     require('./modal/fastPropertyStrategySelector.directive.js'),
     require('./strategies/scopeLadder/scopeLadder.module.js'),
     require('./strategies/aca/aca.module.js'),
