@@ -67,7 +67,6 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
   DeploymentResult operate(List priorOutputs) {
     BasicGoogleDeployDescription newDescription = cloneAndOverrideDescription()
 
-
     def credentials = newDescription.credentials
     def project = credentials.project
     def isRegional = newDescription.regional
@@ -127,7 +126,6 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
         ? description.targetSize
         : ancestorServerGroup.capacity.desired
 
-    def accountName = description.accountName
     def ancestorInstanceTemplate = ancestorServerGroup.launchConfig.instanceTemplate
 
     if (ancestorInstanceTemplate) {
@@ -201,6 +199,11 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
           description.subnet != null
           ? description.subnet
           : GCEUtil.getLocalName(ancestorInstanceProperties.networkInterfaces?.getAt(0)?.subnetwork)
+
+      newDescription.associatePublicIpAddress =
+          description.associatePublicIpAddress != null
+          ? description.associatePublicIpAddress
+          : ancestorInstanceProperties.networkInterfaces?.getAt(0)?.accessConfigs?.size() > 0
     }
 
     AutoscalingPolicy ancestorAutoscalingPolicy = ancestorServerGroup.autoscalingPolicy

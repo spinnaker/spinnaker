@@ -24,10 +24,12 @@ import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
+import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 
 @AutoClone
 @Canonical
+@EqualsAndHashCode(callSuper = true)
 @ToString(includeSuper = true, includeNames = true)
 class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription implements DeployDescription, ApplicationNameable {
   String application

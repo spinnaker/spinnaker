@@ -111,7 +111,11 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
                                                    description.instanceType,
                                                    googleDeployDefaults)
 
-    def networkInterface = GCEUtil.buildNetworkInterface(network, subnet, accessConfigName, accessConfigType)
+    def networkInterface = GCEUtil.buildNetworkInterface(network,
+                                                         subnet,
+                                                         description.associatePublicIpAddress == null || description.associatePublicIpAddress,
+                                                         accessConfigName,
+                                                         accessConfigType)
 
     def metadata = GCEUtil.buildMetadataFromMap(description.instanceMetadata)
 
