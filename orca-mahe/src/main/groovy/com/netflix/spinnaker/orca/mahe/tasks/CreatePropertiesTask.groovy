@@ -49,8 +49,11 @@ class CreatePropertiesTask implements Task {
         log.info("Upserting Property: ${prop}")
         response = maheService.upsertProperty(prop)
       }
-      if (response.status == 200 && response.body.mimeType().startsWith('application/')) {
-        propertyIdList << mapper.readValue(response.body.in().text, Map)
+
+      if (response.status == 200) {
+        if (response.body?.mimeType()?.startsWith('application/')) {
+          propertyIdList << mapper.readValue(response.body.in().text, Map)
+        }
       } else {
         throw new IllegalStateException("Unable to handle $response for property $prop")
       }

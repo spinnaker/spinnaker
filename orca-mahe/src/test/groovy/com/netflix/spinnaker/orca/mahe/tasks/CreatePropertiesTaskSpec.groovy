@@ -103,7 +103,7 @@ class CreatePropertiesTaskSpec extends Specification {
     }
   }
 
-  def "delete single persisted properties"() {
+  def "successfully delete single persisted properties"() {
     given:
     def pipeline = new Pipeline(application: 'foo')
     def scope = createScope()
@@ -119,16 +119,43 @@ class CreatePropertiesTaskSpec extends Specification {
     then:
     1 * maheService.deleteProperty(property.propertyId, 'delete', scope.env) >> { def res ->
       def json = mapper.writeValueAsString([propertyId: 'propertyId'])
-      new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
+//      new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
+      new Response("http://mahe", 200, "OK", [] , null)
     }
 
-    then:
+    then: "deleting a fast property does not return a property ID"
     with(results.stageOutputs) {
-      propertyIdList.size() == 1
-      propertyIdList.contains(propertyId: 'propertyId')
+      propertyIdList.size() == 0
     }
 
   }
+
+  def "delete a persisted properties that doen't exist"() {
+    given:
+    def pipeline = new Pipeline(application: 'foo')
+    def scope = createScope()
+    def propertyId = 'invalid_id'
+    def property = createProperty(propertyId)
+    def propertiesStage = createPropertiesStage(pipeline, scope, property)
+    propertiesStage.context["delete"] = true
+    pipeline.stages.addAll([propertiesStage, createMonitorStage(pipeline)])
+
+    when:
+    def results = task.execute(propertiesStage)
+
+    then:
+    1 * maheService.deleteProperty(property.propertyId, 'delete', scope.env) >> { def res ->
+      def json = mapper.writeValueAsString([error:  "com.netflix.fastproperty.api.model.PropertyNotFound : property null"])
+      new Response("http://mahe", 400, "OK", [], new TypedByteArray('application/json', json.bytes))
+    }
+
+    then:
+    thrown(IllegalStateException)
+
+  }
+
+
+
 
   def "create multiple new persistent property"() {
     given:
