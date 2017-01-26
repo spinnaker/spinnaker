@@ -107,7 +107,14 @@ abstract class AbstractEurekaSupport {
         retry(task, eurekaSupportConfigurationProperties.retryMax) { retryCount ->
           task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery (attempt: ${retryCount})."
 
-          Response resp = eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value)
+          Response resp
+
+          if(discoveryStatus == DiscoveryStatus.Disable) {
+            resp = eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value)
+          } else {
+            resp = eureka.resetInstanceStatus(applicationName, instanceId, DiscoveryStatus.Disable.value)
+          }
+
           if (resp.status != 200) {
             throw new RetryableException("Non HTTP 200 response from discovery for instance ${instanceId}, will retry (attempt: $retryCount}).")
           }
