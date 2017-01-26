@@ -42,7 +42,7 @@ class LaunchFailureNotificationAgentSpec extends Specification {
 
   void "should create topic if it does not exist"() {
     when:
-    def topicId = LaunchFailureNotificationAgent.ensureTopicExists(amazonSNS, null, topicARN, allAccountIds, queueARN)
+    def topicId = LaunchFailureNotificationAgent.ensureTopicExists(amazonSNS, topicARN, allAccountIds, queueARN)
 
     then:
     topicId == topicARN.arn
@@ -58,20 +58,11 @@ class LaunchFailureNotificationAgentSpec extends Specification {
     // should subscribe the queue to this topic
     1 * amazonSNS.subscribe(topicARN.arn, "sqs", queueARN.arn)
     0 * _
-
-
-    when:
-    topicId = LaunchFailureNotificationAgent.ensureQueueExists(amazonSQS, "existing-topic-arn", queueARN, topicARN)
-
-    then:
-    topicId == "existing-topic-arn"
-
-    0 * _
   }
 
   void "should create queue if it does not exist"() {
     when:
-    def queueId = LaunchFailureNotificationAgent.ensureQueueExists(amazonSQS, null, queueARN, topicARN)
+    def queueId = LaunchFailureNotificationAgent.ensureQueueExists(amazonSQS, queueARN, topicARN)
 
     then:
     queueId == "my-queue-url"
@@ -83,14 +74,6 @@ class LaunchFailureNotificationAgentSpec extends Specification {
     1 * amazonSQS.setQueueAttributes("my-queue-url", [
         "Policy": LaunchFailureNotificationAgent.buildSQSPolicy(queueARN, topicARN).toJson()
     ])
-    0 * _
-
-    when:
-    queueId = LaunchFailureNotificationAgent.ensureQueueExists(amazonSQS, "existing-queue-url", queueARN, topicARN)
-
-    then:
-    queueId == "existing-queue-url"
-
     0 * _
   }
 

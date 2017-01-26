@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.model
 
+import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 
+@EqualsAndHashCode
 @ToString(includeNames = true)
 class GoogleDisk {
   GoogleDiskType type

@@ -187,7 +187,11 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                    description.instanceType,
                                                    googleDeployDefaults)
 
-    def networkInterface = GCEUtil.buildNetworkInterface(network, subnet, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
+    def networkInterface = GCEUtil.buildNetworkInterface(network,
+                                                         subnet,
+                                                         description.associatePublicIpAddress == null || description.associatePublicIpAddress,
+                                                         ACCESS_CONFIG_NAME,
+                                                         ACCESS_CONFIG_TYPE)
 
     def hasBackendServices = (instanceMetadata &&
       instanceMetadata.containsKey(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)) || sslLoadBalancers

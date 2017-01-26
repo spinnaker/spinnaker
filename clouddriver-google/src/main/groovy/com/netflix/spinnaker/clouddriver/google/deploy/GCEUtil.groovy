@@ -576,13 +576,17 @@ class GCEUtil {
 
   static NetworkInterface buildNetworkInterface(GoogleNetwork network,
                                                 GoogleSubnet subnet,
+                                                boolean associatePublicIpAddress,
                                                 String accessConfigName,
                                                 String accessConfigType) {
-    def accessConfig = new AccessConfig(name: accessConfigName, type: accessConfigType)
+    NetworkInterface networkInterface = new NetworkInterface(network: network.selfLink,
+                                                             subnetwork: subnet ? subnet.selfLink : null)
 
-    return new NetworkInterface(network: network.selfLink,
-                                subnetwork: subnet ? subnet.selfLink : null,
-                                accessConfigs: [accessConfig])
+    if (associatePublicIpAddress) {
+      networkInterface.setAccessConfigs([new AccessConfig(name: accessConfigName, type: accessConfigType)])
+    }
+
+    return networkInterface
   }
 
   static Metadata buildMetadataFromMap(Map<String, String> instanceMetadata) {

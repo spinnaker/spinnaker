@@ -59,6 +59,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final List<String> TAGS = ["orig-tag-1", "orig-tag-2", HTTP_SERVER_TAG, HTTPS_SERVER_TAG]
   private static final String SERVICE_ACCOUNT_EMAIL = "default"
   private static final List<String> AUTH_SCOPES = ["compute", "logging.write"]
+  private static final List<String> DECORATED_AUTH_SCOPES =
+          ["https://www.googleapis.com/auth/compute", "https://www.googleapis.com/auth/logging.write"]
   private static final List<String> LOAD_BALANCERS = ["testlb-east-1", "testlb-east-2"]
   private static final String ZONE = "us-central1-b"
 
@@ -104,7 +106,11 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                false,
                                                INSTANCE_TYPE,
                                                new GoogleConfiguration.DeployDefaults())
-    networkInterface = GCEUtil.buildNetworkInterface(network, subnet, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
+    networkInterface = GCEUtil.buildNetworkInterface(network,
+                                                     subnet,
+                                                     true,
+                                                     ACCESS_CONFIG_NAME,
+                                                     ACCESS_CONFIG_TYPE)
     instanceMetadata = GCEUtil.buildMetadataFromMap(INSTANCE_METADATA)
     tags = GCEUtil.buildTagsFromList(TAGS)
     scheduling = new Scheduling(preemptible: false,
@@ -154,6 +160,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          authScopes: ["some-scope", "some-other-scope"],
                                                          network: "other-network",
                                                          subnet: "other-subnet",
+                                                         associatePublicIpAddress: false,
                                                          loadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          autoscalingPolicy:
                                                              new GoogleAutoscalingPolicy(
@@ -216,9 +223,10 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.automaticRestart = true
       newDescription.onHostMaintenance = BaseGoogleInstanceDescription.OnHostMaintenance.MIGRATE
       newDescription.serviceAccountEmail = SERVICE_ACCOUNT_EMAIL
-      newDescription.authScopes = AUTH_SCOPES
+      newDescription.authScopes = DECORATED_AUTH_SCOPES
       newDescription.network = DEFAULT_NETWORK_NAME
       newDescription.subnet = SUBNET_NAME
+      newDescription.associatePublicIpAddress = true
       newDescription.loadBalancers = LOAD_BALANCERS
       newDescription.autoscalingPolicy = new GoogleAutoscalingPolicy(coolDownPeriodSec: 45,
                                                                      minNumReplicas: 2,

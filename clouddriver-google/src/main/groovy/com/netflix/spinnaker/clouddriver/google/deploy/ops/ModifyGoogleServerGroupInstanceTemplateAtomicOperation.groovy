@@ -211,7 +211,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
         def network = GCEUtil.queryNetwork(accountName, newDescription.network, task, BASE_PHASE, googleNetworkProvider)
         def subnet =
           description.subnet ? GCEUtil.querySubnet(accountName, region, description.subnet, task, BASE_PHASE, googleSubnetProvider) : null
-        def networkInterface = GCEUtil.buildNetworkInterface(network, subnet, accessConfigName, accessConfigType)
+        def networkInterface = GCEUtil.buildNetworkInterface(network,
+                                                             subnet,
+                                                             description.associatePublicIpAddress == null || description.associatePublicIpAddress,
+                                                             accessConfigName,
+                                                             accessConfigType)
 
         instanceTemplateProperties.setNetworkInterfaces([networkInterface])
       }
