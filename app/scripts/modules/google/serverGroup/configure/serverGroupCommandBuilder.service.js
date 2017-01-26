@@ -47,6 +47,10 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       return subnetworkUrl ? _.last(subnetworkUrl.split('/')) : null;
     }
 
+    function determineAssociatePublicIPAddress(serverGroup) {
+      return _.has(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].accessConfigs');
+    }
+
     function extractLoadBalancers(asg) {
       return ['load-balancer-names', 'global-load-balancer-names']
         .reduce((loadBalancers, property) => {
@@ -238,6 +242,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         zone: defaultZone,
         regional: false, // TODO(duftler): Externalize this default alongside defaultRegion and defaultZone.
         network: 'default',
+        associatePublicIpAddress: true,
         strategy: '',
         capacity: {
           min: 0,
@@ -318,6 +323,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         regional: serverGroup.regional,
         network: extractNetworkName(serverGroup),
         subnet: extractSubnetName(serverGroup),
+        associatePublicIpAddress: determineAssociatePublicIPAddress(serverGroup),
         instanceMetadata: {},
         tags: [],
         availabilityZones: [],

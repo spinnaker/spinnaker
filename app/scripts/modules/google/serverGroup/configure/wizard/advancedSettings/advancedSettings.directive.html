@@ -121,6 +121,21 @@
   </div>
 </div>
 <div class="form-group">
+  <div class="col-md-5 sm-label-right"><b>Associate Public IP Address</b></div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="vm.command.associatePublicIpAddress" ng-value="true" id="associatePublicIpAddressTrue"/>
+      Yes
+    </label>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="vm.command.associatePublicIpAddress" ng-value="false" id="associatePublicIpAddressFalse"/>
+      No
+    </label>
+  </div>
+</div>
+<div class="form-group">
   <div class="col-md-5 sm-label-right">
     <b>Service Account</b>
     <help-field key="gce.instance.serviceAccount"></help-field>

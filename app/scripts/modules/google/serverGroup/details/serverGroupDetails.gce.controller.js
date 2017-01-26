@@ -92,6 +92,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
           this.serverGroup.network = getNetwork();
           retrieveSubnet();
+          determineAssociatePublicIPAddress();
 
           var pathSegments = this.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
           var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
@@ -262,6 +263,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           this.serverGroup.subnet = subnetUrl ? _.last(subnetUrl.split('/')) : null;
         }
       });
+    };
+
+    let determineAssociatePublicIPAddress = () => {
+      this.serverGroup.associatePublicIPAddress = _.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].accessConfigs');
     };
 
     retrieveServerGroup().then(() => {
