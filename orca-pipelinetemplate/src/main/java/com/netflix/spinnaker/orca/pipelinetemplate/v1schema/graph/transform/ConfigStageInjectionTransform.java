@@ -18,10 +18,12 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition.InjectionRule;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,11 +34,6 @@ import java.util.stream.Collectors;
  * will be added. This can be useful in situations where users want to publish
  * pipeline traits, then wire them together through configuration-level stages.
  * This offers more flexibility in addition to inheritance relatively for free.
- *
- * When template stages do exist, a configuration-defined stage must either
- * be replacing a stage by the same name, or have an inject stanza. Stages
- * without these semantics will hard-fail, to safe-guard against underlying
- * templates changing in unexpected ways.
  */
 public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
@@ -75,17 +72,107 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
   }
 
   private void injectStages(PipelineTemplate pipelineTemplate) {
-    List<StageDefinition> configStages = templateConfiguration.getStages()
-      .stream()
-      .filter(s -> s.getInject() != null)
-      .collect(Collectors.toList());
-    List<StageDefinition> templateStages = pipelineTemplate.getStages()
-      .stream()
-      .filter(s -> s.getInject() != null)
-      .collect(Collectors.toList());
+    // Create initial graph via dependsOn.
+    createDag(pipelineTemplate.getStages());
 
-    if (!configStages.isEmpty() || !templateStages.isEmpty()) {
-      throw new UnsupportedOperationException("stage injection is not yet supported");
-    }
+    // Handle stage injections.
+    injectStages(pipelineTemplate.getStages(), pipelineTemplate.getStages());
+    injectStages(templateConfiguration.getStages(), pipelineTemplate.getStages());
+  }
+
+  private static void createDag(List<StageDefinition> stages) {
+    stages
+      .stream()
+      .filter(s -> !s.getDependsOn().isEmpty() && s.getInject() == null)
+      .forEach(s -> s.setRequisiteStageRefIds(
+        stages
+          .stream()
+          .filter(parentCandidate -> s.getDependsOn().contains(parentCandidate.getId()))
+          .map(StageDefinition::getId)
+          .collect(Collectors.toList())
+      ));
+  }
+
+  private static void injectStages(List<StageDefinition> stages, List<StageDefinition> templateStages) {
+    stages.stream()
+      .filter(s -> s.getInject() != null)
+      .forEach(s -> {
+        templateStages.add(s);
+
+        InjectionRule rule = s.getInject();
+
+        if (rule.getFirst() != null && rule.getFirst()) {
+          injectFirst(s, templateStages);
+          return;
+        }
+
+        if (rule.getLast() != null && rule.getLast()) {
+          injectLast(s, templateStages);
+          return;
+        }
+
+        if (rule.getBefore() != null) {
+          injectBefore(s, rule.getBefore(), templateStages);
+          return;
+        }
+
+        if (rule.getAfter() != null) {
+          injectAfter(s, rule.getAfter(), templateStages);
+          return;
+        }
+
+        throw new IllegalStateException(String.format("stage did not have any valid injections defined (id: %s)", s.getId()));
+      });
+  }
+
+  private static void injectFirst(StageDefinition stage, List<StageDefinition> allStages) {
+    allStages
+      .stream()
+      .filter(pts -> pts.getRequisiteStageRefIds().isEmpty())
+      .forEach(pts -> pts.getRequisiteStageRefIds().add(stage.getId()));
+  }
+
+  private static void injectLast(StageDefinition stage, List<StageDefinition> allStages) {
+    int numStages = allStages.size();
+    allStages
+      .stream()
+      .filter(s -> !s.getId().equals(stage.getId()))
+      .filter(candidate -> allStages
+        .stream()
+        .filter(s -> !s.getRequisiteStageRefIds().contains(candidate.getId()))
+        .count() == numStages)
+      .forEach(parent -> stage.getRequisiteStageRefIds().add(parent.getId()));
+  }
+
+  private static void injectBefore(StageDefinition stage, String targetId, List<StageDefinition> allStages) {
+    StageDefinition target = getInjectionTarget(stage.getId(), targetId, allStages);
+
+    stage.getRequisiteStageRefIds().addAll(target.getRequisiteStageRefIds());
+    target.getRequisiteStageRefIds().clear();
+    target.getRequisiteStageRefIds().add(stage.getId());
+  }
+
+  private static void injectAfter(StageDefinition stage, String targetId, List<StageDefinition> allStages) {
+    StageDefinition target = getInjectionTarget(stage.getId(), targetId, allStages);
+
+    stage.getRequisiteStageRefIds().add(target.getId());
+    allStages
+      .stream()
+      .filter(childCandidate -> !childCandidate.getId().equals(stage.getId()) &&
+        childCandidate.getRequisiteStageRefIds().contains(target.getId()))
+      .forEach(child -> {
+        child.getRequisiteStageRefIds().removeAll(Collections.singleton(target.getId()));
+        child.getRequisiteStageRefIds().add(stage.getId());
+      });
+  }
+
+  private static StageDefinition getInjectionTarget(String stageId, String targetId, List<StageDefinition> allStages) {
+    return allStages
+      .stream()
+      .filter(pts -> pts.getId().equals(targetId))
+      .findFirst()
+      .orElseThrow(() -> new RuntimeException(
+        String.format("could not inject '%s' stage: unknown target stage id '%s'", stageId, targetId)
+      ));
   }
 }
