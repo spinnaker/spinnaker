@@ -131,8 +131,9 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
 
                             // This will have the most up-to-date timestamp.
                             bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
-                            Id failedBakesId = registry.createId('bakes').withTag("success", "false").withTag("cause", "orphanTimedOut")
-                            registry.timer(failedBakesId).record(bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp, TimeUnit.MILLISECONDS)
+                            def tags = [success: "false", cause: "orphanTimedOut", region: bakeStore.retrieveRegionById(statusId)]
+                            long millis = bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp
+                            registry.timer(registry.createId("bakesCompleted", tags)).record(millis, TimeUnit.MILLISECONDS)
                           }
                         }
                       },
@@ -157,14 +158,14 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
 
   void updateBakeStatusAndLogs(String statusId) {
     BakeStatus bakeStatus = executor.updateJob(statusId)
-    Id bakesId
+    def tags
 
     if (bakeStatus) {
       if (bakeStatus.state == BakeStatus.State.COMPLETED) {
         completeBake(statusId, bakeStatus.logsContent)
-        bakesId = registry.createId('bakes').withTag("success", "true")
+        tags = [success: "true"]
       } else if (bakeStatus.state == BakeStatus.State.CANCELED) {
-        bakesId = registry.createId('bakes').withTag("success", "false").withTag("cause", "jobFailed")
+        tags = [success: "false", cause: "jobFailed"]
       }
 
       bakeStore.updateBakeStatus(bakeStatus)
@@ -174,15 +175,17 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
       bakeStore.storeBakeError(statusId, errorMessage)
       bakeStore.cancelBakeById(statusId)
 
-      bakesId = registry.createId('bakes').withTag("success", "false").withTag("cause", "failedToUpdateJob")
+      tags = [success: "false", cause: "failedToUpdateJob"]
     }
 
-    if (bakesId) {
+    if (tags) {
       // This will have the most up-to-date timestamp.
       bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
 
       if (bakeStatus) {
-        registry.timer(bakesId).record(bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp, TimeUnit.MILLISECONDS)
+        tags.region = bakeStore.retrieveRegionById(statusId)
+        long millis = bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp
+        registry.timer(registry.createId("bakesCompleted", tags)).record(millis, TimeUnit.MILLISECONDS)
       }
     }
   }

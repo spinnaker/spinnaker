@@ -46,6 +46,7 @@ class BakeryControllerSpec extends Specification {
 
   void 'create bake launches job and returns new status'() {
     setup:
+      def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
@@ -60,7 +61,8 @@ class BakeryControllerSpec extends Specification {
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
-                                                  jobExecutor: jobExecutorMock)
+                                                  jobExecutor: jobExecutorMock,
+                                                  registry: registry)
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
@@ -75,10 +77,13 @@ class BakeryControllerSpec extends Specification {
       1 * jobExecutorMock.updateJob(JOB_ID) >> runningBakeStatus
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, runningBakeStatus, PACKER_COMMAND) >> runningBakeStatus
       returnedBakeStatus == runningBakeStatus
+      registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
+      registry.counters().toArray().length == 1
   }
 
   void 'create bake fails fast if job executor returns CANCELED'() {
     setup:
+      def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
@@ -98,8 +103,8 @@ class BakeryControllerSpec extends Specification {
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
-                                                  jobExecutor: jobExecutorMock)
-
+                                                  jobExecutor: jobExecutorMock,
+                                                  registry: registry)
     when:
       bakeryController.createBake(REGION, bakeRequest, null)
 
@@ -113,10 +118,13 @@ class BakeryControllerSpec extends Specification {
       1 * jobExecutorMock.updateJob(JOB_ID) >> failedBakeStatus
       IllegalArgumentException e = thrown()
       e.message == "Some kind of failure..."
+      registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1     
+      registry.counters().toArray().length == 1
   }
 
   void 'create bake polls for status when lock cannot be acquired'() {
     setup:
+      def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
@@ -129,6 +137,7 @@ class BakeryControllerSpec extends Specification {
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
+                                                  registry: registry,
                                                   waitForJobStartTimeoutMillis: 1000,
                                                   waitForJobStartPollingIntervalMillis: 100)
 
@@ -144,10 +153,13 @@ class BakeryControllerSpec extends Specification {
       4 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> runningBakeStatus
       returnedBakeStatus == runningBakeStatus
+      registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
+      registry.counters().toArray().length == 1
   }
 
   void 'create bake polls for status when lock cannot be acquired, but tries for lock again if status cannot be obtained'() {
     setup:
+      def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
@@ -164,6 +176,7 @@ class BakeryControllerSpec extends Specification {
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
                                                   jobExecutor: jobExecutorMock,
+                                                  registry: registry,
                                                   waitForJobStartTimeoutMillis: 1000,
                                                   waitForJobStartPollingIntervalMillis: 100)
 
@@ -182,10 +195,13 @@ class BakeryControllerSpec extends Specification {
       1 * jobExecutorMock.updateJob(JOB_ID) >> runningBakeStatus
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, runningBakeStatus, PACKER_COMMAND) >> runningBakeStatus
       returnedBakeStatus == new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
+      registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
+      registry.counters().toArray().length == 1
   }
 
   void 'create bake polls for status when lock cannot be acquired, tries for lock again if status cannot be obtained, and throws exception if that fails'() {
     setup:
+      def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
@@ -199,6 +215,7 @@ class BakeryControllerSpec extends Specification {
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
+                                                  registry: registry,
                                                   waitForJobStartTimeoutMillis: 1000,
                                                   waitForJobStartPollingIntervalMillis: 100)
 
@@ -215,6 +232,8 @@ class BakeryControllerSpec extends Specification {
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       IllegalArgumentException e = thrown()
       e.message == "Unable to acquire lock and unable to determine id of lock holder for bake key 'bake:gce:ubuntu:kato'."
+      registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
+      registry.counters().toArray().length == 1
   }
 
   void 'create bake throws exception on provider that lacks registered bake handler'() {
@@ -241,6 +260,7 @@ class BakeryControllerSpec extends Specification {
 
   void 'create bake returns existing status when prior bake is running'() {
     setup:
+      def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
@@ -257,7 +277,7 @@ class BakeryControllerSpec extends Specification {
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
-                                                  registry: new DefaultRegistry())
+                                                  registry: registry)
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
@@ -267,10 +287,13 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> runningBakeStatus
       returnedBakeStatus == runningBakeStatus
+      registry.counter(registry.createId("bakesRequested", [flavor: "duplicate"])).count() == 1
+      registry.counters().toArray().length == 1
   }
 
   void 'create bake returns existing status when prior bake is completed and successful'() {
     setup:
+      def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
@@ -288,7 +311,7 @@ class BakeryControllerSpec extends Specification {
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
-                                                  registry: new DefaultRegistry())
+                                                  registry: registry)
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
@@ -298,10 +321,13 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> completedBakeStatus
       returnedBakeStatus == completedBakeStatus
+      registry.counter(registry.createId("bakesRequested", [flavor: "duplicate"])).count() == 1
+      registry.counters().toArray().length == 1
   }
 
   void 'create bake launches job and returns new status when prior bake is completed and failure'() {
     setup:
+      def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
@@ -321,7 +347,8 @@ class BakeryControllerSpec extends Specification {
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
-                                                  jobExecutor: jobExecutorMock)
+                                                  jobExecutor: jobExecutorMock,
+                                                  registry: registry)
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
@@ -336,10 +363,13 @@ class BakeryControllerSpec extends Specification {
       1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
       returnedBakeStatus == newBakeStatus
+      registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
+      registry.counters().toArray().length == 1
   }
 
   void 'create bake launches job and returns new status when prior bake is canceled'() {
     setup:
+      def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
@@ -358,7 +388,8 @@ class BakeryControllerSpec extends Specification {
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
-                                                  jobExecutor: jobExecutorMock)
+                                                  jobExecutor: jobExecutorMock,
+                                                  registry: registry)
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
@@ -373,10 +404,13 @@ class BakeryControllerSpec extends Specification {
       1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
       returnedBakeStatus == newBakeStatus
+      registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
+      registry.counters().toArray().length == 1
   }
 
   void 'create bake with rebake deletes existing status, launches job and returns new status no matter the pre-existing status'() {
     setup:
+      def registry = new DefaultRegistry()
       def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
       def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
       def bakeStoreMock = Mock(RedisBackedBakeStore)
@@ -393,7 +427,7 @@ class BakeryControllerSpec extends Specification {
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
                                                   bakeStore: bakeStoreMock,
                                                   jobExecutor: jobExecutorMock,
-                                                  registry: new DefaultRegistry())
+                                                  registry: registry)
 
     when:
       def returnedBakeStatus = bakeryController.createBake(REGION, bakeRequest, "1")
@@ -408,6 +442,8 @@ class BakeryControllerSpec extends Specification {
       1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
       returnedBakeStatus == newBakeStatus
+      registry.counter(registry.createId("bakesRequested", [flavor: "rebake"])).count() == 1
+      registry.counters().toArray().length == 1
   }
 
   void 'lookup status queries bake store and returns bake status'() {

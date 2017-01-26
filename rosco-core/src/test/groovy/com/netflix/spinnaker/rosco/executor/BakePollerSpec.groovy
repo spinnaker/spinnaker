@@ -60,6 +60,7 @@ class BakePollerSpec extends Specification {
     then:
       1 * jobExecutorMock.updateJob(JOB_ID) >> incompleteBakeStatus
       1 * bakeStoreMock.updateBakeStatus(incompleteBakeStatus)
+      numStatusLookups * bakeStoreMock.retrieveRegionById(JOB_ID) >> REGION
       numStatusLookups * bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> incompleteBakeStatus
 
     where:
@@ -94,7 +95,7 @@ class BakePollerSpec extends Specification {
       1 * jobExecutorMock.updateJob(JOB_ID) >> completeBakeStatus
       1 * bakeStoreMock.retrieveCloudProviderById(JOB_ID) >> BakeRequest.CloudProviderType.gce.toString()
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
-      1 * bakeStoreMock.retrieveRegionById(JOB_ID) >> REGION
+      2 * bakeStoreMock.retrieveRegionById(JOB_ID) >> REGION  // 1 for metrics
       1 * cloudProviderBakeHandlerMock.scrapeCompletedBakeResults(REGION, JOB_ID, "$LOGS_CONTENT\n$LOGS_CONTENT") >> bakeDetails
       1 * bakeStoreMock.updateBakeDetails(bakeDetails)
       1 * bakeStoreMock.updateBakeStatus(completeBakeStatus)
@@ -124,6 +125,7 @@ class BakePollerSpec extends Specification {
       1 * jobExecutorMock.updateJob(JOB_ID) >> null
       1 * bakeStoreMock.storeBakeError(JOB_ID, "Unable to retrieve status for '$JOB_ID'.")
       1 * bakeStoreMock.cancelBakeById(JOB_ID)
+      1 * bakeStoreMock.retrieveRegionById(JOB_ID) >> REGION
       1 * bakeStoreMock.retrieveBakeStatusById(JOB_ID) >> new BakeStatus()
   }
 
