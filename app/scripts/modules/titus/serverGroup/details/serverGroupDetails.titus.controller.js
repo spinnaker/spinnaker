@@ -96,7 +96,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
     });
 
     let configureEntityTagTargets = () => {
-      this.entityTagTargets = clusterTargetBuilder.buildClusterTargets(this.serverGroup);
+      this.entityTagTargets = clusterTargetBuilder.buildClusterTargets($scope.serverGroup);
     };
 
     this.destroyServerGroup = function destroyServerGroup() {
