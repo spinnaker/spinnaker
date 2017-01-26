@@ -20,6 +20,7 @@ import retrofit.client.Response
 import retrofit.http.GET
 import retrofit.http.Headers
 import retrofit.http.PUT
+import retrofit.http.DELETE
 import retrofit.http.Path
 import retrofit.http.Query
 
@@ -31,4 +32,9 @@ interface Eureka {
   @Headers('Accept: application/json')
   @PUT('/apps/{application}/{instanceId}/status')
   Response updateInstanceStatus(@Path('application') String application, @Path('instanceId') String instanceId, @Query('value') String status)
+
+  @Headers('Accept: application/json')
+  @DELETE('/apps/{application}/{instanceId}/status')
+  Response resetInstanceStatus(@Path('application') String application, @Path('instanceId') String instanceId, @Query('value') String status)
+
 }

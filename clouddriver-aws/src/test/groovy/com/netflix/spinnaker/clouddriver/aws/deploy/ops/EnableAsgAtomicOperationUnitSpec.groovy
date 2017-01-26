@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsg
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
+import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 
 class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
@@ -83,7 +84,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
                 app: "asg1"
             ]
         ]
-    1 * eureka.updateInstanceStatus('asg1', 'i1', 'UP')
+    1 * eureka.resetInstanceStatus('asg1', 'i1', AbstractEurekaSupport.DiscoveryStatus.Disable.value)
   }
 
   def 'should skip discovery if not enabled for account'() {

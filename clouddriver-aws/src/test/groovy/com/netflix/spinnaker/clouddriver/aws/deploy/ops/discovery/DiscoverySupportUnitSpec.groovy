@@ -131,7 +131,7 @@ class DiscoverySupportUnitSpec extends Specification {
 
     0 * task.fail()
     instanceIds.each {
-      1 * eureka.updateInstanceStatus(appName, it, discoveryStatus.value) >> response(200)
+      1 * eureka.resetInstanceStatus(appName, it, AbstractEurekaSupport.DiscoveryStatus.Disable.value) >> response(200)
     }
 
     where:
@@ -157,9 +157,9 @@ class DiscoverySupportUnitSpec extends Specification {
     task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     1 * task.fail()
     1 * eureka.getInstanceInfo(_) >> [ instance: [ app: appName ] ]
-    1 * eureka.updateInstanceStatus(appName, "bad", discoveryStatus.value) >> httpError(500)
-    1 * eureka.updateInstanceStatus(appName, "good", discoveryStatus.value) >> response(200)
-    1 * eureka.updateInstanceStatus(appName, "also-bad", discoveryStatus.value) >> httpError(500)
+    1 * eureka.resetInstanceStatus(appName, "bad", AbstractEurekaSupport.DiscoveryStatus.Disable.value) >> httpError(500)
+    1 * eureka.resetInstanceStatus(appName, "good", AbstractEurekaSupport.DiscoveryStatus.Disable.value) >> response(200)
+    1 * eureka.resetInstanceStatus(appName, "also-bad", AbstractEurekaSupport.DiscoveryStatus.Disable.value) >> httpError(500)
     1 * task.updateStatus("PHASE", { it.startsWith("Looking up discovery") })
     3 * task.updateStatus("PHASE", { it.startsWith("Attempting to mark") })
     1 * task.updateStatus("PHASE", { it.startsWith("Failed marking instances 'UP'")})
@@ -197,7 +197,7 @@ class DiscoverySupportUnitSpec extends Specification {
         ]
       ]
     instanceIds.each {
-      1 * eureka.updateInstanceStatus(appName, it, discoveryStatus.value) >> response(200)
+      1 * eureka.resetInstanceStatus(appName, it, AbstractEurekaSupport.DiscoveryStatus.Disable.value) >> response(200)
     }
 
     where:
@@ -256,7 +256,7 @@ class DiscoverySupportUnitSpec extends Specification {
           app: appName
         ]
       ]
-    3 * eureka.updateInstanceStatus(appName, 'i-123', discoveryStatus.value) >>> [response(302), response(201), response(200)]
+    3 * eureka.resetInstanceStatus(appName, 'i-123', AbstractEurekaSupport.DiscoveryStatus.Disable.value) >>> [response(302), response(201), response(200)]
     4 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     0 * task.fail()
 
@@ -316,7 +316,7 @@ class DiscoverySupportUnitSpec extends Specification {
       ]
     1 * task.fail()
     instanceIds.eachWithIndex { it, idx ->
-      1 * eureka.updateInstanceStatus(appName, it, discoveryStatus.value) >> {
+      1 * eureka.resetInstanceStatus(appName, it, AbstractEurekaSupport.DiscoveryStatus.Disable.value) >> {
         if (!result[idx]) {
           throw new RuntimeException("blammo")
         }
