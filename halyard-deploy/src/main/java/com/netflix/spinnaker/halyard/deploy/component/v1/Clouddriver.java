@@ -18,10 +18,16 @@ package com.netflix.spinnaker.halyard.deploy.component.v1;
 
 import com.squareup.okhttp.Response;
 import retrofit.http.Body;
+import retrofit.http.GET;
 import retrofit.http.POST;
 import retrofit.http.Path;
 
-public interface Clouddriver extends ComponentService {
+import java.util.Map;
+
+public interface Clouddriver {
   @POST("/ops/{provider}")
   Response providerOp(@Path("provider") String provider, @Body String payload);
+
+  @GET("/resolvedEnv")
+  Map<String, String> resolvedEnv();
 }

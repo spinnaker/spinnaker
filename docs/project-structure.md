@@ -23,7 +23,7 @@ The config validation & structure is defined here.
 
  * `model.v1` defines the structure of the halconfig. The `providers`
    sub-package models the different 
-   [clouddriver](https://github.com/spinnaker/clouddriver) provider's config 
+   [clouddriver](https://github.com/spinnaker/clouddriver) provider's config
    sections, and is important if you want to add support for a specific
    provider's configuration options
  

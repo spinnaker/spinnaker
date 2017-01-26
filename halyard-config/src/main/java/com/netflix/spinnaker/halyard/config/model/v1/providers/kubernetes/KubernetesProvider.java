@@ -26,12 +26,12 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class KubernetesProvider extends Provider<KubernetesAccount> implements Cloneable {
   @Override
-  public String getNodeName() {
-    return "kubernetes";
+  public void accept(ProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
   }
 
   @Override
-  public void accept(ProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
+  public ProviderType providerType() {
+    return ProviderType.KUBERNETES;
   }
 }

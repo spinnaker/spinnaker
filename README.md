@@ -37,7 +37,7 @@ The `hal config` set of commands are used to operate on your __halconfig__ file.
 To examine a particular cloud provider's configuration, run:
 
 ```
-$ hal config provider PROVIDER 
+$ hal config provider PROVIDER
 ```
 
 Halyard will always attempt to validate unless you supply the `--no-validate`
@@ -123,7 +123,7 @@ Assuming you're running the Daemon & have compiled the CLI, you can try the
 following:
 
 ```
-$ ./hal config provider docker-registry enable 
+$ ./hal config provider docker-registry enable
 $ ./hal config provider docker-registry add-account my-dockerhub-account \
     --address index.docker.io \
     --repositories library/nginx

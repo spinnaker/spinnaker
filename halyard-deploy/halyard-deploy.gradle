@@ -3,4 +3,6 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
   compile spinnaker.dependency('clouddriverKubernetes')
+
+  compile project(':halyard-config')
 }

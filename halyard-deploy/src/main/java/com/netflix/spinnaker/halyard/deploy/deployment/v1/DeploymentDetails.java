@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.deploy.component.v1;
+package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
-public interface ComponentService {
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
+import lombok.Data;
 
+@Data
+public class DeploymentDetails<T extends Account> {
+  String deploymentName;
+  DeploymentEnvironment deploymentEnvironment;
+  SpinnakerEndpoints endpoints;
+  T account;
 }

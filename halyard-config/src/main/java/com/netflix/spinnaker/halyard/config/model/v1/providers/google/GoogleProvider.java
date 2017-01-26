@@ -26,8 +26,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class GoogleProvider extends Provider<GoogleAccount> implements Cloneable {
   @Override
-  public String getNodeName() {
-    return "google";
+  public ProviderType providerType() {
+    return ProviderType.GOOGLE;
   }
 
   @Override

@@ -16,17 +16,29 @@
 
 package com.netflix.spinnaker.halyard.deploy.service.v1;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
-import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProvider;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
+import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DeployService {
   @Autowired
-  KubernetesProvider kubernetesProvider;
+  KubernetesProviderInterface kubernetesProvider;
 
-  public void deploySpinnaker() {
-    new Deployment(kubernetesProvider);
+  @Autowired
+  DeploymentService deploymentService;
+
+  @Autowired
+  DeploymentFactory deploymentFactory;
+
+  public void deploySpinnaker(NodeReference nodeReference) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeReference);
+    Deployment deployment = deploymentFactory.create(deploymentConfiguration);
+    deployment.deploy();
   }
 }

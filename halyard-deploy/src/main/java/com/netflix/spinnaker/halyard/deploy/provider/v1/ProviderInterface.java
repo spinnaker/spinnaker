@@ -16,20 +16,27 @@
 
 package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
-import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentService;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
+import com.netflix.spinnaker.halyard.deploy.component.v1.ServiceFactory;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
- * A Provider is an abstraction for communicating with a specific cloud-provider's installation
+ * A ProviderInterface is an abstraction for communicating with a specific cloud-provider's installation
  * of Spinnaker.
  */
-public abstract class Provider {
+@Component
+public abstract class ProviderInterface<T extends Account> {
   @Autowired
   JobExecutor jobExecutor;
 
-  abstract public ComponentService connectTo(ComponentType componentType);
+  @Autowired
+  ServiceFactory serviceFactory;
 
-  abstract public void bootstrapClouddriver();
+  abstract public Object connectTo(DeploymentDetails<T> details, ComponentType componentType);
+
+  abstract public void bootstrapClouddriver(DeploymentDetails<T> details);
 }

@@ -45,6 +45,8 @@ public class DeploymentConfiguration extends Node {
    */
   Providers providers = new Providers();
 
+  DeploymentEnvironment deploymentEnvironment = new DeploymentEnvironment();
+
   /**
    * Webhooks, e.g. Jenkins, TravisCI, ...
    */

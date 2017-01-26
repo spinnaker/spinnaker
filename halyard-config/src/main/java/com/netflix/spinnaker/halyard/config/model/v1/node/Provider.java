@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,5 +43,25 @@ public abstract class Provider<T extends Account> extends Node implements Clonea
   @Override
   public NodeReference getReference() {
     return parent.getReference().setProvider(getNodeName());
+  }
+
+  @Override
+  public String getNodeName() {
+    return providerType().getId();
+  }
+
+  abstract public ProviderType providerType();
+
+  public enum ProviderType {
+    KUBERNETES("kubernetes"),
+    GOOGLE("google"),
+    DOCKERREGISTRY("dockerRegistry");
+
+    @Getter
+    String id;
+
+    ProviderType(String id) {
+      this.id = id;
+    }
   }
 }

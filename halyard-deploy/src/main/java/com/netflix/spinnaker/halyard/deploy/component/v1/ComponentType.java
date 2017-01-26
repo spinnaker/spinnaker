@@ -16,16 +16,49 @@
 
 package com.netflix.spinnaker.halyard.deploy.component.v1;
 
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints.Service;
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints.Services;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Optional;
 import lombok.Getter;
 
 public enum ComponentType {
   // These are (for now) the only services that we'll need to talk to as Halyard
-  CLOUDDRIVER(Clouddriver.class);
+  CLOUDDRIVER(Clouddriver.class, "clouddriver");
 
   @Getter
-  Class<? extends ComponentService> serviceClass;
+  Class serviceClass;
 
-  ComponentType(Class<? extends ComponentService> serviceClass) {
+  final String name;
+
+  public Service getService(SpinnakerEndpoints endpoints) {
+    Services services = endpoints.getServices();
+    Optional<Field> oField = Arrays.stream(services.getClass().getDeclaredFields())
+        .filter(f -> f.getName().equals(name))
+        .findFirst();
+
+    if (oField.isPresent()) {
+      Field field = null;
+      try {
+        field = oField.get();
+        field.setAccessible(true);
+        return (Service) field.get(services);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException("Unable to get service for " + name, e);
+      } finally {
+        if (field != null) {
+          field.setAccessible(false);
+        }
+      }
+    } else {
+      throw new RuntimeException("No service declared for + " + name);
+    }
+  }
+
+  ComponentType(Class serviceClass, String name) {
     this.serviceClass = serviceClass;
+    this.name = name;
   }
 }

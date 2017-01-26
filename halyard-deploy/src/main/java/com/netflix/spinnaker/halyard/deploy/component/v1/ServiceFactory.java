@@ -17,15 +17,17 @@
 package com.netflix.spinnaker.halyard.deploy.component.v1;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
-public class ServiceFactory<T extends ComponentService> {
+@Component
+public class ServiceFactory {
   @Autowired
   OkClient okClient;
 
-  public T createService(String endpoint, ComponentType componentType) {
-    Class<T> clazz = (Class<T>) componentType.getServiceClass();
+  public Object createService(String endpoint, ComponentType componentType) {
+    Class clazz = componentType.getServiceClass();
     return new RestAdapter.Builder()
         .setClient(okClient)
         .setEndpoint(endpoint)

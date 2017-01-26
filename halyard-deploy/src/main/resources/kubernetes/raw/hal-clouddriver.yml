@@ -1,45 +1,62 @@
-apiVersion: extensions/v1beta1
-kind: ReplicaSet
+apiVersion: v1
+kind: Service
 metadata:
-  name: hal-clouddriver-bootstrap
-  namespace: spinnaker
+  name: {%service-name%}
+  namespace: {%namespace%}
   labels:
     app: hal
     stack: clouddriver
+spec:
+  ports:
+    - port: {%port%}
+  selector:
+    load-balancer-{%service-name%}: "true"
+
+---
+
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  name: {%component-name%}
+  namespace: {%namespace%}
+  labels:
+    app: spin
+    stack: {%component-type%}
     detail: bootstrap
 spec:
   replicas: 1
   selector:
     matchLabels:
-      server-group: hal-clouddriver-bootstrap
+      server-group: {%component-name%}
   template:
     metadata:
       labels:
-        server-group: hal-clouddriver-bootstrap
-        load-balancer-spin-clouddriver: "true"
+        server-group: {%component-name%}
+        load-balancer-{%service-name%}: "true"
     spec:
       containers:
           #TODO(lwander) pick a 'stable' image
         - image: quay.io/spinnaker/clouddriver:v1.498.0
           name: clouddriver
           ports:
-            - containerPort: 7002
+            - containerPort: {%port%}
               name: clouddriver
           volumeMounts:
             - mountPath: /opt/spinnaker/config
-              name: spinnaker-config
+              name: hal-clouddriver-config
             - mountPath: /root/.kube
-              name: creds-config
+              name: kube-config
           readinessProbe:
             httpGet:
               path: /credentials
-              port: 7002
+              port: {%port%}
             initialDelaySeconds: 20
             timeoutSeconds: 1
       volumes:
-        - name: spinnaker-config
+        - name: hal-clouddriver-config
           secret:
-            secretName: spinnaker-config
-        - name: creds-config
+            secretName: hal-clouddriver-config
+        - name: kube-config
           secret:
-            secretName: creds-config
+            secretName: kube-config
+

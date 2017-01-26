@@ -22,8 +22,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 
 public class DockerRegistryProvider extends Provider<DockerRegistryAccount> {
   @Override
-  public String getNodeName() {
-    return "dockerRegistry";
+  public ProviderType providerType() {
+    return ProviderType.DOCKERREGISTRY;
   }
 
   @Override

@@ -91,10 +91,12 @@ public class DeploymentController {
 
   @RequestMapping(value = "/{deployment:.+}/deploy/", method = RequestMethod.POST)
   DaemonResponse<Void> deploy(@PathVariable String deployment) {
+    NodeReference reference = new NodeReference().setDeployment(deployment);
+
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> {
-      deployService.deploySpinnaker();
+      deployService.deploySpinnaker(reference);
       return null;
     });
 

@@ -18,36 +18,37 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints.Service;
 import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
-import com.netflix.spinnaker.halyard.deploy.component.v1.ServiceFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * A Deployment is a running Spinnaker installation.
- */
-abstract public class Deployment {
-  @Autowired
-  ServiceFactory serviceFactory;
+public class LocalhostDebianDeployment extends Deployment {
+  @Override
+  public DeploymentType deploymentType() {
+    return DeploymentType.LocalhostDebian;
+  }
 
-  abstract public DeploymentType deploymentType();
+  @Override
+  public Object getService(ComponentType type) {
+    String endpoint;
+    switch (type) {
+      case CLOUDDRIVER:
+        Service clouddriver = getEndpoints().getServices().getClouddriver();
+        endpoint = clouddriver.getAddress() + ":" + clouddriver.getPort();
+        break;
+      default:
+        throw new IllegalArgumentException("Service for " + type + " not found");
+    }
 
-  /**
-   * Open a connection to a running spinnaker service.
-   * @param type is the type of service.
-   * @return is a retrofitted interface for the service.
-   */
-  abstract public Object getService(ComponentType type);
+    return serviceFactory.createService(endpoint, type);
+  }
 
-  /**
-   * The endpoint format is specific to a provider/deployment pair.
-   *
-   * @return The endpoints that each spinnaker service are reachable on.
-   */
-  abstract public SpinnakerEndpoints getEndpoints();
+  @Override
+  public SpinnakerEndpoints getEndpoints() {
+    return new SpinnakerEndpoints();
+  }
 
-  /**
-   * Deploy a fresh install of Spinnaker. This will fail if Spinnaker is already
-   * running.
-   */
-  abstract public void deploy();
+  @Override
+  public void deploy() {
+    // TODO(lwander)
+  }
 }
