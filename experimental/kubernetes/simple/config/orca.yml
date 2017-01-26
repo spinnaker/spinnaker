@@ -13,7 +13,6 @@ kato:
 bakery:
     baseUrl: ${services.bakery.baseUrl:localhost:8087}
     extractBuildDetails: ${services.bakery.extractBuildDetails:true}
-    propagateCloudProviderType: ${services.bakery.propagateCloudProviderType:true}
     allowMissingPackageInstallation: ${services.bakery.allowMissingPackageInstallation:false}
 echo:
     enabled: ${services.echo.enabled:false}
@@ -39,3 +38,15 @@ redis:
 tasks:
   executionWindow:
     timezone: ${services.orca.timezone}
+
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: ${services.spectator.webEndpoint.enabled:false}
+    prototypeFilter:
+      path: ${services.spectator.webEndpoint.prototypeFilter.path:}
+
+  stackdriver:
+    enabled: ${services.stackdriver.enabled}
+    projectName: ${services.stackdriver.projectName}
+    credentialsPath: ${services.stackdriver.credentialsPath}

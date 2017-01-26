@@ -24,7 +24,7 @@ aws:
   # info on setting environment variables.
   enabled: ${providers.aws.enabled:false}
   defaults:
-    iamRole: ${provider.aws.defaultIAMRole:BaseIAMRole}
+    iamRole: ${providers.aws.defaultIAMRole:BaseIAMRole}
   defaultRegions:
     - name: ${providers.aws.defaultRegion:us-east-1}
   defaultFront50Template: ${services.front50.baseUrl}
@@ -39,6 +39,8 @@ azure:
       appKey: ${providers.azure.primaryCredentials.appKey}
       tenantId: ${providers.azure.primaryCredentials.tenantId}
       subscriptionId: ${providers.azure.primaryCredentials.subscriptionId}
+      defaultResourceGroup: ${providers.azure.primaryCredentials.defaultResourceGroup}
+      defaultKeyVault: ${providers.azure.primaryCredentials.defaultKeyVault}
 
 google:
   enabled: ${providers.google.enabled:false}
@@ -47,6 +49,17 @@ google:
     - name: ${providers.google.primaryCredentials.name}
       project: ${providers.google.primaryCredentials.project}
       jsonPath: ${providers.google.primaryCredentials.jsonPath}
+      consul:
+        enabled: ${providers.google.primaryCredentials.consul.enabled:false}
+      # Specify the project id of each GCP project whose images you want indexed and
+      # made available to this account. Each project must have granted the IAM role
+      # compute.imageUser to the service account associated with the json key referenced
+      # above, as well as to the 'Google APIs service account' automatically created for
+      # the project being managed (should look similar to
+      # 12345678912@cloudservices.gserviceaccount.com).
+      # You can read more about sharing images across GCP projects here:
+      # https://cloud.google.com/compute/docs/images/sharing-images-across-projects#granting_a_user_access_to_images
+      # imageProjects:
 
 cf:
   enabled: ${providers.cf.enabled:false}
@@ -67,6 +80,30 @@ kubernetes:
       dockerRegistries:
         - accountName: ${providers.kubernetes.primaryCredentials.dockerRegistryAccount}
 
+openstack:
+  enabled: ${providers.openstack.enabled:false}
+  accounts:
+    - name: ${providers.openstack.primaryCredentials.name}
+      authUrl: ${providers.openstack.primaryCredentials.authUrl}
+      username: ${providers.openstack.primaryCredentials.username}
+      password: ${providers.openstack.primaryCredentials.password}
+      projectName: ${providers.openstack.primaryCredentials.projectName}
+      domainName: ${providers.openstack.primaryCredentials.domainName:Default}
+      regions: ${providers.openstack.primaryCredentials.regions}
+      insecure: ${providers.openstack.primaryCredentials.insecure:false}
+      userDataFile: ${providers.openstack.primaryCredentials.userDataFile:}
+
+      # The Openstack API requires that the load balancer be in an ACTIVE
+      # state for it to create associated relationships (i.e. listeners,
+      # pools, monitors). Each modification will cause the load balancer to
+      # go into a PENDING state and back to ACTIVE once the change has been
+      # made. Depending on your implementation, the timeout and polling
+      # intervals would need to be adjusted, especially if testing out
+      # Spinnaker with Devstack or another resource constrained enviroment
+      lbaas:
+        pollTimeout: 60
+        pollInterval: 5
+
 dockerRegistry:
   enabled: ${providers.dockerRegistry.enabled:false}
   accounts:
@@ -74,9 +111,21 @@ dockerRegistry:
       address: ${providers.dockerRegistry.primaryCredentials.address}
       username: ${providers.dockerRegistry.primaryCredentials.username:}
       passwordFile: ${providers.dockerRegistry.primaryCredentials.passwordFile:}
-      repositories: 
-        - ${providers.dockerRegistry.primaryCredentials.repository}
+      repositories: ${providers.dockerRegistry.primaryCredentials.repository:}
 
 credentials:
   primaryAccountTypes: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}, ${providers.azure.primaryCredentials.name}
   challengeDestructiveActionsEnvironments: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}, ${providers.azure.primaryCredentials.name}
+
+
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: ${services.spectator.webEndpoint.enabled:false}
+    prototypeFilter:
+      path: ${services.spectator.webEndpoint.prototypeFilter.path:}
+
+  stackdriver:
+    enabled: ${services.stackdriver.enabled}
+    projectName: ${services.stackdriver.projectName}
+    credentialsPath: ${services.stackdriver.credentialsPath}
