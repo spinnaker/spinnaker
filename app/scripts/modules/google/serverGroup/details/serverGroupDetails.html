@@ -246,7 +246,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Capacity Metrics" ng-if="ctrl.serverGroup.loadBalancingPolicy">
-      <dl class="horizontal-when-filters-collapsed">
+      <dl class="horizontal-when-filters-collapsed"
           ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
         <dt>Balancing Mode</dt>
         <dd>{{ctrl.serverGroup.loadBalancingPolicy.balancingMode}}</dd>
