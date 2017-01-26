@@ -61,7 +61,6 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
       .withExecutingInstance(currentInstanceId)
       .withExecutionEngine(Execution.V2_EXECUTION_ENGINE)
       .withNotifications((List<Map<String, Object>>) config.get("notifications"))
-      .withId()
       .build();
   }
 
