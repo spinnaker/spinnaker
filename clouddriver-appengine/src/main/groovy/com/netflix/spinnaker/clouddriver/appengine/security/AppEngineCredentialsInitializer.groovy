@@ -75,6 +75,12 @@ class AppEngineCredentialsInitializer implements CredentialsInitializerSynchroni
           .jsonPath(managedAccount.jsonPath)
           .requiredGroupMembership(managedAccount.requiredGroupMembership)
           .serviceAccountEmail(managedAccount.serviceAccountEmail)
+          .localRepositoryDirectory(managedAccount.localRepositoryDirectory)
+          .gitHttpsUsername(managedAccount.gitHttpsUsername)
+          .gitHttpsPassword(managedAccount.gitHttpsPassword)
+          .githubOAuthAccessToken(managedAccount.githubOAuthAccessToken)
+          .sshPrivateKeyFilePath(managedAccount.sshPrivateKeyFilePath)
+          .sshPrivateKeyPassword(managedAccount.sshPrivateKeyPassword)
           .build()
 
         accountCredentialsRepository.save(managedAccount.name, appEngineAccount)

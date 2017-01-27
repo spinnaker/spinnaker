@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.appengine.security
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.google.api.services.appengine.v1.Appengine
 import com.netflix.spinnaker.clouddriver.appengine.AppEngineCloudProvider
+import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentialType
+import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.TupleConstructor
 
@@ -37,8 +39,15 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
   final String jsonPath
   final AppEngineCredentials credentials
   final String applicationName
+  @JsonIgnore
   final Appengine appengine
+  @JsonIgnore
   final String serviceAccountEmail
+  @JsonIgnore
+  final String localRepositoryDirectory
+  @JsonIgnore
+  final AppEngineGitCredentials gitCredentials
+  final List<AppEngineGitCredentialType> supportedGitCredentialTypes
 
   static class Builder {
     String name
@@ -54,6 +63,13 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
     String applicationName
     Appengine appengine
     String serviceAccountEmail
+    String localRepositoryDirectory
+    String gitHttpsUsername
+    String gitHttpsPassword
+    String githubOAuthAccessToken
+    String sshPrivateKeyFilePath
+    String sshPrivateKeyPassword
+    AppEngineGitCredentials gitCredentials
 
     /*
     * If true, the builder will overwrite region with a value from the platform.
@@ -121,6 +137,41 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
       return this
     }
 
+    Builder localRepositoryDirectory(String localRepositoryDirectory) {
+      this.localRepositoryDirectory = localRepositoryDirectory
+      return this
+    }
+
+    Builder gitHttpsUsername(String gitHttpsUsername) {
+      this.gitHttpsUsername = gitHttpsUsername
+      return this
+    }
+
+    Builder gitHttpsPassword(String gitHttpsPassword) {
+      this.gitHttpsPassword = gitHttpsPassword
+      return this
+    }
+
+    Builder githubOAuthAccessToken(String githubOAuthAccessToken) {
+      this.githubOAuthAccessToken = githubOAuthAccessToken
+      return this
+    }
+
+    Builder sshPrivateKeyFilePath(String sshPrivateKeyFilePath) {
+      this.sshPrivateKeyFilePath = sshPrivateKeyFilePath
+      return this
+    }
+
+    Builder sshPrivateKeyPassword(String sshPrivateKeyPassword) {
+      this.sshPrivateKeyPassword = sshPrivateKeyPassword
+      return this
+    }
+
+    Builder gitCredentials(AppEngineGitCredentials gitCredentials) {
+      this.gitCredentials = gitCredentials
+      return this
+    }
+
     AppEngineNamedAccountCredentials build() {
       credentials = credentials ?:
         jsonKey ?
@@ -132,6 +183,14 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
       if (liveLookupsEnabled) {
         region = appengine.apps().get(project).execute().getLocationId()
       }
+
+      gitCredentials = gitCredentials ?: new AppEngineGitCredentials(
+        gitHttpsUsername,
+        gitHttpsPassword,
+        githubOAuthAccessToken,
+        sshPrivateKeyFilePath,
+        sshPrivateKeyPassword
+      )
 
       return new AppEngineNamedAccountCredentials(name,
                                                   environment,
@@ -145,7 +204,10 @@ class AppEngineNamedAccountCredentials implements AccountCredentials<AppEngineCr
                                                   credentials,
                                                   applicationName,
                                                   appengine,
-                                                  serviceAccountEmail)
+                                                  serviceAccountEmail,
+                                                  localRepositoryDirectory,
+                                                  gitCredentials,
+                                                  gitCredentials.getSupportedCredentialTypes())
     }
   }
 }

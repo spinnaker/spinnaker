@@ -26,6 +26,8 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
+import java.nio.file.Paths
+
 class DeployAppEngineAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
 
@@ -47,51 +49,56 @@ class DeployAppEngineAtomicOperation implements AtomicOperation<DeploymentResult
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
-    def directoryName = getLegalDirectoryName(description.repositoryUrl)
+    def directoryPath = getFullDirectoryPath(description.credentials.localRepositoryDirectory, description.repositoryUrl)
 
     /*
     * We can't allow concurrent deploy operations on the same local repository.
     * If operation A checks out a new branch before operation B has run 'gcloud app deploy',
     * operation B will deploy using that new branch's source files.
     * */
-    AppEngineMutexRepository.atomicWrapper(directoryName, {
+    return AppEngineMutexRepository.atomicWrapper(directoryPath, {
       task.updateStatus BASE_PHASE, "Initializing creation of version..."
       def result = new DeploymentResult()
-      def newVersionName = deploy(cloneOrUpdateLocalRepository(directoryName, 1))
-      def region = description.credentials.region;
+      def newVersionName = deploy(cloneOrUpdateLocalRepository(directoryPath, 1))
+      def region = description.credentials.region
       result.serverGroupNames = Arrays.asList("$region:$newVersionName".toString())
-      result.serverGroupNameByRegion[region] = newVersionName;
+      result.serverGroupNameByRegion[region] = newVersionName
       result
     })
   }
 
-  String cloneOrUpdateLocalRepository(String directoryName, Integer retryCount) {
+  String cloneOrUpdateLocalRepository(String directoryPath, Integer retryCount) {
     def repositoryUrl = description.repositoryUrl
     def branch = description.branch
-    def directory = new File(directoryName)
+    def directory = new File(directoryPath)
+    def repositoryClient = description.credentials.gitCredentials.buildRepositoryClient(
+      repositoryUrl,
+      directoryPath,
+      description.gitCredentialType
+    )
 
     try {
       if (!directory.exists()) {
         task.updateStatus BASE_PHASE, "Cloning repository $repositoryUrl into local directory..."
         directory.mkdir()
-        jobExecutor.runCommand(["git", "clone", repositoryUrl, directoryName])
+        repositoryClient.cloneRepository()
       }
-
-      task.updateStatus BASE_PHASE, "Checking out branch $branch and merging..."
-      jobExecutor.runCommand(["git", "-C", directoryName, "fetch", "origin", branch])
-      jobExecutor.runCommand(["git", "-C", directoryName, "checkout", "origin/$branch"])
+      task.updateStatus BASE_PHASE, "Fetching updates from $repositoryUrl..."
+      repositoryClient.fetch()
+      task.updateStatus BASE_PHASE, "Checking out branch $branch..."
+      repositoryClient.checkout(branch)
     } catch (Exception e) {
       directory.deleteDir()
       if (retryCount > 0) {
-        return cloneOrUpdateLocalRepository(directoryName, retryCount - 1)
+        return cloneOrUpdateLocalRepository(directoryPath,  retryCount - 1)
       } else {
         throw e
       }
     }
-    directoryName
+    return directoryPath
   }
 
-  String deploy(String directoryName) {
+  String deploy(String directoryPath) {
     def project = description.credentials.project
     def accountEmail = description.credentials.serviceAccountEmail
     def region = description.credentials.region
@@ -100,7 +107,7 @@ class DeployAppEngineAtomicOperation implements AtomicOperation<DeploymentResult
                                                                          description.stack,
                                                                          description.freeFormDetails,
                                                                          false)
-    def deployCommand = ["gcloud", "app", "deploy", "$directoryName/$description.appYamlPath"]
+    def deployCommand = ["gcloud", "app", "deploy", "$directoryPath/$description.appYamlPath"]
     deployCommand << "--version=$versionName"
     deployCommand << (description.promote ? "--promote" : "--no-promote")
     deployCommand << (description.stopPreviousVersion ? "--stop-previous-version": "--no-stop-previous-version")
@@ -109,10 +116,10 @@ class DeployAppEngineAtomicOperation implements AtomicOperation<DeploymentResult
 
     task.updateStatus BASE_PHASE, "Deploying version $versionName..."
     jobExecutor.runCommand(deployCommand)
-    versionName
+    return versionName
   }
 
-  static String getLegalDirectoryName(String repositoryUrl) {
-    repositoryUrl.replace('/', '-')
+  static String getFullDirectoryPath(String localRepositoryDirectory, String repositoryUrl) {
+    return Paths.get(localRepositoryDirectory, repositoryUrl.replace('/', '-')).toString()
   }
 }

@@ -39,6 +39,13 @@ class DeployAppEngineDescriptionValidator extends DescriptionValidator<DeployApp
       return
     }
 
+    if (!helper.validateGitCredentials(description.credentials.gitCredentials,
+                                       description.gitCredentialType,
+                                       description.credentials.name,
+                                       "gitCredentialType")) {
+      return
+    }
+
     helper.validateApplication(description.application, "application")
     helper.validateStack(description.stack, "stack")
     helper.validateDetails(description.freeFormDetails, "freeFormDetails")

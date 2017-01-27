@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.description
 
+import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentialType
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
@@ -28,6 +29,7 @@ class DeployAppEngineDescription extends AbstractAppEngineCredentialsDescription
   String stack
   String freeFormDetails
   String repositoryUrl
+  AppEngineGitCredentialType gitCredentialType
   String branch
   String appYamlPath
   Boolean promote

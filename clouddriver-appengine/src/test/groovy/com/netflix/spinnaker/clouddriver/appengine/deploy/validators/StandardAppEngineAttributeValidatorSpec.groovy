@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentialType
+import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -32,6 +35,9 @@ class StandardAppEngineAttributeValidatorSpec extends Specification {
 
   @Shared
   DefaultAccountCredentialsProvider accountCredentialsProvider
+
+  @Shared
+  AppEngineGitCredentials gitCredentials
 
   void setupSpec() {
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
@@ -46,6 +52,10 @@ class StandardAppEngineAttributeValidatorSpec extends Specification {
       .build()
 
     credentialsRepo.save(ACCOUNT_NAME, namedAccountCredentials)
+
+    gitCredentials = new AppEngineGitCredentials(
+      httpsUsernamePasswordCredentialsProvider: Mock(UsernamePasswordCredentialsProvider)
+    )
   }
 
   void "validate non-empty valid"() {
@@ -159,6 +169,44 @@ class StandardAppEngineAttributeValidatorSpec extends Specification {
 
     when:
       validator.validateCredentials(ACCOUNT_NAME, accountCredentialsProvider)
+    then:
+      0 * errorsMock._
+  }
+
+  void "git credentials reject"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardAppEngineAttributeValidator(DECORATOR, errorsMock)
+
+    when:
+      validator.validateGitCredentials(gitCredentials, AppEngineGitCredentialType.SSH, ACCOUNT_NAME, "gitCredentialType")
+
+    then:
+      1 * errorsMock.rejectValue("decorator.gitCredentialType",
+                                 "decorator.gitCredentialType.invalid " +
+                                 "(Account my-appengine-account supports only the following git credential types: NONE, HTTPS_USERNAME_PASSWORD")
+  }
+
+  void "git credentials reject (empty)"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardAppEngineAttributeValidator(DECORATOR, errorsMock)
+
+    when:
+      validator.validateGitCredentials(gitCredentials, null, ACCOUNT_NAME, "gitCredentialType")
+
+    then:
+      1 * errorsMock.rejectValue("decorator.gitCredentialType", "decorator.gitCredentialType.empty")
+  }
+
+  void "git credentials accept"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardAppEngineAttributeValidator(DECORATOR, errorsMock)
+
+    when:
+      validator.validateGitCredentials(gitCredentials, AppEngineGitCredentialType.HTTPS_USERNAME_PASSWORD, ACCOUNT_NAME, "gitCredentialType")
+
     then:
       0 * errorsMock._
   }

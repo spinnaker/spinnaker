@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppEngineDescription
+import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentialType
+import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -38,18 +40,22 @@ class DeployAppEngineDescriptionValidatorSpec extends Specification {
   @Shared
   DeployAppEngineDescriptionValidator validator
 
+  @Shared
+  AppEngineNamedAccountCredentials credentials
+
   void setupSpec() {
     validator = new DeployAppEngineDescriptionValidator()
 
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def mockCredentials = Mock(AppEngineCredentials)
-    def namedAccountCredentials = new AppEngineNamedAccountCredentials.Builder()
+    credentials = new AppEngineNamedAccountCredentials.Builder()
       .name(ACCOUNT_NAME)
       .region(REGION)
       .applicationName(APPLICATION_NAME)
       .credentials(mockCredentials)
+      .gitCredentials(new AppEngineGitCredentials())
       .build()
-    credentialsRepo.save(ACCOUNT_NAME, namedAccountCredentials)
+    credentialsRepo.save(ACCOUNT_NAME, credentials)
 
     validator.accountCredentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
   }
@@ -65,7 +71,9 @@ class DeployAppEngineDescriptionValidatorSpec extends Specification {
         branch: BRANCH,
         appYamlPath: APP_YAML_PATH,
         promote: true,
-        stopPreviousVersion: true)
+        stopPreviousVersion: true,
+        credentials: credentials,
+        gitCredentialType: AppEngineGitCredentialType.NONE)
       def errors = Mock(Errors)
 
     when:
@@ -82,7 +90,9 @@ class DeployAppEngineDescriptionValidatorSpec extends Specification {
         application: APPLICATION_NAME,
         repositoryUrl: REPOSITORY_URL,
         branch: BRANCH,
-        appYamlPath: APP_YAML_PATH)
+        appYamlPath: APP_YAML_PATH,
+        credentials: credentials,
+        gitCredentialType: AppEngineGitCredentialType.NONE)
       def errors = Mock(Errors)
 
     when:

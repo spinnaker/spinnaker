@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentialType
+import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentials
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineServerGroup
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
@@ -50,6 +52,25 @@ class StandardAppEngineAttributeValidator {
       }
     }
     result
+  }
+
+  def validateGitCredentials(AppEngineGitCredentials gitCredentials,
+                             AppEngineGitCredentialType gitCredentialType,
+                             String accountName,
+                             String attribute) {
+    if (validateNotEmpty(gitCredentialType, attribute)) {
+      def supportedCredentialTypes = gitCredentials.getSupportedCredentialTypes()
+      def credentialTypeSupported = supportedCredentialTypes.contains(gitCredentialType)
+      if (credentialTypeSupported) {
+        return true
+      } else {
+        errors.rejectValue("${context}.${attribute}",  "${context}.${attribute}.invalid" +
+                           " (Account ${accountName} supports only the following git credential types: ${supportedCredentialTypes.join(", ")}")
+        return false
+      }
+    } else {
+      return false
+    }
   }
 
   def validateNotEmpty(Object value, String attribute) {

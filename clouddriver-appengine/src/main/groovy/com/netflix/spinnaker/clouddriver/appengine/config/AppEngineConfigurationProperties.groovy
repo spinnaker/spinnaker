@@ -34,6 +34,12 @@ class AppEngineConfigurationProperties {
     static final String metadataUrl = "http://metadata.google.internal/computeMetadata/v1"
 
     String serviceAccountEmail
+    String localRepositoryDirectory
+    String gitHttpsUsername
+    String gitHttpsPassword
+    String githubOAuthAccessToken
+    String sshPrivateKeyFilePath
+    String sshPrivateKeyPassword
 
     void initialize(AppEngineJobExecutor jobExecutor) {
       if (this.jsonPath) {

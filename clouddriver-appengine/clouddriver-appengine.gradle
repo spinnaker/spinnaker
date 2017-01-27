@@ -7,4 +7,5 @@ dependencies {
 
   // TODO(dpeach): move to spinnaker/spinnaker-dependencies.
   compile "com.google.apis:google-api-services-appengine:v1-rev4-1.22.0"
+  compile "org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r"
 }
