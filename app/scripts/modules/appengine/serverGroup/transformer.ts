@@ -2,7 +2,7 @@ import {module} from 'angular';
 
 import {ServerGroup} from 'core/domain/index';
 import {IAppengineServerGroupCommand} from './configure/serverGroupCommandBuilder.service';
-import {IAppengineGitTrigger, IAppengineJenkinsTrigger} from 'appengine/domain/index';
+import {IAppengineGitTrigger, IAppengineJenkinsTrigger, GitCredentialType} from 'appengine/domain/index';
 
 export class AppengineDeployDescription {
   cloudProvider: string = 'appengine';
@@ -24,6 +24,7 @@ export class AppengineDeployDescription {
   strategyPipeline?: string;
   fromTrigger?: boolean;
   trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
+  gitCredentialType: GitCredentialType;
 
   constructor(command: IAppengineServerGroupCommand) {
     this.credentials = command.credentials;
@@ -43,6 +44,7 @@ export class AppengineDeployDescription {
     this.strategyPipeline = command.strategyPipeline;
     this.fromTrigger = command.fromTrigger;
     this.trigger = command.trigger;
+    this.gitCredentialType = command.gitCredentialType;
   }
 }
 

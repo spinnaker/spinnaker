@@ -12,6 +12,11 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
                 including protocol. For example, <b>https://github.com/spinnaker/deck.git<b/>`,
       },
       {
+        key: 'appengine.serverGroup.gitCredentialType',
+        value: `The credential type that will be used to access the git repository for this deployment. 
+                You can configure these credentials alongside your App Engine credentials.`
+      },
+      {
         key: 'appengine.serverGroup.branch',
         value: 'The name of the branch in the above git repository to be used for this deployment.',
       },

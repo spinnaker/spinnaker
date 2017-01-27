@@ -8,6 +8,7 @@
         <account-select-field read-only="command.viewState.readOnlyFields.credentials"
                               component="command"
                               field="credentials"
+                              on-change="basicSettingsCtrl.onAccountChange()"
                               accounts="command.backingData.accounts" provider="'appengine'"></account-select-field>
       </div>
     </div>
@@ -60,7 +61,7 @@
 
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
-        Git Repository URL <help-field key="appengine.serverGroup.repositoryUrl"></help-field>
+        Git Repository URL <help-field class="help-field-absolute" key="appengine.serverGroup.repositoryUrl"></help-field>
       </div>
       <div class="col-md-7">
         <input type="text"
@@ -68,6 +69,18 @@
                class="form-control input-sm"
                name="gitRepo"
                ng-model="command.repositoryUrl"/></div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Git Credential Type <help-field class="help-field-absolute" key="appengine.serverGroup.gitCredentialType"></help-field>
+      </div>
+      <div class="col-md-7">
+        <select class="form-control input-sm"
+                ng-options="basicSettingsCtrl.humanReadableGitCredentialType(type) for type in basicSettingsCtrl.getSupportedGitCredentialTypes()"
+                ng-model="command.gitCredentialType">
+        </select>
+      </div>
     </div>
 
     <div class="form-group">

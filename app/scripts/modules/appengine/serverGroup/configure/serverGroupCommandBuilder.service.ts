@@ -3,7 +3,7 @@ import {get, intersection} from 'lodash';
 
 import {Application} from 'core/application/application.model';
 import {AccountService, ACCOUNT_SERVICE} from 'core/account/account.service';
-import {IAppengineAccount, IAppengineGitTrigger, IAppengineJenkinsTrigger} from 'appengine/domain/index';
+import {IAppengineAccount, IAppengineGitTrigger, IAppengineJenkinsTrigger, GitCredentialType} from 'appengine/domain/index';
 import {IStage, IPipeline, IGitTrigger, IJenkinsTrigger} from 'core/domain/index';
 import {AppengineDeployDescription} from '../transformer';
 
@@ -27,6 +27,7 @@ export interface IAppengineServerGroupCommand {
   strategyPipeline?: string;
   fromTrigger?: boolean;
   trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
+  gitCredentialType: GitCredentialType;
 }
 
 interface IViewState {
