@@ -31,6 +31,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
                                                        serverGroupWarningMessageService, accountService) {
 
     let application = app;
+    this.application = app;
 
     $scope.state = {
       loading: true

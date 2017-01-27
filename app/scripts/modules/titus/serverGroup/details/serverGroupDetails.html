@@ -22,7 +22,7 @@
       <cloud-provider-logo provider="serverGroup.type" height="36px" width="36px" style="margin-right: 10px"></cloud-provider-logo>
       <h3 select-on-dbl-click>
         {{serverGroup.name}}
-        <entity-ui-tags component="ctrl.serverGroup"
+        <entity-ui-tags component="serverGroup"
                         application="ctrl.application"
                         entity-type="serverGroup"
                         on-update="ctrl.application.serverGroups.refresh()"></entity-ui-tags>
@@ -40,7 +40,7 @@
             <li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><a href ng-click="ctrl.cloneServerGroup()">Clone</a></li>
-            <add-entity-tag-links component="ctrl.serverGroup"
+            <add-entity-tag-links component="serverGroup"
                                   application="ctrl.application"
                                   entity-type="serverGroup"
                                   owner-options="ctrl.entityTagTargets"
