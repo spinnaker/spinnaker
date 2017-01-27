@@ -46,7 +46,7 @@ public abstract class Webhook<T extends Master> extends Node implements Cloneabl
   }
 
   @Override
-  public NodeReference getReference() {
-    return parent.getReference().setWebhook(getNodeName());
+  public NodeFilter getFilter() {
+    return parent.getFilter().setWebhook(getNodeName());
   }
 }

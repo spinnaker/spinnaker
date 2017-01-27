@@ -17,15 +17,14 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,7 +33,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * This service is meant to be autowired into any service or controller that needs to inspect the current halconfigs
+ * This service is meant to be autowired into any service or controller that needs to inspect the current halconfig's
  * deployments.
  */
 @Component
@@ -48,11 +47,8 @@ public class AccountService {
   @Autowired
   ValidateService validateService;
 
-  public List<Account> getAllAccounts(NodeReference reference) {
-    NodeFilter filter = NodeFilter.makeEmptyFilter()
-        .refineWithReference(reference)
-        .withAnyHalconfigFile()
-        .withAnyAccount();
+  public List<Account> getAllAccounts(NodeFilter filter) {
+    filter = filter.withAnyHalconfigFile().withAnyAccount();
 
     List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class)
         .stream()
@@ -62,17 +58,16 @@ public class AccountService {
     if (matchingAccounts.size() == 0) {
       throw new ConfigNotFoundException(
           new ProblemBuilder(Problem.Severity.FATAL, "No accounts could be found")
-              .setReference(reference).build());
+              .setFilter(filter).build());
     } else {
       return matchingAccounts;
     }
   }
 
-  public Account getAccount(NodeReference reference) {
-    String accountName = reference.getAccount();
-    NodeFilter filter = NodeFilter.makeEmptyFilter()
-        .refineWithReference(reference)
-        .withAnyHalconfigFile();
+  public Account getAccount(NodeFilter filter) {
+    String accountName = filter.getAccount();
+
+    filter = filter.withAnyHalconfigFile();
 
     List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class)
         .stream()
@@ -83,22 +78,22 @@ public class AccountService {
       case 0:
         throw new ConfigNotFoundException(new ProblemBuilder(
             Problem.Severity.FATAL, "No matching account with name \"" + accountName + "\" found")
-            .setReference(reference)
+            .setFilter(filter)
             .setRemediation("Check if this account was defined in another provider, or create a new one").build());
       case 1:
         return matchingAccounts.get(0);
       default:
         throw new IllegalConfigException(new ProblemBuilder(
             Problem.Severity.FATAL, "More than one matching account with name + \"" + accountName + "\" found")
-            .setReference(reference)
+            .setFilter(filter)
             .setRemediation("Manually delete/rename duplicate accounts with name \"" + accountName + "\" in your halconfig file").build());
     }
   }
 
-  public void setAccount(NodeReference reference, Account newAccount) {
-    String accountName = reference.getAccount();
+  public void setAccount(NodeFilter filter, Account newAccount) {
+    String accountName = filter.getAccount();
 
-    Provider provider = providerService.getProvider(reference);
+    Provider provider = providerService.getProvider(filter);
 
     for (int i = 0; i < provider.getAccounts().size(); i++) {
       Account account = (Account) provider.getAccounts().get(i);
@@ -111,10 +106,10 @@ public class AccountService {
     throw new HalconfigException(new ProblemBuilder(Severity.FATAL, "Account \"" + accountName + "\" wasn't found").build());
   }
 
-  public void deleteAccount(NodeReference reference) {
-    String accountName = reference.getAccount();
+  public void deleteAccount(NodeFilter filter) {
+    String accountName = filter.getAccount();
 
-    Provider provider = providerService.getProvider(reference);
+    Provider provider = providerService.getProvider(filter);
     boolean removed = provider.getAccounts().removeIf(account -> ((Account) account).getName().equals(accountName));
 
     if (!removed) {
@@ -124,24 +119,19 @@ public class AccountService {
     }
   }
 
-  public void addAccount(NodeReference reference, Account newAccount) {
-    Provider provider = providerService.getProvider(reference);
+  public void addAccount(NodeFilter filter, Account newAccount) {
+    Provider provider = providerService.getProvider(filter);
     provider.getAccounts().add(newAccount);
   }
 
-  public ProblemSet validateAccount(NodeReference reference, Severity severity) {
-    NodeFilter filter = NodeFilter.makeEmptyFilter()
-        .refineWithReference(reference)
-        .withAnyHalconfigFile();
+  public ProblemSet validateAccount(NodeFilter filter, Severity severity) {
+    filter = filter.withAnyHalconfigFile();
 
     return validateService.validateMatchingFilter(filter, severity);
   }
 
-  public ProblemSet validateAllAccounts(NodeReference reference, Severity severity) {
-    NodeFilter filter = NodeFilter.makeEmptyFilter()
-        .refineWithReference(reference)
-        .withAnyHalconfigFile()
-        .withAnyAccount();
+  public ProblemSet validateAllAccounts(NodeFilter filter, Severity severity) {
+    filter = filter.withAnyHalconfigFile().withAnyAccount();
 
     return validateService.validateMatchingFilter(filter, severity);
   }

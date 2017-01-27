@@ -20,11 +20,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -44,7 +45,7 @@ public class Providers extends Node implements Cloneable {
   }
 
   @Override
-  boolean matchesLocally(NodeFilter filter) {
+  protected boolean matchesLocally(NodeFilter filter) {
     return !filter.provider.isEmpty();
   }
 
@@ -54,8 +55,8 @@ public class Providers extends Node implements Cloneable {
   }
 
   @Override
-  public NodeReference getReference() {
-    return parent.getReference();
+  public NodeFilter getFilter() {
+    return parent.getFilter();
   }
 
   public static Class<? extends Provider> translateProviderType(String providerName) {

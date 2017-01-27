@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
@@ -53,15 +53,15 @@ public class AccountController {
   DaemonResponse<List<Account>> accounts(@PathVariable String deploymentName, @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    NodeReference reference = new NodeReference()
+    NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
         .setProvider(providerName);
 
     StaticRequestBuilder<List<Account>> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> accountService.getAllAccounts(reference));
+    builder.setBuildResponse(() -> accountService.getAllAccounts(filter));
 
     if (validate) {
-      builder.setValidateResponse(() -> accountService.validateAllAccounts(reference, severity));
+      builder.setValidateResponse(() -> accountService.validateAllAccounts(filter, severity));
     }
 
     return builder.build();
@@ -74,16 +74,16 @@ public class AccountController {
       @PathVariable String accountName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    NodeReference reference = new NodeReference()
+    NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
         .setProvider(providerName)
         .setAccount(accountName);
 
     StaticRequestBuilder<Account> builder = new StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> accountService.getAccount(reference));
+    builder.setBuildResponse(() -> accountService.getAccount(filter));
 
     if (validate) {
-      builder.setValidateResponse(() -> accountService.validateAccount(reference, severity));
+      builder.setValidateResponse(() -> accountService.validateAccount(filter, severity));
     }
 
     return builder.build();
@@ -96,18 +96,18 @@ public class AccountController {
       @PathVariable String accountName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    NodeReference reference = new NodeReference()
+    NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
         .setProvider(providerName)
         .setAccount(accountName);
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-    builder.setUpdate(() -> accountService.deleteAccount(reference));
+    builder.setUpdate(() -> accountService.deleteAccount(filter));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> accountService.validateAccount(reference, severity);
+      doValidate = () -> accountService.validateAccount(filter, severity);
     }
 
     builder.setValidate(doValidate);
@@ -124,7 +124,7 @@ public class AccountController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestBody Object rawAccount) {
-    NodeReference reference = new NodeReference()
+    NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
         .setProvider(providerName)
         .setAccount(accountName);
@@ -136,11 +136,11 @@ public class AccountController {
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-    builder.setUpdate(() -> accountService.setAccount(reference, account));
+    builder.setUpdate(() -> accountService.setAccount(filter, account));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> accountService.validateAccount(reference, severity);
+      doValidate = () -> accountService.validateAccount(filter, severity);
     }
 
     builder.setValidate(doValidate);
@@ -161,18 +161,18 @@ public class AccountController {
         Providers.translateAccountType(providerName)
     );
 
-    NodeReference reference = new NodeReference()
+    NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
         .setProvider(providerName)
         .setAccount(account.getName());
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-    builder.setUpdate(() -> accountService.addAccount(reference, account));
+    builder.setUpdate(() -> accountService.addAccount(filter, account));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> accountService.validateAccount(reference, severity);
+      doValidate = () -> accountService.validateAccount(filter, severity);
     }
 
     builder.setValidate(doValidate);

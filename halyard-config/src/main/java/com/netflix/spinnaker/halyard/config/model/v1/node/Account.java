@@ -36,7 +36,7 @@ public abstract class Account extends Node implements Cloneable {
   }
 
   @Override
-  boolean matchesLocally(NodeFilter filter) {
+  protected boolean matchesLocally(NodeFilter filter) {
     return NodeFilter.matches(filter.account, name);
   }
 
@@ -46,7 +46,7 @@ public abstract class Account extends Node implements Cloneable {
   }
 
   @Override
-  public NodeReference getReference() {
-    return parent.getReference().setAccount(name);
+  public NodeFilter getFilter() {
+    return parent.getFilter().setAccount(name);
   }
 }

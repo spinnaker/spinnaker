@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.service.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
@@ -36,8 +36,8 @@ public class DeployService {
   @Autowired
   DeploymentFactory deploymentFactory;
 
-  public void deploySpinnaker(NodeReference nodeReference) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeReference);
+  public void deploySpinnaker(NodeFilter nodeFilter) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeFilter);
     Deployment deployment = deploymentFactory.create(deploymentConfiguration);
     deployment.deploy();
   }

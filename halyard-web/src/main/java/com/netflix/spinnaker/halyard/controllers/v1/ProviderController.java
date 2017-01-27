@@ -20,7 +20,7 @@ import com.netflix.spinnaker.halyard.DaemonResponse;
 import com.netflix.spinnaker.halyard.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
@@ -50,16 +50,16 @@ public class ProviderController {
       @PathVariable String provider,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    NodeReference reference = new NodeReference()
+    NodeFilter filter = new NodeFilter()
         .setDeployment(deployment)
         .setProvider(provider);
 
     StaticRequestBuilder<Provider> builder = new StaticRequestBuilder<>();
 
-    builder.setBuildResponse(() -> providerService.getProvider(reference));
+    builder.setBuildResponse(() -> providerService.getProvider(filter));
 
     if (validate) {
-      builder.setValidateResponse(() -> providerService.validateProvider(reference, severity));
+      builder.setValidateResponse(() -> providerService.validateProvider(filter, severity));
     }
 
     return builder.build();
@@ -72,17 +72,17 @@ public class ProviderController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestBody boolean enabled) {
-    NodeReference reference = new NodeReference()
+    NodeFilter filter = new NodeFilter()
         .setDeployment(deployment)
         .setProvider(provider);
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-    builder.setUpdate(() -> providerService.setEnabled(reference, enabled));
+    builder.setUpdate(() -> providerService.setEnabled(filter, enabled));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> providerService.validateProvider(reference, severity);
+      doValidate = () -> providerService.validateProvider(filter, severity);
     }
 
     builder.setValidate(doValidate);
@@ -95,13 +95,13 @@ public class ProviderController {
   DaemonResponse<List<Provider>> providers(@PathVariable String deployment,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    NodeReference reference = new NodeReference().setDeployment(deployment);
+    NodeFilter filter = new NodeFilter().setDeployment(deployment);
     StaticRequestBuilder<List<Provider>> builder = new StaticRequestBuilder<>();
 
-    builder.setBuildResponse(() -> providerService.getAllProviders(reference));
+    builder.setBuildResponse(() -> providerService.getAllProviders(filter));
 
     if (validate) {
-      builder.setValidateResponse(() -> providerService.validateProvider(reference, severity));
+      builder.setValidateResponse(() -> providerService.validateProvider(filter, severity));
     }
 
     return builder.build();

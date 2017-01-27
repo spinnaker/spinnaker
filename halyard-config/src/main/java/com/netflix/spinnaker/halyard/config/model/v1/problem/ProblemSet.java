@@ -22,7 +22,6 @@ import java.util.Map;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,7 +34,7 @@ public class ProblemSet {
   public Map<String, List<Problem>> groupByLocation() {
     Map<String, List<Problem>> result = new HashMap<>();
     for (Problem problem : problems) {
-      result.merge(problem.getReferenceTitle(),
+      result.merge(problem.getFilterTitle(),
           new ArrayList<Problem>() {{
             add(problem);
           }},

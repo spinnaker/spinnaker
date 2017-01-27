@@ -18,7 +18,7 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.SpinnakerComponent;
@@ -41,7 +41,7 @@ public class GenerateService {
   @Autowired(required = false)
   List<SpinnakerComponent> spinnakerComponents = new ArrayList<>();
 
-  public void generateConfig(NodeReference nodeReference) {
+  public void generateConfig(NodeFilter nodeFilter) {
     for (SpinnakerComponent component : spinnakerComponents) {
       FileSystem defaultFileSystem = FileSystems.getDefault();
       AtomicFileWriter writer = null;
@@ -51,7 +51,7 @@ public class GenerateService {
 
       try {
         writer = new AtomicFileWriter(path);
-        writer.write(component.getFullConfig(nodeReference));
+        writer.write(component.getFullConfig(nodeFilter));
         writer.commit();
       } catch (IOException ioe) {
         ioe.printStackTrace();

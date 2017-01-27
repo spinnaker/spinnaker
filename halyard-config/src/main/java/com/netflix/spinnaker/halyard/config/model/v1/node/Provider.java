@@ -41,8 +41,8 @@ public abstract class Provider<T extends Account> extends Node implements Clonea
   }
 
   @Override
-  public NodeReference getReference() {
-    return parent.getReference().setProvider(getNodeName());
+  public NodeFilter getFilter() {
+    return parent.getFilter().setProvider(getNodeName());
   }
 
   @Override

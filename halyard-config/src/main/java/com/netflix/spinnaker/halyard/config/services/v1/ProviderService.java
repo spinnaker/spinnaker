@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
@@ -41,11 +42,9 @@ public class ProviderService {
   @Autowired
   ValidateService validateService;
 
-  public Provider getProvider(NodeReference reference) {
-    String providerName = reference.getDeployment();
-    NodeFilter filter = NodeFilter.makeEmptyFilter()
-        .refineWithReference(reference)
-        .withAnyHalconfigFile();
+  public Provider getProvider(NodeFilter filter) {
+    String providerName = filter.getDeployment();
+    filter = filter.withAnyHalconfigFile();
 
     List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class)
         .stream()
@@ -56,21 +55,20 @@ public class ProviderService {
       case 0:
         throw new ConfigNotFoundException(new ProblemBuilder(Problem.Severity.FATAL,
             "No provider with name \"" + providerName + "\" could be found")
-            .setReference(reference)
+            .setFilter(filter)
             .setRemediation("Create a new provider with name \"" + providerName + "\"").build());
       case 1:
         return matching.get(0);
       default:
         throw new IllegalConfigException(new ProblemBuilder(Problem.Severity.FATAL,
             "More than one provider with name \"" + providerName + "\" found")
-            .setReference(reference)
+            .setFilter(filter)
             .setRemediation("Manually delete or rename duplicate providers with name \"" + providerName + "\" in your halconfig file").build());
     }
   }
 
-  public List<Provider> getAllProviders(NodeReference reference) {
-    NodeFilter filter = NodeFilter.makeEmptyFilter().refineWithReference(reference)
-        .withAnyHalconfigFile()
+  public List<Provider> getAllProviders(NodeFilter filter) {
+    filter = filter.withAnyHalconfigFile()
         .withAnyProvider();
 
     List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class)
@@ -81,21 +79,19 @@ public class ProviderService {
     if (matching.size() == 0) {
       throw new ConfigNotFoundException(
           new ProblemBuilder(Problem.Severity.FATAL, "No providers could be found")
-              .setReference(reference).build());
+              .setFilter(filter).build());
     } else {
       return matching;
     }
   }
 
-  public void setEnabled(NodeReference reference, boolean enabled) {
-    Provider provider = getProvider(reference);
+  public void setEnabled(NodeFilter filter, boolean enabled) {
+    Provider provider = getProvider(filter);
     provider.setEnabled(enabled);
   }
 
-  public ProblemSet validateProvider(NodeReference reference, Severity severity) {
-    NodeFilter filter = NodeFilter.makeEmptyFilter()
-        .refineWithReference(reference)
-        .withAnyHalconfigFile()
+  public ProblemSet validateProvider(NodeFilter filter, Severity severity) {
+    filter = filter.withAnyHalconfigFile()
         .withAnyAccount();
 
     return validateService.validateMatchingFilter(filter, severity);

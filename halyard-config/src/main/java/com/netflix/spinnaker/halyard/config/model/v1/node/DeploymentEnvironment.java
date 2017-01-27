@@ -18,12 +18,14 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
  * A DeploymentEnvironment is a location where Spinnaker is installed.
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class DeploymentEnvironment extends Node {
   @Override
   public void accept(ProblemSetBuilder psBuilder, Validator v) {
@@ -41,13 +43,13 @@ public class DeploymentEnvironment extends Node {
   }
 
   @Override
-  boolean matchesLocally(NodeFilter filter) {
+  protected boolean matchesLocally(NodeFilter filter) {
     return true;
   }
 
   @Override
-  public NodeReference getReference() {
-    return parent.getReference();
+  public NodeFilter getFilter() {
+    return parent.getFilter();
   }
 
   public enum DeploymentType {

@@ -16,10 +16,23 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * A node filter can be used to inform an iterator which elements to return.
+ * A way to identify a spot in your halconfig.
  */
-public class NodeFilter extends NodeReference {
+@Data
+public class NodeFilter implements Cloneable {
+  String halconfigFile = "";
+  String deployment = "";
+  String provider = "";
+  String webhook = "";
+  String account = "";
+  String master = "";
+
   private static final String ANY = "*";
 
   public static boolean matches(String a, String b) {
@@ -64,42 +77,31 @@ public class NodeFilter extends NodeReference {
     return this;
   }
 
-  /**
-   * Modifies the current filter to accept anything the reference does.
-   *
-   * @param reference is the reference to accept.
-   */
-  public NodeFilter refineWithReference(NodeReference reference) {
-    halconfigFile = definedOrDefault(reference.halconfigFile, halconfigFile);
-    deployment = definedOrDefault(reference.deployment, deployment);
-    webhook = definedOrDefault(reference.webhook, webhook);
-    provider = definedOrDefault(reference.provider, provider);
-    account = definedOrDefault(reference.account, account);
-    master = definedOrDefault(reference.master, master);
 
-    return this;
-  }
+  @Override
+  public String toString() {
+    List<String> res = new ArrayList<>();
 
-  public static NodeFilter makeAcceptAllFilter() {
-    NodeFilter result = new NodeFilter();
+    if (!deployment.isEmpty()) {
+      res.add(deployment);
+    }
 
-    result.halconfigFile = ANY;
-    result.deployment = ANY;
-    result.webhook = ANY;
-    result.provider = ANY;
-    result.account = ANY;
-    result.master = ANY;
+    if (!provider.isEmpty()) {
+      res.add(provider);
+    }
 
-    return result;
-  }
+    if (!account.isEmpty()) {
+      res.add(account);
+    }
 
-  public static NodeFilter makeEmptyFilter() {
-    return new NodeFilter();
-  }
+    if (!webhook.isEmpty()) {
+      res.add(webhook);
+    }
 
-  private NodeFilter() { }
+    if (!master.isEmpty()) {
+      res.add(master);
+    }
 
-  private static String definedOrDefault(String a, String b) {
-    return a != null && !a.isEmpty() ? a : b;
+    return res.stream().reduce("", (a, b) -> a + "." + b).substring(1);
   }
 }

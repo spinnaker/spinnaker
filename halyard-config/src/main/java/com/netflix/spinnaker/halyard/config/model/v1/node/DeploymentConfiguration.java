@@ -58,13 +58,13 @@ public class DeploymentConfiguration extends Node {
   }
 
   @Override
-  boolean matchesLocally(NodeFilter filter) {
+  protected boolean matchesLocally(NodeFilter filter) {
     return NodeFilter.matches(filter.deployment, name);
   }
 
   @Override
-  public NodeReference getReference() {
-    return parent.getReference().setDeployment(name);
+  public NodeFilter getFilter() {
+    return parent.getFilter().setDeployment(name);
   }
 
   @Override

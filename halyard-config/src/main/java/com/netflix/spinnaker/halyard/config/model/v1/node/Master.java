@@ -36,8 +36,8 @@ public abstract class Master extends Node implements Cloneable {
   }
 
   @Override
-  public NodeReference getReference() {
-    return parent.getReference().setMaster(name);
+  public NodeFilter getFilter() {
+    return parent.getFilter().setMaster(name);
   }
 }
 

@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
+import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
@@ -43,11 +42,9 @@ public class DeploymentService {
   @Autowired
   ValidateService validateService;
 
-  public DeploymentConfiguration getDeploymentConfiguration(NodeReference reference) {
-    String deploymentName = reference.getDeployment();
-    NodeFilter filter = NodeFilter.makeEmptyFilter()
-        .refineWithReference(reference)
-        .withAnyHalconfigFile();
+  public DeploymentConfiguration getDeploymentConfiguration(NodeFilter filter) {
+    String deploymentName = filter.getDeployment();
+    filter = filter.withAnyHalconfigFile();
 
     List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class)
             .stream()
@@ -58,20 +55,20 @@ public class DeploymentService {
       case 0:
         throw new ConfigNotFoundException(new ProblemBuilder(Problem.Severity.FATAL,
             "No deployment with name \"" + deploymentName + "\" could be found")
-            .setReference(reference)
+            .setFilter(filter)
             .setRemediation("Create a new deployment with name \"" + deploymentName + "\"").build());
       case 1:
         return matching.get(0);
       default:
         throw new IllegalConfigException(new ProblemBuilder(Problem.Severity.FATAL,
             "More than one deployment with name \"" + deploymentName + "\" found")
-            .setReference(reference)
+            .setFilter(filter)
             .setRemediation("Manually delete or rename duplicate deployments with name \"" + deploymentName + "\" in your halconfig file").build());
     }
   }
 
   public List<DeploymentConfiguration> getAllDeploymentConfigurations() {
-    NodeFilter filter = NodeFilter.makeEmptyFilter().withAnyHalconfigFile().withAnyDeployment();
+    NodeFilter filter = new NodeFilter().withAnyHalconfigFile().withAnyDeployment();
 
     List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class)
         .stream()
@@ -88,7 +85,7 @@ public class DeploymentService {
   }
 
   public ProblemSet validateAllDeployments(Severity severity) {
-    NodeFilter filter = NodeFilter.makeEmptyFilter()
+    NodeFilter filter = new NodeFilter()
         .withAnyDeployment()
         .withAnyHalconfigFile()
         .withAnyProvider()
@@ -97,9 +94,8 @@ public class DeploymentService {
     return validateService.validateMatchingFilter(filter, severity);
   }
 
-  public ProblemSet validateDeployment(NodeReference reference, Severity severity) {
-    NodeFilter filter = NodeFilter.makeEmptyFilter()
-        .refineWithReference(reference)
+  public ProblemSet validateDeployment(NodeFilter filter, Severity severity) {
+    filter = filter
         .withAnyHalconfigFile()
         .withAnyProvider()
         .withAnyAccount();

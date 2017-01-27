@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeReference;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import java.util.List;
 import lombok.Getter;
 
@@ -54,14 +54,14 @@ public class Problem {
    * The location of the problem in the config.
    */
   @Getter
-  final private NodeReference reference;
+  final private NodeFilter filter;
 
   /**
-   * Provides a human-readable reference interpretation
+   * Provides a human-readable filter interpretation
    */
-  public String getReferenceTitle() {
-    if (reference != null) {
-      return reference.toString();
+  public String getFilterTitle() {
+    if (filter != null) {
+      return filter.toString();
     } else {
       return "Global";
     }
@@ -91,12 +91,12 @@ public class Problem {
   @Getter
   final private Severity severity;
 
-  public Problem(Severity severity, NodeReference reference, String message, String remediation, List<String> options) {
+  public Problem(Severity severity, NodeFilter filter, String message, String remediation, List<String> options) {
     if (severity == Severity.NONE) {
       throw new RuntimeException("A halconfig problem may not be intialized with \"NONE\" severity");
     }
     this.severity = severity;
-    this.reference = reference;
+    this.filter = filter;
     this.message = message;
     this.remediation = remediation;
     this.options = options;

@@ -46,7 +46,7 @@ abstract public class Node implements Validatable {
    * @return true iff the filter accepts this node.
    */
   @JsonIgnore
-  abstract boolean matchesLocally(NodeFilter filter);
+  protected abstract boolean matchesLocally(NodeFilter filter);
 
   /**
    * Checks if the filter matches this node all the way to the root.
@@ -66,7 +66,7 @@ abstract public class Node implements Validatable {
   }
 
   @JsonIgnore
-  public abstract NodeReference getReference();
+  public abstract NodeFilter getFilter();
 
   @JsonIgnore
   public List<String> fieldOptions(ProblemSetBuilder problemSetBuilder, String fieldName) {

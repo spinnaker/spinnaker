@@ -41,12 +41,12 @@ public class Webhooks extends Node implements Cloneable {
   }
 
   @Override
-  boolean matchesLocally(NodeFilter filter) {
+  protected boolean matchesLocally(NodeFilter filter) {
     return !filter.webhook.isEmpty();
   }
 
   @Override
-  public NodeReference getReference() {
-    return parent.getReference();
+  public NodeFilter getFilter() {
+    return parent.getFilter();
   }
 }

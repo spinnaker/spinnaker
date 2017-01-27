@@ -47,7 +47,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
   public void validate(ProblemSetBuilder psBuilder, KubernetesAccount account) {
     DeploymentConfiguration deploymentConfiguration;
 
-    // TODO(lwander) this is still a little messy - I should use the references to get the necessary docker account
+    // TODO(lwander) this is still a little messy - I should use the filters to get the necessary docker account
     Node parent = account.getParent();
     while (!(parent instanceof DeploymentConfiguration)) {
       // Note this will crash in the above check if the halconfig representation is corrupted

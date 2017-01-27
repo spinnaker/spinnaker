@@ -21,7 +21,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.kubernetes.KubernetesClusteredSimpleDeployment;
@@ -60,12 +59,12 @@ public class DeploymentFactory {
           + "specified as the desired place to run your simple clustered deployment.").build());
     }
 
-    NodeReference nodeReference = new NodeReference()
+    NodeFilter nodeFilter = new NodeFilter()
         .setDeployment(deploymentConfiguration.getName())
         .setProvider("*")
         .setAccount(accountName);
 
-    Account account = accountService.getAccount(nodeReference);
+    Account account = accountService.getAccount(nodeFilter);
     ProviderType providerType = ((Provider) account.getParent()).providerType();
 
     switch (providerType) {

@@ -105,12 +105,12 @@ public class Halconfig extends Node {
   }
 
   @Override
-  boolean matchesLocally(NodeFilter filter) {
+  protected boolean matchesLocally(NodeFilter filter) {
     return NodeFilter.matches(filter.halconfigFile, path);
   }
 
   @Override
-  public NodeReference getReference() {
-    return new NodeReference().setHalconfigFile(path);
+  public NodeFilter getFilter() {
+    return new NodeFilter().setHalconfigFile(path);
   }
 }
