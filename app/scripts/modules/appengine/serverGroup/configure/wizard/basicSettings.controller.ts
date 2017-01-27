@@ -4,8 +4,7 @@ import {set} from 'lodash';
 
 import {NamingService} from 'core/naming/naming.service';
 import {IAppengineServerGroupCommand} from '../serverGroupCommandBuilder.service';
-import {IAppengineAccount} from 'domain/IAppengineAccount';
-import {GitCredentialType} from 'appengine/domain/index';
+import {GitCredentialType, IAppengineAccount} from 'appengine/domain/index';
 
 interface IAppengineBasicSettingsScope extends IScope {
   command: IAppengineServerGroupCommand;
@@ -70,6 +69,7 @@ class AppengineServerGroupBasicSettingsCtrl {
       case 'SSH':
         return 'SSH';
       case 'NONE':
+        return 'No credentials';
       default:
         return 'No credentials';
     }

@@ -27,7 +27,7 @@ export interface IAppengineServerGroupCommand {
   strategyPipeline?: string;
   fromTrigger?: boolean;
   trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
-  gitCredentialType: GitCredentialType;
+  gitCredentialType?: GitCredentialType;
 }
 
 interface IViewState {
