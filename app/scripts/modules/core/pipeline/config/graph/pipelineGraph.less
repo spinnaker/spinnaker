@@ -68,6 +68,11 @@ pipeline-graph {
           }
         }
       }
+      &.warning {
+        circle, rect {
+          fill: @unhealthy_red;
+        }
+      }
       a {
         color: @text-color;
       }

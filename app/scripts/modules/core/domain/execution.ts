@@ -1,7 +1,7 @@
-import { Trigger } from './trigger';
 import {IOrchestratedItem} from './IOrchestratedItem';
+import {ITrigger} from './ITrigger';
 
 export interface Execution extends IOrchestratedItem {
-  trigger: Trigger;
+  trigger: ITrigger;
   user: string;
 }

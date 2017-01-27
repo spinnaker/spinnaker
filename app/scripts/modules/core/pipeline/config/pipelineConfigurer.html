@@ -11,7 +11,6 @@
           {{pipeline.name}}
           <span ng-if="pipeline.disabled">(disabled)</span>
         </a>
-        <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
       </h3>
       <div class="config-heading-actions">
         <div class="permalink">
@@ -74,7 +73,10 @@
     </div>
     <div class="config-heading-body" ng-if="pipeline.parallel">
       <div class="pipeline-graph-container">
-        <pipeline-graph view-state="viewState" pipeline="pipeline" on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
+        <pipeline-graph view-state="viewState"
+                        pipeline="pipeline"
+                        should-validate="true"
+                        on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
       </div>
       <div class="row">
         <div class="col-md-8">
@@ -112,6 +114,13 @@
                 ng-click="pipelineConfigurerCtrl.revertPipelineChanges()"><span class="glyphicon glyphicon-flash"></span> Revert</button>
       </div>
       <div class="col-md-9 text-right">
+        <button class="btn btn-link"
+                ng-if="pipelineConfigurerCtrl.validations.hasWarnings"
+                uib-popover-template="pipelineConfigurerCtrl.warningsPopover"
+                popover-placement="left-bottom"
+                popover-trigger="mouseenter">
+        <i class="fa fa-exclamation-triangle" style="font-size: 125%;"></i>
+        </button>
         <span ng-if="viewState.saveError" class="alert alert-danger">
           {{viewState.saveErrorMessage}}
           <a class="alert-dismiss" href

@@ -1,15 +1,31 @@
-import {Trigger} from './trigger';
 import {IStage} from "./IStage";
+import {ITrigger} from './ITrigger';
 
 export interface IPipeline {
   application: string;
+  executionEngine: string;
   id: string;
   index: number;
+  isNew?: boolean;
   keepWaitingPipelines: boolean;
-  lastModifiedBy: string;
+  lastModifiedBy?: string;
   limitConcurrent: boolean;
   name: string;
   parallel: boolean;
-  triggers: Trigger[];
   stages: IStage[];
+  strategy: boolean;
+  triggers: ITrigger[];
+  parameterConfig: IParameter[];
+}
+
+export interface IParameter {
+  name: string;
+  description: string;
+  'default': string;
+  hasOptions: boolean;
+  options: IParameterOption[];
+}
+
+export interface IParameterOption {
+  value: string;
 }

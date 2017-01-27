@@ -1,0 +1,20 @@
+<div>
+  <p>
+    The following errors may affect the ability to run this pipeline:
+  </p>
+  <div ng-if="pipelineConfigurerCtrl.validations.pipeline">
+    <strong>Configuration</strong>
+    <ul>
+      <li ng-repeat="message in pipelineConfigurerCtrl.validations.pipeline" ng-bind-html="message"></li>
+    </ul>
+  </div>
+  <div ng-repeat="warning in pipelineConfigurerCtrl.validations.stages">
+    <strong>{{warning.stage.name}}</strong>
+    <ul>
+      <li ng-repeat="message in warning.messages" ng-bind-html="message"></li>
+    </ul>
+  </div>
+  <ul>
+    <li ng-repeat="message in stage.warnings.messages" ng-bind-html="message"></li>
+  </ul>
+</div>

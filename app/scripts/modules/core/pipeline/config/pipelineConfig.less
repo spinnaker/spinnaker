@@ -286,59 +286,6 @@ availability-zone-selector {
   display: block;
 }
 
-pipeline-config-errors {
-  font-size: 80%;
-}
-
-.pipeline-configurer {
-  .validation-warnings {
-    position: relative;
-    .glyphicon-exclamation-sign {
-      color: @unhealthy_red;
-      opacity: 1;
-      margin-left: 5px;
-      top: 4px;
-      padding: 2px;
-    }
-  }
-
-  .menu-validation-warnings {
-    text-align: left;
-    position: absolute;
-    z-index: 3;
-    left: -10px;
-    background-color: #ffffff;
-    margin-top: 12px;
-    border: 1px solid @unhealthy_red_border;
-    padding: 10px;
-    border-radius: 3px;
-    box-shadow: 0px 0px 2px 1px @unhealthy_red;
-    text-transform: none;
-    color: @text-color;
-    font-weight: 400;
-    font-size: 80%;
-    width: 350px;
-
-    &::before, &::after {
-      width: 0;
-      height: 0;
-      content: ' ';
-      left: 15px;
-      position: absolute;
-      border: 10px solid transparent;
-      border-top-width: 0;
-    }
-    &::after {
-      top: -8px;
-      border-bottom-color: #ffffff;
-    }
-    &::before {
-      top: -11px;
-      border-bottom-color: @unhealthy_red;
-    }
-  }
-}
-
 .pipeline-graph-container {
   position: relative;
   overflow-x: hidden;
