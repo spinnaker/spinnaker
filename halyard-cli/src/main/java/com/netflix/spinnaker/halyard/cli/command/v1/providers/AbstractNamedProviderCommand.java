@@ -29,7 +29,7 @@ public abstract class AbstractNamedProviderCommand extends AbstractProviderComma
 
   @Override
   public String getDescription() {
-    return "Manage Spinnaker configuration for the " + getProviderName() + " provider";
+    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider";
   }
 
   protected AbstractNamedProviderCommand() {
@@ -51,6 +51,11 @@ public abstract class AbstractNamedProviderCommand extends AbstractProviderComma
     );
 
     registerSubcommand(new DeleteAccountCommandBuilder()
+        .setProviderName(getProviderName())
+        .build()
+    );
+
+    registerSubcommand(new ListAccountsCommandBuilder()
         .setProviderName(getProviderName())
         .build()
     );

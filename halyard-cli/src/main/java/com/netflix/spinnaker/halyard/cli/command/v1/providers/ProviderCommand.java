@@ -35,7 +35,7 @@ public class ProviderCommand extends NestableCommand {
   private String commandName = "provider";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure, validate, and view your providers.";
+  private String description = "Configure, validate, and view the specified provider.";
 
   public ProviderCommand() {
     registerSubcommand(new KubernetesCommand());
