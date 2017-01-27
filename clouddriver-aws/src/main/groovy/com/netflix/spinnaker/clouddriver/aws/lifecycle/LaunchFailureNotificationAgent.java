@@ -44,14 +44,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -60,7 +58,6 @@ import java.util.stream.Collectors;
 class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAgent {
   private static final Logger log = LoggerFactory.getLogger(LaunchFailureNotificationAgent.class);
 
-  private static final Pattern ARN_PATTERN = Pattern.compile("arn:aws:.*:(.*):(\\d+):(.*)");
   private static final String SUPPORTED_LIFECYCLE_TRANSITION = "autoscaling:EC2_INSTANCE_LAUNCH_ERROR";
   private static final int AWS_MAX_NUMBER_OF_MESSAGES = 10;
 
@@ -171,7 +168,7 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
       notificationMessage.statusMessage
     );
 
-    Matcher sqsMatcher = ARN_PATTERN.matcher(notificationMessage.autoScalingGroupARN);
+    Matcher sqsMatcher = ARN.PATTERN.matcher(notificationMessage.autoScalingGroupARN);
     if (!sqsMatcher.matches()) {
       throw new IllegalArgumentException(notificationMessage.autoScalingGroupARN + " is not a valid ARN");
     }
@@ -253,33 +250,6 @@ class LaunchFailureNotificationAgent implements RunnableAgent, CustomScheduledAg
       amazonSQS.deleteMessage(queueUrl, message.getReceiptHandle());
     } catch (ReceiptHandleIsInvalidException e) {
       log.warn("Error deleting lifecycle message, reason: {} (receiptHandle: {})", e.getMessage(), message.getReceiptHandle());
-    }
-  }
-
-  private static class ARN {
-    String arn;
-    String region;
-    String name;
-
-    NetflixAmazonCredentials account;
-
-    ARN(Collection<? extends AccountCredentials> accountCredentials, String arn) {
-      this.arn = arn;
-
-      Matcher sqsMatcher = ARN_PATTERN.matcher(arn);
-      if (!sqsMatcher.matches()) {
-        throw new IllegalArgumentException(arn + " is not a valid SNS or SQS ARN");
-      }
-
-      this.region = sqsMatcher.group(1);
-      this.name = sqsMatcher.group(3);
-
-      String accountId = sqsMatcher.group(2);
-      this.account = (NetflixAmazonCredentials) accountCredentials.stream()
-        .filter(c -> accountId.equals(c.getAccountId()))
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("No account credentials found for " + accountId));
-
     }
   }
 }
