@@ -26,9 +26,6 @@
             <span ng-if="viewModel.images">
               {{ viewModel.images }}
             </span>
-            <span ng-if="!viewModel.hasBuildInfo">
-              (No build info)
-            </span>
             <entity-ui-tags component="serverGroup" application="application" entity-type="serverGroup"
                           on-update="application.serverGroups.refresh()"></entity-ui-tags>
           </div>
