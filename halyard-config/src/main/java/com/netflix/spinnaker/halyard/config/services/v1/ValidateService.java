@@ -39,7 +39,7 @@ public class ValidateService {
   ValidatorCollection validatorCollection;
 
   ProblemSet validateMatchingFilter(NodeFilter filter, Severity severity) {
-    Halconfig halconfig = parser.getConfig(false);
+    Halconfig halconfig = parser.getHalconfig(false);
     ProblemSetBuilder psBuilder = new ProblemSetBuilder().setSeverity(severity);
     recursiveValidate(psBuilder, halconfig, filter);
 

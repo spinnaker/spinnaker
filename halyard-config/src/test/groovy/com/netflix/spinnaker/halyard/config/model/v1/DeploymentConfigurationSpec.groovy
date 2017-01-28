@@ -17,11 +17,36 @@
 package com.netflix.spinnaker.halyard.config.model.v1
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers
 import com.netflix.spinnaker.halyard.config.model.v1.node.Webhooks
 import spock.lang.Specification
 
 class DeploymentConfigurationSpec extends Specification {
+  void "filter matches deployment configuration "() {
+    setup:
+    def name = "my-deployment"
+
+    when:
+    def filter = new NodeFilter().setDeployment(name)
+    def deploymentConfiguration = new DeploymentConfiguration().setName(name)
+
+    then:
+    deploymentConfiguration.matchesToRoot(filter)
+  }
+
+  void "filter doesn't match deployment configuration "() {
+    setup:
+    def name = "my-deployment"
+
+    when:
+    def filter = new NodeFilter().setDeployment(name)
+    def deploymentConfiguration = new DeploymentConfiguration().setName(name + "-bad")
+
+    then:
+    !deploymentConfiguration.matchesToRoot(filter)
+  }
+
   void "deployment configuration iterator reports providers & webhooks"() {
     setup:
     def deploymentConfiguration = new DeploymentConfiguration()

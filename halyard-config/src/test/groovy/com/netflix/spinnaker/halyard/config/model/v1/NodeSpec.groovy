@@ -64,6 +64,8 @@ class NodeSpec extends Specification {
 
     }
 
+    List<Node> childNodes = new ArrayList<>();
+
     @Override
     String getNodeName() {
       return "childtest"
@@ -71,7 +73,7 @@ class NodeSpec extends Specification {
 
     @Override
     NodeIterator getChildren() {
-      return NodeIteratorFactory.makeEmptyIterator()
+      return NodeIteratorFactory.makeListIterator(childNodes)
     }
 
     @Override
@@ -107,7 +109,7 @@ class NodeSpec extends Specification {
     options == []
   }
 
-  void "node correctly provider reflective iterator"() {
+  void "node correctly provides reflective iterator"() {
     setup:
     def node = new TestNode()
     def iterator = node.getChildren()
@@ -121,5 +123,25 @@ class NodeSpec extends Specification {
       child.nodeName == new ChildTestNode().getNodeName()
       child = iterator.getNext()
     }
+  }
+
+  void "node correctly provides list iterator"() {
+    setup:
+    def node = new ChildTestNode()
+    node.childNodes = [new ChildTestNode(), new ChildTestNode(), new ChildTestNode()]
+    def iterator = node.getChildren()
+
+    when:
+    def child = iterator.getNext()
+    def i = 0
+
+    then:
+    child != null
+    while (child != null) {
+      i++
+      child = iterator.getNext()
+    }
+
+    i == node.childNodes.size()
   }
 }

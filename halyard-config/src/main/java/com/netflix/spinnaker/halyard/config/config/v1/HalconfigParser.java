@@ -65,13 +65,17 @@ public class HalconfigParser {
    * @param is is the input stream to read from.
    * @return the fully parsed halconfig.
    */
-  Halconfig parseConfig(InputStream is) throws UnrecognizedPropertyException {
+  Halconfig parseHalconfig(InputStream is) throws UnrecognizedPropertyException {
     try {
       Object obj = yamlParser.load(is);
       return objectMapper.convertValue(obj, Halconfig.class);
     } catch (IllegalArgumentException e) {
       throw (UnrecognizedPropertyException) e.getCause();
     }
+  }
+
+  public InputStream getHalconfigStream() throws FileNotFoundException {
+    return new FileInputStream(new File(halconfigPath));
   }
 
   /**
@@ -81,34 +85,38 @@ public class HalconfigParser {
    * @param reload if we should check the disk for the halconfig.
    * @return the fully parsed halconfig.
    */
-  public Halconfig getConfig(boolean reload) {
-    if (!reload && halconfig != null) {
-      halconfig.parentify();
-      return halconfig;
-    }
-
+  public Halconfig getHalconfig(boolean reload) {
     Halconfig res = null;
-    try {
-      InputStream is = new FileInputStream(new File(halconfigPath));
-      res = parseConfig(is);
-    } catch (FileNotFoundException e) {
-    } catch (UnrecognizedPropertyException e) {
-      throw new ParseConfigException(e);
-    } catch (ParserException e) {
-      throw new ParseConfigException(e);
-    } catch (ScannerException e) {
-      throw new ParseConfigException(e);
+
+    if (!reload && halconfig != null) {
+      res = halconfig;
+    } else {
+      try {
+        InputStream is = getHalconfigStream();
+        res = parseHalconfig(is);
+      } catch (FileNotFoundException e) {
+      } catch (UnrecognizedPropertyException e) {
+        throw new ParseConfigException(e);
+      } catch (ParserException e) {
+        throw new ParseConfigException(e);
+      } catch (ScannerException e) {
+        throw new ParseConfigException(e);
+      }
     }
 
-    if (res == null) {
+    return transformHalconfig(res);
+  }
+
+  Halconfig transformHalconfig(Halconfig halconfig) {
+    if (halconfig == null) {
       log.info("No halconfig found generating a new one...");
-      res = new Halconfig();
+      halconfig = new Halconfig();
     }
 
-    res.parentify();
-    res.setPath(halconfigPath);
+    halconfig.parentify();
+    halconfig.setPath(halconfigPath);
 
-    halconfig = res;
+    halconfig = halconfig;
 
     return halconfig;
   }

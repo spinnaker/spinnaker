@@ -92,7 +92,7 @@ abstract public class SpinnakerComponent {
    * the version of the component specified by the Spinnaker version in the loaded halconfig.
    */
   protected String getBaseConfig() {
-    Halconfig currentConfig = parser.getConfig(true);
+    Halconfig currentConfig = parser.getHalconfig(true);
     NodeFilter nodeFilter = new NodeFilter().setDeployment(currentConfig.getCurrentDeployment());
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeFilter);
     String version = deploymentConfiguration.getVersion();

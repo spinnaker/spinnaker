@@ -49,7 +49,7 @@ deploymentConfigurations:
     Halconfig out = null
 
     when:
-    out = parser.parseConfig(stream)
+    out = parser.parseHalconfig(stream)
 
     then:
     out.halyardVersion == HALYARD_VERSION
@@ -67,7 +67,7 @@ balyardVersion: $HALYARD_VERSION
     Halconfig out = null
 
     when:
-    out = parser.parseConfig(stream)
+    out = parser.parseHalconfig(stream)
 
     then:
     UnrecognizedPropertyException ex = thrown()
