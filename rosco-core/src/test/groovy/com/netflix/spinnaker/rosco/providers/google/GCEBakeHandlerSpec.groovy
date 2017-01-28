@@ -404,13 +404,18 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                         package_name: PACKAGES_NAME,
                                         base_os: "precise",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
-                                        extended_attributes: [gce_zone: "europe-west1-b", gce_network: "other-network"])
+                                        extended_attributes: [
+                                          gce_zone: "europe-west1-b",
+                                          gce_network: "other-network",
+                                          gce_subnetwork: "custom-subnetwork"
+                                        ])
       def targetImageName = "kato-x8664-timestamp-precise"
       def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
         gce_zone: "europe-west1-b",
         gce_network: "other-network",
+        gce_subnetwork: "custom-subnetwork",
         gce_source_image: SOURCE_PRECISE_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
@@ -422,6 +427,49 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
       @Subject
       GCEBakeHandler gceBakeHandler = new GCEBakeHandler(configDir: configDir,
                                                          gceBakeryDefaults: gceBakeryDefaults,
+                                                         googleConfigurationProperties: googleConfigurationProperties,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
+
+    when:
+      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
+  }
+
+  void 'produces packer command with all required parameters for precise, and respects optional subnetwork config default'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGES_NAME,
+                                        base_os: "precise",
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def targetImageName = "kato-x8664-timestamp-precise"
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
+      def parameterMap = [
+        gce_project_id: googleConfigurationProperties.accounts.get(0).project,
+        gce_zone: gceBakeryDefaults.zone,
+        gce_network: gceBakeryDefaults.network,
+        gce_subnetwork: "custom-subnetwork",
+        gce_source_image: SOURCE_PRECISE_IMAGE_NAME,
+        gce_target_image: targetImageName,
+        repository: DEBIAN_REPOSITORY,
+        package_type: DEB_PACKAGE_TYPE.packageType,
+        packages: PACKAGES_NAME,
+        configDir: configDir
+      ]
+      def gceBakeryDefaultsAugmented = gceBakeryDefaults.clone()
+      gceBakeryDefaultsAugmented.subnetwork = "custom-subnetwork"
+
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(configDir: configDir,
+                                                         gceBakeryDefaults: gceBakeryDefaultsAugmented,
                                                          googleConfigurationProperties: googleConfigurationProperties,
                                                          imageNameFactory: imageNameFactoryMock,
                                                          packerCommandFactory: packerCommandFactoryMock,

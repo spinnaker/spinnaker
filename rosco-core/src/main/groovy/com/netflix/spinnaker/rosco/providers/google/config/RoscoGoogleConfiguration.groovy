@@ -22,6 +22,7 @@ import com.netflix.spinnaker.rosco.providers.google.GCEBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import groovy.transform.AutoClone
 import groovy.transform.AutoCloneStyle
+import groovy.transform.ToString
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -48,9 +49,12 @@ class RoscoGoogleConfiguration {
     new GCEBakeryDefaults()
   }
 
+  @AutoClone(style = AutoCloneStyle.SIMPLE)
+  @ToString(includeNames = true)
   static class GCEBakeryDefaults {
     String zone
     String network
+    String subnetwork
     Boolean useInternalIp
     String templateFile
     List<GCEOperatingSystemVirtualizationSettings> baseImages = []

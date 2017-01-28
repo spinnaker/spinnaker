@@ -97,6 +97,10 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       parameterMap.gce_account_file = managedGoogleAccount.jsonPath
     }
 
+    if (gceBakeryDefaults.subnetwork) {
+      parameterMap.gce_subnetwork = gceBakeryDefaults.subnetwork
+    }
+
     if (gceBakeryDefaults.useInternalIp != null) {
       parameterMap.gce_use_internal_ip = gceBakeryDefaults.useInternalIp
     }
