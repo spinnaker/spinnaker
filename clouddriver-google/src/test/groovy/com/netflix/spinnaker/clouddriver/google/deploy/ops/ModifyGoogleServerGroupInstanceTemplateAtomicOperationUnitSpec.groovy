@@ -26,6 +26,7 @@ import com.google.api.services.compute.model.Metadata
 import com.google.api.services.compute.model.NetworkInterface
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.Tags
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -192,6 +193,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
           new GoogleOperationPoller(
             googleConfigurationProperties: new GoogleConfigurationProperties(),
             threadSleeper: threadSleeperMock,
+            registry: new DefaultRegistry(),
             safeRetry: safeRetry
           )
       operation.googleClusterProvider = googleClusterProviderMock

@@ -17,11 +17,16 @@
 package com.netflix.spinnaker.clouddriver.google.deploy
 
 import com.google.api.services.compute.model.Operation
+
+import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spectator.api.ManualClock
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+
 import spock.lang.Shared
 import spock.lang.Specification
 
 class GoogleOperationPollerSpec extends Specification {
+  private static final String METRIC_NAME = "testMetric"
 
   @Shared SafeRetry safeRetry
 
@@ -31,45 +36,65 @@ class GoogleOperationPollerSpec extends Specification {
 
   void "waitForOperation should query the operation at least once"() {
     setup:
+      // In this simple test we'll show a non-trival metricId and clock.
+      // For the remaining tests in this module, we'll use simple ones having proved here it doesnt matter.
+      def clock = new ManualClock(777, 100)  // walltime=777 isnt used.
+      def registry = new DefaultRegistry(clock)
+      def metricId = registry.createId(METRIC_NAME, [randomTag: "randomValue", anotherTag: "anotherValue"])
+      def actualMetricId = metricId.withTag("status", "DONE")
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
 
     expect:
-      googleOperationPoller.waitForOperation({return new Operation(status: "DONE")}, 0) == new Operation(status: "DONE")
+      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123 + 100); return new Operation(status: "DONE")}, metricId, 0) == new Operation(status: "DONE")
+      registry.timer(actualMetricId).count() == 1
+      registry.timer(actualMetricId).totalTime() == 123
+      registry.timers().count() == 1
   }
 
   void "waitForOperation should return null on timeout"() {
     setup:
+      def clock = new ManualClock()
+      def registry = new DefaultRegistry(clock)
+      def metricId = registry.createId(METRIC_NAME)
+      def actualMetricId = metricId.withTag("status", "TIMEOUT")
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
 
     expect:
-      googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 0) == null
+      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123); return new Operation(status: "PENDING")}, metricId, 0) == null
   }
 
   void "waitForOperation should increment poll interval properly and retry until timeout"() {
     setup:
+      def clock = new ManualClock()
+      def registry = new DefaultRegistry(clock)
+      def metricId = registry.createId(METRIC_NAME)
+      def actualMetricId = metricId.withTag("status", "TIMEOUT")
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
 
     when:
       // Even though the timeout is set to 10 seconds, it will poll for 12 seconds.
-      googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 10)
+      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123); return new Operation(status: "PENDING")}, metricId, 10)
 
     then:
       1 * threadSleeperMock.sleep(1)
@@ -85,21 +110,29 @@ class GoogleOperationPollerSpec extends Specification {
 
     then:
       1 * threadSleeperMock.sleep(5)
+      registry.timer(actualMetricId).count() == 1
+      registry.timer(actualMetricId).totalTime() == 123
+      registry.timers().count() == 1
   }
 
   void "waitForOperation should respect asyncOperationMaxPollingIntervalSeconds"() {
     setup:
+      def clock = new ManualClock()
+      def registry = new DefaultRegistry(clock)
+      def metricId = registry.createId(METRIC_NAME)
+      def actualMetricId = metricId.withTag("status", "TIMEOUT")
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(asyncOperationMaxPollingIntervalSeconds: 3),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
 
     when:
       // Even though the timeout is set to 10 seconds, it will poll for 13 seconds.
-      googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 10)
+      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123); return new Operation(status: "PENDING")}, metricId, 10)
 
     then:
       1 * threadSleeperMock.sleep(1)
@@ -118,21 +151,29 @@ class GoogleOperationPollerSpec extends Specification {
 
     then:
       1 * threadSleeperMock.sleep(3)
+      registry.timer(actualMetricId).count() == 1
+      registry.timer(actualMetricId).totalTime() == 123
+      registry.timers().count() == 1
   }
 
   void "waitForOperation should retry on SocketTimeoutException"() {
     setup:
+      def clock = new ManualClock()
+      def registry = new DefaultRegistry(clock)
+      def metricId = registry.createId(METRIC_NAME)
+      def actualMetricId = metricId.withTag("status", "DONE")
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def closure = Mock(Closure)
       def googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(asyncOperationMaxPollingIntervalSeconds: 3),
           threadSleeper: threadSleeperMock,
+          registry: registry,
           safeRetry: safeRetry
         )
 
     when:
-      googleOperationPoller.waitForOperation(closure, 10)
+      googleOperationPoller.waitForOperation(closure, metricId, 10)
 
     then:
       1 * closure() >> {throw new SocketTimeoutException("Read timed out")}
@@ -143,6 +184,9 @@ class GoogleOperationPollerSpec extends Specification {
       1 * threadSleeperMock.sleep(1)
 
     then:
-      1 * closure() >> {return new Operation(status: "DONE")}
+      1 * closure() >> {clock.setMonotonicTime(321); return new Operation(status: "DONE")}
+      registry.timer(actualMetricId).count() == 1
+      registry.timer(actualMetricId).totalTime() == 321
+      registry.timers().count() == 1
   }
 }
