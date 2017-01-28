@@ -27,13 +27,14 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+
 import org.springframework.beans.factory.annotation.Autowired
 
-class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation<Map> {
+class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map> {
   private static final String BASE_PHASE = "UPSERT_INTERNAL_LOAD_BALANCER"
 
   @Autowired
@@ -98,7 +99,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     }
 
     existingBackendService = safeRetry.doRetry(
-      { compute.regionBackendServices().get(project, region, backendServiceName).execute() },
+      { timeExecute(
+            compute.regionBackendServices().get(project, region, backendServiceName),
+            "compute.regionBackendServices.get",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
       'Get',
       "Region backend service $backendServiceName",
       task,
@@ -118,7 +122,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     // is nested in a field inside the HealthCheck object. This is different from all previous ways we used health checks,
     // and uses a separate endpoint from Http(s)HealthChecks.
     existingHealthCheck = safeRetry.doRetry(
-      { compute.healthChecks().get(project, healthCheckName).execute() },
+      { timeExecute(
+            compute.healthChecks().get(project, healthCheckName),
+            "compute.healthChecks.get",
+            TAG_SCOPE, SCOPE_GLOBAL) },
       'Get',
       "Health check $healthCheckName",
       task,
@@ -135,7 +142,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       task.updateStatus BASE_PHASE, "Creating health check $healthCheckName..."
       def newHealthCheck = GCEUtil.createNewHealthCheck(descriptionHealthCheck)
       healthCheckOp = safeRetry.doRetry(
-        { compute.healthChecks().insert(project, newHealthCheck as HealthCheck).execute() },
+        { timeExecute(
+              compute.healthChecks().insert(project, newHealthCheck as HealthCheck),
+              "compute.healthChecks.insert",
+              TAG_SCOPE, SCOPE_GLOBAL) },
         'Insert',
         "Health check $healthCheckName",
         task,
@@ -147,7 +157,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       task.updateStatus BASE_PHASE, "Updating health check $healthCheckName..."
       GCEUtil.updateExistingHealthCheck(existingHealthCheck, descriptionHealthCheck)
       healthCheckOp = safeRetry.doRetry(
-        { compute.healthChecks().update(project, healthCheckName, existingHealthCheck as HealthCheck).execute() },
+        { timeExecute(
+              compute.healthChecks().update(project, healthCheckName, existingHealthCheck as HealthCheck),
+              "compute.healthChecks.update",
+              TAG_SCOPE, SCOPE_GLOBAL) },
         'Update',
         "Health check $healthCheckName",
         task,
@@ -172,7 +185,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
         protocol: description.ipProtocol
       )
       backendServiceOp = safeRetry.doRetry(
-        { compute.regionBackendServices().insert(project, region, bs).execute() },
+        { timeExecute(
+              compute.regionBackendServices().insert(project, region, bs),
+              "compute.regionBackendServices.insert",
+              TAG_SCOPE, SCOPE_GLOBAL) },
         'Insert',
         "Backend service $description.backendService.name",
         task,
@@ -187,7 +203,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
       existingBackendService.loadBalancingScheme = 'INTERNAL'
       existingBackendService.protocol = description.ipProtocol
       backendServiceOp = safeRetry.doRetry(
-        { compute.regionBackendServices().update(project, region, existingBackendService.getName(), existingBackendService).execute() },
+        { timeExecute(
+              compute.regionBackendServices().update(project, region, existingBackendService.getName(), existingBackendService),
+              "compute.regionBackendServices.update",
+              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
         'Update',
         "Backend service $description.backendService.name",
         task,
@@ -214,7 +233,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
         ports: description.ports
       )
       safeRetry.doRetry(
-        { compute.forwardingRules().insert(project, region, forwardingRule).execute() },
+        { timeExecute(
+              compute.forwardingRules().insert(project, region, forwardingRule),
+              "compute.forwardingRules.insert",
+              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
         'Insert',
         "Regional forwarding rule ${description.loadBalancerName}",
         task,

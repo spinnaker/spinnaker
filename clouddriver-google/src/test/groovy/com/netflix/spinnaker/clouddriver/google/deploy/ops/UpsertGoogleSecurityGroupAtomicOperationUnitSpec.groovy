@@ -21,6 +21,7 @@ import com.google.api.client.googleapis.testing.json.GoogleJsonResponseException
 import com.google.api.client.testing.json.MockJsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Firewall
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
@@ -42,6 +43,8 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
   private static final ORIG_TARGET_TAG = "some-other-target-tag"
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
+
+  def registry = new DefaultRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -74,6 +77,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           credentials: credentials
       )
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleNetworkProvider = googleNetworkProviderMock
 
     when:
@@ -125,6 +129,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleNetworkProvider = googleNetworkProviderMock
 
     when:
@@ -172,6 +177,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleNetworkProvider = googleNetworkProviderMock
 
     when:
@@ -220,6 +226,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleNetworkProvider = googleNetworkProviderMock
 
     when:
@@ -268,6 +275,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleSecurityGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleNetworkProvider = googleNetworkProviderMock
 
     when:

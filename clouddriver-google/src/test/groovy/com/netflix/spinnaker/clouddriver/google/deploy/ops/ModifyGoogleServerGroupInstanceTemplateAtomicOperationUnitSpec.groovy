@@ -72,10 +72,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
   private static final SET_INSTANCE_TEMPLATE_OP_NAME = "set-instance-template-op"
   private static final DONE = "DONE"
 
-  @Shared
-  def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
-  @Shared
-  SafeRetry safeRetry
+  @Shared def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+  @Shared def registry = new DefaultRegistry()
+  @Shared SafeRetry safeRetry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -123,6 +122,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
             safeRetry: safeRetry
           )
       operation.googleClusterProvider = googleClusterProviderMock
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -197,6 +197,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
             safeRetry: safeRetry
           )
       operation.googleClusterProvider = googleClusterProviderMock
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -264,6 +265,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
             safeRetry: safeRetry
           )
       operation.googleClusterProvider = googleClusterProviderMock
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -325,6 +327,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
             safeRetry: safeRetry
           )
       operation.googleClusterProvider = googleClusterProviderMock
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -388,6 +391,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
             safeRetry: safeRetry
           )
       operation.googleClusterProvider = googleClusterProviderMock
+      operation.registry = registry
 
     when:
       operation.operate([])

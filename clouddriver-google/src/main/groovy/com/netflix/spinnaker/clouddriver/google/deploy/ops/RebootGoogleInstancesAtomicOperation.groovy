@@ -19,14 +19,13 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RebootGoogleInstancesDescription
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 
 /**
  * Resets each specified instance back to the initial state of its underlying virtual machine.
  *
  * @see https://cloud.google.com/compute/docs/instances/restarting-an-instance
  */
-class RebootGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
+class RebootGoogleInstancesAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "REBOOT_INSTANCES"
 
   private static Task getTask() {
@@ -63,7 +62,10 @@ class RebootGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
       task.updateStatus BASE_PHASE, "Attempting to reset instance $instanceId in $zone..."
 
       try {
-        compute.instances().reset(project, zone, instanceId).execute()
+        timeExecute(
+            compute.instances().reset(project, zone, instanceId),
+            "compute.instances.reset",
+            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
         okIds.add(instanceId)
       } catch (Exception e) {
         task.updateStatus BASE_PHASE, "Failed to reset instance $instanceId in $zone: $e.message."

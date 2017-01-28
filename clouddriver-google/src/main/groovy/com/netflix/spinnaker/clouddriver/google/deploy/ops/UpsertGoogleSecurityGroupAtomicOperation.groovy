@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -31,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * Uses {@link https://cloud.google.com/compute/docs/reference/latest/firewalls/update}
  * Uses {@link https://cloud.google.com/compute/docs/reference/latest/firewalls/insert}
  */
-class UpsertGoogleSecurityGroupAtomicOperation implements AtomicOperation<Void> {
+class UpsertGoogleSecurityGroupAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_SECURITY_GROUP"
 
   @Autowired
@@ -66,7 +65,10 @@ class UpsertGoogleSecurityGroupAtomicOperation implements AtomicOperation<Void> 
       task.updateStatus BASE_PHASE, "Attempting to retrieve existing firewall rule $firewallRuleName for network " +
         "$description.network..."
 
-      def origFirewall = compute.firewalls().get(project, firewallRuleName).execute()
+      def origFirewall = timeExecute(
+          compute.firewalls().get(project, firewallRuleName),
+          "compute.firewalls.get",
+          TAG_SCOPE, SCOPE_GLOBAL)
 
       task.updateStatus BASE_PHASE, "Updating existing firewall rule $firewallRuleName..."
 
@@ -75,7 +77,10 @@ class UpsertGoogleSecurityGroupAtomicOperation implements AtomicOperation<Void> 
       }
 
       // If the firewall rule already exists, update it.
-      compute.firewalls().update(project, firewallRuleName, firewall).execute()
+      timeExecute(
+          compute.firewalls().update(project, firewallRuleName, firewall),
+          "compute.firewalls.update",
+          TAG_SCOPE, SCOPE_GLOBAL)
     } catch (GoogleJsonResponseException e) {
       if (e.getStatusCode() == 404) {
         // If the firewall rule does not exist, insert a new one.
@@ -88,7 +93,10 @@ class UpsertGoogleSecurityGroupAtomicOperation implements AtomicOperation<Void> 
           firewall.targetTags = ["$firewallRuleName-${System.currentTimeMillis()}".toString()]
         }
 
-        compute.firewalls().insert(project, firewall).execute()
+        timeExecute(
+            compute.firewalls().insert(project, firewall),
+            "compute.firewalls.insert",
+            TAG_SCOPE, SCOPE_GLOBAL)
       } else {
         throw e;
       }

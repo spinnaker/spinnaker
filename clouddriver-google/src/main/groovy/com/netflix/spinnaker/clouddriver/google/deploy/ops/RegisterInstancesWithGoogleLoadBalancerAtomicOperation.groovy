@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RegisterInstancesWithGoogleLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -31,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
  *
  * Uses {@link https://cloud.google.com/compute/docs/reference/latest/targetPools/addInstance}
  */
-class RegisterInstancesWithGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
+class RegisterInstancesWithGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "REGISTER_INSTANCES"
 
   private static Task getTask() {
@@ -73,7 +72,10 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperation implements AtomicOp
 
       def addInstanceRequest = new TargetPoolsAddInstanceRequest()
       addInstanceRequest.instances = instanceUrls.collect{ url -> new InstanceReference(instance: url) }
-      compute.targetPools().addInstance(project, region, targetPoolName, addInstanceRequest).execute()
+      timeExecute(
+          compute.targetPools().addInstance(project, region, targetPoolName, addInstanceRequest),
+          "compute.targetPools.addInstance",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     }
 
     task.updateStatus BASE_PHASE, "Done registering instances (${instanceIds.join(", ")}) with load balancers " +

@@ -24,6 +24,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
@@ -46,6 +47,8 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
   private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
   private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]
+
+  def registry = new DefaultRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -110,6 +113,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
                                                                   accountName: ACCOUNT_NAME,
                                                                   credentials: credentials)
             @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+            operation.registry = registry
             operation.googleConfigurationProperties = new GoogleConfigurationProperties(baseImageProjects: BASE_IMAGE_PROJECTS)
             operation.googleDeployDefaults = new GoogleConfiguration.DeployDefaults()
             operation.googleNetworkProvider = googleNetworkProviderMock
@@ -122,6 +126,12 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
       1 * googleNetworkProviderMock.getAllMatchingKeyPattern("gce:networks:default:$ACCOUNT_NAME:global") >> [new GoogleNetwork()]
       1 * instancesMock.insert(PROJECT_NAME, ZONE, _) >> instancesInsertMock
       1 * instancesInsertMock.execute()
+      registry.timer(
+          registry.createId("google.api",
+                [api: "compute.instances.insert",
+                 scope: "zonal", zone: ZONE,
+                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+      ).count() == 1
   }
 
   void "should fail to create instance because machine type is invalid"() {
@@ -135,6 +145,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
                                                             accountName: ACCOUNT_NAME,
                                                             credentials: credentials)
       @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -190,6 +201,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
                                                                   accountName: ACCOUNT_NAME,
                                                                   credentials: credentials)
             @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+            operation.registry = registry
             operation.googleConfigurationProperties = new GoogleConfigurationProperties(baseImageProjects: BASE_IMAGE_PROJECTS)
             operation.operate([])
           }

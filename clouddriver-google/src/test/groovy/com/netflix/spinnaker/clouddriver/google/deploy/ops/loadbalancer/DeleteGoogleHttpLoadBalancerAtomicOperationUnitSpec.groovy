@@ -124,6 +124,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -253,6 +254,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -328,6 +330,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -401,6 +404,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -486,6 +490,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -579,6 +584,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -679,6 +685,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -750,6 +757,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:

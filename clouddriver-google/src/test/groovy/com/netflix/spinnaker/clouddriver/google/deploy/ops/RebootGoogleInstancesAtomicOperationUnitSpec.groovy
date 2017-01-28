@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RebootGoogleInstancesDescription
@@ -34,6 +35,7 @@ class RebootGoogleInstancesAtomicOperationUnitSpec extends Specification {
   private static final BAD_INSTANCE_IDS = ["${ID_BAD_PREFIX}1", "${ID_BAD_PREFIX}2"]
   private static final ALL_INSTANCE_IDS = ["${ID_GOOD_PREFIX}1", "${ID_BAD_PREFIX}1",
                                            "${ID_GOOD_PREFIX}2", "${ID_BAD_PREFIX}2"]
+  def registry = new DefaultRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -50,6 +52,7 @@ class RebootGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                             accountName: ACCOUNT_NAME,
                                                             credentials: credentials)
       @Subject def operation = new RebootGoogleInstancesAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -74,6 +77,7 @@ class RebootGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                             accountName: ACCOUNT_NAME,
                                                             credentials: credentials)
       @Subject def operation = new RebootGoogleInstancesAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])

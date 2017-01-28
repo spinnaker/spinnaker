@@ -26,13 +26,13 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
-class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation<Void> {
+class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_INTERNAL_LOAD_BALANCER"
 
   private static Task getTask() {
@@ -76,7 +76,10 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     task.updateStatus BASE_PHASE, "Retrieving forwarding rule $forwardingRuleName in $region..."
 
     ForwardingRule forwardingRule = safeRetry.doRetry(
-      { compute.forwardingRules().get(project, region, forwardingRuleName).execute() },
+      { timeExecute(
+            compute.forwardingRules().get(project, region, forwardingRuleName),
+            "compute.forwardingRules.get",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
       'Get',
       "Regional forwarding rule $forwardingRuleName",
       task,
@@ -94,7 +97,10 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     task.updateStatus BASE_PHASE, "Retrieving backend service $backendServiceName in $region..."
 
     BackendService backendService = safeRetry.doRetry(
-      { compute.regionBackendServices().get(project, region, backendServiceName).execute() },
+      { timeExecute(
+            compute.regionBackendServices().get(project, region, backendServiceName),
+            "compute.regionBackendServices.get",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
       'Get',
       "Region backend service $backendServiceName",
       task,
@@ -113,13 +119,25 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     def healthCheckGet = null
     switch (healthCheckType) {
       case "httpHealthChecks":
-        healthCheckGet = { compute.httpHealthChecks().get(project, healthCheckName).execute() }
+        healthCheckGet = {
+            timeExecute(
+                compute.httpHealthChecks().get(project, healthCheckName),
+                "compute.httpHealthChecks",
+                TAG_SCOPE, SCOPE_GLOBAL) }
         break
       case "httpsHealthChecks":
-        healthCheckGet = { compute.httpsHealthChecks().get(project, healthCheckName).execute() }
+        healthCheckGet = {
+            timeExecute(
+                compute.httpsHealthChecks().get(project, healthCheckName),
+                "compute.httpsHealthChecks",
+                TAG_SCOPE, SCOPE_GLOBAL) }
         break
       case "healthChecks":
-        healthCheckGet = { compute.healthChecks().get(project, healthCheckName).execute() }
+        healthCheckGet = {
+            timeExecute(
+                compute.healthChecks().get(project, healthCheckName),
+                "compute.healthChecks.get",
+                TAG_SCOPE, SCOPE_GLOBAL) }
         break
       default:
         throw new IllegalStateException("Unknown health check type for health check named: ${healthCheckName}.")
@@ -145,7 +163,11 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
     Operation deleteForwardingRuleOp = safeRetry.doRetry(
-      { compute.forwardingRules().delete(project, region, forwardingRuleName).execute() },
+      {
+          timeExecute(
+              compute.forwardingRules().delete(project, region, forwardingRuleName),
+              "compute.forwardingRules.delete",
+              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
       'Delete',
       "Regional forwarding rule $forwardingRuleName",
       task,
@@ -160,7 +182,10 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     }
 
     Operation deleteBackendServiceOp = GCEUtil.deleteIfNotInUse(
-      { compute.regionBackendServices().delete(project, region, backendServiceName).execute() },
+      { timeExecute(
+            compute.regionBackendServices().delete(project, region, backendServiceName),
+            "compute.regionBackendServices.delete",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
       "Region backend service $backendServiceName",
       project,
       task,
@@ -175,13 +200,25 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation implements AtomicOperation
     Closure<Operation> deleteHealthCheckClosure = null
     switch (healthCheckType) {
       case "httpHealthChecks":
-        deleteHealthCheckClosure = { compute.httpHealthChecks().delete(project, healthCheckName).execute() }
+        deleteHealthCheckClosure = {
+            timeExecute(
+                compute.httpHealthChecks().delete(project, healthCheckName),
+                "compute.httpHealthChecks.delete",
+                TAG_SCOPE, SCOPE_GLOBAL) }
         break
       case "httpsHealthChecks":
-        deleteHealthCheckClosure = { compute.httpsHealthChecks().delete(project, healthCheckName).execute() }
+        deleteHealthCheckClosure = {
+            timeExecute(
+                compute.httpsHealthChecks().delete(project, healthCheckName),
+                "compute.httpsHealthChecks.delete",
+                TAG_SCOPE, SCOPE_GLOBAL) }
         break
       case "healthChecks":
-        deleteHealthCheckClosure = { compute.healthChecks().delete(project, healthCheckName).execute() }
+        deleteHealthCheckClosure = {
+            timeExecute(
+                compute.healthChecks().delete(project, healthCheckName),
+                "compute.healthChecks.delete",
+                TAG_SCOPE, SCOPE_GLOBAL) }
         break
       default:
         log.warn("Unknown health check type for health check named: ${healthCheckName}.")

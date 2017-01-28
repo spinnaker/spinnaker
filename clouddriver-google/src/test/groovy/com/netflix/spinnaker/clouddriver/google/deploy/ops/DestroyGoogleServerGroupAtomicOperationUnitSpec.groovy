@@ -56,8 +56,6 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final DONE = "DONE"
 
   @Shared
-  def registry = new DefaultRegistry()
-  @Shared
   def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
   @Shared
   SafeRetry safeRetry
@@ -71,6 +69,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   void "should delete managed instance group"() {
     setup:
+      def registry = new DefaultRegistry()
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def serverGroup =
         new GoogleServerGroup(region: REGION,
@@ -105,6 +104,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
@@ -139,6 +139,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   @Unroll
   void "should delete managed instance group and autoscaler if defined"() {
     setup:
+      def registry = new DefaultRegistry()
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def serverGroup =
         new GoogleServerGroup(region: REGION,
@@ -186,6 +187,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
@@ -212,6 +214,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         1 * computeMock.regionOperations() >> regionOperations
         1 * regionOperations.get(PROJECT_NAME, location, AUTOSCALERS_OP_NAME) >> regionOperationsGet
         1 * regionOperationsGet.execute() >> autoscalersDeleteOp
+        registry.timer(
+            registry.createId("google.api",
+                  [api: "compute.regionAutoscalers.delete",
+                   scope: "regional", region: REGION,
+                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+        ).count() == 1
       } else {
         1 * computeMock.autoscalers() >> autoscalersMock
         1 * autoscalersMock.delete(PROJECT_NAME, location, SERVER_GROUP_NAME) >> autoscalersDeleteMock
@@ -220,6 +228,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         1 * computeMock.zoneOperations() >> zoneOperations
         1 * zoneOperations.get(PROJECT_NAME, location, AUTOSCALERS_OP_NAME) >> zoneOperationsGet
         1 * zoneOperationsGet.execute() >> autoscalersDeleteOp
+        registry.timer(
+            registry.createId("google.api",
+                  [api: "compute.autoscalers.delete",
+                   scope: "zonal", zone: ZONE,
+                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+        ).count() == 1
       }
 
     then:
@@ -231,6 +245,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         1 * computeMock.regionOperations() >> regionOperations
         1 * regionOperations.get(PROJECT_NAME, location, INSTANCE_GROUP_OP_NAME) >> regionOperationsGet
         1 * regionOperationsGet.execute() >> instanceGroupManagersDeleteOp
+        registry.timer(
+            registry.createId("google.api",
+                  [api: "compute.regionInstanceGroupManagers.delete",
+                   scope: "regional", region: REGION,
+                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+        ).count() == 1
       } else {
         1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
         1 * instanceGroupManagersMock.delete(PROJECT_NAME, location, SERVER_GROUP_NAME) >> instanceGroupManagersDeleteMock
@@ -239,6 +259,12 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         1 * computeMock.zoneOperations() >> zoneOperations
         1 * zoneOperations.get(PROJECT_NAME, location, INSTANCE_GROUP_OP_NAME) >> zoneOperationsGet
         1 * zoneOperationsGet.execute() >> instanceGroupManagersDeleteOp
+        registry.timer(
+            registry.createId("google.api",
+                  [api: "compute.instanceGroupManagers.delete",
+                   scope: "zonal", zone: ZONE,
+                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+        ).count() == 1
       }
 
     then:
@@ -255,6 +281,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   @Unroll
   void "should delete http loadbalancer backend if associated"() {
     setup:
+      def registry = new DefaultRegistry()
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def loadBalancerNameList = lbNames
       def serverGroup =
@@ -311,6 +338,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
@@ -348,6 +376,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   @Unroll
   void "should delete internal loadbalancer backend if associated"() {
     setup:
+      def registry = new DefaultRegistry()
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def loadBalancerNameList = lbNames
       def serverGroup =
@@ -399,6 +428,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
@@ -437,6 +467,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   void "should retry http backend deletion on 400, 412, socket timeout, succeed on 404"() {
     // Note: Implicitly tests SafeRetry.doRetry
     setup:
+      def registry = new DefaultRegistry()
       def computeMock = Mock(Compute)
       def backendServicesMock = Mock(Compute.BackendServices)
       def backendSvcGetMock = Mock(Compute.BackendServices.Get)

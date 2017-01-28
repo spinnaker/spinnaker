@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceGroupManagersDeleteInstancesRequest
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -51,6 +52,7 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Spec
   @Unroll
   void "should terminate instances"() {
     setup:
+      def registry = new DefaultRegistry()
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def serverGroup = new GoogleServerGroup(
         regional: isRegional,
@@ -76,6 +78,7 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Spec
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new TerminateAndDecrementGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:

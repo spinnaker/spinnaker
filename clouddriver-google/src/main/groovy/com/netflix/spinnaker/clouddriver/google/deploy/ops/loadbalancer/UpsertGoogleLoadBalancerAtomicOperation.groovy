@@ -33,10 +33,10 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleAtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
+class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map> {
   private static final String BASE_PHASE = "UPSERT_LOAD_BALANCER"
 
   private static Task getTask() {
@@ -253,7 +253,10 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
 
     def httpHealthCheck = GCEUtil.buildHttpHealthCheck(healthCheckName, description.healthCheck)
     // We won't block on this operation since nothing else depends on its completion.
-    compute.httpHealthChecks().update(project, healthCheckName, httpHealthCheck).execute()
+    timeExecute(
+        compute.httpHealthChecks().update(project, healthCheckName, httpHealthCheck),
+        "compute.httpHealthChecks.update",
+        TAG_SCOPE, SCOPE_GLOBAL)
   }
 
   private void createNewHttpHealthCheck(List<String> httpHealthChecksResourceLinks, Compute compute, String project) {
@@ -262,8 +265,10 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
     task.updateStatus BASE_PHASE, "Creating health check $healthCheckName..."
 
     def httpHealthCheck = GCEUtil.buildHttpHealthCheck(healthCheckName, description.healthCheck)
-    def httpHealthCheckResourceOperation =
-      compute.httpHealthChecks().insert(project, httpHealthCheck).execute()
+    def httpHealthCheckResourceOperation = timeExecute(
+        compute.httpHealthChecks().insert(project, httpHealthCheck),
+        "compute.httpHealthChecks.insert",
+        TAG_SCOPE, SCOPE_GLOBAL)
     def httpHealthCheckResourceLink = httpHealthCheckResourceOperation.targetLink
 
     httpHealthChecksResourceLinks << httpHealthCheckResourceLink
@@ -287,7 +292,10 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
         new InstanceReference(instance: instanceUrl)
       }
       // We won't block on this operation since nothing else depends on its completion.
-      compute.targetPools().addInstance(project, region, targetPoolName, targetPoolsAddInstanceRequest).execute()
+      timeExecute(
+          compute.targetPools().addInstance(project, region, targetPoolName, targetPoolsAddInstanceRequest),
+          "compute.targetPools.addInstance",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     }
   }
 
@@ -305,7 +313,10 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
         new InstanceReference(instance: instanceUrl)
       }
       // We won't block on this operation since nothing else depends on its completion.
-      compute.targetPools().removeInstance(project, region, targetPoolName, targetPoolsRemoveInstanceRequest).execute()
+      timeExecute(
+          compute.targetPools().removeInstance(project, region, targetPoolName, targetPoolsRemoveInstanceRequest),
+          "compute.targetPools.removeInstance",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     }
   }
 
@@ -321,9 +332,11 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
       [new HealthCheckReference(healthCheck: existingTargetPool.healthChecks[0])]
 
     // The http health check will be deleted down below, once this operation has completed.
-    targetPoolResourceOperation =
-      compute.targetPools().removeHealthCheck(
-        project, region, targetPoolName, targetPoolsRemoveHealthCheckRequest).execute()
+    targetPoolResourceOperation = timeExecute(
+        compute.targetPools().removeHealthCheck(project, region, targetPoolName, targetPoolsRemoveHealthCheckRequest),
+        "compute.targetPools.removeHealthCheck",
+        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+                   
     targetPoolResourceOperation
   }
 
@@ -337,8 +350,10 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
     targetPoolsAddHealthCheckRequest.healthChecks =
       [new HealthCheckReference(healthCheck: httpHealthChecksResourceLinks[0])]
 
-    targetPoolResourceOperation =
-      compute.targetPools().addHealthCheck(project, region, targetPoolName, targetPoolsAddHealthCheckRequest).execute()
+    targetPoolResourceOperation = timeExecute(
+        compute.targetPools().addHealthCheck(project, region, targetPoolName, targetPoolsAddHealthCheckRequest),
+        "compute.targetPools.addHealthCheck",
+        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     targetPoolResourceOperation
   }
 
@@ -355,7 +370,10 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
       instances: description.instances
     )
 
-    targetPoolResourceOperation = compute.targetPools().insert(project, region, targetPool).execute()
+    targetPoolResourceOperation = timeExecute(
+        compute.targetPools().insert(project, region, targetPool),
+        "compute.tagetPools.insert",
+        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     [targetPoolResourceOperation, targetPoolName]
   }
 
@@ -366,7 +384,9 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
       task.updateStatus BASE_PHASE, "Deleting health check $healthCheckName..."
 
       // We won't block on this operation since nothing else depends on its completion.
-      compute.httpHealthChecks().delete(project, healthCheckName).execute()
+      timeExecute(compute.httpHealthChecks().delete(project, healthCheckName),
+                  "compute.httpHealthChecks.delete",
+                  TAG_SCOPE, SCOPE_GLOBAL)
     }
   }
 
@@ -377,8 +397,10 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
       // These properties of the forwarding rule can't be updated, so we must do a delete and create.
       task.updateStatus BASE_PHASE, "Deleting forwarding rule $description.loadBalancerName..."
 
-      def forwardingRuleResourceOperation =
-        compute.forwardingRules().delete(project, region, description.loadBalancerName).execute()
+      def forwardingRuleResourceOperation = timeExecute(
+              compute.forwardingRules().delete(project, region, description.loadBalancerName),
+              "compute.forwardingRules.delete",
+              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
       def forwardingRuleResourceLink = forwardingRuleResourceOperation.targetLink
 
       googleOperationPoller.waitForRegionalOperation(compute, project, region, forwardingRuleResourceOperation.getName(),
@@ -404,7 +426,10 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
       )
 
       // We won't block on this operation since nothing else depends on its completion.
-      compute.forwardingRules().insert(project, region, forwardingRule).execute()
+      timeExecute(
+          compute.forwardingRules().insert(project, region, forwardingRule),
+          "compute.forwardingRules.insert",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     }
   }
 }

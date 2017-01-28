@@ -30,7 +30,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceN
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -40,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired
  *
  * Uses {@link https://cloud.google.com/compute/docs/reference/latest/instanceGroupManagers/setInstanceTemplate}
  */
-class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOperation<Void> {
+class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "MODIFY_SERVER_GROUP_INSTANCE_TEMPLATE"
 
   private static final String accessConfigName = "External NAT"
@@ -103,8 +102,12 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     // Retrieve the managed instance group.
     def managedInstanceGroup =
       isRegional
-      ? instanceGroupManagers.get(project, region, serverGroupName).execute()
-      : instanceGroupManagers.get(project, zone, serverGroupName).execute()
+      ? timeExecute(instanceGroupManagers.get(project, region, serverGroupName),
+                    "compute.regionInstanceGroupManagers",
+                    TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+      : timeExecute(instanceGroupManagers.get(project, zone, serverGroupName),
+                    "compute.instanceGroupManagers.get",
+                    TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
     def origInstanceTemplateName = GCEUtil.getLocalName(managedInstanceGroup.instanceTemplate)
 
     if (!origInstanceTemplateName) {
@@ -112,7 +115,10 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     }
 
     // Retrieve the managed instance group's current instance template.
-    def instanceTemplate = instanceTemplates.get(project, origInstanceTemplateName).execute()
+    def instanceTemplate = timeExecute(
+        instanceTemplates.get(project, origInstanceTemplateName),
+        "compute.instanceTemplates.get",
+        TAG_SCOPE, SCOPE_GLOBAL)
 
     // Create a description to represent the current instance template.
     def originalDescription = GCEUtil.buildInstanceDescriptionFromTemplate(instanceTemplate)
@@ -223,7 +229,10 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
       // Create a new instance template resource using the modified instance template.
       task.updateStatus BASE_PHASE, "Inserting new instance template $instanceTemplate.name..."
 
-      def instanceTemplateCreateOperation = instanceTemplates.insert(project, instanceTemplate).execute()
+      def instanceTemplateCreateOperation = timeExecute(
+          instanceTemplates.insert(project, instanceTemplate),
+          "compute.instanceTemplates.insert",
+          TAG_SCOPE, SCOPE_GLOBAL)
       def instanceTemplateUrl = instanceTemplateCreateOperation.targetLink
 
       // Block on creating the instance template.
@@ -236,8 +245,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
       if (isRegional) {
         def regionInstanceGroupManagersSetTemplateRequest =
           new RegionInstanceGroupManagersSetTemplateRequest(instanceTemplate: instanceTemplateUrl)
-        def setInstanceTemplateOperation = instanceGroupManagers.setInstanceTemplate(
-          project, region, serverGroupName, regionInstanceGroupManagersSetTemplateRequest).execute()
+        def setInstanceTemplateOperation = timeExecute(
+          instanceGroupManagers.setInstanceTemplate(
+            project, region, serverGroupName, regionInstanceGroupManagersSetTemplateRequest),
+          "compute.regionInstanceGroupManagers.setInstanceTemplate",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
 
         // Block on setting the instance template on the managed instance group.
         googleOperationPoller.waitForRegionalOperation(compute, project, region,
@@ -245,8 +257,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
       } else {
         def instanceGroupManagersSetInstanceTemplateRequest =
           new InstanceGroupManagersSetInstanceTemplateRequest(instanceTemplate: instanceTemplateUrl)
-        def setInstanceTemplateOperation = instanceGroupManagers.setInstanceTemplate(
-          project, zone, serverGroupName, instanceGroupManagersSetInstanceTemplateRequest).execute()
+        def setInstanceTemplateOperation = timeExecute(
+          instanceGroupManagers.setInstanceTemplate(
+            project, zone, serverGroupName, instanceGroupManagersSetInstanceTemplateRequest),
+          "compute.instanceGroupManagers.setInstanceTemplate",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
 
         // Block on setting the instance template on the managed instance group.
         googleOperationPoller.waitForZonalOperation(compute, project, zone,
@@ -256,7 +271,10 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
       // Delete the original instance template.
       task.updateStatus BASE_PHASE, "Deleting original instance template $origInstanceTemplateName..."
 
-      instanceTemplates.delete(project, origInstanceTemplateName).execute()
+      timeExecute(
+          instanceTemplates.delete(project, origInstanceTemplateName),
+          "compute.instanceTemplates.delete",
+          TAG_SCOPE, SCOPE_GLOBAL)
     }
 
     task.updateStatus BASE_PHASE, "Done modifying instance template of $serverGroupName in $region."

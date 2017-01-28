@@ -119,11 +119,22 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     String urlMapName = httpLoadBalancer?.urlMapName ?: httpLoadBalancerName // An L7 load balancer is identified by its UrlMap name in Google Cloud Console.
 
     // Get all the existing infrastructure.
-    Set<HttpHealthCheck> existingHealthChecks = compute.httpHealthChecks().list(project).execute().getItems() as Set
-    Set<BackendService> existingServices = compute.backendServices().list(project).execute().getItems() as Set
+    Set<HttpHealthCheck> existingHealthChecks = timeExecute(
+        compute.httpHealthChecks().list(project),
+        "compute.httpHealthChecks.list",
+        TAG_SCOPE, SCOPE_GLOBAL)
+        .getItems() as Set
+    Set<BackendService> existingServices = timeExecute(
+        compute.backendServices().list(project),
+        "compute.backendServices.list",
+        TAG_SCOPE, SCOPE_GLOBAL)
+        .getItems() as Set
     UrlMap existingUrlMap = null
     try {
-      existingUrlMap = compute.urlMaps().get(project, urlMapName).execute()
+      existingUrlMap = timeExecute(
+          compute.urlMaps().get(project, urlMapName),
+          "compute.urlMaps.get",
+          TAG_SCOPE, SCOPE_GLOBAL)
     } catch (GoogleJsonResponseException e) {
       // 404 is thrown if the url map doesn't exist. Any other exception needs to be propagated.
       if (e.getStatusCode() != 404) {
@@ -140,7 +151,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     // ForwardingRule
     ForwardingRule existingRule = null
     try {
-      existingRule = compute.globalForwardingRules().get(project, httpLoadBalancerName).execute()
+      existingRule = timeExecute(
+          compute.globalForwardingRules().get(project, httpLoadBalancerName),
+          "compute.globalForwardingRules.get",
+          TAG_SCOPE, SCOPE_GLOBAL)
     } catch (GoogleJsonResponseException e) {
       if (e.getStatusCode() != 404) {
         throw e
@@ -154,11 +168,17 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       String targetProxyName = GCEUtil.getLocalName(existingRule.getTarget())
       switch (Utils.getTargetProxyType(existingRule.getTarget())) {
         case GoogleTargetProxyType.HTTP:
-          existingProxy = compute.targetHttpProxies().get(project, targetProxyName).execute()
+          existingProxy = timeExecute(
+              compute.targetHttpProxies().get(project, targetProxyName),
+              "compute.targetHttpProxies.get",
+              TAG_SCOPE, SCOPE_GLOBAL)
           // Http target proxies aren't updated. If you want to add a Https listener, there are options for that in the frontend.
           break
         case GoogleTargetProxyType.HTTPS:
-          existingProxy = compute.targetHttpsProxies().get(project, targetProxyName).execute()
+          existingProxy = timeExecute(
+              compute.targetHttpsProxies().get(project, targetProxyName),
+              "compute.targetHttpsProxies.get",
+              TAG_SCOPE, SCOPE_GLOBAL)
           if (!httpLoadBalancer.certificate) {
             throw new IllegalArgumentException("${httpLoadBalancerName} is an Https load balancer, but the upsert description does not contain a certificate.")
           }
@@ -241,7 +261,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           unhealthyThreshold: healthCheck.unhealthyThreshold,
           timeoutSec: healthCheck.timeoutSec,
         )
-        def insertHealthCheckOperation = compute.httpHealthChecks().insert(project, newHealthCheck).execute()
+        def insertHealthCheckOperation = timeExecute(
+              compute.httpHealthChecks().insert(project, newHealthCheck),
+              "compute.httpHealthChecks.insert",
+              TAG_SCOPE, SCOPE_GLOBAL)
         googleOperationPoller.waitForGlobalOperation(compute, project, insertHealthCheckOperation.getName(),
           null, task, "health check " + healthCheckName, BASE_PHASE)
       } else if (healthCheckExistsSet.contains(healthCheck.name) &&
@@ -257,7 +280,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           unhealthyThreshold = healthCheck.unhealthyThreshold
           timeoutSec = healthCheck.timeoutSec
         }
-        def updateHealthCheckOperation = compute.httpHealthChecks().update(project, healthCheckName, hcToUpdate).execute()
+        def updateHealthCheckOperation = timeExecute(
+           compute.httpHealthChecks().update(project, healthCheckName, hcToUpdate),
+           "compute.httpHealthChecks.update",
+           TAG_SCOPE, SCOPE_GLOBAL)
         googleOperationPoller.waitForGlobalOperation(compute, project, updateHealthCheckOperation.getName(),
           null, task, "health check $healthCheckName", BASE_PHASE)
       }
@@ -278,7 +304,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           enableCDN: backendService.enableCDN,
           affinityCookieTtlSec: backendService.affinityCookieTtlSec
         )
-        def insertBackendServiceOperation = compute.backendServices().insert(project, bs).execute()
+        def insertBackendServiceOperation = timeExecute(
+                compute.backendServices().insert(project, bs),
+                "compute.backendServices.insert",
+                TAG_SCOPE, SCOPE_GLOBAL)
         googleOperationPoller.waitForGlobalOperation(compute, project, insertBackendServiceOperation.getName(),
           null, task, "backend service " + backendServiceName, BASE_PHASE)
       } else if (serviceExistsSet.contains(backendService.name)) {
@@ -293,7 +322,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           bsToUpdate.enableCDN = backendService.enableCDN
           bsToUpdate.affinityCookieTtlSec = backendService.affinityCookieTtlSec
 
-          def updateServiceOperation = compute.backendServices().update(project, backendServiceName, bsToUpdate).execute()
+          def updateServiceOperation = timeExecute(
+                  compute.backendServices().update(project, backendServiceName, bsToUpdate),
+                  "compute.backendServices.update",
+                  TAG_SCOPE, SCOPE_GLOBAL)
           googleOperationPoller.waitForGlobalOperation(compute, project, updateServiceOperation.getName(),
             null, task, "backend service  $backendServiceName", BASE_PHASE)
         }
@@ -329,7 +361,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         newUrlMap.pathMatchers << newPathMatcher
         newUrlMap.hostRules << new HostRule(pathMatcher: pathMatcherName, hosts: hostRule.hostPatterns)
       }
-      def insertUrlMapOperation = compute.urlMaps().insert(project, newUrlMap).execute()
+      def insertUrlMapOperation = timeExecute(
+              compute.urlMaps().insert(project, newUrlMap),
+              "compute.urlMaps.insert",
+              TAG_SCOPE, SCOPE_GLOBAL)
       googleOperationPoller.waitForGlobalOperation(compute, project, insertUrlMapOperation.getName(),
         null, task, "url map " + urlMapName, BASE_PHASE)
       urlMapUrl = insertUrlMapOperation.getTargetLink()
@@ -355,7 +390,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         existingUrlMap.pathMatchers << newPathMatcher
         existingUrlMap.hostRules << new HostRule(pathMatcher: pathMatcherName, hosts: hostRule.hostPatterns)
       }
-      def updateUrlMapOperation = compute.urlMaps().update(project, urlMapName, existingUrlMap).execute()
+      def updateUrlMapOperation = timeExecute(
+              compute.urlMaps().update(project, urlMapName, existingUrlMap),
+              "compute.urlMaps.update",
+              TAG_SCOPE, SCOPE_GLOBAL)
       googleOperationPoller.waitForGlobalOperation(compute, project, updateUrlMapOperation.getName(),
         null, task, "url map $urlMapName", BASE_PHASE)
       urlMapUrl = updateUrlMapOperation.getTargetLink()
@@ -377,12 +415,18 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           sslCertificates: [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)],
           urlMap: urlMapUrl,
         )
-        insertTargetProxyOperation = compute.targetHttpsProxies().insert(project, targetProxy).execute()
+        insertTargetProxyOperation = timeExecute(
+            compute.targetHttpsProxies().insert(project, targetProxy),
+            "compute.targetHttpsProxies.insert",
+            TAG_SCOPE, SCOPE_GLOBAL)
       } else {
         targetProxyName = "$httpLoadBalancerName-$TARGET_HTTP_PROXY_NAME_PREFIX"
         task.updateStatus BASE_PHASE, "Creating target proxy $targetProxyName..."
         targetProxy = new TargetHttpProxy(name: targetProxyName, urlMap: urlMapUrl)
-        insertTargetProxyOperation = compute.targetHttpProxies().insert(project, targetProxy).execute()
+        insertTargetProxyOperation = timeExecute(
+            compute.targetHttpProxies().insert(project, targetProxy),
+            "compute.targetHttpProxies.insert",
+            TAG_SCOPE, SCOPE_GLOBAL)
       }
 
       googleOperationPoller.waitForGlobalOperation(compute, project, insertTargetProxyOperation.getName(),
@@ -400,9 +444,15 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
           TargetHttpsProxiesSetSslCertificatesRequest setSslReq = new TargetHttpsProxiesSetSslCertificatesRequest(
             sslCertificates: [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)],
           )
-          compute.targetHttpsProxies().setSslCertificates(project, targetProxyName, setSslReq).execute()
+          timeExecute(
+              compute.targetHttpsProxies().setSslCertificates(project, targetProxyName, setSslReq),
+              "compute.targetHttpsProxies.setSslCertificates",
+              TAG_SCOPE, SCOPE_GLOBAL)
           UrlMapReference urlMapRef = new UrlMapReference(urlMap: urlMapUrl)
-          def setUrlMapOp = compute.targetHttpsProxies().setUrlMap(project, targetProxyName, urlMapRef).execute()
+          def setUrlMapOp = timeExecute(
+                  compute.targetHttpsProxies().setUrlMap(project, targetProxyName, urlMapRef),
+                  "compute.targetHttpsProxies.setUrlMap",
+                  TAG_SCOPE, SCOPE_GLOBAL)
           targetProxyUrl = setUrlMapOp.getTargetLink()
           break
         default:
@@ -424,7 +474,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         portRange: httpLoadBalancer.certificate ? "443" : httpLoadBalancer.portRange,
         target: targetProxyUrl,
       )
-      compute.globalForwardingRules().insert(project, forwardingRule).execute()
+      timeExecute(
+          compute.globalForwardingRules().insert(project, forwardingRule),
+          "compute.globalForwardingRules.insert",
+          TAG_SCOPE, SCOPE_GLOBAL)
     }
     // NOTE: there is no update for forwarding rules because we support adding/deleting multiple listeners in the frontend.
     // Rotating or changing certificates updates the targetProxy only, so the forwarding rule doesn't need to change.
@@ -461,18 +514,29 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       String templateUrl = null
       switch (Utils.determineServerGroupType(backend.serverGroupUrl)) {
         case GoogleServerGroup.ServerGroupType.REGIONAL:
-          templateUrl = compute.regionInstanceGroupManagers().get(project, groupRegion, groupName).execute().getInstanceTemplate()
+          templateUrl = timeExecute(
+              compute.regionInstanceGroupManagers().get(project, groupRegion, groupName),
+              "compute.regionInstanceGroupManagers.get",
+              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, groupRegion)
+              .getInstanceTemplate()
           break
         case GoogleServerGroup.ServerGroupType.ZONAL:
           def groupZone = Utils.getZoneFromGroupUrl(backend.serverGroupUrl)
-          templateUrl = compute.instanceGroupManagers().get(project, groupZone, groupName).execute().getInstanceTemplate()
+          templateUrl = timeExecute(
+              compute.instanceGroupManagers().get(project, groupZone, groupName),
+              "compute.instanceGroupManagers.get",
+              TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, groupZone)
+              .getInstanceTemplate()
           break
         default:
           throw new IllegalStateException("Server group referenced by ${backend.serverGroupUrl} has illegal type.")
           break
       }
 
-      InstanceTemplate template = compute.instanceTemplates().get(project, Utils.getLocalName(templateUrl)).execute()
+      InstanceTemplate template = timeExecute(
+          compute.instanceTemplates().get(project, Utils.getLocalName(templateUrl)),
+          "compute.instancesTemplates.get",
+          TAG_SCOPE, SCOPE_GLOBAL)
       def instanceDescription = GCEUtil.buildInstanceDescriptionFromTemplate(template)
 
       def templateOpMap = [

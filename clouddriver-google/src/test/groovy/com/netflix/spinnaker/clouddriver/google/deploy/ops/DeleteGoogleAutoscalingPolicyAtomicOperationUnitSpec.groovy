@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
@@ -41,6 +42,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   @Unroll
   void "should delete zonal and regional autoscaling policy"() {
     setup:
+    def registry = new DefaultRegistry()
     def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def computeMock = Mock(Compute)
 
@@ -59,6 +61,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       accountName: ACCOUNT_NAME,
       credentials: credentials)
     @Subject def operation = new DeleteGoogleAutoscalingPolicyAtomicOperation(description)
+    operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -71,10 +74,22 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       1 * computeMock.regionAutoscalers() >> regionAutoscalersMock
       1 * regionAutoscalersMock.delete(PROJECT_NAME, REGION, SERVER_GROUP_NAME) >> regionDeleteMock
       1 * regionDeleteMock.execute()
+      registry.timer(
+          registry.createId("google.api",
+                [api: "compute.regionAutoscalers.delete",
+                 scope: "regional", region: REGION,
+                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+      ).count() == 1
     } else {
       1 * computeMock.autoscalers() >> autoscalersMock
       1 * autoscalersMock.delete(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> deleteMock
       1 * deleteMock.execute()
+      registry.timer(
+          registry.createId("google.api",
+                [api: "compute.autoscalers.delete",
+                 scope: "zonal", zone: ZONE,
+                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+      ).count() == 1
     }
 
     where:

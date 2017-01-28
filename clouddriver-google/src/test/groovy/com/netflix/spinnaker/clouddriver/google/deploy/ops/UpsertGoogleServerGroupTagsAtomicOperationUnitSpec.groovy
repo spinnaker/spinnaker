@@ -130,6 +130,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
                                                                    accountName: ACCOUNT_NAME,
                                                                    credentials: credentials)
       @Subject def operation = new UpsertGoogleServerGroupTagsAtomicOperation(description)
+      operation.registry = registry
       operation.googleOperationPoller =
           new GoogleOperationPoller(
             googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -243,6 +244,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
                                                                    accountName: ACCOUNT_NAME,
                                                                    credentials: credentials)
       @Subject def operation = new UpsertGoogleServerGroupTagsAtomicOperation(description)
+      operation.registry = registry
       operation.googleOperationPoller =
           new GoogleOperationPoller(
             googleConfigurationProperties: new GoogleConfigurationProperties(),

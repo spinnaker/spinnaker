@@ -22,10 +22,9 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleA
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class UpsertGoogleAutoscalingPolicyAtomicOperation implements AtomicOperation<Void> {
+class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_SCALING_POLICY"
 
   private static Task getTask() {
@@ -75,9 +74,15 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation implements AtomicOperation<Vo
                                                                        description.autoscalingPolicy))
 
       if (isRegional) {
-        compute.regionAutoscalers().update(project, region, autoscaler).execute()
+        timeExecute(
+            compute.regionAutoscalers().update(project, region, autoscaler),
+            "compute.regionAutoscalers.update",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
       } else {
-        compute.autoscalers().update(project, zone, autoscaler).execute()
+        timeExecute(
+            compute.autoscalers().update(project, zone, autoscaler),
+            "compute.autoscalers.update",
+            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
       }
     } else {
       task.updateStatus BASE_PHASE, "Creating new autoscaler for $serverGroupName..."
@@ -87,9 +92,15 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation implements AtomicOperation<Vo
                                                normalizeNewPolicy(description.autoscalingPolicy))
 
       if (isRegional) {
-        compute.regionAutoscalers().insert(project, region, autoscaler).execute()
+        timeExecute(
+            compute.regionAutoscalers().insert(project, region, autoscaler),
+            "compute.regionAutoscalers.insert",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
       } else {
-        compute.autoscalers().insert(project, zone, autoscaler).execute()
+        timeExecute(
+            compute.autoscalers().insert(project, zone, autoscaler),
+            "compute.autoscalers.insert",
+            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
       }
     }
     null
