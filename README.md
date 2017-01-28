@@ -91,6 +91,23 @@ Since Halyard isn't at a stable release, all config will be written to
 `~/.halyard`, rather than `~/.spinnaker`. You can change this behavior by
 configuring the Spring parameter `spinnaker.config.output.directory`.
 
+If you have profiles/config that halyard doesn't handle yet, you can put them
+in `~/.hal/$DEPLOYMENT/` and they will be placed into the output directory for
+you. Unless you have made custom changes to your halconfig,
+`$DEPLOYMENT == default`, so a typical configuration might look like:
+
+```
+$ tree ~/.hal
+/home/lwander/.hal
+├── config
+└── default
+    ├── clouddriver-local.yml
+    ├── echo.yml
+    └── gate-googleOAuth.yml
+
+1 directory, 4 files
+```
+
 ## Getting Started
 
 Since Halyard is not yet being distributed, to use it you will have to build it

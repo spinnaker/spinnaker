@@ -22,22 +22,26 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.introspector.Property;
-import org.yaml.snakeyaml.nodes.NodeTuple;
-import org.yaml.snakeyaml.nodes.Tag;
-import org.yaml.snakeyaml.representer.Representer;
+
+import java.io.File;
+import java.nio.file.Paths;
 
 @Component
 public class ResourceConfig {
   /**
-   * Path to where the halconfig file is located.
+   * Directory containing the halconfig.
    *
-   * @param path Defaults to ~/.hal/config.
+   * @param path Defaults to "~/.hal".
    * @return The path with home (~) expanded.
    */
   @Bean
-  String halconfigPath(@Value("${halconfig.directory.halconfig:~/.hal/config}") String path) {
+  String halconfigDirectory(@Value("${halconfig.directory.halconfig:~/.hal}") String path) {
     return normalizePath(path);
+  }
+
+  @Bean
+  String halconfigPath(@Value("${halconfig.directory.halconfig:~/.hal}") String path) {
+    return normalizePath(Paths.get(path, "config").toString());
   }
 
   /**
@@ -78,6 +82,12 @@ public class ResourceConfig {
   }
 
   private String normalizePath(String path) {
-    return path.replaceFirst("^~", System.getProperty("user.home"));
+    String result = path.replaceFirst("^~", System.getProperty("user.home"));
+    // Strip trailing path separator
+    if (result.endsWith(File.separator)) {
+      result = result.substring(0, result.length() - 1);
+    }
+
+    return result;
   }
 }
