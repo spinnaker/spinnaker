@@ -58,8 +58,10 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
     String pageToken = null
 
     while (true) {
-      InstanceAggregatedList instanceAggregatedList =
-        compute.instances().aggregatedList(project).setPageToken(pageToken).execute()
+      InstanceAggregatedList instanceAggregatedList = timeExecute(
+          compute.instances().aggregatedList(project).setPageToken(pageToken),
+          "compute.instances.aggregatedList",
+          TAG_SCOPE, SCOPE_GLOBAL)
 
       instances += transformInstances(instanceAggregatedList)
       pageToken = instanceAggregatedList.getNextPageToken()

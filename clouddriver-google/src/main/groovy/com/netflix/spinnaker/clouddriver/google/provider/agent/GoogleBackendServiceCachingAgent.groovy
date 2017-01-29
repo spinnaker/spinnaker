@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.Region
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -42,10 +43,12 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
 
   GoogleBackendServiceCachingAgent(String clouddriverUserAgentApplicationName,
                                    GoogleNamedAccountCredentials credentials,
-                                   ObjectMapper objectMapper) {
+                                   ObjectMapper objectMapper,
+                                   Registry registry) {
     super(clouddriverUserAgentApplicationName,
       credentials,
-      objectMapper)
+      objectMapper,
+      registry)
   }
 
   @Override
@@ -56,12 +59,23 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
 
   List<GoogleBackendService> loadBackendServices() {
     List<GoogleBackendService> ret = []
-    def globalBackendServices = compute.backendServices().list(project).execute().items as List
+    def globalBackendServices = timeExecute(
+        compute.backendServices().list(project),
+        "compute.backendServices.list",
+        TAG_SCOPE, SCOPE_GLOBAL
+    ).items as List
     if (globalBackendServices) {
       ret.addAll(globalBackendServices.collect { toGoogleBackendService(it, GoogleBackendService.BackendServiceKind.globalBackendService) })
     }
-    compute.regions().list(project).execute().items.each { Region region ->
-      def regionBackendServices = compute.regionBackendServices().list(project, region.getName()).execute()?.items as List
+    timeExecute(compute.regions().list(project),
+                "compute.regions.list",
+                TAG_SCOPE, SCOPE_GLOBAL
+    ).items.each { Region region ->
+      def regionBackendServices = timeExecute(
+          compute.regionBackendServices().list(project, region.getName()),
+          "compute.regionBackendServices.list",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region.getName()
+      )?.items as List
       if (regionBackendServices) {
         ret.addAll(regionBackendServices.collect { toGoogleBackendService(it, GoogleBackendService.BackendServiceKind.regionBackendService) })
       }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.HttpHealthCheck
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -40,10 +41,12 @@ class GoogleHttpHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
 
   GoogleHttpHealthCheckCachingAgent(String clouddriverUserAgentApplicationName,
                                     GoogleNamedAccountCredentials credentials,
-                                    ObjectMapper objectMapper) {
+                                    ObjectMapper objectMapper,
+                                    Registry registry) {
     super(clouddriverUserAgentApplicationName,
           credentials,
-          objectMapper)
+          objectMapper,
+          registry)
   }
 
   @Override
@@ -53,7 +56,9 @@ class GoogleHttpHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   List<HttpHealthCheck> loadHttpHealthChecks() {
-    compute.httpHealthChecks().list(project).execute().items as List
+    timeExecute(compute.httpHealthChecks().list(project),
+                "compute.httpHealthChecks.list", TAG_SCOPE, SCOPE_GLOBAL
+    ).items as List
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<HttpHealthCheck> httpHealthCheckList) {

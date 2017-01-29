@@ -23,6 +23,7 @@ import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
 import com.netflix.servo.util.VisibleForTesting
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -52,11 +53,13 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
   GoogleImageCachingAgent(String clouddriverUserAgentApplicationName,
                           GoogleNamedAccountCredentials credentials,
                           ObjectMapper objectMapper,
+                          Registry registry,
                           List<String> imageProjects,
                           List<String> baseImageProjects) {
     super(clouddriverUserAgentApplicationName,
           credentials,
-          objectMapper)
+          objectMapper,
+          registry)
     this.imageProjects = imageProjects
     this.baseImageProjects = baseImageProjects
   }
@@ -79,7 +82,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
     baseImageProjects.each {
       compute.images().list(it).queue(imageRequest, new AllImagesCallback<ImageList>(imageList: imageList))
     }
-    executeIfRequestsAreQueued(imageRequest)
+    executeIfRequestsAreQueued(imageRequest, "ImageCaching.image")
 
     imageList
   }
