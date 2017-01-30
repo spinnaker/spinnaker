@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.netflix.spinnaker.halyard.DaemonResponse;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import java.util.List;
 
@@ -57,6 +58,18 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body String _ignore);
+
+  @GET("/v1/config/deployments/{deploymentName}/features/")
+  DaemonResponse<Features> getFeatures(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+
+  @PUT("/v1/config/deployments/{deploymentName}/features/")
+  DaemonResponse<Void> setFeatures(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body Features features);
 
   @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/")
   DaemonResponse<Object> getProvider(

@@ -116,7 +116,7 @@ public class HalconfigParser {
     halconfig.parentify();
     halconfig.setPath(halconfigPath);
 
-    halconfig = halconfig;
+    this.halconfig = halconfig;
 
     return halconfig;
   }

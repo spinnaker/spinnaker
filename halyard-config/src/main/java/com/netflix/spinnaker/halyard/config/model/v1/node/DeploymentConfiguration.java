@@ -47,6 +47,8 @@ public class DeploymentConfiguration extends Node {
 
   DeploymentEnvironment deploymentEnvironment = new DeploymentEnvironment();
 
+  Features features = new Features();
+
   /**
    * Webhooks, e.g. Jenkins, TravisCI, ...
    */

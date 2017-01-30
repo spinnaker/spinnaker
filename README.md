@@ -78,6 +78,21 @@ To delete an account, run:
 $ hal config provider PROVIDER delete-account ACCOUNT-NAME
 ```
 
+#### hal config features
+
+To enable either the experimental or non-standard features of Spinnaker, use
+the command:
+
+```
+$ hal config features [--feature true/false]
+```
+
+If you're unsure of what features are available, check:
+
+```
+$ hal config features --help
+```
+
 #### hal config generate
 
 Once your config is ready to be deployed, you can automatically generate all of

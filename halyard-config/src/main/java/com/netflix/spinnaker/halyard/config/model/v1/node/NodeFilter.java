@@ -32,6 +32,7 @@ public class NodeFilter implements Cloneable {
   String webhook = "";
   String account = "";
   String master = "";
+  String configNode = ""; // TODO(lwander) this is temporary until a better nodefilter is written
 
   private static final String ANY = "*";
 
@@ -77,6 +78,10 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter withAnyConfigNode() {
+    configNode = ANY;
+    return this;
+  }
 
   @Override
   public String toString() {
@@ -100,6 +105,10 @@ public class NodeFilter implements Cloneable {
 
     if (!master.isEmpty()) {
       res.add(master);
+    }
+
+    if (!configNode.isEmpty()) {
+      res.add(configNode);
     }
 
     return res.stream().reduce("", (a, b) -> a + "." + b).substring(1);

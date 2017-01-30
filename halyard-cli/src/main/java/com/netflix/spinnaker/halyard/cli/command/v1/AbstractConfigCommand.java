@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.providers;
+package com.netflix.spinnaker.halyard.cli.command.v1;
 
-import com.netflix.spinnaker.halyard.cli.command.v1.AbstractConfigCommand;
+import com.beust.jcommander.Parameter;
+import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 
-public abstract class AbstractProviderCommand extends AbstractConfigCommand {
-  abstract protected String getProviderName();
+abstract public class AbstractConfigCommand extends NestableCommand {
+  @Parameter(names = { "--no-validate" }, description = "Skip validation.")
+  public boolean noValidate = false;
+
+  protected String getCurrentDeployment() {
+    return Daemon.getCurrentDeployment();
+  }
 }

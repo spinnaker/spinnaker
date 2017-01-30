@@ -37,6 +37,7 @@ public class ConfigCommand extends NestableCommand {
   ConfigCommand() {
     registerSubcommand(new ProviderCommand());
     registerSubcommand(new GenerateCommand());
+    registerSubcommand(new FeaturesCommand());
   }
 
   @Override

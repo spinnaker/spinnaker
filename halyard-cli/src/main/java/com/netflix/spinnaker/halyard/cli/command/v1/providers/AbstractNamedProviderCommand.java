@@ -62,8 +62,7 @@ public abstract class AbstractNamedProviderCommand extends AbstractProviderComma
   }
 
   private Provider getProvider() {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    return Daemon.getProvider(currentDeployment, getProviderName(), !noValidate);
+    return Daemon.getProvider(getCurrentDeployment(), getProviderName(), !noValidate);
   }
 
   @Override

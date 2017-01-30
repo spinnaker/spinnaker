@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.Versions;
@@ -28,6 +29,14 @@ import retrofit.client.OkClient;
 public class Daemon {
   public static String getCurrentDeployment() {
     return ResponseUnwrapper.get(getService().getCurrentDeployment());
+  }
+
+  public static Features getFeatures(String deploymentName, boolean validate) {
+    return ResponseUnwrapper.get(service.getFeatures(deploymentName, validate));
+  }
+
+  public static void setFeatures(String deploymentName, boolean validate, Features features) {
+    ResponseUnwrapper.get(service.setFeatures(deploymentName, validate, features));
   }
 
   public static Account getAccount(String deploymentName, String providerName, String accountName, boolean validate) {

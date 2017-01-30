@@ -19,14 +19,10 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
-/**
- * A DeploymentEnvironment is a location where Spinnaker is installed.
- */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class DeploymentEnvironment extends Node {
+public class Features extends Node {
   @Override
   public void accept(ProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
@@ -34,7 +30,7 @@ public class DeploymentEnvironment extends Node {
 
   @Override
   public String getNodeName() {
-    return "deploymentEnvironment";
+    return "features";
   }
 
   @Override
@@ -44,7 +40,7 @@ public class DeploymentEnvironment extends Node {
 
   @Override
   protected boolean matchesLocally(NodeFilter filter) {
-    return filter.matches(getNodeName(), filter.getConfigNode());
+    return filter.matches(getNodeName(), filter.configNode);
   }
 
   @Override
@@ -52,20 +48,9 @@ public class DeploymentEnvironment extends Node {
     return parent.getFilter().setConfigNode(getNodeName());
   }
 
-  public enum DeploymentType {
-    ClusteredSimple("Deploy Spinnaker with one server group and load balancer "
-        + "per microservice. This requires a cloud provider to deploy to."),
-    LocalhostDebian("Deploy Spinnaker locally (on the machine running the daemon) "
-        + "using `apt-get` to fetch all the service's debian packages.");
-
-    @Getter
-    final String description;
-
-    DeploymentType(String description) {
-      this.description = description;
-    }
-  }
-
-  private DeploymentType type = DeploymentType.LocalhostDebian;
-  private String accountName;
+  private boolean auth;
+  private boolean fiat;
+  private boolean chaos;
+  private boolean entityTags;
+  private boolean jobs;
 }
