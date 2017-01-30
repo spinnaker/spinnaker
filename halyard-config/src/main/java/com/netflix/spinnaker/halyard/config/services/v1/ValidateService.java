@@ -33,9 +33,6 @@ public class ValidateService {
   HalconfigParser parser;
 
   @Autowired
-  DeploymentService deploymentService;
-
-  @Autowired
   ValidatorCollection validatorCollection;
 
   ProblemSet validateMatchingFilter(NodeFilter filter, Severity severity) {

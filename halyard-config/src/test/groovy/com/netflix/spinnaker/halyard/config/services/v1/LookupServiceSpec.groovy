@@ -16,19 +16,12 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account
-import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider
-import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 
-import java.nio.charset.StandardCharsets
-
 class LookupServiceSpec extends Specification {
-  HalconfigParser parserStub
   final static String DEPLOYMENT_NAME = "default"
   final static String KUBERNETES_ACCOUNT_NAME = "my-k8s-account"
   final static String DOCKER_REGISTRY_ACCOUNT_NAME = "my-docker-account"
@@ -36,22 +29,7 @@ class LookupServiceSpec extends Specification {
   final static String KUBERNETES_PROVIDER = "kubernetes"
   final static String DOCKER_REGISTRY_PROVIDER = "dockerRegistry"
   final static String GOOGLE_PROVIDER = "google"
-
-  def setup() {
-    parserStub = new HalconfigParser()
-    parserStub.objectMapper = new ObjectMapper()
-    parserStub.yamlParser = new Yaml()
-    parserStub.halconfigPath = "/some/nonsense/file";
-  }
-
-  HalconfigParser mockHalconfigParser(String config) {
-    def stream = new ByteArrayInputStream(config.getBytes(StandardCharsets.UTF_8))
-    Halconfig halconfig = parserStub.parseHalconfig(stream)
-    halconfig = parserStub.transformHalconfig(halconfig)
-    HalconfigParser parser = Mock(HalconfigParser)
-    parser.getHalconfig(_) >> halconfig
-    return parser
-  }
+  final HalconfigParserMocker mocker = new HalconfigParserMocker()
 
   def "find a kubernetes account"() {
     setup:
@@ -68,7 +46,7 @@ deploymentConfigurations:
         - name: $KUBERNETES_ACCOUNT_NAME
 """
     def lookupService = new LookupService()
-    lookupService.parser = mockHalconfigParser(config)
+    lookupService.parser = mocker.mockHalconfigParser(config)
     def filter = new NodeFilter().withAnyHalconfigFile()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(KUBERNETES_PROVIDER)
@@ -99,7 +77,7 @@ deploymentConfigurations:
         - name: $KUBERNETES_ACCOUNT_NAME-1
 """
     def lookupService = new LookupService()
-    lookupService.parser = mockHalconfigParser(config)
+    lookupService.parser = mocker.mockHalconfigParser(config)
     def filter = new NodeFilter().withAnyHalconfigFile()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(KUBERNETES_PROVIDER)
@@ -129,7 +107,7 @@ deploymentConfigurations:
         - name: $KUBERNETES_ACCOUNT_NAME
 """
     def lookupService = new LookupService()
-    lookupService.parser = mockHalconfigParser(config)
+    lookupService.parser = mocker.mockHalconfigParser(config)
     def filter = new NodeFilter().withAnyHalconfigFile()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(KUBERNETES_PROVIDER)
@@ -161,7 +139,7 @@ deploymentConfigurations:
         - name: $DOCKER_REGISTRY_ACCOUNT_NAME
 """
     def lookupService = new LookupService()
-    lookupService.parser = mockHalconfigParser(config)
+    lookupService.parser = mocker.mockHalconfigParser(config)
     def filter = new NodeFilter().withAnyHalconfigFile()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(DOCKER_REGISTRY_PROVIDER)
@@ -199,7 +177,7 @@ deploymentConfigurations:
         - name: $GOOGLE_ACCOUNT_NAME
 """
     def lookupService = new LookupService()
-    lookupService.parser = mockHalconfigParser(config)
+    lookupService.parser = mocker.mockHalconfigParser(config)
     def filter = new NodeFilter().withAnyHalconfigFile()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(GOOGLE_PROVIDER)
@@ -233,7 +211,7 @@ deploymentConfigurations:
         - name: $DOCKER_REGISTRY_ACCOUNT_NAME
 """
     def lookupService = new LookupService()
-    lookupService.parser = mockHalconfigParser(config)
+    lookupService.parser = mocker.mockHalconfigParser(config)
     def filter = new NodeFilter().withAnyHalconfigFile()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(KUBERNETES_PROVIDER)
@@ -265,7 +243,7 @@ deploymentConfigurations:
         - name: $DOCKER_REGISTRY_ACCOUNT_NAME
 """
     def lookupService = new LookupService()
-    lookupService.parser = mockHalconfigParser(config)
+    lookupService.parser = mocker.mockHalconfigParser(config)
     def filter = new NodeFilter().withAnyHalconfigFile()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(DOCKER_REGISTRY_PROVIDER)
@@ -300,7 +278,7 @@ deploymentConfigurations:
         - name: $DOCKER_REGISTRY_ACCOUNT_NAME-1
 """
     def lookupService = new LookupService()
-    lookupService.parser = mockHalconfigParser(config)
+    lookupService.parser = mocker.mockHalconfigParser(config)
     def filter = new NodeFilter().withAnyHalconfigFile()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(DOCKER_REGISTRY_PROVIDER)
@@ -338,7 +316,7 @@ deploymentConfigurations:
         - name: $GOOGLE_ACCOUNT_NAME
 """
     def lookupService = new LookupService()
-    lookupService.parser = mockHalconfigParser(config)
+    lookupService.parser = mocker.mockHalconfigParser(config)
     def filter = new NodeFilter().withAnyHalconfigFile()
         .setDeployment(DEPLOYMENT_NAME)
         .withAnyProvider()
@@ -378,7 +356,7 @@ deploymentConfigurations:
         - name: $GOOGLE_ACCOUNT_NAME
 """
     def lookupService = new LookupService()
-    lookupService.parser = mockHalconfigParser(config)
+    lookupService.parser = mocker.mockHalconfigParser(config)
     def filter = new NodeFilter().withAnyHalconfigFile()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(KUBERNETES_PROVIDER)
