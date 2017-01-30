@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.TerminateAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -42,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired
  *
  * @see TerminateGoogleInstancesAtomicOperation
  */
-class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
+class TerminateAndDecrementGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "TERMINATE_AND_DEC_INSTANCES"
 
   private static Task getTask() {
@@ -85,12 +84,18 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
       def instanceGroupManagers = compute.regionInstanceGroupManagers()
       def deleteRequest = new RegionInstanceGroupManagersDeleteInstancesRequest().setInstances(instanceUrls)
 
-      instanceGroupManagers.deleteInstances(project, region, serverGroupName, deleteRequest).execute()
+      timeExecute(
+          instanceGroupManagers.deleteInstances(project, region, serverGroupName, deleteRequest),
+          "compute.regionInstanceGroupManagers.deleteInstances",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     } else {
       def instanceGroupManagers = compute.instanceGroupManagers()
       def deleteRequest = new InstanceGroupManagersDeleteInstancesRequest().setInstances(instanceUrls)
 
-      instanceGroupManagers.deleteInstances(project, zone, serverGroupName, deleteRequest).execute()
+      timeExecute(
+          instanceGroupManagers.deleteInstances(project, zone, serverGroupName, deleteRequest),
+          "compute.instanceGroupManagers.deleteInstances",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
     }
 
     task.updateStatus BASE_PHASE, "Done terminating and decrementing instances " +

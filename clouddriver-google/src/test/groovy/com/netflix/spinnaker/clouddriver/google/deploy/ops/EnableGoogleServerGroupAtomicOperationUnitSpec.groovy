@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -87,6 +88,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   def description
 
   @Shared SafeRetry safeRetry
+  @Shared def registry = new DefaultRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -139,6 +141,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesList = Mock(Compute.GlobalForwardingRules.List)
       @Subject def operation = new EnableGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
       operation.objectMapper = objectMapperMock
@@ -180,6 +183,12 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       2 * computeMock.globalForwardingRules() >> globalForwardingRules
       2 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
       2 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+      registry.timer(
+          registry.createId("google.api",
+                [api: "compute.targetPools.addInstance",
+                 scope: "regional", region: REGION,
+                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+      ).count() == 2
   }
 
   void "should fail if load balancers cannot be resolved"() {
@@ -191,6 +200,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def forwardingRulesList2 = new ForwardingRuleList(items: forwardingRules2)
 
       @Subject def operation = new EnableGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.googleLoadBalancerProvider = googleLoadBalancerProviderMock
       operation.objectMapper = objectMapperMock

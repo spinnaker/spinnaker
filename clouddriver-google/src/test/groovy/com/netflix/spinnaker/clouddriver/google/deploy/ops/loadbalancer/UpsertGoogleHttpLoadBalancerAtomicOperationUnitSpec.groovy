@@ -172,6 +172,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -295,6 +296,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
             registry: registry,
             safeRetry: safeRetry
           )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -418,6 +420,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
             registry: registry,
             safeRetry: safeRetry
           )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -571,6 +574,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -729,6 +733,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -892,6 +897,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:

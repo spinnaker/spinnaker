@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceGroupManagersAbandonInstancesRequest
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -41,6 +42,8 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Specif
     "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-1",
     "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/my-app7-dev-v000-2"
   ]
+
+  def registry = new DefaultRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -74,6 +77,7 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperationUnitSpec extends Specif
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new AbandonAndDecrementGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:

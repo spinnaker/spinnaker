@@ -143,6 +143,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
         registry: registry,
         safeRetry: safeRetry
       )
+    operation.registry = registry
     operation.safeRetry = safeRetry
 
     when:
@@ -256,6 +257,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
         registry: registry,
         safeRetry: safeRetry
       )
+    operation.registry = registry
     operation.safeRetry = safeRetry
 
     when:
@@ -369,6 +371,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
         registry: registry,
         safeRetry: safeRetry
       )
+    operation.registry = registry
     operation.safeRetry = safeRetry
 
     when:

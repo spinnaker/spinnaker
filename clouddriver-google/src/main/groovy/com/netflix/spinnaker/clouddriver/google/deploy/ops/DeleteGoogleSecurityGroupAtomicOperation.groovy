@@ -19,14 +19,13 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleSecurityGroupDescription
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 
 /**
  * Delete a firewall rule from the specified project.
  *
  * Uses {@link https://cloud.google.com/compute/docs/reference/latest/firewalls/delete}
  */
-class DeleteGoogleSecurityGroupAtomicOperation implements AtomicOperation<Void> {
+class DeleteGoogleSecurityGroupAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_SECURITY_GROUP"
 
   private static Task getTask() {
@@ -50,7 +49,8 @@ class DeleteGoogleSecurityGroupAtomicOperation implements AtomicOperation<Void> 
     def project = description.credentials.project
     def firewallRuleName = description.securityGroupName
 
-    compute.firewalls().delete(project, firewallRuleName).execute()
+    timeExecute(compute.firewalls().delete(project, firewallRuleName),
+                "compute.firewalls.delete", TAG_SCOPE, SCOPE_GLOBAL)
 
     task.updateStatus BASE_PHASE, "Done deleting security group $firewallRuleName."
     null

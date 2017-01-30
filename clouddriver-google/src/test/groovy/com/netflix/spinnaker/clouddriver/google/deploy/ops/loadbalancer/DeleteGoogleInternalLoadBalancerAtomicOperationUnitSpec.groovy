@@ -113,6 +113,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
           registry: registry,
           safeRetry: safeRetry
       )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -198,6 +199,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         registry: registry,
         safeRetry: safeRetry
       )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -283,6 +285,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         registry: registry,
         safeRetry: safeRetry
       )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -379,6 +382,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         registry: registry,
         safeRetry: safeRetry
       )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -470,6 +474,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         registry: registry,
         safeRetry: safeRetry
       )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -520,6 +525,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         registry: registry,
         safeRetry: safeRetry
       )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:

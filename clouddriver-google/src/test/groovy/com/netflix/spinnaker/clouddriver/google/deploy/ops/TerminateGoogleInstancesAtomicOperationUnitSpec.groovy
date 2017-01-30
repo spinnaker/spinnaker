@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceGroupManagersRecreateInstancesRequest
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -54,6 +55,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
 
   void "should terminate instances without managed instance group"() {
     setup:
+      def registry = new DefaultRegistry()
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
@@ -63,6 +65,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
       @Subject def operation = new TerminateGoogleInstancesAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -78,6 +81,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
 
   void "should terminate all known instances and fail on all unknown instances without managed instance group"() {
     setup:
+      def registry = new DefaultRegistry()
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
@@ -87,6 +91,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
       @Subject def operation = new TerminateGoogleInstancesAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -103,11 +108,24 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
         1 * instancesMock.delete(PROJECT_NAME, ZONE, it) >> deleteMock
         1 * deleteMock.execute() >> { throw new IOException() }
       }
+      registry.timer(
+          registry.createId("google.api",
+                [api: "compute.instances.delete",
+                 scope: "zonal", zone: ZONE,
+                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+      ).count() == GOOD_INSTANCE_IDS.size
+      registry.timer(
+          registry.createId("google.api",
+                [api: "compute.instances.delete",
+                 scope: "zonal", zone: ZONE,
+                 success: "false", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+      ).count() == BAD_INSTANCE_IDS.size
       thrown IOException
   }
 
   void "should recreate instances with managed instance group"() {
     setup:
+      def registry = new DefaultRegistry()
       def googleClusterProviderMock = Mock(GoogleClusterProvider)
       def serverGroup = new GoogleServerGroup(
         regional: isRegional,
@@ -132,6 +150,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
       @Subject def operation = new TerminateGoogleInstancesAtomicOperation(description)
+      operation.registry = registry
       operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -147,6 +166,12 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                               MANAGED_INSTANCE_GROUP_NAME,
                                                               request) >> regionInstanceGroupManagersRecreateInstancesMock
         1 * regionInstanceGroupManagersRecreateInstancesMock.execute()
+        registry.timer(
+            registry.createId("google.api",
+                  [api: "compute.regionInstanceGroupManagers.recreateInstances",
+                   scope: "regional", region: REGION,,
+                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+        ).count() == 1
       } else {
         1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
         1 * instanceGroupManagersMock.recreateInstances(PROJECT_NAME,
@@ -154,6 +179,12 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                         MANAGED_INSTANCE_GROUP_NAME,
                                                         request) >> instanceGroupManagersRecreateInstancesMock
         1 * instanceGroupManagersRecreateInstancesMock.execute()
+        registry.timer(
+            registry.createId("google.api",
+                  [api: "compute.instanceGroupManagers.recreateInstances",
+                   scope: "zonal", zone: ZONE,
+                   success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+        ).count() == 1
       }
 
     where:

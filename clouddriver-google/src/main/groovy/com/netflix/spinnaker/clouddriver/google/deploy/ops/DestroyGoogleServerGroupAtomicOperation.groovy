@@ -26,12 +26,11 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogle
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
-class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
+class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "DESTROY_SERVER_GROUP"
   private static final List<Integer> RETRY_ERROR_CODES = [400, 412]
   private static final List<Integer> SUCCESSFUL_ERROR_CODES = [404]
@@ -119,7 +118,10 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
 
   Closure destroyInstanceTemplate(Compute compute, String instanceTemplateName, String project) {
     return {
-      compute.instanceTemplates().delete(project, instanceTemplateName).execute()
+      timeExecute(
+          compute.instanceTemplates().delete(project, instanceTemplateName),
+          "compute.instanceTemplates.delete",
+          TAG_SCOPE, SCOPE_GLOBAL)
       null
     }
   }
@@ -127,7 +129,10 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
   Closure destroyAutoscaler(Compute compute, String serverGroupName, String project, String region, String zone, Boolean isRegional) {
     return {
       if (isRegional) {
-        def autoscalerDeleteOperation = compute.regionAutoscalers().delete(project, region, serverGroupName).execute()
+        def autoscalerDeleteOperation = timeExecute(
+            compute.regionAutoscalers().delete(project, region, serverGroupName),
+            "compute.regionAutoscalers.delete",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region);
         def autoscalerDeleteOperationName = autoscalerDeleteOperation.getName()
 
         task.updateStatus BASE_PHASE, "Waiting on delete operation for autoscaler..."
@@ -136,7 +141,10 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
         googleOperationPoller.waitForRegionalOperation(compute, project, region, autoscalerDeleteOperationName, null, task,
           "regional autoscaler $serverGroupName", BASE_PHASE)
       } else {
-        def autoscalerDeleteOperation = compute.autoscalers().delete(project, zone, serverGroupName).execute()
+        def autoscalerDeleteOperation = timeExecute(
+            compute.autoscalers().delete(project, zone, serverGroupName),
+            "compute.autoscalers.delete",
+            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
         def autoscalerDeleteOperationName = autoscalerDeleteOperation.getName()
 
         task.updateStatus BASE_PHASE, "Waiting on delete operation for autoscaler..."
@@ -182,8 +190,14 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
   Closure destroyInstanceGroup(Compute compute, String serverGroupName, String project, String region, String zone, Boolean isRegional) {
     return {
       def instanceGroupManagerDeleteOperation = isRegional ?
-        compute.regionInstanceGroupManagers().delete(project, region, serverGroupName).execute() :
-        compute.instanceGroupManagers().delete(project, zone, serverGroupName).execute()
+        timeExecute(
+            compute.regionInstanceGroupManagers().delete(project, region, serverGroupName),
+            "compute.regionInstanceGroupManagers.delete",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) :
+        timeExecute(
+            compute.instanceGroupManagers().delete(project, zone, serverGroupName),
+            "compute.instanceGroupManagers.delete",
+            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
 
       def instanceGroupOperationName = instanceGroupManagerDeleteOperation.getName()
 

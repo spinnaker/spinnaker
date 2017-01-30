@@ -21,6 +21,7 @@ import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.AutoscalingPolicyCpuUtilization
 import com.google.api.services.compute.model.AutoscalingPolicyCustomMetricUtilization
 import com.google.api.services.compute.model.AutoscalingPolicyLoadBalancingUtilization
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
@@ -74,6 +75,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   @Unroll
   void "can create zonal and regional scaling policies"() {
     setup:
+    def registry = new DefaultRegistry()
     def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def serverGroup = new GoogleServerGroup(zone: ZONE, regional: isRegional, selfLink: SELF_LINK).view
     def computeMock = Mock(Compute)
@@ -95,6 +97,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def regionInsertMock = Mock(Compute.RegionAutoscalers.Insert)
 
     @Subject def operation = new UpsertGoogleAutoscalingPolicyAtomicOperation(description)
+    operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -107,10 +110,22 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       1 * computeMock.regionAutoscalers() >> regionAutoscalerMock
       1 * regionAutoscalerMock.insert(PROJECT_NAME, location, AUTOSCALER) >> regionInsertMock
       1 * regionInsertMock.execute()
+      registry.timer(
+          registry.createId("google.api",
+                [api: "compute.regionAutoscalers.insert",
+                 scope: "regional", region: REGION,
+                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+      ).count() == 1
     } else {
       1 * computeMock.autoscalers() >> autoscalerMock
       1 * autoscalerMock.insert(PROJECT_NAME, location, AUTOSCALER) >> insertMock
       1 * insertMock.execute()
+      registry.timer(
+          registry.createId("google.api",
+                [api: "compute.autoscalers.insert",
+                 scope: "zonal", zone: ZONE,
+                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+      ).count() == 1
     }
 
     where:
@@ -122,6 +137,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   @Unroll
   void "can update zonal and regional scaling policies"() {
     setup:
+    def registry = new DefaultRegistry()
     def googleClusterProviderMock = Mock(GoogleClusterProvider)
     def computeMock = Mock(Compute)
     def autoscalingPolicy = new AutoscalingPolicy(
@@ -148,6 +164,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def regionUpdateMock = Mock(Compute.RegionAutoscalers.Update)
 
     @Subject def operation = new UpsertGoogleAutoscalingPolicyAtomicOperation(description)
+    operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -160,10 +177,22 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       1 * computeMock.regionAutoscalers() >> regionAutoscalerMock
       1 * regionAutoscalerMock.update(PROJECT_NAME, location, AUTOSCALER) >> regionUpdateMock
       1 * regionUpdateMock.execute()
+      registry.timer(
+          registry.createId("google.api",
+                [api: "compute.autoscalers.update",
+                 scope: "regional", region: REGION,,
+                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+      ).count() == 1
     } else {
       1 * computeMock.autoscalers() >> autoscalerMock
       1 * autoscalerMock.update(PROJECT_NAME, location, AUTOSCALER) >> updateMock
       1 * updateMock.execute()
+      registry.timer(
+          registry.createId("google.api",
+                [api: "compute.autoscalers.update",
+                 scope: "zonal", zone: ZONE,
+                 success: "true", statusCode: "0"])  // See GoogleExecutorTraitsSpec
+      ).count() == 1
     }
 
     where:
@@ -175,6 +204,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   @Unroll
   void "builds autoscaler based on ancestor autoscaling policy and input description: input overrides nothing"() {
     setup:
+    def registry = new DefaultRegistry()
     def ancestorPolicy = new AutoscalingPolicy(
       minNumReplicas: MIN_NUM_REPLICAS, maxNumReplicas: MAX_NUM_REPLICAS, coolDownPeriodSec: COOL_DOWN_PERIOD_SEC,
       cpuUtilization: new AutoscalingPolicyCpuUtilization(utilizationTarget: UTILIZATION_TARGET),
@@ -215,6 +245,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def regionUpdateMock = Mock(Compute.RegionAutoscalers.Update)
 
     @Subject def operation = new UpsertGoogleAutoscalingPolicyAtomicOperation(description)
+    operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
 
     when:
@@ -241,6 +272,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   @Unroll
   void "builds autoscaler based on ancestor autoscaling policy and input description; input overrides everything"() {
     setup:
+    def registry = new DefaultRegistry()
     def ancestorPolicy = new AutoscalingPolicy(
       minNumReplicas: MIN_NUM_REPLICAS, maxNumReplicas: MAX_NUM_REPLICAS, coolDownPeriodSec: COOL_DOWN_PERIOD_SEC,
       cpuUtilization: new AutoscalingPolicyCpuUtilization(utilizationTarget: UTILIZATION_TARGET),
@@ -289,6 +321,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def regionUpdateMock = Mock(Compute.RegionAutoscalers.Update)
 
     @Subject def operation = new UpsertGoogleAutoscalingPolicyAtomicOperation(description)
+    operation.registry = registry
     operation.googleClusterProvider = googleClusterProviderMock
 
     when:

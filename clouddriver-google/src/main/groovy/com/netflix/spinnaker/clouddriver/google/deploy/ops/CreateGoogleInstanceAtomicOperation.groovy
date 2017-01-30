@@ -26,10 +26,9 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentResult> {
+class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
 
   // TODO(duftler): These should be exposed/configurable.
@@ -135,7 +134,9 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
                                 serviceAccounts: serviceAccount)
 
     task.updateStatus BASE_PHASE, "Creating instance $description.instanceName..."
-    compute.instances().insert(project, zone, instance).execute()
+    timeExecute(compute.instances().insert(project, zone, instance),
+        "compute.instances.insert",
+        TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
 
     task.updateStatus BASE_PHASE, "Done creating instance $description.instanceName in $description.zone."
     new DeploymentResult(serverGroupNames: [description.instanceName])

@@ -127,6 +127,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -217,6 +218,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -288,6 +290,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -349,6 +352,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -415,6 +419,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -455,6 +460,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -528,6 +534,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -610,6 +617,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -694,6 +702,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -787,6 +796,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -887,6 +897,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -991,6 +1002,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -1086,6 +1098,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -1182,6 +1195,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])
@@ -1280,6 +1294,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])

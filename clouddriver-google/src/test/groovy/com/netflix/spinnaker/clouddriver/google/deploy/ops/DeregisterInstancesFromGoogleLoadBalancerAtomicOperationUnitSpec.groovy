@@ -24,6 +24,7 @@ import com.google.api.services.compute.model.InstanceAggregatedList
 import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.InstancesScopedList
 import com.google.api.services.compute.model.TargetPoolsRemoveInstanceRequest
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
@@ -54,6 +55,7 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperationUnitSpec extends S
   private static final INSTANCE_URLS = [INSTANCE_URL1, INSTANCE_URL2]
 
   @Shared SafeRetry safeRetry
+  @Shared DefaultRegistry registry = new DefaultRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -94,6 +96,7 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperationUnitSpec extends S
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeregisterInstancesFromGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
       def request = new TargetPoolsRemoveInstanceRequest()
@@ -140,6 +143,7 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperationUnitSpec extends S
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeregisterInstancesFromGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
       def request = new TargetPoolsRemoveInstanceRequest()

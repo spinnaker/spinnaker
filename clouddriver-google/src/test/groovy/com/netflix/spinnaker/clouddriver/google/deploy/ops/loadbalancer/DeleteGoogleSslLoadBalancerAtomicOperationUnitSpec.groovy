@@ -118,6 +118,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -185,6 +186,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
           threadSleeper: threadSleeperMock,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -245,6 +247,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
           registry: registry,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -310,6 +313,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
           threadSleeper: threadSleeperMock,
           safeRetry: safeRetry
         )
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:

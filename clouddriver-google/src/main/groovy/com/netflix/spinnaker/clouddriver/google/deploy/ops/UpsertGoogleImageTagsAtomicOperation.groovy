@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
  *
  * Uses {@link https://cloud.google.com/compute/docs/reference/beta/images/setLabels}
  */
-class UpsertGoogleImageTagsAtomicOperation implements AtomicOperation<Void> {
+class UpsertGoogleImageTagsAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_IMAGE_TAGS"
 
   private static Task getTask() {
@@ -90,7 +90,9 @@ class UpsertGoogleImageTagsAtomicOperation implements AtomicOperation<Void> {
       GlobalSetLabelsRequest setLabelsRequest = new GlobalSetLabelsRequest(labels: newLabels,
                                                                            labelFingerprint: image.getLabelFingerprint())
 
-      compute.images().setLabels(imageProject, imageName, setLabelsRequest).execute()
+      timeExecute(
+          compute.images().setLabels(imageProject, imageName, setLabelsRequest),
+          "compute.images.setLabels", TAG_SCOPE, SCOPE_GLOBAL)
     }
 
     task.updateStatus BASE_PHASE, "Done tagging image $imageName."

@@ -21,10 +21,9 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class DeleteGoogleAutoscalingPolicyAtomicOperation implements AtomicOperation<Void>{
+class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation<Void>{
 
   private static final String BASE_PHASE = "DELETE_SCALING_POLICY"
   private final DeleteGoogleAutoscalingPolicyDescription description
@@ -60,9 +59,15 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation implements AtomicOperation<Vo
     def zone = serverGroup.zone
 
     if (isRegional) {
-      compute.regionAutoscalers().delete(project, region, serverGroupName).execute()
+      timeExecute(
+          compute.regionAutoscalers().delete(project, region, serverGroupName),
+          "compute.regionAutoscalers.delete",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     } else {
-      compute.autoscalers().delete(project, zone, serverGroupName).execute()
+      timeExecute(
+          compute.autoscalers().delete(project, zone, serverGroupName),
+          "compute.autoscalers.delete",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
     }
 
     task.updateStatus BASE_PHASE, "Done deleting scaling policy for $serverGroupName..."

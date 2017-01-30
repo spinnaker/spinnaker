@@ -26,11 +26,10 @@ import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.EnableDisableGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
-abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<Void> {
+abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412]
   private static final List<Integer> SUCCESSFUL_ERROR_CODES = [404]
 
@@ -83,10 +82,18 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
     if (credentials.consulConfig?.enabled) {
       task.updateStatus phaseName, "$presentParticipling server group in Consul..."
-      def instances =
-        isRegional
-        ? compute.regionInstanceGroupManagers().listManagedInstances(project, region, serverGroupName).execute().getManagedInstances()
-        : compute.instanceGroupManagers().listManagedInstances(project, zone, serverGroupName).execute().getManagedInstances()
+      def instances
+      if (isRegional) {
+        instances = timeExecute(
+          compute.regionInstanceGroupManagers().listManagedInstances(project, region, serverGroupName),
+          "compute.regionInstanceGroupManagers.listManagedInstances",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region).getManagedInstances()
+      } else {
+        instances = timeExecute(
+          compute.instanceGroupManagers().listManagedInstances(project, zone, serverGroupName),
+          "compute.instanceGroupManagers.listManagedInstances",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone).getManagedInstances()
+      }
 
       instances.each { ManagedInstance instance ->
         try {
@@ -295,19 +302,25 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
       instanceGroupManagersSetTargetPoolsRequest.setFingerprint(managedInstanceGroup.getFingerprint())
 
-      compute.regionInstanceGroupManagers().setTargetPools(project,
-                                                           region,
-                                                           serverGroupName,
-                                                           instanceGroupManagersSetTargetPoolsRequest).execute()
+      timeExecute(
+        compute.regionInstanceGroupManagers().setTargetPools(project,
+                                                             region,
+                                                             serverGroupName,
+                                                             instanceGroupManagersSetTargetPoolsRequest),
+        "compute.regionInstanceGroupManagers.setTargetPools",
+        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     } else {
       def instanceGroupManagersSetTargetPoolsRequest = new InstanceGroupManagersSetTargetPoolsRequest(targetPools: newTargetPoolUrls)
 
       instanceGroupManagersSetTargetPoolsRequest.setFingerprint(managedInstanceGroup.getFingerprint())
 
-      compute.instanceGroupManagers().setTargetPools(project,
-                                                     zone,
-                                                     serverGroupName,
-                                                     instanceGroupManagersSetTargetPoolsRequest).execute()
+      timeExecute(
+        compute.instanceGroupManagers().setTargetPools(project,
+                                                       zone,
+                                                       serverGroupName,
+                                                       instanceGroupManagersSetTargetPoolsRequest),
+        "compute.regionInstanceGroupManagers.setTargetPools",
+        TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
     }
 
     task.updateStatus phaseName, "Done ${presentParticipling.toLowerCase()} server group $description.serverGroupName in $region."
@@ -362,39 +375,55 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
   Closure getTargetPool(compute, project, region, targetPoolLocalName) {
     return {
-      return compute.targetPools().get(project, region, targetPoolLocalName).execute()
+      return timeExecute(
+        compute.targetPools().get(project, region, targetPoolLocalName),
+        "compute.targetPools.get",
+        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     }
   }
 
   Closure listInstancesInRegionalGroup(compute, project, region, serverGroupName, regionInstanceGroupsListInstancesRequest) {
     return {
-      return compute.regionInstanceGroups().listInstances(project, region, serverGroupName, regionInstanceGroupsListInstancesRequest).execute().items
+      return timeExecute(
+          compute.regionInstanceGroups().listInstances(project, region, serverGroupName, regionInstanceGroupsListInstancesRequest),
+          "compute.regionInstanceGroups.listInstances",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region).items
     }
   }
 
   Closure listInstancesInZonalGroup(compute, project, zone, serverGroupName, instanceGroupsListInstancesRequest) {
     return {
-      return compute.instanceGroups().listInstances(project, zone, serverGroupName, instanceGroupsListInstancesRequest).execute().items
+      return timeExecute(
+          compute.instanceGroups().listInstances(project, zone, serverGroupName, instanceGroupsListInstancesRequest),
+          "compute.instanceGroups.listInstances",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone).items
     }
   }
 
   Closure getInstanceTemplate(compute, project, instanceTemplateUrl) {
     return {
-      return compute.instanceTemplates().get(project, GCEUtil.getLocalName(instanceTemplateUrl)).execute()
+      return timeExecute(
+          compute.instanceTemplates().get(project, GCEUtil.getLocalName(instanceTemplateUrl)),
+          "compute.instanceTemplates.get",
+          TAG_SCOPE, SCOPE_GLOBAL)
     }
   }
 
   Closure removeInstancesFromTargetPool(compute, project, region, targetPoolLocalName, targetPoolsRemoveInstanceRequest) {
     return {
-      compute.targetPools().removeInstance(project, region, targetPoolLocalName, targetPoolsRemoveInstanceRequest).execute()
-      null
+        timeExecute(
+            compute.targetPools().removeInstance(project, region, targetPoolLocalName, targetPoolsRemoveInstanceRequest),
+            "compute.targetPools.removeInstance",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     }
   }
 
   Closure addInstancesToTargetPool(compute, project, region, targetPoolLocalName, targetPoolsAddInstanceRequest) {
     return {
-      compute.targetPools().addInstance(project, region, targetPoolLocalName, targetPoolsAddInstanceRequest).execute()
-      null
+      timeExecute(
+          compute.targetPools().addInstance(project, region, targetPoolLocalName, targetPoolsAddInstanceRequest),
+          "compute.targetPools.addInstance",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     }
   }
 }

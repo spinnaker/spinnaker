@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleServerGroupTagsDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -39,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * Uses {@link https://cloud.google.com/compute/docs/reference/latest/instanceGroupManagers/setInstanceTemplate}
  * Uses {@link https://cloud.google.com/compute/docs/reference/latest/instances/setTags}
  */
-class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void> {
+class UpsertGoogleServerGroupTagsAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_SERVER_GROUP_TAGS"
 
   private static Task getTask() {
@@ -85,8 +84,14 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     // Retrieve the managed instance group.
     def managedInstanceGroup =
       isRegional
-      ? instanceGroupManagers.get(project, region, serverGroupName).execute()
-      : instanceGroupManagers.get(project, zone, serverGroupName).execute()
+      ? timeExecute(
+            instanceGroupManagers.get(project, region, serverGroupName),
+            "compute.regionInstanceGroupManagers.get",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+      : timeExecute(
+            instanceGroupManagers.get(project, zone, serverGroupName),
+            "compute.instanceGroupManagers.get",
+            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
     def origInstanceTemplateName = GCEUtil.getLocalName(managedInstanceGroup.instanceTemplate)
 
     if (!origInstanceTemplateName) {
@@ -94,7 +99,10 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     }
 
     // Retrieve the managed instance group's current instance template.
-    def instanceTemplate = instanceTemplates.get(project, origInstanceTemplateName).execute()
+    def instanceTemplate = timeExecute(
+            instanceTemplates.get(project, origInstanceTemplateName),
+            "compute.instanceTemplates.get",
+            TAG_SCOPE, SCOPE_GLOBAL)
 
     // Override the instance template's name.
     instanceTemplate.setName("$serverGroupName-${System.currentTimeMillis()}")
@@ -106,7 +114,10 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     // Create a new instance template resource using the modified instance template.
     task.updateStatus BASE_PHASE, "Inserting new instance template $instanceTemplate.name with $tagsDescription..."
 
-    def instanceTemplateCreateOperation = instanceTemplates.insert(project, instanceTemplate).execute()
+    def instanceTemplateCreateOperation = timeExecute(
+            instanceTemplates.insert(project, instanceTemplate),
+            "compute.instanceTemplates.insert",
+            TAG_SCOPE, SCOPE_GLOBAL)
     def instanceTemplateUrl = instanceTemplateCreateOperation.targetLink
 
     // Block on creating the instance template.
@@ -121,33 +132,46 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     if (isRegional) {
       def regionInstanceGroupManagersSetTemplateRequest =
         new RegionInstanceGroupManagersSetTemplateRequest(instanceTemplate: instanceTemplateUrl)
-      def setInstanceTemplateOperation = instanceGroupManagers.setInstanceTemplate(
-        project, region, serverGroupName, regionInstanceGroupManagersSetTemplateRequest).execute()
+      def setInstanceTemplateOperation = timeExecute(
+              instanceGroupManagers.setInstanceTemplate(
+              project, region, serverGroupName, regionInstanceGroupManagersSetTemplateRequest),
+              "compute.regionInstanceGroupManagers.setInstanceTemplate",
+              TAG_SCOPE, SCOPE_REGIONAL. TAG_REGION, region)
 
       // Block on setting the instance template on the managed instance group.
       googleOperationPoller.waitForRegionalOperation(compute, project, region,
         setInstanceTemplateOperation.getName(), null, task, "server group $serverGroupName", BASE_PHASE)
 
       // Retrieve the instances in the instance group.
-      groupInstances = compute.regionInstanceGroups().listInstances(project,
-                                                                    region,
-                                                                    serverGroupName,
-                                                                    new RegionInstanceGroupsListInstancesRequest()).execute().items
+      groupInstances = timeExecute(
+        compute.regionInstanceGroups().listInstances(project,
+                                                     region,
+                                                     serverGroupName,
+                                                     new RegionInstanceGroupsListInstancesRequest()),
+        "compute.regionInstanceGroups.listInstances",
+        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region).items
+
     } else {
       def instanceGroupManagersSetInstanceTemplateRequest =
         new InstanceGroupManagersSetInstanceTemplateRequest(instanceTemplate: instanceTemplateUrl)
-      def setInstanceTemplateOperation = instanceGroupManagers.setInstanceTemplate(
-        project, zone, serverGroupName, instanceGroupManagersSetInstanceTemplateRequest).execute()
+      def setInstanceTemplateOperation = timeExecute(
+          instanceGroupManagers.setInstanceTemplate(
+        project, zone, serverGroupName, instanceGroupManagersSetInstanceTemplateRequest),
+        "compute.instanceGroupManagers.setInstanceTemplate",
+        TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
 
       // Block on setting the instance template on the managed instance group.
       googleOperationPoller.waitForZonalOperation(compute, project, zone,
         setInstanceTemplateOperation.getName(), null, task, "server group $serverGroupName", BASE_PHASE)
 
       // Retrieve the instances in the instance group.
-      groupInstances = compute.instanceGroups().listInstances(project,
-                                                              zone,
-                                                              serverGroupName,
-                                                              new InstanceGroupsListInstancesRequest()).execute().items
+      groupInstances = timeExecute(
+        compute.instanceGroups().listInstances(project,
+                                               zone,
+                                               serverGroupName,
+                                               new InstanceGroupsListInstancesRequest()),
+        "compute.instanceGroups.listInstance",
+        TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone).items
     }
 
     // Set the new tags on all instances in the group (in parallel).
@@ -158,12 +182,17 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     groupInstances.each { groupInstance ->
       def localInstanceName = GCEUtil.getLocalName(groupInstance.instance)
       def instanceZone = getZoneFromInstanceUrl(groupInstance.instance)
-      def instance = instances.get(project, instanceZone, localInstanceName).execute()
+      def instance = timeExecute(instances.get(project, instanceZone, localInstanceName),
+              "compute.instances.get",
+              TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, instanceZone)
       def tagsFingerprint = instance.tags.fingerprint
 
       tags.fingerprint = tagsFingerprint
 
-      instanceUpdateOperations << instances.setTags(project, instanceZone, localInstanceName, tags).execute()
+      instanceUpdateOperations << timeExecute(
+          instances.setTags(project, instanceZone, localInstanceName, tags),
+          "compute.instances.setTags",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, instanceZone)
     }
 
     // Block on setting the tags on each instance.
@@ -183,7 +212,10 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     // Delete the original instance template.
     task.updateStatus BASE_PHASE, "Deleting original instance template $origInstanceTemplateName..."
 
-    instanceTemplates.delete(project, origInstanceTemplateName).execute()
+    timeExecute(
+        instanceTemplates.delete(project, origInstanceTemplateName),
+        "compute.instanceTemplates.delete",
+        TAG_SCOPE, SCOPE_GLOBAL)
 
     task.updateStatus BASE_PHASE, "Done tagging server group $serverGroupName in $region."
     null

@@ -24,6 +24,7 @@ import com.google.api.services.compute.model.InstanceAggregatedList
 import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.InstancesScopedList
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
@@ -53,6 +54,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperationUnitSpec extends Spe
   private static final INSTANCE_IDS = [INSTANCE_ID1, INSTANCE_ID2]
   private static final INSTANCE_URLS = [INSTANCE_URL1, INSTANCE_URL2]
 
+  def registry = new DefaultRegistry()
   @Shared SafeRetry safeRetry
 
   def setupSpec() {
@@ -94,6 +96,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperationUnitSpec extends Spe
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new RegisterInstancesWithGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
       def request = new TargetPoolsAddInstanceRequest()
@@ -140,6 +143,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperationUnitSpec extends Spe
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new RegisterInstancesWithGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
       def request = new TargetPoolsAddInstanceRequest()

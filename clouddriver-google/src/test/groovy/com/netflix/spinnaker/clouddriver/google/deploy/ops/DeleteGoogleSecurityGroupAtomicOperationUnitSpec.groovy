@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleSecurityGroupDescription
@@ -35,6 +36,7 @@ class DeleteGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
 
   void "should delete firewall rule"() {
     setup:
+      def registry = new DefaultRegistry()
       def computeMock = Mock(Compute)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsDelete = Mock(Compute.Firewalls.Delete)
@@ -43,6 +45,7 @@ class DeleteGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
                                                                  accountName: ACCOUNT_NAME,
                                                                  credentials: credentials)
       @Subject def operation = new DeleteGoogleSecurityGroupAtomicOperation(description)
+      operation.registry = registry
 
     when:
       operation.operate([])

@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeregisterInstancesFromGoogleLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -31,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
  *
  * Uses {@link https://cloud.google.com/compute/docs/reference/latest/targetPools/removeInstance}
  */
-class DeregisterInstancesFromGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
+class DeregisterInstancesFromGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "DEREGISTER_INSTANCES"
 
   private static Task getTask() {
@@ -73,7 +72,9 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperation implements Atomic
 
       def removeInstanceRequest = new TargetPoolsRemoveInstanceRequest()
       removeInstanceRequest.instances = instanceUrls.collect { url -> new InstanceReference(instance: url) }
-      compute.targetPools().removeInstance(project, region, targetPoolName, removeInstanceRequest).execute()
+      timeExecute(
+          compute.targetPools().removeInstance(project, region, targetPoolName, removeInstanceRequest),
+          "compute.targetPools.removeInstance", TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
     }
 
     task.updateStatus BASE_PHASE, "Done deregistering instances (${instanceIds.join(", ")}) from load balancers " +
