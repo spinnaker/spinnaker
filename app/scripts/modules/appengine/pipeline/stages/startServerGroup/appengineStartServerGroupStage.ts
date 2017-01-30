@@ -42,6 +42,7 @@ module(APPENGINE_START_SERVER_GROUP_STAGE, [ACCOUNT_SERVICE])
         { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
+      cloudProvider: 'appengine',
     });
   })
   .controller('appengineStartServerGroupStageCtrl', AppengineStartServerGroupStageCtrl);
