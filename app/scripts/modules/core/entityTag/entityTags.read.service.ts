@@ -33,7 +33,7 @@ export class EntityTagsReader {
         result.resolve(allTags);
       })
       .catch(() => {
-        this.$exceptionHandler(new Error('Failed to load entity tags.'));
+        this.$exceptionHandler(new Error(`Failed to load ${entityType} entity tags; groups: \n${idGroups.join('\n')}`));
         result.resolve([]);
       });
 
