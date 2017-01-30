@@ -22,10 +22,19 @@ import org.springframework.stereotype.Component;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 @Component
 public class ComponentProfileRegistry {
   @Autowired
   OkClient okClient;
+
+  @Autowired
+  ComponentProfileRegistryService componentProfileRegistryService;
+
+  @Autowired
+  String spinconfigBucket;
 
   @Bean
   public ComponentProfileRegistryService componentProfileRegistryService() {
@@ -34,5 +43,13 @@ public class ComponentProfileRegistry {
         .setEndpoint("https://www.googleapis.com")
         .build()
         .create(ComponentProfileRegistryService.class);
+  }
+
+  public InputStream getObjectContents(String objectName) throws IOException {
+    ComponentProfileRegistryService service = componentProfileRegistryService;
+
+    StoredObjectMetadata metadata = service.getMetadata(spinconfigBucket, objectName);
+
+    return service.getContents(spinconfigBucket, objectName, metadata.getGeneration(), "media").getBody().in();
   }
 }

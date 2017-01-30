@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.Versions;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
@@ -35,32 +36,36 @@ public class Daemon {
   }
 
   public static void addAccount(String deploymentName, String providerName, boolean validate, Account account) {
-    ResponseUnwrapper.get(service.addAccount(deploymentName, providerName, validate, account));
+    ResponseUnwrapper.get(getService().addAccount(deploymentName, providerName, validate, account));
   }
 
   public static void setAccount(String deploymentName, String providerName, String accountName, boolean validate, Account account) {
-    ResponseUnwrapper.get(service.setAccount(deploymentName, providerName, accountName, validate, account));
+    ResponseUnwrapper.get(getService().setAccount(deploymentName, providerName, accountName, validate, account));
   }
 
   public static void deleteAccount(String deploymentName, String providerName, String accountName, boolean validate) {
-    ResponseUnwrapper.get(service.deleteAccount(deploymentName, providerName, accountName, validate));
+    ResponseUnwrapper.get(getService().deleteAccount(deploymentName, providerName, accountName, validate));
   }
 
   public static Provider getProvider(String deploymentName, String providerName, boolean validate) {
-    Object provider = ResponseUnwrapper.get(service.getProvider(deploymentName, providerName, validate));
+    Object provider = ResponseUnwrapper.get(getService().getProvider(deploymentName, providerName, validate));
     return getObjectMapper().convertValue(provider, Providers.translateProviderType(providerName));
   }
 
   public static void setProviderEnableDisable(String deploymentName, String providerName, boolean validate, boolean enable) {
-    ResponseUnwrapper.get(service.setProviderEnabled(deploymentName, providerName, validate, enable));
+    ResponseUnwrapper.get(getService().setProviderEnabled(deploymentName, providerName, validate, enable));
   }
 
   public static void generateDeployment(String deploymentName, boolean validate) {
-    ResponseUnwrapper.get(service.generateDeployment(deploymentName, validate, ""));
+    ResponseUnwrapper.get(getService().generateDeployment(deploymentName, validate, ""));
   }
 
   public static void deployDeployment(String deploymentName, boolean validate) {
-    ResponseUnwrapper.get(service.deployDeployment(deploymentName, validate, ""));
+    ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, ""));
+  }
+
+  public static Versions getVersions() {
+    return ResponseUnwrapper.get(getService().getVersions());
   }
 
   private static DaemonService getService() {

@@ -108,6 +108,14 @@ $ tree ~/.hal
 1 directory, 4 files
 ```
 
+### hal versions
+
+List the available versions of Spinnaker to deploy.
+
+```
+$ hal versions
+```
+
 ## Getting Started
 
 Since Halyard is not yet being distributed, to use it you will have to build it

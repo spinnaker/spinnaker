@@ -26,10 +26,10 @@ public class AnsiUi {
 
   public static void listItem(String message) {
     AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
-        .setIndentFirstLine(true)
+        .setIndentFirstLine(false)
         .setIndentWidth(4);
 
-    builder.addSnippet("- ")
+    builder.addSnippet("  - ")
         .addStyle(AnsiStyle.BOLD);
 
     builder.addSnippet(message);
@@ -85,7 +85,7 @@ public class AnsiUi {
         .setIndentFirstLine(false)
         .setIndentWidth(4);
 
-    builder.addSnippet("  ? ")
+    builder.addSnippet("? ")
         .setForegroundColor(AnsiForegroundColor.MAGENTA)
         .addStyle(AnsiStyle.BOLD);
 

@@ -21,6 +21,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import java.util.List;
+
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.Versions;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
 import retrofit.http.GET;
@@ -97,4 +99,7 @@ public interface DaemonService {
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
+
+  @GET("/v1/versions/")
+  DaemonResponse<Versions> getVersions();
 }
