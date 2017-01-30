@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -33,10 +32,10 @@ public class DockerRegistryAccount extends Account {
   private String address;
   private String username;
   private String password;
-  private String passwordFile;
-  private String dockerconfigFile;
   private String email;
   private List<String> repositories = new ArrayList<>();
+  @LocalFile private String passwordFile;
+  @LocalFile private String dockerconfigFile;
 
   public String getAddress() {
     if (address.startsWith("https://") || address.startsWith("http://")) {

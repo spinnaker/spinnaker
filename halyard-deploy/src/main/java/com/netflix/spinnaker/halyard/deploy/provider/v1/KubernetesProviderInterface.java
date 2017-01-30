@@ -17,10 +17,14 @@
 package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.resource.v1.TemplatedResource;
+import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints.Service;
 import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
@@ -31,19 +35,19 @@ import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.State;
 import com.netflix.spinnaker.halyard.deploy.resource.v1.JarResource;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -56,6 +60,9 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   @Value("${deploy.kubernetes.pollTimeout:10}")
   private int TIMEOUT_MINUTES;
+
+  @Autowired
+  LookupService lookupService;
   
   private static final String CLOUDRIVER_CONFIG_PATH = "/kubernetes/raw/hal-clouddriver.yml";
 
@@ -122,11 +129,14 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     List<String> command = kubectlAccountCommand(account);
 
     Service clouddriver = ComponentType.CLOUDDRIVER.getService(details.getEndpoints());
+    String namespace = getNamespaceFromAddress(clouddriver.getAddress());
+    String credsSecret = "hal-creds-config";
+    String clouddriverSecret = componentSecret(ComponentType.CLOUDDRIVER.getName());
 
     // kubectl [--flags] create namespace {%namespace%}
     command.add("create");
     command.add("namespace");
-    command.add(getNamespaceFromAddress(clouddriver.getAddress()));
+    command.add(namespace);
 
     JobRequest request = new JobRequest()
         .setTokenizedCommand(command)
@@ -143,6 +153,9 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
           ProblemBuilder(Severity.FATAL, "Unable to bootstrap clouddriver:\n" + jobStatus.getStdErr()).build());
     }
 
+    stageCredentials(details, credsSecret, namespace);
+    stageConfig(details, namespace);
+
     command = kubectlAccountCommand(account);
     // kubectl [--flags] create -f -
     // reads a resource definition from stdin
@@ -155,10 +168,12 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         .setTimeoutMillis(TimeUnit.MINUTES.toMillis(TIMEOUT_MINUTES));
 
     Map<String, String> bindings = new HashMap<>();
-    bindings.put("namespace", getNamespaceFromAddress(clouddriver.getAddress()));
+    bindings.put("namespace", namespace);
     bindings.put("service-name", getServiceFromAddress(clouddriver.getAddress()));
     bindings.put("component-name", "spin-clouddriver-v000");
-    bindings.put("component-type", ComponentType.CLOUDDRIVER.name());
+    bindings.put("component-type", ComponentType.CLOUDDRIVER.getName());
+    bindings.put("creds-config", credsSecret);
+    bindings.put("clouddriver-config", clouddriverSecret);
     bindings.put("port", Integer.toString(clouddriver.getPort()));
 
     TemplatedResource bootstrap = new JarResource(CLOUDRIVER_CONFIG_PATH).setBindings(bindings);
@@ -204,6 +219,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       command.add("--kubeconfig");
       command.add(kubeconfig);
     }
+
     return command;
   }
 
@@ -227,5 +243,75 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
     return split[index];
 
+  }
+
+  private String componentSecret(String name) {
+    return "hal-" + name + "-config";
+  }
+
+  private void stageCredentials(DeploymentDetails<KubernetesAccount> details, String secretName, String namespace) {
+    NodeFilter accountFilter = new NodeFilter().withAnyHalconfigFile()
+        .setDeployment(details.getDeploymentName())
+        .withAnyProvider()
+        .withAnyAccount();
+
+    List<Node> accounts = lookupService.getMatchingNodesOfType(accountFilter, Account.class);
+
+    List<String> files = accounts.stream()
+        .map(a -> a.localFiles().stream().map(f -> {
+          f.setAccessible(true);
+          try {
+            return (String) f.get(a);
+          } catch (IllegalAccessException e) {
+            throw new RuntimeException("Failed to get local files for account " + a.getNodeName(), e);
+          }
+        }).collect(Collectors.toList()))
+        .reduce(new ArrayList<>(), (a, b) -> {
+          a.addAll(b);
+          return a;
+        })
+        .stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+
+    createSecret(details, files, secretName, namespace);
+  }
+
+  private void stageConfig(DeploymentDetails<KubernetesAccount> details, String namespace) {
+    File outputPath = new File(spinnakerOutputPath);
+    File[] profiles = outputPath.listFiles();
+    spinnakerComponents.forEach(s -> {
+      String name = componentSecret(s.getComponentName());
+      createSecret(details, s.profilePaths(profiles), name, namespace);
+    });
+  }
+
+  private void createSecret(DeploymentDetails<KubernetesAccount> details, List<String> files, String secretName, String namespace) {
+    List<String> command = kubectlAccountCommand(details.getAccount());
+
+    command.add("create");
+    command.add("secret");
+    command.add("generic");
+    command.add(secretName);
+    command.add("--namespace=" + namespace);
+
+    files.forEach(f -> command.add("from-file=" + f));
+
+    JobRequest request = new JobRequest()
+        .setTokenizedCommand(command)
+        .setTimeoutMillis(TimeUnit.MINUTES.toMillis(TIMEOUT_MINUTES));
+
+    String jobId = jobExecutor.startJob(request);
+
+    JobStatus jobStatus = jobExecutor.backoffWait(jobId,
+        TimeUnit.SECONDS.toMillis(MIN_POLL_INTERVAL_SECONDS),
+        TimeUnit.SECONDS.toMillis(MAX_POLL_INTERVAL_SECONDS));
+
+    if (jobStatus.getResult() == Result.FAILURE) {
+      throw new HalconfigException(new ProblemBuilder(Severity.FATAL,
+          "Unable to create secret " + secretName + ":\n"
+              + jobStatus.getStdOut() + "\n"
+              + jobStatus.getStdErr()).build());
+    }
   }
 }

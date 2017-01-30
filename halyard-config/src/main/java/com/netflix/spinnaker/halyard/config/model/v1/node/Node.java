@@ -18,12 +18,17 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The "Node" class represents a YAML node in our config hierarchy that can be validated.
@@ -125,5 +130,11 @@ abstract public class Node implements Validatable {
       child.parentify();
       child = children.getNext();
     }
+  }
+
+  public List<Field> localFiles() {
+    return Arrays.stream(getClass().getDeclaredFields())
+        .filter(f -> f.getDeclaredAnnotation(LocalFile.class) != null)
+        .collect(Collectors.toList());
   }
 }

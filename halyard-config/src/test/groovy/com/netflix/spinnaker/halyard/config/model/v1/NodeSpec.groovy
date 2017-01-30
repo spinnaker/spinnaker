@@ -32,6 +32,9 @@ class NodeSpec extends Specification {
     ChildTestNode node2 = new ChildTestNode()
     ChildTestNode node3 = new ChildTestNode()
 
+    @LocalFile String file1 = "/a/b/c/"
+    @LocalFile String file2 = "/d/e/f/"
+
     @Override
     void accept(ProblemSetBuilder psBuilder, Validator v) {
 
@@ -143,5 +146,27 @@ class NodeSpec extends Specification {
     }
 
     i == node.childNodes.size()
+  }
+
+  void "node correctly reports localfiles"() {
+    setup:
+    def node = new TestNode()
+
+    when:
+    def files = node.localFiles()
+
+    then:
+    files.size() == 2
+  }
+
+  void "node correctly reports no localfiles"() {
+    setup:
+    def node = new ChildTestNode()
+
+    when:
+    def files = node.localFiles()
+
+    then:
+    files.size() == 0
   }
 }

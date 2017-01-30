@@ -31,6 +31,7 @@ public enum ComponentType {
   @Getter
   Class serviceClass;
 
+  @Getter
   final String name;
 
   public Service getService(SpinnakerEndpoints endpoints) {

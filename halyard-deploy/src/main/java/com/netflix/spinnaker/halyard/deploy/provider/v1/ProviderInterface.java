@@ -17,12 +17,16 @@
 package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.SpinnakerComponent;
 import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
 import com.netflix.spinnaker.halyard.deploy.component.v1.ServiceFactory;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A ProviderInterface is an abstraction for communicating with a specific cloud-provider's installation
@@ -35,6 +39,12 @@ public abstract class ProviderInterface<T extends Account> {
 
   @Autowired
   ServiceFactory serviceFactory;
+
+  @Autowired
+  String spinnakerOutputPath;
+
+  @Autowired(required = false)
+  List<SpinnakerComponent> spinnakerComponents = new ArrayList<>();
 
   abstract public Object connectTo(DeploymentDetails<T> details, ComponentType componentType);
 

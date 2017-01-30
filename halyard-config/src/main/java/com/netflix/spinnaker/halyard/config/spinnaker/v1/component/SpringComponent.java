@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.spinnaker.v1.component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 abstract public class SpringComponent extends SpinnakerComponent {
   public abstract String getComponentName();
@@ -33,5 +36,13 @@ abstract public class SpringComponent extends SpinnakerComponent {
 
   protected String yamlToString(Object o) {
     return yamlParser.dump(objectMapper.convertValue(o, Map.class));
+  }
+
+  @Override
+  protected List<Pattern> profilePatterns() {
+    List<Pattern> result = new ArrayList<>();
+    result.add(Pattern.compile("spinnaker.*\\.yml"));
+    result.add(Pattern.compile(getComponentName() + ".*\\.yml"));
+    return result;
   }
 }

@@ -16,25 +16,25 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.ERROR;
-
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+
+import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.ERROR;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -42,9 +42,9 @@ public class KubernetesAccount extends Account implements Cloneable {
   String context;
   String cluster;
   String user;
-  String kubeconfigFile;
   List<String> namespaces = new ArrayList<>();
   List<DockerRegistryReference> dockerRegistries = new ArrayList<>();
+  @LocalFile String kubeconfigFile;
 
   public String getKubeconfigFile() {
     if (kubeconfigFile == null || kubeconfigFile.isEmpty()) {

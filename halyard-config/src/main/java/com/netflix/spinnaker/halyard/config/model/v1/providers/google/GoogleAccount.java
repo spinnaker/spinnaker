@@ -16,23 +16,23 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import java.util.ArrayList;
-import java.util.List;
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class GoogleAccount extends Account implements Cloneable {
-  private String jsonPath;
   private String project;
   private boolean alphaListed;
   private List<String> imageProjects = new ArrayList<>();
+  @LocalFile private String jsonPath;
 
   @Override
   public void accept(ProblemSetBuilder psBuilder, Validator v) {

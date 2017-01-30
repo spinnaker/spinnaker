@@ -45,7 +45,7 @@ spec:
             - mountPath: /opt/spinnaker/config
               name: hal-clouddriver-config
             - mountPath: /root/.kube
-              name: kube-config
+              name: hal-kube-config
           readinessProbe:
             httpGet:
               path: /credentials
@@ -55,8 +55,8 @@ spec:
       volumes:
         - name: hal-clouddriver-config
           secret:
-            secretName: hal-clouddriver-config
-        - name: kube-config
+            secretName: {%clouddriver-config%}
+        - name: hal-kube-config
           secret:
-            secretName: kube-config
+            secretName: {%creds-config%}
 

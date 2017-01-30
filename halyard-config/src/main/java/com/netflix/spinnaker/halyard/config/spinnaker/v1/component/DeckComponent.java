@@ -18,6 +18,10 @@ package com.netflix.spinnaker.halyard.config.spinnaker.v1.component;
 
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 @Component
 public class DeckComponent extends SpinnakerComponent {
   @Override
@@ -33,5 +37,12 @@ public class DeckComponent extends SpinnakerComponent {
   @Override
   public String getConfigFileName() {
     return "settings.js";
+  }
+
+  @Override
+  protected List<Pattern> profilePatterns() {
+    List<Pattern> result = new ArrayList<>();
+    result.add(Pattern.compile("settings\\.js"));
+    return result;
   }
 }
