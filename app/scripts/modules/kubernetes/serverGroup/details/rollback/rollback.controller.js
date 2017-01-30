@@ -25,6 +25,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.rollba
         rollbackContext: {
           rollbackServerGroupName: serverGroup.name
         },
+        namespace: serverGroup.namespace,
         interestingHealthProviderNames: ['KubernetesService']
       };
 
