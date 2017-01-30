@@ -129,7 +129,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
       cluster.accountName = clusterKey.account
       cluster.name = clusterKey.name
       if (includeDetails) {
-        cluster.loadBalancers = clusterDataEntry.relationships[Keys.Namespace.LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) }
+        cluster.loadBalancers = clusterDataEntry.relationships[Keys.Namespace.LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) } ?: []
         cluster.serverGroups = serverGroups[cluster.name]?.findAll { it.account == cluster.accountName } ?: []
       } else {
         cluster.loadBalancers = clusterDataEntry.relationships[Keys.Namespace.LOAD_BALANCERS.ns]?.collect { loadBalancerKey ->
