@@ -35,6 +35,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [])
         .map(t => this.securityGroupObjectsKeyedByTag[t.value])
         .flatten()
         .map('id')
+        .compact()
         .uniq()
         .value();
     };
