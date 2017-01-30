@@ -61,7 +61,7 @@ public class DeploymentFactory {
 
     NodeFilter nodeFilter = new NodeFilter()
         .setDeployment(deploymentConfiguration.getName())
-        .setProvider("*")
+        .withAnyProvider()
         .setAccount(accountName);
 
     Account account = accountService.getAccount(nodeFilter);

@@ -46,7 +46,7 @@ public class AtomicFileWriter {
   public AtomicFileWriter(Path path) throws IOException {
     FileSystem defaultFileSystem = FileSystems.getDefault();
     this.path = path;
-    path.getParent().toFile().mkdir();
+    path.getParent().toFile().mkdirs();
     String tmpDir = System.getProperty("java.io.tmpdir");
     this.tmpPath = defaultFileSystem.getPath(tmpDir, UUID.randomUUID().toString());
     this.writer = Files.newBufferedWriter(this.tmpPath, UTF_8,

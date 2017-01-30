@@ -66,6 +66,6 @@ public class DeploymentEnvironment extends Node {
     }
   }
 
-  DeploymentType type;
-  String accountName;
+  private DeploymentType type = DeploymentType.LocalhostDebian;
+  private String accountName;
 }

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.profileRegistry.ComponentProfileRegistryService;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.profileRegistry.StoredObjectMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,8 +71,8 @@ abstract public class SpinnakerComponent {
 
   public abstract String getComponentName();
 
-  public String getFullConfig(NodeFilter filter) {
-    return EDIT_WARNING + generateFullConfig(getBaseConfig(), deploymentService.getDeploymentConfiguration(filter));
+  public String getFullConfig(NodeFilter filter, SpinnakerEndpoints endpoints) {
+    return EDIT_WARNING + generateFullConfig(getBaseConfig(), deploymentService.getDeploymentConfiguration(filter), endpoints);
   }
 
   public abstract String getConfigFileName();
@@ -83,7 +84,7 @@ abstract public class SpinnakerComponent {
    * @param deploymentConfiguration the deployment configuration being translated into Spinnaker config.
    * @return the fully written configuration.
    */
-  protected String generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration) {
+  protected String generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
     return baseConfig;
   }
 
@@ -99,7 +100,7 @@ abstract public class SpinnakerComponent {
     if (version == null || version.isEmpty()) {
       throw new IllegalConfigException(
           new ProblemBuilder(Problem.Severity.FATAL,
-              "In order to load a Spinnaker Component's profile, you must specify a version of Spinnaker in your halconfig")
+              "In order to load a Spinnaker Component's profile, you must specify a version of Spinnaker in your halconfig.")
               .build()
       );
     }
