@@ -5,13 +5,16 @@ import d3 from 'd3';
 
 let angular = require('angular');
 
+import {PIPELINE_CONFIG_VALIDATOR} from '../validation/pipelineConfig.validator';
+
 require('./pipelineGraph.less');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive', [
   require('core/utils/jQuery.js'),
   require('./pipelineGraph.service.js'),
+  PIPELINE_CONFIG_VALIDATOR,
 ])
-  .directive('pipelineGraph', function ($window, $, pipelineGraphService) {
+  .directive('pipelineGraph', function ($window, $, pipelineGraphService, pipelineConfigValidator) {
     return {
       restrict: 'E',
       scope: {
@@ -19,9 +22,14 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
         execution: '=',
         viewState: '=',
         onNodeClick: '=',
+        shouldValidate: '=',
       },
       templateUrl: require('./pipelineGraph.directive.html'),
       link: function (scope, elem) {
+
+        let pipelineValidations = { pipeline: [], stages: [] };
+
+        scope.warningsPopover = require('./warnings.popover.html');
 
         // track and save the graph scroll position for executions so it doesn't get reset to
         // zero every second due to repaint.
@@ -111,7 +119,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
         }
 
         let createNodes = scope.pipeline ?
-         () => pipelineGraphService.generateConfigGraph(scope.pipeline, scope.viewState) :
+         () => pipelineGraphService.generateConfigGraph(scope.pipeline, scope.viewState, pipelineValidations) :
          () => pipelineGraphService.generateExecutionGraph(scope.execution, scope.viewState);
 
         function getLastPhase (node) {
@@ -329,7 +337,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
           scope.graphHeight = Math.max(_.sum(scope.rowHeights) + scope.graphVerticalPadding, scope.minExecutionGraphHeight);
         }
 
-
         function updateGraph() {
           applyPhasesAndLink();
           applyPhaseWidth();
@@ -340,18 +347,27 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
           applyAllNodes();
         }
 
-        var handleWindowResize = _.throttle(function() {
+        let handleWindowResize = _.throttle(function() {
           scope.$evalAsync(updateGraph);
         }, 300);
 
-        updateGraph();
+        const validationSubscription = pipelineConfigValidator.subscribe((validations) => {
+          pipelineValidations = validations;
+          updateGraph();
+        });
 
-        scope.$watch('pipeline', updateGraph, true);
+        updateGraph();
+        if (scope.shouldValidate) {
+          scope.$watch('pipeline', _.debounce(() => pipelineConfigValidator.validatePipeline(scope.pipeline), 300), true);
+        } else {
+          scope.$watch('pipeline', updateGraph, true);
+        }
         scope.$watch('viewState', updateGraph, true);
         scope.$watch('execution', updateGraph, true);
         $($window).bind('resize.pipelineGraph-' + graphId, handleWindowResize);
 
-        scope.$on('$destroy', function() {
+        scope.$on('$destroy', () => {
+          validationSubscription.unsubscribe();
           $($window).unbind('resize.pipelineGraph-' + graphId);
         });
 

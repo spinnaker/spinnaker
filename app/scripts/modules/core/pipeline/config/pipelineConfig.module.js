@@ -2,6 +2,11 @@
 
 let angular = require('angular');
 
+import {REQUIRED_FIELD_VALIDATOR} from './validation/requiredField.validator';
+import {TARGET_IMPEDANCE_VALIDATOR} from './validation/targetImpedance.validator';
+import {STAGE_OR_TRIGGER_BEFORE_TYPE_VALIDATOR} from './validation/stageOrTriggerBeforeType.validator';
+import {STAGE_BEFORE_TYPE_VALIDATOR} from './validation/stageBeforeType.validator';
+
 require('./pipelineConfig.less');
 
 module.exports = angular.module('spinnaker.core.pipeline.config', [
@@ -14,7 +19,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config', [
   require('./pipelineConfig.controller.js'),
   require('./pipelineConfigView.js'),
   require('./pipelineConfigurer.js'),
-  require('./validation/pipelineConfigValidator.directive.js'),
+  REQUIRED_FIELD_VALIDATOR,
+  TARGET_IMPEDANCE_VALIDATOR,
+  STAGE_OR_TRIGGER_BEFORE_TYPE_VALIDATOR,
+  STAGE_BEFORE_TYPE_VALIDATOR,
   require('./targetSelect.directive.js'),
   require('./createNew.directive.js'),
   require('./health/stagePlatformHealthOverride.directive.js'),

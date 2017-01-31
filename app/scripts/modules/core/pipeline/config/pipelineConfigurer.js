@@ -5,12 +5,13 @@ import * as _ from 'lodash';
 let angular = require('angular');
 
 import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
-
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+import {PIPELINE_CONFIG_VALIDATOR} from './validation/pipelineConfig.validator';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigurer', [
   OVERRIDE_REGISTRY,
   PIPELINE_CONFIG_SERVICE,
+  PIPELINE_CONFIG_VALIDATOR,
 ])
   .directive('pipelineConfigurer', function() {
     return {
@@ -24,9 +25,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
   })
   .controller('PipelineConfigurerCtrl', function($scope, $uibModal, $timeout, $window, pageTitleService,
+                                                 pipelineConfigValidator,
                                                  pipelineConfigService, viewStateCache, overrideRegistry, $location) {
 
     this.actionsTemplateUrl = overrideRegistry.getTemplate('pipelineConfigActions', require('./actions/pipelineConfigActions.html'));
+
+    this.warningsPopover = require('./warnings.popover.html');
 
     pipelineConfigService.getHistory($scope.pipeline.id, 2).then(history => {
       if (history && history.length > 1) {
@@ -367,6 +371,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       }
     });
 
+    const validationSubscription = pipelineConfigValidator.subscribe((validations) => {
+      this.validations = validations;
+    });
+
     $window.onbeforeunload = function() {
       if ($scope.viewState.isDirty) {
         return warningMessage;
@@ -375,6 +383,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
     $scope.$on('$destroy', function() {
       confirmPageLeave();
+      validationSubscription.unsubscribe();
       $window.onbeforeunload = undefined;
     });
 

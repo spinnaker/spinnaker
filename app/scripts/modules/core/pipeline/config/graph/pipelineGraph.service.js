@@ -3,9 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.graph.pipelineGraph.service', [
-
-  ])
+  .module('spinnaker.core.pipeline.config.graph.pipelineGraph.service', [])
   .factory('pipelineGraphService', function () {
 
     let xScrollOffset = {};
@@ -42,8 +40,9 @@ module.exports = angular
       return nodes;
     }
 
-    function generateConfigGraph(pipeline, viewState) {
+    function generateConfigGraph(pipeline, viewState, pipelineValidations) {
       let nodes = [];
+      const configWarnings = pipelineValidations.pipeline;
       var configNode = {
             name: 'Configuration',
             phase: 0,
@@ -57,10 +56,13 @@ module.exports = angular
             root: true,
             isActive: viewState.section === 'triggers',
             isHighlighted: false,
+            warnings: configWarnings.length ? {messages: configWarnings} : null,
+            hasWarnings: !!configWarnings.length,
           };
       nodes.push(configNode);
 
       pipeline.stages.forEach(function(stage, idx) {
+        const warnings = pipelineValidations.stages.find(e => e.stage === stage);
         var node = {
           id: stage.refId,
           name: stage.name || '[new stage]',
@@ -74,6 +76,8 @@ module.exports = angular
           color: null,
           isActive: viewState.stageIndex === idx && viewState.section === 'stage',
           isHighlighted: false,
+          warnings: warnings,
+          hasWarnings: !!warnings,
         };
         if (!node.parentIds.length) {
           node.parentIds.push(configNode.id);

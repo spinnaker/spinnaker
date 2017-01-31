@@ -5,34 +5,8 @@ import {API_SERVICE, Api} from 'core/api/api.service';
 import {AUTHENTICATION_SERVICE, AuthenticationService} from 'core/authentication/authentication.service';
 import {VIEW_STATE_CACHE_SERVICE, ViewStateCacheService} from 'core/cache/viewStateCache.service';
 import {ICache} from 'core/cache/deckCache.service';
-
-export interface IPipelineConfig {
-  id: string;
-  name: string;
-  index: number;
-  strategy: boolean;
-  isNew?: boolean;
-  stages: IStageConfig[];
-  triggers: ITriggerConfig[];
-  application: string;
-  limitConcurrent: boolean;
-  keepWaitingPipelines: boolean;
-  parallel: boolean;
-  executionEngine: string;
-}
-
-export interface IStageConfig {
-  name: string;
-  refId: string | number; // unfortunately, we kept this loose early on, so it's either a string or a number
-  isNew?: boolean;
-  type: string;
-  requisiteStageRefIds: (string | number)[];
-}
-
-export interface ITriggerConfig {
-  enabled: boolean;
-  type: string;
-}
+import {IStage} from 'core/domain/IStage';
+import {IPipeline} from 'core/domain/IPipeline';
 
 export class PipelineConfigService {
 
@@ -51,9 +25,9 @@ export class PipelineConfigService {
     return `${applicationName}:${pipelineName}`;
   }
 
-  public getPipelinesForApplication(applicationName: string): ng.IPromise<IPipelineConfig[]> {
+  public getPipelinesForApplication(applicationName: string): ng.IPromise<IPipeline[]> {
     return this.API.one('applications').one(applicationName).all('pipelineConfigs').getList()
-      .then((pipelines: IPipelineConfig[]) => {
+      .then((pipelines: IPipeline[]) => {
         pipelines.forEach(p => p.stages = p.stages || []);
         return this.sortPipelines(pipelines);
       });
@@ -61,21 +35,21 @@ export class PipelineConfigService {
 
   public getStrategiesForApplication(applicationName: string) {
     return this.API.one('applications').one(applicationName).all('strategyConfigs').getList()
-      .then((pipelines: IPipelineConfig[]) => {
+      .then((pipelines: IPipeline[]) => {
       pipelines.forEach(p => p.stages = p.stages || []);
       return this.sortPipelines(pipelines);
     });
   }
 
-  public getHistory(id: string, count = 20): ng.IPromise<IPipelineConfig[]> {
+  public getHistory(id: string, count = 20): ng.IPromise<IPipeline[]> {
     return this.API.one('pipelineConfigs', id).all('history').withParams({count: count}).getList();
   }
 
-  public deletePipeline(applicationName: string, pipeline: IPipelineConfig, pipelineName: string): ng.IPromise<void> {
+  public deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): ng.IPromise<void> {
     return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines').one(applicationName, pipelineName).remove();
   }
 
-  public savePipeline(pipeline: IPipelineConfig): ng.IPromise<void> {
+  public savePipeline(pipeline: IPipeline): ng.IPromise<void> {
     delete pipeline.isNew;
     pipeline.stages.forEach(function(stage) {
       delete stage.isNew;
@@ -86,7 +60,7 @@ export class PipelineConfigService {
     return this.API.one( pipeline.strategy ? 'strategies' : 'pipelines').data(pipeline).post();
   }
 
-  public renamePipeline(applicationName: string, pipeline: IPipelineConfig, currentName: string, newName: string): ng.IPromise<void> {
+  public renamePipeline(applicationName: string, pipeline: IPipeline, currentName: string, newName: string): ng.IPromise<void> {
     this.configViewStateCache.remove(this.buildViewStateCacheKey(applicationName, currentName));
     pipeline.name = newName;
     return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines').one(pipeline.id).data(pipeline).put();
@@ -97,9 +71,9 @@ export class PipelineConfigService {
     return this.API.one('pipelines').one(applicationName).one(pipelineName).data(body).post();
   }
 
-  public getDownstreamStageIds(pipeline: IPipelineConfig, stage: IStageConfig): (string | number)[] {
+  public getDownstreamStageIds(pipeline: IPipeline, stage: IStage): (string | number)[] {
     let downstream: (string | number)[] = [];
-    const children = pipeline.stages.filter((stageToTest: IStageConfig) => {
+    const children = pipeline.stages.filter((stageToTest: IStage) => {
       return stageToTest.requisiteStageRefIds &&
         stageToTest.requisiteStageRefIds.includes(stage.refId);
     });
@@ -112,9 +86,9 @@ export class PipelineConfigService {
     return uniq(downstream);
   }
 
-  public getDependencyCandidateStages(pipeline: IPipelineConfig, stage: IStageConfig): IStageConfig[] {
+  public getDependencyCandidateStages(pipeline: IPipeline, stage: IStage): IStage[] {
     const downstreamIds: (string | number)[] = this.getDownstreamStageIds(pipeline, stage);
-    return pipeline.stages.filter((stageToTest: IStageConfig) => {
+    return pipeline.stages.filter((stageToTest: IStage) => {
       return stage !== stageToTest &&
         stageToTest.requisiteStageRefIds &&
         !downstreamIds.includes(stageToTest.refId) &&
@@ -122,10 +96,10 @@ export class PipelineConfigService {
     });
   }
 
-  public getAllUpstreamDependencies(pipeline: IPipelineConfig, stage: IStageConfig): IStageConfig[] {
-    let upstreamStages: IStageConfig[] = [];
+  public getAllUpstreamDependencies(pipeline: IPipeline, stage: IStage): IStage[] {
+    let upstreamStages: IStage[] = [];
     if (stage.requisiteStageRefIds && stage.requisiteStageRefIds.length) {
-      pipeline.stages.forEach((stageToTest: IStageConfig) => {
+      pipeline.stages.forEach((stageToTest: IStage) => {
         if (stage.requisiteStageRefIds.includes(stageToTest.refId)) {
           upstreamStages.push(stageToTest);
           upstreamStages = upstreamStages.concat(this.getAllUpstreamDependencies(pipeline, stageToTest));
@@ -135,7 +109,7 @@ export class PipelineConfigService {
     return uniq(upstreamStages);
   }
 
-  private sortPipelines(pipelines: IPipelineConfig[]): ng.IPromise<IPipelineConfig[]> {
+  private sortPipelines(pipelines: IPipeline[]): ng.IPromise<IPipeline[]> {
 
     const sorted = sortBy(pipelines, ['index', 'name']);
 

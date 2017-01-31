@@ -2,9 +2,10 @@ import {mock} from 'angular';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {
-  PIPELINE_CONFIG_SERVICE, PipelineConfigService,
-  IPipelineConfig, IStageConfig
+  PIPELINE_CONFIG_SERVICE, PipelineConfigService
 } from 'core/pipeline/config/services/pipelineConfig.service';
+import {IStage} from 'core/domain/IStage';
+import {IPipeline} from 'core/domain/IPipeline';
 
 describe('pipelineConfigService', () => {
 
@@ -13,8 +14,8 @@ describe('pipelineConfigService', () => {
       $scope: ng.IScope,
       API: Api;
 
-  let buildStage = (base: any): IStageConfig => {
-    let stageDefaults: IStageConfig = {
+  let buildStage = (base: any): IStage => {
+    let stageDefaults: IStage = {
       name: 'a',
       type: 'wait',
       refId: null,
@@ -26,12 +27,13 @@ describe('pipelineConfigService', () => {
     return stageDefaults;
   };
 
-  let buildPipeline = (base: any): IPipelineConfig => {
-    let defaults: IPipelineConfig = {
+  let buildPipeline = (base: any): IPipeline  => {
+    let defaults: IPipeline = {
       id: null,
       index: 1,
       name: 'some pipeline',
       application: 'app',
+      lastModifiedBy: null,
       limitConcurrent: true,
       keepWaitingPipelines: false,
       strategy: false,
@@ -39,6 +41,7 @@ describe('pipelineConfigService', () => {
       executionEngine: 'v2',
       triggers: [],
       stages: [],
+      parameterConfig: null,
     };
 
     if (base.stages && base.stages.length) {
@@ -66,7 +69,7 @@ describe('pipelineConfigService', () => {
 
   describe('savePipeline', () => {
     it('clears isNew flags, stage name if not present', () => {
-      let pipeline: IPipelineConfig = buildPipeline({
+      let pipeline: IPipeline = buildPipeline({
         stages: [
           { name: 'explicit name', type: 'bake', isNew: true},
           { name: null, type: 'bake', isNew: true},
@@ -91,8 +94,8 @@ describe('pipelineConfigService', () => {
 
   describe('getPipelines', () => {
     it('should return pipelines sorted by index', () => {
-      let result: IPipelineConfig[] = null;
-      let fromServer: IPipelineConfig[] = [
+      let result: IPipeline[] = null;
+      let fromServer: IPipeline[] = [
         buildPipeline({ id: 'a', name: 'second', application: 'app', index: 1, stages: [], triggers: []}),
         buildPipeline({ id: 'b', name: 'last', application: 'app', index: 3, stages: [], triggers: []}),
         buildPipeline({ id: 'c', name: 'first', application: 'app', index: 0, stages: []}),
@@ -100,7 +103,7 @@ describe('pipelineConfigService', () => {
       ];
       $http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
 
-      service.getPipelinesForApplication('app').then((pipelines: IPipelineConfig[]) => {
+      service.getPipelinesForApplication('app').then((pipelines: IPipeline[]) => {
         result = pipelines;
       });
       $scope.$digest();
@@ -110,7 +113,7 @@ describe('pipelineConfigService', () => {
     });
 
     it('should fix sort order of pipelines on initialization: 0..n, index collisions sorted alphabetically', () => {
-      let fromServer: IPipelineConfig[] = [
+      let fromServer: IPipeline[] = [
         buildPipeline({ name: 'second', index: 1, stages: []}),
         buildPipeline({ name: 'last', index: 5, stages: []}),
         buildPipeline({ name: 'first', index: -3, stages: []}),
@@ -138,18 +141,18 @@ describe('pipelineConfigService', () => {
   });
 
   describe('stage dependencies', () => {
-    let a: IStageConfig, b: IStageConfig, c: IStageConfig, d: IStageConfig;
-    let pipeline: IPipelineConfig;
+    let a: IStage, b: IStage, c: IStage, d: IStage;
+    let pipeline: IPipeline;
 
-    let connect = (child: IStageConfig, parent: IStageConfig) => {
+    let connect = (child: IStage, parent: IStage) => {
       child.requisiteStageRefIds.push(parent.refId);
     };
 
-    let expectCandidates = (test: IStageConfig, expected: IStageConfig[]) => {
+    let expectCandidates = (test: IStage, expected: IStage[]) => {
       expect(service.getDependencyCandidateStages(pipeline, test)).toEqual(expected);
     };
 
-    let expectDependencies = (test: IStageConfig, expected: IStageConfig[]) => {
+    let expectDependencies = (test: IStage, expected: IStage[]) => {
       expect(service.getAllUpstreamDependencies(pipeline, test)).toEqual(expected);
     };
 

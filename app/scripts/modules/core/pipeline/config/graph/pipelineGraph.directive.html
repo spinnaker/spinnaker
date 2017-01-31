@@ -1,62 +1,67 @@
 <svg ng-style="{height: graphHeight, width: graphWidth,
                 padding: graphVerticalPadding + 'px ' + nodeRadius*2 + 'px ' + '0 ' + nodeRadius*2 + 'px'}"
-     class="{{graphClass}}">
+     class="{{::graphClass}}">
   <g class="placeholder">
-    <foreignobject ng-attr-width="{{maxLabelWidth > 0 ? maxLabelWidth : 1}}" height="200">
+    <foreignobject ng-attr-width="{{::maxLabelWidth > 0 ? maxLabelWidth : 1}}" height="200">
       <div class="label-body node active"></div>
     </foreignobject>
   </g>
-  <g ng-repeat="stage in allNodes" ng-class="{'has-status': stage.status, active: stage.isActive, highlighted: stage.isHighlighted}" ng-attr-transform="translate({{stage.x}},{{stage.y}})">
+  <g ng-repeat="stage in allNodes"
+     ng-class="{'has-status': stage.status, active: stage.isActive, highlighted: stage.isHighlighted, warning: stage.hasWarnings}"
+     ng-attr-transform="translate({{stage.x}},{{stage.y}})">
 
-    <path ng-repeat="link in stage.childLinks" ng-attr-d="{{link.line}}" class="link {{link.linkClass}}"
+    <path ng-repeat="link in stage.childLinks" ng-attr-d="{{::link.line}}" class="link {{link.linkClass}}"
           ng-attr-stroke="{{link.color}}"
-          ng-attr-transform="translate({{0-stage.x}}, {{0-stage.y}})"></path>
+          ng-attr-transform="translate({{::0-stage.x}}, {{::0-stage.y}})"></path>
+    <g uib-popover-template="warningsPopover"
+       popover-placement="auto"
+       popover-enable="stage.hasWarnings"
+       popover-trigger="mouseenter">
+      <circle ng-attr-r="{{::nodeRadius}}"
+              class="clickable stage-type-{{::stage.masterStage.type.toLowerCase()}} execution-marker execution-marker-{{::stage.status.toLowerCase()}}"
+              ng-class="{active: stage.isActive}"
+              ng-attr-fill-opacity="{{!stage.isActive && stage.executionStage ? 0.4: 1}}"
+              ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+              analytics-on="click"
+              analytics-category="Pipeline Graph ({{::execution ? 'execution' : 'config'}})"
+              analytics-event="Node clicked"
+              ng-click="nodeClicked(stage)"></circle>
 
-    <circle ng-attr-r="{{nodeRadius}}"
-            class="clickable stage-type-{{stage.masterStage.type.toLowerCase()}} execution-marker execution-marker-{{stage.status.toLowerCase()}}"
-            ng-class="{active: stage.isActive}"
-            ng-attr-fill-opacity="{{!stage.isActive && stage.executionStage ? 0.4: 1}}"
+      <rect ng-if="stage.root && !stage.executionStage"
+            ng-attr-width="{{::nodeRadius}}"
+            ng-attr-height="{{::nodeRadius*2}}"
+            ng-style="{fill: stage.color}"
+            ng-attr-transform="translate({{::nodeRadius*-1}},{{::nodeRadius*-1}})"
+            class="clickable"
             ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
             analytics-on="click"
-            analytics-category="Pipeline Graph ({{execution ? 'execution' : 'config'}})"
+            analytics-category="Pipeline Graph (config)"
             analytics-event="Node clicked"
-            ng-click="nodeClicked(stage)"></circle>
+            ng-click="nodeClicked(stage)"></rect>
 
-    <rect ng-if="stage.root && !stage.executionStage"
-          ng-attr-width="{{nodeRadius}}"
-          ng-attr-height="{{nodeRadius*2}}"
-          ng-style="{fill: stage.color}"
-          ng-attr-transform="translate({{nodeRadius*-1}},{{nodeRadius*-1}})"
-          class="clickable"
-          ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
-          analytics-on="click"
-          analytics-category="Pipeline Graph (config)"
-          analytics-event="Node clicked"
-          ng-click="nodeClicked(stage)"></rect>
-
-    <rect ng-if="stage.leaf && !stage.executionStage"
-          ng-attr-width="{{nodeRadius}}"
-          ng-attr-height="{{nodeRadius*2}}"
-          ng-style="{fill: stage.color}"
-          ng-attr-transform="translate(0,{{nodeRadius*-1}})"
-          class="clickable"
-          ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
-          analytics-on="click"
-          analytics-category="Pipeline Graph (config)"
-          analytics-event="Node clicked"
-          ng-click="nodeClicked(stage)"></rect>
-
+      <rect ng-if="stage.leaf && !stage.executionStage"
+            ng-attr-width="{{::nodeRadius}}"
+            ng-attr-height="{{::nodeRadius*2}}"
+            ng-style="{fill: stage.color}"
+            ng-attr-transform="translate(0,{{nodeRadius*-1}})"
+            class="clickable"
+            ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+            analytics-on="click"
+            analytics-category="Pipeline Graph (config)"
+            analytics-event="Node clicked"
+            ng-click="nodeClicked(stage)"></rect>
+    </g>
   </g>
 
-  <g ng-repeat="stage in allNodes" ng-class="{'has-status': stage.status, active: stage.isActive, highlighted: stage.isHighlighted}" ng-attr-transform="translate({{stage.x}},{{stage.y}})">
-    <foreignobject ng-attr-width="{{maxLabelWidth}}" height="100"
-                   ng-attr-transform="translate({{labelOffsetX}}, {{stage.leaf && !stage.executionStage ? -8 : labelOffsetY*-1}})">
-      <div class="execution-stage-label clickable {{stage.status.toLowerCase()}}"
+  <g ng-repeat="stage in allNodes" ng-class="{'has-status': stage.status, active: stage.isActive, highlighted: stage.isHighlighted}" ng-attr-transform="translate({{::stage.x}},{{::stage.y}})">
+    <foreignobject ng-attr-width="{{::maxLabelWidth}}" height="100"
+                   ng-attr-transform="translate({{::labelOffsetX}}, {{::stage.leaf && !stage.executionStage ? -8 : labelOffsetY*-1}})">
+      <div class="execution-stage-label clickable {{::stage.status.toLowerCase()}}"
            ng-if="stage.labelTemplateUrl"
            ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
            ng-style="{height: stage.height + 'px'}"
            analytics-on="click"
-           analytics-category="Pipeline Graph ({{execution ? 'execution' : 'config'}})"
+           analytics-category="Pipeline Graph ({{::execution ? 'execution' : 'config'}})"
            analytics-event="Node label clicked"
            ng-click="nodeClicked(stage)">
         <div ng-include="stage.labelTemplateUrl"></div>
@@ -65,9 +70,9 @@
            ng-if="!stage.labelTemplateUrl"
            ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
            analytics-on="click"
-           analytics-category="Pipeline Graph ({{execution ? 'execution' : 'config'}})"
+           analytics-category="Pipeline Graph ({{::execution ? 'execution' : 'config'}})"
            analytics-event="Node label clicked"
-           ng-click="nodeClicked(stage)"><a>{{stage.name}}</a></div>
+           ng-click="nodeClicked(stage)"><a>{{::stage.name}}</a></div>
     </foreignobject>
   </g>
 </svg>
