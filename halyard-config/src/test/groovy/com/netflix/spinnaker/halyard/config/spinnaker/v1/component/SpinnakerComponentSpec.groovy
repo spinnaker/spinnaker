@@ -16,9 +16,20 @@
 
 package com.netflix.spinnaker.halyard.config.spinnaker.v1.component
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder
 import spock.lang.Specification
 
+import java.util.regex.Pattern
+
 class SpinnakerComponentSpec extends Specification {
+  final static String PATH = "/a/b/c/d/"
+
   void "correctly match all required profiles for a spring component"() {
     setup:
     String correctPath = "correct"
@@ -52,5 +63,99 @@ class SpinnakerComponentSpec extends Specification {
 
     then:
     result.every { String t -> t.equals(correctPath) }
+  }
+
+  void "find all required files referenced by config"() {
+    setup:
+    Node node = new NodeWithChildren();
+    SpinnakerComponent c = new SpinnakerComponent() {
+      @Override
+      protected String commentPrefix() {
+        return null
+      }
+
+      @Override
+      String getComponentName() {
+        return null
+      }
+
+      @Override
+      String getConfigFileName() {
+        return null
+      }
+
+      @Override
+      protected List<Pattern> profilePatterns() {
+        return null
+      }
+    }
+
+    when:
+    def files = c.nodeFiles(node)
+
+    then:
+    files.size() == 9
+    files.every { x -> x.equals(PATH) }
+  }
+
+  class ChildNode extends Node {
+    @Override
+    void accept(ProblemSetBuilder psBuilder, Validator v) {
+    }
+
+    @Override
+    String getNodeName() {
+      return null
+    }
+
+    @Override
+    NodeIterator getChildren() {
+      return NodeIteratorFactory.makeEmptyIterator()
+    }
+
+    @Override
+    protected boolean matchesLocally(NodeFilter filter) {
+      return false
+    }
+
+    @Override
+    NodeFilter getFilter() {
+      return null
+    }
+
+    @LocalFile path1 = PATH
+    @LocalFile path2 = PATH
+    @LocalFile path3 = PATH
+    @LocalFile pathnull = null
+  }
+
+  class NodeWithChildren extends Node {
+    @Override
+    void accept(ProblemSetBuilder psBuilder, Validator v) {
+    }
+
+    @Override
+    String getNodeName() {
+      return null
+    }
+
+    @Override
+    NodeIterator getChildren() {
+      return NodeIteratorFactory.makeReflectiveIterator(this)
+    }
+
+    @Override
+    protected boolean matchesLocally(NodeFilter filter) {
+      return false
+    }
+
+    @Override
+    NodeFilter getFilter() {
+      return null
+    }
+
+    ChildNode node1 = new ChildNode()
+    ChildNode node2 = new ChildNode()
+    ChildNode node3 = new ChildNode()
   }
 }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.ComponentConfig;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.SpinnakerComponent;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
@@ -36,10 +37,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 
@@ -90,7 +88,7 @@ public class GenerateService {
     }
   }
 
-  public String yamlToString(Object yaml) {
+  private String yamlToString(Object yaml) {
     return yamlParser.dump(objectMapper.convertValue(yaml, Map.class));
   }
 
@@ -101,12 +99,14 @@ public class GenerateService {
    *
    *   1. Clear out old config generated in a prior run.
    *   2. Determine what the deployment footprint looks like to provide endpoint information for each service.
-   *   3. Generate configuration using the halconfig as the source of truth.
+   *   3. Generate configuration using the halconfig as the source of truth, while collecting files needed by
+   *      the deployment.
    *   4. Copy custom profiles from the specified deployment over to the new deployment.
    *
    * @param nodeFilter A filter that specifies the deployment to use.
+   * @return a mapping from components to the component's required local files.
    */
-  public void generateConfig(NodeFilter nodeFilter) {
+  public Map<String, List<String>> generateConfig(NodeFilter nodeFilter) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeFilter);
     String deploymentName = deploymentConfiguration.getName();
 
@@ -132,16 +132,22 @@ public class GenerateService {
     Deployment deployment = deploymentFactory.create(deploymentConfiguration);
     FileSystem defaultFileSystem = FileSystems.getDefault();
     Path path = defaultFileSystem.getPath(spinnakerOutputPath, "spinnaker.yml");
-    log.info("Writing spinnaker endpoints");
+
     SpinnakerEndpoints endpoints = deployment.getEndpoints();
+
+    log.info("Writing spinnaker endpoints");
     atomicWrite(path, yamlToString(deployment.getEndpoints()));
+
+    Map<String, List<String>> requiredFiles = new HashMap<>();
 
     // Step 3.
     for (SpinnakerComponent component : spinnakerComponents) {
       path = defaultFileSystem.getPath(spinnakerOutputPath, component.getConfigFileName());
-
+      ComponentConfig config = component.getFullConfig(nodeFilter, endpoints);
       log.info("Writing " + component.getComponentName() + " profile");
-      atomicWrite(path, component.getFullConfig(nodeFilter, endpoints));
+      atomicWrite(path, config.getConfigContents());
+
+      requiredFiles.put(component.getComponentName(), config.getRequiredFiles());
     }
 
     // Step 4.
@@ -163,5 +169,7 @@ public class GenerateService {
         }
       });
     }
+
+    return requiredFiles;
   }
 }

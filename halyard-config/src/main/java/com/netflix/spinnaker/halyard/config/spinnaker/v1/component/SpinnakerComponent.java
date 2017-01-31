@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
@@ -30,14 +31,18 @@ import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.profileRegistry.ComponentProfileRegistry;
+import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.yaml.snakeyaml.Yaml;
 import retrofit.RetrofitError;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -71,8 +76,10 @@ abstract public class SpinnakerComponent {
 
   public abstract String getComponentName();
 
-  public String getFullConfig(NodeFilter filter, SpinnakerEndpoints endpoints) {
-    return EDIT_WARNING + generateFullConfig(getBaseConfig(), deploymentService.getDeploymentConfiguration(filter), endpoints);
+  public ComponentConfig getFullConfig(NodeFilter filter, SpinnakerEndpoints endpoints) {
+    ComponentConfig result = generateFullConfig(getBaseConfig(), deploymentService.getDeploymentConfiguration(filter), endpoints);
+    result.setConfigContents(EDIT_WARNING + result.getConfigContents());
+    return result;
   }
 
   public abstract String getConfigFileName();
@@ -84,8 +91,8 @@ abstract public class SpinnakerComponent {
    * @param deploymentConfiguration the deployment configuration being translated into Spinnaker config.
    * @return the fully written configuration.
    */
-  protected String generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
-    return baseConfig;
+  protected ComponentConfig generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+    return new ComponentConfig().setConfigContents(baseConfig);
   }
 
   /**
@@ -142,5 +149,23 @@ abstract public class SpinnakerComponent {
             .filter(p -> p.matcher(f.getName()).find()).count() > 0)
         .map(File::getAbsolutePath)
         .collect(Collectors.toList());
+  }
+
+  List<String> nodeFiles(Node node) {
+    List<String> files = new ArrayList<>();
+
+    Consumer<Node> fileFinder = n -> files.addAll(n.localFiles().stream().map(f -> {
+      try {
+        f.setAccessible(true);
+        return (String) f.get(n);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException("Failed to get local files for node " + n.getNodeName(), e);
+      } finally {
+        f.setAccessible(false);
+      }
+    }).filter(Objects::nonNull).collect(Collectors.toList()));
+    node.recursiveConsume(fileFinder);
+
+    return files;
   }
 }

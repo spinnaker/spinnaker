@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -136,5 +137,16 @@ abstract public class Node implements Validatable {
     return Arrays.stream(getClass().getDeclaredFields())
         .filter(f -> f.getDeclaredAnnotation(LocalFile.class) != null)
         .collect(Collectors.toList());
+  }
+
+  public void recursiveConsume(Consumer<Node> consumer) {
+    consumer.accept(this);
+
+    NodeIterator children = getChildren();
+    Node child = children.getNext();
+    while (child != null) {
+      child.recursiveConsume(consumer);
+      child = children.getNext();
+    }
   }
 }

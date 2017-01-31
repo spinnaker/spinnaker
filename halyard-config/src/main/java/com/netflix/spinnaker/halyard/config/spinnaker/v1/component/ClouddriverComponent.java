@@ -17,8 +17,11 @@
 package com.netflix.spinnaker.halyard.config.spinnaker.v1.component;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class ClouddriverComponent extends SpringComponent {
@@ -28,7 +31,10 @@ public class ClouddriverComponent extends SpringComponent {
   }
 
   @Override
-  public String generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
-    return yamlToString(deploymentConfiguration.getProviders()) + "\n" + baseConfig;
+  public ComponentConfig generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+    Providers providers = deploymentConfiguration.getProviders();
+    String contents = yamlToString(deploymentConfiguration.getProviders()) + "\n" + baseConfig;
+    List<String> files = nodeFiles(providers);
+    return new ComponentConfig().setConfigContents(contents).setRequiredFiles(files);
   }
 }
