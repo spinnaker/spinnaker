@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.zombie
+package com.netflix.spinnaker.orca.zombie
 
 import java.time.Clock
 import java.time.ZoneId
@@ -32,7 +32,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
-import static com.netflix.spinnaker.zombie.ZombiePipelineCleanupAgent.TOLERANCE
+import static com.netflix.spinnaker.orca.zombie.ZombiePipelineCleanupAgent.TOLERANCE
 import static java.time.Instant.now
 import static java.util.concurrent.TimeUnit.HOURS
 import static java.util.concurrent.TimeUnit.SECONDS

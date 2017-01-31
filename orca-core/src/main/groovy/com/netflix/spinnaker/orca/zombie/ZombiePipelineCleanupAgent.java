@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.zombie;
+package com.netflix.spinnaker.orca.zombie;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -111,6 +111,14 @@ public class ZombiePipelineCleanupAgent {
         this::findZombies,
         this::slayZombie
       );
+  }
+
+  public void slayIfZombie(Pipeline pipeline) {
+    just(pipeline)
+      .filter(this::isV2)
+      .filter(this::isIncomplete)
+      .filter(this::hasZombieTask)
+      .subscribe(this::slayZombie);
   }
 
   private Observable<Pipeline> findZombies() {

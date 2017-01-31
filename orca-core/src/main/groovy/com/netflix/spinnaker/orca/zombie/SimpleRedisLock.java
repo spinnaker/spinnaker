@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.zombie;
+package com.netflix.spinnaker.orca.zombie;
 
 import java.time.Duration;
 import java.util.Optional;

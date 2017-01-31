@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import org.springframework.security.access.prepost.PreFilter
-
 import java.time.Clock
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -32,6 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.zombie.ZombiePipelineCleanupAgent
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -39,6 +38,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.V2_EXECUTION_ENGINE
@@ -64,6 +64,9 @@ class TaskController {
 
   @Autowired
   Collection<StageDefinitionBuilder> stageBuilders
+
+  @Autowired
+  Optional<ZombiePipelineCleanupAgent> zombiePipelineCleanupAgent
 
   @Value('${tasks.daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
@@ -183,6 +186,7 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(@PathVariable String id, @RequestParam(required = false) String reason) {
     executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
+    zombiePipelineCleanupAgent.ifPresent({ it.slayIfZombie(executionRepository.retrievePipeline(id)) })
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
