@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger;
@@ -25,9 +26,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.inject.Provider;
+
 @Configuration
-@EnableConfigurationProperties(LaunchFailureConfigurationProperties.class)
+@EnableConfigurationProperties({LaunchFailureConfigurationProperties.class, InstanceTerminationConfigurationProperties.class})
 class LifecycleSubscriberConfiguration {
+
   @Bean
   @ConditionalOnProperty("aws.lifecycleSubscribers.launchFailure.enabled")
   LaunchFailureNotificationAgentProvider launchFailureNotificationAgentProvider(ObjectMapper objectMapper,
@@ -37,6 +41,18 @@ class LifecycleSubscriberConfiguration {
                                                                                 ServerGroupTagger serverGroupTagger) {
     return new LaunchFailureNotificationAgentProvider(
       objectMapper, amazonClientProvider, accountCredentialsProvider, properties, serverGroupTagger
+    );
+  }
+
+  @Bean
+  @ConditionalOnProperty("aws.lifecycleSubscribers.instanceTermination.enabled")
+  InstanceTerminationLifecycleAgentProvider instanceTerminationNotificationAgentProvider(ObjectMapper objectMapper,
+                                                                                         AmazonClientProvider amazonClientProvider,
+                                                                                         AccountCredentialsProvider accountCredentialsProvider,
+                                                                                         InstanceTerminationConfigurationProperties properties,
+                                                                                         Provider<AwsEurekaSupport> discoverySupport) {
+    return new InstanceTerminationLifecycleAgentProvider(
+      objectMapper, amazonClientProvider, accountCredentialsProvider, properties, discoverySupport
     );
   }
 }

@@ -9,8 +9,6 @@ import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.tags.ServerGroupTagger
 import spock.lang.Specification
-import spock.lang.Unroll
-
 /*
  * Copyright 2017 Netflix, Inc.
  *
@@ -36,8 +34,8 @@ class LaunchFailureNotificationAgentSpec extends Specification {
   def amazonSNS = Mock(AmazonSNS)
   def amazonSQS = Mock(AmazonSQS)
 
-  def queueARN = new LaunchFailureNotificationAgent.ARN([mgmtCredentials], "arn:aws:sqs:us-west-2:100:queueName")
-  def topicARN = new LaunchFailureNotificationAgent.ARN([mgmtCredentials], "arn:aws:sns:us-west-2:100:topicName")
+  def queueARN = new ARN([mgmtCredentials], "arn:aws:sqs:us-west-2:100:queueName")
+  def topicARN = new ARN([mgmtCredentials], "arn:aws:sns:us-west-2:100:topicName")
   def allAccountIds = [topicARN.account.accountId, queueARN.account.accountId].unique()
 
   void "should create topic if it does not exist"() {
@@ -75,39 +73,6 @@ class LaunchFailureNotificationAgentSpec extends Specification {
         "Policy": LaunchFailureNotificationAgent.buildSQSPolicy(queueARN, topicARN).toJson()
     ])
     0 * _
-  }
-
-  @Unroll
-  void "should extract accountId, region and name from SQS or SNS ARN"() {
-    when:
-    def parsedARN = new LaunchFailureNotificationAgent.ARN(
-      [mgmtCredentials],
-      arn,
-    )
-
-    then:
-    parsedARN.account == mgmtCredentials
-    parsedARN.region == expectedRegion
-    parsedARN.name == expectedName
-
-    when:
-    new LaunchFailureNotificationAgent.ARN([mgmtCredentials], "invalid-arn")
-
-    then:
-    def e1 = thrown(IllegalArgumentException)
-    e1.message == "invalid-arn is not a valid SNS or SQS ARN"
-
-    when:
-    new LaunchFailureNotificationAgent.ARN([], arn)
-
-    then:
-    def e2 = thrown(IllegalArgumentException)
-    e2.message == "No account credentials found for 100"
-
-    where:
-    arn                                   || expectedRegion || expectedName
-    "arn:aws:sqs:us-west-2:100:queueName" || "us-west-2"    || "queueName"
-    "arn:aws:sns:us-west-2:100:topicName" || "us-west-2"    || "topicName"
   }
 
   void "should delegate to ServerGroupTagger w/ status message, accountId and region"() {
