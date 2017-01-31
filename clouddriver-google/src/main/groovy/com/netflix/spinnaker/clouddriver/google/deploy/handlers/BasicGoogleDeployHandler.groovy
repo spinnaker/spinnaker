@@ -334,7 +334,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
              initialDelaySec: description.autoHealingPolicy.initialDelaySec)]
       : null
 
-    if (autoHealingPolicy) {
+    if (autoHealingPolicy && description.autoHealingPolicy.maxUnavailable) {
       def maxUnavailable = new FixedOrPercent(fixed: description.autoHealingPolicy.maxUnavailable.fixed as Integer,
                                               percent: description.autoHealingPolicy.maxUnavailable.percent as Integer)
 
