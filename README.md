@@ -2,7 +2,7 @@
 
 [![Build Status](https://api.travis-ci.org/spinnaker/halyard.svg?branch=master)](https://travis-ci.org/spinnaker/halyard)
 
-A tool to simplify configuring & running Spinnaker.
+A tool for configuring, installing, and updating Spinnaker.
 
 There are three parts to Halyard, the __halconfig__, the __daemon__, and
 __hal__. In short, __hal__ is a Command Line Interface (CLI) that sends
