@@ -127,35 +127,23 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
           region: serverGroup.region
         };
 
-        confirmationModalService.confirm({
+        const confirmationModalParams = {
           header: 'Really destroy ' + serverGroup.name + '?',
           buttonText: 'Destroy ' + serverGroup.name,
           provider: 'cf',
           account: serverGroup.account,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
-          body: this.getBodyTemplate(serverGroup, application),
           onTaskComplete: function() {
             if ($state.includes('**.serverGroup', stateParams)) {
               $state.go('^');
             }
           },
-        });
-      };
+        };
 
-      this.getBodyTemplate = (serverGroup, application) => {
-        if (this.isLastServerGroupInRegion(serverGroup, application)) {
-          return serverGroupWarningMessageService.getMessage(serverGroup);
-        }
-      };
+        serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
-      this.isLastServerGroupInRegion = function (serverGroup, application ) {
-        try {
-          var cluster = _.find(application.clusters, {name: serverGroup.cluster, account:serverGroup.account});
-          return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
-        } catch (error) {
-          return false;
-        }
+        confirmationModalService.confirm(confirmationModalParams);
       };
 
       this.disableServerGroup = function disableServerGroup() {
@@ -174,14 +162,17 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
           });
         };
 
-        confirmationModalService.confirm({
+        const confirmationModalParams = {
           header: 'Really disable ' + serverGroup.name + '?',
           buttonText: 'Disable ' + serverGroup.name,
-          provider: 'cf',
           account: serverGroup.account,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod
-        });
+        };
+
+        serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
+
+        confirmationModalService.confirm(confirmationModalParams);
 
       };
 

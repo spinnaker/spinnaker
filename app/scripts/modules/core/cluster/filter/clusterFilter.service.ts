@@ -75,7 +75,7 @@ export class ClusterFilterService {
             });
           });
 
-          const appCluster: ICluster = (application['clusters'] || [])
+          const appCluster: ICluster = (application.clusters || [])
             .find((c: ICluster) => c.account === account && c.name === cluster && c.category === category);
 
           if (appCluster) {

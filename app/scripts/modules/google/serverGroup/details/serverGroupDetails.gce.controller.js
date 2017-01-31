@@ -297,13 +297,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         account: serverGroup.account,
-        provider: 'gce',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
         askForReason: true,
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Google',
-        body: this.getBodyTemplate(serverGroup, app),
         onTaskComplete: () => {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
@@ -311,26 +309,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         },
       };
 
+      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
         confirmationModalParams.interestingHealthProviderNames = ['Google'];
       }
 
       confirmationModalService.confirm(confirmationModalParams);
-    };
-
-    this.getBodyTemplate = (serverGroup, app) => {
-      if (this.isLastServerGroupInRegion(serverGroup, app)) {
-        return serverGroupWarningMessageService.getMessage(serverGroup);
-      }
-    };
-
-    this.isLastServerGroupInRegion = (serverGroup, app) => {
-      try {
-        var cluster = _.find(app.clusters, {name: serverGroup.cluster, account: serverGroup.account});
-        return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
-      } catch (error) {
-        return false;
-      }
     };
 
     this.disableServerGroup = () => {
@@ -346,7 +331,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       var confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
-        provider: 'gce',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
@@ -354,6 +338,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         submitMethod: submitMethod,
         askForReason: true,
       };
+
+      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
         confirmationModalParams.interestingHealthProviderNames = ['Google'];

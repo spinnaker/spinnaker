@@ -1,13 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 import _ from 'lodash';
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
 import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
-
-let angular = require('angular');
+import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 
 require('../configure/serverGroup.configure.azure.module.js');
 
@@ -20,9 +20,12 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
   CONFIRMATION_MODAL_SERVICE,
   RUNNING_TASKS_DETAILS_COMPONENT,
   SERVER_GROUP_WRITER,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
 ])
   .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,
-                                                     serverGroupReader, azureServerGroupCommandBuilder, $uibModal, confirmationModalService, serverGroupWriter) {
+                                                       serverGroupWarningMessageService, serverGroupReader,
+                                                       azureServerGroupCommandBuilder, $uibModal,
+                                                       confirmationModalService, serverGroupWriter) {
 
     $scope.state = {
       loading: true
@@ -117,12 +120,10 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
         region: serverGroup.region
       };
 
-
-      confirmationModalService.confirm({
+      const confirmationModalParams = {
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         account: serverGroup.account,
-        provider: 'azure',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
         onTaskComplete: function() {
@@ -130,24 +131,11 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
             $state.go('^');
           }
         },
-      });
-    };
+      };
 
-    this.getBodyTemplate = function(serverGroup, app) {
-      if(this.isLastServerGroupInRegion(serverGroup, app)) {
-        var template = $templateCache.get(require('core/serverGroup/details/deleteLastServerGroupWarning.html'));
-        $scope.deletingServerGroup = serverGroup;
-        return $compile(template)($scope);
-      }
-    };
+      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
-    this.isLastServerGroupInRegion = (serverGroup, app ) => {
-      try {
-        var cluster = _.find(app.clusters, {name: serverGroup.cluster, account:serverGroup.account});
-        return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
-      } catch (error) {
-        return false;
-      }
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.disableServerGroup = function disableServerGroup() {
@@ -158,18 +146,19 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
         title: 'Disabling ' + serverGroup.name
       };
 
-      var submitMethod = function () {
-        return serverGroupWriter.disableServerGroup(serverGroup, app);
-      };
+      const submitMethod = () => serverGroupWriter.disableServerGroup(serverGroup, app);
 
-      confirmationModalService.confirm({
+      const confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
         account: serverGroup.account,
-        provider: 'azure',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
-      });
+      };
+
+      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
+
+      confirmationModalService.confirm(confirmationModalParams);
 
     };
 

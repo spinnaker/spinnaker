@@ -1,8 +1,11 @@
 import {module, IScope} from 'angular';
-import {find, cloneDeep, reduce, mapValues, get, map} from 'lodash';
+import {cloneDeep, reduce, mapValues, get, map} from 'lodash';
 
 import {ServerGroup} from 'core/domain/index';
-import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
+import {
+  CONFIRMATION_MODAL_SERVICE, ConfirmationModalService,
+  IConfirmationModalParams
+} from 'core/confirmationModal/confirmationModal.service';
 import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER, ServerGroupWriter} from 'core/serverGroup/serverGroupWriter.service';
 import {Application} from 'core/application/application.model';
@@ -36,15 +39,6 @@ class AppengineServerGroupDetailsController {
             'serverGroupWarningMessageService',
             'confirmationModalService',
             'appengineServerGroupWriter'];
-  }
-
-  private static isLastServerGroup(serverGroup: ServerGroup, app: any): boolean {
-    let cluster = find(app.clusters, {name: serverGroup.cluster, account: serverGroup.account}) as any;
-    if (cluster && cluster.serverGroups) {
-      return cluster.serverGroups.length === 1;
-    } else {
-      return false;
-    }
   }
 
   private static buildExpectedAllocationsTable(expectedAllocations: {[key: string]: number}): string {
@@ -332,8 +326,10 @@ class AppengineServerGroupDetailsController {
 
   private getBodyTemplate(serverGroup: IAppengineServerGroup, app: Application): string {
     let template = '';
-    if (AppengineServerGroupDetailsController.isLastServerGroup(serverGroup, app)) {
-      template += this.serverGroupWarningMessageService.getMessage(serverGroup);
+    const params: IConfirmationModalParams = {};
+    this.serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, params);
+    if (params.body) {
+      template += params.body;
     }
 
     if (!serverGroup.disabled) {
