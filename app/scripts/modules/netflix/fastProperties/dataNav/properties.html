@@ -36,6 +36,14 @@
           <fast-property-filter-search properties="fp.searchResults" filters="filters" create-filter-tag="createFilterTag"></fast-property-filter-search>
         </div>
 
+        <div class="form-group pull-right" style="margin-top: 10px;">
+          <button class="btn btn-sm btn-default" ng-click="fp.createFastProperty()">
+            <span class="glyphicon glyphicon-plus-sign visible-lg-inline"></span>
+            <span class="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline" uib-tooltip="Create Fast Property"></span>
+            <span class="visible-lg-inline">Create Fast Property</span>
+          </button>
+        </div>
+
         <div style="margin-top: 5px" class="fast-property-filter-tags">
           <filter-tags
             tags="filters.list"

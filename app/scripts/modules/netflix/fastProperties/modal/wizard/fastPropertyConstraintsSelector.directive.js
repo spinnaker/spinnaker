@@ -12,7 +12,8 @@ module.exports = angular
       templateUrl: require('./fastPropertyConstraintsSelector.directive.html'),
       scope: {},
       bindToController:{
-        model: '='
+        model: '=',
+        isDisabled: '=',
       },
       controller: function($scope, $log) {
         let vm = this;

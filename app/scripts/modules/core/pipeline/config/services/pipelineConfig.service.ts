@@ -109,6 +109,11 @@ export class PipelineConfigService {
     return uniq(upstreamStages);
   }
 
+  public startAdHocPipeline(body: any): ng.IPromise<void> {
+    body.user = this.authenticationService.getAuthenticatedUser().name;
+    return this.API.one('pipelines').one('start').data(body).post();
+  }
+
   private sortPipelines(pipelines: IPipeline[]): ng.IPromise<IPipeline[]> {
 
     const sorted = sortBy(pipelines, ['index', 'name']);

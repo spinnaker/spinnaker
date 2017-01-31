@@ -1,6 +1,8 @@
 'use strict';
 
 import _ from 'lodash';
+import { CREATE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../wizard/createFastPropertyWizard.controller';
+
 
 let angular = require('angular');
 
@@ -9,8 +11,9 @@ module.exports = angular
   .module('spinnaker.netflix.fastProperties.controller', [
     require('angular-ui-router'),
     require('../fastProperty.read.service.js'),
+    CREATE_FAST_PROPERTY_WIZARD_CONTROLLER,
   ])
-  .controller('FastPropertiesController', function ($scope, $filter, $state, $stateParams, $location, settings, fastPropertyReader) {
+  .controller('FastPropertiesController', function ($scope, $filter, $state, $stateParams, $location, $uibModal, settings, fastPropertyReader) {
     let vm = this;
     let filterNames = ['app','env', 'region', 'stack', 'cluster'];
 
@@ -233,6 +236,20 @@ module.exports = angular
         })));
       }
     };
+
+    vm.createFastProperty = () => {
+      $uibModal.open({
+        templateUrl: require('../wizard/createFastPropertyWizard.html'),
+        controller:  'createFastPropertyWizardController',
+        controllerAs: 'ctrl',
+        size: 'lg',
+        resolve: {
+          title: () => 'Create New Fast Property',
+          applicationName: () => 'spinnakerfp'
+        }
+      });
+    };
+
 
 
     vm.search();

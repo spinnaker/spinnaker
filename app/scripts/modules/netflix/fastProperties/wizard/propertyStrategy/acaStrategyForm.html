@@ -1,0 +1,179 @@
+<div class="form-horizontal canary-config-view">
+  <h4>Canary Config</h4>
+
+  <stage-config-field label="Name" field-columns="4">
+    <input type="text" required ng-model="$ctrl.command.strategy.configDetails.name"
+           class="form-control input-sm" />
+  </stage-config-field>
+
+  <stage-config-field label="Canary Lifetime" field-columns="4">
+    <input type="text" required ng-model="$ctrl.command.strategy.configDetails.lifetimeHours"
+           class="form-control input-sm" style="display: inline-block; width: 33%" />
+    <span class="form-control-static">hours</span>
+  </stage-config-field>
+
+  <stage-config-field label="Result Strategy" help-key="pipeline.config.canary.resultStrategy" field-columns="3">
+    <select class="form-control input-sm"
+            ng-model="$ctrl.command.strategy.configDetails.combinedCanaryResultStrategy">
+      <option value="LOWEST">lowest</option>
+      <option value="AGGREGATE">average</option>
+    </select>
+  </stage-config-field>
+
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      <label>Successful Score</label>
+      <help-field key="pipeline.config.canary.successfulScore"></help-field>
+    </div>
+    <div class="col-md-2">
+      <input type="text" required ng-model="$ctrl.command.strategy.configDetails.canaryResultScore"
+             class="form-control input-sm" />
+    </div>
+    <div class="col-md-3 sm-label-right">
+      <label>Unhealthy Score</label>
+      <help-field key="pipeline.config.canary.unhealthyScore"></help-field>
+    </div>
+    <div class="col-md-2">
+      <input type="text" required ng-model="$ctrl.command.strategy.configDetails.minimumCanaryResultScore"
+             class="form-control input-sm" />
+    </div>
+  </div>
+
+
+  <h5>Analysis Config</h5>
+
+  <div class="horizontal-rule"></div>
+  <stage-config-field label="Name" help-key="pipeline.config.canary.canaryConfigurationName" field-columns="3">
+    <canary-analysis-name-selector
+      model="$ctrl.command.strategy.configDetails.configName"
+      class-name="form-control input-sm">
+    </canary-analysis-name-selector>
+  </stage-config-field>
+  <stage-config-field label="Delay">
+    <input type="text" required ng-model="$ctrl.command.strategy.configDetails.beginCanaryAnalysisAfterMins"
+           class="form-control input-sm" style="display: inline-block; width: 20%"/>
+    <span class="form-control-static">
+      minutes before starting analysis <help-field key="pipeline.config.canary.delayBeforeAnalysis"></help-field>
+    </span>
+  </stage-config-field>
+  <stage-config-field label="Notification Hours" help-key="pipeline.config.canary.notificationHours" field-columns="3">
+    <input type="text" ng-model="$ctrl.command.strategy.configDetails.notificationHours"
+           class="form-control input-sm"/>
+  </stage-config-field>
+  <stage-config-field label="Frequency" help-key="pipeline.config.canary.canaryInterval" field-columns="3">
+    <input type="text" required ng-model="$ctrl.command.strategy.configDetails.canaryAnalysisIntervalMins"
+           class="form-control input-sm" style="width: 33%; display: inline-block"/>
+    <span class="form-control-static"> minutes</span>
+  </stage-config-field>
+
+  <div class="checkbox col-md-offset-1">
+    <label>
+      <input type="checkbox" ng-model="$ctrl.command.strategy.configDetails.useLookback"/>
+      <b>Use Look-back</b>
+      <help-field key="pipeline.config.canary.lookback"></help-field>
+    </label>
+  </div>
+
+  <div class="form-group" ng-if="$ctrl.command.strategy.configDetails.useLookback" style="margin-top: 10px;">
+    <div class="col-md-3 sm-label-right">
+      <label>Look-back Duration</label>
+    </div>
+
+    <div class="col-md-3">
+      <input
+        type="number"
+        required
+        ng-model="$ctrl.command.strategy.configDetails.lookbackMins"
+        class="form-control input-sm" style="display: inline-block; width: 40%"/>
+      <span class="form-control-static"> minutes</span>
+    </div>
+
+    <div
+      class="error-message col-md-6"
+      ng-if="stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins > 0 && stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins < 30" >
+      <b>NOTE:</b> To provide enough data points for the Canary Analysis it is recommended to set the look-back time to at least 30 minutes.
+    </div>
+
+  </div>
+
+  <h5>Watchers</h5>
+  <div class="horizontal-rule"></div>
+  <stage-config-field
+    help-key="pipeline.config.canary.watchers"
+    label="Emails">
+    <textarea ng-model="$ctrl.command.strategy.configDetails.watchers"
+              class="form-control input-sm" ></textarea>
+  </stage-config-field>
+
+  <h5>Metric Scope<help-field key="pipeline.config.canary.baselineVersion"></help-field></h5>
+  <div class="horizontal-rule"></div>
+
+  <stage-config-field label="Account">
+    <account-select-field
+      component="$ctrl.command.strategy.configDetails"
+      field="accountName"
+      accounts="$ctrl.command.accounts"
+      provider="'aws'"
+      required >
+    </account-select-field>
+  </stage-config-field>
+
+  <stage-config-field label="Region">
+    <label class="checkbox-inline" ng-repeat="region in $ctrl.command.regions">
+      <input
+        type="radio"
+        ng-value="region"
+        ng-model="$ctrl.command.strategy.configDetails.region"
+      >
+      {{region}}
+    </label>
+  </stage-config-field>
+
+  <stage-config-field label="Scope Type">
+    <select
+      name="scopeType"
+      class="form-control input-sm"
+      ng-model="$ctrl.command.strategy.configDetails.type">
+      <option value="query">Query</option>
+      <option value="cluster">Cluster</option>
+      <option value="asg">ASG</option>
+    </select>
+  </stage-config-field>
+
+  <stage-config-field label="Baseline">
+    <textarea
+      class="form-control input-sm"
+      ng-if="$ctrl.command.strategy.configDetails.type === 'query'"
+      ng-model="$ctrl.command.strategy.configDetails.baseline">
+    </textarea>
+
+    <input
+      class="form-control input-sm"
+      ng-if="$ctrl.command.strategy.configDetails.type !== 'query'"
+      ng-model="$ctrl.command.strategy.configDetails.baseline"
+      required
+      type="text" >
+
+  </stage-config-field>
+
+
+
+  <stage-config-field label="Canary">
+    <textarea
+      class="form-control input-sm"
+      ng-if="$ctrl.command.strategy.configDetails.type === 'query'"
+      ng-model="$ctrl.command.strategy.configDetails.canary">
+    </textarea>
+
+    <input
+      class="form-control input-sm"
+      ng-if="$ctrl.command.strategy.configDetails.type !== 'query'"
+      ng-model="$ctrl.command.strategy.configDetails.canary"
+      required
+      type="text" >
+
+
+  </stage-config-field>
+</div>
+
+

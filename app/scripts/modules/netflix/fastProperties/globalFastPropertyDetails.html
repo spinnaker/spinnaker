@@ -26,20 +26,19 @@
       </h3>
     </div>
 
-    <!-- TODO: commenting out for now until we figure out how migrations are going to work-->
-    <!--<div>-->
-      <!--<div class="actions">-->
-        <!--<div class="dropdown" uib-dropdown dropdown-append-to-body>-->
-          <!--<button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>-->
-          <!--Property Actions</button>-->
-          <!--<ul class="dropdown-menu" uib-dropdown-menu role="menu">-->
-            <!--<li><a href ng-click="details.editFastProperty()">Edit</a></li>-->
-            <!--<li><a href ng-click="details.delete()">Delete</a></li>-->
-          <!--</ul>-->
-        <!--</div>-->
-        <!--<div class="clearfix"></div>-->
-      <!--</div>-->
-    <!--</div>-->
+    <div>
+      <div class="actions">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+          Property Actions</button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-click="details.editFastProperty(details.property)">Edit</a></li>
+            <li><a href ng-click="details.delete(details.property)">Delete</a></li>
+          </ul>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
   </div>
 
   <div class="content" ng-if="details.property">

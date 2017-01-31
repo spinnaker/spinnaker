@@ -1,0 +1,57 @@
+<div class="container-fluid">
+
+  <div class="row">
+    <!--Property Stuff-->
+    <div
+      class="col-md-6"
+      ng-if="$ctrl.command.property.isValid()">
+      <h4>Property Info</h4>
+      <div>
+        <b>Type:</b> {{$ctrl.command.getTypeAsString()}}
+      </div>
+
+      <div>
+        <b>Key:</b> {{$ctrl.command.property.key}}
+      </div>
+
+      <div>
+        <b>Value:</b> {{$ctrl.command.property.value}}
+      </div>
+    </div>
+
+    <!--Scope-->
+    <div
+      class="col-md-6"
+      ng-if="$ctrl.command.scope">
+      <h4>Scope</h4>
+
+      <div>
+        <b>Category:</b> {{$ctrl.command.scope.getCategory()}}
+      </div>
+
+      <div>
+        <b>Scope:</b> {{$ctrl.command.scope.getBaseOfScope()}}
+      </div>
+
+      <div>
+        <b>Instances Impacted:</b> <b style="color: red;">{{$ctrl.command.scope.instanceCounts.up}}</b>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Pipeline -->
+  <div class="row" style="margin-top: 25px;">
+    <div
+      class="col-md-12"
+      ng-if="$ctrl.command.pipeline.stages">
+      <b>{{$ctrl.command.strategy.displayName}}</b> used to create a pipeline with <b style="color: red;">{{$ctrl.command.pipeline.stages.length}}</b> stage(s):
+
+      <ul>
+        <li ng-repeat="stage in $ctrl.command.pipeline.stages"><b>{{stage.name}}</b></li>
+      </ul>
+
+    </div>
+  </div>
+
+</div>

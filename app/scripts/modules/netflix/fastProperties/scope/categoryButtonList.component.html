@@ -1,0 +1,84 @@
+  <div
+    class="scope-button-container">
+
+    <button
+      ng-if="$ctrl.categoryName === 'Applications'"
+      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
+      class="fast-property-scope-button">
+
+      <div>
+        <span ng-if="$ctrl.scopeOption.region">{{$ctrl.scopeOption.region}}</span>
+        <span ng-if="$ctrl.scopeOption.appId"><b>{{$ctrl.scopeOption.appId}}</b></span>
+      </div>
+
+      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
+    </button>
+
+    <button
+      ng-if="$ctrl.categoryName === 'Clusters'"
+      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
+      class="fast-property-scope-button">
+
+      <div>
+        <span ng-if="$ctrl.scopeOption.appId">{{$ctrl.scopeOption.appId}}</span>
+        <span ng-if="$ctrl.scopeOption.stack">...</span>
+        <span ng-if="$ctrl.scopeOption.cluster"><b>{{$ctrl.scopeOption.cluster}}</b></span>
+      </div>
+
+      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
+    </button>
+
+    <button
+      ng-if="$ctrl.categoryName === 'Server Groups'"
+      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
+      class="fast-property-scope-button">
+
+      <div>
+        <span ng-if="$ctrl.scopeOption.region">{{$ctrl.scopeOption.region}}</span>
+        <span ng-if="$ctrl.scopeOption.appId">{{$ctrl.scopeOption.appId}}</span>
+        <span ng-if="$ctrl.scopeOption.stack || $ctrl.scopeOption.cluster">...</span>
+        <span ng-if="$ctrl.scopeOption.asg"><b>{{$ctrl.scopeOption.asg}}</b></span>
+      </div>
+
+      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
+    </button>
+
+    <button
+      ng-if="$ctrl.categoryName === 'Regions'"
+      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
+      class="fast-property-scope-button">
+
+      <div>
+        <span ng-if="$ctrl.scopeOption.region"><b>{{$ctrl.scopeOption.region}}</b></span>
+      </div>
+      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
+    </button>
+
+    <button
+      ng-if="$ctrl.categoryName === 'Global'"
+      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
+      class="fast-property-scope-button">
+
+      <div>
+        <div class="global-label">All Instances</div>
+      </div>
+      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
+    </button>
+
+    <button
+      class="fast-property-scope-button"
+      ng-if="$ctrl.categoryName === 'Instances'"
+      ng-click="$ctrl.selectScope($ctrl.scopeOption)">
+
+      <div>
+        <span ng-if="$ctrl.scopeOption.region">{{$ctrl.scopeOption.region}}</span>
+        <span ng-if="$ctrl.scopeOption.appId">{{$ctrl.scopeOption.appId}}</span>
+        <span ng-if="$ctrl.scopeOption.stack || $ctrl.scopeOption.cluster || $ctrl.scopeOption.asg">...</span>
+        <span ng-if="$ctrl.scopeOption.serverId"><b>{{$ctrl.scopeOption.serverId}}</b></span>
+      </div>
+
+      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
+    </button>
+
+  </div>
+

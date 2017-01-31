@@ -10,17 +10,35 @@ export interface IPropertyDetailsStateParams extends IApplicationStateParams {
   propertyId: string;
 }
 
-export interface IFastPropertiesStateParams extends IApplicationStateParams {
-
-}
+export interface IFastPropertiesStateParams extends IApplicationStateParams { }
 
 export const FAST_PROPERTY_STATES = 'spinnaker.netflix.fastProperties.states';
 module(FAST_PROPERTY_STATES, [
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
+
+  const executionDetails: INestedState = {
+    name: 'execution',
+    url: '/:executionId?refId&stage&step&details',
+    params: {
+      stage: {
+        value: '0',
+      },
+      step: {
+        value: '0',
+      }
+    },
+    data: {
+      pageTitleDetails: {
+        title: 'Execution Details',
+        nameParam: 'executionId'
+      }
+    }
+  };
+
   const fastPropertyRollouts: INestedState = {
-    name: 'rollouts',
+    name: 'executions',
     url: '/rollouts',
     views: {
       'master': {
@@ -33,7 +51,9 @@ module(FAST_PROPERTY_STATES, [
       pageTitleSection: {
         title: 'Fast Property Rollout'
       }
-    }
+    },
+    children: [executionDetails]
+
   };
 
   const appFastPropertyDetails: INestedState = {

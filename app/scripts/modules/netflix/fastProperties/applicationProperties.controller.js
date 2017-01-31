@@ -4,6 +4,7 @@ import _ from 'lodash';
 import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
 
 let angular = require('angular');
+import { CREATE_FAST_PROPERTY_WIZARD_CONTROLLER } from './wizard/createFastPropertyWizard.controller';
 
 module.exports = angular
   .module('spinnaker.netflix.applicationProperties.controller', [
@@ -12,6 +13,7 @@ module.exports = angular
     require('./fastProperty.write.service.js'),
     require('./fastPropertyTransformer.service.js'),
     APPLICATION_READ_SERVICE,
+    CREATE_FAST_PROPERTY_WIZARD_CONTROLLER
   ])
   .controller('ApplicationPropertiesController', function ($scope, $filter, $uibModal, $state, app, applicationReader, $log,
                                                            fastPropertyReader, fastPropertyWriter, fastPropertyTransformer) {
@@ -19,9 +21,7 @@ module.exports = angular
     const application = app;
 
 
-    let refreshApp = () => {
-      app.refresh(true);
-    };
+    let refreshApp = () => app.refresh(true);
 
     vm.application = app;
     vm.app = application.name;
@@ -153,19 +153,15 @@ module.exports = angular
 
     vm.newFastPropertyModal = function() {
       $uibModal.open({
-        templateUrl: require('./modal/wizard/fastPropertyWizard.html'),
-        controller: 'FastPropertyUpsertController',
-        controllerAs: 'newFP',
+        templateUrl: require('./wizard/createFastPropertyWizard.html'),
+        controller:  'createFastPropertyWizardController',
+        controllerAs: 'ctrl',
+        size: 'lg',
         resolve: {
-          clusters: function() {return application.clusters; },
-          appName: function() {return application.name; },
-          isEditing: function() {return false; },
-          fastProperty: function() {return {}; },
-          applicationList: function(applicationReader) {
-            return applicationReader.listApplications();
-          }
+          title: () => 'Create New Fast Property',
+          applicationName: () => vm.application.applicationName,
         }
-      }).result.then(routeToApplication);
+      });
     };
 
 

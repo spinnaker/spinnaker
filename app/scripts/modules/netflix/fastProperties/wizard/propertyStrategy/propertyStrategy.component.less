@@ -1,0 +1,45 @@
+@import "../../../../core/presentation/less/imports/commonImports.less";
+
+
+.strategy-button-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+button.property-strategy-button {
+  border: 1px solid #c4c4c4;
+  border-radius: 3px;
+  color: @text-color;
+  background-color: transparent;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: 0 10px 10px 0;
+  height:100px;
+  width:135px;
+}
+
+
+button.property-strategy-button.active,
+button.property-strategy-button:active,
+button.property-strategy-button:focus {
+  box-shadow: 0 0 8px 2px @spinnaker-blue;
+  outline: none;
+}
+
+.selected-indicator {
+  display: block;
+  width: 100%;
+  text-align: right;
+  padding-right: 5px;
+  font-size: 150%;
+  color: @spinnaker-blue;
+}
+
+.panel-heading {
+  padding: 0 15px;
+}
+
+.panel-heading .icon {
+  font-size: 24px;
+}

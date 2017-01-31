@@ -1,0 +1,17 @@
+<div modal-page class="overlay overlay-modal" modal-overlay ng-if="$ctrl.propertyMonitor.submitting || propertyMonitor.error">
+  <div class="modal-header">
+    <h3>{{propertyMonitor.title}}</h3>
+  </div>
+  <div class="modal-body clearfix">
+    <property-monitor-status monitor="$ctrl.propertyMonitor" application-name="$ctrl.propertyMonitor.applicationName"></property-monitor-status>
+  </div>
+  <div class="modal-footer" ng-if="!$ctrl.propertyMonitor.error">
+    <button class="btn btn-primary" ng-click="$ctrl.propertyMonitor.closeModal()" autofocus>Close</button>
+  </div>
+  <div class="modal-footer" ng-if="taskMonitor.error">
+    <button class="btn btn-primary" ng-click="$ctrl.propertyMonitor.error = null">Go back and try to fix
+      this
+    </button>
+    <button class="btn btn-default" ng-click="$ctrl.propertyMonitor.closeModal()">Cancel</button>
+  </div>
+</div>

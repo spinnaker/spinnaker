@@ -1,6 +1,7 @@
 import {map, union, uniq} from 'lodash';
 import {ApplicationDataSource} from './service/applicationDataSource';
 import {Subject} from 'rxjs';
+import {ICluster} from '../domain/ICluster';
 
 export class Application {
 
@@ -26,6 +27,12 @@ export class Application {
    * @type {Array}
    */
   public accounts: string[] = [];
+
+  /**
+   * A list of all cluster currently used within the application.
+   * @type {Array}
+   */
+  public clusters: ICluster[] = [];
 
   /**
    * A timestamp indicating the last time the onRefresh method succeeded
