@@ -21,7 +21,7 @@ class StageFailureMessageCtrl implements ng.IComponentController {
       if (this.isFailed === undefined) {
         this.isFailed = true;
       }
-      this.failedTask = this.stage.tasks.find(t => t.status === 'TERMINAL' || t.status === 'STOPPED');
+      this.failedTask = (this.stage.tasks || []).find(t => t.status === 'TERMINAL' || t.status === 'STOPPED');
     }
   }
 
