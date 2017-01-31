@@ -20,6 +20,8 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTempla
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 public class PipelineConfigInheritanceTransform implements PipelineTemplateVisitor {
@@ -36,16 +38,16 @@ public class PipelineConfigInheritanceTransform implements PipelineTemplateVisit
     Configuration pc = pipelineTemplate.getConfiguration();
 
     if (!inherit.contains("concurrentExecutions")) {
-      pc.setConcurrentExecutions(null);
+      pc.setConcurrentExecutions(new HashMap<>());
     }
     if (!inherit.contains("triggers")) {
-      pc.setTriggers(null);
+      pc.setTriggers(Collections.emptyList());
     }
     if (!inherit.contains("parameters")) {
-      pc.setParameters(null);
+      pc.setParameters(Collections.emptyList());
     }
     if (!inherit.contains("notifications")) {
-      pc.setNotifications(null);
+      pc.setNotifications(Collections.emptyList());
     }
   }
 }

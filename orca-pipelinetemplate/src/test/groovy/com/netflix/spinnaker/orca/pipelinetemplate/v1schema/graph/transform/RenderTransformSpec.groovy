@@ -79,7 +79,7 @@ class RenderTransformSpec extends Specification {
         new StageDefinition(
           id: 'manualJudgement',
           type: 'manualJudgement',
-          dependsOn: 'findImage',
+          dependsOn: ['findImage'],
           config: [
             propagateAuthentication: true,
             notifications: [
@@ -92,7 +92,7 @@ class RenderTransformSpec extends Specification {
         new StageDefinition(
           id: 'deploy',
           type: 'deploy',
-          dependsOn: 'manualJudgement',
+          dependsOn: ['manualJudgement'],
           config: [
             clusters: '[{{#each regions}}{{module "deployCluster" region=this}}{{#unless @last}},{{/unless}}{{/each}}]'
           ]

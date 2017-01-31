@@ -62,10 +62,10 @@ class PipelineConfigInheritanceTransformSpec extends Specification {
     new PipelineConfigInheritanceTransform(configuration).visitPipelineTemplate(template)
 
     then:
-    template.configuration.concurrentExecutions?.size() == (inherit.contains('concurrentExecutions') ? 1 : null)
-    template.configuration.triggers?.size() == (inherit.contains('triggers') ? 1 : null)
-    template.configuration.parameters?.size() == (inherit.contains('parameters') ? 1 : null)
-    template.configuration.notifications?.size() == (inherit.contains('notifications') ? 1 : null)
+    template.configuration.concurrentExecutions.size() == (inherit.contains('concurrentExecutions') ? 1 : 0)
+    template.configuration.triggers.size() == (inherit.contains('triggers') ? 1 : 0)
+    template.configuration.parameters.size() == (inherit.contains('parameters') ? 1 : 0)
+    template.configuration.notifications.size() == (inherit.contains('notifications') ? 1 : 0)
 
     where:
     inherit << [
