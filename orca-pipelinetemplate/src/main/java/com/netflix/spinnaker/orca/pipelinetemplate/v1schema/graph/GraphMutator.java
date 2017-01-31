@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.Conf
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.ConfigStageInjectionTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.PipelineConfigInheritanceTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.RenderTransform;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform.StageInheritanceControlTransform;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
@@ -39,6 +40,7 @@ public class GraphMutator {
     visitors.add(new PipelineConfigInheritanceTransform(configuration));
     visitors.add(new ConfigStageInjectionTransform(configuration));
     visitors.add(new RenderTransform(configuration, renderer, registry));
+    visitors.add(new StageInheritanceControlTransform());
   }
 
   public void mutate(PipelineTemplate template) {
