@@ -152,7 +152,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         account: serverGroup.account,
-        provider: 'openstack',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
         askForReason: true,
@@ -170,22 +169,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         confirmationModalParams.interestingHealthProviderNames = ['Openstack'];
       }
 
+      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+
       confirmationModalService.confirm(confirmationModalParams);
-    };
-
-    this.getBodyTemplate = (serverGroup, app) => {
-      if (this.isLastServerGroupInRegion(serverGroup, app)) {
-        return serverGroupWarningMessageService.getMessage(serverGroup);
-      }
-    };
-
-    this.isLastServerGroupInRegion = (serverGroup, app) => {
-      try {
-        var cluster = _.find(app.clusters, {name: serverGroup.cluster, account: serverGroup.account});
-        return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
-      } catch (error) {
-        return false;
-      }
     };
 
     this.disableServerGroup = () => {
@@ -215,6 +201,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
         confirmationModalParams.interestingHealthProviderNames = ['Openstack'];
       }
+
+      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };

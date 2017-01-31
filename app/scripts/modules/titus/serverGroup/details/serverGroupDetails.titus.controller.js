@@ -125,13 +125,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       var confirmationModalParams = {
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
-        provider: 'titus',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Titus',
         submitMethod: submitMethod,
-        body: this.getBodyTemplate(serverGroup, application),
         onTaskComplete: function () {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
@@ -139,22 +137,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         },
       };
 
+      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+
       confirmationModalService.confirm(confirmationModalParams);
-    };
-
-    this.getBodyTemplate = (serverGroup, application) => {
-      if (this.isLastServerGroupInRegion(serverGroup, application)) {
-        return serverGroupWarningMessageService.getMessage(serverGroup);
-      }
-    };
-
-    this.isLastServerGroupInRegion = function (serverGroup, application ) {
-      try {
-        var cluster = _.find(application.clusters, {name: serverGroup.cluster, account:serverGroup.account});
-        return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
-      } catch (error) {
-        return false;
-      }
     };
 
     this.disableServerGroup = function disableServerGroup() {
@@ -177,13 +162,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       var confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
-        provider: 'titus',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Titus',
         submitMethod: submitMethod
       };
+
+      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
     };

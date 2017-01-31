@@ -2,23 +2,24 @@ import {module} from 'angular';
 import {IModalService, IModalSettings} from 'angular-ui-bootstrap';
 
 export interface IConfirmationModalParams {
+  account?: string;
+  askForReason?: boolean;
+  body?: string;
   buttonText?: string;
   cancelButtonText?: string;
-  body?: string;
-  size?: string;
-  taskMonitorConfig?: any;
-  taskMonitors?: any[];
-  account?: string;
-  verificationLabel?: string;
-  textToVerify?: string;
-  reason?: string;
+  header?: string;
   interestingHealthProviderNames?: string[];
+  multiTaskTitle?: string;
+  platformHealthOnlyShowOverride?: boolean;
+  platformHealthType?: string;
+  reason?: string;
+  size?: string;
   submitJustWithReason?: boolean;
   submitMethod?: (args: any) => ng.IPromise<any>;
-  multiTaskTitle?: string;
-  header?: string;
-  platformHealthOnlyShowOverride?: boolean;
-  askForReason?: boolean;
+  taskMonitorConfig?: any;
+  taskMonitors?: any[];
+  textToVerify?: string;
+  verificationLabel?: string;
 }
 
 export class ConfirmationModalService {

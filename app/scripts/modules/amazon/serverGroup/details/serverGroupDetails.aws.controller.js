@@ -213,7 +213,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         askForReason: true,
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Amazon',
-        body: this.getBodyTemplate(serverGroup, app),
         onTaskComplete: () => {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
@@ -221,26 +220,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         }
       };
 
+      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
         confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
       }
 
       confirmationModalService.confirm(confirmationModalParams);
-    };
-
-    this.getBodyTemplate = (serverGroup, app) => {
-      if (this.isLastServerGroupInRegion(serverGroup, app)) {
-        return serverGroupWarningMessageService.getMessage(serverGroup);
-      }
-    };
-
-    this.isLastServerGroupInRegion = (serverGroup, app) => {
-      try {
-        var cluster = _.find(app.clusters, {name: serverGroup.cluster, account: serverGroup.account});
-        return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
-      } catch (error) {
-        return false;
-      }
     };
 
     this.disableServerGroup = () => {
@@ -266,6 +252,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         submitMethod: submitMethod,
         askForReason: true
       };
+
+      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
         confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
