@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,12 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class GoogleAccount extends CommonGoogleAccount implements Cloneable {
-  private boolean alphaListed;
-  private List<String> imageProjects = new ArrayList<>();
-
-  @Override
-  public void accept(ProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
+public class CommonGoogleAccount extends Account {
+  private String project;
+  @LocalFile private String jsonPath;
 }

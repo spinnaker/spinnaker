@@ -55,7 +55,8 @@ public abstract class Provider<T extends Account> extends Node implements Clonea
   public enum ProviderType {
     KUBERNETES("kubernetes"),
     GOOGLE("google"),
-    DOCKERREGISTRY("dockerRegistry");
+    DOCKERREGISTRY("dockerRegistry"),
+    APPENGINE("appengine");
 
     @Getter
     String id;

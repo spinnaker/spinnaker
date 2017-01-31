@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
 
-class GoogleCommandProperties {
-  static final String IMAGE_PROJECTS_DESCRIPTION = "A list of Google Cloud Platform projects Spinnaker will be able to cache and deploy images from. "
-      + "When this is omitted, it defaults to the current project.";
+public class CommonGoogleCommandProperties {
+  static public final String PROJECT_DESCRIPTION = "The Google Cloud Platform project this Spinnaker account will manage.";
 
-  static final String ALPHA_LISTED_DESCRIPTION = "Enable this flag if your project has access to alpha features "
-      + "and you want Spinnaker to take advantage of them.";
+  static public final String JSON_PATH_DESCRIPTION = "The path to a JSON service account that Spinnaker will use as credentials. "
+      + "This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, "
+      + "or needs permissions not afforded to the VM it is running on. "
+      + "See https://cloud.google.com/compute/docs/access/service-accounts for more information.";
 }

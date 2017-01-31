@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
+package com.netflix.spinnaker.halyard.cli.command.v1.providers.appengine;
 
-class GoogleCommandProperties {
-  static final String IMAGE_PROJECTS_DESCRIPTION = "A list of Google Cloud Platform projects Spinnaker will be able to cache and deploy images from. "
-      + "When this is omitted, it defaults to the current project.";
+import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractNamedProviderCommand;
 
-  static final String ALPHA_LISTED_DESCRIPTION = "Enable this flag if your project has access to alpha features "
-      + "and you want Spinnaker to take advantage of them.";
+@Parameters()
+public class AppengineCommand extends AbstractNamedProviderCommand {
+  protected String getProviderName() {
+    return "appengine";
+  }
+
+  public AppengineCommand() {
+    super();
+    registerSubcommand(new AppengineAddAccountCommand());
+    registerSubcommand(new AppengineEditAccountCommand());
+  }
 }

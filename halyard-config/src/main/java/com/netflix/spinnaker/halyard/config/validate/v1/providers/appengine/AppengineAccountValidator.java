@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
+package com.netflix.spinnaker.halyard.config.validate.v1.providers.appengine;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class GoogleAccount extends CommonGoogleAccount implements Cloneable {
-  private boolean alphaListed;
-  private List<String> imageProjects = new ArrayList<>();
-
+public class AppengineAccountValidator extends Validator<AppengineAccount> {
   @Override
-  public void accept(ProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
+  public void validate(ProblemSetBuilder p, AppengineAccount n) {
+    // TODO(dpeach): fill this in - the other validators are a good reference point.
   }
 }

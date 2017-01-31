@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
+package com.netflix.spinnaker.halyard.cli.command.v1.providers.appengine;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractAddAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.providers.google.CommonGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
-import java.util.ArrayList;
-import java.util.List;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 
 @Parameters()
-public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
+public class AppengineAddAccountCommand extends AbstractAddAccountCommand {
   protected String getProviderName() {
-    return "google";
+    return "appengine";
   }
 
   @Parameter(
@@ -43,28 +42,10 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
   )
   private String jsonPath;
 
-  @Parameter(
-      names = "--image-projects",
-      variableArity = true,
-      description = GoogleCommandProperties.IMAGE_PROJECTS_DESCRIPTION
-  )
-  private List<String> imageProjects = new ArrayList<>();
-
-  @Parameter(
-      names = "--alpha-listed",
-      description = GoogleCommandProperties.ALPHA_LISTED_DESCRIPTION
-  )
-  private boolean alphaListed = false;
-
   @Override
   protected Account buildAccount(String accountName) {
-    GoogleAccount account = (GoogleAccount) new GoogleAccount().setName(accountName);
-    account = (GoogleAccount) account.setJsonPath(jsonPath)
-        .setProject(project);
-
-    account.setAlphaListed(alphaListed)
-        .setImageProjects(imageProjects);
-
+    AppengineAccount account = (AppengineAccount) new AppengineAccount().setName(accountName);
+    account.setProject(project).setJsonPath(jsonPath);
     return account;
   }
 }

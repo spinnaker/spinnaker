@@ -20,6 +20,7 @@ import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
@@ -55,7 +56,7 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
       p.addProblem(Severity.ERROR, "Error opening specified json path: " + e.getMessage() + ".");
     }
 
-    if (project == null || project.isEmpty()) {
+    if (n.getProject() == null || n.getProject().isEmpty()) {
       p.addProblem(Severity.ERROR, "No google project supplied.");
       return;
     }

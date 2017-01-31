@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.providers.google;
 import com.beust.jcommander.Parameter;
 import com.netflix.spinnaker.halyard.cli.command.v1.providers.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoogleAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,13 +33,13 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
   @Parameter(
       names = "--project",
       required = true,
-      description = GoogleCommandProperties.PROJECT_DESCRIPTION
+      description = CommonGoogleCommandProperties.PROJECT_DESCRIPTION
   )
   private String project;
 
   @Parameter(
       names = "--json-path",
-      description = GoogleCommandProperties.JSON_PATH_DESCRIPTION
+      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
   )
   private String jsonPath;
 
