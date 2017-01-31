@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
@@ -29,14 +30,16 @@ class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
   private final String project
   private final String region
   private final GoogleNamedAccountCredentials credentials
+  private final GoogleExecutorTraits executor
 
   private SafeRetry safeRetry
 
-  GCEServerGroupNameResolver(String project, String region, GoogleNamedAccountCredentials credentials, SafeRetry safeRetry) {
+  GCEServerGroupNameResolver(String project, String region, GoogleNamedAccountCredentials credentials, SafeRetry safeRetry, GoogleExecutorTraits executor) {
     this.project = project
     this.region = region
     this.credentials = credentials
     this.safeRetry = safeRetry
+    this.executor = executor
   }
 
   @Override
@@ -51,7 +54,7 @@ class GCEServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
   @Override
   List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
-    def managedInstanceGroups = GCEUtil.queryAllManagedInstanceGroups(project, region, credentials, task, phase, safeRetry)
+    def managedInstanceGroups = GCEUtil.queryAllManagedInstanceGroups(project, region, credentials, task, phase, safeRetry, executor)
 
     return findMatchingManagedInstanceGroups(managedInstanceGroups, clusterName)
   }

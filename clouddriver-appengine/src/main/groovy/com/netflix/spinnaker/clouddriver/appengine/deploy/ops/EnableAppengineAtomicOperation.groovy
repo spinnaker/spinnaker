@@ -27,7 +27,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class EnableAppengineAtomicOperation implements AtomicOperation<Void> {
+class EnableAppengineAtomicOperation extends AppengineAtomicOperation<Void> {
   private static final String BASE_PHASE = "ENABLE_SERVER_GROUP";
 
   private static Task getTask() {
@@ -75,6 +75,7 @@ class EnableAppengineAtomicOperation implements AtomicOperation<Void> {
     def upsertLoadBalancerOperation = new UpsertAppengineLoadBalancerAtomicOperation(upsertLoadBalancerDescription)
     upsertLoadBalancerOperation.appengineLoadBalancerProvider = appengineLoadBalancerProvider
     upsertLoadBalancerOperation.safeRetry = safeRetry
+    upsertLoadBalancerOperation.registry = registry
     upsertLoadBalancerOperation.operate(priorOutputs)
 
     return null

@@ -16,15 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleCommonSafeRetry
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import java.util.concurrent.TimeUnit
 
 // TODO(jacobkiefer): This used to have a generic return type associated with 'doRetry'. Find a way to reincorporate while still making this a Bean.
 @Component
 class SafeRetry extends GoogleCommonSafeRetry {
+
   @Value('${google.safeRetryMaxWaitIntervalMs:60000}')
   Long maxWaitInterval
 
@@ -38,25 +42,23 @@ class SafeRetry extends GoogleCommonSafeRetry {
   Long maxRetries
 
   public Object doRetry(Closure operation,
-                        String action,
                         String resource,
                         Task task,
-                        String phase,
                         List<Integer> retryCodes,
-                        List<Integer> successfulErrorCodes) {
-    return super.doRetry(
-      operation,
-      action,
-      resource,
-      task,
-      phase,
-      retryCodes,
-      successfulErrorCodes,
-      maxWaitInterval,
-      retryIntervalBase,
-      jitterMultiplier,
-      maxRetries
-    )
+                        List<Integer> successfulErrorCodes,
+                        Map tags,
+                        Registry registry) {
+    return super.doRetry(operation,
+                         resource,
+                         task,
+                         retryCodes,
+                         successfulErrorCodes,
+                         maxWaitInterval,
+                         retryIntervalBase,
+                         jitterMultiplier,
+                         maxRetries,
+                         tags,
+                         registry)
   }
 
   @Override

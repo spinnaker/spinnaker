@@ -85,14 +85,14 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     existingForwardingRule = safeRetry.doRetry(
       { timeExecute(
             compute.globalForwardingRules().get(project, description.loadBalancerName),
-            "compute.globalForwardingRules",
+            "compute.globalForwardingRules.get",
             TAG_SCOPE, SCOPE_GLOBAL) },
-      'Get',
       "Global forwarding rule ${description.loadBalancerName}",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      [404]
+      [404],
+      [action: "get", phase: BASE_PHASE, operation: "compute.globalForwardingRules.get", (TAG_SCOPE): SCOPE_GLOBAL],
+      registry
     ) as ForwardingRule
     String targetProxyName = "${description.loadBalancerName}-${TARGET_SSL_PROXY_NAME_SUFFIX}"
     if (existingForwardingRule) {
@@ -122,12 +122,12 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
             compute.backendServices().get(project, backendServiceName),
             "compute.backendServices.get",
             TAG_SCOPE, SCOPE_GLOBAL) },
-      'Get',
       "Global backend service $backendServiceName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      [404]
+      [404],
+      [action: "get", phase: BASE_PHASE, operation: "compute.backendServices.get", (TAG_SCOPE): SCOPE_GLOBAL],
+      registry
     ) as BackendService
     if (existingBackendService) {
       Boolean differentHealthChecks = existingBackendService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [healthCheckName]
@@ -143,12 +143,12 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
             compute.healthChecks().get(project, healthCheckName),
             "compute.healthChecks.get",
             TAG_SCOPE, SCOPE_GLOBAL) },
-      'Get',
       "Health check $healthCheckName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      [404]
+      [404],
+      [action: "get", phase: BASE_PHASE, operation: "compute.healthChecks.get", (TAG_SCOPE): SCOPE_GLOBAL],
+      registry
     ) as HealthCheck
 
     needToUpdateHealthCheck = existingHealthCheck && GCEUtil.healthCheckShouldBeUpdated(existingHealthCheck, descriptionHealthCheck)
@@ -163,12 +163,12 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
               compute.healthChecks().insert(project, newHealthCheck as HealthCheck),
               "compute.healthChecks.insert",
               TAG_SCOPE, SCOPE_GLOBAL) },
-        'Insert',
         "Health check $healthCheckName",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "insert", phase: BASE_PHASE, operation: "copmute.healthChecks.insert", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
     } else if (existingHealthCheck && needToUpdateHealthCheck) {
       task.updateStatus BASE_PHASE, "Updating health check $healthCheckName..."
@@ -178,12 +178,12 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
               compute.healthChecks().update(project, healthCheckName, existingHealthCheck as HealthCheck),
               "compute.healthChecks.update",
               TAG_SCOPE, SCOPE_GLOBAL) },
-        'Update',
         "Health check $healthCheckName",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "update", phase: BASE_PHASE, operation: "compute.healthChecks.update", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
     }
     if (healthCheckOp) {
@@ -207,12 +207,12 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
               compute.backendServices().insert(project, bs),
               "compute.backendServices.insert",
               TAG_SCOPE, SCOPE_GLOBAL) },
-        'Insert',
         "Backend service $description.backendService.name",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "insert", phase: BASE_PHASE, operation: "compute.backendServices.insert", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
     } else if (existingBackendService && needToUpdateBackendService) {
       task.updateStatus BASE_PHASE, "Upating backend service ${description.backendService.name}..."
@@ -226,12 +226,12 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
               compute.backendServices().update(project, existingBackendService.getName(), existingBackendService),
               "compute.backendServices.update",
               TAG_SCOPE, SCOPE_GLOBAL) },
-        'Update',
         "Backend service $description.backendService.name",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "update", phase: BASE_PHASE, operation: "compute.backendServices.update", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
     }
     if (backendServiceOp) {
@@ -252,12 +252,12 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
               compute.targetSslProxies().insert(project, targetProxy),
               "compute.targetSslProxies.insert",
               TAG_SCOPE, SCOPE_GLOBAL) },
-        'Insert',
         "Target ssl proxy ${targetProxyName}",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "insert", phase: BASE_PHASE, operation: "compute.targetSslProxies.insert", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       ) as Operation
       targetProxyUrl = proxyOp.getTargetLink()
       googleOperationPoller.waitForGlobalOperation(compute, project, proxyOp.getName(),
@@ -295,12 +295,12 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
               compute.globalForwardingRules().insert(project, forwardingRule),
               "compute.globalForwardingRules.insert",
               TAG_SCOPE, SCOPE_GLOBAL) },
-        'Insert',
         "Global forwarding rule ${description.loadBalancerName}",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "insert", phase: BASE_PHASE, operation: "compute.globalForwardingRules.insert", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       ) as Operation
       googleOperationPoller.waitForGlobalOperation(compute, project, ruleOp.getName(),
         null, task, "forwarding rule " + description.loadBalancerName, BASE_PHASE)
@@ -309,7 +309,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     // Delete extraneous listeners.
     description.listenersToDelete?.each { String forwardingRuleName ->
       task.updateStatus BASE_PHASE, "Deleting listener ${forwardingRuleName}..."
-      GCEUtil.deleteGlobalListener(compute, project, forwardingRuleName, safeRetry)
+      GCEUtil.deleteGlobalListener(compute, project, forwardingRuleName, safeRetry, this)
     }
 
     task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName."

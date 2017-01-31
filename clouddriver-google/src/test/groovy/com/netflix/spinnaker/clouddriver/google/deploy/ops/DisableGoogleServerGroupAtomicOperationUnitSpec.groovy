@@ -80,7 +80,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   def setup() {
     googleClusterProviderMock = Mock(GoogleClusterProvider)
     googleLoadBalancerProviderMock = Mock(GoogleLoadBalancerProvider)
-    serverGroup = new GoogleServerGroup(zone: ZONE).view
+    serverGroup = new GoogleServerGroup(zone: ZONE, region: REGION).view
     computeMock = Mock(Compute)
     credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
 

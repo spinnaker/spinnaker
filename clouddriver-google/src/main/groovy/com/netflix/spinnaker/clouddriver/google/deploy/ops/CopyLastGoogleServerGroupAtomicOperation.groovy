@@ -34,10 +34,9 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<DeploymentResult> {
+class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "COPY_LAST_SERVER_GROUP"
 
   private static Task getTask() {
@@ -72,7 +71,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
     def isRegional = newDescription.regional
     def zone = newDescription.zone
     def region = newDescription.region ?: credentials.regionFromZone(zone)
-    def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials, safeRetry)
+    def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials, safeRetry, this)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(newDescription.application, newDescription.stack, newDescription.freeFormDetails)
 
     task.updateStatus BASE_PHASE, "Initializing copy of server group for cluster $clusterName in ${isRegional ? region : zone}..."

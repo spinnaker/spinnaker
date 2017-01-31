@@ -90,7 +90,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     boolean needToUpdateHealthCheck = false
 
     // Check if there already exists a forwarding rule with the requested name.
-    existingForwardingRule = GCEUtil.queryRegionalForwardingRule(project, description.loadBalancerName, compute, task, BASE_PHASE)
+    existingForwardingRule = GCEUtil.queryRegionalForwardingRule(project, description.loadBalancerName, compute, task, BASE_PHASE, this)
 
     if (existingForwardingRule && (description.region != GCEUtil.getLocalName(existingForwardingRule.region))) {
       throw new GoogleOperationException("There is already a load balancer named " +
@@ -103,12 +103,12 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
             compute.regionBackendServices().get(project, region, backendServiceName),
             "compute.regionBackendServices.get",
             TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      'Get',
       "Region backend service $backendServiceName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      [404]
+      [404],
+      [action: "get", phase: BASE_PHASE, operation: "compute.regionBackendServices.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+      registry
     ) as BackendService
     if (existingBackendService) {
       Boolean differentHealthChecks = existingBackendService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [healthCheckName]
@@ -126,12 +126,12 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
             compute.healthChecks().get(project, healthCheckName),
             "compute.healthChecks.get",
             TAG_SCOPE, SCOPE_GLOBAL) },
-      'Get',
       "Health check $healthCheckName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      [404]
+      [404],
+      [action: "get", phase: BASE_PHASE, operation: "compute.healthChecks.get", (TAG_SCOPE): SCOPE_GLOBAL],
+      registry
     ) as HealthCheck
 
     needToUpdateHealthCheck = existingHealthCheck && GCEUtil.healthCheckShouldBeUpdated(existingHealthCheck, descriptionHealthCheck)
@@ -146,12 +146,12 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
               compute.healthChecks().insert(project, newHealthCheck as HealthCheck),
               "compute.healthChecks.insert",
               TAG_SCOPE, SCOPE_GLOBAL) },
-        'Insert',
         "Health check $healthCheckName",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "insert", phase: BASE_PHASE, operation: "compute.healthChecks.insert", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
     } else if (existingHealthCheck && needToUpdateHealthCheck) {
       task.updateStatus BASE_PHASE, "Updating health check $healthCheckName..."
@@ -161,12 +161,12 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
               compute.healthChecks().update(project, healthCheckName, existingHealthCheck as HealthCheck),
               "compute.healthChecks.update",
               TAG_SCOPE, SCOPE_GLOBAL) },
-        'Update',
         "Health check $healthCheckName",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "update", phase: BASE_PHASE, operation: "compute.healthChecks.update", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
     }
     if (healthCheckOp) {
@@ -189,12 +189,12 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
               compute.regionBackendServices().insert(project, region, bs),
               "compute.regionBackendServices.insert",
               TAG_SCOPE, SCOPE_GLOBAL) },
-        'Insert',
         "Backend service $description.backendService.name",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "insert", phase: BASE_PHASE, operation: "compute.regionBackendServices.insert", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
     } else if (existingBackendService && needToUpdateBackendService) {
       task.updateStatus BASE_PHASE, "Upating backend service ${description.backendService.name}..."
@@ -207,12 +207,12 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
               compute.regionBackendServices().update(project, region, existingBackendService.getName(), existingBackendService),
               "compute.regionBackendServices.update",
               TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-        'Update',
         "Backend service $description.backendService.name",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "Update", phase: BASE_PHASE, operation: "compute.regionBackendServices.update", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+        registry
       )
     }
     if (backendServiceOp) {
@@ -237,12 +237,12 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
               compute.forwardingRules().insert(project, region, forwardingRule),
               "compute.forwardingRules.insert",
               TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-        'Insert',
         "Regional forwarding rule ${description.loadBalancerName}",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        []
+        [],
+        [action: "insert", phase: BASE_PHASE, operation: "compute.forwardingRules.insert", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
     }
 

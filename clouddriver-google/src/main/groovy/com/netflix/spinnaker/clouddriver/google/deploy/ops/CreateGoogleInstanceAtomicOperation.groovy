@@ -93,7 +93,8 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
                                          task,
                                          BASE_PHASE,
                                          clouddriverUserAgentApplicationName,
-                                         googleConfigurationProperties.baseImageProjects)
+                                         googleConfigurationProperties.baseImageProjects,
+                                         this)
 
     def network = GCEUtil.queryNetwork(accountName, description.network ?: DEFAULT_NETWORK_NAME, task, BASE_PHASE, googleNetworkProvider)
 

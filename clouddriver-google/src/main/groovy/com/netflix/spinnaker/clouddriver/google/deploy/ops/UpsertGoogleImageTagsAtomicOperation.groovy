@@ -69,7 +69,8 @@ class UpsertGoogleImageTagsAtomicOperation extends GoogleAtomicOperation<Void> {
                                    task,
                                    BASE_PHASE,
                                    clouddriverUserAgentApplicationName,
-                                   googleConfigurationProperties.baseImageProjects)
+                                   googleConfigurationProperties.baseImageProjects,
+                                   this)
 
     if (image) {
       // Image self links are constructed like this:

@@ -83,6 +83,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
         }
       }
 
+      batchMock.demand.size { return 1 }
       batchMock.demand.execute {
         def imageList = new ImageList()
         imageList.setItems([new Image(name: IMAGE)])

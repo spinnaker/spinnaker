@@ -80,6 +80,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
         }
       }
 
+      batchMock.demand.size { return 1 }
       batchMock.demand.execute {
         def imageList = new ImageList()
         imageList.setItems([new Image(name: IMAGE_NAME, selfLink: IMAGE_SELF_LINK)])
@@ -149,6 +150,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
         }
       }
 
+      batchMock.demand.size { return 1 }
       batchMock.demand.execute {
         def imageList = new ImageList()
         imageList.setItems([new Image(name: IMAGE_NAME, selfLink: IMAGE_SELF_LINK, labels: LABELS)])
@@ -203,6 +205,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
       def images = new Compute.Builder(
         httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
 
+      batchMock.demand.size { return 1 }
       computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
       computeMock.ignore('asBoolean')
 

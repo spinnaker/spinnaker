@@ -26,7 +26,9 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class GoogleOperationPollerSpec extends Specification {
-  private static final String METRIC_NAME = "testMetric"
+  private static final String METRIC_NAME = GoogleOperationPoller.METRIC_NAME
+  def TEST_TAGS = [randomTag: "randomValue", anotherTag: "anotherValue"]
+  def BASE_PHASE = "TestPhase"
 
   @Shared SafeRetry safeRetry
 
@@ -40,7 +42,7 @@ class GoogleOperationPollerSpec extends Specification {
       // For the remaining tests in this module, we'll use simple ones having proved here it doesnt matter.
       def clock = new ManualClock(777, 100)  // walltime=777 isnt used.
       def registry = new DefaultRegistry(clock)
-      def metricId = registry.createId(METRIC_NAME, [randomTag: "randomValue", anotherTag: "anotherValue"])
+      def metricId = registry.createId(METRIC_NAME, TEST_TAGS)
       def actualMetricId = metricId.withTag("status", "DONE")
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
@@ -52,17 +54,16 @@ class GoogleOperationPollerSpec extends Specification {
         )
 
     expect:
-      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123 + 100); return new Operation(status: "DONE")}, metricId, 0) == new Operation(status: "DONE")
+      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123 + 100); return new Operation(status: "DONE")}, TEST_TAGS, BASE_PHASE, 0) == new Operation(status: "DONE")
       registry.timer(actualMetricId).count() == 1
       registry.timer(actualMetricId).totalTime() == 123
-      registry.timers().count() == 1
   }
 
   void "waitForOperation should return null on timeout"() {
     setup:
       def clock = new ManualClock()
       def registry = new DefaultRegistry(clock)
-      def metricId = registry.createId(METRIC_NAME)
+      def metricId = registry.createId(METRIC_NAME, TEST_TAGS)
       def actualMetricId = metricId.withTag("status", "TIMEOUT")
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
@@ -74,14 +75,14 @@ class GoogleOperationPollerSpec extends Specification {
         )
 
     expect:
-      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123); return new Operation(status: "PENDING")}, metricId, 0) == null
+      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123); return new Operation(status: "PENDING")}, TEST_TAGS, BASE_PHASE, 0) == null
   }
 
   void "waitForOperation should increment poll interval properly and retry until timeout"() {
     setup:
       def clock = new ManualClock()
       def registry = new DefaultRegistry(clock)
-      def metricId = registry.createId(METRIC_NAME)
+      def metricId = registry.createId(METRIC_NAME, TEST_TAGS)
       def actualMetricId = metricId.withTag("status", "TIMEOUT")
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
@@ -94,7 +95,7 @@ class GoogleOperationPollerSpec extends Specification {
 
     when:
       // Even though the timeout is set to 10 seconds, it will poll for 12 seconds.
-      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123); return new Operation(status: "PENDING")}, metricId, 10)
+      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123); return new Operation(status: "PENDING")}, TEST_TAGS, BASE_PHASE, 10)
 
     then:
       1 * threadSleeperMock.sleep(1)
@@ -112,14 +113,13 @@ class GoogleOperationPollerSpec extends Specification {
       1 * threadSleeperMock.sleep(5)
       registry.timer(actualMetricId).count() == 1
       registry.timer(actualMetricId).totalTime() == 123
-      registry.timers().count() == 1
   }
 
   void "waitForOperation should respect asyncOperationMaxPollingIntervalSeconds"() {
     setup:
       def clock = new ManualClock()
       def registry = new DefaultRegistry(clock)
-      def metricId = registry.createId(METRIC_NAME)
+      def metricId = registry.createId(METRIC_NAME, TEST_TAGS)
       def actualMetricId = metricId.withTag("status", "TIMEOUT")
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
@@ -132,7 +132,7 @@ class GoogleOperationPollerSpec extends Specification {
 
     when:
       // Even though the timeout is set to 10 seconds, it will poll for 13 seconds.
-      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123); return new Operation(status: "PENDING")}, metricId, 10)
+      googleOperationPoller.waitForOperation({clock.setMonotonicTime(123); return new Operation(status: "PENDING")}, TEST_TAGS, BASE_PHASE, 10)
 
     then:
       1 * threadSleeperMock.sleep(1)
@@ -153,15 +153,14 @@ class GoogleOperationPollerSpec extends Specification {
       1 * threadSleeperMock.sleep(3)
       registry.timer(actualMetricId).count() == 1
       registry.timer(actualMetricId).totalTime() == 123
-      registry.timers().count() == 1
   }
 
   void "waitForOperation should retry on SocketTimeoutException"() {
     setup:
       def clock = new ManualClock()
       def registry = new DefaultRegistry(clock)
-      def metricId = registry.createId(METRIC_NAME)
-      def actualMetricId = metricId.withTag("status", "DONE")
+      def metricId = registry.createId(METRIC_NAME, TEST_TAGS)
+      def actualMetricId = metricId.withTags("status", "DONE")
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def closure = Mock(Closure)
       def googleOperationPoller =
@@ -173,7 +172,7 @@ class GoogleOperationPollerSpec extends Specification {
         )
 
     when:
-      googleOperationPoller.waitForOperation(closure, metricId, 10)
+      googleOperationPoller.waitForOperation(closure, TEST_TAGS, BASE_PHASE, 10)
 
     then:
       1 * closure() >> {throw new SocketTimeoutException("Read timed out")}
@@ -187,6 +186,5 @@ class GoogleOperationPollerSpec extends Specification {
       1 * closure() >> {clock.setMonotonicTime(321); return new Operation(status: "DONE")}
       registry.timer(actualMetricId).count() == 1
       registry.timer(actualMetricId).totalTime() == 321
-      registry.timers().count() == 1
   }
 }

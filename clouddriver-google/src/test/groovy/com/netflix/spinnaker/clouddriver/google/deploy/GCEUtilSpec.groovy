@@ -24,9 +24,11 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
+import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
@@ -41,6 +43,10 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class GCEUtilSpec extends Specification {
+  class TestExecutor implements GoogleExecutorTraits {
+    def Registry registry = new DefaultRegistry()
+  }
+
   private static final PROJECT_NAME = "my-project"
   private static final REGION = "us-central1"
   private static final ZONE = "us-central1-f"
@@ -54,6 +60,8 @@ class GCEUtilSpec extends Specification {
   private static final CREDENTIALS = new GoogleNamedAccountCredentials.Builder().imageProjects([IMAGE_PROJECT_NAME]).credentials(new FakeGoogleCredentials()).build()
   private static final GOOGLE_APPLICATION_NAME = "test"
   private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]
+
+  def executor = new TestExecutor()
 
   @Shared
   def taskMock
@@ -90,6 +98,7 @@ class GCEUtilSpec extends Specification {
 
       def soughtImage = new Image(name: IMAGE_NAME)
 
+      batchMock.demand.size { return 1 }
       batchMock.demand.execute {
         def imageList = new ImageList()
         imageList.setItems([soughtImage])
@@ -105,7 +114,7 @@ class GCEUtilSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
 
-            sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, null, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS)
+            sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, null, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executor)
           }
         }
       }
@@ -141,6 +150,7 @@ class GCEUtilSpec extends Specification {
 
       def soughtImage = new Image(name: IMAGE_NAME)
 
+      batchMock.demand.size { return 1 }
       batchMock.demand.execute {
         def imageList = new ImageList()
         imageList.setItems([soughtImage])
@@ -156,7 +166,7 @@ class GCEUtilSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
 
-            sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, CREDENTIALS, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS)
+            sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, CREDENTIALS, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executor)
           }
         }
       }
@@ -190,6 +200,7 @@ class GCEUtilSpec extends Specification {
         }
       }
 
+      batchMock.demand.size { return 1 }
       batchMock.demand.execute {
         def imageList = new ImageList()
         imageList.setItems([new Image(name: IMAGE_NAME + "-WRONG")])
@@ -205,7 +216,7 @@ class GCEUtilSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
 
-            sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, null, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS)
+            sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, null, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executor)
           }
         }
       }
@@ -272,8 +283,7 @@ class GCEUtilSpec extends Specification {
 
     when:
       def instanceUrls =
-        GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE)
-
+        GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE, executor)
     then:
       1 * computeMock.instances() >> instancesMock
       1 * instancesMock.aggregatedList(PROJECT_NAME) >> instancesAggregatedListMock
@@ -302,7 +312,7 @@ class GCEUtilSpec extends Specification {
 
     when:
       def instanceUrls =
-        GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE)
+        GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE, executor)
 
     then:
       1 * computeMock.instances() >> instancesMock
@@ -331,7 +341,7 @@ class GCEUtilSpec extends Specification {
       def instanceAggregatedList = new InstanceAggregatedList(items: zoneToInstancesMap)
 
     when:
-      GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE)
+      GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE, executor)
 
     then:
       1 * computeMock.instances() >> instancesMock
@@ -362,7 +372,7 @@ class GCEUtilSpec extends Specification {
       def instanceAggregatedList = new InstanceAggregatedList(items: zoneToInstancesMap)
 
     when:
-      GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE)
+      GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE, executor)
 
     then:
       1 * computeMock.instances() >> instancesMock
@@ -502,8 +512,7 @@ class GCEUtilSpec extends Specification {
       }
 
     when:
-      GCEUtil.addHttpLoadBalancerBackends(computeMock, new ObjectMapper(), PROJECT_NAME, serverGroup,
-        googleLoadBalancerProviderMock, task, "PHASE")
+      GCEUtil.addHttpLoadBalancerBackends(computeMock, new ObjectMapper(), PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock, task, "PHASE", executor)
 
     then:
       _ * computeMock.backendServices() >> backendServicesMock
