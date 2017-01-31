@@ -63,8 +63,6 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig.blockDevicesByInstanceType
-
 class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   @Subject
@@ -400,6 +398,58 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     new BasicAmazonDeployDescription(blockDevices: [new AmazonBlockDevice(deviceName: "DEVICE")]) | "launchConfig" || "OLD_SPOT"        || ["DEVICE"]
     new BasicAmazonDeployDescription(spotPrice: "SPOT", blockDevices: [])                         | null           || "SPOT"            || []
   }
+
+  @Unroll
+  void "copy spot price #copySourceSpotPrice and copy source block devices #copySourceBlockDevices feature flags"() {
+    given:
+    if (copySourceSpotPrice != null) {
+      description.copySourceSpotPrice = copySourceSpotPrice
+    }
+    if (copySourceBlockDevices != null) {
+      description.copySourceCustomBlockDeviceMappings = copySourceBlockDevices
+    }
+    int expectedCalls = (description.copySourceSpotPrice || description.copySourceCustomBlockDeviceMappings) ? 1 : 0
+    def asgService = Mock(AsgService) {
+      (expectedCalls) * getLaunchConfiguration(_) >> {
+        return new LaunchConfiguration()
+            .withSpotPrice("OLD_SPOT")
+            .withBlockDeviceMappings(new BlockDeviceMapping().withDeviceName("OLD_DEVICE")
+        )
+      }
+    }
+    def sourceRegionScopedProvider = Mock(RegionScopedProvider) {
+      (expectedCalls) * getAsgService() >> { return asgService }
+      1 * getAutoScaling() >> {
+        return Mock(AmazonAutoScaling) {
+          1 * describeAutoScalingGroups(_) >> {
+            return new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
+                new AutoScalingGroup().withLaunchConfigurationName('foo'))
+          }
+        }
+      }
+    }
+
+    when:
+    def targetDescription = handler.copySourceAttributes(
+        sourceRegionScopedProvider, "sourceAsg", true, description
+    )
+
+    then:
+    targetDescription.spotPrice == expectedSpotPrice
+    targetDescription.blockDevices?.deviceName == expectedBlockDevices
+
+    where:
+    description                        | copySourceBlockDevices | copySourceSpotPrice || expectedSpotPrice || expectedBlockDevices
+    new BasicAmazonDeployDescription() | null                   | null                || "OLD_SPOT"        || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription() | true                   | true                || "OLD_SPOT"        || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription() | true                   | null                || "OLD_SPOT"        || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription() | false                  | null                || "OLD_SPOT"        || null
+    new BasicAmazonDeployDescription() | null                   | true                || "OLD_SPOT"        || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription() | null                   | false               || null              || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription() | false                  | true                || "OLD_SPOT"        || null
+    new BasicAmazonDeployDescription() | false                  | false               || null              || null
+  }
+
 
   void 'should fail if useSourceCapacity requested, and source not available'() {
     given:

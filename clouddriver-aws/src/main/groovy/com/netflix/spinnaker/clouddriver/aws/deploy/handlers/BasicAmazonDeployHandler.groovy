@@ -286,6 +286,12 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   BasicAmazonDeployDescription copySourceAttributes(RegionScopedProviderFactory.RegionScopedProvider sourceRegionScopedProvider,
                                                     String sourceAsgName, Boolean useSourceCapacity,
                                                     BasicAmazonDeployDescription description) {
+
+    //skip a couple of AWS calls if we won't use any of the data
+    if (!(useSourceCapacity || description.copySourceCustomBlockDeviceMappings || description.copySourceSpotPrice)) {
+      return description
+    }
+
     if (!sourceRegionScopedProvider) {
       if (useSourceCapacity) {
         throw new IllegalStateException("useSourceCapacity requested, but no source available")
@@ -314,12 +320,22 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       description.capacity.desired = sourceAsg.desiredCapacity
     }
 
+    //skip a describeLaunchConfiguration if we won't use it for anything
+    if (!(description.copySourceSpotPrice || description.copySourceCustomBlockDeviceMappings)) {
+      return description
+    }
+
     def sourceLaunchConfiguration = sourceRegionScopedProvider.asgService.getLaunchConfiguration(
       sourceAsg.launchConfigurationName
     )
 
-    description.blockDevices = buildBlockDeviceMappings(deployDefaults, description, sourceLaunchConfiguration)
-    description.spotPrice = description.spotPrice ?: sourceLaunchConfiguration.spotPrice
+    if (description.copySourceCustomBlockDeviceMappings) {
+      description.blockDevices = buildBlockDeviceMappings(deployDefaults, description, sourceLaunchConfiguration)
+    }
+
+    if (description.copySourceSpotPrice) {
+      description.spotPrice = description.spotPrice ?: sourceLaunchConfiguration.spotPrice
+    }
 
     return description
   }

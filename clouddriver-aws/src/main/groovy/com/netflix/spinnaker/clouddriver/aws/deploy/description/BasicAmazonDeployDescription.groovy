@@ -47,10 +47,24 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String base64UserData
   Boolean legacyUdf
 
+
+  //Default behaviour (legacy reasons) is to carry forward some settings (even on a deploy vs a cloneServerGroup) from an ancestor ASG
+  // the following flags disable copying of those attributes:
+
   /**
    * If false, the newly created server group will not pick up scaling policies and actions from an ancestor group
    */
   boolean copySourceScalingPoliciesAndActions = true
+
+  /**
+   * If false, the newly created server group will not pick up block device mapping customizations from an ancestor group
+   */
+  boolean copySourceCustomBlockDeviceMappings = true
+
+  /**
+   * If false, the newly created server group will not pick up a spot price from an ancestor group
+   */
+  boolean copySourceSpotPrice = true
 
   String classicLinkVpcId
   List<String> classicLinkVpcSecurityGroups
