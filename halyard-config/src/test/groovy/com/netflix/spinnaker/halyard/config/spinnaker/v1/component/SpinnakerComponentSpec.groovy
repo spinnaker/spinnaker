@@ -67,7 +67,7 @@ class SpinnakerComponentSpec extends Specification {
 
   void "find all required files referenced by config"() {
     setup:
-    Node node = new NodeWithChildren();
+    Node node = new NodeWithChildren()
     SpinnakerComponent c = new SpinnakerComponent() {
       @Override
       protected String commentPrefix() {

@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.ComponentConfig;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.SpinnakerComponent;
 import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
 import com.netflix.spinnaker.halyard.deploy.component.v1.ServiceFactory;
@@ -26,7 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A ProviderInterface is an abstraction for communicating with a specific cloud-provider's installation
@@ -43,8 +47,27 @@ public abstract class ProviderInterface<T extends Account> {
   @Autowired
   String spinnakerOutputPath;
 
+  @Autowired
+  DeploymentService deploymentService;
+
   @Autowired(required = false)
   List<SpinnakerComponent> spinnakerComponents = new ArrayList<>();
+
+  Map<String, SpinnakerComponent> componentMap = null;
+
+  protected SpinnakerComponent getComponentByName(String name) {
+    if (componentMap == null) {
+      componentMap = new HashMap<>();
+      spinnakerComponents.forEach(c -> componentMap.put(c.getComponentName(), c));
+    }
+
+    return componentMap.get(name);
+  }
+
+  /**
+   * @return the docker image/debian package/etc... for a certain component.
+   */
+  abstract protected String componentArtifact(DeploymentDetails<T> details, SpinnakerComponent component);
 
   abstract public Object connectTo(DeploymentDetails<T> details, ComponentType componentType);
 

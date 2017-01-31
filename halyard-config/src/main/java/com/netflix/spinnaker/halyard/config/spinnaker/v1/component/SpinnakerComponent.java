@@ -31,7 +31,6 @@ import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.profileRegistry.ComponentProfileRegistry;
-import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.yaml.snakeyaml.Yaml;
 import retrofit.RetrofitError;
@@ -77,7 +76,11 @@ abstract public class SpinnakerComponent {
   public abstract String getComponentName();
 
   public ComponentConfig getFullConfig(NodeFilter filter, SpinnakerEndpoints endpoints) {
-    ComponentConfig result = generateFullConfig(getBaseConfig(), deploymentService.getDeploymentConfiguration(filter), endpoints);
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(filter);
+    ComponentConfig result = generateFullConfig(
+        getBaseConfig(deploymentConfiguration),
+        deploymentConfiguration,
+        endpoints);
     result.setConfigContents(EDIT_WARNING + result.getConfigContents());
     return result;
   }
@@ -99,10 +102,25 @@ abstract public class SpinnakerComponent {
    * @return the base config (typically found in a component's ./halconfig/ directory) for
    * the version of the component specified by the Spinnaker version in the loaded halconfig.
    */
-  private String getBaseConfig() {
+  private String getBaseConfig(DeploymentConfiguration deploymentConfiguration) {
+    String componentName = getComponentName();
+    String configFileName = getConfigFileName();
+    try {
+      String componentVersion = getVersion(deploymentConfiguration);
+      String componentObjectName = String.join("/", componentName, componentVersion, configFileName);
+
+      return IOUtils.toString(componentProfileRegistry.getObjectContents(componentObjectName));
+    } catch (RetrofitError | IOException e) {
+      throw new HalconfigException(
+          new ProblemBuilder(Problem.Severity.FATAL,
+              "Unable to retrieve a profile for \"" + componentName + "\": " + e.getMessage())
+              .build()
+      );
+    }
+  }
+
+  public String getVersion(DeploymentConfiguration deploymentConfiguration) {
     Halconfig currentConfig = parser.getHalconfig(true);
-    NodeFilter nodeFilter = new NodeFilter().setDeployment(currentConfig.getCurrentDeployment());
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeFilter);
     String version = deploymentConfiguration.getVersion();
     if (version == null || version.isEmpty()) {
       throw new IllegalConfigException(
@@ -113,7 +131,6 @@ abstract public class SpinnakerComponent {
     }
 
     String componentName = getComponentName();
-    String configFileName = getConfigFileName();
     try {
       String bomName = "bom/" + version + ".yml";
 
@@ -122,11 +139,7 @@ abstract public class SpinnakerComponent {
           BillOfMaterials.class
       );
 
-      String componentVersion = bom.getServices().getComponentVersion(componentName);
-
-      String componentObjectName = componentName + "/" + componentVersion + "/" + configFileName;
-
-      return IOUtils.toString(componentProfileRegistry.getObjectContents(componentObjectName));
+      return bom.getServices().getComponentVersion(componentName);
     } catch (RetrofitError | IOException e) {
       throw new HalconfigException(
           new ProblemBuilder(Problem.Severity.FATAL,

@@ -3,6 +3,7 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
   compile spinnaker.dependency('clouddriverKubernetes')
+  compile spinnaker.dependency('fabric8Api')
 
   compile project(':halyard-config')
 }

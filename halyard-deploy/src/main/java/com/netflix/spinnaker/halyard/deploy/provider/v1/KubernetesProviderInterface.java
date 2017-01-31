@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
@@ -26,6 +30,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.Kubern
 import com.netflix.spinnaker.halyard.config.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
 import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints.Service;
+import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.SpinnakerComponent;
 import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobRequest;
@@ -33,6 +38,11 @@ import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.Result;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.State;
 import com.netflix.spinnaker.halyard.deploy.resource.v1.JarResource;
+import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
+import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +71,9 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   @Value("${deploy.kubernetes.pollTimeout:10}")
   private int TIMEOUT_MINUTES;
 
+  @Value("${deploy.kubernetes.registry:gcr.io/spinnaker-marketplace}")
+  private String REGISTRY;
+
   @Autowired
   LookupService lookupService;
   
@@ -73,6 +86,16 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   private static class Proxy {
     String jobId;
     Integer port;
+  }
+
+  @Override
+  protected String componentArtifact(DeploymentDetails<KubernetesAccount> details, SpinnakerComponent component) {
+    NodeFilter filter = new NodeFilter().withAnyHalconfigFile().setDeployment(details.getDeploymentName());
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(filter);
+    String version = component.getVersion(deploymentConfiguration);
+
+    KubernetesImageDescription image = new KubernetesImageDescription(component.getComponentName(), version, REGISTRY);
+    return KubernetesUtil.getImageId(image);
   }
 
   @Override
@@ -126,70 +149,77 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   @Override
   public void bootstrapClouddriver(DeploymentDetails<KubernetesAccount> details) {
     KubernetesAccount account = details.getAccount();
-    List<String> command = kubectlAccountCommand(account);
 
     Service clouddriver = ComponentType.CLOUDDRIVER.getService(details.getEndpoints());
     String namespace = getNamespaceFromAddress(clouddriver.getAddress());
+    String serviceName = getServiceFromAddress(clouddriver.getAddress());
+    String replicaSetName = "spin-clouddriver-v000";
     String credsSecret = "hal-creds-config";
     String clouddriverSecret = componentSecret(ComponentType.CLOUDDRIVER.getName());
+    int clouddriverPort = clouddriver.getPort();
 
-    // kubectl [--flags] create namespace {%namespace%}
-    command.add("create");
-    command.add("namespace");
-    command.add(namespace);
-
-    JobRequest request = new JobRequest()
-        .setTokenizedCommand(command)
-        .setTimeoutMillis(TimeUnit.MINUTES.toMillis(TIMEOUT_MINUTES));
-
-    String jobId = jobExecutor.startJob(request);
-
-    JobStatus jobStatus = jobExecutor.backoffWait(jobId,
-        TimeUnit.SECONDS.toMillis(MIN_POLL_INTERVAL_SECONDS),
-        TimeUnit.SECONDS.toMillis(MAX_POLL_INTERVAL_SECONDS));
-
-    if (jobStatus.getResult() == Result.FAILURE && !jobStatus.getStdErr().contains("already exists")) {
-      throw new HalconfigException(new
-          ProblemBuilder(Severity.FATAL, "Unable to bootstrap clouddriver:\n" + jobStatus.getStdErr()).build());
+    KubernetesClient client = getClient(account);
+    if (client.namespaces().withName(namespace).get() == null) {
+      client.namespaces().create(new NamespaceBuilder()
+          .withNewMetadata()
+          .withName(namespace)
+          .endMetadata()
+          .build());
     }
 
-    stageCredentials(details, credsSecret, namespace);
-    stageConfig(details, namespace);
+    Map<String, String> serviceSelector = new HashMap<>();
+    serviceSelector.put("load-balancer-" + serviceName, "true");
 
-    command = kubectlAccountCommand(account);
-    // kubectl [--flags] create -f -
-    // reads a resource definition from stdin
-    command.add("create");
-    command.add("-f");
-    command.add("-");
+    Map<String, String> replicaSetSelector = new HashMap<>();
+    replicaSetSelector.put("server-group", replicaSetName);
 
-    request = new JobRequest()
-        .setTokenizedCommand(command)
-        .setTimeoutMillis(TimeUnit.MINUTES.toMillis(TIMEOUT_MINUTES));
+    Map<String, String> podLabels = new HashMap();
+    podLabels.putAll(replicaSetSelector);
+    podLabels.putAll(serviceSelector);
 
-    Map<String, String> bindings = new HashMap<>();
-    bindings.put("namespace", namespace);
-    bindings.put("service-name", getServiceFromAddress(clouddriver.getAddress()));
-    bindings.put("component-name", "spin-clouddriver-v000");
-    bindings.put("component-type", ComponentType.CLOUDDRIVER.getName());
-    bindings.put("creds-config", credsSecret);
-    bindings.put("clouddriver-config", clouddriverSecret);
-    bindings.put("port", Integer.toString(clouddriver.getPort()));
+    ServiceBuilder serviceBuilder = new ServiceBuilder();
+    serviceBuilder = serviceBuilder
+        .withNewMetadata()
+        .withName(serviceName)
+        .withNamespace(namespace)
+        .endMetadata()
+        .withNewSpec()
+        .withSelector(serviceSelector)
+        .withPorts(new ServicePortBuilder().withPort(clouddriverPort).build())
+        .endSpec();
 
-    TemplatedResource bootstrap = new JarResource(CLOUDRIVER_CONFIG_PATH).setBindings(bindings);
+    client.services().inNamespace(namespace).create(serviceBuilder.build());
 
-    InputStream cloudddriverConfig = new ByteArrayInputStream(bootstrap.toString().getBytes());
+    ContainerBuilder containerBuilder = new ContainerBuilder();
 
-    jobId = jobExecutor.startJob(request, System.getenv(), cloudddriverConfig);
+    containerBuilder = containerBuilder
+        .withName("clouddriver")
+        .withImage(componentArtifact(details, getComponentByName("clouddriver")))
+        .withPorts(new ContainerPortBuilder().withContainerPort(clouddriverPort).build());
 
-    jobStatus = jobExecutor.backoffWait(jobId,
-        TimeUnit.SECONDS.toMillis(MIN_POLL_INTERVAL_SECONDS),
-        TimeUnit.SECONDS.toMillis(MAX_POLL_INTERVAL_SECONDS));
+    ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder();
 
-    if (jobStatus.getResult() == Result.FAILURE) {
-      throw new HalconfigException(new
-          ProblemBuilder(Severity.FATAL, "Unable to bootstrap clouddriver:\n" + jobStatus.getStdErr()).build());
-    }
+    replicaSetBuilder = replicaSetBuilder
+        .withNewMetadata()
+        .withName(replicaSetName)
+        .withNamespace(namespace)
+        .endMetadata()
+        .withNewSpec()
+        .withReplicas(1)
+        .withNewSelector()
+        .withMatchLabels(replicaSetSelector)
+        .endSelector()
+        .withNewTemplate()
+        .withNewMetadata()
+        .withLabels(podLabels)
+        .endMetadata()
+        .withNewSpec()
+        .withContainers(containerBuilder.build())
+        .endSpec()
+        .endTemplate()
+        .endSpec();
+
+    client.extensions().replicaSets().inNamespace(namespace).create(replicaSetBuilder.build());
   }
 
   private List<String> kubectlAccountCommand(KubernetesAccount account) {
@@ -313,5 +343,15 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
               + jobStatus.getStdOut() + "\n"
               + jobStatus.getStdErr()).build());
     }
+  }
+
+  private KubernetesClient getClient(KubernetesAccount account) {
+    Config config = KubernetesConfigParser.parse(account.getKubeconfigFile(),
+        account.getContext(),
+        account.getCluster(),
+        account.getUser(),
+        account.getNamespaces());
+
+    return new DefaultKubernetesClient(config);
   }
 }
