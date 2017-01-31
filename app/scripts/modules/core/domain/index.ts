@@ -1,4 +1,4 @@
-export * from './execution';
+export * from './IExecution';
 export * from './stageContext';
 export * from './taskStep';
 export * from './ITrigger';

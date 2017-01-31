@@ -1,10 +1,10 @@
 import { has } from 'lodash';
 import { module } from 'angular';
 
-import { Execution } from '../../domain';
+import { IExecution } from 'core/domain';
 
 export function executionUserFilter() {
-  return function (input: Execution): string {
+  return function (input: IExecution): string {
     if (!input.trigger.user) {
       return 'unknown user';
     }

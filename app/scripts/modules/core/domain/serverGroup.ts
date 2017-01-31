@@ -1,7 +1,7 @@
 import {IEntityTags} from './IEntityTags';
 import {Instance} from './instance';
 import {InstanceCounts} from './instanceCounts';
-import {Execution} from './execution';
+import {IExecution} from './IExecution';
 import {ITask} from '../task/task.read.service';
 
 // remnant from legacy code
@@ -31,7 +31,7 @@ export interface ServerGroup {
   name: string;
   provider?: string;
   region: string;
-  runningExecutions?: Execution[];
+  runningExecutions?: IExecution[];
   runningTasks?: ITask[];
   searchField?: string;
   securityGroups?: string[];
