@@ -1,0 +1,26 @@
+<div modal-page class="flex-fill">
+  <modal-close dismiss="$dismiss()"></modal-close>
+  <div class="modal-header">
+    <h3>Edit VIP</h3>
+  </div>
+  <div class="modal-body flex-fill">
+    <form role="form" name="form" class="form-horizontal flex-fill">
+      <div class="flex-fill">
+       <input type="text" class="form-control" ng-model="vm.vip"/>
+      </div>
+    </form>
+    <div class="row">
+    <div class="form-group row slide-in" ng-if="vm.invalid">
+      <div class="col-sm-9 col-sm-offset-3 error-message">
+        Error: {{vm.errorMessage}}
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="vm.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-click="vm.update()">
+      <span class="glyphicon glyphicon-ok-circle"></span> Update
+    </button>
+  </div>
+</div>

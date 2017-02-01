@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.netfilx.fastProperty.pod.component', [
+  .module('spinnaker.netflix.fastProperty.pod.component', [
     require('angular-ui-router'),
   ])
   .component('fastPropertyPod', {

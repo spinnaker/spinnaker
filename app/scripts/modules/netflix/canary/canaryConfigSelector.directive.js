@@ -5,7 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.netfilx.widgits.canaryConfigSelector.directive', [
+  .module('spinnaker.netflix.widgits.canaryConfigSelector.directive', [
     require('./canary.read.service'),
   ])
   .directive('canaryConfigSelector', () => {

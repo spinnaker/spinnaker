@@ -30,6 +30,15 @@ module.exports = angular
         <p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>`
       },
       {
+        key: 'pipeline.config.isolatedTestingTarget.clusters',
+        contents: `<p>These clusters will allow you to select a cluster that you want to mimic, and will clone the properties
+        and override the VIP to provide an isolated testing target.</p>`
+      },
+      {
+        key: 'pipeline.config.isolatedTestingTarget.vips',
+        contents: `<p>These VIPs will show the value of the VIP of the old cluster that is being copied from and the VIP that will be given to the new cluster.</p>`
+      },
+      {
         key: 'chaos.documentation',
         contents: `<p>Chaos Monkey documentation can be found
                    <a target="_blank" href="https://stash.corp.netflix.com/pages/TRAFFIC/chaosmonkey/pages/browse/">
