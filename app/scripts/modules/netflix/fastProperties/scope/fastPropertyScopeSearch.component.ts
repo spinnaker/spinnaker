@@ -1,6 +1,6 @@
 import './fastPropetyScopeSearch.less';
 
-import { CATEGORY_BUTTON_LIST_COMPONENT } from './categoryButtonList.component.ts';
+import { CATEGORY_BUTTON_LIST_COMPONENT } from './categoryButtonList.component';
 
 import {debounce} from 'lodash';
 import { module } from 'angular';

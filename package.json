@@ -68,7 +68,7 @@
     "@types/moment-timezone": "^0.2.32",
     "@types/node": "7.0.4",
     "angular-loader": "./angular-loader",
-    "angular-mocks": "~1.5.8",
+    "angular-mocks": "1.5.8",
     "angulartics": "^1.1.2",
     "angulartics-google-analytics": "^0.2.0",
     "babel-core": "^6.13.2",
