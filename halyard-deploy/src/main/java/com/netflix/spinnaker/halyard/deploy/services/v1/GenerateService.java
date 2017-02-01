@@ -23,9 +23,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.ComponentConfig;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.SpinnakerComponent;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileConfig;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +66,7 @@ public class GenerateService {
   ObjectMapper objectMapper;
 
   @Autowired(required = false)
-  List<SpinnakerComponent> spinnakerComponents = new ArrayList<>();
+  List<SpinnakerProfile> spinnakerProfiles = new ArrayList<>();
 
   void atomicWrite(Path path, String contents) {
     AtomicFileWriter writer = null;
@@ -104,7 +104,7 @@ public class GenerateService {
    *   4. Copy custom profiles from the specified deployment over to the new deployment.
    *
    * @param nodeFilter A filter that specifies the deployment to use.
-   * @return a mapping from components to the component's required local files.
+   * @return a mapping from components to the profile's required local files.
    */
   public Map<String, List<String>> generateConfig(NodeFilter nodeFilter) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeFilter);
@@ -141,13 +141,13 @@ public class GenerateService {
     Map<String, List<String>> requiredFiles = new HashMap<>();
 
     // Step 3.
-    for (SpinnakerComponent component : spinnakerComponents) {
-      path = defaultFileSystem.getPath(spinnakerOutputPath, component.getConfigFileName());
-      ComponentConfig config = component.getFullConfig(nodeFilter, endpoints);
-      log.info("Writing " + component.getComponentName() + " profile");
+    for (SpinnakerProfile profile : spinnakerProfiles) {
+      path = defaultFileSystem.getPath(spinnakerOutputPath, profile.getProfileFileName());
+      ProfileConfig config = profile.getFullConfig(nodeFilter, endpoints);
+      log.info("Writing " + profile.getProfileName() + " profile");
       atomicWrite(path, config.getConfigContents());
 
-      requiredFiles.put(component.getComponentName(), config.getRequiredFiles());
+      requiredFiles.put(profile.getProfileName(), config.getRequiredFiles());
     }
 
     // Step 4.

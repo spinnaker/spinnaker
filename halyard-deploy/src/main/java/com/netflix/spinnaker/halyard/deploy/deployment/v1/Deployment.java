@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
-import com.netflix.spinnaker.halyard.deploy.component.v1.ServiceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.ServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -36,7 +36,7 @@ abstract public class Deployment {
    * @param type is the type of service.
    * @return is a retrofitted interface for the service.
    */
-  abstract public Object getService(ComponentType type);
+  abstract public Object getService(EndpointType type);
 
   /**
    * The endpoint format is specific to a provider/deployment pair.

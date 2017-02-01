@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.Versions;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 

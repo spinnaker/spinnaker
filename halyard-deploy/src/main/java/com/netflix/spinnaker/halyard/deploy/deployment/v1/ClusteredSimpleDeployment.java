@@ -18,8 +18,8 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
 
 abstract public class ClusteredSimpleDeployment<T extends Account> extends Deployment {
@@ -38,7 +38,7 @@ abstract public class ClusteredSimpleDeployment<T extends Account> extends Deplo
   }
 
   @Override
-  public Object getService(ComponentType type) {
+  public Object getService(EndpointType type) {
     return providerInterface.connectTo(deploymentDetails, type);
   }
 
@@ -53,6 +53,6 @@ abstract public class ClusteredSimpleDeployment<T extends Account> extends Deplo
   @Override
   public void deploy() {
     providerInterface.bootstrapClouddriver(deploymentDetails);
-    providerInterface.connectTo(deploymentDetails, ComponentType.CLOUDDRIVER);
+    providerInterface.connectTo(deploymentDetails, EndpointType.CLOUDDRIVER);
   }
 }

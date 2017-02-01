@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.kubernetes.KubernetesClusteredSimpleDeployment;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterface;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.deploy.deployment.v1;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import lombok.Data;
+import spock.lang.Specification
 
-@Data
-public class DeploymentDetails<T extends Account> {
-  String deploymentName;
-  DeploymentEnvironment deploymentEnvironment;
-  SpinnakerEndpoints endpoints;
-  T account;
+class BillOfMaterialsSpec extends Specification {
 }

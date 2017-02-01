@@ -18,10 +18,11 @@ package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.ComponentConfig;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.SpinnakerComponent;
-import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
-import com.netflix.spinnaker.halyard.deploy.component.v1.ServiceFactory;
+import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.ServiceFactory;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,26 +51,20 @@ public abstract class ProviderInterface<T extends Account> {
   @Autowired
   DeploymentService deploymentService;
 
+  @Autowired
+  ArtifactService artifactService;
+
   @Autowired(required = false)
-  List<SpinnakerComponent> spinnakerComponents = new ArrayList<>();
+  List<SpinnakerProfile> spinnakerProfiles = new ArrayList<>();
 
-  Map<String, SpinnakerComponent> componentMap = null;
-
-  protected SpinnakerComponent getComponentByName(String name) {
-    if (componentMap == null) {
-      componentMap = new HashMap<>();
-      spinnakerComponents.forEach(c -> componentMap.put(c.getComponentName(), c));
-    }
-
-    return componentMap.get(name);
-  }
+  Map<String, SpinnakerProfile> componentMap = null;
 
   /**
-   * @return the docker image/debian package/etc... for a certain component.
+   * @return the docker image/debian package/etc... for a certain profile.
    */
-  abstract protected String componentArtifact(DeploymentDetails<T> details, SpinnakerComponent component);
+  abstract protected String componentArtifact(DeploymentDetails<T> details, SpinnakerArtifact artifact);
 
-  abstract public Object connectTo(DeploymentDetails<T> details, ComponentType componentType);
+  abstract public Object connectTo(DeploymentDetails<T> details, EndpointType endpointType);
 
   abstract public void bootstrapClouddriver(DeploymentDetails<T> details);
 }

@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.deploy.deployment.v1;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import retrofit.RestAdapter;
+import retrofit.client.OkClient;
 
-@Data
-public class DeploymentDetails<T extends Account> {
-  String deploymentName;
-  DeploymentEnvironment deploymentEnvironment;
-  SpinnakerEndpoints endpoints;
-  T account;
+@Component
+public class ServiceFactory {
+  @Autowired
+  OkClient okClient;
+
+  public Object createService(String endpoint, EndpointType endpointType) {
+    Class clazz = endpointType.getServiceClass();
+    return new RestAdapter.Builder()
+        .setClient(okClient)
+        .setEndpoint(endpoint)
+        .build()
+        .create(clazz);
+  }
 }

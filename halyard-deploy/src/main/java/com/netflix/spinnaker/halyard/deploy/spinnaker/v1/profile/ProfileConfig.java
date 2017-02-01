@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.deploy.deployment.v1;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
-public class DeploymentDetails<T extends Account> {
-  String deploymentName;
-  DeploymentEnvironment deploymentEnvironment;
-  SpinnakerEndpoints endpoints;
-  T account;
+public class ProfileConfig {
+  private String configContents;
+  List<String> requiredFiles = new ArrayList<>();
 }

@@ -23,7 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import java.util.List;
 
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.Versions;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
 import retrofit.http.GET;

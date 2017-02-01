@@ -27,17 +27,17 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
-import com.netflix.spinnaker.halyard.config.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints.Service;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.component.SpinnakerComponent;
-import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
+import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.Result;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.State;
-import com.netflix.spinnaker.halyard.deploy.resource.v1.JarResource;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.Config;
@@ -49,9 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -76,7 +74,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   @Autowired
   LookupService lookupService;
-  
+
   private static final String CLOUDRIVER_CONFIG_PATH = "/kubernetes/raw/hal-clouddriver.yml";
 
   // Map from deployment name -> the port & job managing the connection.
@@ -89,17 +87,16 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   }
 
   @Override
-  protected String componentArtifact(DeploymentDetails<KubernetesAccount> details, SpinnakerComponent component) {
+  protected String componentArtifact(DeploymentDetails<KubernetesAccount> details, SpinnakerArtifact artifact) {
     NodeFilter filter = new NodeFilter().withAnyHalconfigFile().setDeployment(details.getDeploymentName());
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(filter);
-    String version = component.getVersion(deploymentConfiguration);
+    String version = artifactService.getArtifactVersion(filter, artifact);
 
-    KubernetesImageDescription image = new KubernetesImageDescription(component.getComponentName(), version, REGISTRY);
+    KubernetesImageDescription image = new KubernetesImageDescription(artifact.name(), version, REGISTRY);
     return KubernetesUtil.getImageId(image);
   }
 
   @Override
-  public Object connectTo(DeploymentDetails<KubernetesAccount> details, ComponentType componentType) {
+  public Object connectTo(DeploymentDetails<KubernetesAccount> details, EndpointType endpointType) {
     Proxy proxy = proxyMap.getOrDefault(details.getDeploymentName(), new Proxy());
 
     if (proxy.jobId == null || proxy.jobId.isEmpty()) {
@@ -137,25 +134,25 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       }
     }
 
-    Service service = componentType.getService(details.getEndpoints());
+    Service service = endpointType.getService(details.getEndpoints());
 
     String endpoint = "http://localhost:" + proxy.getPort() + "/api/v1/proxy/namespaces/"
         + getNamespaceFromAddress(service.getAddress()) + "/services/"
         + getServiceFromAddress(service.getAddress()) + ":" + service.getPort() + "/";
 
-    return serviceFactory.createService(endpoint, componentType);
+    return serviceFactory.createService(endpoint, endpointType);
   }
 
   @Override
   public void bootstrapClouddriver(DeploymentDetails<KubernetesAccount> details) {
     KubernetesAccount account = details.getAccount();
 
-    Service clouddriver = ComponentType.CLOUDDRIVER.getService(details.getEndpoints());
+    Service clouddriver = EndpointType.CLOUDDRIVER.getService(details.getEndpoints());
     String namespace = getNamespaceFromAddress(clouddriver.getAddress());
     String serviceName = getServiceFromAddress(clouddriver.getAddress());
     String replicaSetName = "spin-clouddriver-v000";
     String credsSecret = "hal-creds-config";
-    String clouddriverSecret = componentSecret(ComponentType.CLOUDDRIVER.getName());
+    String clouddriverSecret = componentSecret(EndpointType.CLOUDDRIVER.getName());
     int clouddriverPort = clouddriver.getPort();
 
     KubernetesClient client = getClient(account);
@@ -193,8 +190,8 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     ContainerBuilder containerBuilder = new ContainerBuilder();
 
     containerBuilder = containerBuilder
-        .withName("clouddriver")
-        .withImage(componentArtifact(details, getComponentByName("clouddriver")))
+        .withName(SpinnakerArtifact.CLOUDDRIVER.name())
+        .withImage(componentArtifact(details, SpinnakerArtifact.CLOUDDRIVER))
         .withPorts(new ContainerPortBuilder().withContainerPort(clouddriverPort).build());
 
     ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder();
@@ -310,9 +307,9 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   private void stageConfig(DeploymentDetails<KubernetesAccount> details, String namespace) {
     File outputPath = new File(spinnakerOutputPath);
     File[] profiles = outputPath.listFiles();
-    spinnakerComponents.forEach(s -> {
-      String name = componentSecret(s.getComponentName());
-      createSecret(details, s.profilePaths(profiles), name, namespace);
+    spinnakerProfiles.forEach(s -> {
+      String name = componentSecret(s.getProfileName());
+      createSecret(details, s.getArtifact().profilePaths(profiles), name, namespace);
     });
   }
 

@@ -17,12 +17,11 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints.Services;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Services;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.ClusteredSimpleDeployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterface;
-import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
 
 public class KubernetesClusteredSimpleDeployment extends ClusteredSimpleDeployment<KubernetesAccount> {
   public KubernetesClusteredSimpleDeployment(

@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.deploy.deployment.v1;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import lombok.Data;
+import java.util.Map;
 
-@Data
-public class DeploymentDetails<T extends Account> {
-  String deploymentName;
-  DeploymentEnvironment deploymentEnvironment;
-  SpinnakerEndpoints endpoints;
-  T account;
+abstract public class SpringProfile extends SpinnakerProfile {
+  public abstract String getProfileName();
+
+  @Override
+  public String getProfileFileName() {
+    return getProfileName() + ".yml";
+  }
+
+  @Override
+  public String commentPrefix() {
+    return "## ";
+  }
+
+  String yamlToString(Object o) {
+    return yamlParser.dump(objectMapper.convertValue(o, Map.class));
+  }
 }

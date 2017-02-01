@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.SpinnakerEndpoints.Service;
-import com.netflix.spinnaker.halyard.deploy.component.v1.ComponentType;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 
 public class LocalhostDebianDeployment extends Deployment {
   @Override
@@ -28,7 +28,7 @@ public class LocalhostDebianDeployment extends Deployment {
   }
 
   @Override
-  public Object getService(ComponentType type) {
+  public Object getService(EndpointType type) {
     String endpoint;
     switch (type) {
       case CLOUDDRIVER:

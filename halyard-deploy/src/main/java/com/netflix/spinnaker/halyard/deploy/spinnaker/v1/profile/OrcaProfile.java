@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.deploy.deployment.v1;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import lombok.Data;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import org.springframework.stereotype.Component;
 
-@Data
-public class DeploymentDetails<T extends Account> {
-  String deploymentName;
-  DeploymentEnvironment deploymentEnvironment;
-  SpinnakerEndpoints endpoints;
-  T account;
+@Component
+public class OrcaProfile extends SpringProfile {
+  @Override
+  public String getProfileName() {
+    return "orca";
+  }
+
+  @Override
+  public SpinnakerArtifact getArtifact() {
+    return SpinnakerArtifact.ORCA;
+  }
 }

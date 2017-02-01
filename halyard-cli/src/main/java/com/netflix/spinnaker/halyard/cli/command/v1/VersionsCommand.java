@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.spinnaker.v1.Versions;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import lombok.AccessLevel;
 import lombok.Getter;
 
