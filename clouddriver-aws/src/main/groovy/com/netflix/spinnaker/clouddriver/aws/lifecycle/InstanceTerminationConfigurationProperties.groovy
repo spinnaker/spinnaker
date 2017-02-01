@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 class InstanceTerminationConfigurationProperties {
   String accountName
   String queueARN
-  String sourceARN
+  String topicARN
 
   int maxMessagesPerCycle = 1000
   int visibilityTimeout = 30
@@ -34,13 +34,13 @@ class InstanceTerminationConfigurationProperties {
 
   InstanceTerminationConfigurationProperties(String accountName,
                                              String queueARN,
-                                             String sourceARN,
+                                             String topicARN,
                                              int maxMessagesPerCycle,
                                              int visibilityTimeout,
                                              int waitTimeSeconds) {
     this.accountName = accountName
     this.queueARN = queueARN
-    this.sourceARN = sourceARN
+    this.topicARN = topicARN
     this.maxMessagesPerCycle = maxMessagesPerCycle
     this.visibilityTimeout = visibilityTimeout
     this.waitTimeSeconds = waitTimeSeconds

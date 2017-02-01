@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.lifecycle
 
+import com.amazonaws.services.sns.AmazonSNS
+import com.amazonaws.services.sns.model.CreateTopicResult
+import com.amazonaws.services.sns.model.SetTopicAttributesRequest
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.CreateQueueResult
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -43,6 +46,7 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
   }
 
   AmazonSQS amazonSQS = Mock()
+  AmazonSNS amazonSNS = Mock()
   AccountCredentialsProvider accountCredentialsProvider = Mock() {
     getAll() >>[mgmtCredentials, testCredentials]
   }
@@ -50,6 +54,7 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
   AwsEurekaSupport awsEurekaSupport = Mock()
 
   def queueARN = new ARN([mgmtCredentials, testCredentials], "arn:aws:sqs:us-west-2:100:queueName")
+  def topicARN = new ARN([mgmtCredentials, testCredentials], "arn:aws:sns:us-west-2:100:topicName")
 
   @Subject
   def subject = new InstanceTerminationLifecycleAgent(
@@ -59,7 +64,7 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
     new InstanceTerminationConfigurationProperties(
       'mgmt',
       queueARN.arn,
-      'aws:arn:iam::*:role/sourceArn',
+      topicARN.arn,
       -1,
       -1,
       -1
@@ -67,9 +72,29 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
     awsEurekaSupportProvider
   )
 
+  def "should create topic if it does not exist"() {
+    when:
+    def topicId = LaunchFailureNotificationAgent.ensureTopicExists(amazonSNS, topicARN, ['100', '200'], queueARN)
+
+    then:
+    topicId == topicARN.arn
+
+    1 * amazonSNS.createTopic(topicARN.name) >> { new CreateTopicResult().withTopicArn(topicARN.arn) }
+
+    // should attach a policy granting SendMessage rights to the source topic
+    1 * amazonSNS.setTopicAttributes(new SetTopicAttributesRequest()
+      .withTopicArn(topicARN.arn)
+      .withAttributeName("Policy")
+      .withAttributeValue(LaunchFailureNotificationAgent.buildSNSPolicy(topicARN, ['100', '200']).toJson()))
+
+    // should subscribe the queue to this topic
+    1 * amazonSNS.subscribe(topicARN.arn, "sqs", queueARN.arn)
+    0 * _
+  }
+
   def 'should create queue if it does not exist'() {
     when:
-    def queueId = InstanceTerminationLifecycleAgent.ensureQueueExists(amazonSQS, queueARN, 'sourceArn', ['100', '200'] as Set)
+    def queueId = InstanceTerminationLifecycleAgent.ensureQueueExists(amazonSQS, queueARN, topicARN)
 
     then:
     queueId == "my-queue-url"
@@ -77,7 +102,7 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
     1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
 
     1 * amazonSQS.setQueueAttributes("my-queue-url", [
-      "Policy": InstanceTerminationLifecycleAgent.buildSQSPolicy(queueARN, 'sourceArn', ['100', '200'] as Set).toJson()
+      "Policy": InstanceTerminationLifecycleAgent.buildSQSPolicy(queueARN, topicARN).toJson()
     ])
     0 * _
   }

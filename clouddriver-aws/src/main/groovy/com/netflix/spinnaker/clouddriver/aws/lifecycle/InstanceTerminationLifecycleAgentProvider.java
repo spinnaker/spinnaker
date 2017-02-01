@@ -74,7 +74,7 @@ public class InstanceTerminationLifecycleAgentProvider implements AgentProvider 
             .getQueueARN()
             .replaceAll(REGION_TEMPLATE_PATTERN, region.getName())
             .replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
-          properties.getSourceARN()
+          properties.getTopicARN()
             .replaceAll(REGION_TEMPLATE_PATTERN, region.getName())
             .replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
           properties.getMaxMessagesPerCycle(),
