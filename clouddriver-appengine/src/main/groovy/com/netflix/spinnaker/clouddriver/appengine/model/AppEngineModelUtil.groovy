@@ -22,6 +22,10 @@ import com.google.common.annotations.VisibleForTesting
 import java.text.SimpleDateFormat
 
 class AppEngineModelUtil {
+  // https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services#TrafficSplit
+  static final COOKIE_SPLIT_DECIMAL_PLACES = 3
+  static final IP_SPLIT_DECIMAL_PLACES = 2
+
   private static final dateFormats = ["yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'"]
     .collect { new SimpleDateFormat(it) }
 

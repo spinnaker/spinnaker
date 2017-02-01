@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentialType
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentials
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineInstance
+import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineModelUtil
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineServerGroup
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.model.ScalingPolicyType
+import com.netflix.spinnaker.clouddriver.appengine.model.ShardBy
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineClusterProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineInstanceProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineLoadBalancerProvider
@@ -118,7 +120,7 @@ class StandardAppEngineAttributeValidator {
   def validateTrafficSplit(AppEngineTrafficSplit trafficSplit, String attribute) {
     if (validateNotEmpty(trafficSplit, attribute)) {
       if (trafficSplit.allocations) {
-        return validateAllocations(trafficSplit.allocations, attribute + ".allocations")
+        return validateAllocations(trafficSplit.allocations, trafficSplit.shardBy, attribute + ".allocations")
       } else if (trafficSplit.shardBy) {
         return true
       } else {
@@ -130,8 +132,27 @@ class StandardAppEngineAttributeValidator {
     }
   }
 
-  def validateAllocations(Map<String, Double> allocations, String attribute) {
-    if (allocations.collect { k, v -> v }.sum() != 1) {
+  def validateAllocations(Map<String, Double> allocations, ShardBy shardBy, String attribute) {
+    def decimalPlaces = shardBy == ShardBy.COOKIE ?
+      AppEngineModelUtil.COOKIE_SPLIT_DECIMAL_PLACES :
+      AppEngineModelUtil.IP_SPLIT_DECIMAL_PLACES
+
+    def serverGroupsWithInvalidAllocations = []
+    allocations.each { serverGroupName, allocation ->
+      if ((allocation as Double).round(decimalPlaces) != allocation) {
+        serverGroupsWithInvalidAllocations << serverGroupName
+      }
+    } 
+
+    if (serverGroupsWithInvalidAllocations) {
+      def pluralize = serverGroupsWithInvalidAllocations.size() > 1
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid "
+                         + "(Allocation${pluralize ? "s" : ""} invalid for ${serverGroupsWithInvalidAllocations.join(", ")}. "
+                         + "Allocations for shard type ${shardBy.toString()} can have up to $decimalPlaces decimal places.)")
+      return false
+    }
+
+    if ((allocations.collect { k, v -> v }.sum() as Double).round(decimalPlaces) != 1) {
       errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Allocations must sum to 1)")
       return false
     } else {

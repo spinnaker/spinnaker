@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppEngineUtils
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.EnableDisableAppEngineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppEngineLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineModelUtil
 import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
 import com.netflix.spinnaker.clouddriver.appengine.model.ShardBy
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppEngineClusterProvider
@@ -107,14 +108,12 @@ class DisableAppEngineAtomicOperation implements AtomicOperation<Void> {
     return upsertLoadBalancerOperation.operate(priorOutputs)
   }
 
-  // https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services#TrafficSplit
-  private static final COOKIE_SPLIT_DECIMAL_PLACES = 3
-  private static final IP_SPLIT_DECIMAL_PLACES = 2
-
   static AppEngineTrafficSplit buildTrafficSplitWithoutServerGroup(AppEngineTrafficSplit oldSplit, String serverGroupName) {
     AppEngineTrafficSplit newSplit = oldSplit.clone()
 
-    def decimalPlaces = newSplit.shardBy == ShardBy.COOKIE ? COOKIE_SPLIT_DECIMAL_PLACES : IP_SPLIT_DECIMAL_PLACES;
+    def decimalPlaces = newSplit.shardBy == ShardBy.COOKIE ?
+      AppEngineModelUtil.COOKIE_SPLIT_DECIMAL_PLACES :
+      AppEngineModelUtil.IP_SPLIT_DECIMAL_PLACES
 
     Map<String, BigDecimal> newAllocations = newSplit
       .allocations

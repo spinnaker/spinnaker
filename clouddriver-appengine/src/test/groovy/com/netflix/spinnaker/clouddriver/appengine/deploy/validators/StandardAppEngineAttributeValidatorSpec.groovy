@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentialType
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppEngineGitCredentials
+import com.netflix.spinnaker.clouddriver.appengine.model.AppEngineTrafficSplit
+import com.netflix.spinnaker.clouddriver.appengine.model.ShardBy
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppEngineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -26,6 +28,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class StandardAppEngineAttributeValidatorSpec extends Specification {
   private static final DECORATOR = "decorator"
@@ -355,5 +358,56 @@ class StandardAppEngineAttributeValidatorSpec extends Specification {
     then:
       1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardAppEngineAttributeValidator.prefixPattern})")
       0 * errorsMock._
+  }
+
+  @Unroll
+  void "allocations accept"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardAppEngineAttributeValidator(DECORATOR, errorsMock)
+      def label = "allocations"
+
+    when:
+      validator.validateAllocations(allocation, shardBy, label)
+
+    then:
+      0 * errorsMock._
+
+    where:
+      allocation                         | shardBy
+      [a: 0.7, b: 0.11, c: 0.09, d: 0.1] | ShardBy.IP
+      [a: 0.888, b: 0.112]               | ShardBy.COOKIE
+  }
+
+  @Unroll
+  void "allocations reject (wrong number of decimal places)"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardAppEngineAttributeValidator(DECORATOR, errorsMock)
+      def label = "allocations"
+
+    when:
+      validator.validateAllocations(allocation, shardBy, label)
+
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid " + errorMessage)
+
+    where:
+      allocation                        | shardBy        || errorMessage
+      [a: 0.888, b: 0.112]              | ShardBy.IP     || "(Allocations invalid for a, b. Allocations for shard type IP can have up to 2 decimal places.)"
+      [a: 0.8888, b: 0.1111, c: 0.0001] | ShardBy.COOKIE || "(Allocations invalid for a, b, c. Allocations for shard type COOKIE can have up to 3 decimal places.)"
+  }
+
+  void "allocations reject (does not sum to 1)"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardAppEngineAttributeValidator(DECORATOR, errorsMock)
+      def label = "allocations"
+
+    when:
+      validator.validateAllocations([a: 0.75], ShardBy.COOKIE, label)
+
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Allocations must sum to 1)")
   }
 }
