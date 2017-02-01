@@ -1,6 +1,7 @@
 import {ILoadBalancer} from 'core/domain/index';
 
 export interface IAppengineLoadBalancer extends ILoadBalancer {
+  credentials?: string;
   split: IAppengineTrafficSplit;
   migrateTraffic: boolean;
 }

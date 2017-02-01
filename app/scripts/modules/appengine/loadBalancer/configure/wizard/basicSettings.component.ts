@@ -8,6 +8,7 @@ class AppengineLoadBalancerSettingsController implements ng.IComponentController
   public loadBalancer: IAppengineLoadBalancer;
   public allocationsList: {serverGroupName: string, percent: number}[];
   public serverGroupOptions: string[];
+  public forPipelineConfig: boolean;
 
   public $onInit(): void {
     this.allocationsList = map(this.loadBalancer.split.allocations, (percent: number, serverGroupName: string) => {
@@ -24,6 +25,8 @@ class AppengineLoadBalancerSettingsController implements ng.IComponentController
         this.loadBalancer.split.shardBy = 'IP';
       }
       this.onAllocationChange();
+    } else if (this.forPipelineConfig) {
+      this.allocationsList.push({serverGroupName: '', percent: 0});
     }
   }
 
@@ -34,14 +37,16 @@ class AppengineLoadBalancerSettingsController implements ng.IComponentController
 
   public onAllocationChange(): void {
     this.loadBalancer.split.allocations = this.allocationsList.reduce((allocations, allocation) => {
-      allocations[allocation.serverGroupName] = allocation.percent;
+      if (allocation.serverGroupName) {
+        allocations[allocation.serverGroupName] = allocation.percent;
+      }
       return allocations;
     }, {} as {[serverGroupName: string]: number});
     this.updateServerGroupOptions();
   }
 
   public allocationIsInvalid(): boolean {
-    return reduce(this.loadBalancer.split.allocations, (sum, allocation) => sum + allocation, 0) !== 100;
+    return reduce(this.loadBalancer.split.allocations, (sum, percent) => sum + percent, 0) !== 100;
   }
 
   public updateServerGroupOptions(): void {
@@ -49,11 +54,23 @@ class AppengineLoadBalancerSettingsController implements ng.IComponentController
   }
 
   public showAddButton(): boolean {
-    return this.serverGroupsWithoutAllocation().length > 0;
+    if (this.forPipelineConfig) {
+      return true;
+    } else {
+      return this.serverGroupsWithoutAllocation().length > 0;
+    }
   }
 
   public showShardByOptions(): boolean {
     return this.allocationsList.length > 1 || this.loadBalancer.migrateTraffic;
+  }
+
+  public initializeAsTextInput(serverGroupName: string): boolean {
+    if (this.forPipelineConfig) {
+      return !this.loadBalancer.serverGroups.map(serverGroup => serverGroup.name).includes(serverGroupName);
+    } else {
+      return false;
+    }
   }
 
   private serverGroupsWithoutAllocation(): ServerGroup[] {
@@ -63,7 +80,7 @@ class AppengineLoadBalancerSettingsController implements ng.IComponentController
 }
 
 class AppengineLoadBalancerSettingsComponent implements ng.IComponentOptions {
-  public bindings: any = {loadBalancer: '='};
+  public bindings: any = {loadBalancer: '=', forPipelineConfig: '<'};
   public controller: any = AppengineLoadBalancerSettingsController;
   public templateUrl: string = require('./basicSettings.component.html');
 }

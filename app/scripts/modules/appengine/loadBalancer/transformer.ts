@@ -4,6 +4,7 @@ import {chain, get, has, camelCase, filter, mapValues, cloneDeep} from 'lodash';
 import {InstanceCounts, ILoadBalancer, ServerGroup, Instance} from 'core/domain/index';
 import {IAppengineLoadBalancer, IAppengineTrafficSplit} from 'appengine/domain/index';
 import {ILoadBalancerUpsertDescription} from 'core/loadBalancer/loadBalancer.write.service';
+import {Application} from 'core/application/application.model';
 
 export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpsertDescription {
   public credentials: string;
@@ -15,7 +16,7 @@ export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpse
   public cloudProvider: string;
 
   constructor(loadBalancer: IAppengineLoadBalancer) {
-    this.credentials = loadBalancer.account;
+    this.credentials = loadBalancer.account || loadBalancer.credentials;
     this.cloudProvider = loadBalancer.cloudProvider;
     this.loadBalancerName = loadBalancer.name;
     this.name = loadBalancer.name;
@@ -52,9 +53,20 @@ export class AppengineLoadBalancerTransformer {
     return this.$q.resolve(loadBalancer);
   }
 
-  public convertLoadBalancerForEditing(loadBalancer: IAppengineLoadBalancer): IAppengineLoadBalancer {
+  public convertLoadBalancerForEditing(loadBalancer: IAppengineLoadBalancer, application: Application): ng.IPromise<IAppengineLoadBalancer> {
     loadBalancer.split.allocations = mapValues(loadBalancer.split.allocations, (decimal: number) => decimal * 100);
-    return loadBalancer;
+
+    return application.getDataSource('loadBalancers').ready().then(() => {
+      let upToDateLoadBalancer = application.getDataSource('loadBalancers').data.find((candidate: ILoadBalancer) => {
+        return candidate.name === loadBalancer.name &&
+          (candidate.account === loadBalancer.account || candidate.account === loadBalancer.credentials);
+      });
+
+      if (upToDateLoadBalancer) {
+        loadBalancer.serverGroups = cloneDeep(upToDateLoadBalancer.serverGroups);
+      }
+      return loadBalancer;
+    });
   }
 
   public convertLoadBalancerToUpsertDescription(loadBalancer: IAppengineLoadBalancer): AppengineLoadBalancerUpsertDescription {

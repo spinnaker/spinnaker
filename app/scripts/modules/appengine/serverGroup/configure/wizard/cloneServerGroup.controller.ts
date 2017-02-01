@@ -37,7 +37,7 @@ class AppengineCloneServerGroupCtrl {
               private serverGroupWriter: ServerGroupWriter,
               private commandBuilder: AppengineServerGroupCommandBuilder) {
 
-    if (['create', 'editPipeline'].includes(get<string>(serverGroupCommand, 'viewStage.mode'))) {
+    if (['create', 'editPipeline'].includes(get<string>(serverGroupCommand, 'viewState.mode'))) {
       $scope.command = serverGroupCommand;
       this.state.loading = false;
     } else {

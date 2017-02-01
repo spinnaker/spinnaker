@@ -50,8 +50,7 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
       },
       {
         key: 'appengine.loadBalancer.migrateTraffic',
-        value: `If selected, traffic will be gradually shifted from one version to another single version.
-                By default, traffic is shifted immediately. For gradual traffic migration, 
+        value: `If selected, traffic will be gradually shifted to a single version. For gradual traffic migration, 
                 the target version must be located within instances that are configured for 
                 both warmup requests and automatic scaling. You must specify the <b>shard by</b> field in this form. 
                 Gradual traffic migration is not supported in the App Engine flexible environment.`

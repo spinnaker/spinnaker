@@ -1,5 +1,6 @@
 import {module} from 'angular';
 import {IStateService} from 'angular-ui-router';
+import {IModalServiceInstance} from 'angular-ui-bootstrap';
 import {reduce} from 'lodash';
 
 import {Application} from 'core/application/application.model';
@@ -11,8 +12,10 @@ import {TASK_MONITOR_BUILDER, TaskMonitor, TaskMonitorBuilder} from 'core/task/m
 import './wizard.less';
 
 class AppengineLoadBalancerWizardController {
+  public state = {loading: true};
   public loadBalancer: IAppengineLoadBalancer;
   public heading: string;
+  public submitButtonLabel: string;
   public taskMonitor: TaskMonitor;
 
   static get $inject() { return [
@@ -30,7 +33,7 @@ class AppengineLoadBalancerWizardController {
 
   constructor(public $scope: ng.IScope,
               private $state: IStateService,
-              private $uibModalInstance: any,
+              private $uibModalInstance: IModalServiceInstance,
               private application: Application,
               loadBalancer: IAppengineLoadBalancer,
               public isNew: boolean,
@@ -39,43 +42,31 @@ class AppengineLoadBalancerWizardController {
               private taskMonitorBuilder: TaskMonitorBuilder,
               private loadBalancerWriter: LoadBalancerWriter,
               private wizardSubFormValidation: any) {
+    this.submitButtonLabel = this.forPipelineConfig ? 'Done' : 'Update';
+
     if (this.isNew) {
       this.heading = 'Create New Load Balancer';
     } else {
-      this.heading = `Edit ${[loadBalancer.name, loadBalancer.region, loadBalancer.account].join(':')}`;
-      this.loadBalancer = this.transformer.convertLoadBalancerForEditing(loadBalancer);
-
-      this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
-        application: this.application,
-        title: 'Updating your load balancer',
-        modalInstance: this.$uibModalInstance,
-        onTaskComplete: () => this.onTaskComplete(),
-      });
-
-      this.wizardSubFormValidation.config({form: 'form', scope: this.$scope})
-        .register({
-          page: 'basic-settings',
-          subForm: 'basicSettingsForm',
-          validators: [
-            {
-              watchString: 'ctrl.loadBalancer.split.allocations',
-              validator: (allocations: {[serverGroup: string]: number}): boolean => {
-                return reduce(allocations, (sum: number, allocation: number) => sum + allocation, 0) === 100;
-              },
-              watchDeep: true
-            }
-          ]
-        })
-        .register({page: 'advanced-settings', subForm: 'advancedSettingsForm'});
+      this.heading = `Edit ${[loadBalancer.name, loadBalancer.region, loadBalancer.account || loadBalancer.credentials].join(':')}`;
+      this.transformer.convertLoadBalancerForEditing(loadBalancer, application)
+        .then((convertedLoadBalancer) => {
+          this.loadBalancer = convertedLoadBalancer;
+          this.setTaskMonitor();
+          this.initializeFormValidation();
+          this.state.loading = false;
+        });
     }
   }
 
-  public submit(): void {
+  public submit(): any {
     let description = this.transformer.convertLoadBalancerToUpsertDescription(this.loadBalancer);
-    this.taskMonitor.submit(() => {
-      return this.loadBalancerWriter
-        .upsertLoadBalancer(description, this.application, 'Update');
-    });
+    if (this.forPipelineConfig) {
+      return this.$uibModalInstance.close(description);
+    } else {
+      return this.taskMonitor.submit(() => {
+        return this.loadBalancerWriter.upsertLoadBalancer(description, this.application, 'Update');
+      });
+    }
   }
 
   public cancel(): void {
@@ -84,6 +75,34 @@ class AppengineLoadBalancerWizardController {
 
   public showSubmitButton(): boolean {
     return this.wizardSubFormValidation.subFormsAreValid();
+  }
+
+  private setTaskMonitor(): void {
+    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+      application: this.application,
+      title: 'Updating your load balancer',
+      modalInstance: this.$uibModalInstance,
+      onTaskComplete: () => this.onTaskComplete(),
+    });
+  }
+
+  private initializeFormValidation(): void {
+    this.wizardSubFormValidation.config({form: 'form', scope: this.$scope})
+      .register({
+        page: 'basic-settings',
+        subForm: 'basicSettingsForm',
+        validators: [
+          {
+            watchString: 'ctrl.loadBalancer.split.allocations',
+            validator: (allocations: {[serverGroup: string]: number}): boolean => {
+              return reduce(allocations, (sum: number, allocation: number) => sum + allocation, 0) === 100;
+            },
+            watchDeep: true,
+            collection: true,
+          }
+        ]
+      })
+      .register({page: 'advanced-settings', subForm: 'advancedSettingsForm'});
   }
 
   private onTaskComplete(): void {

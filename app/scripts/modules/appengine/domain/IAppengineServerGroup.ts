@@ -5,6 +5,7 @@ export interface IAppengineServerGroup extends ServerGroup {
   env: 'FLEXIBLE' | 'STANDARD';
   scalingPolicy: IAppengineScalingPolicy;
   servingStatus: 'SERVING' | 'STOPPED';
+  allowsGradualTrafficMigration: boolean;
 }
 
 export interface IAppengineScalingPolicy {
