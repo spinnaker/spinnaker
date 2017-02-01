@@ -2,8 +2,8 @@ import {ServerGroup} from '../domain/serverGroup';
 import {ILoadBalancer} from '../domain/loadBalancer';
 import {Application} from '../application/application.model';
 import {IEntityRef} from '../domain/IEntityTags';
-import {ICluster} from '../domain/ICluster';
 import {ISecurityGroup} from '../domain/ISecurityGroup';
+import {IRegionalCluster} from '../domain/IRegionalCluster';
 
 export class EntityRefBuilder {
 
@@ -35,7 +35,7 @@ export class EntityRefBuilder {
     };
   }
 
-  public static buildClusterRef(cluster: ICluster): IEntityRef {
+  public static buildRegionalClusterRef(cluster: IRegionalCluster): IEntityRef {
     return {
       cloudProvider: cluster.cloudProvider,
       entityType: 'cluster',
@@ -65,7 +65,7 @@ export class EntityRefBuilder {
       case 'loadBalancer':
         return this.buildLoadBalancerRef;
       case 'cluster':
-        return this.buildClusterRef;
+        return this.buildRegionalClusterRef;
       case 'securityGroup':
         return this.buildSecurityGroupRef;
       default:
