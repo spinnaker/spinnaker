@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupMetadataTagTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
@@ -35,12 +36,25 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
 
   @Override
   protected List<TaskNode.TaskDefinition> basicTasks(Stage stage) {
-    return [
+    def taggingEnabled = false // check clouddriver:/features/stages for upsertEntityTags
+
+    def tasks = [
       new TaskNode.TaskDefinition("createServerGroup", CreateServerGroupTask),
       new TaskNode.TaskDefinition("monitorDeploy", MonitorKatoTask),
       new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+      ]
+
+    if (taggingEnabled) {
+      tasks += [
+        new TaskNode.TaskDefinition("tagServerGroup", ServerGroupMetadataTagTask)
+      ]
+    }
+
+    tasks += [
       new TaskNode.TaskDefinition("waitForUpInstances", WaitForUpInstancesTask),
       new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     ]
+
+    return tasks
   }
 }
