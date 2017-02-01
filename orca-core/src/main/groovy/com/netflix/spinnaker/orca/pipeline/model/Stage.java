@@ -111,9 +111,9 @@ public interface Stage<T extends Execution<T>> {
   /**
    * Returns a flag indicating if the stage is a parallel initialization stage
    */
-  @Deprecated boolean isInitializationStage();
+  boolean isInitializationStage();
 
-  @Deprecated void setInitializationStage(boolean initializationStage);
+  void setInitializationStage(boolean initializationStage);
 
   AtomicInteger getTaskCounter();
 
