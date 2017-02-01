@@ -57,7 +57,9 @@ public class Problem {
   final private NodeFilter filter;
 
   /**
-   * Provides a human-readable filter interpretation
+   * Provides a human-readable filter interpretation.
+   *
+   * @return the name of the filter in a human-readable format.
    */
   public String getFilterTitle() {
     if (filter != null) {

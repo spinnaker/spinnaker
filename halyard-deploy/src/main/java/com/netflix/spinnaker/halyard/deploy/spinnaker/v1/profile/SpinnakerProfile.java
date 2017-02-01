@@ -42,7 +42,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * A profile is a specialization of an artifact by means of feature flipping in .js & .yml
+ * A profile is a specialization of an artifact by means of feature flipping in .js and .yml
  * files.
  */
 abstract public class SpinnakerProfile {

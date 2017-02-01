@@ -19,8 +19,10 @@ package com.netflix.spinnaker.halyard.config.model.v1.providers.appengine;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoogleAccount;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class AppengineAccount extends CommonGoogleAccount {
   private String serviceAccountEmail;
   private String localRepositoryDirectory;

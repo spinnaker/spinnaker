@@ -36,7 +36,7 @@ public class LookupService {
    * Given a node filter and a node type, find all nodes that match both the filter and the type of the Node.
    * @param filter is the filter to lookup by.
    * @param clazz is the class of the node type we want to find.
-   * @return
+   * @return the nodes matching the filter and clazz.
    */
   public List<Node> getMatchingNodesOfType(NodeFilter filter, Class<? extends Node> clazz) {
     Halconfig halconfig = parser.getHalconfig(true);

@@ -60,6 +60,8 @@ public abstract class ProviderInterface<T extends Account> {
   Map<String, SpinnakerProfile> componentMap = null;
 
   /**
+   * @param details are the deployment details for the current deployment.
+   * @param artifact is the artifact who's version to fetch.
    * @return the docker image/debian package/etc... for a certain profile.
    */
   abstract protected String componentArtifact(DeploymentDetails<T> details, SpinnakerArtifact artifact);
