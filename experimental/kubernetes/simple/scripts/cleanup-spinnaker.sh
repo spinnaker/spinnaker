@@ -1,1 +1,1 @@
-kubectl delete rc,svc -l app=spin --namespace=spinnaker
+kubectl delete rs,rc,svc -l app=spin --namespace=spinnaker
