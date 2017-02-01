@@ -49,32 +49,38 @@ class CreatePropertiesTaskSpec extends Specification {
 
   CreatePropertiesTask task = new CreatePropertiesTask(maheService: maheService, mapper: mapper)
 
-  def "assemble the property list from the context"() {
+  def "assemble the changed property list and original from the context"() {
     given:
     def pipeline = new Pipeline(application: 'foo')
     def scope = createScope()
     def property = createProperty()
+    def originalProperty = createProperty()
 
-    def stage = createPropertiesStage(pipeline, scope, property)
+    def stage = createPropertiesStage(pipeline, scope, property, originalProperty )
 
     when:
-    List properties = task.assemblePersistedPropertyListFromContext(stage.context)
+    List properties = task.assemblePersistedPropertyListFromContext(stage.context, stage.context.persistedProperties)
+    List originalProperties = task.assemblePersistedPropertyListFromContext(stage.context, stage.context.originalProperties)
 
     then: "this is what the property payload the is sent to MAHE needs to look like"
     properties.size() == 1
-    with(properties.first().property) {
-      key == property.key
-      value == property.value
-      email == 'test@netflix.com'
-      sourceOfUpdate == 'spinnaker'
-      constraints == property.constraints
-      cmcTicket == 'cmcTicket'
-      description == property.description
-      env == scope.env
-      region == scope.region
-      stack == scope.stack
-      cluster == scope.cluster
-      appId == scope.appIdList.first()
+    originalProperties.size() == 1
+
+    [properties, originalProperties].forEach { prop ->
+      with(prop.first().property) {
+        key == property.key
+        value == property.value
+        email == 'test@netflix.com'
+        sourceOfUpdate == 'spinnaker'
+        constraints == property.constraints
+        cmcTicket == 'cmcTicket'
+        description == property.description
+        env == scope.env
+        region == scope.region
+        stack == scope.stack
+        cluster == scope.cluster
+        appId == scope.appIdList.first()
+      }
     }
   }
 
@@ -82,7 +88,7 @@ class CreatePropertiesTaskSpec extends Specification {
     given:
     def pipeline = new Pipeline(application: 'foo')
     def property = createProperty()
-    def createPropertiesStage = createPropertiesStage(pipeline, createScope(), property)
+    def createPropertiesStage = createPropertiesStage(pipeline, createScope(), property, null)
     pipeline.stages.addAll([createPropertiesStage, createMonitorStage(pipeline)])
 
 
@@ -109,7 +115,7 @@ class CreatePropertiesTaskSpec extends Specification {
     def scope = createScope()
     def propertyId = '123propertyId'
     def property = createProperty(propertyId)
-    def propertiesStage = createPropertiesStage(pipeline, scope, property)
+    def propertiesStage = createPropertiesStage(pipeline, scope, property, null)
     propertiesStage.context["delete"] = true
     pipeline.stages.addAll([propertiesStage, createMonitorStage(pipeline)])
 
@@ -125,7 +131,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
     then: "deleting a fast property does not return a property ID"
     with(results.stageOutputs) {
-      propertyIdList.size() == 0
+      propertyIdList.size() == 1
     }
 
   }
@@ -136,7 +142,7 @@ class CreatePropertiesTaskSpec extends Specification {
     def scope = createScope()
     def propertyId = 'invalid_id'
     def property = createProperty(propertyId)
-    def propertiesStage = createPropertiesStage(pipeline, scope, property)
+    def propertiesStage = createPropertiesStage(pipeline, scope, property, null)
     propertiesStage.context["delete"] = true
     pipeline.stages.addAll([propertiesStage, createMonitorStage(pipeline)])
 
@@ -153,8 +159,6 @@ class CreatePropertiesTaskSpec extends Specification {
     thrown(IllegalStateException)
 
   }
-
-
 
 
   def "create multiple new persistent property"() {
@@ -203,11 +207,12 @@ class CreatePropertiesTaskSpec extends Specification {
   }
 
 
-  def createPropertiesStage(pipeline, scope, property) {
+  def createPropertiesStage(pipeline, scope, property, originalProperty) {
     def context = [
       parentStageId: UUID.randomUUID().toString(),
       scope              : scope,
       persistedProperties: [property],
+      originalProperties: originalProperty ? [originalProperty] : null,
       email              : 'test@netflix.com',
       cmcTicket          : 'cmcTicket'
     ]
@@ -228,9 +233,9 @@ class CreatePropertiesTaskSpec extends Specification {
     ]
   }
 
-  def createProperty(propertyId) {
+  def createProperty(propertyId = null) {
     def property = [key: "foo", value: 'bar', constraints: 'none']
-    property['propertyId'] = propertyId ?: null
+    property['propertyId'] = propertyId
     property
   }
 }

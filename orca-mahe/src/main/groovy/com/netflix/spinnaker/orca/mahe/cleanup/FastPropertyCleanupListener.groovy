@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.mahe.MaheService
+import com.netflix.spinnaker.orca.mahe.PropertyAction
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -39,12 +40,22 @@ class FastPropertyCleanupListener implements ExecutionListener {
                       Execution execution,
                       ExecutionStatus executionStatus,
                       boolean wasSuccessful) {
-    execution.with {
-      context.propertyIdList.each {
-        if (it.previous) {
-          mahe.createProperty([property: it.previous])
-        } else {
-          mahe.deleteProperty(it.propertyId, "spinnaker rollback", extractEnvironment(it.propertyId))
+
+
+    if (executionStatus in [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED] || execution.context.rollbackProperties) {
+      execution.with {
+        context.propertyIdList.each { id ->
+          def originalProperty = context.originalProperties.find {prop -> prop.propertyId == id}
+          switch (execution.context.propertyAction) {
+            case PropertyAction.CREATE:
+              mahe.deleteProperty(id, "spinnaker rollback", extractEnvironment(id))
+              break;
+            case [PropertyAction.UPDATE, PropertyAction.DELETE]:
+              if(originalProperty) {
+                mahe.upsertProperty([property: originalProperty])
+              }
+              break
+          }
         }
       }
     }

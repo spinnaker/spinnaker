@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mahe.tasks
 
+import com.netflix.spinnaker.orca.mahe.PropertyAction
 import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -23,10 +24,14 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import jdk.nashorn.internal.objects.annotations.Property
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.client.Response
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+
+
+
 
 @Slf4j
 @Component
@@ -37,17 +42,22 @@ class CreatePropertiesTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    List properties = assemblePersistedPropertyListFromContext(stage.context)
+    List properties = assemblePersistedPropertyListFromContext(stage.context, stage.context.persistedProperties)
+    List originalProperties = assemblePersistedPropertyListFromContext(stage.context, stage.context.originalProperties)
     List propertyIdList = []
+    PropertyAction propertyAction = PropertyAction.UNKNOWN
 
     properties.forEach { Map prop ->
       Response response
       if (stage.context.delete) {
         log.info("Deleting Property: ${prop.property.propertyId} on execution ${stage.execution.id}")
         response = maheService.deleteProperty(prop.property.propertyId, 'delete', prop.property.env)
+        propertyIdList << prop.property.propertyId
+        propertyAction = PropertyAction.DELETE
       } else {
         log.info("Upserting Property: ${prop}")
         response = maheService.upsertProperty(prop)
+        propertyAction = prop.property.propertyId ? PropertyAction.UPDATE : PropertyAction.CREATE
       }
 
       if (response.status == 200) {
@@ -59,11 +69,15 @@ class CreatePropertiesTask implements Task {
       }
     }
 
+    boolean rollback = stage.context.rollbackProperties
+
     def outputs = [
-      propertyIdList: propertyIdList
+      propertyIdList: propertyIdList,
+      originalProperties: originalProperties,
+      rollback: rollback,
+      propertyAction: propertyAction,
     ]
 
-    boolean rollback = stage.context.rollbackProperties
 
     if (rollback) {
       return new DefaultTaskResult(SUCCEEDED, outputs, outputs)
@@ -72,15 +86,15 @@ class CreatePropertiesTask implements Task {
     }
   }
 
-  List assemblePersistedPropertyListFromContext(Map<String, Object> context) {
+
+
+  List assemblePersistedPropertyListFromContext(Map<String, Object> context, List propertyList) {
     Map scope = context.scope
     scope.appId = scope.appIdList.first()
     String email = context.email
     String cmcTicket = context.cmcTicket
 
-    List properties = context.persistedProperties
-
-    return properties.collect { Map prop ->
+    return propertyList.collect { Map prop ->
       prop << scope
       prop.email = email
       prop.sourceOfUpdate = 'spinnaker'
@@ -88,4 +102,5 @@ class CreatePropertiesTask implements Task {
       [property: prop]
     }
   }
+
 }
