@@ -84,10 +84,17 @@ public abstract class NestableCommand {
       if (e.getCause() instanceof ConnectException) {
         AnsiUi.error(e.getCause().getMessage());
         AnsiUi.remediation("Is your daemon running?");
-      } else {
-        ResponseUnwrapper.get((DaemonResponse) e.getBodyAs(DaemonResponse.class));
         System.exit(1);
+      } else if (e.getBody() instanceof DaemonResponse) {
+        DaemonResponse d = (DaemonResponse) e.getBodyAs(DaemonResponse.class);
+        if (d.getProblemSet() != null) {
+          ResponseUnwrapper.get(d);
+          System.exit(1);
+        }
       }
+      AnsiUi.error(e.getMessage());
+      AnsiUi.remediation("Try the command again with the --debug flag.");
+      System.exit(1);
     } catch (Exception e) {
       if (GlobalOptions.getGlobalOptions().isDebug()) {
         e.printStackTrace();

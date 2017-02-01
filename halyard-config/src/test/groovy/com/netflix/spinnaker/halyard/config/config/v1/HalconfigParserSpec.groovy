@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig
 import org.yaml.snakeyaml.Yaml
@@ -33,7 +32,7 @@ class HalconfigParserSpec extends Specification {
   void setup() {
     parser = new HalconfigParser()
     parser.yamlParser = new Yaml()
-    parser.objectMapper = new ObjectMapper()
+    parser.objectMapper = new StrictObjectMapper()
   }
 
   void "Accept minimal config"() {

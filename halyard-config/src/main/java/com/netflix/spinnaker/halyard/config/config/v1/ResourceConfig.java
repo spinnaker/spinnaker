@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -65,11 +66,6 @@ public class ResourceConfig {
   @Bean
   String spinnakerOutputPath(@Value("${spinnaker.config.output.directory:~/.halyard}") String path) {
     return normalizePath(path);
-  }
-
-  @Bean
-  ObjectMapper objectMapper() {
-    return new ObjectMapper();
   }
 
   @Bean

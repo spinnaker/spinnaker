@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.ParseConfigException;
@@ -51,7 +50,7 @@ public class HalconfigParser {
   String halyardVersion;
 
   @Autowired
-  ObjectMapper objectMapper;
+  StrictObjectMapper objectMapper;
 
   @Autowired
   Yaml yamlParser;
@@ -74,7 +73,7 @@ public class HalconfigParser {
     }
   }
 
-  public InputStream getHalconfigStream() throws FileNotFoundException {
+  private InputStream getHalconfigStream() throws FileNotFoundException {
     return new FileInputStream(new File(halconfigPath));
   }
 
@@ -94,7 +93,8 @@ public class HalconfigParser {
       try {
         InputStream is = getHalconfigStream();
         res = parseHalconfig(is);
-      } catch (FileNotFoundException e) {
+      } catch (FileNotFoundException ignored) {
+        // leave res as `null`
       } catch (UnrecognizedPropertyException e) {
         throw new ParseConfigException(e);
       } catch (ParserException e) {
@@ -104,21 +104,21 @@ public class HalconfigParser {
       }
     }
 
-    return transformHalconfig(res);
-  }
-
-  Halconfig transformHalconfig(Halconfig halconfig) {
-    if (halconfig == null) {
-      log.info("No halconfig found generating a new one...");
-      halconfig = new Halconfig();
-    }
-
-    halconfig.parentify();
-    halconfig.setPath(halconfigPath);
-
-    this.halconfig = halconfig;
+    halconfig = transformHalconfig(res);
 
     return halconfig;
+  }
+
+  Halconfig transformHalconfig(Halconfig input) {
+    if (input == null) {
+      log.info("No halconfig found - generating a new one...");
+      input = new Halconfig();
+    }
+
+    input.parentify();
+    input.setPath(halconfigPath);
+
+    return input;
   }
 
   /**

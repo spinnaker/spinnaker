@@ -52,8 +52,6 @@ public class ValidatorCollection {
       validatorRuns += runMatchingValidators(psBuilder, validator, node, node.getClass());
     }
 
-    log.info("Total validators run for node " + node.getClass() + " == " + validatorRuns);
-
     return validatorRuns;
   }
 
@@ -83,7 +81,7 @@ public class ValidatorCollection {
     } catch (NoSuchMethodException e) {
       // Do nothing, odds are most validators don't validate every class.
     } catch (InvocationTargetException | IllegalAccessException e) {
-      log.warn("Failed to invoke validate() on " + validator.getClass() + " for node " + c + " with cause " + e.getCause(), e);
+      log.warn("Failed to invoke validate() on \"" + validator.getClass().getSimpleName() + "\" for node \"" + c + "\" with cause " + e.getCause(), e);
     }
 
     return runMatchingValidators(psBuilder, validator, node, c.getSuperclass()) + result;
