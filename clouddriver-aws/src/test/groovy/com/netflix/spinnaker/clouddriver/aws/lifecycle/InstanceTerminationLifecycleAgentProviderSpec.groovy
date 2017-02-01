@@ -37,8 +37,8 @@ class InstanceTerminationLifecycleAgentProviderSpec extends Specification {
 
   InstanceTerminationConfigurationProperties properties = new InstanceTerminationConfigurationProperties(
     'mgmt',
-    'arn:aws:sqs:{{region}}:{{accountId}}:{{environment}}-queueName',
-    'arn:aws:iam::*:sourceArn',
+    'arn:aws:sqs:{{region}}:{{accountId}}:queueName',
+    'arn:aws:sqs:{{region}}:{{accountId}}:topicName',
     -1,
     -1,
     -1

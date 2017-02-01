@@ -20,7 +20,10 @@ import com.amazonaws.auth.policy.Policy;
 import com.amazonaws.auth.policy.Principal;
 import com.amazonaws.auth.policy.Resource;
 import com.amazonaws.auth.policy.Statement;
+import com.amazonaws.auth.policy.actions.SNSActions;
 import com.amazonaws.auth.policy.actions.SQSActions;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.model.SetTopicAttributesRequest;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiptHandleIsInvalidException;
@@ -68,6 +71,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
   Provider<AwsEurekaSupport> discoverySupport;
 
   private final ARN queueARN;
+  private final ARN topicARN;
 
   private String queueId = null;
 
@@ -84,6 +88,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
 
     Set<? extends AccountCredentials> accountCredentials = accountCredentialsProvider.getAll();
     this.queueARN = new ARN(accountCredentials, properties.getQueueARN());
+    this.topicARN = new ARN(accountCredentials, properties.getTopicARN());
   }
 
   @Override
@@ -109,14 +114,16 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
   @Override
   public void run() {
     AmazonSQS amazonSQS = amazonClientProvider.getAmazonSQS(queueARN.account, queueARN.region);
+    AmazonSNS amazonSNS = amazonClientProvider.getAmazonSNS(topicARN.account, topicARN.region);
 
-    Set<String> allAccountIds = accountCredentialsProvider.getAll()
+    List<String> allAccountIds = accountCredentialsProvider.getAll()
       .stream()
       .map(AccountCredentials::getAccountId)
       .filter(a -> a != null)
-      .collect(Collectors.toSet());
+      .collect(Collectors.toList());
 
-    this.queueId = ensureQueueExists(amazonSQS, queueARN, properties.getSourceARN(), allAccountIds);
+    this.queueId = ensureQueueExists(amazonSQS, queueARN, topicARN);
+    ensureTopicExists(amazonSNS, topicARN, allAccountIds, queueARN);
 
     AtomicInteger messagesProcessed = new AtomicInteger(0);
     while (messagesProcessed.get() < properties.getMaxMessagesPerCycle()) {
@@ -191,24 +198,49 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
       });
   }
 
-  private static String ensureQueueExists(AmazonSQS amazonSQS, ARN queueARN, String sourceARN, Set<String> allAccountIds) {
+  private static String ensureTopicExists(AmazonSNS amazonSNS,
+                                          ARN topicARN,
+                                          List<String> allAccountIds,
+                                          ARN queueARN) {
+    topicARN.arn = amazonSNS.createTopic(topicARN.name).getTopicArn();
+
+    amazonSNS.setTopicAttributes(
+      new SetTopicAttributesRequest()
+        .withTopicArn(topicARN.arn)
+        .withAttributeName("Policy")
+        .withAttributeValue(buildSNSPolicy(topicARN, allAccountIds).toJson())
+    );
+
+    amazonSNS.subscribe(topicARN.arn, "sqs", queueARN.arn);
+
+    return topicARN.arn;
+  }
+
+  private static Policy buildSNSPolicy(ARN topicARN, List<String> allAccountIds) {
+    Statement statement = new Statement(Statement.Effect.Allow).withActions(SNSActions.Publish);
+    statement.setPrincipals(allAccountIds.stream().map(Principal::new).collect(Collectors.toList()));
+    statement.setResources(Collections.singletonList(new Resource(topicARN.arn)));
+
+    return new Policy("allow-remote-account-send", Collections.singletonList(statement));
+  }
+
+  private static String ensureQueueExists(AmazonSQS amazonSQS, ARN queueARN, ARN topicARN) {
     String queueUrl = amazonSQS.createQueue(queueARN.name).getQueueUrl();
     amazonSQS.setQueueAttributes(
-      queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, sourceARN, allAccountIds).toJson())
+      queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, topicARN).toJson())
     );
 
     return queueUrl;
   }
 
-  private static Policy buildSQSPolicy(ARN queue, String sourceARN, Set<String> allAccountIds) {
+  private static Policy buildSQSPolicy(ARN queue, ARN topic) {
     Statement statement = new Statement(Statement.Effect.Allow).withActions(SQSActions.SendMessage);
-    statement.setPrincipals(allAccountIds.stream().map(Principal::new).collect(Collectors.toList()));
+    statement.setPrincipals(Principal.All);
     statement.setResources(Collections.singletonList(new Resource(queue.arn)));
-
     statement.setConditions(Collections.singletonList(
-      new Condition().withType("ArnLike").withConditionKey("aws:SourceArn").withValues(sourceARN)
+      new Condition().withType("ArnEquals").withConditionKey("aws:SourceArn").withValues(topic.arn)
     ));
 
-    return new Policy("allow-remote-account-send", Collections.singletonList(statement));
+    return new Policy("allow-sns-topic-send", Collections.singletonList(statement));
   }
 }
