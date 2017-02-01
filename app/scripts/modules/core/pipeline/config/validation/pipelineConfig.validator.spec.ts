@@ -14,6 +14,9 @@ import {IStageBeforeTypeValidationConfig} from './stageBeforeType.validator';
 import {ITargetImpedanceValidationConfig} from './targetImpedance.validator';
 import {IStage} from 'core/domain/IStage';
 import {IPipeline} from 'core/domain/IPipeline';
+import {IServiceAccountAccessValidationConfig, ITriggerWithServiceAccount} from './serviceAccountAccess.validator';
+import {ServiceAccountService} from 'core/serviceAccount/serviceAccount.service';
+import IProvideService = angular.auto.IProvideService;
 
 describe('pipelineConfigValidator', () => {
 
@@ -23,6 +26,7 @@ describe('pipelineConfigValidator', () => {
       pipelineConfigValidator: PipelineConfigValidator,
       pipelineConfig: PipelineConfigService,
       pipelineConfigService: PipelineConfigService,
+      serviceAccountService: ServiceAccountService,
       stageOrTriggerBeforeTypeValidator: StageOrTriggerBeforeTypeValidator,
       $q: ng.IQService;
 
@@ -74,15 +78,26 @@ describe('pipelineConfigValidator', () => {
     )
   );
 
+  beforeEach(
+    mock.module(($provide: IProvideService) => {
+      return $provide.constant('settings', {
+        feature: {
+          fiatEnabled: true,
+        }
+      });
+  }));
+
   beforeEach(mock.inject((_pipelineConfigValidator_: PipelineConfigValidator,
                           _pipelineConfig_: PipelineConfigService,
                           _pipelineConfigService_: PipelineConfigService,
+                          _serviceAccountService_: ServiceAccountService,
                           _stageOrTriggerBeforeTypeValidator_: StageOrTriggerBeforeTypeValidator,
                           _$q_: ng.IQService,
                           $rootScope: ng.IRootScopeService) => {
     pipelineConfigValidator = _pipelineConfigValidator_;
     pipelineConfig = _pipelineConfig_;
     pipelineConfigService = _pipelineConfigService_;
+    serviceAccountService = _serviceAccountService_;
     stageOrTriggerBeforeTypeValidator = _stageOrTriggerBeforeTypeValidator_;
     $q = _$q_;
     validate = () => {
@@ -906,4 +921,34 @@ describe('pipelineConfigValidator', () => {
     });
   });
 
+  describe('serviceAccountAccess', () => {
+    beforeEach(() => {
+      spyOn(pipelineConfig, 'getStageConfig').and.callFake((stage: IStage) => {
+        if (stage.type === 'targetCheck') {
+          return buildStageTypeConfig([
+            {
+              type: 'serviceAccountAccess',
+              message: 'Not allowed!',
+            } as IServiceAccountAccessValidationConfig,
+          ]);
+        }
+        return buildStageTypeConfig();
+      });
+
+      spyOn(serviceAccountService, 'getServiceAccounts').and.returnValue($q.resolve(['my-account']));
+    });
+
+    it('calls service account access validator', () => {
+      let trigger = { type: 'targetCheck', name: 'git trigger', runAsUser: 'my-account' } as ITriggerWithServiceAccount;
+      pipeline = buildPipeline([trigger]);
+
+      validate();
+      expect(validationResults.hasWarnings).toBe(false);
+
+      trigger.runAsUser = 'account-I-do-not-have-access-to';
+      validate();
+      expect(validationResults.stages.length).toBe(1);
+      expect(validationResults.stages[0].messages).toEqual(['Not allowed!']);
+    });
+  });
 });

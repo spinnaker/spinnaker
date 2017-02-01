@@ -1,12 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
+import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
     require('core/config/settings.js'),
-    require('core/serviceAccount/serviceAccount.service.js'),
+    SERVICE_ACCOUNT_SERVICE,
   ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
@@ -17,6 +18,14 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
       controllerAs: 'vm',
       templateUrl: require('./gitTrigger.html'),
       popoverLabelUrl: require('./gitPopoverLabel.html'),
+      validators: [
+        {
+          type: 'serviceAccountAccess',
+          message: `You do not have access to the service account configured in this pipeline's git trigger.
+                    You will not be able to save your edits to this pipeline.`,
+          preventSave: true,
+        }
+      ]
     });
   })
   .controller('GitTriggerCtrl', function (trigger, $scope, settings, serviceAccountService) {

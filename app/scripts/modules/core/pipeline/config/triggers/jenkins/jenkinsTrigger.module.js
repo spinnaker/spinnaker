@@ -1,12 +1,13 @@
 'use strict';
 
 let angular = require('angular');
+import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins', [
   require('./jenkinsTriggerOptions.directive.js'),
   require('../trigger.directive.js'),
   require('core/ci/jenkins/igor.service.js'),
-  require('core/serviceAccount/serviceAccount.service.js'),
+  SERVICE_ACCOUNT_SERVICE,
   require('../../pipelineConfigProvider.js'),
 ])
   .config(function(pipelineConfigProvider) {
@@ -26,6 +27,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
           fieldName: 'job',
           message: '<strong>Job</strong> is a required field on Jenkins triggers.',
         },
+        {
+          type: 'serviceAccountAccess',
+          message: `You do not have access to the service account configured in this pipeline's Jenkins trigger.
+                    You will not be able to save your edits to this pipeline.`,
+          preventSave: true,
+        }
       ],
     });
   })

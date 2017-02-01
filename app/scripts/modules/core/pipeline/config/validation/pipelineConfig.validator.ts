@@ -15,11 +15,13 @@ export interface IPipelineValidationResults {
   stages: IStageValidationResults[];
   pipeline: string[];
   hasWarnings: boolean;
+  preventSave: boolean;
 }
 
 export interface IValidatorConfig {
   type: string;
   skipValidation?: (pipeline: IPipeline, stage: IStage) => boolean;
+  preventSave?: boolean;
 }
 
 export interface ITriggerTypeConfig extends IStageOrTriggerTypeConfig {
@@ -80,6 +82,7 @@ export class PipelineConfigValidator implements ng.IServiceProvider {
           validations: ng.IPromise<string>[] = [],
           pipelineValidations: string[] = this.getPipelineLevelValidations(pipeline),
           stageValidations: Map<IStage, string[]> = new Map();
+    let preventSave = false;
 
     triggers.forEach((trigger, index) => {
       let config: ITriggerTypeConfig = this.pipelineConfig.getTriggerConfig(trigger.type);
@@ -94,6 +97,9 @@ export class PipelineConfigValidator implements ng.IServiceProvider {
                 .then(message => {
                   if (message && !pipelineValidations.includes(message)) {
                     pipelineValidations.push(message);
+                    if (validator.preventSave) {
+                      preventSave = true;
+                    }
                   }
                   return message;
                 })
@@ -121,6 +127,9 @@ export class PipelineConfigValidator implements ng.IServiceProvider {
                   }
                   if (!stageValidations.get(stage).includes(message)) {
                     stageValidations.get(stage).push(message);
+                    if (validator.preventSave) {
+                      preventSave = true;
+                    }
                   }
                 }
                 return message;
@@ -136,6 +145,7 @@ export class PipelineConfigValidator implements ng.IServiceProvider {
         stages: Array.from(stageValidations).map(([stage, messages]) => ({ stage, messages })),
         pipeline: pipelineValidations,
         hasWarnings: false,
+        preventSave,
       };
       results.hasWarnings = results.pipeline.length > 0 || results.stages.length > 0;
       this.validationStream.next(results);

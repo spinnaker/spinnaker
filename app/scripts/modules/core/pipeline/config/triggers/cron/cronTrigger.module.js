@@ -3,12 +3,13 @@
 let angular = require('angular');
 
 import {UUIDGenerator} from 'core/utils/uuid.service';
+import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
 import './cronTrigger.less';
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
     require('angular-cron-gen'),
     require('../trigger.directive.js'),
-    require('core/serviceAccount/serviceAccount.service.js'),
+    SERVICE_ACCOUNT_SERVICE,
     require('./cron.validator.directive.js'),
   ])
   .config(function(pipelineConfigProvider) {
@@ -20,6 +21,14 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
       controllerAs: 'vm',
       templateUrl: require('./cronTrigger.html'),
       popoverLabelUrl: require('./cronPopoverLabel.html'),
+      validators: [
+        {
+          type: 'serviceAccountAccess',
+          message: `You do not have access to the service account configured in this pipeline's CRON trigger.
+                    You will not be able to save your edits to this pipeline.`,
+          preventSave: true,
+        }
+      ]
     });
   })
   .controller('CronTriggerCtrl', function(trigger, settings, serviceAccountService) {

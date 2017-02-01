@@ -281,7 +281,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.isValid = function() {
-      return _.every($scope.pipeline.stages, 'name');
+      return _.every($scope.pipeline.stages, 'name') && !ctrl.preventSave;
     };
 
     this.savePipeline = function() {
@@ -373,6 +373,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
     const validationSubscription = pipelineConfigValidator.subscribe((validations) => {
       this.validations = validations;
+      this.preventSave = validations.preventSave;
     });
 
     $window.onbeforeunload = function() {
