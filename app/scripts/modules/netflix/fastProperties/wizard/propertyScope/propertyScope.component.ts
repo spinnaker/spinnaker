@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { FAST_PROPERTY_SCOPE_SEARCH_COMPONENT } from '../../scope/fastPropertyScopeSearch.component.ts';
+import { FAST_PROPERTY_SCOPE_SEARCH_COMPONENT } from '../../scope/fastPropertyScopeSearch.component';
 import {PropertyCommand} from '../../domain/propertyCommand.model';
 import {Scope} from '../../domain/scope.domain';
 

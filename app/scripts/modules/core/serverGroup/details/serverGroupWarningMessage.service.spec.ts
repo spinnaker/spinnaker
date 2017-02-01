@@ -40,6 +40,8 @@ describe('serverGroupWarningMessageService', () => {
         {
           name: 'foo',
           account: 'test',
+          cloudProvider: '',
+          category: '',
           serverGroups: [
             serverGroup,
             { account: 'test', cloudProvider: 'aws', cluster: 'foo', instanceCounts: { up: 0, down: 0, succeeded: 0, failed: 0, unknown: 0, outOfService: 0 }, instances: [], name: 'foo-v001', region: 'us-east-1', type: 'a' },
@@ -67,6 +69,8 @@ describe('serverGroupWarningMessageService', () => {
         {
           name: 'foo',
           account: 'test',
+          cloudProvider: '',
+          category: '',
           serverGroups: [serverGroup]
         }
       ];
@@ -97,6 +101,8 @@ describe('serverGroupWarningMessageService', () => {
         {
           name: 'foo',
           account: 'test',
+          cloudProvider: '',
+          category: '',
           serverGroups: [serverGroup]
         }
       ];
@@ -142,6 +148,8 @@ describe('serverGroupWarningMessageService', () => {
         {
           name: 'foo',
           account: 'test',
+          cloudProvider: '',
+          category: '',
           serverGroups: [serverGroup, omitted, included]
         }
       ];
