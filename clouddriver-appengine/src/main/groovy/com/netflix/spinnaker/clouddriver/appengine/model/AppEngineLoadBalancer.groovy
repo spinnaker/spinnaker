@@ -62,15 +62,20 @@ class AppEngineLoadBalancer implements LoadBalancer, Serializable {
 
       def detachedInstances = serverGroup.isDisabled() ? serverGroup.instances?.collect { it.name } ?: [] : []
 
-      new LoadBalancerServerGroup(
+      new AppEngineLoadBalancerServerGroup(
         name: serverGroup.name,
         region: serverGroup.region,
         isDisabled: serverGroup.isDisabled(),
+        allowsGradualTrafficMigration: serverGroup.allowsGradualTrafficMigration,
         instances: instances as Set,
         detachedInstances: detachedInstances as Set
       )
     } as Set
     null
+  }
+
+  static class AppEngineLoadBalancerServerGroup extends LoadBalancerServerGroup {
+    Boolean allowsGradualTrafficMigration
   }
 }
 
