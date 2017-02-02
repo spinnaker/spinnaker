@@ -50,7 +50,8 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
                                   Registry registry) {
     super(clouddriverUserAgentApplicationName,
           credentials,
-          objectMapper)
+          objectMapper,
+          registry)
     this.metricsSupport = new OnDemandMetricsSupport(
         registry,
         this,
@@ -95,7 +96,9 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
   }
 
   List<Firewall> loadFirewalls() {
-    compute.firewalls().list(project).execute().items as List<Firewall>
+    timeExecute(compute.firewalls().list(project),
+                "compute.firewalls.list", TAG_SCOPE, SCOPE_GLOBAL
+    ).items as List<Firewall>
   }
 
   private CacheResult buildCacheResult(ProviderCache providerCache, List<Firewall> firewallList) {

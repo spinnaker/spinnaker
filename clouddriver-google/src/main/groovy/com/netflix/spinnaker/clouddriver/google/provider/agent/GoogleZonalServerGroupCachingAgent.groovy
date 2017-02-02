@@ -74,11 +74,12 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
   GoogleZonalServerGroupCachingAgent(String clouddriverUserAgentApplicationName,
                                      GoogleNamedAccountCredentials credentials,
                                      ObjectMapper objectMapper,
-                                     String region,
-                                     Registry registry) {
+                                     Registry registry,
+                                     String region) {
     super(clouddriverUserAgentApplicationName,
           credentials,
-          objectMapper)
+          objectMapper,
+          registry)
     this.region = region
     this.metricsSupport = new OnDemandMetricsSupport(
       registry,
@@ -148,9 +149,9 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
         compute.instanceGroupManagers().list(project, zone).queue(igmRequest, igmlCallback)
       }
     }
-    executeIfRequestsAreQueued(igmRequest)
-    executeIfRequestsAreQueued(instanceGroupsRequest)
-    executeIfRequestsAreQueued(autoscalerRequest)
+    executeIfRequestsAreQueued(igmRequest, "ZonalServerGroupCaching.igm")
+    executeIfRequestsAreQueued(instanceGroupsRequest, "ZonalServerGroupCaching.instanceGroups")
+    executeIfRequestsAreQueued(autoscalerRequest, "ZonalServerGroupCaching.autoscaler")
 
     serverGroups
   }

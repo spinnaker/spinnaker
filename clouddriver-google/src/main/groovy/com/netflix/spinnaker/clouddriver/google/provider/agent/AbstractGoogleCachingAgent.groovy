@@ -23,12 +23,14 @@ import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 
-abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware {
+abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware, GoogleExecutorTraits {
 
   final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
@@ -37,16 +39,19 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware 
   String clouddriverUserAgentApplicationName // "Spinnaker/${version}" HTTP header string
   GoogleNamedAccountCredentials credentials
   ObjectMapper objectMapper
+  Registry registry
 
   @VisibleForTesting
   AbstractGoogleCachingAgent() {}
 
   AbstractGoogleCachingAgent(String clouddriverUserAgentApplicationName,
                              GoogleNamedAccountCredentials credentials,
-                             ObjectMapper objectMapper) {
+                             ObjectMapper objectMapper,
+                             Registry registry) {
     this.clouddriverUserAgentApplicationName = clouddriverUserAgentApplicationName
     this.credentials = credentials
     this.objectMapper = objectMapper
+    this.registry = registry
   }
 
   String getProject() {
@@ -61,9 +66,9 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware 
     credentials?.name
   }
 
-  def executeIfRequestsAreQueued(BatchRequest batch) {
+  def executeIfRequestsAreQueued(BatchRequest batch, String instrumentationContext) {
     if (batch.size()) {
-      batch.execute()
+      timeExecuteBatch(batch, instrumentationContext)
     }
   }
 

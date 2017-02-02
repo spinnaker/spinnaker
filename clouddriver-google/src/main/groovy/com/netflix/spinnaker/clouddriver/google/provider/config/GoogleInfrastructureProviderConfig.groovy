@@ -40,6 +40,8 @@ import java.util.concurrent.ConcurrentHashMap
 @EnableConfigurationProperties
 class GoogleInfrastructureProviderConfig {
 
+  @Autowired Registry registry
+
   @Bean
   @DependsOn('googleNamedAccountCredentials')
   GoogleInfrastructureProvider googleInfrastructureProvider(String clouddriverUserAgentApplicationName,
@@ -100,37 +102,45 @@ class GoogleInfrastructureProviderConfig {
                                                                 registry)
         newlyAddedAgents << new GoogleNetworkCachingAgent(clouddriverUserAgentApplicationName,
                                                           credentials,
-                                                          objectMapper)
+                                                          objectMapper,
+                                                          registry)
 
         regions.each { String region ->
           newlyAddedAgents << new GoogleSubnetCachingAgent(clouddriverUserAgentApplicationName,
                                                            credentials,
                                                            objectMapper,
+                                                           registry,
                                                            region)
         }
 
         newlyAddedAgents << new GoogleHealthCheckCachingAgent(clouddriverUserAgentApplicationName,
                                                               credentials,
-                                                              objectMapper)
+                                                              objectMapper,
+                                                              registry)
         newlyAddedAgents << new GoogleHttpHealthCheckCachingAgent(clouddriverUserAgentApplicationName,
                                                                   credentials,
-                                                                  objectMapper)
+                                                                  objectMapper,
+                                                                  registry)
         newlyAddedAgents << new GoogleSslLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
                                                                   credentials,
                                                                   objectMapper,
                                                                   registry)
         newlyAddedAgents << new GoogleSslCertificateCachingAgent(clouddriverUserAgentApplicationName,
                                                                  credentials,
-                                                                 objectMapper)
+                                                                 objectMapper,
+                                                                 registry)
         newlyAddedAgents << new GoogleBackendServiceCachingAgent(clouddriverUserAgentApplicationName,
                                                                  credentials,
-                                                                 objectMapper)
+                                                                 objectMapper,
+                                                                 registry)
         newlyAddedAgents << new GoogleInstanceCachingAgent(clouddriverUserAgentApplicationName,
                                                            credentials,
-                                                           objectMapper)
+                                                           objectMapper,
+                                                           registry)
         newlyAddedAgents << new GoogleImageCachingAgent(clouddriverUserAgentApplicationName,
                                                         credentials,
                                                         objectMapper,
+                                                        registry,
                                                         credentials.imageProjects,
                                                         googleConfigurationProperties.baseImageProjects)
         newlyAddedAgents << new GoogleHttpLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
@@ -141,23 +151,23 @@ class GoogleInfrastructureProviderConfig {
           newlyAddedAgents << new GoogleInternalLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
                                                                          credentials,
                                                                          objectMapper,
-                                                                         region,
-                                                                         registry)
+                                                                         registry,
+                                                                         region)
           newlyAddedAgents << new GoogleLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
                                                                  credentials,
                                                                  objectMapper,
-                                                                 region,
-                                                                 registry)
+                                                                 registry,
+                                                                 region)
           newlyAddedAgents << new GoogleRegionalServerGroupCachingAgent(clouddriverUserAgentApplicationName,
                                                                         credentials,
                                                                         objectMapper,
-                                                                        region,
-                                                                        registry)
+                                                                        registry,
+                                                                        region)
           newlyAddedAgents << new GoogleZonalServerGroupCachingAgent(clouddriverUserAgentApplicationName,
                                                                      credentials,
                                                                      objectMapper,
-                                                                     region,
-                                                                     registry)
+                                                                     registry,
+                                                                     region)
         }
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.

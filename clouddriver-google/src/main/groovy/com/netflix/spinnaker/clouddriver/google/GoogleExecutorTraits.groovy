@@ -39,6 +39,7 @@ trait GoogleExecutorTraits {
 
 
   public <T> T timeExecuteBatch(BatchRequest batch, String batchContext, String... tags) throws IOException {
+     def batchSize = batch.size()
      def success = "false"
      Registry registry = getRegistry()
      Clock clock = registry.clock()
@@ -51,7 +52,7 @@ trait GoogleExecutorTraits {
        def tagDetails = [(TAG_BATCH_CONTEXT): batchContext, "success": success]
        long nanos = clock.monotonicTime() - startTime
        registry.timer(registry.createId("google.batchExecute", tags).withTags(tagDetails)).record(nanos, TimeUnit.NANOSECONDS)
-       registry.counter(registry.createId("google.batchSize", tags).withTags(tagDetails)).increment(batch.size())
+       registry.counter(registry.createId("google.batchSize", tags).withTags(tagDetails)).increment(batchSize)
      }
   }
 

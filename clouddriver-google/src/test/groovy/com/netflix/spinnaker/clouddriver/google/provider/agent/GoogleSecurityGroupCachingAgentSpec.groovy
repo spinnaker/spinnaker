@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Firewall
 import com.google.api.services.compute.model.FirewallList
-import com.netflix.spectator.api.Spectator
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
@@ -36,6 +36,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
 
   void "should add security groups on initial run"() {
     setup:
+      def registry = new DefaultRegistry()
       def computeMock = Mock(Compute)
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).name(ACCOUNT_NAME).compute(computeMock).build()
       def firewallsMock = Mock(Compute.Firewalls)
@@ -58,7 +59,15 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
       @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent("testApplicationName",
                                                                                            credentials,
                                                                                            new ObjectMapper(),
-                                                                                           Spectator.registry())
+                                                                                           registry)
+      // We are passing registry in above because the constructor needs it.
+      // However there is also an @autowired registry on the instance this test
+      // needs. Normally we could use the autowire in the constructor but the
+      // autowire doesnt happen in this test so we inject it above.
+      // Normally it is autowired so doesnt seem appropriate to bind the local
+      // registry from the constructor (overriding the autowire) so we'll just
+      // reset it here.
+      agent.registry = registry
 
     when:
       def cache = agent.loadData(providerCache)

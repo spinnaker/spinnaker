@@ -62,9 +62,9 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
   GoogleInternalLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                          GoogleNamedAccountCredentials credentials,
                                          ObjectMapper objectMapper,
-                                         String region,
-                                         Registry registry) {
-    super(clouddriverUserAgentApplicationName, credentials, objectMapper)
+                                         Registry registry,
+                                         String region) {
+    super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry)
     this.region = region
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.LoadBalancer}")
   }
@@ -91,10 +91,10 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     )
     compute.forwardingRules().list(project, region).queue(forwardingRulesRequest, callback)
 
-    executeIfRequestsAreQueued(forwardingRulesRequest)
-    executeIfRequestsAreQueued(backendServiceRequest)
-    executeIfRequestsAreQueued(healthCheckRequest)
-    executeIfRequestsAreQueued(groupHealthRequest)
+    executeIfRequestsAreQueued(forwardingRulesRequest, "InternalLoadBalancerCaching.forwardingRules")
+    executeIfRequestsAreQueued(backendServiceRequest, "InternalLoadBalancerCaching.backendService")
+    executeIfRequestsAreQueued(healthCheckRequest, "InternalLoadBalancerCaching.healthCheck")
+    executeIfRequestsAreQueued(groupHealthRequest, "InternalLoadBalancerCaching.groupHealth")
 
     return loadBalancers
   }

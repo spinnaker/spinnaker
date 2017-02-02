@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.health
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -33,9 +35,12 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import java.util.concurrent.atomic.AtomicReference
 
 @Component
-class GoogleHealthIndicator implements HealthIndicator {
+class GoogleHealthIndicator implements HealthIndicator, GoogleExecutorTraits {
 
   private static final Logger LOG = LoggerFactory.getLogger(GoogleHealthIndicator)
+
+  @Autowired
+  Registry registry
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -63,7 +68,9 @@ class GoogleHealthIndicator implements HealthIndicator {
       for (GoogleNamedAccountCredentials accountCredentials in googleCredentialsSet) {
         try {
           // This verifies that the specified credentials are sufficient to access the referenced project.
-          accountCredentials.compute.projects().get(accountCredentials.project).execute()
+          timeExecute(accountCredentials.compute.projects().get(accountCredentials.project),
+                      "compute.projects.get",
+                      TAG_SCOPE, SCOPE_GLOBAL)
         } catch (IOException e) {
           throw new GoogleIOException(e)
         }

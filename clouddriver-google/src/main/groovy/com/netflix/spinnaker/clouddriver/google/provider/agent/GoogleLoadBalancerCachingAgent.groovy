@@ -61,11 +61,12 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
   GoogleLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                  GoogleNamedAccountCredentials credentials,
                                  ObjectMapper objectMapper,
-                                 String region,
-                                 Registry registry) {
+                                 Registry registry,
+                                 String region) {
     super(clouddriverUserAgentApplicationName,
           credentials,
-          objectMapper)
+          objectMapper,
+          registry)
     this.region = region
     this.metricsSupport = new OnDemandMetricsSupport(
         registry,
@@ -93,10 +94,10 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
                                                                    instanceHealthRequest: instanceHealthRequest)
     compute.forwardingRules().list(project, region).queue(forwardingRulesRequest, callback)
 
-    executeIfRequestsAreQueued(forwardingRulesRequest)
-    executeIfRequestsAreQueued(targetPoolsRequest)
-    executeIfRequestsAreQueued(httpHealthChecksRequest)
-    executeIfRequestsAreQueued(instanceHealthRequest)
+    executeIfRequestsAreQueued(forwardingRulesRequest, "LoadBalancerCaching.forwardingRules")
+    executeIfRequestsAreQueued(targetPoolsRequest, "LoadBalancerCaching.targetPools")
+    executeIfRequestsAreQueued(httpHealthChecksRequest, "LoadBalancerCaching.httpHealthChecks")
+    executeIfRequestsAreQueued(instanceHealthRequest, "LoadBalancerCaching.instanceHealth")
 
     return loadBalancers
   }

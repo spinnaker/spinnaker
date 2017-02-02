@@ -62,7 +62,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
                                      GoogleNamedAccountCredentials credentials,
                                      ObjectMapper objectMapper,
                                      Registry registry) {
-    super(clouddriverUserAgentApplicationName, credentials, objectMapper)
+    super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry)
     this.metricsSupport = new OnDemandMetricsSupport(
         registry,
         this,
@@ -96,12 +96,12 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     )
     compute.globalForwardingRules().list(project).queue(forwardingRulesRequest, callback)
 
-    executeIfRequestsAreQueued(forwardingRulesRequest)
-    executeIfRequestsAreQueued(targetProxyRequest)
-    executeIfRequestsAreQueued(urlMapRequest)
-    executeIfRequestsAreQueued(backendServiceRequest)
-    executeIfRequestsAreQueued(httpHealthCheckRequest)
-    executeIfRequestsAreQueued(groupHealthRequest)
+    executeIfRequestsAreQueued(forwardingRulesRequest, "HttpLoadBalancerCaching.forwardingRules")
+    executeIfRequestsAreQueued(targetProxyRequest, "HttpLoadBalancerCaching.targetProxy")
+    executeIfRequestsAreQueued(urlMapRequest, "HttpLoadBalancerCaching.urlMapRequest")
+    executeIfRequestsAreQueued(backendServiceRequest, "HttpLoadBalancerCaching.backendService")
+    executeIfRequestsAreQueued(httpHealthCheckRequest, "HttpLoadBalancerCaching.httpHealthCheck")
+    executeIfRequestsAreQueued(groupHealthRequest, "HttpLoadBalancerCaching.groupHealth")
 
     return loadBalancers
   }

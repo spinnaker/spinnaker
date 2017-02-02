@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.Subnetwork
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -43,10 +44,12 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
   GoogleSubnetCachingAgent(String clouddriverUserAgentApplicationName,
                            GoogleNamedAccountCredentials credentials,
                            ObjectMapper objectMapper,
+                           Registry registry,
                            String region) {
     super(clouddriverUserAgentApplicationName,
           credentials,
-          objectMapper)
+          objectMapper,
+          registry)
     this.region = region
   }
 
@@ -57,7 +60,10 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   List<Subnetwork> loadSubnets() {
-    compute.subnetworks().list(project, region).execute().items as List
+    timeExecute(compute.subnetworks().list(project, region),
+                "compute.subnetworks.list",
+                TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region
+    ).items as List
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<Subnetwork> subnetList) {

@@ -20,12 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -46,7 +48,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescription> {
+class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescription>, GoogleExecutorTraits {
 
   // TODO(duftler): This should move to a common location.
   private static final String BASE_PHASE = "DEPLOY"
@@ -88,6 +90,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
   @Autowired
   SafeRetry safeRetry
+
+  @Autowired
+  Registry registry
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -213,7 +218,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       def loadBalancingPolicy = description.loadBalancingPolicy
 
       backendServices.each { String backendServiceName ->
-        BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+        BackendService backendService = timeExecute(
+            compute.backendServices().get(project, backendServiceName),
+            "compute.backendServices.get",
+            TAG_SCOPE, SCOPE_GLOBAL)
 
         Backend backendToAdd
         if (loadBalancingPolicy?.balancingMode) {
@@ -263,7 +271,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       instanceMetadata[GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES] = existingRegionalLbs.join(",")
 
       ilbServices.each { String backendServiceName ->
-        BackendService backendService = compute.regionBackendServices().get(project, region, backendServiceName).execute()
+        BackendService backendService = timeExecute(
+            compute.regionBackendServices().get(project, region, backendServiceName),
+            "compute.regionBackendServices.get",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
         Backend backendToAdd = new Backend()
         if (isRegional) {
           backendToAdd.setGroup(GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
@@ -301,7 +312,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def instanceTemplate = new InstanceTemplate(name: "$serverGroupName-${System.currentTimeMillis()}",
                                                 properties: instanceProperties)
-    def instanceTemplateCreateOperation = compute.instanceTemplates().insert(project, instanceTemplate).execute()
+    def instanceTemplateCreateOperation = timeExecute(
+        compute.instanceTemplates().insert(project, instanceTemplate),
+        "compute.instanceTemplates.insert",
+        TAG_SCOPE, SCOPE_GLOBAL)
     def instanceTemplateUrl = instanceTemplateCreateOperation.targetLink
 
     // Before building the managed instance group we must check and wait until the instance template is built.
@@ -384,7 +398,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def willUpdateIlbs = !description.disableTraffic && internalLoadBalancers
 
     if (isRegional) {
-      migCreateOperation = compute.regionInstanceGroupManagers().insert(project, region, instanceGroupManager).execute()
+      migCreateOperation = timeExecute(
+          compute.regionInstanceGroupManagers().insert(project, region, instanceGroupManager),
+          "compute.regionInstanceGroupManagers.insert",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
 
       if (willUpdateBackendServices || willCreateAutoscaler || willUpdateIlbs) {
         // Before updating the Backend Services or creating the Autoscaler we must wait until the managed instance group is created.
@@ -398,11 +415,17 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                           migCreateOperation.targetLink,
                                                           description.autoscalingPolicy)
 
-          compute.regionAutoscalers().insert(project, region, autoscaler).execute()
+          timeExecute(
+              compute.regionAutoscalers().insert(project, region, autoscaler),
+              "compute.regionAutoscalers.insert",
+              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
         }
       }
     } else {
-      migCreateOperation = compute.instanceGroupManagers().insert(project, zone, instanceGroupManager).execute()
+      migCreateOperation = timeExecute(
+          compute.instanceGroupManagers().insert(project, zone, instanceGroupManager),
+          "compute.instanceGroupManagers.insert",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
 
       if (willUpdateBackendServices || willCreateAutoscaler || willUpdateIlbs) {
         // Before updating the Backend Services or creating the Autoscaler we must wait until the managed instance group is created.
@@ -416,7 +439,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                           migCreateOperation.targetLink,
                                                           description.autoscalingPolicy)
 
-          compute.autoscalers().insert(project, zone, autoscaler).execute()
+          timeExecute(compute.autoscalers().insert(project, zone, autoscaler),
+                      "compute.autoscalers.insert",
+                      TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
         }
       }
     }
@@ -468,26 +493,38 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
   private Closure updateRegionBackendServices(Compute compute, String project, String region, String backendServiceName, BackendService backendService) {
     return {
-      BackendService serviceToUpdate = compute.regionBackendServices().get(project, region, backendServiceName).execute()
+      BackendService serviceToUpdate = timeExecute(
+         compute.regionBackendServices().get(project, region, backendServiceName),
+         "compute.regionBackendServices.get",
+         TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
       if (serviceToUpdate.backends == null) {
         serviceToUpdate.backends = new ArrayList<Backend>()
       }
       backendService?.backends?.each { serviceToUpdate.backends << it }
       serviceToUpdate.getBackends().unique { backend -> backend.group }
-      compute.regionBackendServices().update(project, region, backendServiceName, serviceToUpdate).execute()
+      timeExecute(
+          compute.regionBackendServices().update(project, region, backendServiceName, serviceToUpdate),
+          "compute.regionBackendServices.update",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
       null
     }
   }
 
   private Closure updateBackendServices(Compute compute, String project, String backendServiceName, BackendService backendService) {
     return {
-      BackendService serviceToUpdate = compute.backendServices().get(project, backendServiceName).execute()
+      BackendService serviceToUpdate = timeExecute(
+          compute.backendServices().get(project, backendServiceName),
+          "compute.backendServices.get",
+          TAG_SCOPE, SCOPE_GLOBAL)
       if (serviceToUpdate.backends == null) {
         serviceToUpdate.backends = new ArrayList<Backend>()
       }
       backendService?.backends?.each { serviceToUpdate.backends << it }
       serviceToUpdate.getBackends().unique { backend -> backend.group }
-      compute.backendServices().update(project, backendServiceName, serviceToUpdate).execute()
+      timeExecute(
+          compute.backendServices().update(project, backendServiceName, serviceToUpdate),
+          "compute.backendServices.update",
+          TAG_SCOPE, SCOPE_GLOBAL)
       null
     }
   }
