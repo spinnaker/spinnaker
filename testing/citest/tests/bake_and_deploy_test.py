@@ -37,10 +37,12 @@
 #            as $JENKINS_AUTH_PATH (also chmod 400).
 #            Or, set JENKINS_USER and JENKINS_PASSWORD environment variables.
 #
-#         3. Take note of the Jenkins job you have configured in Igor,
-#            and store its name as $JENKINS_JOB.
+#         3. Take note of the Jenkins master you have configured in Igor,
+#            and store its name as $JENKINS_MASTER.
 #
-#         4. On your Jenkins server, navigate to /job/$JENKINS_JOB/configure
+#         4. Choose a name for your jenkins job and store it in $JENKINS_JOB.
+#
+#         5. On your Jenkins server, navigate to /job/$JENKINS_JOB/configure
 #               a) Under "Build Triggers", check "Trigger builds remotely".
 #               b) In the "Authentication Token" field, write some token
 #                  and store it as $JENKINS_TOKEN.
@@ -53,12 +55,13 @@
 #                  files to archive: somedir/vim_2:7.4.052-1ubuntu3_amd64.deb
 #
 #
-#   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
-#     python $CITEST_ROOT/spinnaker/spinnaker_system/bake_and_deploy_test.py \
+#   PYTHONPATH=$CITEST_ROOT/testing/citest \
+#     python $CITEST_ROOT/testing/citest/tests/bake_and_deploy_test.py \
 #     --gce_ssh_passphrase_file=$PASSPHRASE_FILE \
 #     --gce_project=$PROJECT \
 #     --gce_zone=$ZONE \
 #     --gce_instance=$INSTANCE \
+#     --jenkins_master=$JENKINS_MASTER \
 #     --jenkins_url=$JENKINS_URL \
 #     --jenkins_auth_path=$JENKINS_AUTH_PATH \
 #     --jenkins_job=$JENKINS_JOB \
@@ -66,8 +69,8 @@
 #     --test_google \
 #     --test_aws
 # or
-#   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
-#     python $CITEST_ROOT/spinnaker/spinnaker_system/bake_and_deploy_test.py \
+#   PYTHONPATH=$CITEST_ROOT/testing/citest \
+#     python $CITEST_ROOT/testing/citest/tests/bake_and_deploy_test.py \
 #     --native_hostname=host-running-smoke-test
 #     --managed_gce_project=$PROJECT \
 #     --test_gce_zone=$ZONE
