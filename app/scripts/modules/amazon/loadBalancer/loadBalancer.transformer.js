@@ -138,7 +138,8 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
 
     function constructNewLoadBalancerTemplate(application) {
       var defaultCredentials = application.defaultCredentials.aws || settings.providers.aws.defaults.account,
-          defaultRegion = application.defaultRegions.aws || settings.providers.aws.defaults.region;
+          defaultRegion = application.defaultRegions.aws || settings.providers.aws.defaults.region,
+          defaultSubnetType = settings.providers.aws.defaults.subnetType;
       return {
         stack: '',
         detail: '',
@@ -146,6 +147,7 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
         credentials: defaultCredentials,
         region: defaultRegion,
         vpcId: null,
+        subnetType: defaultSubnetType,
         healthCheckProtocol: 'HTTP',
         healthCheckPort: 7001,
         healthCheckPath: '/healthcheck',

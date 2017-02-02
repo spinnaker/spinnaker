@@ -5,6 +5,7 @@ import {Observable, Subject} from 'rxjs';
 import {IMAGE_READER} from 'core/image/image.reader';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
+import {SUBNET_SELECT_FIELD_COMPONENT} from 'amazon/subnet/subnetSelectField.component';
 
 let angular = require('angular');
 
@@ -15,6 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
   V2_MODAL_WIZARD_SERVICE,
   IMAGE_READER,
   NAMING_SERVICE,
+  SUBNET_SELECT_FIELD_COMPONENT,
 ])
   .controller('awsServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
                                                           v2modalWizardService, imageReader, namingService) {

@@ -11,6 +11,7 @@ import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+import {SUBNET_SELECT_FIELD_COMPONENT} from '../../subnet/subnetSelectField.component';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 let angular = require('angular');
@@ -31,7 +32,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   require('./loadBalancerAvailabilityZoneSelector.directive.js'),
   require('core/region/regionSelectField.directive.js'),
   require('core/account/accountSelectField.directive.js'),
-  require('../../subnet/subnetSelectField.directive.js'),
+  SUBNET_SELECT_FIELD_COMPONENT,
   require('core/config/settings.js'),
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,

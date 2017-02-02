@@ -25,6 +25,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
 
       var defaultCredentials = defaults.account || application.defaultCredentials.aws || settings.providers.aws.defaults.account;
       var defaultRegion = defaults.region || application.defaultRegions.aws || settings.providers.aws.defaults.region;
+      var defaultSubnet = defaults.subnet || settings.providers.aws.defaults.subnetType || '';
 
       var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion('aws', defaultCredentials, defaultRegion);
 
@@ -62,6 +63,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             iamRole: defaultIamRole,
             terminationPolicies: ['Default'],
             vpcId: null,
+            subnetType: defaultSubnet,
             availabilityZones: availabilityZones,
             keyPair: keyPair,
             suspendedProcesses: [],
