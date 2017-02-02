@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.appengine.cache
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.appengine.AppEngineCloudProvider
+import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
 import groovy.util.logging.Slf4j
 
 @Slf4j
@@ -30,7 +30,7 @@ class Keys {
     LOAD_BALANCERS,
     ON_DEMAND
 
-    static String provider = AppEngineCloudProvider.ID
+    static String provider = AppengineCloudProvider.ID
 
     final String ns
 
@@ -50,7 +50,7 @@ class Keys {
   static Map<String, String> parse(String key) {
     def parts = key.split(':')
 
-    if (parts.length < 2 || parts[0] != AppEngineCloudProvider.ID) {
+    if (parts.length < 2 || parts[0] != AppengineCloudProvider.ID) {
       return null
     }
 
@@ -107,22 +107,22 @@ class Keys {
   }
 
   static String getApplicationKey(String application) {
-    "$AppEngineCloudProvider.ID:${Namespace.APPLICATIONS}:${application}"
+    "$AppengineCloudProvider.ID:${Namespace.APPLICATIONS}:${application}"
   }
 
   static String getClusterKey(String account, String application, String clusterName) {
-    "$AppEngineCloudProvider.ID:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
+    "$AppengineCloudProvider.ID:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
   }
 
   static String getInstanceKey(String account, String instanceName) {
-    "$AppEngineCloudProvider.ID:${Namespace.INSTANCES}:${account}:${instanceName}"
+    "$AppengineCloudProvider.ID:${Namespace.INSTANCES}:${account}:${instanceName}"
   }
   static String getLoadBalancerKey(String account, String loadBalancerName) {
-    "$AppEngineCloudProvider.ID:${Namespace.LOAD_BALANCERS}:${account}:${loadBalancerName}"
+    "$AppengineCloudProvider.ID:${Namespace.LOAD_BALANCERS}:${account}:${loadBalancerName}"
   }
 
   static String getServerGroupKey(String account, String serverGroupName, String region) {
     Names names = Names.parseName(serverGroupName)
-    "$AppEngineCloudProvider.ID:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
+    "$AppengineCloudProvider.ID:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 }
