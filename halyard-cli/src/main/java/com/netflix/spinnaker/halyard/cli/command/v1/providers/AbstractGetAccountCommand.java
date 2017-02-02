@@ -48,7 +48,7 @@ public abstract class AbstractGetAccountCommand extends AbstractHasAccountComman
   }
 
   private Account getAccount(String accountName) {
-    String currentDeployment = Daemon.getCurrentDeployment();
+    String currentDeployment = getCurrentDeployment();
     return Daemon.getAccount(currentDeployment, getProviderName(), accountName, !noValidate);
   }
 }

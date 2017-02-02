@@ -46,8 +46,9 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
   protected void executeThis() {
     String accountName = getAccountName();
     String providerName = getProviderName();
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Account account = Daemon.getAccount(currentDeployment, providerName, accountName, !noValidate);
+    String currentDeployment = getCurrentDeployment();
+    // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
+    Account account = Daemon.getAccount(currentDeployment, providerName, accountName, false);
 
     Daemon.setAccount(currentDeployment, providerName, accountName, !noValidate, editAccount((T) account));
     AnsiUi.success("Edited " + providerName + " account \"" + accountName + "\"");
