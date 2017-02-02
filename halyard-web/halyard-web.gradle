@@ -1,5 +1,6 @@
 apply plugin: 'spring-boot'
 apply plugin: 'spinnaker.package'
+apply plugin: 'application'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
@@ -27,3 +28,9 @@ dependencies {
 }
 
 tasks.bootRepackage.enabled = project.repackage
+
+startScripts.enabled = false
+run.enabled = false
+
+createScript(project, 'com.netflix.spinnaker.halyard.cli.Main', 'hal')
+createScript(project, 'com.netflix.spinnaker.halyard.Main', 'halyard')
