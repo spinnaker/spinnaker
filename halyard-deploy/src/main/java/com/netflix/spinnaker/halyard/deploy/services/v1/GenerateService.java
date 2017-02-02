@@ -23,11 +23,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileConfig;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +86,7 @@ public class GenerateService {
     }
   }
 
-  private String yamlToString(Object yaml) {
+  String yamlToString(Object yaml) {
     return yamlParser.dump(objectMapper.convertValue(yaml, Map.class));
   }
 
@@ -98,10 +96,9 @@ public class GenerateService {
    * This involves a few steps:
    *
    *   1. Clear out old config generated in a prior run.
-   *   2. Determine what the deployment footprint looks like to provide endpoint information for each service.
-   *   3. Generate configuration using the halconfig as the source of truth, while collecting files needed by
+   *   2. Generate configuration using the halconfig as the source of truth, while collecting files needed by
    *      the deployment.
-   *   4. Copy custom profiles from the specified deployment over to the new deployment.
+   *   3. Copy custom profiles from the specified deployment over to the new deployment.
    *
    * @param nodeFilter A filter that specifies the deployment to use.
    * @return a mapping from components to the profile's required local files.
@@ -128,29 +125,19 @@ public class GenerateService {
     }
 
     // Step 2.
-    AtomicFileWriter writer = null;
-    Deployment deployment = deploymentFactory.create(deploymentConfiguration);
-    FileSystem defaultFileSystem = FileSystems.getDefault();
-    Path path = defaultFileSystem.getPath(spinnakerOutputPath, "spinnaker.yml");
-
-    SpinnakerEndpoints endpoints = deployment.getEndpoints();
-
-    log.info("Writing spinnaker endpoints");
-    atomicWrite(path, yamlToString(deployment.getEndpoints()));
-
     Map<String, List<String>> requiredFiles = new HashMap<>();
-
-    // Step 3.
+    FileSystem defaultFileSystem = FileSystems.getDefault();
+    Path path;
     for (SpinnakerProfile profile : spinnakerProfiles) {
       path = defaultFileSystem.getPath(spinnakerOutputPath, profile.getProfileFileName());
-      ProfileConfig config = profile.getFullConfig(nodeFilter, endpoints);
-      log.info("Writing " + profile.getProfileName() + " profile");
+      ProfileConfig config = profile.getFullConfig(nodeFilter);
+      log.info("Writing " + profile.getProfileName() + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
       atomicWrite(path, config.getConfigContents());
 
       requiredFiles.put(profile.getProfileName(), config.getRequiredFiles());
     }
 
-    // Step 4.
+    // Step 3.
     Path userProfilePath = Paths.get(halconfigDirectory, deploymentName);
 
     if (Files.isDirectory(userProfilePath)) {

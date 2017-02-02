@@ -21,24 +21,42 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
-import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterface;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
-public class DeployService {
-  @Autowired
-  KubernetesProviderInterface kubernetesProvider;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
+@Component
+@Slf4j
+public class DeployService {
   @Autowired
   DeploymentService deploymentService;
 
   @Autowired
   DeploymentFactory deploymentFactory;
 
+  @Autowired
+  GenerateService generateService;
+
+  @Autowired
+  String spinnakerOutputPath;
+
   public void deploySpinnaker(NodeFilter nodeFilter) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeFilter);
-    Deployment deployment = deploymentFactory.create(deploymentConfiguration);
+    Map<String, List<String>> generateResult = generateService.generateConfig(nodeFilter);
+    Deployment deployment = deploymentFactory.create(deploymentConfiguration, generateResult);
+
+    FileSystem defaultFileSystem = FileSystems.getDefault();
+    Path path = defaultFileSystem.getPath(spinnakerOutputPath, "spinnaker.yml");
+
+    log.info("Writing spinnaker endpoints to " + path);
+    generateService.atomicWrite(path, generateService.yamlToString(deployment.getEndpoints()));
+
     deployment.deploy();
   }
 }

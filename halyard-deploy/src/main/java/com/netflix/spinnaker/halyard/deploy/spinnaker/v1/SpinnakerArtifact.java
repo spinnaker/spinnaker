@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
+import lombok.Getter;
 
 import java.io.File;
 import java.util.Arrays;
@@ -41,6 +42,7 @@ public enum SpinnakerArtifact {
   ORCA("orca", new String[]{"spinnaker\\.yml", "orca.*\\.yml"}),
   ROSCO("rosco", new String[]{"spinnaker\\.yml", "rosco.*\\.yml"});
 
+  @Getter
   final String name;
   final List<Pattern> profilePatterns;
 

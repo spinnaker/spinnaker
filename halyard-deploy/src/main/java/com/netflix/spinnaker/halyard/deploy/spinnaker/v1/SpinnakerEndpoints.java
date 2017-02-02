@@ -33,11 +33,20 @@ public class SpinnakerEndpoints {
     Service igor = new Service().setPort(8088);
     Service orca = new Service().setPort(8083);
     Service rosco = new Service().setPort(8087);
+    Service redis = new Service().setPort(6379).setProtocol("redis");
   }
 
   @Data
   public class Service {
     int port;
+    // Address is how the service is looked up.
     String address = "localhost";
+    // Host is what's bound to by the service.
+    String host = "localhost";
+    String protocol = "http";
+
+    public String getBaseUrl() {
+      return protocol + "://" + address + ":" + port;
+    }
   }
 }

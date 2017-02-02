@@ -28,6 +28,9 @@ import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterf
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
 import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.*;
 
 @Component
@@ -38,19 +41,19 @@ public class DeploymentFactory {
   @Autowired
   KubernetesProviderInterface kubernetesProviderInterface;
 
-  public Deployment create(DeploymentConfiguration deploymentConfiguration) {
+  public Deployment create(DeploymentConfiguration deploymentConfiguration, Map<String, List<String>> generateResult) {
     DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
     switch (type) {
       case LocalhostDebian:
         return new LocalhostDebianDeployment();
       case ClusteredSimple:
-        return createClusteredSimpleDeployment(deploymentConfiguration);
+        return createClusteredSimpleDeployment(deploymentConfiguration, generateResult);
       default:
         throw new IllegalArgumentException("Unrecognized deployment type " + type);
     }
   }
 
-  private Deployment createClusteredSimpleDeployment(DeploymentConfiguration deploymentConfiguration) {
+  private Deployment createClusteredSimpleDeployment(DeploymentConfiguration deploymentConfiguration, Map<String, List<String>> generateResult) {
     DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
     String accountName = deploymentEnvironment.getAccountName();
 
@@ -72,7 +75,7 @@ public class DeploymentFactory {
         DeploymentDetails deploymentDetails = new DeploymentDetails<>()
             .setAccount(account)
             .setDeploymentEnvironment(deploymentEnvironment)
-            .setEndpoints(new SpinnakerEndpoints())
+            .setGenerateResult(generateResult)
             .setDeploymentName(deploymentConfiguration.getName());
 
         return new KubernetesClusteredSimpleDeployment(deploymentDetails, kubernetesProviderInterface);

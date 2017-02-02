@@ -34,15 +34,16 @@ public class KubernetesClusteredSimpleDeployment extends ClusteredSimpleDeployme
   protected SpinnakerEndpoints specializeEndpoints(SpinnakerEndpoints endpoints) {
     Services services = endpoints.getServices();
 
-    services.getClouddriver().setAddress("spin-clouddriver.spinnaker");
-    services.getDeck().setAddress("spin-deck.spinnaker");
-    services.getEcho().setAddress("spin-echo.spinnaker");
-    services.getFiat().setAddress("spin-fiat.spinnaker");
-    services.getFront50().setAddress("spin-front50.spinnaker");
-    services.getGate().setAddress("spin-gate.spinnaker");
-    services.getIgor().setAddress("spin-igor.spinnaker");
-    services.getOrca().setAddress("spin-orca.spinnaker");
-    services.getRosco().setAddress("spin-rosco.spinnaker");
+    services.getClouddriver().setAddress("spin-clouddriver.spinnaker").setHost("0.0.0.0");
+    services.getDeck().setAddress("spin-deck.spinnaker").setHost("0.0.0.0");
+    services.getEcho().setAddress("spin-echo.spinnaker").setHost("0.0.0.0");
+    services.getFiat().setAddress("spin-fiat.spinnaker").setHost("0.0.0.0");
+    services.getFront50().setAddress("spin-front50.spinnaker").setHost("0.0.0.0");
+    services.getGate().setAddress("spin-gate.spinnaker").setHost("0.0.0.0");
+    services.getIgor().setAddress("spin-igor.spinnaker").setHost("0.0.0.0");
+    services.getOrca().setAddress("spin-orca.spinnaker").setHost("0.0.0.0");
+    services.getRosco().setAddress("spin-rosco.spinnaker").setHost("0.0.0.0");
+    services.getRedis().setAddress("spin-redis.spinnaker").setHost("0.0.0.0");
 
     return endpoints;
   }

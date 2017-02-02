@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -37,7 +36,7 @@ public class ClouddriverProfile extends SpringProfile {
   }
 
   @Override
-  public ProfileConfig generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+  public ProfileConfig generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration) {
     Providers providers = deploymentConfiguration.getProviders();
     String contents = yamlToString(deploymentConfiguration.getProviders()) + "\n" + baseConfig;
     List<String> files = dependentFiles(providers);

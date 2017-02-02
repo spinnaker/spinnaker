@@ -21,10 +21,14 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import lombok.Data;
 
+import java.util.List;
+import java.util.Map;
+
 @Data
 public class DeploymentDetails<T extends Account> {
   String deploymentName;
   DeploymentEnvironment deploymentEnvironment;
-  SpinnakerEndpoints endpoints;
+  SpinnakerEndpoints endpoints = new SpinnakerEndpoints();
+  Map<String, List<String>> generateResult;
   T account;
 }

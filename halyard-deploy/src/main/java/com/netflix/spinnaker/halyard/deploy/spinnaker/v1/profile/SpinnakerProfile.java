@@ -28,7 +28,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.yaml.snakeyaml.Yaml;
@@ -75,12 +74,11 @@ abstract public class SpinnakerProfile {
 
   public abstract SpinnakerArtifact getArtifact();
 
-  public ProfileConfig getFullConfig(NodeFilter filter, SpinnakerEndpoints endpoints) {
+  public ProfileConfig getFullConfig(NodeFilter filter) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(filter);
     ProfileConfig result = generateFullConfig(
         getBaseConfig(deploymentConfiguration),
-        deploymentConfiguration,
-        endpoints);
+        deploymentConfiguration);
     result.setConfigContents(EDIT_WARNING + result.getConfigContents());
     return result;
   }
@@ -94,7 +92,7 @@ abstract public class SpinnakerProfile {
    * @param deploymentConfiguration the deployment configuration being translated into Spinnaker config.
    * @return the fully written configuration.
    */
-  protected ProfileConfig generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+  protected ProfileConfig generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration) {
     return new ProfileConfig().setConfigContents(baseConfig);
   }
 

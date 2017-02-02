@@ -18,20 +18,14 @@ package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.ServiceFactory;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobExecutor;
+import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.ServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * A ProviderInterface is an abstraction for communicating with a specific cloud-provider's installation
@@ -53,11 +47,6 @@ public abstract class ProviderInterface<T extends Account> {
 
   @Autowired
   ArtifactService artifactService;
-
-  @Autowired(required = false)
-  List<SpinnakerProfile> spinnakerProfiles = new ArrayList<>();
-
-  Map<String, SpinnakerProfile> componentMap = null;
 
   /**
    * @param details are the deployment details for the current deployment.

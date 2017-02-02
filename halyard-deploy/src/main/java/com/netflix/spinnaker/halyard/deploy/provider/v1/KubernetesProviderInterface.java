@@ -16,28 +16,23 @@
 
 package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
+import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus;
-import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.Result;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.State;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.Config;
@@ -45,11 +40,15 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -69,8 +68,11 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   @Value("${deploy.kubernetes.pollTimeout:10}")
   private int TIMEOUT_MINUTES;
 
-  @Value("${deploy.kubernetes.registry:gcr.io/spinnaker-marketplace}")
+  @Value("${deploy.kubernetes.registry:gcr.io/kubernetes-spinnaker}")
   private String REGISTRY;
+
+  @Value("${deploy.kubernetes.config.dir:/opt/spinnaker/config}")
+  private String CONFIG_MOUNT;
 
   @Autowired
   LookupService lookupService;
@@ -91,14 +93,15 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     NodeFilter filter = new NodeFilter().withAnyHalconfigFile().setDeployment(details.getDeploymentName());
     String version = artifactService.getArtifactVersion(filter, artifact);
 
-    KubernetesImageDescription image = new KubernetesImageDescription(artifact.name(), version, REGISTRY);
+    // TODO(lwander/jtk54) we need a published store of validated spinnaker images
+    // KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), version, REGISTRY);
+    KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), "latest", "quay.io/spinnaker");
     return KubernetesUtil.getImageId(image);
   }
 
   @Override
   public Object connectTo(DeploymentDetails<KubernetesAccount> details, EndpointType endpointType) {
     Proxy proxy = proxyMap.getOrDefault(details.getDeploymentName(), new Proxy());
-
     if (proxy.jobId == null || proxy.jobId.isEmpty()) {
       List<String> command = kubectlAccountCommand(details.getAccount());
       command.add("proxy");
@@ -126,8 +129,8 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       Pattern portPattern = Pattern.compile(":(\\d+)");
       Matcher matcher = portPattern.matcher(connectionMessage);
       if (matcher.find()) {
-        log.info("Connecting to " + details.getAccount().getName() + " on port " + matcher.group(1));
         proxy.setPort(Integer.valueOf(matcher.group(1)));
+        proxyMap.put(details.getDeploymentName(), proxy);
       } else {
         throw new HalconfigException(new ProblemBuilder(Severity.FATAL,
             "Could not parse connection information from:\n" + connectionMessage).build());
@@ -140,22 +143,22 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         + getNamespaceFromAddress(service.getAddress()) + "/services/"
         + getServiceFromAddress(service.getAddress()) + ":" + service.getPort() + "/";
 
+    log.info("Connecting to " + service.getAddress() + " on port " + proxy.getPort());
+    log.info(endpoint);
     return serviceFactory.createService(endpoint, endpointType);
   }
 
-  @Override
-  public void bootstrapClouddriver(DeploymentDetails<KubernetesAccount> details) {
-    KubernetesAccount account = details.getAccount();
+  public void deployService(DeploymentDetails<KubernetesAccount> details,
+                            Service service,
+                            String image,
+                            List<Pair<VolumeMount, Volume>> volumes,
+                            Map<String, String> env) {
+    String namespace = getNamespaceFromAddress(service.getAddress());
+    String serviceName = getServiceFromAddress(service.getAddress());
+    String replicaSetName = serviceName + "-v000";
+    int port = service.getPort();
 
-    Service clouddriver = EndpointType.CLOUDDRIVER.getService(details.getEndpoints());
-    String namespace = getNamespaceFromAddress(clouddriver.getAddress());
-    String serviceName = getServiceFromAddress(clouddriver.getAddress());
-    String replicaSetName = "spin-clouddriver-v000";
-    String credsSecret = "hal-creds-config";
-    String clouddriverSecret = componentSecret(EndpointType.CLOUDDRIVER.getName());
-    int clouddriverPort = clouddriver.getPort();
-
-    KubernetesClient client = getClient(account);
+    KubernetesClient client = getClient(details.getAccount());
     if (client.namespaces().withName(namespace).get() == null) {
       client.namespaces().create(new NamespaceBuilder()
           .withNewMetadata()
@@ -170,7 +173,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     Map<String, String> replicaSetSelector = new HashMap<>();
     replicaSetSelector.put("server-group", replicaSetName);
 
-    Map<String, String> podLabels = new HashMap();
+    Map<String, String> podLabels = new HashMap<>();
     podLabels.putAll(replicaSetSelector);
     podLabels.putAll(serviceSelector);
 
@@ -182,17 +185,28 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         .endMetadata()
         .withNewSpec()
         .withSelector(serviceSelector)
-        .withPorts(new ServicePortBuilder().withPort(clouddriverPort).build())
+        .withPorts(new ServicePortBuilder().withPort(port).build())
         .endSpec();
 
+    if (client.services().inNamespace(namespace).withName(serviceName).get() != null) {
+      client.services().inNamespace(namespace).withName(serviceName).delete();
+    }
+
     client.services().inNamespace(namespace).create(serviceBuilder.build());
+
+    List<EnvVar> envVars = env.entrySet().stream().map(e -> {
+      EnvVarBuilder envVarBuilder = new EnvVarBuilder();
+      return envVarBuilder.withName(e.getKey()).withValue(e.getValue()).build();
+    }).collect(Collectors.toList());
 
     ContainerBuilder containerBuilder = new ContainerBuilder();
 
     containerBuilder = containerBuilder
-        .withName(SpinnakerArtifact.CLOUDDRIVER.name())
-        .withImage(componentArtifact(details, SpinnakerArtifact.CLOUDDRIVER))
-        .withPorts(new ContainerPortBuilder().withContainerPort(clouddriverPort).build());
+        .withName(serviceName)
+        .withImage(image)
+        .withPorts(new ContainerPortBuilder().withContainerPort(port).build())
+        .withVolumeMounts(volumes.stream().map(Pair::getLeft).collect(Collectors.toList()))
+        .withEnv(envVars);
 
     ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder();
 
@@ -212,11 +226,36 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         .endMetadata()
         .withNewSpec()
         .withContainers(containerBuilder.build())
+        .withVolumes(volumes.stream().map(Pair::getRight).collect(Collectors.toList()))
         .endSpec()
         .endTemplate()
         .endSpec();
 
+    if (client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).get() != null) {
+      client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).delete();
+    }
+
     client.extensions().replicaSets().inNamespace(namespace).create(replicaSetBuilder.build());
+  }
+
+  @Override
+  public void bootstrapClouddriver(DeploymentDetails<KubernetesAccount> details) {
+    KubernetesAccount account = details.getAccount();
+
+    Service service = details.getEndpoints().getServices().getRedis();
+    List<Pair<VolumeMount, Volume>> volumes = new ArrayList<>();
+    Map<String, String> env = new HashMap<>();
+    env.put("MASTER", "true");
+    log.info("Deploying redis...");
+    deployService(details, service, "gcr.io/kubernetes-spinnaker/redis-cluster:v2", volumes, env);
+
+    service = EndpointType.CLOUDDRIVER.getService(details.getEndpoints());
+    String namespace = getNamespaceFromAddress(service.getAddress());
+    volumes = stageProfileDependencies(details, namespace, SpinnakerArtifact.CLOUDDRIVER.getName());
+    volumes.add(stageProfile(details, namespace, SpinnakerArtifact.CLOUDDRIVER));
+    env = new HashMap<>();
+    log.info("Deploying clouddriver...");
+    deployService(details, service, componentArtifact(details, SpinnakerArtifact.CLOUDDRIVER), volumes, env);
   }
 
   private List<String> kubectlAccountCommand(KubernetesAccount account) {
@@ -269,77 +308,100 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     }
 
     return split[index];
-
   }
 
   private String componentSecret(String name) {
     return "hal-" + name + "-config";
   }
 
-  private void stageCredentials(DeploymentDetails<KubernetesAccount> details, String secretName, String namespace) {
-    NodeFilter accountFilter = new NodeFilter().withAnyHalconfigFile()
-        .setDeployment(details.getDeploymentName())
-        .withAnyProvider()
-        .withAnyAccount();
+  private List<Pair<VolumeMount, Volume>> stageProfileDependencies(DeploymentDetails<KubernetesAccount> details, String namespace, String profileName) {
+    List<String> requiredFiles = details.getGenerateResult().get(profileName);
+    List<Pair<VolumeMount, Volume>> result = new ArrayList<>();
 
-    List<Node> accounts = lookupService.getMatchingNodesOfType(accountFilter, Account.class);
+    if (requiredFiles == null) {
+      throw new RuntimeException("No config was generated for profile \"" + profileName + "\"");
+    }
 
-    List<String> files = accounts.stream()
-        .map(a -> a.localFiles().stream().map(f -> {
-          f.setAccessible(true);
-          try {
-            return (String) f.get(a);
-          } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to get local files for account " + a.getNodeName(), e);
-          }
-        }).collect(Collectors.toList()))
-        .reduce(new ArrayList<>(), (a, b) -> {
-          a.addAll(b);
-          return a;
-        })
-        .stream()
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    Map<String, List<String>> groupByDir = new HashMap<>();
+    requiredFiles.forEach(s -> {
+      File f = new File(s);
+      List<String> files = groupByDir.getOrDefault(f.getParent(), new ArrayList<>());
+      files.add(s);
+      groupByDir.put(f.getParent(), files);
+    });
 
-    createSecret(details, files, secretName, namespace);
+    groupByDir.entrySet().forEach(e -> {
+      String dirName = e.getKey();
+      String secretName = String.join("-", "hal", profileName, dirName
+          .replace(File.separator, "-")
+          .replace(".", "-")
+      );
+      upsertSecret(details, e.getValue(), secretName, namespace);
+
+      result.add(buildVolumePair(secretName, dirName));
+    });
+
+    return result;
   }
 
-  private void stageConfig(DeploymentDetails<KubernetesAccount> details, String namespace) {
+  private Pair<VolumeMount, Volume> stageProfile(DeploymentDetails<KubernetesAccount> details, String namespace, SpinnakerArtifact artifact) {
     File outputPath = new File(spinnakerOutputPath);
     File[] profiles = outputPath.listFiles();
-    spinnakerProfiles.forEach(s -> {
-      String name = componentSecret(s.getProfileName());
-      createSecret(details, s.getArtifact().profilePaths(profiles), name, namespace);
-    });
+    String secretName = componentSecret(artifact.getName());
+    upsertSecret(details, artifact.profilePaths(profiles), secretName, namespace);
+    return buildVolumePair(secretName, CONFIG_MOUNT);
   }
 
-  private void createSecret(DeploymentDetails<KubernetesAccount> details, List<String> files, String secretName, String namespace) {
-    List<String> command = kubectlAccountCommand(details.getAccount());
+  private Pair<VolumeMount, Volume> buildVolumePair(String secretName, String dirName) {
+    VolumeMountBuilder volumeMountBuilder = new VolumeMountBuilder();
+    volumeMountBuilder.withName(secretName)
+        .withMountPath(dirName);
 
-    command.add("create");
-    command.add("secret");
-    command.add("generic");
-    command.add(secretName);
-    command.add("--namespace=" + namespace);
+    VolumeBuilder volumeBuilder = new VolumeBuilder()
+        .withNewSecret()
+        .withSecretName(secretName)
+        .endSecret()
+        .withName(secretName);
 
-    files.forEach(f -> command.add("from-file=" + f));
+    return new ImmutablePair<>(volumeMountBuilder.build(), volumeBuilder.build());
+  }
 
-    JobRequest request = new JobRequest()
-        .setTokenizedCommand(command)
-        .setTimeoutMillis(TimeUnit.MINUTES.toMillis(TIMEOUT_MINUTES));
+  private void upsertSecret(DeploymentDetails<KubernetesAccount> details, List<String> files, String secretName, String namespace) {
+    KubernetesClient client = getClient(details.getAccount());
 
-    String jobId = jobExecutor.startJob(request);
-
-    JobStatus jobStatus = jobExecutor.backoffWait(jobId,
-        TimeUnit.SECONDS.toMillis(MIN_POLL_INTERVAL_SECONDS),
-        TimeUnit.SECONDS.toMillis(MAX_POLL_INTERVAL_SECONDS));
-
-    if (jobStatus.getResult() == Result.FAILURE) {
-      throw new HalconfigException(new ProblemBuilder(Severity.FATAL,
-          "Unable to create secret " + secretName + ":\n"
-              + jobStatus.getStdOut() + "\n"
-              + jobStatus.getStdErr()).build());
+    if (client.secrets().inNamespace(namespace).withName(secretName).get() != null) {
+      client.secrets().inNamespace(namespace).withName(secretName).delete();
     }
+
+    Map<String, String> secretContents = new HashMap<>();
+
+    files.forEach(s -> {
+      try {
+        File f = new File(s);
+        String name = f.getName();
+        String data = new String(Base64.getEncoder().encode(IOUtils.toString(new FileInputStream(f)).getBytes()));
+        if (secretContents.get(name) != null) {
+          throw new RuntimeException("Improper use of upsert secret, all file names must be distinct.");
+        } else {
+          secretContents.put(name, data);
+        }
+      } catch (IOException e) {
+        throw new HalconfigException(
+            new ProblemBuilder(Severity.ERROR, "Unable to read contents of \"" + s + "\": " + e).build()
+        );
+      }
+    });
+
+    SecretBuilder secretBuilder = new SecretBuilder();
+    secretBuilder = secretBuilder.withNewMetadata()
+        .withName(secretName)
+        .withNamespace(namespace)
+        .endMetadata()
+        .withData(secretContents);
+
+    log.info("Staging secret " + secretName + " in namespace " + namespace + " with contents " + files);
+
+    client.secrets().inNamespace(namespace).create(secretBuilder.build());
   }
 
   private KubernetesClient getClient(KubernetesAccount account) {

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import retrofit.RetrofitError;
 
@@ -34,6 +35,7 @@ import java.io.IOException;
 
 import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.FATAL;
 
+@Component
 public class ArtifactService {
   @Autowired
   ProfileRegistry profileRegistry;

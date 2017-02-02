@@ -18,9 +18,9 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
+import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
-import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
 
 abstract public class ClusteredSimpleDeployment<T extends Account> extends Deployment {
   public ClusteredSimpleDeployment(DeploymentDetails<T> deploymentDetails, ProviderInterface<T> providerInterface) {
