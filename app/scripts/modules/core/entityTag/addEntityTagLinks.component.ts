@@ -6,7 +6,6 @@ import {IEntityRef} from 'core/domain/IEntityTags';
 import {ENTITY_TAG_EDITOR_CTRL, EntityTagEditorCtrl, IOwnerOption} from './entityTagEditor.controller';
 import {ENTITY_TAGS_HELP} from './entityTags.help';
 import {Application} from 'core/application/application.model';
-import {ENTITY_TAG_WRITER, EntityTagWriter} from './entityTags.write.service';
 
 import './entityTagDetails.component.less';
 
@@ -19,10 +18,9 @@ class AddEntityTagLinksCtrl implements ng.IComponentController {
   private onUpdate: () => any;
   private ownerOptions: IOwnerOption[];
 
-  static get $inject() { return ['$uibModal', 'confirmationModalService', 'entityTagWriter']; }
+  static get $inject() { return ['$uibModal']; }
 
-  public constructor(private $uibModal: IModalService, private confirmationModalService: any,
-                     private entityTagWriter: EntityTagWriter) {}
+  public constructor(private $uibModal: IModalService) {}
 
   public addTag(tagType: string): void {
     this.$uibModal.open({
@@ -79,7 +77,6 @@ class AddEntityTagLinksComponent implements ng.IComponentOptions {
 export const ADD_ENTITY_TAG_LINKS_COMPONENT = 'spinnaker.core.entityTag.details.component';
 module(ADD_ENTITY_TAG_LINKS_COMPONENT, [
   ENTITY_TAG_EDITOR_CTRL,
-  ENTITY_TAG_WRITER,
   ENTITY_TAGS_HELP
 ])
   .component('addEntityTagLinks', new AddEntityTagLinksComponent());

@@ -17,9 +17,9 @@ export class SubnetReader {
 
   private static NAMESPACE = 'subnets';
 
-  static get $inject() { return ['$q', 'API', 'infrastructureCaches']; }
+  static get $inject() { return ['API', 'infrastructureCaches']; }
 
-  public constructor(private $q: ng.IQService, private API: Api, private infrastructureCaches: InfrastructureCacheService) {}
+  public constructor(private API: Api, private infrastructureCaches: InfrastructureCacheService) {}
 
   public listSubnets(): ng.IPromise<ISubnet[]> {
     return this.API.one('subnets')

@@ -12,9 +12,9 @@ export interface ICloudMetricStatistics {
 
 export class CloudMetricsReader {
 
-  static get $inject() { return ['API', 'settings']; }
+  static get $inject() { return ['API']; }
 
-  public constructor(private API: Api, private settings: any) {}
+  public constructor(private API: Api) {}
 
   public listMetrics(provider: string, account: string, region: string, filters: any): ng.IPromise<ICloudMetricDescriptor[]> {
     return this.API.all('cloudMetrics').all(provider).all(account).all(region)

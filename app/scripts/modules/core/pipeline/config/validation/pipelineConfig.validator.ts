@@ -1,7 +1,6 @@
 import {module} from 'angular';
 import {Subject} from 'rxjs';
 
-import {PIPELINE_CONFIG_SERVICE, PipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
 import {IStage} from 'core/domain/IStage';
 import {IPipeline} from 'core/domain/IPipeline';
 import {ITrigger} from 'core/domain/ITrigger';
@@ -26,11 +25,6 @@ export interface IValidatorConfig {
 
 export interface ITriggerTypeConfig extends IStageOrTriggerTypeConfig {
   manualExecutionHandler?: string;
-}
-
-export interface IStrategyStageTypeConfig extends IStageTypeConfig {
-  strategyDescription: string;
-  strategy: boolean;
 }
 
 export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
@@ -69,12 +63,11 @@ export class PipelineConfigValidator implements ng.IServiceProvider {
     this.validators.set(type, validator);
   }
 
-  static get $inject() { return ['$log', '$q', 'pipelineConfig', 'pipelineConfigService']; }
+  static get $inject() { return ['$log', '$q', 'pipelineConfig']; }
 
   constructor(private $log: ng.ILogService,
               private $q: ng.IQService,
-              private pipelineConfig: any,
-              private pipelineConfigService: PipelineConfigService) {}
+              private pipelineConfig: any) {}
 
   public validatePipeline(pipeline: IPipeline): ng.IPromise<IPipelineValidationResults> {
     const stages: IStage[] = pipeline.stages || [],
@@ -186,7 +179,6 @@ export class PipelineConfigValidator implements ng.IServiceProvider {
 export const PIPELINE_CONFIG_VALIDATOR = 'spinnaker.core.pipeline.config.validator';
 module(PIPELINE_CONFIG_VALIDATOR, [
   require('../pipelineConfigProvider.js'),
-  PIPELINE_CONFIG_SERVICE,
 ]).service('pipelineConfigValidator', PipelineConfigValidator)
   .run((pipelineConfigValidator: PipelineConfigValidator) => {
     // placeholder - custom validators must implement the ICustomValidator interface

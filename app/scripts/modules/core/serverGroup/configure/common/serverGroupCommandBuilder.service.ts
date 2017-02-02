@@ -11,14 +11,14 @@ export interface IServerGroupCommandBuilderOptions {
 export class ServerGroupCommandBuilderService {
 
   static get $inject(): string[] {
-    return ['settings', 'serviceDelegate'];
+    return ['serviceDelegate'];
   }
 
   private getDelegate(provider: string): any {
     return this.delegate.getDelegate(provider, 'serverGroup.commandBuilder');
   }
 
-  constructor(private settings: any, private delegate: any) {}
+  constructor(private delegate: any) {}
 
   public buildNewServerGroupCommand(application: Application,
                                     provider: string,

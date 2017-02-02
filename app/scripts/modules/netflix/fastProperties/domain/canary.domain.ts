@@ -76,7 +76,7 @@ class CanaryDeployments {
   public canary: string;
   public type: string;
 
-  constructor(private canaryDeployment: ICanaryDeployment) {
+  constructor(canaryDeployment: ICanaryDeployment) {
     this.region = canaryDeployment.region;
     this.accountName = canaryDeployment.accountName;
     this.baseline = canaryDeployment.baseline;

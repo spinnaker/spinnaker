@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import { DirectiveFactory } from '../../../utils/tsDecorators/directiveFactoryDecorator';
+import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
 import {
   APPLICATION_NAME_VALIDATOR,
   ApplicationNameValidator, IApplicationNameValidationResult
@@ -52,7 +52,7 @@ class ValidateApplicationNameDirective implements ng.IDirective {
     cloudProviders: '<',
   };
 
-  link($scope: ng.IScope, $element: JQuery, $attrs: IValidateNameAttrs, ctrl: ng.INgModelController) {
+  link($scope: ng.IScope, _$element: JQuery, $attrs: IValidateNameAttrs, ctrl: ng.INgModelController) {
     const $ctrl: ValidateApplicationNameController = $scope['$ctrl'];
     $ctrl.$scope = $scope;
     $ctrl.$attrs = $attrs;

@@ -3,17 +3,15 @@ import {IModalService} from 'angular-ui-bootstrap';
 import {cloneDeep, get} from 'lodash';
 
 import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
-import {LoadBalancerReader} from 'core/loadBalancer/loadBalancer.read.service';
 import {ILoadBalancer} from 'core/domain/index';
 import {APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL} from './loadBalancerChoice.modal.controller';
 
 class AppengineEditLoadBalancerStageCtrl {
-  static get $inject() { return ['$scope', '$uibModal', 'cloudProviderRegistry', 'loadBalancerReader']; }
+  static get $inject() { return ['$scope', '$uibModal', 'cloudProviderRegistry']; }
 
   constructor(public $scope: any,
               private $uibModal: IModalService,
-              private cloudProviderRegistry: CloudProviderRegistry,
-              private loadBalancerReader: LoadBalancerReader) {
+              private cloudProviderRegistry: CloudProviderRegistry) {
     $scope.stage.loadBalancers = $scope.stage.loadBalancers || [];
     $scope.stage.cloudProvider = 'appengine';
   }
@@ -30,7 +28,7 @@ class AppengineEditLoadBalancerStageCtrl {
     });
   }
 
-  public editLoadBalancer(loadBalancer: ILoadBalancer, index: number) {
+  public editLoadBalancer(index: number) {
     let config = this.cloudProviderRegistry.getValue('appengine', 'loadBalancer');
     this.$uibModal.open({
       templateUrl: config.createLoadBalancerTemplateUrl,

@@ -5,11 +5,10 @@ export class ExecutionDetailsSectionService {
 
   private pendingOnComplete: ng.IPromise<any>;
 
-  static get $inject() { return ['$stateParams', '$state', '$q', '$timeout']; }
+  static get $inject() { return ['$stateParams', '$state', '$timeout']; }
 
   public constructor(private $stateParams: IExecutionDetailsStateParams,
                      private $state: angular.ui.IStateService,
-                     private $q: ng.IQService,
                      private $timeout: ng.ITimeoutService) {}
 
   private sectionIsValid(availableSections: string[]): boolean {

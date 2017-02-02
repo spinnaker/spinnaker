@@ -82,7 +82,7 @@ export class AppengineServerGroupCommandBuilder {
       });
   }
 
-  public buildNewServerGroupCommandForPipeline(stage: IStage, pipeline: IPipeline): {backingData: {triggerOptions: Array<IAppengineGitTrigger | IAppengineJenkinsTrigger>}} {
+  public buildNewServerGroupCommandForPipeline(_stage: IStage, pipeline: IPipeline): {backingData: {triggerOptions: Array<IAppengineGitTrigger | IAppengineJenkinsTrigger>}} {
     // We can't copy server group configuration for App Engine, and can't build the full command here because we don't have
     // access to the application.
     return {backingData: {triggerOptions: AppengineServerGroupCommandBuilder.getTriggerOptions(pipeline)}};
@@ -90,7 +90,7 @@ export class AppengineServerGroupCommandBuilder {
 
   public buildServerGroupCommandFromPipeline(app: Application,
                                              cluster: AppengineDeployDescription,
-                                             stage: IStage,
+                                             _stage: IStage,
                                              pipeline: IPipeline): ng.IPromise<IAppengineServerGroupCommand> {
     return this.buildNewServerGroupCommand(app, 'appengine', 'editPipeline')
       .then((command: IAppengineServerGroupCommand) => {

@@ -12,6 +12,8 @@
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": false, // should really get to a place where we can turn this on
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "outDir": "transpiled",
     "pretty": true,
     "removeComments": true,
@@ -21,18 +23,7 @@
     "strictNullChecks": false, // should really get to a place where we can turn this on
     "target": "es5",
     "typeRoots": [
-      "node_modules/@types/"
-    ],
-    "types": [
-      "angular",
-      "angular-mocks",
-      "angular-ui-bootstrap",
-      "angular-ui-router",
-      "jasmine",
-      "jquery",
-      "lodash",
-      "moment-timezone",
-      "node"
+      "node_modules/@types"
     ]
   },
   "exclude": [

@@ -6,7 +6,6 @@ describe('Controller: ApplicationProviderFieldsCtrl', function () {
     scope,
     cloudProviderRegistry,
     settings,
-    angular = require('angular'),
     _ = require('lodash');
 
   beforeEach(

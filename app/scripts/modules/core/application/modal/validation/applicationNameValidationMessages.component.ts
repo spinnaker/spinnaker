@@ -17,7 +17,7 @@ class ApplicationNameValidationMessagesController implements ng.IComponentContro
 
   public constructor(private applicationNameValidator: ApplicationNameValidator) {}
 
-  public $onChanges(changes: ng.IOnChangesObject): void {
+  public $onChanges(): void {
     this.applicationNameValidator.validate(this.name, this.cloudProviders).then(r => this.messages = r);
   }
 }

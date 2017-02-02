@@ -1,5 +1,4 @@
 import {IOrchestratedItem} from './IOrchestratedItem';
-import {ITrigger} from './ITrigger';
 import {IExecutionTrigger} from './IExecutionTrigger';
 import {IExecutionStage} from './IExecutionStage';
 

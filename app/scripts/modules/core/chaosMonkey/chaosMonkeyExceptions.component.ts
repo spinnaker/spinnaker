@@ -8,14 +8,14 @@ import './chaosMonkeyExceptions.component.less';
 
 export class ChaosMonkeyExceptionsController {
 
-  static get $inject() { return ['accountService', '$q']; }
+  static get $inject() { return ['accountService']; }
 
   public accounts: IAccountDetails[] = [];
   public regionsByAccount: any;
   public config: any;
   public configChanged: () => void;
 
-  public constructor(private accountService: AccountService, private $q: ng.IQService) {}
+  public constructor(private accountService: AccountService) {}
 
   public addException(): void {
     this.config.exceptions = this.config.exceptions || [];

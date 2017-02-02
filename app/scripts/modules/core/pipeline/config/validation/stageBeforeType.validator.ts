@@ -26,7 +26,7 @@ export class StageBeforeTypeValidator implements IStageOrTriggerValidator {
   public validate(pipeline: IPipeline,
                   stage: IStage,
                   validator: IStageBeforeTypeValidationConfig,
-                  config: IStageOrTriggerTypeConfig): string {
+                  _config: IStageOrTriggerTypeConfig): string {
 
     if (pipeline.strategy === true && stage.type === 'deploy') {
       return null;

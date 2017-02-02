@@ -861,7 +861,7 @@ describe('pipelineConfigValidator', () => {
                 validationCalled = true;
                 return 'did not skip';
               },
-              skipValidation: (p: IPipeline, stage: IStage): boolean => {
+              skipValidation: (_p: IPipeline, stage: IStage): boolean => {
                 return stage.name === 'skip';
               }
             } as ICustomValidator
@@ -892,7 +892,7 @@ describe('pipelineConfigValidator', () => {
             return buildStageTypeConfig([
                 {
                   type: 'custom',
-                  validate: (p: IPipeline, s: IStage): string => {
+                  validate: (_p: IPipeline, s: IStage): string => {
                     if (s.name.includes(' ')) {
                       return 'No spaces in targetCheck stage names';
                     }

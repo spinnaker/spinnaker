@@ -2,7 +2,6 @@ import {module} from 'angular';
 import {IModalService, IModalServiceInstance} from 'angular-ui-bootstrap';
 import {cloneDeep} from 'lodash';
 
-import {LoadBalancerReader} from 'core/loadBalancer/loadBalancer.read.service';
 import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {Application} from 'core/application/application.model';
 import {ILoadBalancer} from 'core/domain/loadBalancer';
@@ -12,12 +11,11 @@ class AppengineLoadBalancerChoiceModalCtrl {
   public loadBalancers: ILoadBalancer[];
   public selectedLoadBalancer: ILoadBalancer;
 
-  static get $inject() { return ['$uibModal', '$uibModalInstance', 'application', 'loadBalancerReader', 'cloudProviderRegistry']; }
+  static get $inject() { return ['$uibModal', '$uibModalInstance', 'application', 'cloudProviderRegistry']; }
 
   constructor(private $uibModal: IModalService,
               private $uibModalInstance: IModalServiceInstance,
               private application: Application,
-              private loadBalancerReader: LoadBalancerReader,
               private cloudProviderRegistry: CloudProviderRegistry) {
     this.initialize();
   }

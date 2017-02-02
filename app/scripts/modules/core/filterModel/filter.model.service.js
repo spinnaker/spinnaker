@@ -198,7 +198,7 @@ module.exports = angular
         },
         toModel: function(filterModel, property) {
           var val = getParamVal(property);
-          return !Boolean(val);
+          return !val;
         }
       },
       'number': {

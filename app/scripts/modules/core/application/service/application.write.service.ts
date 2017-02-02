@@ -14,10 +14,9 @@ export interface IApplicationAttributes {
 
 export class ApplicationWriter {
 
-  static get $inject() { return ['$q', 'taskExecutor', 'recentHistoryService']; }
+  static get $inject() { return ['taskExecutor', 'recentHistoryService']; }
 
-  public constructor(private $q: ng.IQService,
-                     private taskExecutor: TaskExecutor,
+  public constructor(private taskExecutor: TaskExecutor,
                      private recentHistoryService: RecentHistoryService) {}
 
   public createApplication(application: IApplicationAttributes): ng.IPromise<any> {
