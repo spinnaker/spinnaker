@@ -11,4 +11,6 @@ if [ -z `getent passwd spinnaker` ]; then
   useradd --gid spinnaker spinnaker -m --home-dir /home/spinnaker
 fi
 
+cp /etc/halyard/hal /usr/local/bin
+
 install --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/halyard 
