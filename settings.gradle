@@ -18,6 +18,7 @@ rootProject.name="halyard"
 
 include 'halyard-cli'
 include 'halyard-config'
+include 'halyard-core'
 include 'halyard-deploy'
 include 'halyard-web'
 

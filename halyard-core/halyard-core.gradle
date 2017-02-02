@@ -2,9 +2,8 @@ dependencies {
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
-  compile spinnaker.dependency('clouddriverKubernetes')
-  compile spinnaker.dependency('fabric8Api')
+
+  compile "com.beust:jcommander:1.48"
 
   compile project(':halyard-config')
-  compile project(':halyard-core')
 }

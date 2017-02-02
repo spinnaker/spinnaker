@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.netflix.spinnaker.halyard.DaemonResponse;
-import com.netflix.spinnaker.halyard.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.ConfigService;
+import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

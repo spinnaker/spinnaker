@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
-import com.netflix.spinnaker.halyard.DaemonResponse;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
+import com.netflix.spinnaker.halyard.core.DaemonResponse;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;

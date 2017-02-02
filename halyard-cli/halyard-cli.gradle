@@ -1,10 +1,9 @@
 dependencies {
   compile spinnaker.dependency('lombok')
-  compile "com.beust:jcommander:1.48"
-  compile group: 'jline', name: 'jline', version: '2.11'
 
   compile project(':halyard-config')
-  compile project(':halyard-web')
+  compile project(':halyard-core')
+  compile project(':halyard-deploy')
 }
 
 apply plugin: 'java'

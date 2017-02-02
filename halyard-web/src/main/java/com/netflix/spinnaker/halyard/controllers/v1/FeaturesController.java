@@ -17,15 +17,14 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.halyard.DaemonResponse;
-import com.netflix.spinnaker.halyard.DaemonResponse.StaticRequestBuilder;
-import com.netflix.spinnaker.halyard.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import com.netflix.spinnaker.halyard.config.services.v1.FeaturesService;
+import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,13 +43,12 @@ public class FeaturesController {
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonResponse<Features> getFeatures(
-      @PathVariable String deployment,
+  DaemonResponse<Features> getFeatures(@PathVariable String deployment,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     NodeFilter filter = new NodeFilter().setDeployment(deployment);
 
-    StaticRequestBuilder<Features> builder = new StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<Features> builder = new DaemonResponse.StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> featuresService.getFeatures(filter));
 
@@ -58,8 +56,7 @@ public class FeaturesController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
-  DaemonResponse<Void> setFeatures(
-      @PathVariable String deployment,
+  DaemonResponse<Void> setFeatures(@PathVariable String deployment,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestBody Object rawFeatures) {

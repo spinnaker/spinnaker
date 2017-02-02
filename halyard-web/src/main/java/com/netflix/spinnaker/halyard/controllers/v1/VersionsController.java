@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
-import com.netflix.spinnaker.halyard.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.deploy.services.v1.VersionsService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import org.springframework.beans.factory.annotation.Autowired;

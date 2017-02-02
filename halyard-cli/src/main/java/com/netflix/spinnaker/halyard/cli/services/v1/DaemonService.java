@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
-import com.netflix.spinnaker.halyard.DaemonResponse;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import java.util.List;
 
+import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
