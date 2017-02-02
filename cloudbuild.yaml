@@ -1,0 +1,7 @@
+steps:
+- name: 'gcr.io/cloud-builders/git'
+  args: ['fetch', '--unshallow']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ["build", "-t", "gcr.io/$PROJECT_ID/$REPO_NAME:$BRANCH_NAME", "-f", "Dockerfile", "."]
+images:
+- 'gcr.io/$PROJECT_ID/$REPO_NAME:$BRANCH_NAME'
