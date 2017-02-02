@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-/opt/halyard/bin/hal "$@"
