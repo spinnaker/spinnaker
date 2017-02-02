@@ -38,7 +38,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask implements RetryableTask {
   static final String REFRESH_TYPE = "ServerGroup"
 
-  long backoffPeriod = TimeUnit.SECONDS.toMillis(5)
+  long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
   long timeout = TimeUnit.MINUTES.toMillis(15)
 
   long autoSucceedAfterMs = TimeUnit.MINUTES.toMillis(12)
