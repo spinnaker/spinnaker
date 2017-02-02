@@ -87,7 +87,7 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     TemplateConfiguration config;
 
     public boolean isTemplatedPipelineRequest() {
-      return type.equals("templatedPipeline");
+      return type != null && type.equals("templatedPipeline");
     }
 
     public String getType() {

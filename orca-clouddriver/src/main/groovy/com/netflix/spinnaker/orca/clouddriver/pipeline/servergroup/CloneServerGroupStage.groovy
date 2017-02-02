@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupMetadataTagTask
 import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
@@ -43,12 +44,25 @@ class CloneServerGroupStage extends AbstractDeployStrategyStage {
 
   @Override
   protected List<TaskNode.TaskDefinition> basicTasks(Stage stage) {
-    return [
+    def taggingEnabled = false // check clouddriver:/features/stages for upsertEntityTags
+
+    def tasks = [
       new TaskNode.TaskDefinition("cloneServerGroup", CloneServerGroupTask),
       new TaskNode.TaskDefinition("monitorDeploy", MonitorKatoTask),
-      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    ]
+
+    if (taggingEnabled) {
+      tasks += [
+        new TaskNode.TaskDefinition("tagServerGroup", ServerGroupMetadataTagTask)
+      ]
+    }
+
+    tasks += [
       new TaskNode.TaskDefinition("waitForUpInstances", WaitForUpInstancesTask),
       new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     ]
+
+    return tasks
   }
 }
