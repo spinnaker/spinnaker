@@ -46,7 +46,9 @@ export class ServerGroupWarningMessageService {
     const remainingActiveServerGroups: ServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup)
       .filter(s => !s.isDisabled && s.instanceCounts.up > 0);
 
-    if (remainingActiveServerGroups.length) {
+    const hasOtherInstances = this.getOtherServerGroupsInCluster(application, serverGroup).some(s => s.instances.length > 0);
+
+    if (hasOtherInstances) {
       const totalActiveInstances = remainingActiveServerGroups.reduce((acc: number, s: ServerGroup) => {
         return s.instanceCounts.up + acc;
       }, serverGroup.instanceCounts.up);
@@ -66,6 +68,7 @@ export class ServerGroupWarningMessageService {
           (<span class="verification-text">${activeInstancesAfterDisable}</span>) after disabling this server group.`;
 
       params.textToVerify = `${activeInstancesAfterDisable}`;
+      delete params.account;
     }
   }
 
