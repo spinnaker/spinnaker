@@ -83,6 +83,18 @@ class VersionBump:
     self.__minor = minor
     self.__patch = patch
 
+  def __repr__(self):
+    return 'version_str: %s, major: %s, minor: %s, patch: %s' % (self.version_str,
+                                                                 self.major,
+                                                                 self.minor,
+                                                                 self.patch)
+
+  def __eq__(self, other):
+    return (self.version_str == other.version_str
+            and self.major == other.major
+            and self.minor == other.minor
+            and self.patch == other.patch)
+
   @property
   def version_str(self):
     return self.__version_str
@@ -127,11 +139,11 @@ class Annotator(Refresher):
   TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+-[0-9]$')
 
   def __init__(self, options):
-    self.__next_tag = options.next_tag
-    self.__path = options.path
-    self.__initial_branch = options.initial_branch
-    self.__stable_branch = options.stable_branch
-    self.__build_number = options.build_number or os.environ['BUILD_NUMBER']
+    self.__next_tag = options.get('next_tag', None)
+    self.__path = options.get('path', '.')
+    self.__initial_branch = options.get('initial_branch', '')
+    self.__stable_branch = options.get('stable_branch', '')
+    self.__build_number = options.get('build_number', '') or os.environ['BUILD_NUMBER']
     self.__tags_to_delete = []
     self.__filtered_tags = []
     self.__partition_tags_on_pattern()
@@ -178,7 +190,7 @@ class Annotator(Refresher):
     # to the upstream git repository.
     first_dash_idx = next_tag.index('-')
     if first_dash_idx != -1:
-      gradle_version = next_tag[first_dash_idx+1:]
+      gradle_version = next_tag[first_dash_idx + 1:]
       run_quick('git -C {path} tag {next_tag} HEAD'
                 .format(path=self.__path, next_tag=gradle_version))
 
@@ -237,22 +249,6 @@ class Annotator(Refresher):
     if self.__next_tag:
       return self.__next_tag
 
-    return self.__bump_semver(prev_version)
-
-  def __bump_semver(self, prev_version):
-    """Determines the semver version bump based on commit messages in 'git log'.
-
-    Uses 'conventional-changelog' format to search for features and breaking
-    changes.
-
-    Args:
-      prev_version [CommitTag]: Previous 'version-X.Y.Z-$build' tag/commit hash pair
-      calcluated by semver sort.
-
-    Returns:
-      [VersionBump]: Next semantic version tag to be used, along with what type
-      of version bump it was.
-    """
     # 'git log' entries of the form '$hash $commit_title'
     log_onelines = run_quick('git -C {path} log --pretty=oneline'.format(path=self.__path),
                              echo=False).stdout.strip().split('\n')
@@ -263,8 +259,32 @@ class Annotator(Refresher):
       run_quick('git -C {path} log -n 1 --pretty=medium {hash}'.format(path=self.__path, hash=h),
                 echo=False).stdout.strip() for h in commit_hashes
     ]
+
+    if len(commit_hashes) != len(msgs):
+      raise IOError('Git commit hash list and commit message list are unequal sizes.')
+
+    return self.bump_semver(prev_version, commit_hashes, msgs)
+
+  def bump_semver(self, prev_version, commit_hashes, commit_msgs):
+    """Determines the semver version bump based on commit messages in 'git log'.
+
+    Uses 'conventional-changelog' format to search for features and breaking
+    changes.
+
+    Args:
+      prev_version [CommitTag]: Previous 'version-X.Y.Z-$build' tag/commit hash pair
+      calcluated by semver sort.
+
+      commit_hashes [String list]: List of ordered commit hashes.
+
+      commit_msgs [String list]: List of ordered, full commit messages.
+
+    Returns:
+      [VersionBump]: Next semantic version tag to be used, along with what type
+      of version bump it was.
+    """
     # Commits are output from 'git log ...' ordered most recent to least.
-    commits_iter = iter([CommitMessage(hash, msg) for hash, msg in zip(commit_hashes, msgs)])
+    commits_iter = iter([CommitMessage(hash, msg) for hash, msg in zip(commit_hashes, commit_msgs)])
     commit = next(commits_iter, None)
 
     feat_matcher = re.compile('feat\(.*\)*')
@@ -275,9 +295,10 @@ class Annotator(Refresher):
     first_dash_idx = prev_version.tag.index('-')
     if first_dash_idx == -1:
       raise GitTagMissingException("No previous version tags of the form 'version-X.Y.Z-$build'.")
-    major, minor, patch = prev_version.tag[first_dash_idx+1:].split('.')
+    major, minor, patch_build = prev_version.tag[first_dash_idx + 1:].split('.')
+    patch = patch_build.split('-')[0]
 
-    # TODO(jacobkiefer): Fail if changelog conventions aren't followed.
+    # TODO(jacobkiefer): Fail if changelog conventions aren't followed?
     while commit is not None and commit.hash != prev_version.hash:
       msg_lines = commit.msg.split('\n')
       if any([bc_matcher.match(m.strip()) for m in msg_lines]):
