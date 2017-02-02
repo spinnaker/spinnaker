@@ -111,13 +111,52 @@ describe('serverGroupWarningMessageService', () => {
       expect(params.body).toBeUndefined();
     });
 
-    it('adds remaining server groups to the body if they have up instances', () => {
+    it('adds warning if there are any other instances, even if they are disabled', () => {
       serverGroup = {
         account: 'test',
         cloudProvider: 'aws',
         cluster: 'foo',
         instanceCounts: { up: 1, down: 0, succeeded: 0, failed: 0, unknown: 0, outOfService: 0 },
-        instances: [],
+        instances: [{id: 'a', launchTime: 1, zone: 'b', health: null}],
+        name: 'foo-v000',
+        region: 'us-east-1',
+        type: 'a'
+      };
+      const down: ServerGroup = {
+        account: 'test',
+        cloudProvider: 'aws',
+        cluster: 'foo',
+        instanceCounts: { up: 0, down: 1, succeeded: 0, failed: 0, unknown: 0, outOfService: 0 },
+        instances: [{id: 'a', launchTime: 1, zone: 'b', health: null}],
+        name: 'foo-v001',
+        region: 'us-east-1',
+        type: 'a'
+      };
+
+      app.clusters = [
+        {
+          name: 'foo',
+          account: 'test',
+          cloudProvider: '',
+          category: '',
+          serverGroups: [serverGroup, down]
+        }
+      ];
+      const params: IConfirmationModalParams = {account: 'prod'};
+      service.addDisableWarningMessage(app, serverGroup, params);
+      expect(params.body).toBeDefined();
+      expect(params.body.includes('<li>')).toBe(false);
+      expect(params.textToVerify).toBe('0');
+      expect(params.account).toBeUndefined();
+    });
+
+    it('adds remaining server groups to the body if they have up instances, removes account from params', () => {
+      serverGroup = {
+        account: 'test',
+        cloudProvider: 'aws',
+        cluster: 'foo',
+        instanceCounts: { up: 1, down: 0, succeeded: 0, failed: 0, unknown: 0, outOfService: 0 },
+        instances: [{id: 'a', launchTime: 1, zone: 'b', health: null}],
         name: 'foo-v000',
         region: 'us-east-1',
         type: 'a'
@@ -138,7 +177,7 @@ describe('serverGroupWarningMessageService', () => {
         cloudProvider: 'aws',
         cluster: 'foo',
         instanceCounts: { up: 1, down: 0, succeeded: 0, failed: 0, unknown: 0, outOfService: 0 },
-        instances: [],
+        instances: [{id: 'b', launchTime: 1, zone: 'b', health: null}],
         name: 'foo-v002',
         region: 'us-east-1',
         type: 'a'
@@ -153,12 +192,13 @@ describe('serverGroupWarningMessageService', () => {
           serverGroups: [serverGroup, omitted, included]
         }
       ];
-      const params: IConfirmationModalParams = {};
+      const params: IConfirmationModalParams = {account: 'prod'};
       service.addDisableWarningMessage(app, serverGroup, params);
       expect(params.body).toBeDefined();
       expect(params.body.includes('foo-v000')).toBe(false); // this is the target, so should not be included
       expect(params.body.includes('foo-v001')).toBe(false);
       expect(params.body.includes('foo-v002')).toBe(true);
+      expect(params.account).toBeUndefined();
     });
   });
 });
