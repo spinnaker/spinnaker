@@ -36,10 +36,10 @@ public class ClouddriverProfile extends SpringProfile {
   }
 
   @Override
-  public ProfileConfig generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration) {
+  public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration) {
     Providers providers = deploymentConfiguration.getProviders();
-    String contents = yamlToString(deploymentConfiguration.getProviders()) + "\n" + baseConfig;
+    String contents = yamlToString(deploymentConfiguration.getProviders()) + "\n" + config.getConfigContents();
     List<String> files = dependentFiles(providers);
-    return new ProfileConfig().setConfigContents(contents).setRequiredFiles(files);
+    return config.setConfigContents(contents).setRequiredFiles(files);
   }
 }

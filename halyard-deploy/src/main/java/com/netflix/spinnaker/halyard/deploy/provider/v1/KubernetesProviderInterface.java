@@ -26,7 +26,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.State;
@@ -89,9 +89,9 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   }
 
   @Override
-  protected String componentArtifact(DeploymentDetails<KubernetesAccount> details, SpinnakerArtifact artifact) {
+  protected String componentArtifact(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerArtifact artifact) {
     NodeFilter filter = new NodeFilter().withAnyHalconfigFile().setDeployment(details.getDeploymentName());
-    String version = artifactService.getArtifactVersion(filter, artifact);
+    String version = details.getGenerateResult().getArtifactVersion().get(artifact);
 
     // TODO(lwander/jtk54) we need a published store of validated spinnaker images
     // KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), version, REGISTRY);
@@ -100,7 +100,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   }
 
   @Override
-  public Object connectTo(DeploymentDetails<KubernetesAccount> details, EndpointType endpointType) {
+  public Object connectTo(AccountDeploymentDetails<KubernetesAccount> details, EndpointType endpointType) {
     Proxy proxy = proxyMap.getOrDefault(details.getDeploymentName(), new Proxy());
     if (proxy.jobId == null || proxy.jobId.isEmpty()) {
       List<String> command = kubectlAccountCommand(details.getAccount());
@@ -148,7 +148,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     return serviceFactory.createService(endpoint, endpointType);
   }
 
-  public void deployService(DeploymentDetails<KubernetesAccount> details,
+  public void deployService(AccountDeploymentDetails<KubernetesAccount> details,
                             Service service,
                             String image,
                             List<Pair<VolumeMount, Volume>> volumes,
@@ -239,7 +239,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   }
 
   @Override
-  public void bootstrapClouddriver(DeploymentDetails<KubernetesAccount> details) {
+  public void bootstrapClouddriver(AccountDeploymentDetails<KubernetesAccount> details) {
     KubernetesAccount account = details.getAccount();
 
     Service service = details.getEndpoints().getServices().getRedis();
@@ -314,8 +314,11 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     return "hal-" + name + "-config";
   }
 
-  private List<Pair<VolumeMount, Volume>> stageProfileDependencies(DeploymentDetails<KubernetesAccount> details, String namespace, String profileName) {
-    List<String> requiredFiles = details.getGenerateResult().get(profileName);
+  private List<Pair<VolumeMount, Volume>> stageProfileDependencies(AccountDeploymentDetails<KubernetesAccount> details, String namespace, String profileName) {
+    List<String> requiredFiles = details
+        .getGenerateResult()
+        .getProfileRequirements()
+        .get(profileName);
     List<Pair<VolumeMount, Volume>> result = new ArrayList<>();
 
     if (requiredFiles == null) {
@@ -344,7 +347,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     return result;
   }
 
-  private Pair<VolumeMount, Volume> stageProfile(DeploymentDetails<KubernetesAccount> details, String namespace, SpinnakerArtifact artifact) {
+  private Pair<VolumeMount, Volume> stageProfile(AccountDeploymentDetails<KubernetesAccount> details, String namespace, SpinnakerArtifact artifact) {
     File outputPath = new File(spinnakerOutputPath);
     File[] profiles = outputPath.listFiles();
     String secretName = componentSecret(artifact.getName());
@@ -366,7 +369,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     return new ImmutablePair<>(volumeMountBuilder.build(), volumeBuilder.build());
   }
 
-  private void upsertSecret(DeploymentDetails<KubernetesAccount> details, List<String> files, String secretName, String namespace) {
+  private void upsertSecret(AccountDeploymentDetails<KubernetesAccount> details, List<String> files, String secretName, String namespace) {
     KubernetesClient client = getClient(details.getAccount());
 
     if (client.secrets().inNamespace(namespace).withName(secretName).get() != null) {

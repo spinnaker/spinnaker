@@ -24,5 +24,6 @@ import java.util.List;
 @Data
 public class ProfileConfig {
   private String configContents;
-  List<String> requiredFiles = new ArrayList<>();
+  private String version;
+  private List<String> requiredFiles = new ArrayList<>();
 }

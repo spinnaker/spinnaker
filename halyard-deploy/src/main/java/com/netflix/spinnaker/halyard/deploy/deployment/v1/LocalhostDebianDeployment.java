@@ -16,12 +16,24 @@
 
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
+import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 
+import java.io.IOException;
+
 public class LocalhostDebianDeployment extends Deployment {
+  final DeploymentDetails deploymentDetails;
+
+  public LocalhostDebianDeployment(DeploymentDetails deploymentDetails) {
+    this.deploymentDetails = deploymentDetails;
+  }
+
   @Override
   public DeploymentType deploymentType() {
     return DeploymentType.LocalhostDebian;
@@ -49,6 +61,27 @@ public class LocalhostDebianDeployment extends Deployment {
 
   @Override
   public void deploy() {
-    // TODO(lwander)
+    String pinFormat = "Package: spinnaker-%s\n"
+        + "Pin: version %s\n"
+        + "Pin-Priority: 1001\n";
+
+    StringBuilder pinContents = new StringBuilder();
+
+    deploymentDetails.getGenerateResult().getArtifactVersion().forEach((k, v) -> {
+      pinContents.append(String.format(pinFormat, k.getName(), v));
+    });
+
+    AtomicFileWriter fileWriter = null;
+
+    try {
+      fileWriter = new AtomicFileWriter("/etc/apt/preferences.d/pin-spin");
+      fileWriter.write(pinContents.toString());
+    } catch (IOException e) {
+      throw new HalconfigException(new ProblemBuilder(Problem.Severity.ERROR, "Failed to write debian pin file: " + e).build());
+    } finally {
+      if (fileWriter != null) {
+        fileWriter.close();
+      }
+    }
   }
 }

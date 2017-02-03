@@ -88,19 +88,19 @@ abstract public class SpinnakerProfile {
   /**
    * Overwrite this for components that need to specialize their config.
    *
-   * @param baseConfig the base halconfig returned from the config storage.
+   * @param config the base halconfig returned from the config storage.
    * @param deploymentConfiguration the deployment configuration being translated into Spinnaker config.
    * @return the fully written configuration.
    */
-  protected ProfileConfig generateFullConfig(String baseConfig, DeploymentConfiguration deploymentConfiguration) {
-    return new ProfileConfig().setConfigContents(baseConfig);
+  protected ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration) {
+    return config;
   }
 
   /**
    * @return the base config (typically found in a profile's ./halconfig/ directory) for
    * the version of the profile specified by the Spinnaker version in the loaded halconfig.
    */
-  private String getBaseConfig(DeploymentConfiguration deploymentConfiguration) {
+  private ProfileConfig getBaseConfig(DeploymentConfiguration deploymentConfiguration) {
     String componentName = getProfileName();
     String profileFileName = getProfileFileName();
     NodeFilter filter = new NodeFilter().withAnyHalconfigFile().setDeployment(deploymentConfiguration.getName());
@@ -108,7 +108,9 @@ abstract public class SpinnakerProfile {
       String componentVersion = artifactService.getArtifactVersion(filter, getArtifact());
       String componentObjectName = String.join("/", componentName, componentVersion, profileFileName);
 
-      return IOUtils.toString(profileRegistry.getObjectContents(componentObjectName));
+      return new ProfileConfig()
+          .setConfigContents(IOUtils.toString(profileRegistry.getObjectContents(componentObjectName)))
+          .setVersion(componentVersion);
     } catch (RetrofitError | IOException e) {
       throw new HalconfigException(
           new ProblemBuilder(Problem.Severity.FATAL,

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
+import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,8 +29,6 @@ import org.springframework.stereotype.Component;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
 
 @Component
 @Slf4j
@@ -48,7 +47,7 @@ public class DeployService {
 
   public void deploySpinnaker(NodeFilter nodeFilter) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeFilter);
-    Map<String, List<String>> generateResult = generateService.generateConfig(nodeFilter);
+    GenerateResult generateResult = generateService.generateConfig(nodeFilter);
     Deployment deployment = deploymentFactory.create(deploymentConfiguration, generateResult);
 
     FileSystem defaultFileSystem = FileSystems.getDefault();

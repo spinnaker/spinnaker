@@ -39,7 +39,7 @@ public class AtomicFileWriter {
   private final Path tmpPath;
   private Writer writer;
 
-  AtomicFileWriter(String path) throws IOException {
+  public AtomicFileWriter(String path) throws IOException {
     this(FileSystems.getDefault().getPath(path));
   }
 

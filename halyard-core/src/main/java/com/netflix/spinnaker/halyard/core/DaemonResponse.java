@@ -81,9 +81,12 @@ public class DaemonResponse<T> {
     public DaemonResponse<Void> build() {
       ProblemSet result;
       try {
+        log.info("update run");
         update.run();
+        log.info("validate run");
         result = validate.get();
       } catch (HalconfigException e) {
+        log.info("failure encountered");
         halconfigParser.undoChanges();
         throw e;
       } catch (Exception e) {

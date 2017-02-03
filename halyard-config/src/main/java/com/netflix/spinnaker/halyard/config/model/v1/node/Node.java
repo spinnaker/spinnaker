@@ -27,7 +27,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -80,7 +79,7 @@ abstract public class Node implements Validatable {
       throw new IllegalArgumentException("Input fieldName may not be empty");
     }
 
-    log.info("Looking for options for field " + fieldName + " in node " + getNodeName() + " for type " + getClass());
+    log.info("Looking for options for field " + fieldName + " in node " + getNodeName() + " for type " + getClass().getSimpleName());
     String fieldOptions = fieldName + "Options";
     Method optionsMethod = null;
 
@@ -90,7 +89,7 @@ abstract public class Node implements Validatable {
 
       return (List<String>) optionsMethod.invoke(this, problemSetBuilder);
     } catch (IllegalAccessException | InvocationTargetException e) {
-      log.warn("Failed to call " + fieldOptions + "() on " + this.getClass());
+      log.warn("Failed to call " + fieldOptions + "() on " + this.getClass().getSimpleName());
 
       throw new RuntimeException(e);
     } catch (NoSuchMethodException e) {

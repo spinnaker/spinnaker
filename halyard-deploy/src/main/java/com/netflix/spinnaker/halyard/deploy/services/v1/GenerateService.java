@@ -24,8 +24,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileConfig;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,7 +105,7 @@ public class GenerateService {
    * @param nodeFilter A filter that specifies the deployment to use.
    * @return a mapping from components to the profile's required local files.
    */
-  public Map<String, List<String>> generateConfig(NodeFilter nodeFilter) {
+  public GenerateResult generateConfig(NodeFilter nodeFilter) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeFilter);
     String deploymentName = deploymentConfiguration.getName();
 
@@ -125,7 +127,8 @@ public class GenerateService {
     }
 
     // Step 2.
-    Map<String, List<String>> requiredFiles = new HashMap<>();
+    Map<String, List<String>> profileRequirements = new HashMap<>();
+    Map<SpinnakerArtifact, String> artifactVersions = new HashMap<>();
     FileSystem defaultFileSystem = FileSystems.getDefault();
     Path path;
     for (SpinnakerProfile profile : spinnakerProfiles) {
@@ -134,7 +137,8 @@ public class GenerateService {
       log.info("Writing " + profile.getProfileName() + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
       atomicWrite(path, config.getConfigContents());
 
-      requiredFiles.put(profile.getProfileName(), config.getRequiredFiles());
+      profileRequirements.put(profile.getProfileName(), config.getRequiredFiles());
+      artifactVersions.put(profile.getArtifact(), config.getVersion());
     }
 
     // Step 3.
@@ -157,6 +161,14 @@ public class GenerateService {
       });
     }
 
-    return requiredFiles;
+    return new GenerateResult()
+        .setArtifactVersion(artifactVersions)
+        .setProfileRequirements(profileRequirements);
+  }
+
+  @Data
+  public static class GenerateResult {
+    private Map<String, List<String>> profileRequirements = new HashMap<>();
+    private Map<SpinnakerArtifact, String> artifactVersion = new HashMap<>();
   }
 }

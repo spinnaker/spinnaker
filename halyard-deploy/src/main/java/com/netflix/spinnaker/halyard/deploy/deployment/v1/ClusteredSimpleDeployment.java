@@ -23,7 +23,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 
 abstract public class ClusteredSimpleDeployment<T extends Account> extends Deployment {
-  public ClusteredSimpleDeployment(DeploymentDetails<T> deploymentDetails, ProviderInterface<T> providerInterface) {
+  public ClusteredSimpleDeployment(AccountDeploymentDetails<T> deploymentDetails, ProviderInterface<T> providerInterface) {
     deploymentDetails.setEndpoints(specializeEndpoints(deploymentDetails.getEndpoints()));
 
     this.deploymentDetails = deploymentDetails;
@@ -48,7 +48,7 @@ abstract public class ClusteredSimpleDeployment<T extends Account> extends Deplo
   }
 
   private ProviderInterface<T> providerInterface;
-  private DeploymentDetails<T> deploymentDetails;
+  private AccountDeploymentDetails<T> deploymentDetails;
 
   @Override
   public void deploy() {
