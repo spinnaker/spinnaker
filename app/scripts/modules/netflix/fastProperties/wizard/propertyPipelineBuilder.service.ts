@@ -36,7 +36,7 @@ export class PropertyPipelineBuilderService {
 
     return this.getPipelineConfigId(command)
       .then((pipelineConfigId: string) => {
-        return this.createPropertyPipeline(stages, pipelineConfigId);
+        return this.createPropertyPipeline(stages, pipelineConfigId, command.applicationName);
       });
   }
 
@@ -44,13 +44,14 @@ export class PropertyPipelineBuilderService {
       return new PropertyPipelineStage(user, command);
   }
 
-  private createPropertyPipeline(stages: IStage[], pipelineConfigId: string): PropertyPipeline {
+  private createPropertyPipeline(stages: IStage[], pipelineConfigId: string, applicationName: string): PropertyPipeline {
     let pipeline = new PropertyPipeline(pipelineConfigId);
     pipeline.keepWaitingPipelines = false;
     pipeline.lastModifiedBy = 'spinnaker';
     pipeline.limitConcurrent = false;
     pipeline.parallel = true;
     pipeline.stages = stages;
+    pipeline.application = applicationName;
     return pipeline;
   }
 

@@ -15,7 +15,7 @@ export class RetryService {
                             interval: number): ng.IPromise<T> {
 
     const call: T | ng.IPromise<T> = func();
-    const promise: ng.IPromise<T> = call.hasOwnProperty('then') ? call as ng.IPromise<T>: this.$q.resolve(call);
+    const promise: ng.IPromise<T> = call.hasOwnProperty('then') ? call as ng.IPromise<T> : this.$q.resolve(call);
     if (limit === 0) {
       return promise;
     } else {
