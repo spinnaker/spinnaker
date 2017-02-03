@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import { DirectiveFactory } from '../../utils/tsDecorators/directiveFactoryDecorator';
+import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
 import {Subject} from 'rxjs';
 
 interface AutoScrollAttrs {
@@ -46,7 +46,7 @@ export class AutoScrollController implements ng.IComponentController {
       this.$scope.$on('$destroy', () => this.scrollToTop.unsubscribe());
     }
     this.$scope.$watch(this.$attrs.autoScrollEnabled, (newVal: boolean) => this.toggleAutoScrollEnabled(newVal), true);
-    this.$scope.$watch(this.$attrs.autoScroll, (newVal: any[]) => this.autoScroll(), true);
+    this.$scope.$watch(this.$attrs.autoScroll, () => this.autoScroll(), true);
     this.$scope.$on('$destroy', () => this.scrollableContainer.off(this.containerEvent));
   }
 

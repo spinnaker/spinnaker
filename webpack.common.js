@@ -12,7 +12,14 @@ function configure(IS_TEST) {
   function getTypescriptLinterLoader() {
     return {
       loader: 'tslint',
-      test: IS_TEST ? /\.spec.ts$/ : /\.ts$/
+      test: /\.(spec\.)?ts$/
+    };
+  }
+
+  function getJavascriptLinterLoader() {
+    return {
+      loader: 'eslint',
+      test: /\.(spec\.)?js$/
     };
   }
 
@@ -105,21 +112,15 @@ function configure(IS_TEST) {
     }
   }
 
-  config.module.preLoaders.push(getTypescriptLinterLoader());
+  config.module.preLoaders.push(getTypescriptLinterLoader(), getJavascriptLinterLoader());
   config.module.loaders.push(getJavascriptLoader(), getLessLoader(), getHtmlLoader());
 
   if (IS_TEST) {
 
-    config.module.postLoaders = [{
-      test: /\.js$/,
-      exclude: /(test|node_modules|bower_components)\//,
-      loader: 'istanbul-instrumenter'
-    }];
-
     config.plugins = [
       new HappyPack({
         id: 'jstest',
-        loaders: ['ng-annotate!angular!babel!envify!eslint'],
+        loaders: ['ng-annotate!angular!babel!envify'],
         threadPool: happyThreadPool,
         cacheContext: {
           env: process.env,
@@ -139,7 +140,7 @@ function configure(IS_TEST) {
       }),
       new HappyPack({
         id: 'js',
-        loaders: ['ng-annotate!angular!babel!envify!eslint'],
+        loaders: ['ng-annotate!angular!babel!envify'],
         threadPool: happyThreadPool,
         cacheContext: {
           env: process.env,

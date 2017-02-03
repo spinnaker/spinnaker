@@ -27,7 +27,7 @@ export class TargetImpedanceValidator implements IStageOrTriggerValidator {
   public validate(pipeline: IPipeline,
                   stage: IStage,
                   validator: ITargetImpedanceValidationConfig,
-                  config: IStageOrTriggerTypeConfig): string {
+                  _config: IStageOrTriggerTypeConfig): string {
 
     const stagesToTest: IStage[] = this.pipelineConfigService.getAllUpstreamDependencies(pipeline, stage),
           regions: string[] = stage['regions'] || [];

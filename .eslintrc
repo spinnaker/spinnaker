@@ -7,7 +7,7 @@
   "rules": {
     "eol-last": 1,
     "semi": 2,
-    "quotes": [1, "single"],
+    "quotes": [1, "single", { "allowTemplateLiterals": true }],
     "comma-dangle": 0,
     "no-extra-boolean-cast": 1,
     "no-unused-vars": 1,
@@ -22,7 +22,7 @@
     "no-underscore-dangle": 1,
     "no-shadow": 0, // TODO
     "no-unexpected-multiline": 1,
-    "consistent-return": 1,
+    "consistent-return": 0, // ANG, shutting this off for now....it's a bit chatty
     "no-extend-native": 1,
     "space-before-blocks": 1,
     "semi-spacing": 1,
@@ -32,6 +32,12 @@
     "operator-assignment": [1, "always"],
     "no-const-assign": 1,
     "no-console": 1,
+    "no-control-regex": 0,
+    "no-case-declarations": 0,
+    "no-empty-pattern": 0
+  },
+  "parserOptions": {
+    "sourceType": "module"
   },
   "env": {
     "browser": true,

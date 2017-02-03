@@ -1,6 +1,5 @@
 'use strict';
 
-import * as moment from 'moment';
 let angular = require('angular');
 require('./loadBalancerSelector.directive.html');
 

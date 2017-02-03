@@ -26,8 +26,8 @@ export class ManualStrategy implements PropertyStrategy {
   public description: string = `Manual Strategy will add a Manual Judgement Stage after each Property Stage`;
   public configDetails: any = {};
 
-  buildStage(user: IUser, command: PropertyCommand, previousStage?: IStage): IStage {
-    return new ManualJudgementStage(user, command, previousStage);
+  buildStage(user: IUser, _command: PropertyCommand, previousStage?: IStage): IStage {
+    return new ManualJudgementStage(user, previousStage);
   }
   isForcePush() { return false; }
   isManual() { return true; }
@@ -59,7 +59,7 @@ export class ForcePushStrategy implements PropertyStrategy {
   public description: string = `Force Push Strategy will not put any safeguards in place and will push the Property change through.`;
   public configDetails: any = {};
 
-  buildStage(user: IUser, command: PropertyCommand, previousStage?: IStage): IStage {
+  buildStage(_user: IUser, _command: PropertyCommand, _previousStage?: IStage): IStage {
     return undefined;
   }
 

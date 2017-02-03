@@ -27,7 +27,7 @@
             {{ loadBalancer.region }}
           </td>
           <td class="condensed-actions">
-            <a class="btn btn-sm btn-link" href ng-click="editLoadBalancerStageCtrl.editLoadBalancer(loadBalancer, $index)">
+            <a class="btn btn-sm btn-link" href ng-click="editLoadBalancerStageCtrl.editLoadBalancer($index)">
               <span class="glyphicon glyphicon-edit" uib-tooltip="Edit"></span></a>
             <a class="btn btn-sm btn-link pad-left" href ng-click="editLoadBalancerStageCtrl.removeLoadBalancer($index)">
               <span class="glyphicon glyphicon-trash" uib-tooltip="Remove"></span>

@@ -1,15 +1,8 @@
-
 import {module, noop} from 'angular';
 import {IPipeline} from 'core/domain/IPipeline';
 import {PROPERTY_MONITOR_COMPONENT} from './propertyMonitor.component';
 
 export class PropertyMonitorService {
-
-  static get $inject() {
-    return ['$log'];
-  }
-
-  public constructor(private $log: ng.ILogService ) {}
 
   public buildMonitor(params: any): any {
 
@@ -49,7 +42,6 @@ export class PropertyMonitorService {
       monitor.errorMessage = `There was an unknown server error. ${errorResponse}`;
       monitor.submitting = false;
       monitor.error = true;
-      this.$log.warn('Error with property:', errorResponse);
     };
 
     monitor.handleTaskSuccess = function (pipeline: IPipeline): void {

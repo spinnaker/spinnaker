@@ -7,7 +7,7 @@ export class ChaosMonkeyNewApplicationConfigController {
   public enabled: boolean = false;
   public applicationConfig: any;
 
-  public constructor(private settings: any) {
+  public constructor(settings: any) {
     this.enabled = settings.feature && settings.feature.chaosMonkey;
     if (this.enabled) {
       this.applicationConfig.chaosMonkey = {

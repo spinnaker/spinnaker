@@ -10,20 +10,10 @@ export class FastPropertyScopeComponentController implements ng.IComponentContro
   public selectedScope: any;
   public command: PropertyCommand;
 
-
-  static get $inject() {
-    return [
-      'fastPropertyReader'
-    ];
-  }
-
-  constructor( private fastPropertyReader: any ) {}
-
   public selectScope(scopeOption: Scope) {
     this.selectedScope = scopeOption;
     this.command.scope = scopeOption;
   }
-
 }
 
 class FastPropertyScopeComponent implements ng.IComponentOptions {

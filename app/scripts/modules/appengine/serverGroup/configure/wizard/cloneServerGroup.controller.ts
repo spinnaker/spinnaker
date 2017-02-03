@@ -21,7 +21,6 @@ class AppengineCloneServerGroupCtrl {
 
   static get $inject() { return ['$scope',
                                  '$uibModalInstance',
-                                 'title',
                                  'serverGroupCommand',
                                  'application',
                                  'taskMonitorBuilder',
@@ -30,12 +29,11 @@ class AppengineCloneServerGroupCtrl {
 
   constructor(public $scope: any,
               private $uibModalInstance: any,
-              private title: string,
               public serverGroupCommand: IAppengineServerGroupCommand,
               private application: Application,
-              private taskMonitorBuilder: TaskMonitorBuilder,
+              taskMonitorBuilder: TaskMonitorBuilder,
               private serverGroupWriter: ServerGroupWriter,
-              private commandBuilder: AppengineServerGroupCommandBuilder) {
+              commandBuilder: AppengineServerGroupCommandBuilder) {
 
     if (['create', 'editPipeline'].includes(get<string>(serverGroupCommand, 'viewState.mode'))) {
       $scope.command = serverGroupCommand;

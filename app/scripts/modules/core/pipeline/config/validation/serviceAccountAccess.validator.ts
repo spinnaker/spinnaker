@@ -22,10 +22,10 @@ export class ServiceAccountAccessValidator implements IStageOrTriggerValidator {
 
   constructor(private serviceAccountService: ServiceAccountService, private settings: any) {}
 
-  public validate(pipeline: IPipeline,
+  public validate(_pipeline: IPipeline,
                   stage: ITriggerWithServiceAccount,
                   validator: IServiceAccountAccessValidationConfig,
-                  config: IStageOrTriggerTypeConfig): ng.IPromise<string> {
+                  _config: IStageOrTriggerTypeConfig): ng.IPromise<string> {
 
     if (this.settings.feature.fiatEnabled) {
       return this.serviceAccountService.getServiceAccounts()

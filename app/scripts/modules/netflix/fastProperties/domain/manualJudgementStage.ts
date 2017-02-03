@@ -1,6 +1,5 @@
 import {toInteger} from 'lodash';
 import {IStage} from 'core/domain/IStage';
-import {PropertyCommand} from './propertyCommand.model';
 import {IUser} from 'core/authentication/authentication.service';
 
 export class ManualJudgementStage implements IStage {
@@ -14,8 +13,7 @@ export class ManualJudgementStage implements IStage {
   instructions: string = 'Is Fast Property good to move forward?';
   propagateAuthenticationContext: boolean = true;
 
-
-  constructor(user: IUser, command: PropertyCommand, previousStage?: IStage) {
+  constructor(user: IUser, previousStage?: IStage) {
     this.refId = previousStage ? `${toInteger(previousStage.refId) + 1}` : '1';
     this.requisiteStageRefIds = previousStage ? [previousStage.refId] : [];
 

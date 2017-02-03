@@ -12,12 +12,12 @@ export class V2ModalWizard implements ng.IComponentController {
   public taskMonitor: any;
   public dismiss: () => any;
 
-  public constructor(private $scope: ng.IScope, private v2modalWizardService: any) {
+  public constructor(private $scope: ng.IScope, v2modalWizardService: any) {
     this.wizard = v2modalWizardService;
   }
 
   public $onInit() {
-    this.$scope.$on('waypoints-changed', (event: any, snapshot: any) => {
+    this.$scope.$on('waypoints-changed', (_event: any, snapshot: any) => {
       let ids = snapshot.lastWindow
         .map((entry: any) => entry.elem)
         .filter((key: string) => this.wizard.getPage(key));

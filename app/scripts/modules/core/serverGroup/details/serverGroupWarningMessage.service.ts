@@ -12,11 +12,6 @@ export interface IDisableWarningContents {
   verificationLabel: string;
 }
 
-interface IRemainingServerGroup {
-  label: string;
-  instances: number;
-}
-
 export class ServerGroupWarningMessageService {
 
   public addDestroyWarningMessage(application: Application, serverGroup: ServerGroup, params: IConfirmationModalParams): void {

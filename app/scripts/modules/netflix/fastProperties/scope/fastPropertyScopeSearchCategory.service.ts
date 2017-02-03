@@ -57,7 +57,7 @@ export class FastPropertyScopeCategoryService {
   /**
    * Builds Global level fast property
    */
-  private buildScopeForGlobal(selected: any): Scope[] {
+  private buildScopeForGlobal(): Scope[] {
     let scope: Scope = new Scope();
 
     this.impactCountForGlobal()

@@ -5,9 +5,9 @@ import {IEntityRef, IEntityTags, IEntityTag} from '../domain/IEntityTags';
 
 export class EntityTagWriter {
 
-  static get $inject() { return ['$q', 'taskExecutor']; }
+  static get $inject() { return ['taskExecutor']; }
 
-  public constructor(private $q: ng.IQService, private taskExecutor: TaskExecutor) {}
+  public constructor(private taskExecutor: TaskExecutor) {}
 
   public upsertEntityTag(application: Application, tag: IEntityTag, entityRef: IEntityRef, isNew: boolean): ng.IPromise<any> {
     return this.taskExecutor.executeTask({

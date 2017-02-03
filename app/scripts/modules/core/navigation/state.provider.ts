@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {IStateProvider, IUrlRouterProvider, IState} from 'angular-ui-router';
+import {IUrlRouterProvider, IState} from 'angular-ui-router';
 import {STATE_HELPER, StateHelper} from './stateHelper.provider';
 
 require('./navigation.less');
@@ -16,10 +16,9 @@ export class StateConfigProvider implements ng.IServiceProvider {
     children: [],
   };
 
-  static get $inject() { return ['$stateProvider', '$urlRouterProvider', 'stateHelperProvider']; }
+  static get $inject() { return ['$urlRouterProvider', 'stateHelperProvider']; }
 
-  constructor(private $stateProvider: IStateProvider,
-              private $urlRouterProvider: IUrlRouterProvider,
+  constructor(private $urlRouterProvider: IUrlRouterProvider,
               private stateHelperProvider: StateHelper) {}
 
   /**

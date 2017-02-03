@@ -17,7 +17,7 @@ export class PipelineConfigService {
   public constructor(private $q: ng.IQService,
                      private API: Api,
                      private authenticationService: AuthenticationService,
-                     private viewStateCache: ViewStateCacheService) {
+                     viewStateCache: ViewStateCacheService) {
     this.configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 1 });
   }
 

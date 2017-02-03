@@ -33,7 +33,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
   public validate(pipeline: IPipeline,
                   stage: IStage,
                   validator: IStageOrTriggerBeforeTypeValidationConfig,
-                  config: IStageOrTriggerTypeConfig): ng.IPromise<string> {
+                  _config: IStageOrTriggerTypeConfig): ng.IPromise<string> {
 
     const stageTypes = validator.stageTypes || [validator.stageType];
     const stagesToTest: (IStage | ITrigger)[] = this.pipelineConfigService.getAllUpstreamDependencies(pipeline, stage);

@@ -15,14 +15,12 @@ export class FastPropertyScopeReadOnlyComponentController implements ng.ICompone
 
   static get $inject() {
     return [
-      'fastPropertyReader',
       'fastPropertyScopeSearchCategoryService',
     ];
   }
 
   constructor(
-    private fastPropertyReader: any,
-    private fastPropertyScopeSearchCategoryService: any ) {
+    fastPropertyScopeSearchCategoryService: any ) {
     fastPropertyScopeSearchCategoryService.getImpactForScope(this.command.scope)
       .then((counts: IImpactCounts) => {
         this.command.scope.instanceCounts = counts;
@@ -49,7 +47,7 @@ class FastPropertyScopeReadOnlyComponent implements ng.IComponentOptions {
 export const FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT = 'spinnaker.netflix.fastProperty.scope.readOnly.component';
 
 module(FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT, [
-  require('../../../../core/search/searchResult/searchResult.directive'),
+  require('core/search/searchResult/searchResult.directive'),
   require('../../fastProperty.read.service'),
   FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE
 ])

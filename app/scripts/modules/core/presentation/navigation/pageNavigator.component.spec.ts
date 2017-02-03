@@ -34,7 +34,7 @@ describe('Component: Page Navigator', () => {
     let dom = `
       <div class="container" style="height: 60px; overflow-y: scroll">
         <page-navigator scrollable-container=".container">`;
-    pages.forEach((p, index) => {
+    pages.forEach((_p, index) => {
       dom += `
           <page-section key="{{pages[${index}].key}}" label="{{pages[${index}].label}}" visible="pages[${index}].visible">
             <div style="height: 100px"></div>
