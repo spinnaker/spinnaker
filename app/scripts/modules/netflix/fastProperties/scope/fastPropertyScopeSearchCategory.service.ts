@@ -4,12 +4,15 @@ import { APPLICATION_READ_SERVICE } from 'core/application/service/application.r
 import { Application } from 'core/application/application.model';
 import {Scope} from '../domain/scope.domain';
 import {IImpactCounts} from '../domain/impactCounts.interface';
+import {ICluster} from '../../../core/domain/ICluster';
+import {ServerGroup} from '../../../core/domain/serverGroup';
 
 export let CATEGORY: any = {
   APPLICATIONS: 'Applications',
   CLUSTERS: 'Clusters',
   SERVER_GROUPS: 'Server Groups',
   INSTANCES: 'Instances',
+  STACK: 'Stack',
   REGIONS: 'Regions',
   GLOBAL: 'Global',
 };
@@ -23,6 +26,7 @@ export class FastPropertyScopeCategoryService {
     [CATEGORY.CLUSTERS]: this.buildScopeForCluster.bind(this),
     [CATEGORY.SERVER_GROUPS]: this.buildScopeForServerGroup.bind(this),
     [CATEGORY.INSTANCES]: this.buildScopeForInstance.bind(this),
+    [CATEGORY.STACK]: this.buildScopeForStack.bind(this),
     [CATEGORY.REGIONS]: this.buildScopeForRegions.bind(this),
     [CATEGORY.GLOBAL]: this.buildScopeForGlobal.bind(this)
   };
@@ -32,6 +36,7 @@ export class FastPropertyScopeCategoryService {
     [CATEGORY.CLUSTERS]: this.impactCountForCluster.bind(this),
     [CATEGORY.SERVER_GROUPS]: this.impactCountForServerGroup.bind(this),
     [CATEGORY.INSTANCES]: this.impactCountForInstnace.bind(this),
+    [CATEGORY.STACK]: this.impactCountForStack.bind(this),
     [CATEGORY.REGIONS]: this.impactCountForRegions.bind(this),
     [CATEGORY.GLOBAL]: this.impactCountForGlobal.bind(this)
   };
@@ -187,7 +192,7 @@ export class FastPropertyScopeCategoryService {
 
     if (foundCluster && foundCluster.serverGroups) {
       let serverGroup = foundCluster.serverGroups
-        .filter((serverGroup: any) => serverGroup.name === scope.asg)
+        .filter((serverGroup: ServerGroup) => serverGroup.name === scope.asg)
         .shift();
 
       return serverGroup ? serverGroup.instanceCounts : scope.instanceCounts;
@@ -196,6 +201,32 @@ export class FastPropertyScopeCategoryService {
     return scope.instanceCounts;
   }
 
+  /*
+   * Build Stack Group level fast property scope
+   */
+  private buildScopeForStack(selected: any, applicationDictionary: any): Scope[] {
+    let application = applicationDictionary[selected.application];
+    let scope = new Scope();
+    scope.region = selected.region;
+    scope.appId = selected.application;
+    scope.stack = selected.stack || this.getStackFromClusterName(selected.cluster);
+    scope.instanceCounts = this.impactCountForStack(scope, application);
+    return [scope];
+  }
+
+  public impactCountForStack(scope: Scope, application: Application): IImpactCounts {
+    let foundClustersWithStack = application.clusters
+      .filter((cluster: ICluster) =>  this.getStackFromClusterName(cluster.name) === scope.stack);
+
+    return foundClustersWithStack.reduce((acc: any, cluster: any) => {
+      return mergeWith(acc, cluster.instanceCounts, (a: number, b: number) =>  a + b );
+    }, scope.instanceCounts);
+  }
+
+  public getStackFromClusterName(clusterName: string ): string {
+    let nameStackDetails = clusterName.split('-');
+    return nameStackDetails.length > 1 ? nameStackDetails[1] : '';
+  }
 
   /**
    * Builds Instance level fast property scope

@@ -10,6 +10,7 @@ import {IPlatformProperty} from './platformProperty.model';
 
 export class PropertyCommand {
   public property: Property;
+  public originalProperty: Property;
   public scope: Scope;
   public pipeline: PropertyPipeline;
   public strategy: PropertyStrategy;

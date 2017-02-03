@@ -27,6 +27,10 @@ export class Property {
     return property;
   }
 
+  static copy(property: Property): Property {
+    return Object.assign(new Property(), property);
+  }
+
   constructor(env?: string) {
     this.env = env;
   }

@@ -4,7 +4,6 @@ import {PropertyCommand} from '../../domain/propertyCommand.model';
 import {Scope} from '../../domain/scope.domain';
 
 export class FastPropertyScopeComponentController implements ng.IComponentController {
-  public applicationList: any = ['deck', 'mahe'];
   public isEditing: boolean = false;
   public impactCount: string;
   public impactLoading: boolean;

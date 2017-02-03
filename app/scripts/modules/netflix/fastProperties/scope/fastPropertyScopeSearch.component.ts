@@ -2,12 +2,16 @@ import './fastPropetyScopeSearch.less';
 
 import { CATEGORY_BUTTON_LIST_COMPONENT } from './categoryButtonList.component';
 
-import {debounce} from 'lodash';
+import {debounce, uniqWith, isEqual} from 'lodash';
 import { module } from 'angular';
 import {APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/service/application.read.service';
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import { FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FastPropertyScopeCategoryService } from './fastPropertyScopeSearchCategory.service';
 import {Scope} from '../domain/scope.domain';
+import values = require('lodash/values');
+import {Application} from 'core/application/application.model';
+import {ICluster} from 'core/domain/ICluster';
+import {ServerGroup} from 'core/domain/serverGroup';
 
 export class FastPropertyScopeSearchComponentController implements ng.IComponentController {
 
@@ -118,6 +122,7 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
       .then(this.addGlobalCategory)
       .then(this.addRegionCategory)
       .then(this.fetchApplicationInfo)
+      .then(this.addStackCategory)
       .then(this.createScopesForEachCategoryResult)
       .then(this.doneQuerying);
   }
@@ -172,9 +177,27 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
     return categories;
   };
 
+  private addStackCategory = (categories: any[]) => {
+    let appsClusters = values(this.applicationDictionary).reduce((acc: any[], app: Application): any[] => {
+      app.clusters.forEach((cluster: ICluster) => {
+        cluster.serverGroups.forEach((serverGroup: ServerGroup) => {
+          acc.push({
+            region: serverGroup.region,
+            application: app.name,
+            cluster: serverGroup.cluster
+          });
+        });
+      });
+      return uniqWith(acc, isEqual);
+    }, []);
+
+    categories.unshift({order: 79, category: 'Stack', results: appsClusters });
+
+    return categories;
+  };
+
   private createScopesForEachCategoryResult = (categories: any[]) => {
     let categoriesWithScope = categories.map((category) => {
-
       let scopes = category.results.reduce((acc: any[], result: any) => {
         this.fastPropertyScopeSearchCategoryService.buildScopeList(this.applicationDictionary, category.category, result)
           .forEach((scope: any) => acc.push(scope));

@@ -43,7 +43,8 @@ export class Scope {
     if (this.serverId) { return CATEGORY.INSTANCES; }
     if (this.zone || this.asg) { return CATEGORY.SERVER_GROUPS; }
     if (this.cluster) { return CATEGORY.CLUSTERS; }
-    if (this.stack || this.region) { return CATEGORY.REGIONS; }
+    if (this.stack) { return CATEGORY.STACK; }
+    if (this.region) { return CATEGORY.REGIONS; }
     if (this.appId) { return CATEGORY.APPLICATIONS; }
     return CATEGORY.GLOBAL;
   }

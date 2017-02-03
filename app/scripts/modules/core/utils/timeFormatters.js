@@ -42,9 +42,9 @@ module.exports = angular.module('spinnaker.core.utils.timeFormatters', [
   .filter('fastPropertyTime', function(momentService) {
     return function (input) {
       if(input) {
-        var realTime = input.replace('[GMT]', '');
-        var moment = momentService(realTime);
-        return moment.format('MM/DD/YY @ h:mma');
+        input = input.replace('[UTC]', '');
+        var moment = momentService(input);
+        return moment.isValid() ? moment.format('YYYY-MM-DD HH:mm:ss z') : '-';
       } else {
         return '--';
       }

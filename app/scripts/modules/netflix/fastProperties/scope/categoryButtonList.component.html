@@ -44,6 +44,22 @@
     </button>
 
     <button
+      ng-if="$ctrl.categoryName === 'Stack'"
+      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
+      class="fast-property-scope-button">
+
+      <div>
+        <span ng-if="$ctrl.scopeOption.region">{{$ctrl.scopeOption.region}}</span>
+        <span ng-if="$ctrl.scopeOption.appId">{{$ctrl.scopeOption.appId}}</span>
+        <span ng-if="$ctrl.scopeOption.cluster">...</span>
+        <span ng-if="$ctrl.scopeOption.stack"><b>{{$ctrl.scopeOption.stack}}</b></span>
+      </div>
+
+      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
+    </button>
+
+
+    <button
       ng-if="$ctrl.categoryName === 'Regions'"
       ng-click="$ctrl.selectScope($ctrl.scopeOption)"
       class="fast-property-scope-button">

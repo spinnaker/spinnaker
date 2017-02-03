@@ -16,6 +16,7 @@ export class PropertyPipelineStage implements IStage {
   delete: boolean;
   scope: Scope;
   persistedProperties: Property[] = [];
+  originalProperties: Property[] = [];
   requisiteStageRefIds: (string | number)[] = [];
 
   constructor(user: IUser, command: PropertyCommand, previousStage?: IStage) {
@@ -35,6 +36,7 @@ export class PropertyPipelineStage implements IStage {
     this.cmcTicket = propertyCopy.cmcTicket;
     this.delete = command.type === PropertyCommandType.DELETE;
 
+    this.originalProperties.push(command.originalProperty);
     this.persistedProperties.push(propertyCopy);
   }
 
