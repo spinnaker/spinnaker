@@ -27,7 +27,7 @@ export class DockerImageReaderService implements IImageReader {
   }
 
   public findImages(params: IFindImageParams): ng.IPromise<IDockerImage[]> {
-    return this.retryService.buildRetrySequence(() => this.API.all('images/find')
+    return this.retryService.buildRetrySequence<IDockerImage[]>(() => this.API.all('images/find')
       .getList(params), (results: IDockerImage[]) => (results.length > 0), 10, 1000)
       .then((results: IDockerImage[]) => results)
       .catch((): IDockerImage[] => []);

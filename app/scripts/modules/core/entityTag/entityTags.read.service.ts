@@ -3,26 +3,31 @@ import {get} from 'lodash';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {IEntityTags, IEntityTag} from '../domain/IEntityTags';
+import {RETRY_SERVICE, RetryService} from 'core/retry/retry.service';
 
 export class EntityTagsReader {
 
-  static get $inject() { return ['API', '$q', '$exceptionHandler', 'settings']; }
+  static get $inject() { return ['API', '$q', '$exceptionHandler', 'retryService', 'settings']; }
 
   constructor(private API: Api,
-                     private $q: ng.IQService,
-                     private $exceptionHandler: ng.IExceptionHandlerService,
-                     private settings: any) {}
+              private $q: ng.IQService,
+              private $exceptionHandler: ng.IExceptionHandlerService,
+              private retryService: RetryService,
+              private settings: any) {}
 
   public getAllEntityTags(entityType: string, entityIds: string[]): ng.IPromise<IEntityTags[]> {
     if (!entityIds || !entityIds.length) {
       return this.$q.when([]);
     }
     const idGroups: string[] = this.collateEntityIds(entityType, entityIds);
-    const sources = idGroups.map(idGroup => this.API.one('tags')
+    const succeeded = (val: IEntityTags[]) => val !== null;
+    const sources = idGroups.map(idGroup => this.retryService.buildRetrySequence<IEntityTags[]>(
+      () => this.API.one('tags')
         .withParams({
           entityType: entityType.toLowerCase(),
           entityId: idGroup
-        }).getList()
+        }).getList(),
+      succeeded, 1, 0)
     );
 
     let result: ng.IDeferred<IEntityTags[]> = this.$q.defer();
@@ -97,5 +102,6 @@ export class EntityTagsReader {
 export const ENTITY_TAGS_READ_SERVICE = 'spinnaker.core.entityTag.read.service';
 module(ENTITY_TAGS_READ_SERVICE, [
   API_SERVICE,
+  RETRY_SERVICE,
   require('core/config/settings'),
 ]).service('entityTagsReader', EntityTagsReader);

@@ -18,12 +18,6 @@ describe('Service: Retry', function () {
         $timeout = _$timeout_;
       }));
 
-  it('should inject defined objects', () => {
-    expect(retryService).toBeDefined();
-    expect($q).toBeDefined();
-    expect($timeout).toBeDefined();
-  });
-
   describe('retryService.buildRetrySequence', () => {
     it('should only call callback once if result passes stop condition', () => {
       let callCount = 0;
@@ -33,7 +27,7 @@ describe('Service: Retry', function () {
       };
       const stopCondition = (val: any) => val;
 
-      retryService.buildRetrySequence(callback, stopCondition, 100, 0)
+      retryService.buildRetrySequence<boolean>(callback, stopCondition, 100, 0)
         .then((result: boolean) => {
           expect(result).toEqual(true);
           expect(callCount).toEqual(1);
@@ -47,7 +41,7 @@ describe('Service: Retry', function () {
       const callback = () => $q.resolve(++callCount);
       const stopCondition = (val: any) => val === 8;
 
-      retryService.buildRetrySequence(callback, stopCondition, 100, 0)
+      retryService.buildRetrySequence<number>(callback, stopCondition, 100, 0)
         .then((result: number) => {
           expect(result).toEqual(8);
           expect(callCount).toEqual(8);
@@ -65,7 +59,7 @@ describe('Service: Retry', function () {
       };
       const stopCondition = (result: any[]) => result.length > 0;
 
-      retryService.buildRetrySequence(callback, stopCondition, 100, 0)
+      retryService.buildRetrySequence<any[]>(callback, stopCondition, 100, 0)
         .then((result: any[]) => {
           expect(result).toEqual([]);
           expect(callCount).toEqual(101);
@@ -79,6 +73,21 @@ describe('Service: Retry', function () {
       const callback = () => true;
       const stopCondition = () => true;
       expect(() => retryService.buildRetrySequence(callback, stopCondition, 100, 0)).not.toThrow();
+    });
+
+    it('should retry if promise is rejected', () => {
+      let callCount = 0;
+      const callback = () => {
+        callCount++;
+        return callCount > 1 ? $q.resolve([]) : $q.reject('something failed');
+      };
+      const stopCondition = (result: any[]) => result === [];
+      retryService.buildRetrySequence(callback, stopCondition, 1, 0)
+        .then((result: any[]) => {
+        expect(result).toEqual([]);
+        expect(callCount).toEqual(2);
+      });
+      $timeout.flush();
     });
   });
 });
