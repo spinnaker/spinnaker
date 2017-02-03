@@ -16,12 +16,18 @@
 
 package com.netflix.spinnaker.orca.mahe.tasks
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.mahe.MaheService
+import com.netflix.spinnaker.orca.mahe.PropertyAction
 import com.netflix.spinnaker.orca.mahe.cleanup.FastPropertyCleanupListener
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
+
+import java.nio.channels.Pipe
+
 import static com.netflix.spinnaker.orca.mahe.pipeline.CreatePropertyStage.PIPELINE_CONFIG_TYPE
 
 class PropertyChangeCleanupSpec extends Specification {
@@ -30,12 +36,110 @@ class PropertyChangeCleanupSpec extends Specification {
   def mahe = Mock(MaheService)
   @Subject def listener = new FastPropertyCleanupListener(mahe)
 
-  def "a property created by a pipeline stage is cleaned up at the end"() {
+  @Unroll()
+  def "a deleted property is restored to its original stage if the pipeline is #executionStatus and has matching original property"() {
     given:
     def pipeline = Pipeline
       .builder()
       .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
-      .withGlobalContext(propertyIdList: [[propertyId: propertyId, previousValue: null]])
+      .withGlobalContext(propertyIdList: [propertyId], originalProperties: [originalProperty], propertyAction: PropertyAction.DELETE)
+      .build()
+
+    repository.retrievePipeline(pipeline.id) >> pipeline
+
+    when:
+    listener.afterExecution(null, pipeline, executionStatus, false)
+
+    then:
+    1 * mahe.upsertProperty([property: originalProperty])
+
+    where:
+    propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
+    propertyEnv = "test"
+    originalProperty = createPropertyWithId(propertyId)
+    executionStatus << [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED]
+  }
+
+  @Unroll()
+  def "a deleted property stays deleted if no original state is found and  the pipeline is #executionStatus"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
+      .withGlobalContext(propertyIdList: [propertyId], originalProperties: [nonMatchingOriginalProperty], propertyAction: PropertyAction.DELETE)
+      .build()
+
+    repository.retrievePipeline(pipeline.id) >> pipeline
+
+    when:
+    listener.afterExecution(null, pipeline, executionStatus, false)
+
+    then:
+    0 * mahe.upsertProperty(_)
+    0 * mahe.deleteProperty(_, _, _)
+
+    where:
+    propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
+    propertyEnv = "test"
+    nonMatchingOriginalProperty = createPropertyWithId('non_matching_property_id')
+    executionStatus << [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED]
+  }
+
+  @Unroll()
+  def "a update property does not revert if original state is missing and the pipeline is #executionStatus"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
+      .withGlobalContext(propertyIdList: [propertyId], propertyAction: PropertyAction.UPDATE)
+      .build()
+
+    repository.retrievePipeline(pipeline.id) >> pipeline
+
+    when:
+    listener.afterExecution(null, pipeline, executionStatus, false)
+
+    then:
+    0 * mahe.upsertProperty(_)
+    0 * mahe.deleteProperty(_, _, _)
+
+    where:
+    propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
+    propertyEnv = "test"
+    executionStatus << [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED]
+  }
+
+  @Unroll()
+  def "a newly created property should be deleted if the pipeline is #executionStatus and has matching original property"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
+      .withGlobalContext(propertyIdList: [propertyId], originalProperties: [], propertyAction: PropertyAction.CREATE)
+      .build()
+
+    repository.retrievePipeline(pipeline.id) >> pipeline
+
+    when:
+    listener.afterExecution(null, pipeline, executionStatus, false)
+
+    then:
+    1 * mahe.deleteProperty(propertyId, 'spinnaker rollback',  originalProperty.env)
+
+    where:
+    propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
+    propertyEnv = "test"
+    originalProperty = createPropertyWithId(propertyId)
+    executionStatus << [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED]
+  }
+
+
+  def "a property created by a pipeline stage marked for 'rollback' is cleaned up at the end"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
+      .withGlobalContext(propertyIdList: [propertyId], originalProperties: [], rollbackProperties: true, propertyAction: PropertyAction.CREATE)
       .build()
     repository.retrievePipeline(pipeline.id) >> pipeline
 
@@ -55,7 +159,7 @@ class PropertyChangeCleanupSpec extends Specification {
     def pipeline = Pipeline
       .builder()
       .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
-      .withGlobalContext(propertyIdList: [[propertyId: propertyId, previous: previous]])
+      .withGlobalContext(propertyIdList: [propertyId], originalProperties: [previous], rollbackProperties: true, propertyAction: PropertyAction.UPDATE)
       .build()
     repository.retrievePipeline(pipeline.id) >> pipeline
 
@@ -63,12 +167,41 @@ class PropertyChangeCleanupSpec extends Specification {
     listener.afterExecution(null, pipeline, null, true)
 
     then:
-    1 * mahe.createProperty([property: previous])
+    1 * mahe.upsertProperty([property: previous])
 
     where:
     propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
     propertyEnv = "test"
-    previous = [
+    previous =  createPropertyWithId(propertyId)
+  }
+
+  def "a property not marked for 'rollback' and is deleted by pipeline stage and is not reverted"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
+      .withGlobalContext(propertyIdList: [propertyId], originalProperties: [previous], rollbackProperties: false, propertyAction: PropertyAction.DELETE )
+      .build()
+    repository.retrievePipeline(pipeline.id) >> pipeline
+
+    when:
+    listener.afterExecution(null, pipeline, null, true)
+
+    then:
+    0 * mahe.upsertProperty([property: previous])
+    0 * mahe.deleteProperty(_, _, _)
+
+    where:
+    propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
+    propertyEnv = "test"
+    previous =  createPropertyWithId(propertyId)
+
+  }
+
+
+
+  def createPropertyWithId(propertyId) {
+    [
       "propertyId"     : propertyId,
       "key"            : "test_rfletcher",
       "value"          : "test4",
@@ -82,8 +215,7 @@ class PropertyChangeCleanupSpec extends Specification {
       "cmcTicket"      : "rfletcher",
       "ttl"            : 0,
       "ts"             : "2016-03-16T18:20:29.554Z[GMT]",
-      "createdAsCanary": false
-    ]
+      "createdAsCanary": false ]
   }
 
 }
