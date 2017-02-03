@@ -14,9 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import unittest
 
 from annotate_source import Annotator, CommitTag, VersionBump
+
+global OPTIONS # argparse Namespace
 
 class SourceAnnotatorTest(unittest.TestCase):
 
@@ -24,7 +27,7 @@ class SourceAnnotatorTest(unittest.TestCase):
 
   def test_patch_version(self):
     expect = VersionBump('version-1.0.1', patch=True)
-    annotator = Annotator({})
+    annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
       'z'
@@ -38,7 +41,7 @@ class SourceAnnotatorTest(unittest.TestCase):
 
   def test_minor_version(self):
     expect = VersionBump('version-1.1.0', minor=True)
-    annotator = Annotator({})
+    annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
       'b',
@@ -54,7 +57,7 @@ class SourceAnnotatorTest(unittest.TestCase):
 
   def test_minor_two_digit_version(self):
     expect = VersionBump('version-1.10.0', minor=True)
-    annotator = Annotator({})
+    annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
       'b',
@@ -71,7 +74,7 @@ class SourceAnnotatorTest(unittest.TestCase):
 
   def test_minor_reset_patch(self):
     expect = VersionBump('version-1.10.0', minor=True)
-    annotator = Annotator({})
+    annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
       'b',
@@ -88,7 +91,7 @@ class SourceAnnotatorTest(unittest.TestCase):
 
   def test_major_version(self):
     expect = VersionBump('version-2.0.0', major=True)
-    annotator = Annotator({})
+    annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
       'b',
@@ -104,7 +107,7 @@ class SourceAnnotatorTest(unittest.TestCase):
 
   def test_major_reset_version(self):
     expect = VersionBump('version-2.0.0', major=True)
-    annotator = Annotator({})
+    annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
       'b',
@@ -121,7 +124,7 @@ class SourceAnnotatorTest(unittest.TestCase):
 
   def test_major_reset_version(self):
     expect = VersionBump('version-2.0.0', major=True)
-    annotator = Annotator({})
+    annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
       'b',
@@ -138,7 +141,7 @@ class SourceAnnotatorTest(unittest.TestCase):
 
   def test_default_msgs(self):
     expect = VersionBump('version-1.0.1', patch=True)
-    annotator = Annotator({})
+    annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
       'z'
@@ -151,6 +154,11 @@ class SourceAnnotatorTest(unittest.TestCase):
     self.assertEqual(expect, result)
 
 if __name__ == '__main__':
+  parser = argparse.ArgumentParser()
+  Annotator.init_argument_parser(parser)
+  Annotator.init_extra_argument_parser(parser)
+  OPTIONS = parser.parse_args()
+
   loader = unittest.TestLoader()
   suite = loader.loadTestsFromTestCase(SourceAnnotatorTest)
   unittest.TextTestRunner(verbosity=2).run(suite)

@@ -139,15 +139,15 @@ class Annotator(Refresher):
   TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+-[0-9]$')
 
   def __init__(self, options):
-    self.__next_tag = options.get('next_tag', None)
-    self.__path = options.get('path', '.')
-    self.__initial_branch = options.get('initial_branch', '')
-    self.__stable_branch = options.get('stable_branch', '')
-    self.__build_number = options.get('build_number', '') or os.environ['BUILD_NUMBER']
+    self.__next_tag = options.next_tag
+    self.__path = options.path
+    self.__initial_branch = options.initial_branch
+    self.__stable_branch = options.stable_branch
+    self.__build_number = options.build_number or os.environ.get('BUILD_NUMBER', '')
     self.__tags_to_delete = []
     self.__filtered_tags = []
     self.__partition_tags_on_pattern()
-    super(Annotator, self).__init__(options or {})
+    super(Annotator, self).__init__(options)
 
   def __partition_tags_on_pattern(self):
     """Partitions the tags into two lists based on TAG_MATCHER.

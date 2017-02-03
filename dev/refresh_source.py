@@ -138,7 +138,7 @@ class Refresher(object):
   def __init__(self, options):
       self.__options = options
       self.__extra_repositories = self.__OPTIONAL_REPOSITORIES
-      if options.get('extra_repos', None):
+      if options.extra_repos:
         for extra in options.extra_repos.split(','):
           pair = extra.split('=')
           if len(pair) != 2:
