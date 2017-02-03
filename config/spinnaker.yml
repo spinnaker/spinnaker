@@ -118,6 +118,15 @@ services:
     s3:
       enabled: false
 
+    # To use an Azure storage account instead of Cassandra:
+    # Disable Cassandra above, enable Azure, and set the storage account name and key
+    azure:
+      enabled: false
+      storageAccountName:
+      storageAccountKey:
+      storageContainerName: spinnaker
+      rootFolder: front50
+
   gate:
     host: ${services.default.host}
     port: 8084
