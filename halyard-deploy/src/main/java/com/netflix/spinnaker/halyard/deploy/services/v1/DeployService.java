@@ -45,9 +45,9 @@ public class DeployService {
   @Autowired
   String spinnakerOutputPath;
 
-  public void deploySpinnaker(NodeFilter nodeFilter) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeFilter);
-    GenerateResult generateResult = generateService.generateConfig(nodeFilter);
+  public void deploySpinnaker(String deploymentName) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    GenerateResult generateResult = generateService.generateConfig(deploymentName);
     Deployment deployment = deploymentFactory.create(deploymentConfiguration, generateResult);
 
     FileSystem defaultFileSystem = FileSystems.getDefault();

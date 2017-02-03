@@ -102,13 +102,10 @@ public class GenerateService {
    *      the deployment.
    *   3. Copy custom profiles from the specified deployment over to the new deployment.
    *
-   * @param nodeFilter A filter that specifies the deployment to use.
+   * @param deploymentName is the deployment whose config to generate
    * @return a mapping from components to the profile's required local files.
    */
-  public GenerateResult generateConfig(NodeFilter nodeFilter) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(nodeFilter);
-    String deploymentName = deploymentConfiguration.getName();
-
+  public GenerateResult generateConfig(String deploymentName) {
     log.info("Generating config from \"" + halconfigPath + "\" with deploymentName \"" + deploymentName + "\"");
 
     File spinnakerOutput = new File(spinnakerOutputPath);
@@ -133,7 +130,7 @@ public class GenerateService {
     Path path;
     for (SpinnakerProfile profile : spinnakerProfiles) {
       path = defaultFileSystem.getPath(spinnakerOutputPath, profile.getProfileFileName());
-      ProfileConfig config = profile.getFullConfig(nodeFilter);
+      ProfileConfig config = profile.getFullConfig(deploymentName);
       log.info("Writing " + profile.getProfileName() + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
       atomicWrite(path, config.getConfigContents());
 

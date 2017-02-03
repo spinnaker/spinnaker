@@ -60,16 +60,6 @@ public class DeploymentConfiguration extends Node {
   }
 
   @Override
-  protected boolean matchesLocally(NodeFilter filter) {
-    return NodeFilter.matches(filter.deployment, name);
-  }
-
-  @Override
-  public NodeFilter getFilter() {
-    return parent.getFilter().setDeployment(name);
-  }
-
-  @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeReflectiveIterator(this);
   }

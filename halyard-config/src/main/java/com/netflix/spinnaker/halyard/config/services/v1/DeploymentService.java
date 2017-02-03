@@ -42,9 +42,8 @@ public class DeploymentService {
   @Autowired
   ValidateService validateService;
 
-  public DeploymentConfiguration getDeploymentConfiguration(NodeFilter filter) {
-    String deploymentName = filter.getDeployment();
-    filter = filter.withAnyHalconfigFile();
+  public DeploymentConfiguration getDeploymentConfiguration(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName);
 
     List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class)
             .stream()
@@ -55,20 +54,18 @@ public class DeploymentService {
       case 0:
         throw new ConfigNotFoundException(new ProblemBuilder(Problem.Severity.FATAL,
             "No deployment with name \"" + deploymentName + "\" could be found")
-            .setFilter(filter)
             .setRemediation("Create a new deployment with name \"" + deploymentName + "\"").build());
       case 1:
         return matching.get(0);
       default:
         throw new IllegalConfigException(new ProblemBuilder(Problem.Severity.FATAL,
             "More than one deployment with name \"" + deploymentName + "\" found")
-            .setFilter(filter)
             .setRemediation("Manually delete or rename duplicate deployments with name \"" + deploymentName + "\" in your halconfig file").build());
     }
   }
 
   public List<DeploymentConfiguration> getAllDeploymentConfigurations() {
-    NodeFilter filter = new NodeFilter().withAnyHalconfigFile().withAnyDeployment();
+    NodeFilter filter = new NodeFilter().withAnyDeployment();
 
     List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class)
         .stream()
@@ -87,18 +84,14 @@ public class DeploymentService {
   public ProblemSet validateAllDeployments(Severity severity) {
     NodeFilter filter = new NodeFilter()
         .withAnyDeployment()
-        .withAnyHalconfigFile()
         .withAnyProvider()
         .withAnyAccount();
 
     return validateService.validateMatchingFilter(filter, severity);
   }
 
-  public ProblemSet validateDeployment(NodeFilter filter, Severity severity) {
-    filter = filter
-        .withAnyHalconfigFile()
-        .withAnyProvider()
-        .withAnyAccount();
+  public ProblemSet validateDeployment(String deploymentName, Severity severity) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyProvider().withAnyAccount();
 
     return validateService.validateMatchingFilter(filter, severity);
   }

@@ -40,7 +40,7 @@ public class ProblemSetBuilder {
   public ProblemBuilder addProblem(Problem.Severity severity, String message, String field) {
     ProblemBuilder problemBuilder = new ProblemBuilder(severity, message);
     if (node != null) {
-      problemBuilder.setFilter(node.getFilter());
+      problemBuilder.setLocation(node);
 
       if (field != null && !field.isEmpty()) {
         problemBuilder.setOptions(node.fieldOptions(new ProblemSetBuilder(), field));

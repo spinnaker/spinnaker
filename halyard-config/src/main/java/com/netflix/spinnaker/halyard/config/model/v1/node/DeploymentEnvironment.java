@@ -42,16 +42,6 @@ public class DeploymentEnvironment extends Node {
     return NodeIteratorFactory.makeEmptyIterator();
   }
 
-  @Override
-  protected boolean matchesLocally(NodeFilter filter) {
-    return filter.matches(getNodeName(), filter.getConfigNode());
-  }
-
-  @Override
-  public NodeFilter getFilter() {
-    return parent.getFilter().setConfigNode(getNodeName());
-  }
-
   public enum DeploymentType {
     ClusteredSimple("Deploy Spinnaker with one server group and load balancer "
         + "per microservice. This requires a cloud provider to deploy to."),

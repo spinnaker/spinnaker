@@ -26,91 +26,72 @@ import java.util.List;
  */
 @Data
 public class NodeFilter implements Cloneable {
-  String halconfigFile = "";
-  String deployment = "";
-  String provider = "";
-  String webhook = "";
-  String account = "";
-  String master = "";
-  String configNode = ""; // TODO(lwander) this is temporary until a better nodefilter is written
+  List<NodeMatcher> matchers = new ArrayList<>();
 
-  private static final String ANY = "*";
-
-  public static boolean matches(String a, String b) {
-    if (a.isEmpty() || b.isEmpty()) {
-      return false;
-    }
-
-    if (a.equals(ANY) || b.equals(ANY)) {
-      return true;
-    }
-
-    return a.equals(b);
+  public boolean matches(Node n) {
+    return matchers.stream().anyMatch(m -> m.matches(n));
   }
 
-  public NodeFilter withAnyHalconfigFile() {
-    halconfigFile = ANY;
+  private NodeFilter withAnyHalconfigFile() {
+    matchers.add(Node.thisNodeAcceptor(Halconfig.class));
     return this;
   }
 
   public NodeFilter withAnyDeployment() {
-    deployment = ANY;
+    matchers.add(Node.thisNodeAcceptor(DeploymentConfiguration.class));
+    return this;
+  }
+
+  public NodeFilter setDeployment(String name) {
+    matchers.add(Node.namedNodeAcceptor(DeploymentConfiguration.class, name));
     return this;
   }
 
   public NodeFilter withAnyWebhook() {
-    webhook = ANY;
+    matchers.add(Node.thisNodeAcceptor(Webhooks.class));
+    matchers.add(Node.thisNodeAcceptor(Webhook.class));
+    return this;
+  }
+
+  public NodeFilter setWebhook(String name) {
+    matchers.add(Node.thisNodeAcceptor(Webhooks.class));
+    matchers.add(Node.namedNodeAcceptor(Webhook.class, name));
     return this;
   }
 
   public NodeFilter withAnyProvider() {
-    provider = ANY;
+    matchers.add(Node.thisNodeAcceptor(Providers.class));
+    matchers.add(Node.thisNodeAcceptor(Provider.class));
+    return this;
+  }
+
+  public NodeFilter setProvider(String name) {
+    matchers.add(Node.thisNodeAcceptor(Providers.class));
+    matchers.add(Node.namedNodeAcceptor(Provider.class, name));
     return this;
   }
 
   public NodeFilter withAnyAccount() {
-    account = ANY;
+    matchers.add(Node.thisNodeAcceptor(Account.class));
+    return this;
+  }
+
+  public NodeFilter setAccount(String name) {
+    matchers.add(Node.namedNodeAcceptor(Account.class, name));
     return this;
   }
 
   public NodeFilter withAnyMaster() {
-    master = ANY;
+    matchers.add(Node.thisNodeAcceptor(Master.class));
     return this;
   }
 
-  public NodeFilter withAnyConfigNode() {
-    configNode = ANY;
+  public NodeFilter setFeatures() {
+    matchers.add(Node.thisNodeAcceptor(Features.class));
     return this;
   }
 
-  @Override
-  public String toString() {
-    List<String> res = new ArrayList<>();
-
-    if (!deployment.isEmpty()) {
-      res.add(deployment);
-    }
-
-    if (!provider.isEmpty()) {
-      res.add(provider);
-    }
-
-    if (!account.isEmpty()) {
-      res.add(account);
-    }
-
-    if (!webhook.isEmpty()) {
-      res.add(webhook);
-    }
-
-    if (!master.isEmpty()) {
-      res.add(master);
-    }
-
-    if (!configNode.isEmpty()) {
-      res.add(configNode);
-    }
-
-    return res.stream().reduce("", (a, b) -> a + "." + b).substring(1);
+  public NodeFilter() {
+    withAnyHalconfigFile();
   }
 }

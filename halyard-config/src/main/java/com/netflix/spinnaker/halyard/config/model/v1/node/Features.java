@@ -38,16 +38,6 @@ public class Features extends Node {
     return NodeIteratorFactory.makeEmptyIterator();
   }
 
-  @Override
-  protected boolean matchesLocally(NodeFilter filter) {
-    return filter.matches(getNodeName(), filter.configNode);
-  }
-
-  @Override
-  public NodeFilter getFilter() {
-    return parent.getFilter().setConfigNode(getNodeName());
-  }
-
   private boolean auth;
   private boolean fiat;
   private boolean chaos;

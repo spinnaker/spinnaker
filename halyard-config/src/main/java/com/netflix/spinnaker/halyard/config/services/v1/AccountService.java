@@ -47,8 +47,8 @@ public class AccountService {
   @Autowired
   ValidateService validateService;
 
-  public List<Account> getAllAccounts(NodeFilter filter) {
-    filter = filter.withAnyHalconfigFile().withAnyAccount();
+  public List<Account> getAllAccounts(String deploymentName, String providerName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).withAnyAccount();
 
     List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class)
         .stream()
@@ -57,18 +57,13 @@ public class AccountService {
 
     if (matchingAccounts.size() == 0) {
       throw new ConfigNotFoundException(
-          new ProblemBuilder(Problem.Severity.FATAL, "No accounts could be found")
-              .setFilter(filter).build());
+          new ProblemBuilder(Problem.Severity.FATAL, "No accounts could be found").build());
     } else {
       return matchingAccounts;
     }
   }
 
-  public Account getAccount(NodeFilter filter) {
-    String accountName = filter.getAccount();
-
-    filter = filter.withAnyHalconfigFile();
-
+  private Account getAccount(NodeFilter filter, String accountName) {
     List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class)
         .stream()
         .map(n -> (Account) n)
@@ -77,23 +72,29 @@ public class AccountService {
     switch (matchingAccounts.size()) {
       case 0:
         throw new ConfigNotFoundException(new ProblemBuilder(
-            Problem.Severity.FATAL, "No matching account with name \"" + accountName + "\" found")
-            .setFilter(filter)
+            Problem.Severity.FATAL, "No matching named \"" + accountName + "\" was found")
             .setRemediation("Check if this account was defined in another provider, or create a new one").build());
       case 1:
         return matchingAccounts.get(0);
       default:
         throw new IllegalConfigException(new ProblemBuilder(
-            Problem.Severity.FATAL, "More than one matching account with name + \"" + accountName + "\" found")
-            .setFilter(filter)
+            Problem.Severity.FATAL, "More than one account named \"" + accountName + "\" was found")
             .setRemediation("Manually delete/rename duplicate accounts with name \"" + accountName + "\" in your halconfig file").build());
     }
   }
 
-  public void setAccount(NodeFilter filter, Account newAccount) {
-    String accountName = filter.getAccount();
+  public Account getProviderAccount(String deploymentName, String providerName, String accountName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).setAccount(accountName);
+    return getAccount(filter, accountName);
+  }
 
-    Provider provider = providerService.getProvider(filter);
+  public Account getAnyProviderAccount(String deploymentName, String accountName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyProvider().setAccount(accountName);
+    return getAccount(filter, accountName);
+  }
+
+  public void setAccount(String deploymentName, String providerName, String accountName, Account newAccount) {
+    Provider provider = providerService.getProvider(deploymentName, providerName);
 
     for (int i = 0; i < provider.getAccounts().size(); i++) {
       Account account = (Account) provider.getAccounts().get(i);
@@ -106,10 +107,8 @@ public class AccountService {
     throw new HalconfigException(new ProblemBuilder(Severity.FATAL, "Account \"" + accountName + "\" wasn't found").build());
   }
 
-  public void deleteAccount(NodeFilter filter) {
-    String accountName = filter.getAccount();
-
-    Provider provider = providerService.getProvider(filter);
+  public void deleteAccount(String deploymentName, String providerName, String accountName) {
+    Provider provider = providerService.getProvider(deploymentName, providerName);
     boolean removed = provider.getAccounts().removeIf(account -> ((Account) account).getName().equals(accountName));
 
     if (!removed) {
@@ -119,20 +118,18 @@ public class AccountService {
     }
   }
 
-  public void addAccount(NodeFilter filter, Account newAccount) {
-    Provider provider = providerService.getProvider(filter);
+  public void addAccount(String deploymentName, String providerName, Account newAccount) {
+    Provider provider = providerService.getProvider(deploymentName, providerName);
     provider.getAccounts().add(newAccount);
   }
 
-  public ProblemSet validateAccount(NodeFilter filter, Severity severity) {
-    filter = filter.withAnyHalconfigFile();
-
+  public ProblemSet validateAccount(String deploymentName, String providerName, String accountName, Severity severity) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).setAccount(accountName);
     return validateService.validateMatchingFilter(filter, severity);
   }
 
-  public ProblemSet validateAllAccounts(NodeFilter filter, Severity severity) {
-    filter = filter.withAnyHalconfigFile().withAnyAccount();
-
+  public ProblemSet validateAllAccounts(String deploymentName, String providerName, Severity severity) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).withAnyAccount();
     return validateService.validateMatchingFilter(filter, severity);
   }
 }

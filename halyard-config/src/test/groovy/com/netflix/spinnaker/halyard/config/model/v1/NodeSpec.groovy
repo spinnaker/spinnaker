@@ -49,16 +49,6 @@ class NodeSpec extends Specification {
     NodeIterator getChildren() {
       return NodeIteratorFactory.makeReflectiveIterator(this)
     }
-
-    @Override
-    protected boolean matchesLocally(NodeFilter filter) {
-      return false
-    }
-
-    @Override
-    NodeFilter getFilter() {
-      return null
-    }
   }
 
   class ChildTestNode extends Node {
@@ -79,15 +69,6 @@ class NodeSpec extends Specification {
       return NodeIteratorFactory.makeListIterator(childNodes)
     }
 
-    @Override
-    protected boolean matchesLocally(NodeFilter filter) {
-      return true
-    }
-
-    @Override
-    NodeFilter getFilter() {
-      return null
-    }
   }
 
   void "node reports matching field options"() {

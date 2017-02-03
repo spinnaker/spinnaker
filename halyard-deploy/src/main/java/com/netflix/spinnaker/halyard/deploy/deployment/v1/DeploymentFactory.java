@@ -65,12 +65,7 @@ public class DeploymentFactory {
           + "specified as the desired place to run your simple clustered deployment.").build());
     }
 
-    NodeFilter nodeFilter = new NodeFilter()
-        .setDeployment(deploymentConfiguration.getName())
-        .withAnyProvider()
-        .setAccount(accountName);
-
-    Account account = accountService.getAccount(nodeFilter);
+    Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
     ProviderType providerType = ((Provider) account.getParent()).providerType();
 
     switch (providerType) {

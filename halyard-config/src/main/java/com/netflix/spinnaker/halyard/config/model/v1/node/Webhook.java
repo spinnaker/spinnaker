@@ -39,14 +39,4 @@ public abstract class Webhook<T extends Master> extends Node implements Cloneabl
   public void accept(ProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
-
-  @Override
-  public boolean matchesLocally(NodeFilter filter) {
-    return NodeFilter.matches(filter.webhook, getNodeName());
-  }
-
-  @Override
-  public NodeFilter getFilter() {
-    return parent.getFilter().setWebhook(getNodeName());
-  }
 }

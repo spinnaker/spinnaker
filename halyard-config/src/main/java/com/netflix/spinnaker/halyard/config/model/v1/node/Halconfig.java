@@ -103,14 +103,4 @@ public class Halconfig extends Node {
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeListIterator(deploymentConfigurations.stream().map(d -> (Node) d).collect(Collectors.toList()));
   }
-
-  @Override
-  protected boolean matchesLocally(NodeFilter filter) {
-    return NodeFilter.matches(filter.halconfigFile, path);
-  }
-
-  @Override
-  public NodeFilter getFilter() {
-    return new NodeFilter().setHalconfigFile(path);
-  }
 }

@@ -42,9 +42,8 @@ public class ProviderService {
   @Autowired
   ValidateService validateService;
 
-  public Provider getProvider(NodeFilter filter) {
-    String providerName = filter.getDeployment();
-    filter = filter.withAnyHalconfigFile();
+  public Provider getProvider(String deploymentName, String providerName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName);
 
     List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class)
         .stream()
@@ -55,21 +54,18 @@ public class ProviderService {
       case 0:
         throw new ConfigNotFoundException(new ProblemBuilder(Problem.Severity.FATAL,
             "No provider with name \"" + providerName + "\" could be found")
-            .setFilter(filter)
             .setRemediation("Create a new provider with name \"" + providerName + "\"").build());
       case 1:
         return matching.get(0);
       default:
         throw new IllegalConfigException(new ProblemBuilder(Problem.Severity.FATAL,
             "More than one provider with name \"" + providerName + "\" found")
-            .setFilter(filter)
             .setRemediation("Manually delete or rename duplicate providers with name \"" + providerName + "\" in your halconfig file").build());
     }
   }
 
-  public List<Provider> getAllProviders(NodeFilter filter) {
-    filter = filter.withAnyHalconfigFile()
-        .withAnyProvider();
+  public List<Provider> getAllProviders(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyProvider();
 
     List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class)
         .stream()
@@ -79,20 +75,33 @@ public class ProviderService {
     if (matching.size() == 0) {
       throw new ConfigNotFoundException(
           new ProblemBuilder(Problem.Severity.FATAL, "No providers could be found")
-              .setFilter(filter).build());
+              .build());
     } else {
       return matching;
     }
   }
 
-  public void setEnabled(NodeFilter filter, boolean enabled) {
-    Provider provider = getProvider(filter);
+  public void setEnabled(String deploymentName, String providerName, boolean enabled) {
+    Provider provider = getProvider(deploymentName, providerName);
     provider.setEnabled(enabled);
   }
 
-  public ProblemSet validateProvider(NodeFilter filter, Severity severity) {
-    filter = filter.withAnyHalconfigFile()
-        .withAnyAccount();
+  public ProblemSet validateProvider(String deploymentName, String providerName, Severity severity) {
+    NodeFilter filter = new NodeFilter()
+        .setDeployment(deploymentName)
+        .setProvider(providerName)
+        .withAnyAccount()
+        .withAnyWebhook();
+
+    return validateService.validateMatchingFilter(filter, severity);
+  }
+
+  public ProblemSet validateAllProviders(String deploymentName, Severity severity) {
+    NodeFilter filter = new NodeFilter()
+        .setDeployment(deploymentName)
+        .withAnyProvider()
+        .withAnyAccount()
+        .withAnyWebhook();
 
     return validateService.validateMatchingFilter(filter, severity);
   }

@@ -36,16 +36,6 @@ public abstract class Provider<T extends Account> extends Node implements Clonea
   }
 
   @Override
-  public boolean matchesLocally(NodeFilter filter) {
-    return NodeFilter.matches(filter.provider, getNodeName());
-  }
-
-  @Override
-  public NodeFilter getFilter() {
-    return parent.getFilter().setProvider(getNodeName());
-  }
-
-  @Override
   public String getNodeName() {
     return providerType().getId();
   }

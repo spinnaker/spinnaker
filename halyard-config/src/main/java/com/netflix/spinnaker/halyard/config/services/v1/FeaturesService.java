@@ -33,8 +33,8 @@ public class FeaturesService {
   @Autowired
   DeploymentService deploymentService;
 
-  public Features getFeatures(NodeFilter filter) {
-    filter = filter.withAnyHalconfigFile().setConfigNode("features");
+  public Features getFeatures(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setFeatures();
 
     List<Features> matching = lookupService.getMatchingNodesOfType(filter, Features.class)
         .stream()
@@ -51,9 +51,8 @@ public class FeaturesService {
     }
   }
 
-  public void setFeatures(NodeFilter filter, Features newFeatures) {
-    filter = filter.withAnyHalconfigFile();
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(filter);
+  public void setFeatures(String deploymentName, Features newFeatures) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setFeatures(newFeatures);
   }
 }

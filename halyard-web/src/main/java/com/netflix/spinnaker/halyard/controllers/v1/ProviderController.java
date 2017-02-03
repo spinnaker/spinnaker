@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
-@RequestMapping("/v1/config/deployments/{deployment:.+}/providers")
+@RequestMapping("/v1/config/deployments/{deploymentName:.+}/providers")
 public class ProviderController {
   @Autowired
   HalconfigParser halconfigParser;
@@ -40,45 +40,37 @@ public class ProviderController {
   @Autowired
   ProviderService providerService;
 
-  @RequestMapping(value = "/{provider:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{providerName:.+}", method = RequestMethod.GET)
   DaemonResponse<Provider> provider(
-      @PathVariable String deployment,
-      @PathVariable String provider,
+      @PathVariable String deploymentName,
+      @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deployment)
-        .setProvider(provider);
-
     StaticRequestBuilder<Provider> builder = new StaticRequestBuilder<>();
 
-    builder.setBuildResponse(() -> providerService.getProvider(filter));
+    builder.setBuildResponse(() -> providerService.getProvider(deploymentName, providerName));
 
     if (validate) {
-      builder.setValidateResponse(() -> providerService.validateProvider(filter, severity));
+      builder.setValidateResponse(() -> providerService.validateProvider(deploymentName, providerName, severity));
     }
 
     return builder.build();
   }
 
-  @RequestMapping(value = "/{provider:.+}/enabled", method = RequestMethod.PUT)
+  @RequestMapping(value = "/{providerName:.+}/enabled", method = RequestMethod.PUT)
   DaemonResponse<Void> setEnabled(
-      @PathVariable String deployment,
-      @PathVariable String provider,
+      @PathVariable String deploymentName,
+      @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestBody boolean enabled) {
-    NodeFilter filter = new NodeFilter()
-        .setDeployment(deployment)
-        .setProvider(provider);
-
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-    builder.setUpdate(() -> providerService.setEnabled(filter, enabled));
+    builder.setUpdate(() -> providerService.setEnabled(deploymentName, providerName, enabled));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> providerService.validateProvider(filter, severity);
+      doValidate = () -> providerService.validateProvider(deploymentName, providerName, severity);
     }
 
     builder.setValidate(doValidate);
@@ -88,16 +80,15 @@ public class ProviderController {
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonResponse<List<Provider>> providers(@PathVariable String deployment,
+  DaemonResponse<List<Provider>> providers(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    NodeFilter filter = new NodeFilter().setDeployment(deployment);
     StaticRequestBuilder<List<Provider>> builder = new StaticRequestBuilder<>();
 
-    builder.setBuildResponse(() -> providerService.getAllProviders(filter));
+    builder.setBuildResponse(() -> providerService.getAllProviders(deploymentName));
 
     if (validate) {
-      builder.setValidateResponse(() -> providerService.validateProvider(filter, severity));
+      builder.setValidateResponse(() -> providerService.validateAllProviders(deploymentName, severity));
     }
 
     return builder.build();

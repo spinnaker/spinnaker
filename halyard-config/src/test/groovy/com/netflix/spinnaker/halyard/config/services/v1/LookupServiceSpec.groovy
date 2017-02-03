@@ -47,7 +47,7 @@ deploymentConfigurations:
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(KUBERNETES_PROVIDER)
         .setAccount(KUBERNETES_ACCOUNT_NAME)
@@ -78,7 +78,7 @@ deploymentConfigurations:
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(KUBERNETES_PROVIDER)
         .setAccount(KUBERNETES_ACCOUNT_NAME)
@@ -108,7 +108,7 @@ deploymentConfigurations:
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(KUBERNETES_PROVIDER)
         .setAccount(KUBERNETES_ACCOUNT_NAME)
@@ -140,7 +140,7 @@ deploymentConfigurations:
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(DOCKER_REGISTRY_PROVIDER)
         .setAccount(DOCKER_REGISTRY_ACCOUNT_NAME)
@@ -178,7 +178,7 @@ deploymentConfigurations:
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(GOOGLE_PROVIDER)
         .setAccount(GOOGLE_ACCOUNT_NAME)
@@ -212,7 +212,7 @@ deploymentConfigurations:
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(KUBERNETES_PROVIDER)
         .setAccount(DOCKER_REGISTRY_ACCOUNT_NAME)
@@ -244,7 +244,7 @@ deploymentConfigurations:
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(DOCKER_REGISTRY_PROVIDER)
         .setAccount(DOCKER_REGISTRY_ACCOUNT_NAME)
@@ -279,7 +279,7 @@ deploymentConfigurations:
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(DOCKER_REGISTRY_PROVIDER)
         .withAnyAccount()
@@ -317,7 +317,7 @@ deploymentConfigurations:
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .withAnyProvider()
         .withAnyAccount()
@@ -357,7 +357,7 @@ deploymentConfigurations:
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .setProvider(KUBERNETES_PROVIDER)
 

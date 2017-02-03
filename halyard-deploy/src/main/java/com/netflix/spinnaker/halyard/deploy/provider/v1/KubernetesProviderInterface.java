@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
@@ -90,7 +89,6 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   @Override
   protected String componentArtifact(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerArtifact artifact) {
-    NodeFilter filter = new NodeFilter().withAnyHalconfigFile().setDeployment(details.getDeploymentName());
     String version = details.getGenerateResult().getArtifactVersion().get(artifact);
 
     // TODO(lwander/jtk54) we need a published store of validated spinnaker images

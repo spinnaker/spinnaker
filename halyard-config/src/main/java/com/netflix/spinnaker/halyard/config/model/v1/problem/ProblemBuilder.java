@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import java.util.List;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import lombok.Setter;
+
+import java.util.List;
 
 public class ProblemBuilder {
   @Setter
   Problem.Severity severity;
 
   @Setter
-  NodeFilter filter;
+  Node location;
 
   @Setter
   String message;
@@ -42,6 +43,6 @@ public class ProblemBuilder {
   }
 
   public Problem build() {
-    return new Problem(severity, filter, message, remediation, options);
+    return new Problem(severity, location.getNameToRoot(), message, remediation, options);
   }
 }

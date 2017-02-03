@@ -39,14 +39,4 @@ public class Webhooks extends Node implements Cloneable {
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeReflectiveIterator(this);
   }
-
-  @Override
-  protected boolean matchesLocally(NodeFilter filter) {
-    return !filter.webhook.isEmpty();
-  }
-
-  @Override
-  public NodeFilter getFilter() {
-    return parent.getFilter();
-  }
 }

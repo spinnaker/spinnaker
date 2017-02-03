@@ -49,8 +49,8 @@ public class ArtifactService {
   @Autowired
   DeploymentService deploymentService;
 
-  public String getArtifactVersion(NodeFilter filter, SpinnakerArtifact artifact) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(filter);
+  public String getArtifactVersion(String deploymentName, SpinnakerArtifact artifact) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     String version = deploymentConfiguration.getVersion();
     if (version == null || version.isEmpty()) {
       throw new IllegalConfigException(

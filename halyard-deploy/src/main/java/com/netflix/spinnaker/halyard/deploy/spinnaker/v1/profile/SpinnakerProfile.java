@@ -74,8 +74,8 @@ abstract public class SpinnakerProfile {
 
   public abstract SpinnakerArtifact getArtifact();
 
-  public ProfileConfig getFullConfig(NodeFilter filter) {
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(filter);
+  public ProfileConfig getFullConfig(String deploymentName) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     ProfileConfig result = generateFullConfig(
         getBaseConfig(deploymentConfiguration),
         deploymentConfiguration);
@@ -103,9 +103,8 @@ abstract public class SpinnakerProfile {
   private ProfileConfig getBaseConfig(DeploymentConfiguration deploymentConfiguration) {
     String componentName = getProfileName();
     String profileFileName = getProfileFileName();
-    NodeFilter filter = new NodeFilter().withAnyHalconfigFile().setDeployment(deploymentConfiguration.getName());
     try {
-      String componentVersion = artifactService.getArtifactVersion(filter, getArtifact());
+      String componentVersion = artifactService.getArtifactVersion(deploymentConfiguration.getName(), getArtifact());
       String componentObjectName = String.join("/", componentName, componentVersion, profileFileName);
 
       return new ProfileConfig()

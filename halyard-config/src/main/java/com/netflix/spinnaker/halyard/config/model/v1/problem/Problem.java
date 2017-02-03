@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import java.util.List;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import lombok.Getter;
+
+import java.util.List;
 
 /**
  * This represents a single "problem" with the currently loaded/modified halconfig.
@@ -53,17 +54,16 @@ public class Problem {
   /**
    * The location of the problem in the config.
    */
-  @Getter
-  final private NodeFilter filter;
+  final private String readableLocation;
 
   /**
    * Provides a human-readable filter interpretation.
    *
    * @return the name of the filter in a human-readable format.
    */
-  public String getFilterTitle() {
-    if (filter != null) {
-      return filter.toString();
+  public String getReadableLocation() {
+    if (readableLocation != null) {
+      return readableLocation.toString();
     } else {
       return "Global";
     }
@@ -93,12 +93,12 @@ public class Problem {
   @Getter
   final private Severity severity;
 
-  public Problem(Severity severity, NodeFilter filter, String message, String remediation, List<String> options) {
+  public Problem(Severity severity, String readableLocation, String message, String remediation, List<String> options) {
     if (severity == Severity.NONE) {
       throw new RuntimeException("A halconfig problem may not be intialized with \"NONE\" severity");
     }
     this.severity = severity;
-    this.filter = filter;
+    this.readableLocation = readableLocation;
     this.message = message;
     this.remediation = remediation;
     this.options = options;

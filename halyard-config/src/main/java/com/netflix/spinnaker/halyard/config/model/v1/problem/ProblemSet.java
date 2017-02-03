@@ -34,7 +34,7 @@ public class ProblemSet {
   public Map<String, List<Problem>> groupByLocation() {
     Map<String, List<Problem>> result = new HashMap<>();
     for (Problem problem : problems) {
-      result.merge(problem.getFilterTitle(),
+      result.merge(problem.getReadableLocation(),
           new ArrayList<Problem>() {{
             add(problem);
           }},

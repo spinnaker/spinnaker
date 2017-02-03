@@ -41,17 +41,16 @@ public class DeploymentController {
   @Autowired
   DeployService deployService;
 
-  @RequestMapping(value = "/{deployment:.+}", method = RequestMethod.GET)
-  DaemonResponse<DeploymentConfiguration> deploymentConfiguration(@PathVariable String deployment,
+  @RequestMapping(value = "/{deploymentName:.+}", method = RequestMethod.GET)
+  DaemonResponse<DeploymentConfiguration> deploymentConfiguration(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    NodeFilter filter = new NodeFilter().setDeployment(deployment);
     StaticRequestBuilder<DeploymentConfiguration> builder = new StaticRequestBuilder<>();
 
-    builder.setBuildResponse(() -> deploymentService.getDeploymentConfiguration(filter));
+    builder.setBuildResponse(() -> deploymentService.getDeploymentConfiguration(deploymentName));
 
     if (validate) {
-      builder.setValidateResponse(() -> deploymentService.validateDeployment(filter, severity));
+      builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName, severity));
     }
 
     return builder.build();
@@ -72,28 +71,24 @@ public class DeploymentController {
     return builder.build();
   }
 
-  @RequestMapping(value = "/{deployment:.+}/generate/", method = RequestMethod.POST)
-  DaemonResponse<Void> generateConfig(@PathVariable String deployment) {
-    NodeFilter filter = new NodeFilter().setDeployment(deployment);
-
+  @RequestMapping(value = "/{deploymentName:.+}/generate/", method = RequestMethod.POST)
+  DaemonResponse<Void> generateConfig(@PathVariable String deploymentName) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> {
-      generateService.generateConfig(filter);
+      generateService.generateConfig(deploymentName);
       return null;
     });
 
     return builder.build();
   }
 
-  @RequestMapping(value = "/{deployment:.+}/deploy/", method = RequestMethod.POST)
-  DaemonResponse<Void> deploy(@PathVariable String deployment) {
-    NodeFilter filter = new NodeFilter().setDeployment(deployment);
-
+  @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
+  DaemonResponse<Void> deploy(@PathVariable String deploymentName) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> {
-      deployService.deploySpinnaker(filter);
+      deployService.deploySpinnaker(deploymentName);
       return null;
     });
 

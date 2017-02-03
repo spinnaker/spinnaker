@@ -58,7 +58,7 @@ deploymentConfigurations:
 """
     def validateService = new ValidateService()
     validateService.parser = mocker.mockHalconfigParser(config)
-    def filter = new NodeFilter().withAnyHalconfigFile()
+    def filter = new NodeFilter()
         .setDeployment(DEPLOYMENT_NAME)
         .withAnyProvider()
         .withAnyAccount()

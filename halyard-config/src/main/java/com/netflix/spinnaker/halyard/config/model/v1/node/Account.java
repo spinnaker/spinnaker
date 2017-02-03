@@ -36,17 +36,7 @@ public abstract class Account extends Node implements Cloneable {
   }
 
   @Override
-  protected boolean matchesLocally(NodeFilter filter) {
-    return NodeFilter.matches(filter.account, name);
-  }
-
-  @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeEmptyIterator();
-  }
-
-  @Override
-  public NodeFilter getFilter() {
-    return parent.getFilter().setAccount(name);
   }
 }

@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.function.Supplier;
 
 @RestController
-@RequestMapping("/v1/config/deployments/{deployment:.+}/features")
+@RequestMapping("/v1/config/deployments/{deploymentName:.+}/features")
 public class FeaturesController {
   @Autowired
   HalconfigParser halconfigParser;
@@ -43,30 +43,26 @@ public class FeaturesController {
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonResponse<Features> getFeatures(@PathVariable String deployment,
+  DaemonResponse<Features> getFeatures(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    NodeFilter filter = new NodeFilter().setDeployment(deployment);
-
     DaemonResponse.StaticRequestBuilder<Features> builder = new DaemonResponse.StaticRequestBuilder<>();
 
-    builder.setBuildResponse(() -> featuresService.getFeatures(filter));
+    builder.setBuildResponse(() -> featuresService.getFeatures(deploymentName));
 
     return builder.build();
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
-  DaemonResponse<Void> setFeatures(@PathVariable String deployment,
+  DaemonResponse<Void> setFeatures(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestBody Object rawFeatures) {
-    NodeFilter filter = new NodeFilter().setDeployment(deployment);
-
     Features features = objectMapper.convertValue(rawFeatures, Features.class);
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-    builder.setUpdate(() -> featuresService.setFeatures(filter, features));
+    builder.setUpdate(() -> featuresService.setFeatures(deploymentName, features));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
 

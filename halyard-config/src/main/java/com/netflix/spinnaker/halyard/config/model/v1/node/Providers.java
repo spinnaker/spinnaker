@@ -47,18 +47,8 @@ public class Providers extends Node implements Cloneable {
   }
 
   @Override
-  protected boolean matchesLocally(NodeFilter filter) {
-    return !filter.provider.isEmpty();
-  }
-
-  @Override
   public void accept(ProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
-  }
-
-  @Override
-  public NodeFilter getFilter() {
-    return parent.getFilter();
   }
 
   public static Class<? extends Provider> translateProviderType(String providerName) {

@@ -74,16 +74,6 @@ class SpinnakerProfileSpec extends Specification {
       return NodeIteratorFactory.makeEmptyIterator()
     }
 
-    @Override
-    protected boolean matchesLocally(NodeFilter filter) {
-      return false
-    }
-
-    @Override
-    NodeFilter getFilter() {
-      return null
-    }
-
     @LocalFile path1 = PATH
     @LocalFile path2 = PATH
     @LocalFile path3 = PATH
@@ -103,16 +93,6 @@ class SpinnakerProfileSpec extends Specification {
     @Override
     NodeIterator getChildren() {
       return NodeIteratorFactory.makeReflectiveIterator(this)
-    }
-
-    @Override
-    protected boolean matchesLocally(NodeFilter filter) {
-      return false
-    }
-
-    @Override
-    NodeFilter getFilter() {
-      return null
     }
 
     ChildNode node1 = new ChildNode()
