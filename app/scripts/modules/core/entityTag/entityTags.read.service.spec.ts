@@ -7,7 +7,7 @@ describe('entityTags reader', () => {
 
   let $http: ng.IHttpBackendService;
   let $q: ng.IQService;
-  let $scope: ng.IScope;
+  let $timeout: ng.ITimeoutService;
   let $exceptionHandler: ng.IExceptionHandlerService;
   let service: EntityTagsReader;
   let settings: any;
@@ -27,22 +27,24 @@ describe('entityTags reader', () => {
   beforeEach(
     mock.inject(($httpBackend: ng.IHttpBackendService,
                  _$q_: ng.IQService,
-                 $rootScope: ng.IRootScopeService,
                  _$exceptionHandler_: ng.IExceptionHandlerService,
                  entityTagsReader: EntityTagsReader,
+                 _$timeout_: ng.ITimeoutService,
                  _settings_: any) => {
       $http = $httpBackend;
       $q = _$q_;
-      $scope = $rootScope.$new();
       service = entityTagsReader;
       settings = _settings_;
       $exceptionHandler = _$exceptionHandler_;
+      $timeout = _$timeout_;
     }));
 
   it('returns an empty list instead of failing if tags cannot be loaded', () => {
-    $http.expectGET(`${settings.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(400, 'bad request');
+    $http.whenGET(`${settings.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(400, 'bad request');
     let result: any = null;
     service.getAllEntityTags('serverGroups', ['a', 'b']).then(r => result = r);
+    $http.flush();
+    $timeout.flush();
     $http.flush();
     expect(result).toEqual([]);
     expect(($exceptionHandler as any)['errors'].length).toBe(1);
@@ -55,7 +57,19 @@ describe('entityTags reader', () => {
     let result: any = null;
     service.getAllEntityTags('serverGroups', ['a', 'b', 'c', 'd']).then(r => result = r);
     $http.flush();
-    $scope.$digest();
+    $timeout.flush();
+    expect(result).toEqual([]);
+    expect(($exceptionHandler as any)['errors'].length).toBe(0);
+  });
+
+  it('retries server group fetch once on exceptions', () => {
+    $http.expectGET(`${settings.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(400, 'bad request');
+    let result: any = null;
+    service.getAllEntityTags('serverGroups', ['a', 'b']).then(r => result = r);
+    $http.flush();
+    $http.expectGET(`${settings.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(200, []);
+    $timeout.flush();
+    $http.flush();
     expect(result).toEqual([]);
     expect(($exceptionHandler as any)['errors'].length).toBe(0);
   });
