@@ -136,7 +136,7 @@ class Annotator(Refresher):
   """
 
   # regex for 'version-X.Y.Z-$build' versions
-  TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+-[0-9]$')
+  TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$')
 
   def __init__(self, options):
     self.__next_tag = options.next_tag
