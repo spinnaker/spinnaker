@@ -29,6 +29,8 @@ public class GlobalOptions {
 
   private boolean debug = false;
 
+  private boolean help = false;
+
   private static GlobalOptions globalOptions = null;
 
   public static boolean isGlobalOption(String name) {

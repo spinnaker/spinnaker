@@ -29,8 +29,7 @@ import lombok.Setter;
 import retrofit.RetrofitError;
 
 import java.net.ConnectException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Parameters(separators = "=")
 public abstract class NestableCommand {
@@ -133,12 +132,15 @@ public abstract class NestableCommand {
     paragraph.addSnippet(usage);
     story.addNewline();
 
-    if (!commander.getParameters().isEmpty()) {
+    List<ParameterDescription> parameters = commander.getParameters();
+    parameters.sort(Comparator.comparing(ParameterDescription::getNames));
+
+    if (!parameters.isEmpty()) {
       paragraph = story.addParagraph();
       paragraph.addSnippet("GLOBAL PARAMETERS").addStyle(AnsiStyle.BOLD);
       story.addNewline();
 
-      for (ParameterDescription parameter : commander.getParameters()) {
+      for (ParameterDescription parameter : parameters) {
         if (GlobalOptions.isGlobalOption(parameter.getLongestName())) {
           formatParameter(story, parameter, indentWidth);
         }
@@ -158,7 +160,7 @@ public abstract class NestableCommand {
         story.addNewline();
       }
 
-      for (ParameterDescription parameter : commander.getParameters()) {
+      for (ParameterDescription parameter : parameters) {
         if (!GlobalOptions.isGlobalOption(parameter.getLongestName())) {
           formatParameter(story, parameter, indentWidth);
         }
@@ -177,7 +179,10 @@ public abstract class NestableCommand {
       paragraph.addSnippet("SUBCOMMANDS").addStyle(AnsiStyle.BOLD);
       story.addNewline();
 
-      for (String key : subcommands.keySet()) {
+      List<String> keys = new ArrayList<>(subcommands.keySet());
+      keys.sort(String::compareTo);
+
+      for (String key : keys) {
         paragraph = story.addParagraph().setIndentWidth(indentWidth);
         paragraph.addSnippet(key).addStyle(AnsiStyle.BOLD);
 
