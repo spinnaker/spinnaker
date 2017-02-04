@@ -45,10 +45,7 @@ public class DeploymentService {
   public DeploymentConfiguration getDeploymentConfiguration(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName);
 
-    List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class)
-            .stream()
-            .map(n -> (DeploymentConfiguration) n)
-            .collect(Collectors.toList());
+    List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class);
 
     switch (matching.size()) {
       case 0:
@@ -67,10 +64,7 @@ public class DeploymentService {
   public List<DeploymentConfiguration> getAllDeploymentConfigurations() {
     NodeFilter filter = new NodeFilter().withAnyDeployment();
 
-    List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class)
-        .stream()
-        .map(n -> (DeploymentConfiguration) n)
-        .collect(Collectors.toList());
+    List<DeploymentConfiguration> matching = lookupService.getMatchingNodesOfType(filter, DeploymentConfiguration.class);
 
     if (matching.size() == 0) {
       throw new ConfigNotFoundException(

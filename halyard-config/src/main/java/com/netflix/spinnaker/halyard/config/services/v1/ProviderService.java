@@ -45,10 +45,7 @@ public class ProviderService {
   public Provider getProvider(String deploymentName, String providerName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName);
 
-    List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class)
-        .stream()
-        .map(n -> (Provider) n)
-        .collect(Collectors.toList());
+    List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class);
 
     switch (matching.size()) {
       case 0:
@@ -67,10 +64,7 @@ public class ProviderService {
   public List<Provider> getAllProviders(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyProvider();
 
-    List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class)
-        .stream()
-        .map(n -> (Provider) n)
-        .collect(Collectors.toList());
+    List<Provider> matching = lookupService.getMatchingNodesOfType(filter, Provider.class);
 
     if (matching.size() == 0) {
       throw new ConfigNotFoundException(

@@ -50,10 +50,7 @@ public class AccountService {
   public List<Account> getAllAccounts(String deploymentName, String providerName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).withAnyAccount();
 
-    List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class)
-        .stream()
-        .map(n -> (Account) n)
-        .collect(Collectors.toList());
+    List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class);
 
     if (matchingAccounts.size() == 0) {
       throw new ConfigNotFoundException(
@@ -64,10 +61,7 @@ public class AccountService {
   }
 
   private Account getAccount(NodeFilter filter, String accountName) {
-    List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class)
-        .stream()
-        .map(n -> (Account) n)
-        .collect(Collectors.toList());
+    List<Account> matchingAccounts = lookupService.getMatchingNodesOfType(filter, Account.class);
 
     switch (matchingAccounts.size()) {
       case 0:

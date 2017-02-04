@@ -91,8 +91,4 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
       return old;
     }
   }
-
-  protected static boolean isSet(String s) {
-    return s != null && !s.isEmpty();
-  }
 }

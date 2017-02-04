@@ -26,4 +26,8 @@ abstract public class AbstractConfigCommand extends NestableCommand {
   protected String getCurrentDeployment() {
     return Daemon.getCurrentDeployment();
   }
+
+  protected static boolean isSet(String s) {
+    return s != null && !s.isEmpty();
+  }
 }

@@ -18,10 +18,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.RestAdapter;
@@ -38,6 +35,14 @@ public class Daemon {
 
   public static void setFeatures(String deploymentName, boolean validate, Features features) {
     ResponseUnwrapper.get(service.setFeatures(deploymentName, validate, features));
+  }
+
+  public static PersistentStorage getPersistentStorage(String deploymentName, boolean validate) {
+    return ResponseUnwrapper.get(service.getPersistentStorage(deploymentName, validate));
+  }
+
+  public static void setPersistentStorage(String deploymentName, boolean validate, PersistentStorage persistentStorage) {
+    ResponseUnwrapper.get(service.setPersistentStorage(deploymentName, validate, persistentStorage));
   }
 
   public static Account getAccount(String deploymentName, String providerName, String accountName, boolean validate) {

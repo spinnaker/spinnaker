@@ -38,12 +38,13 @@ public class LookupService {
    * @param clazz is the class of the node type we want to find.
    * @return the nodes matching the filter and clazz.
    */
-  public List<Node> getMatchingNodesOfType(NodeFilter filter, Class<? extends Node> clazz) {
+  public <T extends Node> List<T> getMatchingNodesOfType(NodeFilter filter, Class<T> clazz) {
     Halconfig halconfig = parser.getHalconfig(true);
 
     return getMatchingNodes(halconfig, filter)
         .stream()
         .filter(clazz::isInstance)
+        .map(n -> (T) n)
         .collect(Collectors.toList());
   }
 

@@ -17,40 +17,40 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
-public class FeaturesService {
+public class PersistentStorageService {
   @Autowired
   LookupService lookupService;
 
   @Autowired
   DeploymentService deploymentService;
 
-  public Features getFeatures(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setFeatures();
+  public PersistentStorage getPersistentStorage(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPersistentStorage();
 
-    List<Features> matching = lookupService.getMatchingNodesOfType(filter, Features.class);
+    List<PersistentStorage> matching = lookupService.getMatchingNodesOfType(filter, PersistentStorage.class);
 
     switch (matching.size()) {
       case 0:
-        Features features = new Features();
-        setFeatures(deploymentName, features);
-        return features;
+        PersistentStorage persistentStorage = new PersistentStorage();
+        setPersistentStorage(deploymentName, persistentStorage);
+        return persistentStorage;
       case 1:
         return matching.get(0);
       default:
-        throw new RuntimeException("It shouldn't be possible to have multiple features nodes. This is a bug.");
+        throw new RuntimeException("It shouldn't be possible to have multiple persistent storage nodes. This is a bug.");
     }
   }
 
-  public void setFeatures(String deploymentName, Features newFeatures) {
+  public void setPersistentStorage(String deploymentName, PersistentStorage newPersistentStorage) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    deploymentConfiguration.setFeatures(newFeatures);
+    deploymentConfiguration.setPersistentStorage(newPersistentStorage);
   }
 }

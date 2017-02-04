@@ -47,6 +47,8 @@ public class DeploymentConfiguration extends Node {
 
   DeploymentEnvironment deploymentEnvironment = new DeploymentEnvironment();
 
+  PersistentStorage persistentStorage = new PersistentStorage();
+
   Features features = new Features();
 
   /**

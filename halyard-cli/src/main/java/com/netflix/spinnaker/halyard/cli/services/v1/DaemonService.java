@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+
 import java.util.List;
 
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
@@ -74,6 +72,18 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body Features features);
+
+  @GET("/v1/config/deployments/{deploymentName}/persistentStorage/")
+  DaemonResponse<PersistentStorage> getPersistentStorage(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+
+  @PUT("/v1/config/deployments/{deploymentName}/persistentStorage/")
+  DaemonResponse<Void> setPersistentStorage(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body PersistentStorage persistentStorage);
 
   @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/")
   DaemonResponse<Object> getProvider(

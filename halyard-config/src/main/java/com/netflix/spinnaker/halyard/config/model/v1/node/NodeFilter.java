@@ -91,6 +91,11 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter setPersistentStorage() {
+    matchers.add(Node.thisNodeAcceptor(PersistentStorage.class));
+    return this;
+  }
+
   public NodeFilter() {
     withAnyHalconfigFile();
   }
