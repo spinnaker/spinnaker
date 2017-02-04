@@ -14,7 +14,9 @@ describe('Scope Domain Spec', function () {
         asg: 'asg-v100',
         serverId: 'i-1234',
         zone: 'us-east-1b',
-        cluster: 'my-cluster'
+        cluster: 'my-cluster',
+        // this should be excluded from the build function
+        propertyId: '1234'
       };
 
       let result: Scope = Scope.build(platformProperty);
@@ -22,6 +24,8 @@ describe('Scope Domain Spec', function () {
       ['env', 'region', 'appId', 'stack', 'asg', 'severId', 'zone', 'cluster'].forEach((prop: string) => {
         expect(result[prop]).toBe(platformProperty[prop]);
       });
+
+      expect(result['propertyId']).toBeUndefined()
 
     });
   });

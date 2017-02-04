@@ -25,7 +25,18 @@ export class Scope {
   };
 
   static build(platformProperty: IPlatformProperty): Scope {
-    return Object.assign(new Scope(), platformProperty);
+    // platform property has all the property details as well as the scope. We only want the scope.
+    // Object.assign(new Scope(), platformProperty) brings the whole platform property into scope.
+    let scope = new Scope();
+    scope.env = platformProperty.env;
+    scope.region = platformProperty.region;
+    scope.appId = platformProperty.appId;
+    scope.stack = platformProperty.stack;
+    scope.asg = platformProperty.asg;
+    scope.serverId = platformProperty.serverId;
+    scope.zone = platformProperty.zone;
+    scope.cluster = platformProperty.cluster;
+    return scope;
   }
 
   public getBaseOfScope() {
@@ -49,7 +60,7 @@ export class Scope {
     return CATEGORY.GLOBAL;
   }
 
-  forSubmit(env: string): Scope {
+  public forSubmit(env: string): Scope {
     let copy: Scope = Object.assign({}, this);
     copy.env = env;
     copy.appIdList = [this.appId];
