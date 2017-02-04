@@ -90,6 +90,15 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
       } else {
         cloudProviders = providers;
       }
+
+      // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
+      let dockerBakeEnabled = _.get(settings, 'feature.dockerBake') && type.key === 'bake';
+
+      if (dockerBakeEnabled) {
+        providers = angular.copy(providers);
+        providers.push('docker');
+      }
+
       return _.intersection(providers, cloudProviders);
     }
 
