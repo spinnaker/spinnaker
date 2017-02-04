@@ -42,10 +42,54 @@ public class AppengineAddAccountCommand extends AbstractAddAccountCommand {
   )
   private String jsonPath;
 
+  @Parameter(
+      names = "--local-repository-directory",
+      description = AppengineCommandProperties.LOCAL_REPOSITORY_DIRECTORY_DESCRIPTION
+  )
+  private String localRepositoryDirectory;
+
+  @Parameter(
+      names = "--git-https-username",
+      description = AppengineCommandProperties.GIT_HTTPS_USERNAME_DESCRIPTION
+  )
+  private String gitHttpsUsername;
+
+  @Parameter(
+      names = "--git-https-password",
+      description = AppengineCommandProperties.GIT_HTTPS_PASSWORD_DESCRIPTION,
+      password = true
+  )
+  private String gitHttpsPassword;
+
+  @Parameter(
+      names = "--github-oauth-access-token",
+      description = AppengineCommandProperties.GITHUB_OAUTH_ACCESS_TOKEN_DESCRIPTION,
+      password = true
+  )
+  private String githubOAuthAccessToken;
+
+  @Parameter(
+      names = "--ssh-private-key-file-path",
+      description = AppengineCommandProperties.SSH_PRIVATE_KEY_FILE_PATH
+  )
+  private String sshPrivateKeyFilePath;
+
+  @Parameter(
+      names = "--ssh-private-key-passphrase",
+      description = AppengineCommandProperties.SSH_PRIVATE_KEY_PASSPHRASE,
+      password = true
+  )
+  private String sshPrivateKeyPassphrase;
+
   @Override
   protected Account buildAccount(String accountName) {
     AppengineAccount account = (AppengineAccount) new AppengineAccount().setName(accountName);
     account.setProject(project).setJsonPath(jsonPath);
+    
+    account.setLocalRepositoryDirectory(localRepositoryDirectory).setGitHttpsUsername(gitHttpsUsername)
+            .setGitHttpsPassword(gitHttpsPassword).setGithubOAuthAccessToken(githubOAuthAccessToken)
+            .setSshPrivateKeyFilePath(sshPrivateKeyFilePath).setSshPrivateKeyPassphrase(sshPrivateKeyPassphrase);
+
     return account;
   }
 }

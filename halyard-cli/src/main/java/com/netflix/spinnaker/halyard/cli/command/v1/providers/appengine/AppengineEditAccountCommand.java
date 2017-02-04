@@ -30,7 +30,6 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
 
   @Parameter(
       names = "--project",
-      required = true,
       description = CommonGoogleCommandProperties.PROJECT_DESCRIPTION
   )
   private String project;
@@ -40,12 +39,57 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
       description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
   )
   private String jsonPath;
+  
+  @Parameter(
+      names = "--local-repository-directory",
+      description = AppengineCommandProperties.LOCAL_REPOSITORY_DIRECTORY_DESCRIPTION
+  )
+  private String localRepositoryDirectory = "/var/tmp/clouddriver";
+
+  @Parameter(
+      names = "--git-https-username",
+      description = AppengineCommandProperties.GIT_HTTPS_USERNAME_DESCRIPTION
+  )
+  private String gitHttpsUsername;
+
+  @Parameter(
+      names = "--git-https-password",
+      description = AppengineCommandProperties.GIT_HTTPS_PASSWORD_DESCRIPTION,
+      password = true
+  )
+  private String gitHttpsPassword;
+
+  @Parameter(
+      names = "--github-oauth-access-token",
+      description = AppengineCommandProperties.GITHUB_OAUTH_ACCESS_TOKEN_DESCRIPTION,
+      password = true
+  )
+  private String githubOAuthAccessToken;
+
+  @Parameter(
+      names = "--ssh-private-key-file-path",
+      description = AppengineCommandProperties.SSH_PRIVATE_KEY_FILE_PATH
+  )
+  private String sshPrivateKeyFilePath;
+
+  @Parameter(
+      names = "--ssh-private-key-passphrase",
+      description = AppengineCommandProperties.SSH_PRIVATE_KEY_PASSPHRASE,
+      password = true
+  )
+  private String sshPrivateKeyPassphrase;
 
   @Override
   protected Account editAccount(AppengineAccount account) {
     account.setJsonPath(isSet(jsonPath) ? jsonPath : account.getJsonPath());
     account.setProject(isSet(project) ? project : account.getProject());
-
+    account.setLocalRepositoryDirectory(isSet(localRepositoryDirectory) ? localRepositoryDirectory : account.getLocalRepositoryDirectory());
+    account.setGitHttpsUsername(isSet(gitHttpsUsername) ? gitHttpsUsername : account.getGitHttpsUsername());
+    account.setGitHttpsPassword(isSet(gitHttpsPassword) ? gitHttpsPassword : account.getGitHttpsPassword());
+    account.setGithubOAuthAccessToken(isSet(githubOAuthAccessToken) ? githubOAuthAccessToken : account.getGithubOAuthAccessToken());
+    account.setSshPrivateKeyFilePath(isSet(sshPrivateKeyFilePath) ? sshPrivateKeyFilePath: account.getSshPrivateKeyFilePath());
+    account.setSshPrivateKeyPassphrase(isSet(sshPrivateKeyPassphrase) ? sshPrivateKeyPassphrase: account.getSshPrivateKeyPassphrase());
+    
     return account;
   }
 }

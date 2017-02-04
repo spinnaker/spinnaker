@@ -5,4 +5,5 @@ dependencies {
   compile spinnaker.dependency('clouddriverDocker')
   compile spinnaker.dependency('clouddriverGoogle')
   compile spinnaker.dependency('clouddriverKubernetes')
+  compile spinnaker.dependency('clouddriverAppengine')
 }

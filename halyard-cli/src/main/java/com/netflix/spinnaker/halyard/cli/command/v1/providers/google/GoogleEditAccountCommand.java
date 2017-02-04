@@ -32,7 +32,6 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
 
   @Parameter(
       names = "--project",
-      required = true,
       description = CommonGoogleCommandProperties.PROJECT_DESCRIPTION
   )
   private String project;

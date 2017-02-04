@@ -107,7 +107,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     }
 
     if (smoketest) {
-      Config config = KubernetesConfigParser.parse(kubeconfigFile, context, cluster, user, namespaces);
+      Config config = KubernetesConfigParser.parse(kubeconfigFile, context, cluster, user, namespaces, false);
       KubernetesClient client = new DefaultKubernetesClient(config);
 
       try {
