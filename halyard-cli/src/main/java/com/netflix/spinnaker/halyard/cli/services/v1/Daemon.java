@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
@@ -71,6 +72,10 @@ public class Daemon {
 
   public static void deployDeployment(String deploymentName, boolean validate) {
     ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, ""));
+  }
+
+  public static <T> DaemonTask<T> getTask(String uuid) {
+    return getService().getTask(uuid);
   }
 
   public static Versions getVersions() {

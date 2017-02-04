@@ -22,9 +22,13 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import com.netflix.spinnaker.halyard.deploy.services.v1.DeployService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -72,7 +76,7 @@ public class DeploymentController {
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/generate/", method = RequestMethod.POST)
-  DaemonResponse<Void> generateConfig(@PathVariable String deploymentName) {
+  DaemonTask<Void> generateConfig(@PathVariable String deploymentName) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> {
@@ -80,7 +84,7 @@ public class DeploymentController {
       return null;
     });
 
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)

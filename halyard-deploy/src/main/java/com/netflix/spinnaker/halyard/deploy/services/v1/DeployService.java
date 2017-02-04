@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
@@ -54,6 +53,7 @@ public class DeployService {
     Path path = defaultFileSystem.getPath(spinnakerOutputPath, "spinnaker.yml");
 
     log.info("Writing spinnaker endpoints to " + path);
+
     generateService.atomicWrite(path, generateService.yamlToString(deployment.getEndpoints()));
 
     deployment.deploy();

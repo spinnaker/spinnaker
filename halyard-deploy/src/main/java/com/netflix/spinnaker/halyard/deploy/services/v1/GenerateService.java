@@ -19,10 +19,9 @@ package com.netflix.spinnaker.halyard.deploy.services.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileConfig;
@@ -107,7 +106,6 @@ public class GenerateService {
    */
   public GenerateResult generateConfig(String deploymentName) {
     log.info("Generating config from \"" + halconfigPath + "\" with deploymentName \"" + deploymentName + "\"");
-
     File spinnakerOutput = new File(spinnakerOutputPath);
 
     // Step 1.
@@ -132,6 +130,7 @@ public class GenerateService {
       path = defaultFileSystem.getPath(spinnakerOutputPath, profile.getProfileFileName());
       ProfileConfig config = profile.getFullConfig(deploymentName);
       log.info("Writing " + profile.getProfileName() + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
+      DaemonTaskHandler.log("Writing profile " + path.getFileName().toFile().getName());
       atomicWrite(path, config.getConfigContents());
 
       profileRequirements.put(profile.getProfileName(), config.getRequiredFiles());
@@ -149,6 +148,7 @@ public class GenerateService {
 
       Arrays.stream(files).forEach(f -> {
         try {
+          DaemonTaskHandler.log("Copying existing profile " + f.getName());
           Files.copy(f.toPath(), Paths.get(spinnakerOutput.toString(), f.getName()), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
           throw new HalconfigException(

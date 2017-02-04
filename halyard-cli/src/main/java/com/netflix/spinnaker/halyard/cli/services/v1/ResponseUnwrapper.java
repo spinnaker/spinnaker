@@ -21,15 +21,44 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonEvent;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 public class ResponseUnwrapper<T> {
+  private static final Long WAIT_MILLIS = 500L;
+
   public static <T> T get(DaemonResponse<T> response) {
     formatProblemSet(response.getProblemSet());
     return response.getResponseBody();
+  }
+
+  public static <T> T get(DaemonTask<T> task) {
+    int eventsSeen = 0;
+    while (task.getState() != DaemonTask.State.COMPLETED) {
+      eventsSeen = formatEvents(task.getEvents(), eventsSeen);
+
+      try {
+        Thread.sleep(WAIT_MILLIS);
+      } catch (InterruptedException ignored) {
+      }
+
+      task = Daemon.getTask(task.getUuid());
+    }
+
+    formatEvents(task.getEvents(), eventsSeen);
+
+    return get(task.getResponse());
+  }
+
+  private static int formatEvents(List<DaemonEvent> events, int eventsSeen) {
+    for (DaemonEvent event : events.subList(eventsSeen, events.size())) {
+      AnsiUi.listItem(event.getMessage());
+    }
+    return events.size();
   }
 
   private static void formatProblemSet(ProblemSet problemSet) {

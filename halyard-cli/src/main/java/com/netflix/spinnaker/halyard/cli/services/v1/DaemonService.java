@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import java.util.List;
 
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
@@ -33,6 +34,9 @@ import retrofit.http.Path;
 import retrofit.http.Query;
 
 public interface DaemonService {
+  @GET("/v1/tasks/{uuid}/")
+  <T> DaemonTask<T> getTask(@Path("uuid") String uuid);
+
   @GET("/v1/config/")
   DaemonResponse<Halconfig> getHalconfig();
 
@@ -48,7 +52,7 @@ public interface DaemonService {
       @Query("validate") boolean validate);
 
   @POST("/v1/config/deployments/{deploymentName}/generate/")
-  DaemonResponse<Void> generateDeployment(
+  DaemonTask<Void> generateDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body String _ignore);
