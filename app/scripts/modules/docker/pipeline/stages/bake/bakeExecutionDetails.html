@@ -6,18 +6,24 @@
         <dl class="dl-narrow dl-horizontal">
           <dt if-multiple-providers>Provider</dt>
           <dd if-multiple-providers>Docker</dd>
+          <dt>Organization</dt>
+          <dd>{{stage.context.organization}}</dd>
+          <dt>Image Name</dt>
+          <dd>{{stage.context.ami_name}}</dd>
+          <dt>Image Tag</dt>
+          <dd>{{stage.context.extendedAttributes['docker_target_image_tag']}}</dd>
           <dt>Image</dt>
           <dd>{{stage.context.ami}}</dd>
-          <dt>Region</dt>
-          <dd>{{stage.context.region}}</dd>
-          <dt>Package</dt>
-          <dd>{{stage.context.package}}</dd>
         </dl>
       </div>
       <div class="col-md-6">
         <dl class="dl-narrow dl-horizontal">
           <dt>Base OS</dt>
           <dd>{{stage.context.baseOs}}</dd>
+          <dt>Region</dt>
+          <dd>{{stage.context.region}}</dd>
+          <dt>Package</dt>
+          <dd>{{stage.context.package}}</dd>
           <dt>Label</dt>
           <dd>{{stage.context.baseLabel}}</dd>
         </dl>

@@ -232,6 +232,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.bake.package': '<p>The name of the package you want installed (without any version identifiers).</p>' +
     '<p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>' +
     '<p>If there are multiple packages (space separated), then they will be installed in the order they are entered.</p>',
+    'pipeline.config.docker.bake.targetImage': '<p>The name of the resulting docker image.</p>',
+    'pipeline.config.docker.bake.targetImageTag': '<p>The tag of the resulting docker image, defaults to commit hash if available.</p>',
+    'pipeline.config.docker.bake.organization': '<p>The name of the organization or repo to use for the resulting docker image.</p>',
     'pipeline.config.bake.baseAmi': '<p>(Optional) ami-????????</p>',
     'pipeline.config.bake.amiSuffix': '<p>(Optional) String of date in format YYYYMMDDHHmm, default is calculated from timestamp,</p>',
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
