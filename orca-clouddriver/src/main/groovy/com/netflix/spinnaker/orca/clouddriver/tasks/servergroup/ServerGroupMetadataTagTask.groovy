@@ -31,7 +31,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit
 
 @Component
 @Slf4j
@@ -45,16 +45,16 @@ class ServerGroupMetadataTagTask extends AbstractCloudProviderAwareTask implemen
   @Override
   TaskResult execute(Stage stage) {
     try {
-      TaskId taskId = kato.requestOperations(buildTagOperations(stage)).toBlocking().first();
+      TaskId taskId = kato.requestOperations(buildTagOperations(stage)).toBlocking().first()
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {
         {
-          put("notification.type", "upsertentitytags");
-          put("kato.last.task.id", taskId);
+          put("notification.type", "upsertentitytags")
+          put("kato.last.task.id", taskId)
         }
-      });
+      })
     } catch (Exception e) {
       log.error("Failed to tag deployed server groups (stageId: ${stage.id}, executionId: ${stage.execution.id})", e)
-      return new DefaultTaskResult(ExecutionStatus.FAILED_CONTINUE);
+      return new DefaultTaskResult(ExecutionStatus.FAILED_CONTINUE)
     }
   }
 

@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupMetadataTagTask
-import groovy.util.logging.Slf4j
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
-import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CloneServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupMetadataTagTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Slf4j
@@ -33,6 +34,9 @@ import org.springframework.stereotype.Component
 class CloneServerGroupStage extends AbstractDeployStrategyStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "cloneServerGroup"
+
+  @Autowired
+  private FeaturesService featuresService
 
   CloneServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
@@ -44,7 +48,7 @@ class CloneServerGroupStage extends AbstractDeployStrategyStage {
 
   @Override
   protected List<TaskNode.TaskDefinition> basicTasks(Stage stage) {
-    def taggingEnabled = false // check clouddriver:/features/stages for upsertEntityTags
+    def taggingEnabled = featuresService.isStageAvailable("upsertEntityTags")
 
     def tasks = [
       new TaskNode.TaskDefinition("cloneServerGroup", CloneServerGroupTask),
