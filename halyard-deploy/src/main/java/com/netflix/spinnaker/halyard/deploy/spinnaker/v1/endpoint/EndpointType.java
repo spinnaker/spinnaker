@@ -25,8 +25,17 @@ import java.util.Optional;
 import lombok.Getter;
 
 public enum EndpointType {
-  // These are (for now) the only services that we'll need to talk to as Halyard
-  CLOUDDRIVER(Clouddriver.class, "clouddriver");
+  CLOUDDRIVER(Clouddriver.class, "clouddriver"),
+  DECK(null, "deck"),
+  ECHO(null, "echo"),
+  FIAT(null, "fiat"),
+  FRONT50(null, "front50"),
+  GATE(null, "gate"),
+  IGOR(null, "igor"),
+  ORCA(null, "orca"),
+  ROSCO(null, "rosco"),
+  // Non-spinnaker
+  REDIS(null, "redis");
 
   @Getter
   Class serviceClass;

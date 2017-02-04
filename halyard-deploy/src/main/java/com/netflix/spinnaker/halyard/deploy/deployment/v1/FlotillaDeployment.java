@@ -22,8 +22,8 @@ import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 
-abstract public class ClusteredSimpleDeployment<T extends Account> extends Deployment {
-  public ClusteredSimpleDeployment(AccountDeploymentDetails<T> deploymentDetails, ProviderInterface<T> providerInterface) {
+abstract public class FlotillaDeployment<T extends Account> extends Deployment {
+  public FlotillaDeployment(AccountDeploymentDetails<T> deploymentDetails, ProviderInterface<T> providerInterface) {
     deploymentDetails.setEndpoints(specializeEndpoints(deploymentDetails.getEndpoints()));
 
     this.deploymentDetails = deploymentDetails;
@@ -34,7 +34,7 @@ abstract public class ClusteredSimpleDeployment<T extends Account> extends Deplo
 
   @Override
   public DeploymentType deploymentType() {
-    return DeploymentType.ClusteredSimple;
+    return DeploymentType.Flotilla;
   }
 
   @Override
@@ -52,7 +52,18 @@ abstract public class ClusteredSimpleDeployment<T extends Account> extends Deplo
 
   @Override
   public void deploy() {
-    providerInterface.bootstrapClouddriver(deploymentDetails);
-    providerInterface.connectTo(deploymentDetails, EndpointType.CLOUDDRIVER);
+    SpinnakerEndpoints.Services services = getEndpoints().getServices();
+
+    providerInterface.deployService(deploymentDetails, services.getRedis());
+
+    providerInterface.deployService(deploymentDetails, services.getClouddriver());
+    providerInterface.deployService(deploymentDetails, services.getDeck());
+    providerInterface.deployService(deploymentDetails, services.getEcho());
+    providerInterface.deployService(deploymentDetails, services.getFiat());
+    providerInterface.deployService(deploymentDetails, services.getFront50());
+    providerInterface.deployService(deploymentDetails, services.getGate());
+    providerInterface.deployService(deploymentDetails, services.getIgor());
+    providerInterface.deployService(deploymentDetails, services.getOrca());
+    providerInterface.deployService(deploymentDetails, services.getRosco());
   }
 }

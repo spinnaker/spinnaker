@@ -43,8 +43,9 @@ public class DeploymentEnvironment extends Node {
   }
 
   public enum DeploymentType {
-    ClusteredSimple("Deploy Spinnaker with one server group and load balancer "
-        + "per microservice. This requires a cloud provider to deploy to."),
+    Flotilla("Deploy Spinnaker with one server group and load balancer "
+        + "per microservice, and a single instance of Redis acting as "
+        + "Spinnaker's cache layer. This requires a cloud provider to deploy to."),
     LocalhostDebian("Deploy Spinnaker locally (on the machine running the daemon) "
         + "using `apt-get` to fetch all the service's debian packages.");
 

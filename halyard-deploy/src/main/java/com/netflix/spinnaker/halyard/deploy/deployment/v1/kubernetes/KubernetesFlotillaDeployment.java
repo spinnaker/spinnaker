@@ -19,12 +19,12 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1.kubernetes;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Services;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.ClusteredSimpleDeployment;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.FlotillaDeployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterface;
 
-public class KubernetesClusteredSimpleDeployment extends ClusteredSimpleDeployment<KubernetesAccount> {
-  public KubernetesClusteredSimpleDeployment(
+public class KubernetesFlotillaDeployment extends FlotillaDeployment<KubernetesAccount> {
+  public KubernetesFlotillaDeployment(
       AccountDeploymentDetails<KubernetesAccount> deploymentDetails,
       KubernetesProviderInterface providerInterface) {
     super(deploymentDetails, providerInterface);

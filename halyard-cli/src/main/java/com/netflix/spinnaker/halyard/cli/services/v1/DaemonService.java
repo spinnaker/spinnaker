@@ -58,7 +58,7 @@ public interface DaemonService {
       @Body String _ignore);
 
   @POST("/v1/config/deployments/{deploymentName}/deploy/")
-  DaemonResponse<Void> deployDeployment(
+  DaemonTask<Void> deployDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body String _ignore);

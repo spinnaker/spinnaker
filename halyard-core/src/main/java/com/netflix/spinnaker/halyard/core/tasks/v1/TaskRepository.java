@@ -25,7 +25,13 @@ public class TaskRepository {
       log.info("Starting task " + uuid);
       DaemonTaskHandler.setTask(task);
       task.setState(State.RUNNING);
-      task.setResponse(runner.get());
+      try {
+        task.setResponse(runner.get());
+      } catch (Exception e) {
+        log.info("Task " + uuid + " failed");
+        task.setState(State.FATAL);
+        task.setFatalError(e);
+      }
       log.info("Task " + uuid + " completed");
       task.setState(State.COMPLETED);
     };
@@ -40,22 +46,32 @@ public class TaskRepository {
   static public <T> DaemonTask<T> getTask(String uuid) {
     DaemonTaskStatus status = tasks.get(uuid);
 
-    if (status != null) {
-      DaemonTask<T> task = status.getTask();
-      if (task.getState() == State.COMPLETED) {
+    if (status == null) {
+      return null;
+    }
+    DaemonTask<T> task = status.getTask();
+    Exception fatalError = null;
+    switch (task.getState()) {
+      case NOT_STARTED:
+      case RUNNING:
+        break;
+      case FATAL:
+        log.error("Task " + uuid + " encountered a fatal exception");
+        fatalError = task.getFatalError();
+      case COMPLETED:
+        log.info("Terminating task " + uuid);
         try {
-          log.info("Terminating task " + uuid);
           status.getRunner().join();
         } catch (InterruptedException ignored) {
         }
 
         tasks.remove(uuid);
-      }
-
-      return task;
-    } else {
-      return null;
     }
+
+    if (fatalError != null) {
+      throw new RuntimeException("Failed running task: " + fatalError.getMessage(), fatalError);
+    }
+    return task;
   }
 
   @Data

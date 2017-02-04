@@ -40,7 +40,9 @@ public enum SpinnakerArtifact {
   GATE("gate", new String[]{"spinnaker\\.yml", "gate.*\\.yml"}),
   IGOR("igor", new String[]{"spinnaker\\.yml", "igor.*\\.yml"}),
   ORCA("orca", new String[]{"spinnaker\\.yml", "orca.*\\.yml"}),
-  ROSCO("rosco", new String[]{"spinnaker\\.yml", "rosco.*\\.yml"});
+  ROSCO("rosco", new String[]{"spinnaker\\.yml", "rosco.*\\.yml"}),
+  // Non-spinnaker
+  REDIS("redis", new String[]{});
 
   @Getter
   final String name;

@@ -25,11 +25,13 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.State;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import io.fabric8.kubernetes.api.model.*;
@@ -89,12 +91,17 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   @Override
   protected String componentArtifact(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerArtifact artifact) {
-    String version = details.getGenerateResult().getArtifactVersion().get(artifact);
+    switch (artifact) {
+      case REDIS:
+        return "gcr.io/kubernetes-spinnaker/redis-cluster:v2";
+      default:
+        String version = details.getGenerateResult().getArtifactVersion().get(artifact);
 
-    // TODO(lwander/jtk54) we need a published store of validated spinnaker images
-    // KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), version, REGISTRY);
-    KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), "latest", "quay.io/spinnaker");
-    return KubernetesUtil.getImageId(image);
+        // TODO(lwander/jtk54) we need a published store of validated spinnaker images
+        // KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), version, REGISTRY);
+        KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), "latest", "quay.io/spinnaker");
+        return KubernetesUtil.getImageId(image);
+    }
   }
 
   @Override
@@ -129,6 +136,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       if (matcher.find()) {
         proxy.setPort(Integer.valueOf(matcher.group(1)));
         proxyMap.put(details.getDeploymentName(), proxy);
+        DaemonTaskHandler.log("Connected to kubernetes cluster for account " + details.getAccount().getName() + " on port " + proxy.getPort());
       } else {
         throw new HalconfigException(new ProblemBuilder(Severity.FATAL,
             "Could not parse connection information from:\n" + connectionMessage).build());
@@ -142,8 +150,17 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         + getServiceFromAddress(service.getAddress()) + ":" + service.getPort() + "/";
 
     log.info("Connecting to " + service.getAddress() + " on port " + proxy.getPort());
-    log.info(endpoint);
     return serviceFactory.createService(endpoint, endpointType);
+  }
+
+  private void createNamespace(KubernetesClient client, String namespace) {
+    if (client.namespaces().withName(namespace).get() == null) {
+      client.namespaces().create(new NamespaceBuilder()
+          .withNewMetadata()
+          .withName(namespace)
+          .endMetadata()
+          .build());
+    }
   }
 
   public void deployService(AccountDeploymentDetails<KubernetesAccount> details,
@@ -157,13 +174,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     int port = service.getPort();
 
     KubernetesClient client = getClient(details.getAccount());
-    if (client.namespaces().withName(namespace).get() == null) {
-      client.namespaces().create(new NamespaceBuilder()
-          .withNewMetadata()
-          .withName(namespace)
-          .endMetadata()
-          .build());
-    }
+    createNamespace(client, namespace);
 
     Map<String, String> serviceSelector = new HashMap<>();
     serviceSelector.put("load-balancer-" + serviceName, "true");
@@ -234,26 +245,29 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     }
 
     client.extensions().replicaSets().inNamespace(namespace).create(replicaSetBuilder.build());
+    DaemonTaskHandler.log("Deployed service " + serviceName);
+  }
+
+  public Map<String, String> specializeEnv(SpinnakerArtifact artifact) {
+    Map<String, String> env = new HashMap<>();
+    switch (artifact) {
+      case REDIS:
+        env.put("MASTER", "true");
+        break;
+      default:
+        break;
+    }
+    return env;
   }
 
   @Override
-  public void bootstrapClouddriver(AccountDeploymentDetails<KubernetesAccount> details) {
-    KubernetesAccount account = details.getAccount();
-
-    Service service = details.getEndpoints().getServices().getRedis();
-    List<Pair<VolumeMount, Volume>> volumes = new ArrayList<>();
-    Map<String, String> env = new HashMap<>();
-    env.put("MASTER", "true");
-    log.info("Deploying redis...");
-    deployService(details, service, "gcr.io/kubernetes-spinnaker/redis-cluster:v2", volumes, env);
-
-    service = EndpointType.CLOUDDRIVER.getService(details.getEndpoints());
+  public void deployService(AccountDeploymentDetails<KubernetesAccount> details, Service service) {
+    SpinnakerArtifact artifact = service.getArtifact();
     String namespace = getNamespaceFromAddress(service.getAddress());
-    volumes = stageProfileDependencies(details, namespace, SpinnakerArtifact.CLOUDDRIVER.getName());
-    volumes.add(stageProfile(details, namespace, SpinnakerArtifact.CLOUDDRIVER));
-    env = new HashMap<>();
-    log.info("Deploying clouddriver...");
-    deployService(details, service, componentArtifact(details, SpinnakerArtifact.CLOUDDRIVER), volumes, env);
+    List<Pair<VolumeMount, Volume>> volumes = stageProfileDependencies(details, namespace, artifact.getName());
+    volumes.add(stageProfile(details, namespace, artifact));
+    Map<String, String> env = specializeEnv(artifact);
+    deployService(details, service, componentArtifact(details, artifact), volumes, env);
   }
 
   private List<String> kubectlAccountCommand(KubernetesAccount account) {
@@ -320,7 +334,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     List<Pair<VolumeMount, Volume>> result = new ArrayList<>();
 
     if (requiredFiles == null) {
-      throw new RuntimeException("No config was generated for profile \"" + profileName + "\"");
+      return result;
     }
 
     Map<String, List<String>> groupByDir = new HashMap<>();
@@ -369,6 +383,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   private void upsertSecret(AccountDeploymentDetails<KubernetesAccount> details, List<String> files, String secretName, String namespace) {
     KubernetesClient client = getClient(details.getAccount());
+    createNamespace(client, namespace);
 
     if (client.secrets().inNamespace(namespace).withName(secretName).get() != null) {
       client.secrets().inNamespace(namespace).withName(secretName).delete();

@@ -43,6 +43,6 @@ public class ProblemBuilder {
   }
 
   public Problem build() {
-    return new Problem(severity, location.getNameToRoot(), message, remediation, options);
+    return new Problem(severity, location == null ? null : location.getNameToRoot(), message, remediation, options);
   }
 }

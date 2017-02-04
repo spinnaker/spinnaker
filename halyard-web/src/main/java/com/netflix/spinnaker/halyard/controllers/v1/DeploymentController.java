@@ -88,7 +88,7 @@ public class DeploymentController {
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
-  DaemonResponse<Void> deploy(@PathVariable String deploymentName) {
+  DaemonTask<Void> deploy(@PathVariable String deploymentName) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> {
@@ -96,6 +96,6 @@ public class DeploymentController {
       return null;
     });
 
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 }

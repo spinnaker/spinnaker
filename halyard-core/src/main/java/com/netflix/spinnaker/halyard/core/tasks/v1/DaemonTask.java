@@ -13,7 +13,7 @@ import java.util.List;
 public class DaemonTask<T> {
   List<DaemonEvent> events = new ArrayList<>();
 
-  public DaemonTask writeEvent(String message) {
+  DaemonTask writeEvent(String message) {
     DaemonEvent event = new DaemonEvent()
         .setMessage(message)
         .setTimestamp(System.currentTimeMillis());
@@ -25,10 +25,12 @@ public class DaemonTask<T> {
   String uuid;
   State state = State.NOT_STARTED;
   DaemonResponse<T> response;
+  Exception fatalError;
 
   public enum State {
     NOT_STARTED,
     RUNNING,
-    COMPLETED
+    COMPLETED,
+    FATAL
   }
 }

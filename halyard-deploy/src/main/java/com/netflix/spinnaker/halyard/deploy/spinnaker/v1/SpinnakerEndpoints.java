@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+
+import static com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact.*;
 
 @Data
 public class SpinnakerEndpoints {
@@ -24,16 +27,16 @@ public class SpinnakerEndpoints {
 
   @Data
   public class Services {
-    Service clouddriver = new Service().setPort(7002);
-    Service deck = new Service().setPort(9000);
-    Service echo = new Service().setPort(8089);
-    Service fiat = new Service().setPort(7003);
-    Service front50 = new Service().setPort(8080);
-    Service gate = new Service().setPort(8084);
-    Service igor = new Service().setPort(8088);
-    Service orca = new Service().setPort(8083);
-    Service rosco = new Service().setPort(8087);
-    Service redis = new Service().setPort(6379).setProtocol("redis");
+    Service clouddriver = new Service().setPort(7002).setArtifact(CLOUDDRIVER);
+    Service deck = new Service().setPort(9000).setArtifact(DECK);
+    Service echo = new Service().setPort(8089).setArtifact(ECHO);
+    Service fiat = new Service().setPort(7003).setArtifact(FIAT);
+    Service front50 = new Service().setPort(8080).setArtifact(FRONT50);
+    Service gate = new Service().setPort(8084).setArtifact(GATE);
+    Service igor = new Service().setPort(8088).setArtifact(IGOR);
+    Service orca = new Service().setPort(8083).setArtifact(ORCA);
+    Service rosco = new Service().setPort(8087).setArtifact(ROSCO);
+    Service redis = new Service().setPort(6379).setArtifact(REDIS).setProtocol("redis");
   }
 
   @Data
@@ -44,6 +47,9 @@ public class SpinnakerEndpoints {
     // Host is what's bound to by the service.
     String host = "localhost";
     String protocol = "http";
+
+    @JsonIgnore
+    SpinnakerArtifact artifact;
 
     public String getBaseUrl() {
       return protocol + "://" + address + ":" + port;

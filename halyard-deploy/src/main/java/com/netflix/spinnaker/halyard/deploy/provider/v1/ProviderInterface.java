@@ -20,6 +20,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.ServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,5 +50,5 @@ public abstract class ProviderInterface<T extends Account> {
 
   abstract public Object connectTo(AccountDeploymentDetails<T> details, EndpointType endpointType);
 
-  abstract public void bootstrapClouddriver(AccountDeploymentDetails<T> details);
+  abstract public void deployService(AccountDeploymentDetails<T> details, SpinnakerEndpoints.Service service);
 }

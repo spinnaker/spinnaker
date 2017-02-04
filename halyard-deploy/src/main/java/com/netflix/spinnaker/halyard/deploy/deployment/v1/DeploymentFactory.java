@@ -24,7 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.kubernetes.KubernetesClusteredSimpleDeployment;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.kubernetes.KubernetesFlotillaDeployment;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,7 +49,7 @@ public class DeploymentFactory {
     switch (type) {
       case LocalhostDebian:
         return new LocalhostDebianDeployment(deploymentDetails);
-      case ClusteredSimple:
+      case Flotilla:
         return createClusteredSimpleDeployment(deploymentConfiguration, deploymentDetails);
       default:
         throw new IllegalArgumentException("Unrecognized deployment type " + type);
@@ -73,7 +73,7 @@ public class DeploymentFactory {
         AccountDeploymentDetails<KubernetesAccount> accountDeploymentDetails = new AccountDeploymentDetails<KubernetesAccount>(deploymentDetails)
             .setAccount((KubernetesAccount) account);
 
-        return new KubernetesClusteredSimpleDeployment(accountDeploymentDetails, kubernetesProviderInterface);
+        return new KubernetesFlotillaDeployment(accountDeploymentDetails, kubernetesProviderInterface);
       default:
         throw new IllegalArgumentException("No Clustered Simple Deployment for " + providerType.getId());
     }

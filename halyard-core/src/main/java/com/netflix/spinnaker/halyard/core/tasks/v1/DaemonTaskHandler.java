@@ -6,15 +6,17 @@ package com.netflix.spinnaker.halyard.core.tasks.v1;
 public class DaemonTaskHandler {
   private static ThreadLocal<DaemonTask> localTask = new ThreadLocal<>();
 
-  public static void setTask(DaemonTask task) {
+  static void setTask(DaemonTask task) {
     localTask.set(task);
   }
 
-  public static DaemonTask getTask() {
+  private static DaemonTask getTask() {
     return localTask.get();
   }
 
   public static void log(String message) {
-    localTask.get().writeEvent(message);
+    if (getTask() != null) {
+      getTask().writeEvent(message);
+    }
   }
 }
