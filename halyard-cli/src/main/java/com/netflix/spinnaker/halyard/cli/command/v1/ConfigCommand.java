@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.providers.ProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.*;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.ProviderCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -37,8 +38,10 @@ public class ConfigCommand extends NestableCommand {
   ConfigCommand() {
     registerSubcommand(new ProviderCommand());
     registerSubcommand(new GenerateCommand());
-    registerSubcommand(new FeaturesCommand());
-    registerSubcommand(new PersistentStorageCommand());
+    registerSubcommand(new EditFeaturesCommand());
+    registerSubcommand(new GetFeaturesCommand());
+    registerSubcommand(new EditPersistentStorageCommand());
+    registerSubcommand(new GetPersistentStorageCommand());
   }
 
   @Override

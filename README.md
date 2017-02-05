@@ -78,19 +78,50 @@ To delete an account, run:
 $ hal config provider PROVIDER delete-account ACCOUNT-NAME
 ```
 
-#### hal config features
+#### hal config edit-features
 
 To enable either the experimental or non-standard features of Spinnaker, use
 the command:
 
 ```
-$ hal config features [--feature true/false]
+$ hal config edit-features [--feature true/false]
 ```
 
 If you're unsure of what features are available, check:
 
 ```
-$ hal config features --help
+$ hal config edit-features --help
+```
+
+#### hal config get-features
+
+To display the state of the feature flags, run:
+
+```
+$ hal config get-features
+```
+
+#### hal config edit-storage
+
+Spinnaker needs persistant storage configured in the form of an S3 or GCS
+bucket. To configure this, run:
+
+```
+$ hal config edit-storage [--flags]
+```
+
+If you're unsure of what needs to be set, run:
+
+```
+$ hal config edit-storage --help
+```
+
+#### hal config get-storage
+
+To show how your storage has been configured, run:
+
+```
+$ hal config get-storage
 ```
 
 #### hal config generate

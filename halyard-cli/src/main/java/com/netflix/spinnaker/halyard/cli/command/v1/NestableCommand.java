@@ -135,6 +135,8 @@ public abstract class NestableCommand {
     List<ParameterDescription> parameters = commander.getParameters();
     parameters.sort(Comparator.comparing(ParameterDescription::getNames));
 
+    int parameterCount = 0;
+
     if (!parameters.isEmpty()) {
       paragraph = story.addParagraph();
       paragraph.addSnippet("GLOBAL PARAMETERS").addStyle(AnsiStyle.BOLD);
@@ -143,9 +145,12 @@ public abstract class NestableCommand {
       for (ParameterDescription parameter : parameters) {
         if (GlobalOptions.isGlobalOption(parameter.getLongestName())) {
           formatParameter(story, parameter, indentWidth);
+          parameterCount++;
         }
       }
+    }
 
+    if (parameters.size() > parameterCount) {
       paragraph = story.addParagraph();
       paragraph.addSnippet("PARAMETERS").addStyle(AnsiStyle.BOLD);
       story.addNewline();
