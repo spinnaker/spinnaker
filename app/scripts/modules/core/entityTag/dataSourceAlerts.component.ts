@@ -52,7 +52,7 @@ class DataSourceAlertsComponent implements ng.IComponentOptions {
           ng-mouseover="$ctrl.showPopover()" 
           ng-mouseleave="$ctrl.hidePopover(true)">
       <span uib-popover-template="$ctrl.popoverTemplate"
-            popover-placement="auto top"
+            popover-placement="bottom"
             popover-trigger="none"
             popover-is-open="$ctrl.displayPopover"
             popover-class="no-padding">
