@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
+import com.beust.jcommander.Parameter;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -32,6 +33,12 @@ public class HalCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "hal";
 
+  @Parameter(
+      names = "--print-bash-completion",
+      description = "Print bash command completion."
+  )
+  private boolean printBashCompletion;
+
   public HalCommand() {
     registerSubcommand(new ConfigCommand());
     registerSubcommand(new DeployCommand());
@@ -45,6 +52,10 @@ public class HalCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    showHelp();
+    if (printBashCompletion) {
+      System.out.println(commandCompletor());
+    } else {
+      showHelp();
+    }
   }
 }

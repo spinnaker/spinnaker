@@ -1,0 +1,12 @@
+# halyard-cli command completion
+
+_hal() {
+    local cur prev
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+{%body%}
+}
+
+complete -F _hal hal

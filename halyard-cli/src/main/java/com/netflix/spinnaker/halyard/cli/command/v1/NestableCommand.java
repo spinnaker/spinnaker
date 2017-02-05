@@ -23,6 +23,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.ResponseUnwrapper;
 import com.netflix.spinnaker.halyard.cli.ui.v1.*;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,7 +39,7 @@ public abstract class NestableCommand {
   private JCommander commander;
 
   @Parameter(names = { "-h", "--help" }, help = true, description = "Display help text about this command.")
-  public boolean help;
+  private boolean help;
 
   @Parameter(names = {"-d", "--debug"}, description = "Show detailed network traffic with halyard daemon.")
   public void setDebug(boolean debug) {
@@ -101,7 +102,7 @@ public abstract class NestableCommand {
     }
   }
 
-  public void showHelp() {
+  protected void showHelp() {
     AnsiStoryBuilder story = new AnsiStoryBuilder();
     int indentWidth = 2;
 
@@ -220,6 +221,45 @@ public abstract class NestableCommand {
     paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
     paragraph.addSnippet(parameter.getDescription());
     story.addNewline();
+  }
+
+  public String commandCompletor() {
+    JarResource completorBody = new JarResource("/hal-completor-body");
+    Map<String, String> bindings = new HashMap<>();
+
+    String body = aggregateCompletorCases();
+    bindings.put("body", body);
+
+    return completorBody.setBindings(bindings).toString();
+  }
+
+  private String aggregateCompletorCases() {
+    String result = commandCompletorCase();
+
+    return subcommands.entrySet()
+        .stream()
+        .map(c -> c.getValue().aggregateCompletorCases())
+        .reduce(result, (a, b) -> a + b);
+  }
+
+  private String commandCompletorCase() {
+    JarResource completorCase = new JarResource("/hal-completor-case");
+    Map<String, String> bindings = new HashMap<>();
+    String flagNames = commander.getParameters()
+        .stream()
+        .map(ParameterDescription::getLongestName)
+        .reduce("", (a, b) -> a + " " + b);
+
+    String subcommandNames = subcommands.entrySet()
+        .stream()
+        .map(Map.Entry::getKey)
+        .reduce("", (a, b) -> a + " " + b);
+
+    bindings.put("subcommands", subcommandNames);
+    bindings.put("flags", flagNames);
+    bindings.put("command", getCommandName());
+
+    return completorCase.setBindings(bindings).toString();
   }
 
   abstract public String getDescription();

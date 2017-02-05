@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.deploy.resource.v1;
+package com.netflix.spinnaker.halyard.core.resource.v1;
 
 import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.halyard.config.resource.v1.TemplatedResource;
