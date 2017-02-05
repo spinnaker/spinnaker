@@ -53,6 +53,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
       [
         stageId: "x",
         executionType: "pipeline",
+        description: "Deploy to us-east-1",
         pipelineConfigId: "config-id",
         application: "foo",
         executionId: "ex-id",
@@ -61,6 +62,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
       [
         stageId: "x",
         executionType: "pipeline",
+        description: "Deploy to us-east-1",
         pipelineConfigId: "config-id",
         application: "foo",
         executionId: "ex-id",
@@ -69,6 +71,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
       [
         stageId: "x",
         executionType: "pipeline",
+        description: "Deploy to us-east-1",
         pipelineConfigId: "config-id",
         application: "foo",
         executionId: "ex-id",
@@ -77,7 +80,13 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
     ]
 
     when:
-    def pipeline = new Pipeline(pipelineConfigId: "config-id", application: "foo", id: "ex-id", authentication: [ user: "chris" ])
+    def pipeline = new Pipeline(
+      pipelineConfigId: "config-id",
+      name: "Deploy to us-east-1",
+      application: "foo",
+      id: "ex-id",
+      authentication: [ user: "chris" ]
+    )
     def stage = new PipelineStage(pipeline, "whatever", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"],

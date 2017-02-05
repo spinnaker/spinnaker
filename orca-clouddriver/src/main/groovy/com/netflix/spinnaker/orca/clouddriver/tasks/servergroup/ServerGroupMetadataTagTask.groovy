@@ -73,7 +73,11 @@ class ServerGroupMetadataTagTask extends AbstractCloudProviderAwareTask implemen
     if (stage.execution instanceof Orchestration) {
       tag.value.description = ((Orchestration) stage.execution).description
     } else if (stage.execution instanceof Pipeline) {
-      tag.value.pipelineConfigId = ((Pipeline) stage.execution).pipelineConfigId
+      Pipeline pipeline = (Pipeline) stage.execution
+      if (pipeline.name) {
+        tag.value.description = pipeline.name
+      }
+      tag.value.pipelineConfigId = pipeline.pipelineConfigId
     }
 
     if (stage.context.reason || stage.context.comments) {
