@@ -26,4 +26,9 @@ public class ProfileConfig {
   private String configContents;
   private String version;
   private List<String> requiredFiles = new ArrayList<>();
+
+  public ProfileConfig appendConfig(String config) {
+    configContents += "\n" + config;
+    return this;
+  }
 }

@@ -69,7 +69,7 @@ balyardVersion: $HALYARD_VERSION
     out = parser.parseHalconfig(stream)
 
     then:
-    UnrecognizedPropertyException ex = thrown()
+    IllegalArgumentException ex = thrown()
     ex.message.contains("balyardVersion")
   }
 }

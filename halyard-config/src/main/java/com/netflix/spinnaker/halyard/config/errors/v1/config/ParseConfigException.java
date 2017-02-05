@@ -41,4 +41,10 @@ public class ParseConfigException extends HalconfigException {
         "Could not parse your halconfig: " + e.getMessage()).build();
     getProblems().add(problem);
   }
+
+  public ParseConfigException(IllegalArgumentException e) {
+    Problem problem = new ProblemBuilder(Problem.Severity.FATAL,
+        "Could not translate your halconfig: " + e.getMessage()).build();
+    getProblems().add(problem);
+  }
 }

@@ -16,11 +16,24 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
+import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class Front50Profile extends SpringProfile {
+  @Autowired
+  AccountService accountService;
+
   @Override
   public String getProfileName() {
     return "front50";
@@ -29,5 +42,66 @@ public class Front50Profile extends SpringProfile {
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.FRONT50;
+  }
+
+  @Override
+  public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration) {
+    PersistentStorage storage = deploymentConfiguration.getPersistentStorage();
+    Account account = accountService.getProviderAccount(deploymentConfiguration.getName(), "google", storage.getAccountName());
+    Front50Credentials credentials = new Front50Credentials();
+
+    if (account != null) {
+      credentials.getSpinnaker().setGcs(new Front50Credentials.Spinnaker.GCS(storage, (GoogleAccount) account));
+      config.setRequiredFiles(dependentFiles(account));
+      config.appendConfig(yamlToString(credentials));
+      return config;
+    } else {
+      throw new HalconfigException(
+          new ProblemBuilder(Problem.Severity.FATAL, "No valid account configured for persistent storage.").build());
+    }
+  }
+
+  @Data
+  private static class Front50Credentials {
+    Spinnaker spinnaker = new Spinnaker();
+
+    @Data
+    static class Spinnaker {
+      GCS gcs = new GCS();
+      S3 s3 = new S3();
+
+      @Data
+      static class GCS {
+        private boolean enabled = false;
+        private String bucket;
+        private String bucketLocation;
+        private String rootFolder;
+        private String project;
+        private String jsonPath;
+
+        GCS() { }
+
+        GCS(PersistentStorage storage, GoogleAccount account) {
+          this.enabled = true;
+          this.bucket = storage.getBucket();
+          this.rootFolder = storage.getRootFolder();
+          this.project = account.getProject();
+          this.jsonPath = account.getJsonPath();
+        }
+      }
+
+      @Data
+      static class S3 {
+        private boolean enabled = false;
+        private String bucket;
+        private String rootFolder;
+
+        S3() {}
+
+        S3(PersistentStorage storage) {
+          // TODO(lwander) find someone to handle https://github.com/spinnaker/halyard/issues/116
+        }
+      }
+    }
   }
 }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.errors.v1.config.ParseConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
@@ -64,12 +63,12 @@ public class HalconfigParser {
    * @param is is the input stream to read from.
    * @return the fully parsed halconfig.
    */
-  Halconfig parseHalconfig(InputStream is) throws UnrecognizedPropertyException {
+  Halconfig parseHalconfig(InputStream is) throws IllegalArgumentException {
     try {
       Object obj = yamlParser.load(is);
       return objectMapper.convertValue(obj, Halconfig.class);
     } catch (IllegalArgumentException e) {
-      throw (UnrecognizedPropertyException) e.getCause();
+      throw e;
     }
   }
 
@@ -95,11 +94,11 @@ public class HalconfigParser {
         res = parseHalconfig(is);
       } catch (FileNotFoundException ignored) {
         // leave res as `null`
-      } catch (UnrecognizedPropertyException e) {
-        throw new ParseConfigException(e);
       } catch (ParserException e) {
         throw new ParseConfigException(e);
       } catch (ScannerException e) {
+        throw new ParseConfigException(e);
+      } catch (IllegalArgumentException e) {
         throw new ParseConfigException(e);
       }
     }
