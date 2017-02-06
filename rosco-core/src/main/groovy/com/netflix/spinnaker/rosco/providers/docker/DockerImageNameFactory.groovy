@@ -15,7 +15,6 @@ class DockerImageNameFactory extends ImageNameFactory {
   def buildImageName(BakeRequest bakeRequest, List<PackageNameConverter.OsPackageName> osPackageNames) {
 
     String imageName = bakeRequest.ami_name ?: osPackageNames.first()?.name
-
     String imageNamePrefixed = [bakeRequest.organization, imageName].findAll({it}).join("/")
 
     return imageNamePrefixed
