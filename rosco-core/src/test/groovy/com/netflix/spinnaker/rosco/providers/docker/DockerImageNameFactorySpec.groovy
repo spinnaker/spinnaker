@@ -52,8 +52,10 @@ class DockerImageNameFactorySpec extends Specification implements TestDefaults {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DockerImageNameFactory(clock: clockMock)
-      def bakeRequest = new BakeRequest(package_name: "superimage kato redis-server",
-        base_os: "centos")
+      def bakeRequest = new BakeRequest(package_name: "kato redis-server",
+        base_os: "centos",
+        ami_name:  'superimage',
+      )
       def osPackages = parseRpmOsPackageNames(bakeRequest.package_name)
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
@@ -63,6 +65,6 @@ class DockerImageNameFactorySpec extends Specification implements TestDefaults {
       clockMock.millis() >> SOME_MILLISECONDS.toLong()
       imageName == "superimage"
       appVersionStr == SOME_MILLISECONDS
-      packagesParameter == "superimage kato redis-server"
+      packagesParameter == "kato redis-server"
   }
 }

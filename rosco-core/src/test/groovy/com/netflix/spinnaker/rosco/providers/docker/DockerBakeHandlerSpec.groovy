@@ -150,6 +150,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                         package_name: PACKAGES_NAME,
                                         base_os: "ubuntu",
                                         request_id: SOME_UUID,
+                                        commit_hash: SOME_COMMIT_HASH,
                                         build_info_url: SOME_BUILD_INFO_URL,
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
@@ -159,7 +160,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         build_info_url: SOME_BUILD_INFO_URL,
         docker_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         docker_target_image: targetImageName,
-        docker_target_image_tag: SOME_UUID,
+        docker_target_image_tag: SOME_COMMIT_HASH,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
@@ -192,6 +193,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                         package_name: PACKAGES_NAME,
                                         base_os: "trusty",
                                         request_id: SOME_UUID,
+                                        commit_hash: SOME_COMMIT_HASH,
                                         build_info_url: SOME_BUILD_INFO_URL,
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-trusty"
@@ -201,7 +203,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         build_info_url: SOME_BUILD_INFO_URL,
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
-        docker_target_image_tag: SOME_UUID,
+        docker_target_image_tag: SOME_COMMIT_HASH,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
@@ -234,6 +236,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                         package_name: PACKAGES_NAME,
                                         base_os: "centos",
                                         request_id: SOME_UUID,
+                                        extended_attributes: [docker_target_image_tag: SOME_DOCKER_TAG],
                                         build_info_url: SOME_BUILD_INFO_URL,
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
       def targetImageName = "kato-x8664-timestamp-centos"
@@ -243,7 +246,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         build_info_url: SOME_BUILD_INFO_URL,
         docker_source_image: SOURCE_CENTOS_HVM_IMAGE_NAME,
         docker_target_image: targetImageName,
-        docker_target_image_tag: SOME_UUID,
+        docker_target_image_tag: SOME_DOCKER_TAG,
         docker_target_repository: TARGET_REPOSITORY,
         repository: YUM_REPOSITORY,
         package_type: RPM_PACKAGE_TYPE.packageType,
@@ -280,6 +283,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                         build_host: buildHost,
                                         build_info_url: SOME_BUILD_INFO_URL,
                                         request_id: SOME_UUID,
+                                        extended_attributes: [docker_target_image_tag: SOME_DOCKER_TAG],
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def osPackage = PackageNameConverter.parseDebPackageName(bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-trusty"
@@ -288,7 +292,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         build_info_url: SOME_BUILD_INFO_URL,
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
-        docker_target_image_tag: SOME_UUID,
+        docker_target_image_tag: SOME_DOCKER_TAG,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
@@ -328,7 +332,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         request_id: SOME_UUID,
         package_name: "trojan-banker_0.1-3_all",
         build_number: "12",
-        commit_hash: "170cdbd",
+        commit_hash: SOME_COMMIT_HASH,
         organization: targetOrganization,
         build_info_url: SOME_BUILD_INFO_URL,
         ami_name: targetImageName,
@@ -341,7 +345,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         build_info_url: SOME_BUILD_INFO_URL,
         docker_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         docker_target_image: targetQualifiedImageName,
-        docker_target_image_tag: SOME_UUID,
+        docker_target_image_tag: SOME_COMMIT_HASH,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
         package_type: DEB_PACKAGE_TYPE.packageType,
@@ -361,6 +365,26 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetQualifiedImageName
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$dockerBakeryDefaults.templateFile")
+  }
+
+  void 'Create parameter map with minimal bakeRequest'() {
+    setup:
+      def bakeRequest = new BakeRequest(cloud_provider_type: BakeRequest.CloudProviderType.docker)
+      def dockerBakeHandler = new DockerBakeHandler()
+      dockerBakeHandler.dockerBakeryDefaults = new RoscoDockerConfiguration.DockerBakeryDefaults()
+      dockerBakeHandler.dockerBakeryDefaults.targetRepository = TARGET_REPOSITORY
+
+      def dockerVirtualizationSettings = new RoscoDockerConfiguration.DockerVirtualizationSettings()
+      dockerVirtualizationSettings.sourceImage = SOURCE_UBUNTU_IMAGE_NAME
+
+    when:
+      def parameterMap = dockerBakeHandler.buildParameterMap(
+        REGION, dockerVirtualizationSettings, "myDockerImage", bakeRequest, "SomeVersion"
+      )
+
+    then:
+      // This should default to a timestamp of type long if we don't provide a tag or commit hash.
+      parameterMap['docker_target_image_tag'].toLong()
   }
 
   void 'throws exception when virtualization settings are not found for specified operating system'() {

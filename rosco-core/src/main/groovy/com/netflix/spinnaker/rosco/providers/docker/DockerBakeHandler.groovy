@@ -25,6 +25,8 @@ import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import java.time.Clock
+
 @Component
 public class DockerBakeHandler extends CloudProviderBakeHandler {
 
@@ -67,10 +69,17 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
 
   @Override
   Map buildParameterMap(String region, def dockerVirtualizationSettings, String imageName, BakeRequest bakeRequest, String appVersionStr) {
+    String dockerTag = bakeRequest.extended_attributes?.get('docker_target_image_tag') ?: bakeRequest.commit_hash
+
+    if (!dockerTag) {
+      // If we can't set useful docker tag, we default to a unix timestamp
+      dockerTag = Clock.systemUTC().millis().toString()
+    }
+
     def parameterMap = [
       docker_source_image     : dockerVirtualizationSettings.sourceImage,
       docker_target_image     : imageName,
-      docker_target_image_tag : bakeRequest.request_id,
+      docker_target_image_tag : dockerTag,
       docker_target_repository: dockerBakeryDefaults.targetRepository
     ]
 
