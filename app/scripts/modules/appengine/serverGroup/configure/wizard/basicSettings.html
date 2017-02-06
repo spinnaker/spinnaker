@@ -109,7 +109,7 @@
         </ui-select>
       </div>
 
-      <div class="col-md-7 col-md-offset-3" ng-if="command.viewState.mode !== 'create'">
+      <div class="col-md-7 col-md-offset-3" ng-if="command.viewState.mode === 'createPipeline' || command.viewState.mode === 'editPipeline'">
         <span class="pull-right small" ng-if="!command.fromTrigger">
           <a href ng-click="basicSettingsCtrl.toggleResolveViaTrigger()">Resolve via trigger</a>
         </span>

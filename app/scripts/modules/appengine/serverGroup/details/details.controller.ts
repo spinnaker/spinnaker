@@ -1,4 +1,5 @@
 import {module, IScope} from 'angular';
+import {IModalService} from 'angular-ui-bootstrap';
 import {cloneDeep, reduce, mapValues, get, map} from 'lodash';
 
 import {ServerGroup} from 'core/domain/index';
@@ -14,6 +15,7 @@ import {SERVER_GROUP_WARNING_MESSAGE_SERVICE, ServerGroupWarningMessageService} 
 import {APPENGINE_SERVER_GROUP_WRITER, AppengineServerGroupWriter} from '../writer/serverGroup.write.service';
 import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
 import {ITaskMonitorConfig} from 'core/task/monitor/taskMonitor.builder';
+import {AppengineServerGroupCommandBuilder} from '../configure/serverGroupCommandBuilder.service';
 
 interface IPrivateScope extends IScope {
   $$destroyed: boolean;
@@ -30,15 +32,9 @@ class AppengineServerGroupDetailsController {
   public serverGroup: IAppengineServerGroup;
 
   static get $inject () {
-    return ['$state',
-            '$scope',
-            'serverGroup',
-            'app',
-            'serverGroupReader',
-            'serverGroupWriter',
-            'serverGroupWarningMessageService',
-            'confirmationModalService',
-            'appengineServerGroupWriter'];
+    return ['$state', '$scope', '$uibModal', 'serverGroup', 'app', 'serverGroupReader', 'serverGroupWriter',
+            'serverGroupWarningMessageService', 'confirmationModalService', 'appengineServerGroupWriter',
+            'appengineServerGroupCommandBuilder'];
   }
 
   private static buildExpectedAllocationsTable(expectedAllocations: {[key: string]: number}): string {
@@ -66,13 +62,15 @@ class AppengineServerGroupDetailsController {
 
   constructor(private $state: any,
               private $scope: IPrivateScope,
+              private $uibModal: IModalService,
               serverGroup: IServerGroupFromStateParams,
               private app: Application,
               private serverGroupReader: ServerGroupReader,
               private serverGroupWriter: ServerGroupWriter,
               private serverGroupWarningMessageService: ServerGroupWarningMessageService,
               private confirmationModalService: ConfirmationModalService,
-              private appengineServerGroupWriter: AppengineServerGroupWriter) {
+              private appengineServerGroupWriter: AppengineServerGroupWriter,
+              private appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder) {
 
     this.app
       .ready()
@@ -299,6 +297,20 @@ class AppengineServerGroupDetailsController {
     };
 
     this.confirmationModalService.confirm(confirmationModalParams);
+  }
+
+  public cloneServerGroup(): void {
+    this.$uibModal.open({
+      templateUrl: require('../configure/wizard/serverGroupWizard.html'),
+      controller: 'appengineCloneServerGroupCtrl as ctrl',
+      size: 'lg',
+      resolve: {
+        title: () => 'Clone ' + this.serverGroup.name,
+        application: () => this.app,
+        serverGroup: () => this.serverGroup,
+        serverGroupCommand: () => this.appengineServerGroupCommandBuilder.buildServerGroupCommandFromExisting(this.app, this.serverGroup),
+      }
+    });
   }
 
   public canStartServerGroup(): boolean {

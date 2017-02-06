@@ -3,7 +3,7 @@ import {get, intersection} from 'lodash';
 
 import {Application} from 'core/application/application.model';
 import {AccountService, ACCOUNT_SERVICE} from 'core/account/account.service';
-import {IAppengineAccount, IAppengineGitTrigger, IAppengineJenkinsTrigger, GitCredentialType} from 'appengine/domain/index';
+import {IAppengineAccount, IAppengineGitTrigger, IAppengineJenkinsTrigger, GitCredentialType, IAppengineServerGroup} from 'appengine/domain/index';
 import {IStage, IPipeline, IGitTrigger, IJenkinsTrigger} from 'core/domain/index';
 import {AppengineDeployDescription} from '../transformer';
 
@@ -82,6 +82,15 @@ export class AppengineServerGroupCommandBuilder {
       });
   }
 
+  public buildServerGroupCommandFromExisting(app: Application, serverGroup: IAppengineServerGroup): IPromise<IAppengineServerGroupCommand> {
+    return this.buildNewServerGroupCommand(app, 'appengine', 'clone')
+      .then(command => {
+        command.stack = serverGroup.stack;
+        command.freeFormDetails = serverGroup.detail;
+        return command;
+      });
+  }
+
   public buildNewServerGroupCommandForPipeline(_stage: IStage, pipeline: IPipeline): {backingData: {triggerOptions: Array<IAppengineGitTrigger | IAppengineJenkinsTrigger>}} {
     // We can't copy server group configuration for App Engine, and can't build the full command here because we don't have
     // access to the application.
@@ -121,6 +130,8 @@ export class AppengineServerGroupCommandBuilder {
         return 'Add';
       case 'editPipeline':
         return 'Done';
+      case 'clone':
+        return 'Clone';
       default:
         return 'Create';
     }

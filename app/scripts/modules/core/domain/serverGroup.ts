@@ -35,6 +35,7 @@ export interface ServerGroup {
   runningTasks?: ITask[];
   searchField?: string;
   securityGroups?: string[];
+  stack?: string;
   stringVal?: string;
   tags?: any;
   type: string;
