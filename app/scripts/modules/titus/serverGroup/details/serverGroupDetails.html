@@ -68,6 +68,7 @@
         <dd><a href="{{ serverGroup.apiEndpoint }}v2/jobs/{{serverGroup.id}}?taskState=ANY" target="_blank">{{serverGroup.id}}</a></dd>
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp}}</dd>
+        <entity-source metadata="serverGroup.entityTags.creationMetadata"></entity-source>
         <dt ng-if="serverGroup.iamProfile">IAM Profile</dt>
         <dd ng-if="serverGroup.iamProfile">{{serverGroup.iamProfile}}</dd>
       </dl>

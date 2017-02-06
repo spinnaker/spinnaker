@@ -1,0 +1,17 @@
+<dl>
+  <dt>{{$ctrl.executionType}}</dt>
+  <dd>{{$ctrl.metadata.value.description}}</dd>
+  <div ng-if="$ctrl.execution">
+    <dt>Triggered by</dt>
+    <dd ng-if="$ctrl.metadata.value.user">{{$ctrl.metadata.value.user}}</dd>
+    <dd ng-if="!$ctrl.metadata.value.user">{{$ctrl.execution.trigger.type}}</dd>
+  </div>
+  <div ng-if="!$ctrl.execution && $ctrl.metadata.value.user">
+    <dt>User</dt>
+    <dd>{{$ctrl.metadata.value.user}}</dd>
+  </div>
+  <div ng-if="$ctrl.metadata.value.comments">
+    <dt>Comments</dt>
+    <dd marked="$ctrl.metadata.value.comments"></dd>
+  </div>
+</dl>

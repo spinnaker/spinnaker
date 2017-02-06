@@ -82,7 +82,7 @@
         <dd><vpc-tag vpc-id="ctrl.serverGroup.vpcId"></vpc-tag></dd>
         <dt ng-if="ctrl.serverGroup.vpcId">Subnet</dt>
         <dd ng-if="ctrl.serverGroup.vpcId">{{ctrl.serverGroup.subnetType || 'None (EC2 Classic)'}}</dd>
-        <dt>Availability Zones</dt>
+        <dt>Zones</dt>
         <dd>
           <ul>
             <li ng-repeat="zone in ctrl.serverGroup.asg.availabilityZones">{{zone}}</li>

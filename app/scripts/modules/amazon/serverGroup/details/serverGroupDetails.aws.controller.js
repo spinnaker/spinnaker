@@ -13,6 +13,7 @@ import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
 import {CLUSTER_TARGET_BUILDER} from 'core/entityTag/clusterTargetBuilder.service';
+import {ENTITY_SOURCE_COMPONENT} from 'core/entityTag/entitySource.component';
 
 require('../configure/serverGroup.configure.aws.module.js');
 
@@ -27,6 +28,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   VIEW_SCALING_ACTIVITIES_LINK,
   ADD_ENTITY_TAG_LINKS_COMPONENT,
   CLUSTER_TARGET_BUILDER,
+  ENTITY_SOURCE_COMPONENT,
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
   SERVER_GROUP_READER,

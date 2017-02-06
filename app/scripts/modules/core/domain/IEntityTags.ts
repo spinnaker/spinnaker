@@ -6,6 +6,21 @@ export interface IEntityTagsMetadata {
   lastModifiedBy: string;
 }
 
+export interface ICreationMetadata {
+  executionType: 'orchestration' | 'pipeline',
+  stageId?: string;
+  executionId?: string;
+  pipelineConfigId?: string;
+  application?: string;
+  user?: string;
+  description?: string;
+  comments?: string;
+}
+
+export interface ICreationMetadataTag extends IEntityTag {
+  value: ICreationMetadata;
+}
+
 export interface IEntityTag {
   name: string;
   value: any;
@@ -25,6 +40,7 @@ export interface IEntityTags {
   entityRef: IEntityRef;
   alerts: IEntityTag[];
   notices: IEntityTag[];
+  creationMetadata?: ICreationMetadataTag;
 }
 
 export interface IEntityRef {

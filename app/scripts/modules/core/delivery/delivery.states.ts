@@ -40,9 +40,12 @@ module(DELIVERY_STATES, [
     }
   };
 
+  // a specific stage can be deep linked by providing either refId or stageId,
+  // which will be resolved to stage or step by the executionDetails controller to stage/step parameters,
+  // replacing the URL
   const executionDetails: INestedState = {
     name: 'execution',
-    url: '/:executionId?refId&stage&step&details',
+    url: '/:executionId?refId&stage&step&details&stageId',
     params: {
       stage: {
         value: '0',
