@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
         validators: [
           {
             type: 'stageBeforeType',
-            stageTypes: ['bake', 'findAmi', 'findImage'],
+            stageTypes: ['bake', 'findAmi', 'findImage', 'findImageFromTags'],
             message: 'You must have a Bake or Find AMI stage before a canary stage.'
           },
         ],
