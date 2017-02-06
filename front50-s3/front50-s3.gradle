@@ -17,7 +17,7 @@
 dependencies {
   compile project(":front50-core")
 
-  compile 'com.netflix.spinnaker.clouddriver:clouddriver-aws:1.396.0'
+  compile 'com.netflix.spinnaker.clouddriver:clouddriver-aws:1.488.0'
 //  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
 
   testCompile project(":front50-test")
