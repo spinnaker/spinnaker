@@ -21,6 +21,12 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgS
         templateUrl: require('./quickPatchAsgStage.html'),
         executionDetailsUrl: require('./quickPatchAsgExecutionDetails.html'),
         validators: [
+          {
+            type: 'stageOrTriggerBeforeType',
+            stageType: 'jenkins',
+            checkParentTriggers: true,
+            message: 'You must have a Jenkins stage or trigger before a Quick Patch stage.'
+          },
           {type: 'requiredField', fieldName: 'clusterName', fieldLabel: 'cluster'},
           {type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
           {type: 'requiredField', fieldName: 'region'},
