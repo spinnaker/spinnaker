@@ -22,9 +22,10 @@ import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.PropertyAction
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
+@Slf4j
 @Component
 class FastPropertyCleanupListener implements ExecutionListener {
 
@@ -44,18 +45,19 @@ class FastPropertyCleanupListener implements ExecutionListener {
 
     if (executionStatus in [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED] || execution.context.rollbackProperties) {
       execution.with {
-        context.propertyIdList.each { id ->
-          def originalProperty = context.originalProperties.find {prop -> prop.propertyId == id}
-          switch (execution.context.propertyAction) {
-            case PropertyAction.CREATE:
-              mahe.deleteProperty(id, "spinnaker rollback", extractEnvironment(id))
-              break;
-            case [PropertyAction.UPDATE, PropertyAction.DELETE]:
-              if(originalProperty) {
-                mahe.upsertProperty([property: originalProperty])
-              }
-              break
-          }
+        switch (context.propertyAction) {
+          case PropertyAction.CREATE:
+            context.propertyIdList.each { prop ->
+              log.info("Rolling back the creation of: ${prop.propertyId} on execution ${id} by deleting")
+              mahe.deleteProperty(prop.propertyId, "spinnaker rollback", extractEnvironment(prop.propertyId))
+            }
+            break;
+          case [PropertyAction.UPDATE, PropertyAction.DELETE]:
+            context.originalProperties.each { prop ->
+              log.info("Rolling back the ${context.propertyAction} of: ${prop.property.propertyId} on execution ${id} by upserting")
+              mahe.upsertProperty(prop)
+            }
+            break;
         }
       }
     }
