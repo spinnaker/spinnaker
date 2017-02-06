@@ -36,7 +36,9 @@ export class PropertyPipelineStage implements IStage {
     this.cmcTicket = propertyCopy.cmcTicket;
     this.delete = command.type === PropertyCommandType.DELETE;
 
-    this.originalProperties.push(command.originalProperty);
+    if (command.originalProperty) {
+      this.originalProperties.push(command.originalProperty);
+    }
     this.persistedProperties.push(propertyCopy);
   }
 
