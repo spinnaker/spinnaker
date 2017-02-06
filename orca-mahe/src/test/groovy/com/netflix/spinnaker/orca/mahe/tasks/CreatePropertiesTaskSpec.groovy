@@ -84,6 +84,24 @@ class CreatePropertiesTaskSpec extends Specification {
     }
   }
 
+  def "assemble the changed property list if list is null for a new property"() {
+    given:
+    def pipeline = new Pipeline(application: 'foo')
+    def scope = createScope()
+    def property = createProperty()
+    def originalProperty = []
+
+    def stage = createPropertiesStage(pipeline, scope, property, originalProperty )
+
+    when:
+    List properties = task.assemblePersistedPropertyListFromContext(stage.context, stage.context.persistedProperties)
+    List originalProperties = task.assemblePersistedPropertyListFromContext(stage.context, stage.context.originalProperties)
+
+    then: "this is what the property payload the is sent to MAHE needs to look like"
+    properties.size() == 1
+    originalProperties.size() == 0
+  }
+
   def "create a single new persistent property"() {
     given:
     def pipeline = new Pipeline(application: 'foo')
@@ -131,7 +149,7 @@ class CreatePropertiesTaskSpec extends Specification {
 
     then: "deleting a fast property does not return a property ID"
     with(results.stageOutputs) {
-      propertyIdList.size() == 1
+      propertyIdList.size() == 0
     }
 
   }

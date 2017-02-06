@@ -52,10 +52,9 @@ class CreatePropertiesTask implements Task {
       if (stage.context.delete) {
         log.info("Deleting Property: ${prop.property.propertyId} on execution ${stage.execution.id}")
         response = maheService.deleteProperty(prop.property.propertyId, 'delete', prop.property.env)
-        propertyIdList << prop.property.propertyId
         propertyAction = PropertyAction.DELETE
       } else {
-        log.info("Upserting Property: ${prop}")
+        log.info("Upserting Property: ${prop} on execution ${stage.execution.id}")
         response = maheService.upsertProperty(prop)
         propertyAction = prop.property.propertyId ? PropertyAction.UPDATE : PropertyAction.CREATE
       }
@@ -78,12 +77,8 @@ class CreatePropertiesTask implements Task {
       propertyAction: propertyAction,
     ]
 
+    return new DefaultTaskResult(SUCCEEDED, outputs, outputs)
 
-    if (rollback) {
-      return new DefaultTaskResult(SUCCEEDED, outputs, outputs)
-    } else {
-      return new DefaultTaskResult(SUCCEEDED, outputs)
-    }
   }
 
 
@@ -95,11 +90,13 @@ class CreatePropertiesTask implements Task {
     String cmcTicket = context.cmcTicket
 
     return propertyList.collect { Map prop ->
-      prop << scope
-      prop.email = email
-      prop.sourceOfUpdate = 'spinnaker'
-      prop.cmcTicket = cmcTicket
-      [property: prop]
+      if(prop) {
+        prop << scope
+        prop.email = email
+        prop.sourceOfUpdate = 'spinnaker'
+        prop.cmcTicket = cmcTicket
+        [property: prop]
+      }
     }
   }
 
