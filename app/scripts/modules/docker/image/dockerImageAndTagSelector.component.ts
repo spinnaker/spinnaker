@@ -1,4 +1,4 @@
-import {isString, trim} from 'lodash';
+import {isString, trim, uniq} from 'lodash';
 import {module} from 'angular';
 import {ACCOUNT_SERVICE, AccountService, IAccount} from 'core/account/account.service';
 import {IFindImageParams} from 'core/image/image.reader';
@@ -14,7 +14,7 @@ interface IOnDockerBindingsChanges extends ng.IOnChangesObject {
   registry: ng.IChangesObject<string>;
 }
 
-class DockerImageAndTagSelectorController implements ng.IComponentController {
+export class DockerImageAndTagSelectorController implements ng.IComponentController {
 
   private viewState: IViewState = {
     imagesLoading: false,
@@ -106,26 +106,28 @@ class DockerImageAndTagSelectorController implements ng.IComponentController {
   }
 
   private updateAccountMap(images: IDockerImage[]): void {
-    this.accountMap = images.reduce((map: { [key: string]: string[] }, image: IDockerImage) => {
+    const results: { [key: string]: string[] } = images.reduce((map: { [key: string]: string[] }, image: IDockerImage) => {
       const key = image.account;
       if (!key) {
         return map;
       }
 
-      const all: string[] = map[key] || [];
       const parts: string[] = image.repository.split('/');
       parts.pop();
       const org: string = parts.join('/');
-      if (!all.includes(org)) {
-        map[key] = all.concat(org);
+      if (!map[key]) {
+        map[key] = [];
       }
+      map[key].push(org);
 
       return map;
     }, {});
+    this.uniqMapEntries(results);
+    this.accountMap = results;
   }
 
   private updateOrganizationMap(images: IDockerImage[]): void {
-    this.organizationMap = images.reduce((map: { [key: string]: string[] }, image: IDockerImage) => {
+    const results: { [key: string]: string[] } = images.reduce((map: { [key: string]: string[] }, image: IDockerImage) => {
       if (!image.repository) {
         return map;
       }
@@ -133,29 +135,32 @@ class DockerImageAndTagSelectorController implements ng.IComponentController {
       const parts = image.repository.split('/');
       parts.pop();
       const key = `${image.account}/${parts.join('/')}`;
-      const all: string[] = map[key] || [];
-      if (!all.includes((image.repository))) {
-        map[key] = all.concat(image.repository);
+      if (!map[key]) {
+        map[key] = [];
       }
-
+      map[key].push(image.repository);
       return map;
     }, {});
+    this.uniqMapEntries(results);
+    this.organizationMap = results;
   }
 
   private updateRepositoryMap(images: IDockerImage[]): void {
-    this.repositoryMap = images.reduce((map: { [key: string]: string[] }, image: IDockerImage) => {
+    const results: { [key: string]: string[] } = images.reduce((map: { [key: string]: string[] }, image: IDockerImage) => {
       if (!image.repository) {
         return map;
       }
 
       const key: string = image.repository;
-      const all: string[] = map[key] || [];
-      if (!all.includes(image.tag)) {
-        map[key] = all.concat(image.tag);
+      if (!map[key]) {
+        map[key] = [];
       }
-
+      map[key].push(image.tag);
       return map;
     }, {});
+
+    this.uniqMapEntries(results);
+    this.repositoryMap = results;
   }
 
   private initializeAccounts() {
@@ -184,9 +189,8 @@ class DockerImageAndTagSelectorController implements ng.IComponentController {
 
         this.updateOrganizationMap(images);
         this.organizations.push(...Object.keys(this.organizationMap));
-        this.updateOrganizationsList();
-
         this.updateRepositoryMap(images);
+        this.updateOrganizationsList();
 
         this.viewState.imagesLoaded = true;
       }).finally(() => {
@@ -194,6 +198,12 @@ class DockerImageAndTagSelectorController implements ng.IComponentController {
         this.viewState.imagesRefreshing = false;
       });
     }
+  }
+
+  private uniqMapEntries(map: { [key: string]: string[] }): void {
+    Object.keys(map).forEach(k => {
+      map[k] = uniq(map[k]);
+    });
   }
 
   private isNew(): boolean {
@@ -244,6 +254,6 @@ class DockerImageAndTagSelectorComponent implements ng.IComponentOptions {
   public templateUrl: string = require('./dockerImageAndTagSelector.component.html');
 }
 
-export const DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT = 'spinnaker.deck.docker.imageAndTagSelector.component';
+export const DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT = 'spinnaker.docker.imageAndTagSelector.component';
 module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, [ACCOUNT_SERVICE, DOCKER_IMAGE_READER])
   .component('dockerImageAndTagSelector', new DockerImageAndTagSelectorComponent());

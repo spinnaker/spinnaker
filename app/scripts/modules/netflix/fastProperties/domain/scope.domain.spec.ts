@@ -25,7 +25,7 @@ describe('Scope Domain Spec', function () {
         expect(result[prop]).toBe(platformProperty[prop]);
       });
 
-      expect(result['propertyId']).toBeUndefined()
+      expect(result['propertyId']).toBeUndefined();
 
     });
   });
