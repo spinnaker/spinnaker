@@ -41,10 +41,10 @@ class AppengineGitCredentials {
                           String gitHttpsPassword,
                           String githubOAuthAccessToken,
                           String sshPrivateKeyFilePath,
-                          String sshPrivateKeyPassword) {
+                          String sshPrivateKeyPassphrase) {
     setHttpsUsernamePasswordCredentialsProvider(gitHttpsUsername, gitHttpsPassword)
     setHttpsOAuthCredentialsProvider(githubOAuthAccessToken)
-    setSshPrivateKeyTransportConfigCallback(sshPrivateKeyFilePath, sshPrivateKeyPassword)
+    setSshPrivateKeyTransportConfigCallback(sshPrivateKeyFilePath, sshPrivateKeyPassphrase)
   }
 
   AppengineGitRepositoryClient buildRepositoryClient(String repositoryUrl,
@@ -83,8 +83,8 @@ class AppengineGitCredentials {
     }
   }
 
-  void setSshPrivateKeyTransportConfigCallback(String sshPrivateKeyFilePath, String sshPrivateKeyPassword) {
-    if (sshPrivateKeyPassword && sshPrivateKeyPassword) {
+  void setSshPrivateKeyTransportConfigCallback(String sshPrivateKeyFilePath, String sshPrivateKeyPassphrase) {
+    if (sshPrivateKeyFilePath && sshPrivateKeyPassphrase) {
       SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
         @Override
         protected void configure(OpenSshConfig.Host hc, Session session) { }
@@ -92,7 +92,7 @@ class AppengineGitCredentials {
         @Override
         protected JSch createDefaultJSch(FS fs) throws JSchException {
           JSch defaultJSch = super.createDefaultJSch(fs)
-          defaultJSch.addIdentity(sshPrivateKeyFilePath, sshPrivateKeyPassword)
+          defaultJSch.addIdentity(sshPrivateKeyFilePath, sshPrivateKeyPassphrase)
           return defaultJSch
         }
       }

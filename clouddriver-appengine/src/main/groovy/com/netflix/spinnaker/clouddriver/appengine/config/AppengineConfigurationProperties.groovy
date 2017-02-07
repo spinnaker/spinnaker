@@ -39,7 +39,7 @@ class AppengineConfigurationProperties {
     String gitHttpsPassword
     String githubOAuthAccessToken
     String sshPrivateKeyFilePath
-    String sshPrivateKeyPassword
+    String sshPrivateKeyPassphrase
 
     void initialize(AppengineJobExecutor jobExecutor) {
       if (this.jsonPath) {

@@ -68,7 +68,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
     String gitHttpsPassword
     String githubOAuthAccessToken
     String sshPrivateKeyFilePath
-    String sshPrivateKeyPassword
+    String sshPrivateKeyPassphrase
     AppengineGitCredentials gitCredentials
 
     /*
@@ -162,8 +162,8 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
       return this
     }
 
-    Builder sshPrivateKeyPassword(String sshPrivateKeyPassword) {
-      this.sshPrivateKeyPassword = sshPrivateKeyPassword
+    Builder sshPrivateKeyPassphrase(String sshPrivateKeyPassphrase) {
+      this.sshPrivateKeyPassphrase = sshPrivateKeyPassphrase
       return this
     }
 
@@ -189,7 +189,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
         gitHttpsPassword,
         githubOAuthAccessToken,
         sshPrivateKeyFilePath,
-        sshPrivateKeyPassword
+        sshPrivateKeyPassphrase
       )
 
       return new AppengineNamedAccountCredentials(name,
