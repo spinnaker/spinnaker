@@ -3,6 +3,7 @@
     <table class="table table-condensed">
       <thead>
       <tr>
+        <th></th>
         <th if-multiple-providers>Provider</th>
         <th>Account</th>
         <th>Cluster</th>
@@ -14,8 +15,9 @@
         <th style="width: 58px">Actions</th>
       </tr>
       </thead>
-      <tbody>
+      <tbody ui-sortable="deployStageCtrl.clusterSortOptions" ng-model="stage.clusters">
       <tr ng-repeat="cluster in stage.clusters">
+        <td class="handle" style="cursor: move"><span class="glyphicon glyphicon-resize-vertical"></span></td>
         <td if-multiple-providers class="text-center">
           <cloud-provider-logo provider="cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws'"
                                width="20px" height="20px" show-tooltip="true"></cloud-provider-logo>
@@ -73,7 +75,7 @@
       </tbody>
       <tfoot>
       <tr>
-        <td colspan="9">
+        <td colspan="10">
           <button class="btn btn-block btn-sm add-new" ng-click="deployStageCtrl.addCluster()">
             <span class="glyphicon glyphicon-plus-sign"></span> Add server group
           </button>

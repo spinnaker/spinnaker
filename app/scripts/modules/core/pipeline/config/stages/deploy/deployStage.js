@@ -153,6 +153,26 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       $scope.stage.clusters.splice(index, 1);
     };
 
+    this.clusterSortOptions = {
+      axis: 'y',
+      delay: 150,
+      start: (_event, ui) => {
+        // Calculate placeholder height accurately
+        ui.placeholder.height(ui.item.height());
+      },
+      helper: (_event, element) => {
+        // Calcluate helper cell widths accurately
+        const $originalChildren = element.children();
+        const $helper = element.clone();
+        const $helperChildren = $helper.children();
+        $helperChildren.each((index) => {
+          $helperChildren.eq(index).width($originalChildren[index].clientWidth);
+        });
+        return $helper;
+      },
+      handle: '.handle'
+    };
+
     initializeCommand();
 
     $scope.trafficOptions = StageConstants.STRATEGY_TRAFFIC_OPTIONS;
