@@ -37,10 +37,6 @@ public interface StorageService {
 
   <T extends Timestamped> T loadObject(ObjectType objectType, String objectKey) throws NotFoundException;
 
-  <T extends Timestamped> T loadObjectVersion(ObjectType objectType,
-                                              String objectKey,
-                                              String versionId) throws NotFoundException;
-
   void deleteObject(ObjectType objectType, String objectKey);
 
   <T extends Timestamped> void storeObject(ObjectType objectType, String objectKey, T item);
