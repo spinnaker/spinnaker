@@ -68,6 +68,23 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
 
   @Override
   public TaskResult execute(Stage stage) {
+    Optional<InterestingHealthProviderNamesSupplier> healthProviderNamesSupplierOptional = interestingHealthProviderNamesSuppliers
+      .stream()
+      .filter(supplier -> supplier.supports(getCloudProvider(stage), stage))
+      .findFirst();
+
+    if (healthProviderNamesSupplierOptional.isPresent()) {
+      List<String> interestingHealthProviderNames = healthProviderNamesSupplierOptional.get().process(getCloudProvider(stage), stage);
+      Map<String, List<String>> results = new HashMap<>();
+
+      if (interestingHealthProviderNames != null) {
+        // avoid a `null` value that may cause problems with ImmutableMap usage downstream
+        results.put("interestingHealthProviderNames", interestingHealthProviderNames);
+      }
+
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, results);
+    }
+
     if (stage.getContext().containsKey("interestingHealthProviderNames")) {
       // should not override any stage-specified health providers
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED);
@@ -90,22 +107,6 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
       }
 
       Application application = front50Service.get(applicationName);
-      Optional<InterestingHealthProviderNamesSupplier> healthProviderNamesSupplierOptional = interestingHealthProviderNamesSuppliers
-        .stream()
-        .filter(supplier -> supplier.supports(getCloudProvider(stage), stage))
-        .findFirst();
-
-      if (healthProviderNamesSupplierOptional.isPresent()) {
-        List<String> interestingHealthProviderNames = healthProviderNamesSupplierOptional.get().process(getCloudProvider(stage), stage);
-        Map<String, List<String>> results = new HashMap<>();
-
-        if (interestingHealthProviderNames != null) {
-          // avoid a `null` value that may cause problems with ImmutableMap usage downstream
-          results.put("interestingHealthProviderNames", interestingHealthProviderNames);
-        }
-
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, results);
-      }
 
       if (application.platformHealthOnly == Boolean.TRUE && application.platformHealthOnlyShowOverride != Boolean.TRUE) {
         // if `platformHealthOnlyShowOverride` is true, the expectation is that `interestingHealthProviderNames` will

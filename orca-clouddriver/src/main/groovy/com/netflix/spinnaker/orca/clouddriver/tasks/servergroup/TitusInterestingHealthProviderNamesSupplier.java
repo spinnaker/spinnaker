@@ -35,7 +35,7 @@ public class TitusInterestingHealthProviderNamesSupplier implements InterestingH
   private static final String TITUS = "titus";
   private static final String INTERESTING_HEALTH_PROVIDER_NAMES = "interestingHealthProviderNames";
   private static final String ROLLING_PUSH = "rollingpush";
-  private static final List<String> SUPPORTED_STAGES = Arrays.asList("enableServerGroup", "createServerGroup", "cloneServerGroup");
+  private static final List<String> SUPPORTED_STAGES = Arrays.asList("enableServerGroup", "cloneServerGroup", "rollingPush");
 
   private final OortService oortService;
   private final ObjectMapper objectMapper;
