@@ -5,7 +5,7 @@ rosco:
   configDir: /some/path/to/config/packer
   jobs:
     local:
-      timeoutMinutes: 20
+      timeoutMinutes: 30
 
 spectator:
   applicationName: ${spring.application.name}
@@ -15,10 +15,12 @@ spectator:
 # If a repository is set here, it will be added by packer as repository when baking images for GCE and AWS.
 # It is safe to leave this out (or blank) if you do not need to configure your own repository.
 # You can specify an apt repository (used when baking debian based images) and/or a yum repository (used when baking an
-# rpm based imaged)
-# The following commented-out line is an example of what a valid entry looks like.
+# rpm based imaged) and/or a chocolatey repository (used when baking a nuget based image).
+# You may specify a space separated list repositories per repository type.
+# The following commented-out lines are an example of what a valid entry looks like.
 # debianRepository: http://dl.bintray.com/spinnaker/ospackages ./
 # yumRepository: https://https://jfrog.bintray.com/...
+# chocolateyRepository: https://chocolatey.org/api/v2/
 
 defaultCloudProviderType: aws
 
@@ -140,6 +142,20 @@ aws:
         instanceType: m3.medium
         sourceAmi: ami-37501207
         sshUserName: ubuntu
+    - baseImage:
+        id: windows-2012-r2
+        shortDescription: 2012 R2
+        detailedDescription: Windows Server 2012 R2 Base
+        packageType: nupkg
+        templateFile: aws-windows-2012-r2.json
+        osType: windows
+      virtualizationSettings:
+      - region: us-east-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-21414f36
+        winRmUserName: Administrator
+
 
 azure:
   # The property referenced below, AZURE_ENABLED, is not set in the
@@ -171,6 +187,18 @@ azure:
         version: 7.1.20150731
         osType: Linux
         packageType: rpm
+    - baseImage:
+        id: windows-2012-r2
+        shortDescription: 2012 R2
+        detailedDescription: Windows Server 2012 R2 Datacenter
+        publisher: MicrosoftWindowsServer
+        offer: WindowsServer
+        sku: 2012-R2-Datacenter
+        version: 4.0.20170111
+        osType: windows
+        packageType: nupkg
+        templateFile: azure-windows-2012-r2.json
+
 
 docker:
   # The property referenced below, DOCKER_ENABLED, is not set in the

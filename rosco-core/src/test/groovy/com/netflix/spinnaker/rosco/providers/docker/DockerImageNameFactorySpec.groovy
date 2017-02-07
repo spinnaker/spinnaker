@@ -20,7 +20,7 @@ class DockerImageNameFactorySpec extends Specification implements TestDefaults {
       def osPackages = parseRpmOsPackageNames(bakeRequest.package_name)
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages)
     then:
       imageName == "ECorp/nflx-djangobase-enhanced"
@@ -40,7 +40,7 @@ class DockerImageNameFactorySpec extends Specification implements TestDefaults {
       def osPackages = parseRpmOsPackageNames(bakeRequest.package_name)
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages)
     then:
       imageName == "superimage"
@@ -59,7 +59,7 @@ class DockerImageNameFactorySpec extends Specification implements TestDefaults {
       def osPackages = parseRpmOsPackageNames(bakeRequest.package_name)
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages)
     then:
       clockMock.millis() >> SOME_MILLISECONDS.toLong()

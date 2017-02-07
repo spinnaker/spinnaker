@@ -1,10 +1,12 @@
 package com.netflix.spinnaker.rosco.providers.util
 
+import com.netflix.spinnaker.rosco.jobs.JobRequest
+import org.apache.commons.exec.CommandLine
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class LocalJobFriendlyPackerCommandFactorySpec extends Specification {
+class LocalJobFriendlyPackerCommandFactorySpec extends Specification implements TestDefaults {
 
   @Shared
   LocalJobFriendlyPackerCommandFactory packerCommandFactory = new LocalJobFriendlyPackerCommandFactory()
@@ -47,5 +49,41 @@ class LocalJobFriendlyPackerCommandFactorySpec extends Specification {
       null               | ["packer", "build", "-color=false", "-var", "something=some-var"]
       ""                 | ["packer", "build", "-color=false", "-var", "something=some-var"]
       "someVarFile.json" | ["packer", "build", "-color=false", "-var", "something=some-var", "-var-file=someVarFile.json"]
+  }
+
+  @Unroll
+  void "packerCommand includes parameter with non-quoted string"() {
+
+    when:
+    def packerCommand = packerCommandFactory.buildPackerCommand("", parameterMap, null, "")
+
+    then:
+    packerCommand == expectedPackerCommand
+
+    where:
+    parameterMap                      | expectedPackerCommand
+    [packages: "package1 package2"]   | ["packer", "build", "-color=false", "-var", "packages=package1 package2"]
+  }
+
+  @Unroll
+  void 'validate packer command line' () {
+    setup:
+
+    when:
+      def packerCommand = packerCommandFactory.buildPackerCommand("", parameterMap, null, "")
+      def jobRequest = new JobRequest(tokenizedCommand: packerCommand, maskedPackerParameters: maskedPackerParameters, jobId: SOME_UUID)
+      def commandLine = new CommandLine(jobRequest.tokenizedCommand[0])
+      def arguments = (String []) Arrays.copyOfRange(jobRequest.tokenizedCommand.toArray(), 1, jobRequest.tokenizedCommand.size())
+      commandLine.addArguments(arguments, false)
+      def g = commandLine.toString()
+      def cmdLineList =  commandLine.toStrings().toList()
+
+
+    then:
+      cmdLineList  == expectedCommandLine
+
+    where:
+      parameterMap                          | maskedPackerParameters | expectedCommandLine
+      [packages: "package1 package2"]       | []                     | ["packer", "build", "-color=false", "-var", "packages=package1 package2"]
   }
 }

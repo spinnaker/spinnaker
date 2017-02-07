@@ -40,6 +40,9 @@ abstract class CloudProviderBakeHandler {
   @Value('${yumRepository:}')
   String yumRepository
 
+  @Value('${chocolateyRepository:}')
+  String chocolateyRepository
+
   @Value('${templatesNeedingRoot:}')
   List<String> templatesNeedingRoot
 
@@ -142,7 +145,7 @@ abstract class CloudProviderBakeHandler {
 
     def osPackageNames = PackageNameConverter.buildOsPackageNames(packageType, packageNameList)
 
-    def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackageNames)
+    def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackageNames, packageType)
 
     def imageName = imageNameFactory.buildImageName(bakeRequest, osPackageNames)
 
@@ -154,6 +157,8 @@ abstract class CloudProviderBakeHandler {
       parameterMap.repository = debianRepository
     } else if (yumRepository && selectedOptions.baseImage.packageType == BakeRequest.PackageType.RPM) {
       parameterMap.repository = yumRepository
+    } else if (chocolateyRepository && selectedOptions.baseImage.packageType == BakeRequest.PackageType.NUPKG) {
+      parameterMap.repository = chocolateyRepository
     }
 
     parameterMap.package_type = selectedOptions.baseImage.packageType.packageType

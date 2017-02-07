@@ -88,6 +88,7 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
       azure_storage_account: selectedAccount?.packerStorageAccount,
       azure_subscription_id: selectedAccount?.subscriptionId,
       azure_tenant_id: selectedAccount?.tenantId,
+      azure_object_id: selectedAccount?.objectId,
       azure_location: region,
       azure_image_publisher: selectedImage?.baseImage?.publisher,
       azure_image_offer: selectedImage?.baseImage?.offer,

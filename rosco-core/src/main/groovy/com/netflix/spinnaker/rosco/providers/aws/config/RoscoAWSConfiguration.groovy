@@ -72,6 +72,7 @@ class RoscoAWSConfiguration {
     String instanceType
     String sourceAmi
     String sshUserName
+    String winRmUserName
   }
 
   @PostConstruct

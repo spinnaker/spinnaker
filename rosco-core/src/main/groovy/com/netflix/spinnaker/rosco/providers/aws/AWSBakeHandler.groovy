@@ -93,11 +93,18 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   Map buildParameterMap(String region, def awsVirtualizationSettings, String imageName, BakeRequest bakeRequest, String appVersionStr) {
     def parameterMap = [
       aws_region       : region,
-      aws_ssh_username : awsVirtualizationSettings.sshUserName,
       aws_instance_type: awsVirtualizationSettings.instanceType,
       aws_source_ami   : awsVirtualizationSettings.sourceAmi,
       aws_target_ami   : imageName
     ]
+
+    if (awsVirtualizationSettings.sshUserName) {
+      parameterMap.aws_ssh_username = awsVirtualizationSettings.sshUserName
+    }
+
+    if (awsVirtualizationSettings.winRmUserName) {
+      parameterMap.aws_winrm_username = awsVirtualizationSettings.winRmUserName
+    }
 
     if (awsBakeryDefaults.awsAccessKey && awsBakeryDefaults.awsSecretKey) {
       parameterMap.aws_access_key = awsBakeryDefaults.awsAccessKey

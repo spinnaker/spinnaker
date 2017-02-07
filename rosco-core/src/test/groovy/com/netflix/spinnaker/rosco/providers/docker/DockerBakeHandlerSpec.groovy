@@ -180,7 +180,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> SOME_MILLISECONDS
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> SOME_MILLISECONDS
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$dockerBakeryDefaults.templateFile")
   }
@@ -223,7 +223,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> SOME_MILLISECONDS
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> SOME_MILLISECONDS
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$dockerBakeryDefaults.templateFile")
   }
@@ -266,7 +266,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> SOME_MILLISECONDS
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE) >> SOME_MILLISECONDS
       1 * imageNameFactoryMock.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$dockerBakeryDefaults.templateFile")
   }
@@ -313,7 +313,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, [osPackage]) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, [osPackage]) >> SOME_MILLISECONDS
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, [osPackage], DEB_PACKAGE_TYPE) >> SOME_MILLISECONDS
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, [osPackage]) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$dockerBakeryDefaults.templateFile")
   }
@@ -361,7 +361,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
     when:
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
     then:
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> targetImageTag
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> targetImageTag
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetQualifiedImageName
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$dockerBakeryDefaults.templateFile")

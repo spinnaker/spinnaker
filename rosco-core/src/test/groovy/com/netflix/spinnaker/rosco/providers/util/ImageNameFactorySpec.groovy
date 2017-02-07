@@ -35,7 +35,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
@@ -56,7 +56,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
@@ -77,7 +77,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
@@ -98,7 +98,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
@@ -120,7 +120,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
@@ -141,7 +141,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
@@ -164,7 +164,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
@@ -186,7 +186,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
@@ -208,7 +208,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
@@ -229,7 +229,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages)
 
     then:
@@ -252,7 +252,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages)
 
     then:
@@ -274,7 +274,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages)
 
     then:
@@ -296,7 +296,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages)
 
     then:
@@ -316,7 +316,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages)
 
     then:
@@ -335,7 +335,7 @@ class ImageNameFactorySpec extends Specification implements TestDefaults {
 
     when:
       def imageName = imageNameFactory.buildImageName(bakeRequest, osPackages)
-      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages)
+      def appVersionStr = imageNameFactory.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE)
       def packagesParameter = imageNameFactory.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages)
 
     then:

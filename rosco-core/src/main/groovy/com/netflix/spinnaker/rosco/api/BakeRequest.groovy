@@ -85,7 +85,8 @@ class BakeRequest {
 
   static enum PackageType {
     RPM('rpm', '-'),
-    DEB('deb', '=')
+    DEB('deb', '='),
+    NUPKG('nupkg', '.')
 
     private final String packageType
     private final String versionDelimiter
@@ -110,6 +111,10 @@ class BakeRequest {
 
   static enum StoreType {
     ebs, s3, docker
+  }
+
+  static enum OsType {
+    linux, windows
   }
 }
 

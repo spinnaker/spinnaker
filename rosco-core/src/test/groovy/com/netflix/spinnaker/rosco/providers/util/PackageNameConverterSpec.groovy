@@ -78,6 +78,73 @@ class PackageNameConverterSpec extends Specification implements TestDefaults {
                                                                                               arch: "noarch")
   }
 
+  @Unroll
+  void "nupkg package names are properly parsed"() {
+    when:
+      def osPackageName = PackageNameConverter.parseNupkgPackageName(packageName)
+
+    then:
+      osPackageName == expectedOsPackageName
+
+    where:
+      packageName                                    | expectedOsPackageName
+      null                                           | new PackageNameConverter.OsPackageName()
+      ""                                             | new PackageNameConverter.OsPackageName()
+      "billinggateway.1.0.1"                         | new PackageNameConverter.OsPackageName(name: "billinggateway",
+                                                                                              version: "1.0.1",
+                                                                                              release: null,
+                                                                                              arch: null)
+      "nflx-djangobase-enhanced.1.0.1-rc1"           | new PackageNameConverter.OsPackageName(name: "nflx-djangobase-enhanced",
+                                                                                              version: "1.0.1",
+                                                                                              release: "rc1",
+                                                                                              arch: null)
+      "sf-lucifer.en-US.0.0.10-1"                    | new PackageNameConverter.OsPackageName(name: "sf-lucifer.en-US",
+                                                                                              version: "0.0.10",
+                                                                                              release: "1",
+                                                                                              arch: null)
+      "microsoft.aspnet.mvc"                         | new PackageNameConverter.OsPackageName(name: "microsoft.aspnet.mvc",
+                                                                                              version: null,
+                                                                                              release: null,
+                                                                                              arch: null)
+      "microsoft.aspnet.mvc.6"                       | new PackageNameConverter.OsPackageName(name: "microsoft.aspnet.mvc",
+                                                                                              version: "6",
+                                                                                              release: null,
+                                                                                              arch: null)
+      "microsoft.aspnet.mvc.6-rc1-final"             | new PackageNameConverter.OsPackageName(name: "microsoft.aspnet.mvc",
+                                                                                              version: "6",
+                                                                                              release: "rc1-final",
+                                                                                              arch: null)
+      "microsoft.aspnet.mvc.6.0.0+sf23sdf"           | new PackageNameConverter.OsPackageName(name: "microsoft.aspnet.mvc",
+                                                                                              version: "6.0.0",
+                                                                                              release: "+sf23sdf",
+                                                                                              arch: null)
+      "microsoft.aspnet.mvc.6.0.0-rc1-final+sf23sdf" | new PackageNameConverter.OsPackageName(name: "microsoft.aspnet.mvc",
+                                                                                              version: "6.0.0",
+                                                                                              release: "rc1-final+sf23sdf",
+                                                                                              arch: null)
+      "microsoft-aspnet-mvc"                         | new PackageNameConverter.OsPackageName(name: "microsoft-aspnet-mvc",
+                                                                                              version: null,
+                                                                                              release: null,
+                                                                                              arch: null)
+      "microsoft-aspnet-mvc.6"                       | new PackageNameConverter.OsPackageName(name: "microsoft-aspnet-mvc",
+                                                                                              version: "6",
+                                                                                              release: null,
+                                                                                              arch: null)
+      "microsoft-aspnet-mvc.6-rc1-final"             | new PackageNameConverter.OsPackageName(name: "microsoft-aspnet-mvc",
+                                                                                              version: "6",
+                                                                                              release: "rc1-final",
+                                                                                              arch: null)
+      "microsoft-aspnet-mvc.6.0.0+sf23sdf"           | new PackageNameConverter.OsPackageName(name: "microsoft-aspnet-mvc",
+                                                                                              version: "6.0.0",
+                                                                                              release: "+sf23sdf",
+                                                                                              arch: null)
+      "microsoft-aspnet-mvc.6.0.0-rc1-final+sf23sdf" | new PackageNameConverter.OsPackageName(name: "microsoft-aspnet-mvc",
+                                                                                              version: "6.0.0",
+                                                                                              release: "rc1-final+sf23sdf",
+                                                                                              arch: null)
+
+  }
+
   void "package type is respected when building app version string"() {
     setup:
       def debPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"
@@ -91,12 +158,14 @@ class PackageNameConverterSpec extends Specification implements TestDefaults {
         new BakeRequest(base_os: "ubuntu",
                         build_number: "12",
                         commit_hash: "170cdbd"),
-        parsedDebPackageName)
+        parsedDebPackageName,
+        DEB_PACKAGE_TYPE)
       def appVersionStrFromRpmPackageName = PackageNameConverter.buildAppVersionStr(
         new BakeRequest(base_os: "centos",
                         build_number: "12",
                         commit_hash: "170cdbd"),
-        parsedRpmPackageName)
+        parsedRpmPackageName,
+        RPM_PACKAGE_TYPE)
 
     then:
       parsedDebPackageName == parsedRpmPackageName
@@ -116,7 +185,7 @@ class PackageNameConverterSpec extends Specification implements TestDefaults {
 
     when:
       def parsedDebPackageName = PackageNameConverter.buildOsPackageName(packageType, debPackageName)
-      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName)
+      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName, packageType)
 
     then:
       appVersionStrFromDebPackageName == appVersionStr
@@ -131,7 +200,7 @@ class PackageNameConverterSpec extends Specification implements TestDefaults {
 
     when:
       def parsedDebPackageName = PackageNameConverter.buildOsPackageName(packageType, debPackageName)
-      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName)
+      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName, packageType)
 
     then:
       appVersionStrFromDebPackageName == appVersionStr
@@ -148,7 +217,7 @@ class PackageNameConverterSpec extends Specification implements TestDefaults {
                                         build_number: "12",
                                         commit_hash: "170cdbd")
       def parsedDebPackageName = PackageNameConverter.buildOsPackageName(packageType, debPackageName)
-      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName)
+      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName, packageType)
 
     then:
       appVersionStrFromDebPackageName == appVersionStr

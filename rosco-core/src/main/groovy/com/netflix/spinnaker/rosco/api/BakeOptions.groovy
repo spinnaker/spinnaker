@@ -29,6 +29,7 @@ class BakeOptions {
     String detailedDescription
     BakeRequest.PackageType packageType
     String templateFile
+    BakeRequest.OsType osType = BakeRequest.OsType.linux
   }
 
   static class Selected {

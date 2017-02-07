@@ -36,11 +36,11 @@ public class ImageNameFactory {
   /**
    * Attempts to produce an appVersionStr from the first packageName; to be used for tagging the newly-baked image
    */
-  def buildAppVersionStr(BakeRequest bakeRequest, List<PackageNameConverter.OsPackageName> osPackageNames) {
+  def buildAppVersionStr(BakeRequest bakeRequest, List<PackageNameConverter.OsPackageName> osPackageNames, BakeRequest.PackageType packageType) {
     String appVersionStr = null
 
     if (osPackageNames) {
-      appVersionStr = PackageNameConverter.buildAppVersionStr(bakeRequest, osPackageNames.first())
+      appVersionStr = PackageNameConverter.buildAppVersionStr(bakeRequest, osPackageNames.first(), packageType)
     }
 
     return appVersionStr

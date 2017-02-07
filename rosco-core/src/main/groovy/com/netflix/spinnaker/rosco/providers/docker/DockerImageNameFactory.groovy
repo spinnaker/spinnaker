@@ -7,8 +7,8 @@ import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
 class DockerImageNameFactory extends ImageNameFactory {
 
   @Override
-  def buildAppVersionStr(BakeRequest bakeRequest, List<PackageNameConverter.OsPackageName> osPackageNames) {
-    super.buildAppVersionStr(bakeRequest, osPackageNames) ?: clock.millis().toString()
+  def buildAppVersionStr(BakeRequest bakeRequest, List<PackageNameConverter.OsPackageName> osPackageNames, BakeRequest.PackageType packageType) {
+    super.buildAppVersionStr(bakeRequest, osPackageNames, packageType) ?: clock.millis().toString()
   }
 
   @Override

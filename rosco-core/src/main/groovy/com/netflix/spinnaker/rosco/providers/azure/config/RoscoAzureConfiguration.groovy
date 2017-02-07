@@ -61,7 +61,6 @@ class RoscoAzureConfiguration {
     String offer
     String sku
     String version
-    String osType
   }
 
   static class AzureBaseImage {
@@ -84,6 +83,7 @@ class RoscoAzureConfiguration {
     String appKey
     String tenantId
     String subscriptionId
+    String objectId
     String packerResourceGroup
     String packerStorageAccount
   }

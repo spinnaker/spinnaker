@@ -37,6 +37,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
   private static final String SOURCE_UBUNTU_PV_IMAGE_NAME = "ami-a654321b"
   private static final String SOURCE_TRUSTY_HVM_IMAGE_NAME = "ami-c456789d"
   private static final String SOURCE_AMZN_HVM_IMAGE_NAME = "ami-8fcee4e5"
+  private static final String SOURCE_WINDOWS_2012_R2_HVM_IMAGE_NAME = "ami-21414f36"
 
   @Shared
   String configDir = "/some/path"
@@ -101,6 +102,22 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
               instanceType: "t2.micro",
               sourceAmi: SOURCE_AMZN_HVM_IMAGE_NAME,
               sshUserName: "ec2-user"
+            ]
+          ]
+        ],
+        [
+          baseImage: [
+            id: "windows-2012-r2",
+            packageType: "NUPKG",
+            templateFile: "aws-windows-2012-r2.json"
+          ],
+          virtualizationSettings: [
+            [
+              region: REGION,
+              virtualizationType: "hvm",
+              instanceType: "t2.micro",
+              sourceAmi: SOURCE_WINDOWS_2012_R2_HVM_IMAGE_NAME,
+              winRmUserName: "Administrator"
             ]
           ]
         ]
@@ -178,6 +195,46 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       }
   }
 
+  void 'can scrape packer (Windows) logs for image name'() {
+    setup:
+    @Subject
+    AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
+
+    when:
+    def logsContent =
+      "    amazon-ebs: Chocolatey installed 2/2 packages. 0 packages failed.\n" +
+        "    amazon-ebs: See the log for details (C:\\ProgramData\\chocolatey\\logs\\chocolatey.log).\n" +
+        "==> amazon-ebs: Stopping the source instance...\n" +
+        "==> amazon-ebs: Waiting for the instance to stop...\n" +
+        "==> amazon-ebs: Creating the AMI: googlechrome-all-20170121212839-windows-2012-r2\n" +
+        "    amazon-ebs: AMI: ami-ca32c7dc\n" +
+        "==> amazon-ebs: Waiting for AMI to become ready...\n" +
+        "==> amazon-ebs: Adding tags to AMI (ami-ca32c7dc)...\n" +
+        "    amazon-ebs: Adding tag: \"appversion\": \"\"\n" +
+        "    amazon-ebs: Adding tag: \"build_host\": \"\"\n" +
+        "    amazon-ebs: Adding tag: \"build_info_url\": \"\"\n" +
+        "==> amazon-ebs: Tagging snapshot: snap-08b92184c6506720c\n" +
+        "==> amazon-ebs: Terminating the source AWS instance...\n" +
+        "==> amazon-ebs: Cleaning up any extra volumes...\n" +
+        "==> amazon-ebs: No volumes to clean up, skipping\n" +
+        "==> amazon-ebs: Deleting temporary security group...\n" +
+        "==> amazon-ebs: Deleting temporary keypair...\n" +
+        "Build 'amazon-ebs' finished.\n" +
+        "\n" +
+        "==> Builds finished. The artifacts of successful builds are:\n" +
+        "--> amazon-ebs: AMIs were created:\n" +
+        "\n" +
+        "us-east-1: ami-ca32c7dc"
+
+    Bake bake = awsBakeHandler.scrapeCompletedBakeResults(REGION, "123", logsContent)
+
+    then:
+    with (bake) {
+      id == "123"
+      ami == "ami-ca32c7dc"
+      image_name == "googlechrome-all-20170121212839-windows-2012-r2"
+    }
+  }
 
   void 'scraping returns null for missing image id'() {
     setup:
@@ -268,7 +325,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
@@ -308,7 +365,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
@@ -373,7 +430,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, RPM_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(RPM_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("sudo", parameterMap, null, "$configDir/aws-chroot.json")
   }
@@ -414,7 +471,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
@@ -454,7 +511,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
@@ -495,7 +552,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/somePackerTemplate.json")
   }
@@ -538,7 +595,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
@@ -578,7 +635,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
@@ -627,7 +684,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> appVersionStr
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> appVersionStr
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
@@ -669,9 +726,50 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> null
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
+  }
+
+  void 'produces packer (Windows) command with all required parameters'() {
+    setup:
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+      package_name: NUPKG_PACKAGES_NAME,
+      base_os: "windows-2012-r2",
+      vm_type: BakeRequest.VmType.hvm,
+      cloud_provider_type: BakeRequest.CloudProviderType.aws)
+    def targetImageName = "googlechrome-all-20170121212839-windows-2012-r2"
+    def osPackages = parseNupkgOsPackageNames(NUPKG_PACKAGES_NAME)
+    def parameterMap = [
+      aws_region: REGION,
+      aws_winrm_username: "Administrator",
+      aws_instance_type: "t2.micro",
+      aws_source_ami: SOURCE_WINDOWS_2012_R2_HVM_IMAGE_NAME,
+      aws_target_ami: targetImageName,
+      repository: CHOCOLATEY_REPOSITORY,
+      package_type: NUPKG_PACKAGE_TYPE.packageType,
+      packages: NUPKG_PACKAGES_NAME,
+      configDir: configDir
+    ]
+    def operatingSystemVirtualizationSettings = awsBakeryDefaults.baseImages.find { it?.baseImage?.id == bakeRequest.base_os}
+
+    @Subject
+    AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+      awsBakeryDefaults: awsBakeryDefaults,
+      imageNameFactory: imageNameFactoryMock,
+      packerCommandFactory: packerCommandFactoryMock,
+      chocolateyRepository: CHOCOLATEY_REPOSITORY)
+
+    when:
+    awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+    1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+    1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, NUPKG_PACKAGE_TYPE) >> null
+    1 * imageNameFactoryMock.buildPackagesParameter(NUPKG_PACKAGE_TYPE, osPackages) >> NUPKG_PACKAGES_NAME
+    1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$operatingSystemVirtualizationSettings.baseImage.templateFile")
   }
 
   void 'throws exception when virtualization settings are not found for specified operating system'() {
@@ -893,7 +991,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> appVersionStr
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> appVersionStr
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
@@ -947,7 +1045,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
-      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages) >> appVersionStr
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> appVersionStr
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
