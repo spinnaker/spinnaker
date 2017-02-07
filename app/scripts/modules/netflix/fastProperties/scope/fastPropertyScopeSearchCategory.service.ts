@@ -1,4 +1,4 @@
-import {flatMap, uniqBy, mergeWith} from 'lodash';
+import {flatMap, uniqBy, mergeWith, flatten} from 'lodash';
 import { module } from 'angular';
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
 import { Application } from 'core/application/application.model';
@@ -126,7 +126,13 @@ export class FastPropertyScopeCategoryService {
       scope.instanceCounts = this.impactCountForApplication(scope, app);
       return scope;
     });
-    return scopesWithImpactCount;
+
+
+    let appOnlyScope = new Scope();
+    appOnlyScope.appId = selected.application;
+    appOnlyScope.instanceCounts = this.impactCountForApplication(appOnlyScope, application);
+
+    return flatten([scopesWithImpactCount, appOnlyScope]);
   };
 
   public impactCountForApplication(scope: Scope, application: any): IImpactCounts {
@@ -134,7 +140,7 @@ export class FastPropertyScopeCategoryService {
       .map((cluster: any) => cluster.serverGroups)
       .reduce((acc: any[], serverGroupList: any[]) => {
         serverGroupList.forEach((serverGroup) => {
-          if (serverGroup.region === scope.region) {
+          if ( (scope.region && serverGroup.region === scope.region) || (scope.appId && !scope.region) ) {
             acc.push(serverGroup.instanceCounts);
           };
         });
