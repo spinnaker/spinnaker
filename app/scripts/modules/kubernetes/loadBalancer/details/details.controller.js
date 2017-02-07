@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
 ])
   .controller('kubernetesLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app,
                                                                    confirmationModalService, accountService, loadBalancerWriter,
-                                                                   kubernetesProxyUiService, $q) {
+                                                                   kubernetesProxyUiService) {
 
     let application = app;
 
@@ -24,19 +24,20 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
     };
 
     function extractLoadBalancer() {
-      $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {
-        return test.name === loadBalancer.name &&
-          (test.namespace === loadBalancer.region || test.namespace === loadBalancer.namespace) &&
-          test.account === loadBalancer.accountId;
-      })[0];
+      return application.loadBalancers.ready()
+        .then(() => {
+          $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {
+            return test.name === loadBalancer.name &&
+              (test.namespace === loadBalancer.region || test.namespace === loadBalancer.namespace) &&
+              test.account === loadBalancer.accountId;
+          })[0];
 
-      if ($scope.loadBalancer) {
-        $scope.state.loading = false;
-      } else {
-        autoClose();
-      }
-
-      return $q.when(null);
+          if ($scope.loadBalancer) {
+            $scope.state.loading = false;
+          } else {
+            autoClose();
+          }
+        });
     }
 
     this.uiLink = function uiLink() {
