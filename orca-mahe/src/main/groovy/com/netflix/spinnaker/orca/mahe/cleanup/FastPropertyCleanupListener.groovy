@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mahe.cleanup
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
@@ -38,6 +39,8 @@ class FastPropertyCleanupListener implements ExecutionListener {
     this.mahe = mahe
   }
 
+  @Autowired ObjectMapper mapper
+
   @Override
   void afterExecution(Persister persister,
                       Execution execution,
@@ -55,22 +58,36 @@ class FastPropertyCleanupListener implements ExecutionListener {
               resolveRollbackResponse(response, context.propertyAction.toString(), prop)
             }
             break
-          case [PropertyAction.UPDATE.toString(), PropertyAction.DELETE.toString()]:
+          case PropertyAction.UPDATE.toString():
             context.originalProperties.each { prop ->
               log.info("Rolling back the ${context.propertyAction} of: ${prop.property.propertyId} on execution ${id} by upserting")
               Response response = mahe.upsertProperty(prop)
               resolveRollbackResponse(response, context.propertyAction.toString(), prop.property)
             }
             break;
+          case PropertyAction.DELETE.toString():
+            context.originalProperties.each { prop ->
+              if(prop.property.propertyId) {
+                prop.property.remove('propertyId')
+              }
+              log.info("Rolling back the ${context.propertyAction} of: ${prop.property.key}|${prop.property.value} on execution ${id} by re-creating")
+
+              Response response = mahe.upsertProperty(prop)
+              resolveRollbackResponse(response, context.propertyAction.toString(), prop.property)
+            }
         }
-
       }
-
     }
   }
 
   private void resolveRollbackResponse(Response response, String initialPropertyAction, def property) {
-    if(response.status != 200) {
+    if(response.status == 200) {
+      log.info("Successful Fast Property rollback for $initialPropertyAction")
+      if (response.body?.mimeType()?.startsWith('application/')) {
+        def json = mapper.readValue(response.body.in().text, Map)
+        log.info("Fast Property rollback response: $json")
+      }
+    } else {
       throw new IllegalStateException("Unable to rollback ${initialPropertyAction} with $response for property $property")
     }
   }

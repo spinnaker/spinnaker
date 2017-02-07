@@ -29,8 +29,6 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import java.nio.channels.Pipe
-
 import static com.netflix.spinnaker.orca.mahe.pipeline.CreatePropertyStage.PIPELINE_CONFIG_TYPE
 
 class PropertyChangeCleanupSpec extends Specification {
@@ -40,9 +38,14 @@ class PropertyChangeCleanupSpec extends Specification {
   def mahe = Mock(MaheService)
   @Subject def listener = new FastPropertyCleanupListener(mahe)
 
+  def setup() {
+    listener.mapper = mapper
+  }
+
   @Unroll()
   def "a deleted property is restored to its original stage if the pipeline is #executionStatus and has matching original property"() {
     given:
+
     def pipeline = Pipeline
       .builder()
       .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
@@ -142,7 +145,7 @@ class PropertyChangeCleanupSpec extends Specification {
 
     then:
     1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
-      new Response("http://mahe", 200, "OK", [] , null)
+      new Response("http://mahe", 200, "OK", [], null)
     }
 
     where:
@@ -197,7 +200,8 @@ class PropertyChangeCleanupSpec extends Specification {
 
     then:
     1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
-      new Response("http://mahe", 200, "OK", [] , null)
+      def json = mapper.writeValueAsString([propertyId: propertyId])
+      new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
     }
 
     where:
@@ -216,8 +220,6 @@ class PropertyChangeCleanupSpec extends Specification {
 
     when:
     listener.afterExecution(null, pipeline, null, true)
-
-
 
     then:
     1 * mahe.upsertProperty(previous) >> { Map res ->
