@@ -412,6 +412,7 @@ class OperationsControllerSpec extends Specification {
     2            | 'deb'              | ['foo1.deb', 'foo2.rpm']
     2            | 'deb,properties'   | ['foo1.deb', 'foo3.properties']
     2            | 'properties,rpm'   | ['foo3.properties', 'foo2.rpm']
+    1            | 'nupkg'            | ['foo8.nupkg']
 
 
     master = "master"
@@ -434,6 +435,7 @@ class OperationsControllerSpec extends Specification {
       [fileName: 'foo5.json'],
       [fileName: 'foo6.xml'],
       [fileName: 'foo7.txt'],
+      [fileName: 'foo8.nupkg'],
     ]]
   }
 

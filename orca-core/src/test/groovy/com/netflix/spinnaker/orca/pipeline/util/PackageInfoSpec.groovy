@@ -161,14 +161,7 @@ class PackageInfoSpec extends Specification {
   def "Find the right package, don't be dependant on artifact order"() {
     given:
     Stage bakeStage = new PipelineStage()
-    PackageType packageType = PackageType.RPM
     boolean extractBuildDetails = false
-    PackageInfo packageInfo = new PackageInfo(bakeStage,
-      packageType.packageType,
-      packageType.versionDelimiter,
-      extractBuildDetails,
-      false,
-      mapper)
     def allowMissingPackageInstallation = true
 
     Map trigger = ["buildInfo": ["artifacts": filename]]
@@ -176,19 +169,39 @@ class PackageInfoSpec extends Specification {
     Map request = ["package": requestPackage]
 
     when:
+    PackageInfo packageInfo = new PackageInfo(bakeStage,
+      packageType.packageType,
+      packageType.versionDelimiter,
+      extractBuildDetails,
+      false,
+      mapper)
     Map requestMap = packageInfo.createAugmentedRequest(trigger, buildInfo, request, allowMissingPackageInstallation)
 
     then:
     requestMap.package == result
-
+    
     where:
-    filename                                                 || requestPackage   || result
-    [["fileName": "package-4.11.4h-1.x86_64.rpm"]]           || "package"        || "package-4.11.4h-1.x86_64"
-    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"]] || "package"        || "package"
+    filename                                                         || requestPackage       || packageType       || result
+    [["fileName": "package-4.11.4h-1.x86_64.rpm"]]                   || "package"            || PackageType.RPM   || "package-4.11.4h-1.x86_64"
+    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]         || "package"            || PackageType.RPM   || "package"
     [["fileName": "package-4.11.4h-1.x86_64.rpm"],
-     ["fileName": "package-something-4.11.4h-1.x86_64.rpm"]] || "package"        || "package-4.11.4h-1.x86_64"
+     ["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]         || "package"            || PackageType.RPM   || "package-4.11.4h-1.x86_64"
     [["fileName": "package-something-4.11.4h-1.x86_64.rpm"],
-     ["fileName": "package-4.11.4h-1.x86_64.rpm"]]           || "package"        || "package-4.11.4h-1.x86_64"
+     ["fileName": "package-4.11.4h-1.x86_64.rpm"]]                   || "package"            || PackageType.RPM   || "package-4.11.4h-1.x86_64"
+    [["fileName": "package_4.11.4-h02.sha123_amd64.deb"]]            || "package"            || PackageType.DEB   || "package_4.11.4-h02.sha123_amd64"
+    [["fileName": "package-something_4.11.4-h02.sha123_amd64.deb"]]  || "package"            || PackageType.DEB   || "package"
+    [["fileName": "package_4.11.4-h02.deb"],
+     ["fileName": "package-something_4.11.4-h02.deb"]]               || "package"            || PackageType.DEB   || "package_4.11.4-h02"
+    [["fileName": "package_4.11.4-h02.sha123.deb"],
+     ["fileName": "package-something_4.11.4-h02.deb"]]               || "package-something"  || PackageType.DEB   || "package-something_4.11.4-h02"
+    [["fileName": "package_4.11.4-h02.sha123.deb"],
+     ["fileName": "package-something_4.11.4-h02.sha123.deb"]]        || "package"            || PackageType.DEB   || "package_4.11.4-h02.sha123"
+    [["fileName": "package.4.11.4-1+x86_64.nupkg"]]                  || "package"            || PackageType.NUPKG || "package.4.11.4-1+x86_64"
+    [["fileName": "package-something.4.11.4-1+x86_64.nupkg"]]        || "package-something"  || PackageType.NUPKG || "package-something.4.11.4-1+x86_64"
+    [["fileName": "package.4.11.4-1+x86_64.nupkg"],
+     ["fileName": "package-something.4.11.4-1+x86_64.nupkg"]]        || "package-something"  || PackageType.NUPKG || "package-something.4.11.4-1+x86_64"
+    [["fileName": "package-something.4.11.4-1+x86_64.nupkg"],
+     ["fileName": "package.4.11.4-1+x86_64.nupkg"]]                  || "package"            || PackageType.NUPKG || "package.4.11.4-1+x86_64"
 
   }
 
@@ -393,7 +406,6 @@ class PackageInfoSpec extends Specification {
       ]]]]
     ]                                                      ||  [artifacts:[[fileName: "first_1.1.1-h01.sha123_all.deb"]]]
   }
-
 
   @Unroll
   def "findTargetPackage: get packageVersion from trigger and parentExecution.trigger"() {

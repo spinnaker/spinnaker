@@ -46,7 +46,8 @@ class BuildArtifactFilterSpec extends Specification {
     2            | 'deb'              | ['foo1.deb', 'foo2.rpm']
     2            | 'deb,properties'   | ['foo1.deb', 'foo3.properties']
     2            | 'properties,rpm'   | ['foo3.properties', 'foo2.rpm']
-    10           | null               | ['foo1.deb', 'foo2.rpm', 'foo3.properties', 'foo4.yml', 'foo5.json', 'foo6.xml', 'foo7.txt']
+    11           | null               | ['foo1.deb', 'foo2.rpm', 'foo3.properties', 'foo4.yml', 'foo5.json', 'foo6.xml', 'foo7.txt', 'foo8.nupkg']
+    1            | 'nupkg'            | ['foo8.nupkg']
 
     artifacts = [
       [fileName: 'foo1.deb'],
@@ -56,6 +57,7 @@ class BuildArtifactFilterSpec extends Specification {
       [fileName: 'foo5.json'],
       [fileName: 'foo6.xml'],
       [fileName: 'foo7.txt'],
+      [fileName: 'foo8.nupkg'],
     ]
   }
 }
