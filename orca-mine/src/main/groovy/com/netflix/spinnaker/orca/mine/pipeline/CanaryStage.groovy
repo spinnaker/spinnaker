@@ -72,12 +72,15 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
         builder.stack = cluster.stack
         builder.detail = cluster.freeFormDetails
 
+        String region = cluster.region ?: (cluster.availabilityZones as Map).keySet().first()
+
         shrinkContexts << [
           cluster          : builder.buildGroupName(),
-          regions          : (cluster.availabilityZones as Map).keySet(),
+          region           : region,
           shrinkToSize     : 0,
           allowDeleteActive: true,
-          credentials      : cluster.account
+          credentials      : cluster.account,
+          cloudProvider    : cluster.cloudProvider ?: 'aws'
         ]
       }
     }

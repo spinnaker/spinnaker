@@ -22,7 +22,7 @@ class DeployedClustersUtil {
       [it.canaryCluster, it.baselineCluster].collect {
         [
           (asgOperationDescription): [
-            serverGroupName: it.serverGroup, asgName: it.serverGroup, regions: [it.region], credentials: it.accountName
+            serverGroupName: it.serverGroup, asgName: it.serverGroup, regions: [it.region], region: it.region, credentials: it.clusterAccount ?: it.accountName, cloudProvider: it.type ?: 'aws'
           ]
         ]
       }
