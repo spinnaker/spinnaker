@@ -58,6 +58,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
   static final String BACKEND_SERVICE_NAMES = GoogleServerGroup.View.BACKEND_SERVICE_NAMES
   static final String LOAD_BALANCING_POLICY = GoogleServerGroup.View.LOAD_BALANCING_POLICY
   final String region
+  final long maxMIGPageSize
 
   final Set<AgentDataType> providedDataTypes = [
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
@@ -75,12 +76,14 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
                                      GoogleNamedAccountCredentials credentials,
                                      ObjectMapper objectMapper,
                                      Registry registry,
-                                     String region) {
+                                     String region,
+                                     long maxMIGPageSize) {
     super(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper,
           registry)
     this.region = region
+    this.maxMIGPageSize = maxMIGPageSize
     this.metricsSupport = new OnDemandMetricsSupport(
       registry,
       this,
@@ -146,7 +149,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       } else {
         InstanceGroupManagerCallbacks.InstanceGroupManagerListCallback igmlCallback =
           instanceGroupManagerCallbacks.newInstanceGroupManagerListCallback()
-        compute.instanceGroupManagers().list(project, zone).queue(igmRequest, igmlCallback)
+        compute.instanceGroupManagers().list(project, zone).setMaxResults(maxMIGPageSize).queue(igmRequest, igmlCallback)
       }
     }
     executeIfRequestsAreQueued(igmRequest, "ZonalServerGroupCaching.igm")
@@ -407,6 +410,18 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
 
         def autoscalerCallback = new AutoscalerAggregatedListCallback(serverGroups: serverGroups)
         compute.autoscalers().aggregatedList(project).queue(autoscalerRequest, autoscalerCallback)
+
+        def nextPageToken = instanceGroupManagerList.getNextPageToken()
+
+        if (nextPageToken) {
+          BatchRequest igmRequest = buildBatchRequest()
+          compute.instanceGroupManagers()
+              .list(project, zone)
+              .setPageToken(nextPageToken)
+              .setMaxResults(maxMIGPageSize)
+              .queue(igmRequest, this)
+          executeIfRequestsAreQueued(igmRequest, "ZonalServerGroupCaching.igm")
+        }
       }
     }
 

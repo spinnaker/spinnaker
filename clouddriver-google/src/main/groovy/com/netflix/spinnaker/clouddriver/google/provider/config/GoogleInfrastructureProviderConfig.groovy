@@ -162,12 +162,14 @@ class GoogleInfrastructureProviderConfig {
                                                                         credentials,
                                                                         objectMapper,
                                                                         registry,
-                                                                        region)
+                                                                        region,
+                                                                        googleConfigurationProperties.maxMIGPageSize)
           newlyAddedAgents << new GoogleZonalServerGroupCachingAgent(clouddriverUserAgentApplicationName,
                                                                      credentials,
                                                                      objectMapper,
                                                                      registry,
-                                                                     region)
+                                                                     region,
+                                                                     googleConfigurationProperties.maxMIGPageSize)
         }
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.

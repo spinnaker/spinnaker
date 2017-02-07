@@ -78,6 +78,8 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware,
           @Override
           void initialize(HttpRequest request) throws IOException {
             request.headers.setUserAgent(clouddriverUserAgentApplicationName);
+            request.setConnectTimeout(2 * 60000)  // 2 minutes connect timeout
+            request.setReadTimeout(2 * 60000)  // 2 minutes read timeout
           }
         }
     )
