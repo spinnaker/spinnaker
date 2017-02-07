@@ -54,6 +54,31 @@ class AsgLifecycleHookWorkerSpec extends Specification {
     0 * autoScaling.putLifecycleHook(_)
   }
 
+  void 'should create clean lifecycle hook name'() {
+    given:
+    def hook = new AmazonAsgLifecycleHook(
+        roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
+        notificationTargetARN: 'arn:aws:sns:us-east-1:123456789012:my-sns-topic',
+        lifecycleTransition: AmazonAsgLifecycleHook.Transition.EC2InstanceTerminating,
+        heartbeatTimeout: 3600,
+        defaultResult: AmazonAsgLifecycleHook.DefaultResult.ABANDON
+      )
+
+    when:
+    asgLifecycleHookWorker.attach(Mock(Task), [hook], 'asg-foo.bar.baz-v001')
+
+    then:
+    1 * autoScaling.putLifecycleHook(new PutLifecycleHookRequest(
+      lifecycleHookName: 'asg-foo_bar_baz-v001-lifecycle-1',
+      autoScalingGroupName: 'asg-foo.bar.baz-v001',
+      lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
+      notificationTargetARN: 'arn:aws:sns:us-east-1:123456789012:my-sns-topic',
+      roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
+      heartbeatTimeout: 3600,
+      defaultResult: 'ABANDON'
+    ))
+  }
+
   void 'should create defined lifecycle hooks'() {
     given:
     def lifecycleHooks = [

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.model.PutLifecycleHookRequest
+import com.netflix.spinnaker.clouddriver.aws.deploy.AsgLifecycleHookWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgLifecycleHookDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
@@ -42,7 +43,7 @@ class UpsertAsgLifecycleHookAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     final lifecycleHookName = description.name ?: "${description.serverGroupName}-lifecycle-${idGenerator.nextId()}"
     final request = new PutLifecycleHookRequest(
-      lifecycleHookName: lifecycleHookName,
+      lifecycleHookName: AsgLifecycleHookWorker.cleanLifecycleHookName(lifecycleHookName),
       autoScalingGroupName: description.serverGroupName,
       lifecycleTransition: description.lifecycleTransition.toString(),
       roleARN: description.roleARN,
