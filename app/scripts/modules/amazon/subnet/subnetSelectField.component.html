@@ -13,6 +13,6 @@
       <option ng-if="$ctrl.activeSubnets.length && $ctrl.deprecatedSubnets.length" disabled>---------------</option>
       <option ng-repeat="subnet in $ctrl.deprecatedSubnets | orderBy: 'label'" value="{{subnet.purpose}}" ng-selected="$ctrl.component[$ctrl.field] === subnet.purpose">{{subnet.label}}</option>
     </select>
-    <p ng-if="readOnly" class="form-control-static">{{$ctrl.component[$ctrl.field] || 'None (EC2 Classic)'}}</p>
+    <p ng-if="$ctrl.readOnly" class="form-control-static">{{$ctrl.component[$ctrl.field] || 'None (EC2 Classic)'}}</p>
   </div>
 </div>
