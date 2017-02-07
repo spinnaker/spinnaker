@@ -114,13 +114,6 @@ public class S3StorageService implements StorageService {
   }
 
   @Override
-  public <T extends Timestamped> T loadObjectVersion(ObjectType objectType,
-                                                     String objectKey,
-                                                     String versionId) throws NotFoundException {
-    throw new UnsupportedOperationException("loadObjectVersion() is not supported");
-  }
-
-  @Override
   public void deleteObject(ObjectType objectType, String objectKey) {
     if (readOnlyMode) {
       throw new ReadOnlyModeException();

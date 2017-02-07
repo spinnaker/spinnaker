@@ -280,11 +280,6 @@ public class GcsStorageService implements StorageService {
   }
 
   @Override
-  public <T extends Timestamped> T loadObjectVersion(ObjectType objectType, String objectKey, String versionId) throws NotFoundException {
-      return null;
-  }
-
-  @Override
   public void deleteObject(ObjectType objectType, String objectKey) {
     String path = keyToPath(objectKey, objectType.group);
     try {
