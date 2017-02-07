@@ -25,6 +25,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.client.Response
+
 @Slf4j
 @Component
 class FastPropertyCleanupListener implements ExecutionListener {
@@ -43,23 +45,33 @@ class FastPropertyCleanupListener implements ExecutionListener {
                       boolean wasSuccessful) {
 
 
-    if (executionStatus in [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED] || execution.context.rollbackProperties) {
+    if (executionStatus in [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED] || execution.context.rollback) {
       execution.with {
         switch (context.propertyAction) {
-          case PropertyAction.CREATE:
+          case PropertyAction.CREATE.toString():
             context.propertyIdList.each { prop ->
               log.info("Rolling back the creation of: ${prop.propertyId} on execution ${id} by deleting")
-              mahe.deleteProperty(prop.propertyId, "spinnaker rollback", extractEnvironment(prop.propertyId))
+              Response response = mahe.deleteProperty(prop.propertyId, "spinnaker rollback", extractEnvironment(prop.propertyId))
+              resolveRollbackResponse(response, context.propertyAction.toString(), prop)
             }
-            break;
-          case [PropertyAction.UPDATE, PropertyAction.DELETE]:
+            break
+          case [PropertyAction.UPDATE.toString(), PropertyAction.DELETE.toString()]:
             context.originalProperties.each { prop ->
               log.info("Rolling back the ${context.propertyAction} of: ${prop.property.propertyId} on execution ${id} by upserting")
-              mahe.upsertProperty(prop)
+              Response response = mahe.upsertProperty(prop)
+              resolveRollbackResponse(response, context.propertyAction.toString(), prop.property)
             }
             break;
         }
+
       }
+
+    }
+  }
+
+  private void resolveRollbackResponse(Response response, String initialPropertyAction, def property) {
+    if(response.status != 200) {
+      throw new IllegalStateException("Unable to rollback ${initialPropertyAction} with $response for property $property")
     }
   }
 
