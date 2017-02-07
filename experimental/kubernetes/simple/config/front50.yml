@@ -2,6 +2,17 @@ server:
   port: ${services.front50.port:8080}
   address: ${services.front50.host:localhost}
 
+hystrix:
+  command:
+    default.execution.isolation.thread.timeoutInMilliseconds: 15000
+  threadpool:
+    DefaultNotificationDAO:
+      coreSize: 25
+      maxQueueSize: 100
+    DefaultPipelineDAO:
+      coreSize: 25
+      maxQueueSize: 100
+
 cassandra:
   enabled: ${services.front50.cassandra.enabled:true}
   embedded: ${services.cassandra.embedded:false}
@@ -22,8 +33,6 @@ spinnaker:
 
   redis:
     enabled: ${services.front50.redis.enabled:false}
-    host: ${services.redis.host}
-    port: ${services.redis.port}
 
   gcs:
     enabled: ${services.front50.gcs.enabled:false}
@@ -34,7 +43,20 @@ spinnaker:
     project: ${providers.google.primaryCredentials.project}
     jsonPath: ${providers.google.primaryCredentials.jsonPath}
 
-  aws:
+  s3:
     enabled: ${services.front50.s3.enabled:false}
     bucket: ${services.front50.storage_bucket:}
     rootFolder: ${services.front50.bucket_root:front50}
+
+spectator:
+  applicationName: ${spring.application.name}
+  webEndpoint:
+    enabled: ${services.spectator.webEndpoint.enabled:false}
+    prototypeFilter:
+      path: ${services.spectator.webEndpoint.prototypeFilter.path:}
+
+  stackdriver:
+    enabled: ${services.stackdriver.enabled}
+    projectName: ${services.stackdriver.projectName}
+    credentialsPath: ${services.stackdriver.credentialsPath}
+
