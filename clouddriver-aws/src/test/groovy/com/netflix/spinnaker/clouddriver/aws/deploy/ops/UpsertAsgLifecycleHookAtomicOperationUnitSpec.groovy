@@ -72,6 +72,24 @@ class UpsertAsgLifecycleHookAtomicOperationUnitSpec extends Specification {
     0 * _
   }
 
+  def 'removes invalid characters from lifecycle hook name'() {
+    when:
+    description.serverGroupName = 'a+b=c!d@e#f$g%h&i*j(k)l_m-n{o}p[q]r\\s<t>u,v.w?x/y|z-v001' // this is a valid ASG name
+    op.operate([])
+
+    then:
+    1 * autoScaling.putLifecycleHook(new PutLifecycleHookRequest(
+      lifecycleHookName: 'a_b_c_d_e_f_g_h_i_j_k_l_m-n_o_p_q_r_s_t_u_v_w_x/y_z-v001-lifecycle-1',
+      autoScalingGroupName: 'a+b=c!d@e#f$g%h&i*j(k)l_m-n{o}p[q]r\\s<t>u,v.w?x/y|z-v001',
+      lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING',
+      roleARN: 'arn:aws:iam::123456789012:role/my-notification-role',
+      notificationTargetARN: 'arn:aws:sns:us-west-1:123456789012:my-sns-topic',
+      heartbeatTimeout: 3600,
+      defaultResult: 'ABANDON'
+    ))
+    0 * _
+  }
+
   def 'creates named lifecycle hook'() {
     given:
     description.name = 'fancyHook'

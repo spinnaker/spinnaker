@@ -55,7 +55,7 @@ class AsgLifecycleHookWorker {
         case AmazonAsgLifecycleHook.TransitionType.LIFECYCLE:
           def request = new PutLifecycleHookRequest(
             autoScalingGroupName: targetAsgName,
-            lifecycleHookName: lifecycleHookName,
+            lifecycleHookName: cleanLifecycleHookName(lifecycleHookName),
             roleARN: arnTemplater(lifecycleHook.roleARN, targetRegion, targetAccountId),
             notificationTargetARN: arnTemplater(lifecycleHook.notificationTargetARN, targetRegion, targetAccountId),
             notificationMetadata: lifecycleHook.notificationMetadata,
@@ -83,5 +83,9 @@ class AsgLifecycleHookWorker {
 
   private static String arnTemplater(String arnTemplate, String region, String accountId) {
     arnTemplate.replaceAll(REGION_TEMPLATE_PATTERN, region).replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, accountId)
+  }
+
+  public static String cleanLifecycleHookName(String name) {
+    return name.replaceAll("[^A-Za-z0-9\\-_/]", "_")
   }
 }
