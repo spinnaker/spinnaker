@@ -2,7 +2,7 @@ import {module} from 'angular';
 import {get} from 'lodash';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
-import {IEntityTags, IEntityTag} from '../domain/IEntityTags';
+import {IEntityTags, IEntityTag, ICreationMetadataTag} from '../domain/IEntityTags';
 import {RETRY_SERVICE, RetryService} from 'core/retry/retry.service';
 
 export class EntityTagsReader {
@@ -52,6 +52,7 @@ export class EntityTagsReader {
         entityTag.tags.forEach(tag => this.addTagMetadata(entityTag, tag));
         entityTag.alerts = entityTag.tags.filter(t => t.name.startsWith('spinnaker_ui_alert:'));
         entityTag.notices = entityTag.tags.filter(t => t.name.startsWith('spinnaker_ui_notice:'));
+        entityTag.creationMetadata = entityTag.tags.find(t => t.name === 'spinnaker:metadata') as ICreationMetadataTag;
         allTags.push(entityTag);
       });
     });

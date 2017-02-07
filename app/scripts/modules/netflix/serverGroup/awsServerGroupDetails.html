@@ -81,6 +81,7 @@
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>
         <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
+        <entity-source metadata="ctrl.serverGroup.entityTags.creationMetadata"></entity-source>
         <dt>In</dt>
         <dd>
           <account-tag account="ctrl.serverGroup.account" pad="right"></account-tag>
@@ -91,7 +92,7 @@
         <dd><vpc-tag vpc-id="ctrl.serverGroup.vpcId"></vpc-tag></dd>
         <dt ng-if="ctrl.serverGroup.vpcId">Subnet</dt>
         <dd ng-if="ctrl.serverGroup.vpcId">{{ctrl.serverGroup.subnetType || 'None (EC2 Classic)'}}</dd>
-        <dt>Availability Zones</dt>
+        <dt>Zones</dt>
         <dd>
           <ul>
             <li ng-repeat="zone in ctrl.serverGroup.asg.availabilityZones">{{zone}}</li>

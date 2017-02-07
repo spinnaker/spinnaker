@@ -11,7 +11,30 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
 
     controller.standalone = $scope.standalone || false;
 
+    function getStageParams(stageId) {
+      const summaries = ($scope.execution.stageSummaries || []);
+      const stageIndex = summaries.findIndex(s => (s.stages || []).some(s2 => s2.id === stageId));
+      if (stageIndex !== -1) {
+        const stepIndex = (summaries[stageIndex].stages || []).findIndex(s => s.id === stageId);
+        if (stepIndex !== -1) {
+          return {
+            stage: stageIndex,
+            step: stepIndex,
+            stageId: null,
+          };
+        }
+      }
+      return null;
+    }
+
     function getCurrentStage() {
+      if ($stateParams.stageId) {
+        const params = getStageParams($stateParams.stageId);
+        if (params) {
+          $state.go('.', params, {replace: true});
+          return params.stage;
+        }
+      }
       if ($stateParams.refId) {
         let stages = $scope.execution.stageSummaries || [];
         let currentStageIndex = _.findIndex(stages, { refId: $stateParams.refId });
