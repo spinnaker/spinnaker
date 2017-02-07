@@ -1,0 +1,11 @@
+steps:
+- name: 'gcr.io/cloud-builders/git'
+  args: ['fetch', '--unshallow']
+- name: 'java:8'
+  env: ["GRADLE_USER_HOME=cache"]
+  entrypoint: "bash"
+  args: [ "-c", "./gradlew echo-web:installDist -x test"]
+- name: 'gcr.io/cloud-builders/docker'
+  args: ["build", "-t", "gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA", "-f", "Dockerfile.slim", "."]
+images:
+- 'gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA'

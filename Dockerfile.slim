@@ -1,0 +1,9 @@
+FROM openjdk:8u111-jre-alpine
+
+MAINTAINER delivery-engineering@netflix.com
+
+COPY ./echo-web/build/install/echo /opt/echo
+
+RUN apk add --update bash && rm -rf /var/cache/apk/*
+
+CMD ["/opt/echo/bin/echo"]
