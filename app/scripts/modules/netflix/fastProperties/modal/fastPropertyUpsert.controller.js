@@ -4,12 +4,14 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
+import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.strategySelector.controller', [
     require('../fastProperty.strategy.provider.js'),
     require('../fastProperty.read.service.js'),
     require('core/config/settings.js'),
-    require('core/application/listExtractor/listExtractor.service'),
+    LIST_EXTRACTOR_SERVICE,
     require('./fastPropertyWizardManagement.service'),
     require('./fastPropertyScopeBuilder.service'),
   ])

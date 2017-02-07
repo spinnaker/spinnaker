@@ -16,37 +16,37 @@ describe('namingService', function () {
   describe('parseServerGroupName', function () {
     it('parses server group name with no stack or details', function () {
       expect(this.namingService.parseServerGroupName('app-v001'))
-        .toEqual({application: 'app', stack: '', freeFormDetails: ''});
+        .toEqual({application: 'app', stack: '', freeFormDetails: '', cluster: 'app'});
       expect(this.namingService.parseServerGroupName('app-test-v001'))
-        .toEqual({application: 'app', stack: 'test', freeFormDetails: ''});
+        .toEqual({application: 'app', stack: 'test', freeFormDetails: '', cluster: 'app-test'});
       expect(this.namingService.parseServerGroupName('app--detail-v001'))
-        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail'});
+        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail', cluster: 'app--detail'});
       expect(this.namingService.parseServerGroupName('app--detail-withdashes-v001'))
-        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail-withdashes'});
+        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail-withdashes', cluster: 'app--detail-withdashes'});
     });
 
     it('parses server group name with no version', function () {
       expect(this.namingService.parseServerGroupName('app'))
-        .toEqual({application: 'app', stack: '', freeFormDetails: ''});
+        .toEqual({application: 'app', stack: '', freeFormDetails: '', cluster: 'app'});
       expect(this.namingService.parseServerGroupName('app-test'))
-        .toEqual({application: 'app', stack: 'test', freeFormDetails: ''});
+        .toEqual({application: 'app', stack: 'test', freeFormDetails: '', cluster: 'app-test'});
       expect(this.namingService.parseServerGroupName('app--detail'))
-        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail'});
+        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail', cluster: 'app--detail'});
       expect(this.namingService.parseServerGroupName('app--detail-withdashes'))
-        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail-withdashes'});
+        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail-withdashes', cluster: 'app--detail-withdashes'});
     });
   });
 
   describe('parseLoadBalancerName', function () {
     it('parses name with no stack or details', function () {
       expect(this.namingService.parseLoadBalancerName('app'))
-        .toEqual({application: 'app', stack: '', freeFormDetails: ''});
+        .toEqual({application: 'app', stack: '', freeFormDetails: '', cluster: 'app'});
       expect(this.namingService.parseLoadBalancerName('app-test'))
-        .toEqual({application: 'app', stack: 'test', freeFormDetails: ''});
+        .toEqual({application: 'app', stack: 'test', freeFormDetails: '', cluster: 'app-test'});
       expect(this.namingService.parseLoadBalancerName('app--detail'))
-        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail'});
+        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail', cluster: 'app--detail'});
       expect(this.namingService.parseLoadBalancerName('app--detail-withdashes'))
-        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail-withdashes'});
+        .toEqual({application: 'app', stack: '', freeFormDetails: 'detail-withdashes', cluster: 'app--detail-withdashes'});
     });
   });
 

@@ -4,6 +4,7 @@ export interface IComponentName {
   application: string;
   stack: string;
   freeFormDetails: string;
+  cluster: string;
 }
 
 export class NamingService {
@@ -13,7 +14,8 @@ export class NamingService {
     const result: IComponentName = {
       application: '',
       stack: '',
-      freeFormDetails: ''
+      freeFormDetails: '',
+      cluster: '',
     };
 
     if (!serverGroupName) {
@@ -34,6 +36,7 @@ export class NamingService {
     if (split.length > 2) {
       result.freeFormDetails = split.slice(2, split.length).join('-');
     }
+    result.cluster = this.getClusterNameFromServerGroupName(serverGroupName);
 
     return result;
   }
@@ -77,7 +80,8 @@ export class NamingService {
       result: IComponentName = {
         application: split[0],
         stack: '',
-        freeFormDetails: ''
+        freeFormDetails: '',
+        cluster: '',
       };
 
     if (split.length > 1) {
@@ -86,6 +90,7 @@ export class NamingService {
     if (split.length > 2) {
       result.freeFormDetails = split.slice(2, split.length).join('-');
     }
+    result.cluster = this.getClusterName(result.application, result.stack, result.freeFormDetails);
     return result;
   }
 

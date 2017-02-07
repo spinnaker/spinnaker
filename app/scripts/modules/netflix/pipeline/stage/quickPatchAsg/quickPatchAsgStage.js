@@ -2,9 +2,11 @@
 
 let angular = require('angular');
 
+import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgStage', [
   require('core/pipeline/config/pipelineConfigProvider.js'),
-  require('core/application/listExtractor/listExtractor.service'),
+  LIST_EXTRACTOR_SERVICE,
   require('core/config/settings.js'),
   require('core/widgets')
 ])

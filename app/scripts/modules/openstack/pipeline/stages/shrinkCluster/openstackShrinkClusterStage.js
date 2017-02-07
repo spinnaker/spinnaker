@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.shrinkClusterStage', [
-  require('core/application/listExtractor/listExtractor.service.js'),
+  require('core/pipeline/config/pipelineConfigProvider'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

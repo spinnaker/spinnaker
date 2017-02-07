@@ -4,7 +4,7 @@ let angular = require('angular');
 import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStage', [
-  require('core/application/listExtractor/listExtractor.service.js'),
+  require('core/pipeline/config/pipelineConfigProvider'),
   require('core/application/modal/platformHealthOverride.directive.js'),
 ])
   .config(function(pipelineConfigProvider) {
