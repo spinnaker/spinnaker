@@ -17,9 +17,4 @@ echo '/opt/halyard/bin/hal "$@"' | sudo tee /usr/local/bin/hal
 
 chmod +x /usr/local/bin/hal
 
-sudo mkdir -p /etc/bash_completion.d
-hal --print-bash-completion | sudo tee /etc/bash_completion.d/hal
-
-. /etc/bash_completion.d/hal
-
 install --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/halyard 
