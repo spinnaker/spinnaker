@@ -85,4 +85,16 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
         tracker.addToStarted(execution.getPipelineConfigId(), execution.getId());
       });
   }
+
+  @Override
+  protected Pipeline handleStartupFailure(Pipeline execution, Throwable failure) {
+    Pipeline failed = super.handleStartupFailure(execution, failure);
+    startTracker.ifPresent(tracker -> {
+      if (execution.getPipelineConfigId() != null) {
+        tracker.removeFromQueue(execution.getPipelineConfigId(), execution.getId());
+      }
+      tracker.markAsFinished(execution.getPipelineConfigId(), execution.getId());
+    });
+    return failed;
+  }
 }
