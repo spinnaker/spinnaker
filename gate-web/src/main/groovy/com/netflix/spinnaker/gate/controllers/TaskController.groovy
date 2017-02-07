@@ -62,5 +62,4 @@ class TaskController {
   Map getTaskDetails(@PathVariable("id") String id, @PathVariable("taskDetailsId") String taskDetailsId) {
     taskService.getTaskDetails(taskDetailsId)
   }
-
 }
