@@ -19,65 +19,59 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.kubernetes.KubernetesFlotillaDeployment;
-import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterface;
-import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderType;
-
 @Component
-public class DeploymentFactory {
+public class EndpointFactory {
   @Autowired
   AccountService accountService;
 
-  @Autowired
-  KubernetesProviderInterface kubernetesProviderInterface;
-
-  public Deployment create(DeploymentConfiguration deploymentConfiguration, GenerateResult generateResult) {
-    DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
-    DeploymentDetails deploymentDetails = new DeploymentDetails()
-        .setEndpoints(generateResult.getEndpoints())
-        .setGenerateResult(generateResult)
-        .setDeploymentName(deploymentConfiguration.getName())
-        .setDeploymentEnvironment(deploymentConfiguration.getDeploymentEnvironment());
-
+  public SpinnakerEndpoints create(DeploymentConfiguration deploymentConfiguration ) {
+    DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
     switch (type) {
       case LocalhostDebian:
-        return new LocalhostDebianDeployment(deploymentDetails);
+        return new SpinnakerEndpoints();
       case Flotilla:
-        return createFlotillaDeployment(deploymentConfiguration, deploymentDetails);
+        return createFlotillaEndpoints(deploymentConfiguration);
       default:
         throw new IllegalArgumentException("Unrecognized deployment type " + type);
     }
   }
 
-  private Deployment createFlotillaDeployment(DeploymentConfiguration deploymentConfiguration, DeploymentDetails deploymentDetails) {
+  private SpinnakerEndpoints createFlotillaEndpoints(DeploymentConfiguration deploymentConfiguration) {
     DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
     String accountName = deploymentEnvironment.getAccountName();
 
     if (accountName == null || accountName.isEmpty()) {
-      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "An account name must be "
+      throw new HalException(new ConfigProblemBuilder(Problem.Severity.FATAL, "An account name must be "
           + "specified as the desired place to run your simple clustered deployment.").build());
     }
 
     Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
-    ProviderType providerType = ((Provider) account.getParent()).providerType();
+    Provider.ProviderType providerType = ((Provider) account.getParent()).providerType();
 
     switch (providerType) {
       case KUBERNETES:
-        AccountDeploymentDetails<KubernetesAccount> accountDeploymentDetails = new AccountDeploymentDetails<KubernetesAccount>(deploymentDetails)
-            .setAccount((KubernetesAccount) account);
+        SpinnakerEndpoints endpoints = new SpinnakerEndpoints();
+        SpinnakerEndpoints.Services services = endpoints.getServices();
 
-        return new KubernetesFlotillaDeployment(accountDeploymentDetails, kubernetesProviderInterface);
+        services.getClouddriver().setAddress("spin-clouddriver.spinnaker").setHost("0.0.0.0");
+        services.getDeck().setAddress("spin-deck.spinnaker").setHost("0.0.0.0");
+        services.getEcho().setAddress("spin-echo.spinnaker").setHost("0.0.0.0");
+        services.getFiat().setAddress("spin-fiat.spinnaker").setHost("0.0.0.0");
+        services.getFront50().setAddress("spin-front50.spinnaker").setHost("0.0.0.0");
+        services.getGate().setAddress("spin-gate.spinnaker").setHost("0.0.0.0");
+        services.getIgor().setAddress("spin-igor.spinnaker").setHost("0.0.0.0");
+        services.getOrca().setAddress("spin-orca.spinnaker").setHost("0.0.0.0");
+        services.getRosco().setAddress("spin-rosco.spinnaker").setHost("0.0.0.0");
+        services.getRedis().setAddress("spin-redis.spinnaker").setHost("0.0.0.0");
       default:
         throw new IllegalArgumentException("No Clustered Simple Deployment for " + providerType.getId());
     }

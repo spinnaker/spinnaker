@@ -29,22 +29,4 @@ public class KubernetesFlotillaDeployment extends FlotillaDeployment<KubernetesA
       KubernetesProviderInterface providerInterface) {
     super(deploymentDetails, providerInterface);
   }
-
-  @Override
-  protected SpinnakerEndpoints specializeEndpoints(SpinnakerEndpoints endpoints) {
-    Services services = endpoints.getServices();
-
-    services.getClouddriver().setAddress("spin-clouddriver.spinnaker").setHost("0.0.0.0");
-    services.getDeck().setAddress("spin-deck.spinnaker").setHost("0.0.0.0");
-    services.getEcho().setAddress("spin-echo.spinnaker").setHost("0.0.0.0");
-    services.getFiat().setAddress("spin-fiat.spinnaker").setHost("0.0.0.0");
-    services.getFront50().setAddress("spin-front50.spinnaker").setHost("0.0.0.0");
-    services.getGate().setAddress("spin-gate.spinnaker").setHost("0.0.0.0");
-    services.getIgor().setAddress("spin-igor.spinnaker").setHost("0.0.0.0");
-    services.getOrca().setAddress("spin-orca.spinnaker").setHost("0.0.0.0");
-    services.getRosco().setAddress("spin-rosco.spinnaker").setHost("0.0.0.0");
-    services.getRedis().setAddress("spin-redis.spinnaker").setHost("0.0.0.0");
-
-    return endpoints;
-  }
 }

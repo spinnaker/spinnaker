@@ -24,13 +24,9 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 
 abstract public class FlotillaDeployment<T extends Account> extends Deployment {
   public FlotillaDeployment(AccountDeploymentDetails<T> deploymentDetails, ProviderInterface<T> providerInterface) {
-    deploymentDetails.setEndpoints(specializeEndpoints(deploymentDetails.getEndpoints()));
-
     this.deploymentDetails = deploymentDetails;
     this.providerInterface = providerInterface;
   }
-
-  protected abstract SpinnakerEndpoints specializeEndpoints(SpinnakerEndpoints endpoints);
 
   @Override
   public DeploymentType deploymentType() {

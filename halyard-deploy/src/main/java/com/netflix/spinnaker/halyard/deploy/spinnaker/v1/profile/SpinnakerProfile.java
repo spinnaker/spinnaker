@@ -27,6 +27,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.yaml.snakeyaml.Yaml;
@@ -73,11 +74,11 @@ abstract public class SpinnakerProfile {
 
   public abstract SpinnakerArtifact getArtifact();
 
-  public ProfileConfig getFullConfig(String deploymentName) {
+  public ProfileConfig getFullConfig(String deploymentName, SpinnakerEndpoints endpoints) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    ProfileConfig result = generateFullConfig(
-        getBaseConfig(deploymentConfiguration),
-        deploymentConfiguration);
+    ProfileConfig result = generateFullConfig(getBaseConfig(deploymentConfiguration),
+        deploymentConfiguration,
+        endpoints);
     result.setConfigContents(EDIT_WARNING + result.getConfigContents());
     return result;
   }
@@ -89,9 +90,10 @@ abstract public class SpinnakerProfile {
    *
    * @param config the base halconfig returned from the config storage.
    * @param deploymentConfiguration the deployment configuration being translated into Spinnaker config.
+   * @param endpoints are the endpoints spinnaker will be running at.
    * @return the fully written configuration.
    */
-  protected ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration) {
+  protected ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
     return config;
   }
 

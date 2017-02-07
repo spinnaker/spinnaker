@@ -18,13 +18,15 @@ package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.EndpointFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileConfig;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
 import lombok.Data;
@@ -43,28 +45,28 @@ import java.util.*;
 @Slf4j
 public class GenerateService {
   @Autowired
-  String spinnakerOutputPath;
+  private String spinnakerOutputPath;
 
   @Autowired
-  String halconfigDirectory;
+  private String halconfigDirectory;
 
   @Autowired
-  DeploymentService deploymentService;
+  private DeploymentService deploymentService;
 
   @Autowired
-  DeploymentFactory deploymentFactory;
+  private EndpointFactory endpointFactory;
 
   @Autowired
-  String halconfigPath;
+  private String halconfigPath;
 
   @Autowired
-  Yaml yamlParser;
+  private Yaml yamlParser;
 
   @Autowired
-  ObjectMapper objectMapper;
+  private ObjectMapper objectMapper;
 
   @Autowired(required = false)
-  List<SpinnakerProfile> spinnakerProfiles = new ArrayList<>();
+  private List<SpinnakerProfile> spinnakerProfiles = new ArrayList<>();
 
   void atomicWrite(Path path, String contents) {
     AtomicFileWriter writer = null;
@@ -106,6 +108,9 @@ public class GenerateService {
   public GenerateResult generateConfig(String deploymentName) {
     log.info("Generating config from \"" + halconfigPath + "\" with deploymentName \"" + deploymentName + "\"");
     File spinnakerOutput = new File(spinnakerOutputPath);
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+
+    SpinnakerEndpoints endpoints = endpointFactory.create(deploymentConfiguration);
 
     // Step 1.
     try {
@@ -127,7 +132,7 @@ public class GenerateService {
     Path path;
     for (SpinnakerProfile profile : spinnakerProfiles) {
       path = defaultFileSystem.getPath(spinnakerOutputPath, profile.getProfileFileName());
-      ProfileConfig config = profile.getFullConfig(deploymentName);
+      ProfileConfig config = profile.getFullConfig(deploymentName, endpoints);
       log.info("Writing " + profile.getProfileName() + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
       DaemonTaskHandler.log("Writing profile " + path.getFileName().toFile().getName());
       atomicWrite(path, config.getConfigContents());
@@ -159,12 +164,14 @@ public class GenerateService {
 
     return new GenerateResult()
         .setArtifactVersion(artifactVersions)
-        .setProfileRequirements(profileRequirements);
+        .setProfileRequirements(profileRequirements)
+        .setEndpoints(endpoints);
   }
 
   @Data
   public static class GenerateResult {
     private Map<String, List<String>> profileRequirements = new HashMap<>();
     private Map<SpinnakerArtifact, String> artifactVersion = new HashMap<>();
+    SpinnakerEndpoints endpoints;
   }
 }
