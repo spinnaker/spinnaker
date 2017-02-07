@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.ParseConfigException;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.config.errors.v1.ParseConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -132,8 +133,8 @@ public class HalconfigParser {
    */
   public void saveConfig() {
     if (halconfig == null) {
-      throw new HalconfigException(
-          new ProblemBuilder(Problem.Severity.WARNING,
+      throw new HalException(
+          new ConfigProblemBuilder(Severity.WARNING,
               "No halconfig changes have been made, nothing to write")
           .build()
       );
@@ -145,8 +146,8 @@ public class HalconfigParser {
       writer.write(yamlParser.dump(objectMapper.convertValue(halconfig, Map.class)));
       writer.commit();
     } catch (IOException e) {
-      throw new HalconfigException(
-          new ProblemBuilder(Problem.Severity.FATAL,
+      throw new HalException(
+          new ConfigProblemBuilder(Severity.FATAL,
               "Failure writing your halconfig to path \"" + halconfigPath + "\"").build()
       );
     } finally {

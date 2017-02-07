@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
 
 public abstract class Validator<T extends Node> {
-  abstract public void validate(ProblemSetBuilder p, T n);
+  abstract public void validate(ConfigProblemSetBuilder p, T n);
 }

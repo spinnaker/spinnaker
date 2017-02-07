@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.errors.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
@@ -32,8 +32,6 @@ import org.yaml.snakeyaml.Yaml;
 import retrofit.RetrofitError;
 
 import java.io.IOException;
-
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.FATAL;
 
 @Component
 public class ArtifactService {
@@ -54,7 +52,7 @@ public class ArtifactService {
     String version = deploymentConfiguration.getVersion();
     if (version == null || version.isEmpty()) {
       throw new IllegalConfigException(
-          new ProblemBuilder(FATAL,
+          new ConfigProblemBuilder(Severity.FATAL,
               "In order to load a Spinnaker Component's profile, you must specify a version of Spinnaker in your halconfig.")
               .build()
       );
@@ -70,8 +68,8 @@ public class ArtifactService {
 
       return bom.getServices().getArtifactVersion(artifact);
     } catch (RetrofitError | IOException e) {
-      throw new HalconfigException(
-          new ProblemBuilder(FATAL,
+      throw new HalException(
+          new ConfigProblemBuilder(Severity.FATAL,
               "Unable to retrieve a profile for \"" + artifact + "\": " + e.getMessage())
               .build()
       );

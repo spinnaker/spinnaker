@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +56,8 @@ public class Front50Profile extends SpringProfile {
       config.appendConfig(yamlToString(credentials));
       return config;
     } else {
-      throw new HalconfigException(
-          new ProblemBuilder(Problem.Severity.FATAL, "No valid account configured for persistent storage.").build());
+      throw new HalException(
+          new ConfigProblemBuilder(Severity.FATAL, "No valid account configured for persistent storage.").build());
     }
   }
 

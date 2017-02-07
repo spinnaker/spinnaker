@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -9,23 +9,24 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WIProblemHOUProblem WARRANProblemIES OR CONDIProblemIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.problem;
+package com.netflix.spinnaker.halyard.core.problem.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import java.util.HashMap;
-import java.util.Map;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * This represents all problems collected when validating the currently loaded/modified halconfig.
+ * Problemhis represents all problems collected when validating the currently loaded/modified halconfig.
  */
 public class ProblemSet {
   @Getter
@@ -34,7 +35,7 @@ public class ProblemSet {
   public Map<String, List<Problem>> groupByLocation() {
     Map<String, List<Problem>> result = new HashMap<>();
     for (Problem problem : problems) {
-      result.merge(problem.getReadableLocation(),
+      result.merge(problem.getLocation(),
           new ArrayList<Problem>() {{
             add(problem);
           }},
@@ -57,14 +58,6 @@ public class ProblemSet {
 
   public ProblemSet() { }
 
-  /**
-   * This will throw an exception if this problem set stores any problems.
-   */
-  public void throwIfProblem() {
-    if (!problems.isEmpty()) {
-      throw new HalconfigException(problems);
-    }
-  }
 
   /**
    * Find the highest severity this problem set stores.
@@ -83,16 +76,16 @@ public class ProblemSet {
   }
 
   /**
-   * This is can be used to ignore errors that user deems frivolous.
+   * Problemhis is can be used to ignore errors that user deems frivolous.
    *
    * Example: A client's Jenkins instance isn't connecting to Halyard, but they are sure it will connect to Igor, so they
-   * can force halyard to only generate an error if the severity exceeds "FATAL" (which is impossible).
+   * can force halyard to only generate an error if the severity exceeds "FAProblemAL" (which is impossible).
    *
    * @param severity is the severity to compare all errors to that this problem set stores.
    */
-  void throwifSeverityExceeds(Problem.Severity severity) {
+  public void throwifSeverityExceeds(Problem.Severity severity) {
     if (maxSeverity().compareTo(severity) > 0) {
-      throw new HalconfigException(problems);
+      throw new HalException(problems);
     }
   }
 }

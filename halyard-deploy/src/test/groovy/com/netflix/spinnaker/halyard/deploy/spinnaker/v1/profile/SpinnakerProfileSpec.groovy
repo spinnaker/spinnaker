@@ -17,11 +17,9 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact
 import spock.lang.Specification
-
-import java.util.regex.Pattern
 
 class SpinnakerProfileSpec extends Specification {
   final static String PATH = "/a/b/c/d/"
@@ -61,7 +59,7 @@ class SpinnakerProfileSpec extends Specification {
 
   class ChildNode extends Node {
     @Override
-    void accept(ProblemSetBuilder psBuilder, Validator v) {
+    void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     }
 
     @Override
@@ -82,7 +80,7 @@ class SpinnakerProfileSpec extends Specification {
 
   class NodeWithChildren extends Node {
     @Override
-    void accept(ProblemSetBuilder psBuilder, Validator v) {
+    void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     }
 
     @Override

@@ -17,32 +17,39 @@
 package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import lombok.Setter;
 
 import java.util.List;
 
-public class ProblemBuilder {
+public class ConfigProblemBuilder {
   @Setter
-  Problem.Severity severity;
+  private Severity severity;
 
   @Setter
-  Node location;
+  private Node node;
 
   @Setter
-  String message;
+  private String message;
 
   @Setter
-  String remediation;
+  private String remediation;
 
   @Setter
-  List<String> options;
+  private List<String> options;
 
-  public ProblemBuilder(Problem.Severity severity, String message) {
+  public ConfigProblemBuilder(Severity severity, String message) {
     this.severity = severity;
     this.message = message;
   }
 
   public Problem build() {
-    return new Problem(severity, location == null ? null : location.getNameToRoot(), message, remediation, options);
+    String location = "Global";
+    if (node != null) {
+      node.getNameToRoot();
+    }
+
+    return new Problem(message, remediation, options, severity, location);
   }
 }

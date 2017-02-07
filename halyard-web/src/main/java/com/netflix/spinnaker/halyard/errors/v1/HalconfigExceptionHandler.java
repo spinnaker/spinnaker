@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.errors.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,9 +26,9 @@ import javax.servlet.http.HttpServletResponse;
 
 @ControllerAdvice
 public class HalconfigExceptionHandler {
-  @ExceptionHandler({HalconfigException.class})
+  @ExceptionHandler({HalException.class})
   @ResponseBody
-  public DaemonResponse<Void> handleHalconfigException(HttpServletResponse response, HalconfigException exception) {
+  public DaemonResponse<Void> handleHalconfigException(HttpServletResponse response, HalException exception) {
     response.setStatus(exception.getResponseCode());
     return new DaemonResponse<>(null, exception.getProblems());
   }

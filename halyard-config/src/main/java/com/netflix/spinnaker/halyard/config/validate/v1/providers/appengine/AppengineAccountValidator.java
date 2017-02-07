@@ -22,9 +22,9 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +38,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
   String halyardVersion;
   
   @Override
-  public void validate(ProblemSetBuilder p, AppengineAccount account) {
+  public void validate(ConfigProblemSetBuilder p, AppengineAccount account) {
     String jsonKey = null;
     String jsonPath = account.getJsonPath();
     String project = account.getProject();
@@ -48,7 +48,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
     boolean hasUsername = account.getGitHttpsUsername() != null && !account.getGitHttpsUsername().isEmpty();
     if (hasPassword != hasUsername) {
       if (!hasUsername) {
-        p.addProblem(Severity.ERROR, "Git HTTPS password supplied without git HTTPS username.");  
+        p.addProblem(Severity.ERROR, "Git HTTPS password supplied without git HTTPS username.");
       } else {
         p.addProblem(Severity.ERROR, "Git HTTPS username supplied without git HTTPS password.");
       }

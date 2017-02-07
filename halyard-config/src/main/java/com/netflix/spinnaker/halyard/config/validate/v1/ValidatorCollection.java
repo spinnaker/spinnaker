@@ -18,7 +18,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -45,7 +45,7 @@ public class ValidatorCollection {
    *
    * @return # of validators run (for logging purposes).
    */
-  public int runAllValidators(ProblemSetBuilder psBuilder, Node node) {
+  public int runAllValidators(ConfigProblemSetBuilder psBuilder, Node node) {
     psBuilder.setNode(node);
     int validatorRuns = 0;
     for (Validator validator : validators) {
@@ -67,7 +67,7 @@ public class ValidatorCollection {
    *
    * @return # of validators run (for logging purposes).
    */
-  private int runMatchingValidators(ProblemSetBuilder psBuilder, Validator validator, Node node, Class c) {
+  private int runMatchingValidators(ConfigProblemSetBuilder psBuilder, Validator validator, Node node, Class c) {
     int result = 0;
 
     if (c == Node.class) {
@@ -75,7 +75,7 @@ public class ValidatorCollection {
     }
 
     try {
-      Method m = validator.getClass().getMethod("validate", ProblemSetBuilder.class, c);
+      Method m = validator.getClass().getMethod("validate", ConfigProblemSetBuilder.class, c);
       m.invoke(validator, psBuilder, node);
       result = 1;
     } catch (NoSuchMethodException e) {

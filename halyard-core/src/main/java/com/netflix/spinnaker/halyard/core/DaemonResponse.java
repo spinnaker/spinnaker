@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.halyard.core;
 
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +62,7 @@ public class DaemonResponse<T> {
         if (validateResponse != null) {
           problemSet = validateResponse.get();
         }
-      } catch (HalconfigException e) {
+      } catch (HalException e) {
         // This is OK, propagate the exception to the HalconfigExceptionHandler
         throw e;
       } catch (Exception e) {
@@ -77,7 +76,8 @@ public class DaemonResponse<T> {
 
   @Data
   public static class UpdateRequestBuilder {
-    private HalconfigParser halconfigParser;
+    private Runnable revert;
+    private Runnable save;
     private Runnable update;
     private Supplier<ProblemSet> validate;
 
@@ -86,16 +86,16 @@ public class DaemonResponse<T> {
       try {
         update.run();
         result = validate.get();
-      } catch (HalconfigException e) {
-        halconfigParser.undoChanges();
+      } catch (HalException e) {
+        revert.run();
         throw e;
       } catch (Exception e) {
-        halconfigParser.undoChanges();
+        revert.run();
         log.error("Unknown exception encountered: ", e);
         throw e;
       }
 
-      halconfigParser.saveConfig();
+      save.run();
       return new DaemonResponse<>(null, result);
     }
   }

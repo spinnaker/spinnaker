@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,12 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.config.errors.v1.config;
+package com.netflix.spinnaker.halyard.config.errors.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ import java.util.List;
  * (provider-specific error). Essentially, when a config has problems that prevent halyard from validating it, although
  * it is readable by our yaml parser into the halconfig Object, this is thrown
  */
-public class IllegalConfigException extends HalconfigException {
+public class IllegalConfigException extends HalException {
   public IllegalConfigException(List<Problem> problems) {
     super(problems);
   }

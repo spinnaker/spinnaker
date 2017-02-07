@@ -20,18 +20,17 @@ import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.State;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import io.fabric8.kubernetes.api.model.*;
@@ -125,7 +124,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
       // This should be a long-running job.
       if (status.getState() == State.COMPLETED) {
-        throw new HalconfigException(new ProblemBuilder(Severity.FATAL,
+        throw new HalException(new ConfigProblemBuilder(Severity.FATAL,
             "Unable to establish a proxy against account " + details.getAccount().getName()
             + ":\n" + status.getStdOut() + "\n" + status.getStdErr()).build());
       }
@@ -138,7 +137,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         proxyMap.put(details.getDeploymentName(), proxy);
         DaemonTaskHandler.log("Connected to kubernetes cluster for account " + details.getAccount().getName() + " on port " + proxy.getPort());
       } else {
-        throw new HalconfigException(new ProblemBuilder(Severity.FATAL,
+        throw new HalException(new ConfigProblemBuilder(Severity.FATAL,
             "Could not parse connection information from:\n" + connectionMessage).build());
       }
     }
@@ -402,8 +401,8 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
           secretContents.put(name, data);
         }
       } catch (IOException e) {
-        throw new HalconfigException(
-            new ProblemBuilder(Severity.ERROR, "Unable to read contents of \"" + s + "\": " + e).build()
+        throw new HalException(
+            new ConfigProblemBuilder(Severity.ERROR, "Unable to read contents of \"" + s + "\": " + e).build()
         );
       }
     });

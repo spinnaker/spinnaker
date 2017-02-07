@@ -18,9 +18,10 @@ package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
@@ -37,8 +38,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
-
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
 
 @Component
 @Slf4j
@@ -75,8 +74,8 @@ public class GenerateService {
       writer.commit();
     } catch (IOException ioe) {
       ioe.printStackTrace();
-      throw new HalconfigException(
-          new ProblemBuilder(Severity.FATAL,
+      throw new HalException(
+          new ConfigProblemBuilder(Severity.FATAL,
               "Failed to write config for profile " + path.toFile().getName() + ": " + ioe
                   .getMessage()).build()
       );
@@ -112,13 +111,13 @@ public class GenerateService {
     try {
       FileUtils.deleteDirectory(spinnakerOutput);
     } catch (IOException e) {
-      throw new HalconfigException(
-          new ProblemBuilder(Severity.FATAL, "Unable to clear old spinnaker config: " + e.getMessage() + ".").build());
+      throw new HalException(
+          new ConfigProblemBuilder(Severity.FATAL, "Unable to clear old spinnaker config: " + e.getMessage() + ".").build());
     }
 
     if (!spinnakerOutput.mkdirs()) {
-      throw new HalconfigException(
-          new ProblemBuilder(Severity.FATAL, "Unable to create new spinnaker config directory \"" + spinnakerOutputPath + "\".").build());
+      throw new HalException(
+          new ConfigProblemBuilder(Severity.FATAL, "Unable to create new spinnaker config directory \"" + spinnakerOutputPath + "\".").build());
     }
 
     // Step 2.
@@ -151,8 +150,8 @@ public class GenerateService {
           DaemonTaskHandler.log("Copying existing profile " + f.getName());
           Files.copy(f.toPath(), Paths.get(spinnakerOutput.toString(), f.getName()), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-          throw new HalconfigException(
-              new ProblemBuilder(Severity.FATAL, "Unable to copy profile \"" + f.getName() + "\": " + e.getMessage() + ".").build()
+          throw new HalException(
+              new ConfigProblemBuilder(Severity.FATAL, "Unable to copy profile \"" + f.getName() + "\": " + e.getMessage() + ".").build()
           );
         }
       });

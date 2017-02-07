@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,7 +31,7 @@ public class GoogleProvider extends Provider<GoogleAccount> implements Cloneable
   }
 
   @Override
-  public void accept(ProblemSetBuilder psBuilder, Validator v) {
+  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
 }

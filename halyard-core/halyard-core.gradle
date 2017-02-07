@@ -2,8 +2,7 @@ dependencies {
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
+  compile spinnaker.dependency('clouddriverAws')
 
   compile "com.beust:jcommander:1.48"
-
-  compile project(':halyard-config')
 }

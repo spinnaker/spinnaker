@@ -20,18 +20,19 @@ import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryCatalog;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryAccount;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import org.springframework.stereotype.Component;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.springframework.stereotype.Component;
 
 @Component
 public class DockerRegistryAccountValidator extends Validator<DockerRegistryAccount> {
   @Override
-  public void validate(ProblemSetBuilder p, DockerRegistryAccount n) {
+  public void validate(ConfigProblemSetBuilder p, DockerRegistryAccount n) {
     String resolvedPassword = null;
     String password = n.getPassword();
     String passwordFile = n.getPasswordFile();

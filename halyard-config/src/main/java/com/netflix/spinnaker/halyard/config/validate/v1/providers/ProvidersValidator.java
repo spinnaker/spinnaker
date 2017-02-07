@@ -16,23 +16,19 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import org.springframework.stereotype.Component;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 @Component
 public class ProvidersValidator extends Validator<Providers> {
   @Override
-  public void validate(ProblemSetBuilder p, Providers n) {
+  public void validate(ConfigProblemSetBuilder p, Providers n) {
     Set<String> accounts = new HashSet<>();
 
     NodeIterator nodeIterator = n.getChildren();

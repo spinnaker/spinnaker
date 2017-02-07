@@ -21,7 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
@@ -38,13 +38,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.ERROR;
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.WARNING;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.WARNING;
 
 @Component
 public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
   @Override
-  public void validate(ProblemSetBuilder psBuilder, KubernetesAccount account) {
+  public void validate(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
     DeploymentConfiguration deploymentConfiguration;
 
     // TODO(lwander) this is still a little messy - I should use the filters to get the necessary docker account
@@ -60,7 +60,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     validateKubeconfig(psBuilder, account);
   }
 
-  private void validateKubeconfig(ProblemSetBuilder psBuilder, KubernetesAccount account) {
+  private void validateKubeconfig(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
     io.fabric8.kubernetes.api.model.Config kubeconfig;
     String context = account.getContext();
     String kubeconfigFile = account.getKubeconfigFile();
@@ -119,7 +119,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     }
   }
 
-  private void validateDockerRegistries(ProblemSetBuilder psBuilder, KubernetesAccount account, DeploymentConfiguration deployment) {
+  private void validateDockerRegistries(ConfigProblemSetBuilder psBuilder, KubernetesAccount account, DeploymentConfiguration deployment) {
     List<DockerRegistryReference> dockerRegistries = account.getDockerRegistries();
     List<String> namespaces = account.getNamespaces();
 

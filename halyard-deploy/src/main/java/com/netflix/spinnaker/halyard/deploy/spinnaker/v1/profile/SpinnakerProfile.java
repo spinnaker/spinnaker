@@ -19,13 +19,12 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
@@ -111,8 +110,8 @@ abstract public class SpinnakerProfile {
           .setConfigContents(IOUtils.toString(profileRegistry.getObjectContents(componentObjectName)))
           .setVersion(componentVersion);
     } catch (RetrofitError | IOException e) {
-      throw new HalconfigException(
-          new ProblemBuilder(Problem.Severity.FATAL,
+      throw new HalException(
+          new ConfigProblemBuilder(Severity.FATAL,
               "Unable to retrieve a profile for \"" + componentName + "\": " + e.getMessage())
               .build()
       );

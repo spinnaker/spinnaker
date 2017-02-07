@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
@@ -29,11 +29,11 @@ public class AccountValidator extends Validator<Account> {
   private final static String namePattern = "^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$";
 
   @Override
-  public void validate(ProblemSetBuilder p, Account n) {
+  public void validate(ConfigProblemSetBuilder p, Account n) {
     if (n.getName() == null) {
-      p.addProblem(Problem.Severity.FATAL, "Account name must be specified");
+      p.addProblem(Severity.FATAL, "Account name must be specified");
     } else if (!Pattern.matches(namePattern, n.getName())) {
-      p.addProblem(Problem.Severity.ERROR, "Account name must match pattern " + namePattern)
+      p.addProblem(Severity.ERROR, "Account name must match pattern " + namePattern)
         .setRemediation("It must start and end with a lower-case character or number, and only container lower-case character, numbers, dashes, or underscores");
     }
   }

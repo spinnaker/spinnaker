@@ -17,15 +17,18 @@
 package com.netflix.spinnaker.halyard.config.model.v1.problem;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.AccessLevel;
 import lombok.Setter;
 
-public class ProblemSetBuilder {
-  private List<ProblemBuilder> builders = new ArrayList<>();
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class ConfigProblemSetBuilder {
+  private List<ConfigProblemBuilder> builders = new ArrayList<>();
 
   @Setter(AccessLevel.PUBLIC)
   private Severity severity = Severity.NONE;
@@ -33,17 +36,17 @@ public class ProblemSetBuilder {
   @Setter(AccessLevel.PUBLIC)
   private Node node;
 
-  public ProblemBuilder addProblem(Problem.Severity severity, String message) {
+  public ConfigProblemBuilder addProblem(Severity severity, String message) {
     return addProblem(severity, message, null);
   }
 
-  public ProblemBuilder addProblem(Problem.Severity severity, String message, String field) {
-    ProblemBuilder problemBuilder = new ProblemBuilder(severity, message);
+  public ConfigProblemBuilder addProblem(Severity severity, String message, String field) {
+    ConfigProblemBuilder problemBuilder = new ConfigProblemBuilder(severity, message);
     if (node != null) {
-      problemBuilder.setLocation(node);
+      problemBuilder.setNode(node);
 
       if (field != null && !field.isEmpty()) {
-        problemBuilder.setOptions(node.fieldOptions(new ProblemSetBuilder(), field));
+        problemBuilder.setOptions(node.fieldOptions(new ConfigProblemSetBuilder(), field));
       }
     }
 
@@ -54,7 +57,8 @@ public class ProblemSetBuilder {
   public ProblemSet build() {
     List<Problem> problems = builders
         .stream()
-        .map(ProblemBuilder::build)
+        .map(ConfigProblemBuilder::build)
+        .map(p -> (Problem) p)
         .collect(Collectors.toList());
 
     ProblemSet result = new ProblemSet(problems);

@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +46,8 @@ public class VersionsService {
           Versions.class
       );
     } catch (IOException e) {
-      throw new HalconfigException(
-          new ProblemBuilder(Problem.Severity.FATAL, "Could not load \"versions.yml\" from config bucket: " + e.getMessage() + ".").build());
+      throw new HalException(
+          new ConfigProblemBuilder(Severity.FATAL, "Could not load \"versions.yml\" from config bucket: " + e.getMessage() + ".").build());
     }
   }
 }

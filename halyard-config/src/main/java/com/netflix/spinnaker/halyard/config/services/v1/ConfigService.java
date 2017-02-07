@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.errors.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +40,7 @@ public class ConfigService {
     String result = getConfig().getCurrentDeployment();
     if (result == null || result.isEmpty()) {
       throw new IllegalConfigException(
-          new ProblemBuilder(Problem.Severity.FATAL, "No deployment has been set").build()
+          new ConfigProblemBuilder(Severity.FATAL, "No deployment has been set").build()
       );
     }
 

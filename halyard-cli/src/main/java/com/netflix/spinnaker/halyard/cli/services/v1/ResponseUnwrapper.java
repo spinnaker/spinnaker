@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonEvent;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 

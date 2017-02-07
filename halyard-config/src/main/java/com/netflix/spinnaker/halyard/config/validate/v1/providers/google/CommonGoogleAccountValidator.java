@@ -17,14 +17,13 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoogleAccount;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CommonGoogleAccountValidator extends Validator<CommonGoogleAccount> {
   @Override
-  public void validate(ProblemSetBuilder p, CommonGoogleAccount n) {
+  public void validate(ConfigProblemSetBuilder p, CommonGoogleAccount n) {
   }
 }

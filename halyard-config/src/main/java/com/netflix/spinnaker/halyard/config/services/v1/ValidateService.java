@@ -21,10 +21,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.ValidatorCollection;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -38,15 +38,15 @@ public class ValidateService {
   @Autowired
   ValidatorCollection validatorCollection;
 
-  ProblemSet validateMatchingFilter(NodeFilter filter, Severity severity) {
+  ProblemSet validateMatchingFilter(NodeFilter filter, Problem.Severity severity) {
     Halconfig halconfig = parser.getHalconfig(false);
-    ProblemSetBuilder psBuilder = new ProblemSetBuilder().setSeverity(severity);
+    ConfigProblemSetBuilder psBuilder = new ConfigProblemSetBuilder().setSeverity(severity);
     recursiveValidate(psBuilder, halconfig, filter);
 
     return psBuilder.build();
   }
 
-  private void recursiveValidate(ProblemSetBuilder psBuilder, Node node, NodeFilter filter) {
+  private void recursiveValidate(ConfigProblemSetBuilder psBuilder, Node node, NodeFilter filter) {
     int runCount = validatorCollection.runAllValidators(psBuilder, node);
 
     log.info("Ran " + runCount + " validators for node \"" + node.getNodeName() + "\" with class \"" + node.getClass().getSimpleName() + "\"");

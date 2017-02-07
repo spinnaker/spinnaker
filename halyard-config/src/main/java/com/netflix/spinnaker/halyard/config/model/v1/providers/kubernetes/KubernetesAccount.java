@@ -20,7 +20,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.NamedContext;
@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity.ERROR;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -55,11 +55,11 @@ public class KubernetesAccount extends Account implements Cloneable {
   }
 
   @Override
-  public void accept(ProblemSetBuilder psBuilder, Validator v) {
+  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
 
-  protected List<String> contextOptions(ProblemSetBuilder psBuilder) {
+  protected List<String> contextOptions(ConfigProblemSetBuilder psBuilder) {
     Config kubeconfig;
     try {
       File kubeconfigFileOpen = new File(getKubeconfigFile());
@@ -75,7 +75,7 @@ public class KubernetesAccount extends Account implements Cloneable {
         .collect(Collectors.toList());
   }
 
-  protected List<String> dockerRegistriesOptions(ProblemSetBuilder psBuilder) {
+  protected List<String> dockerRegistriesOptions(ConfigProblemSetBuilder psBuilder) {
     DeploymentConfiguration context = parentOfType(DeploymentConfiguration.class);
     DockerRegistryProvider dockerRegistryProvider = context.getProviders().getDockerRegistry();
 

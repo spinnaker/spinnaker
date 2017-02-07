@@ -16,20 +16,23 @@
 
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
-import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.kubernetes.KubernetesFlotillaDeployment;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterface;
+import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.*;
+import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderType;
 
 @Component
 public class DeploymentFactory {
@@ -61,7 +64,7 @@ public class DeploymentFactory {
     String accountName = deploymentEnvironment.getAccountName();
 
     if (accountName == null || accountName.isEmpty()) {
-      throw new HalconfigException(new ProblemBuilder(Severity.FATAL, "An account name must be "
+      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "An account name must be "
           + "specified as the desired place to run your simple clustered deployment.").build());
     }
 

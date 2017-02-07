@@ -2,12 +2,12 @@ apply plugin: 'spring-boot'
 apply plugin: 'spinnaker.package'
 
 ext {
-  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  springConfigLocation = System.getProperty('spring.config.node', "${System.getProperty('user.home')}/.spinnaker/")
   repackage = System.getProperty('springBoot.repackage', "false")
 }
 
 tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
-  systemProperty('spring.config.location', project.springConfigLocation)
+  systemProperty('spring.config.node', project.springConfigLocation)
 }
 
 configurations.all {

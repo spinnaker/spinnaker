@@ -16,19 +16,17 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.errors.v1.ConfigNotFoundException;
+import com.netflix.spinnaker.halyard.config.errors.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * This service is meant to be autowired into any service or controller that needs to inspect the current halconfigs
@@ -49,13 +47,13 @@ public class ProviderService {
 
     switch (matching.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ProblemBuilder(Problem.Severity.FATAL,
+        throw new ConfigNotFoundException(new ConfigProblemBuilder(Severity.FATAL,
             "No provider with name \"" + providerName + "\" could be found")
             .setRemediation("Create a new provider with name \"" + providerName + "\"").build());
       case 1:
         return matching.get(0);
       default:
-        throw new IllegalConfigException(new ProblemBuilder(Problem.Severity.FATAL,
+        throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
             "More than one provider with name \"" + providerName + "\" found")
             .setRemediation("Manually delete or rename duplicate providers with name \"" + providerName + "\" in your halconfig file").build());
     }
@@ -68,7 +66,7 @@ public class ProviderService {
 
     if (matching.size() == 0) {
       throw new ConfigNotFoundException(
-          new ProblemBuilder(Problem.Severity.FATAL, "No providers could be found")
+          new ConfigProblemBuilder(Severity.FATAL, "No providers could be found")
               .build());
     } else {
       return matching;

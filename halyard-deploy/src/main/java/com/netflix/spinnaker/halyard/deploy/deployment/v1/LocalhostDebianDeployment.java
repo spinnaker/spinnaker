@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
@@ -77,7 +77,7 @@ public class LocalhostDebianDeployment extends Deployment {
       fileWriter = new AtomicFileWriter("/etc/apt/preferences.d/pin-spin");
       fileWriter.write(pinContents.toString());
     } catch (IOException e) {
-      throw new HalconfigException(new ProblemBuilder(Problem.Severity.ERROR, "Failed to write debian pin file: " + e).build());
+      throw new HalException(new ConfigProblemBuilder(Severity.ERROR, "Failed to write debian pin file: " + e).build());
     } finally {
       if (fileWriter != null) {
         fileWriter.close();

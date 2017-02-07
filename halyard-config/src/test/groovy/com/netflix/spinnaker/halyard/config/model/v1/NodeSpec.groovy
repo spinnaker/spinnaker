@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.halyard.config.model.v1
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder
 import spock.lang.Specification
 
 class NodeSpec extends Specification {
   static final List<String> field1Options = ["a", "b", "c"]
 
   class TestNode extends Node {
-    List<String> field1Options(ProblemSetBuilder p) {
+    List<String> field1Options(ConfigProblemSetBuilder p) {
       return field1Options
     }
 
@@ -36,7 +36,7 @@ class NodeSpec extends Specification {
     @LocalFile String file2 = "/d/e/f/"
 
     @Override
-    void accept(ProblemSetBuilder psBuilder, Validator v) {
+    void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
 
     }
 
@@ -53,7 +53,7 @@ class NodeSpec extends Specification {
 
   class ChildTestNode extends Node {
     @Override
-    void accept(ProblemSetBuilder psBuilder, Validator v) {
+    void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
 
     }
 

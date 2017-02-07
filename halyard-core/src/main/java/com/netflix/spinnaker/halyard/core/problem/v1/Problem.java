@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,18 +12,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.problem;
+package com.netflix.spinnaker.halyard.core.problem.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import lombok.Getter;
 
 import java.util.List;
 
-/**
- * This represents a single "problem" with the currently loaded/modified halconfig.
- */
 public class Problem {
   public enum Severity {
     /**
@@ -52,24 +49,6 @@ public class Problem {
   }
 
   /**
-   * The location of the problem in the config.
-   */
-  final private String readableLocation;
-
-  /**
-   * Provides a human-readable filter interpretation.
-   *
-   * @return the name of the filter in a human-readable format.
-   */
-  public String getReadableLocation() {
-    if (readableLocation != null) {
-      return readableLocation.toString();
-    } else {
-      return "Global";
-    }
-  }
-
-  /**
    * A human-readable message describing the problem.
    */
   @Getter
@@ -93,14 +72,20 @@ public class Problem {
   @Getter
   final private Severity severity;
 
-  public Problem(Severity severity, String readableLocation, String message, String remediation, List<String> options) {
+  /**
+   * Where this problem occured.
+   */
+  @Getter
+  final private String location;
+
+  public Problem(String message, String remediation, List<String> options, Severity severity, String location) {
     if (severity == Severity.NONE) {
       throw new RuntimeException("A halconfig problem may not be intialized with \"NONE\" severity");
     }
     this.severity = severity;
-    this.readableLocation = readableLocation;
     this.message = message;
     this.remediation = remediation;
     this.options = options;
+    this.location = location;
   }
 }

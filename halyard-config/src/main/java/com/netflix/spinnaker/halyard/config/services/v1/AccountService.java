@@ -16,21 +16,19 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.errors.v1.HalconfigException;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.ConfigNotFoundException;
-import com.netflix.spinnaker.halyard.config.errors.v1.config.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.errors.v1.ConfigNotFoundException;
+import com.netflix.spinnaker.halyard.config.errors.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.Problem.Severity;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSet;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * This service is meant to be autowired into any service or controller that needs to inspect the current halconfig's
@@ -54,7 +52,7 @@ public class AccountService {
 
     if (matchingAccounts.size() == 0) {
       throw new ConfigNotFoundException(
-          new ProblemBuilder(Problem.Severity.FATAL, "No accounts could be found").build());
+          new ConfigProblemBuilder(Severity.FATAL, "No accounts could be found").build());
     } else {
       return matchingAccounts;
     }
@@ -65,14 +63,14 @@ public class AccountService {
 
     switch (matchingAccounts.size()) {
       case 0:
-        throw new ConfigNotFoundException(new ProblemBuilder(
-            Problem.Severity.FATAL, "No matching named \"" + accountName + "\" was found")
+        throw new ConfigNotFoundException(new ConfigProblemBuilder(
+            Severity.FATAL, "No matching named \"" + accountName + "\" was found")
             .setRemediation("Check if this account was defined in another provider, or create a new one").build());
       case 1:
         return matchingAccounts.get(0);
       default:
-        throw new IllegalConfigException(new ProblemBuilder(
-            Problem.Severity.FATAL, "More than one account named \"" + accountName + "\" was found")
+        throw new IllegalConfigException(new ConfigProblemBuilder(
+            Severity.FATAL, "More than one account named \"" + accountName + "\" was found")
             .setRemediation("Manually delete/rename duplicate accounts with name \"" + accountName + "\" in your halconfig file").build());
     }
   }
@@ -98,7 +96,7 @@ public class AccountService {
       }
     }
 
-    throw new HalconfigException(new ProblemBuilder(Severity.FATAL, "Account \"" + accountName + "\" wasn't found").build());
+    throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Account \"" + accountName + "\" wasn't found").build());
   }
 
   public void deleteAccount(String deploymentName, String providerName, String accountName) {
@@ -106,8 +104,8 @@ public class AccountService {
     boolean removed = provider.getAccounts().removeIf(account -> ((Account) account).getName().equals(accountName));
 
     if (!removed) {
-      throw new HalconfigException(
-          new ProblemBuilder(Severity.FATAL, "Account \"" + accountName + "\" wasn't found")
+      throw new HalException(
+          new ConfigProblemBuilder(Severity.FATAL, "Account \"" + accountName + "\" wasn't found")
               .build());
     }
   }

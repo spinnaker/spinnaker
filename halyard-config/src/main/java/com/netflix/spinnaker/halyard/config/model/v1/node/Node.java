@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,7 +83,7 @@ abstract public class Node implements Validatable {
   }
 
   @JsonIgnore
-  public List<String> fieldOptions(ProblemSetBuilder problemSetBuilder, String fieldName) {
+  public List<String> fieldOptions(ConfigProblemSetBuilder problemSetBuilder, String fieldName) {
     if (fieldName == null || fieldName.isEmpty()) {
       throw new IllegalArgumentException("Input fieldName may not be empty");
     }
@@ -93,7 +93,7 @@ abstract public class Node implements Validatable {
     Method optionsMethod = null;
 
     try {
-      optionsMethod = this.getClass().getDeclaredMethod(fieldOptions, ProblemSetBuilder.class);
+      optionsMethod = this.getClass().getDeclaredMethod(fieldOptions, ConfigProblemSetBuilder.class);
       optionsMethod.setAccessible(true);
 
       return (List<String>) optionsMethod.invoke(this, problemSetBuilder);
