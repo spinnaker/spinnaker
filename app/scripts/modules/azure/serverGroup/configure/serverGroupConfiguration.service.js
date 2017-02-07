@@ -12,15 +12,13 @@ import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.serv
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
   ACCOUNT_SERVICE,
-  require('../../../netflix/serverGroup/diff/diff.service.js'),
   NAMING_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   SECURITY_GROUP_READER,
   CACHE_INITIALIZER_SERVICE,
 ])
   .factory('azureServerGroupConfigurationService', function($q, azureImageReader, accountService, securityGroupReader,
-                                                          cacheInitializer, diffService, namingService,
-                                                          loadBalancerReader) {
+                                                            cacheInitializer, namingService, loadBalancerReader) {
 
 
     var healthCheckTypes = ['EC2', 'ELB'],

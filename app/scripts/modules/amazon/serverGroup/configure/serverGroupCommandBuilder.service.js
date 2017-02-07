@@ -110,6 +110,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
           templatingEnabled: true,
+          existingPipelineCluster: true,
           dirty: {},
         };
 

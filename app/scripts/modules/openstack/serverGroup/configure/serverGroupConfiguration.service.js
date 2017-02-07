@@ -12,16 +12,14 @@ import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.serv
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.configuration.service', [
   require('../../image/image.reader.js'),
   ACCOUNT_SERVICE,
-  require('../../../netflix/serverGroup/diff/diff.service.js'),
   NAMING_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   SECURITY_GROUP_READER,
   CACHE_INITIALIZER_SERVICE
 ])
   .factory('openstackServerGroupConfigurationService', function($q, openstackImageReader, accountService,
-                                                          securityGroupReader, cacheInitializer,
-                                                          diffService, namingService,
-                                                          loadBalancerReader) {
+                                                                securityGroupReader, cacheInitializer, namingService,
+                                                                loadBalancerReader) {
 
     var healthCheckTypes = [],
       terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'],
