@@ -56,6 +56,9 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   @Autowired
   MineService mineService
 
+  @Autowired
+  MortService mortService
+
   @Override
   String getType() {
     PIPELINE_CONFIG_TYPE
@@ -68,7 +71,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
 
   @Override
   com.netflix.spinnaker.orca.Task completeParallelTask() {
-    return new CompleteDeployCanaryTask(Optional.of(diffTasks))
+    return new CompleteDeployCanaryTask(Optional.of(diffTasks), mortService)
   }
 
   @Override
@@ -136,12 +139,12 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
 
     private final List<DiffTask> diffTasks
 
-    @Autowired
-    MortService mortService
+    private final MortService mortService
 
     @Autowired
-    CompleteDeployCanaryTask(Optional<List<DiffTask>> diffTasks) {
+    CompleteDeployCanaryTask(Optional<List<DiffTask>> diffTasks, MortService mortService) {
       this.diffTasks = diffTasks.orElse((List<DiffTask>) emptyList())
+      this.mortService = mortService
     }
 
     @CompileDynamic
