@@ -4,8 +4,9 @@
     <div class="row">
       <div class="col-md-12">
         <dl class="dl-narrow dl-horizontal">
-          <dt ng-if="stage.context.judgmentStatus">Judgment</dt>
+          <dt ng-if="stage.context.judgmentStatus || stage.status === 'SKIPPED'">Judgment</dt>
           <dd ng-if="stage.context.judgmentStatus">{{ stage.context.judgmentStatus | robotToHuman }}</dd>
+          <dd ng-if="stage.status === 'SKIPPED'">Skipped</dd>
           <dt ng-if="stage.context.lastModifiedBy">Judged By</dt>
           <dd ng-if="stage.context.lastModifiedBy">
             <span ng-bind="stage.context.lastModifiedBy"></span>
@@ -18,7 +19,7 @@
           <dd ng-bind-html="stage.context.instructions"></dd>
         </dl>
       </div>
-      <div class="col-md-9" ng-if="!stage.context.judgmentStatus || stage.status === 'RUNNING'">
+      <div class="col-md-9" ng-if="stage.status !== 'SKIPPED' && (!stage.context.judgmentStatus || stage.status === 'RUNNING')">
         <div class="form-group" ng-if="!!stage.context.judgmentInputs.length">
           <p><b>Judgment Input</b></p>
           <ui-select ng-model="viewState.judgmentInput" class="form-control input-sm">
