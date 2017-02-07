@@ -39,7 +39,7 @@ describe('propertyDetailsComponent test', function () {
     });
 
     it('constructor should handle missing property on the PropertyCommand', function () {
-      let data:{command: PropertyCommand, isEditing: boolean, isDeleting: boolean} = {
+      let data: {command: PropertyCommand, isEditing: boolean, isDeleting: boolean} = {
         command: new PropertyCommand(),
         isEditing: false,
         isDeleting: false,
