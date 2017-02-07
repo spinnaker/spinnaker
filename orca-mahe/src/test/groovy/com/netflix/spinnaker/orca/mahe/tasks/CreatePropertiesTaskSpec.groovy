@@ -143,7 +143,6 @@ class CreatePropertiesTaskSpec extends Specification {
     then:
     1 * maheService.deleteProperty(property.propertyId, 'delete', scope.env) >> { def res ->
       def json = mapper.writeValueAsString([propertyId: 'propertyId'])
-//      new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
       new Response("http://mahe", 200, "OK", [] , null)
     }
 

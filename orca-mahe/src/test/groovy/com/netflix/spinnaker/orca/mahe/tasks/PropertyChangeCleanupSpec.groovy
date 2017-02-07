@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.orca.mahe.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.PropertyAction
 import com.netflix.spinnaker.orca.mahe.cleanup.FastPropertyCleanupListener
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import retrofit.client.Response
+import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -32,6 +35,7 @@ import static com.netflix.spinnaker.orca.mahe.pipeline.CreatePropertyStage.PIPEL
 
 class PropertyChangeCleanupSpec extends Specification {
 
+  ObjectMapper mapper = new ObjectMapper()
   def repository = Stub(ExecutionRepository)
   def mahe = Mock(MaheService)
   @Subject def listener = new FastPropertyCleanupListener(mahe)
@@ -42,7 +46,9 @@ class PropertyChangeCleanupSpec extends Specification {
     def pipeline = Pipeline
       .builder()
       .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
-      .withGlobalContext(originalProperties: [originalProperty], propertyAction: PropertyAction.DELETE)
+      .withGlobalContext(
+        originalProperties: [[property: originalProperty]],
+        propertyAction: PropertyAction.DELETE.toString())
       .build()
 
     repository.retrievePipeline(pipeline.id) >> pipeline
@@ -51,13 +57,49 @@ class PropertyChangeCleanupSpec extends Specification {
     listener.afterExecution(null, pipeline, executionStatus, false)
 
     then:
-    1 * mahe.upsertProperty(originalProperty)
+    1 * mahe.upsertProperty(_) >> { Map res ->
+      String propId = "${res.property.key}|${res.property.value}"
+      def json = mapper.writeValueAsString([propertyId: propId])
+      new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
+    }
 
     where:
     propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
     propertyEnv = "test"
-    originalProperty = [property: createPropertyWithId(propertyId)]
+    originalProperty = createPropertyWithId(propertyId)
     executionStatus << [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED]
+  }
+
+  def "failed upsert rollback should throw an IllegalStateException"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
+      .withGlobalContext(
+      originalProperties: [[property: originalProperty]],
+      propertyAction: PropertyAction.DELETE.toString())
+      .build()
+
+    repository.retrievePipeline(pipeline.id) >> pipeline
+
+    when:
+    listener.afterExecution(null, pipeline, executionStatus, false)
+
+    then:
+    1 * mahe.upsertProperty(_) >> { Map res ->
+      new Response("http://mahe", 500, "OK", [], null)
+    }
+
+    pipeline.context.rollbackActions == null
+
+    IllegalStateException ex = thrown()
+    assert ex.message.contains("Unable to rollback DELETE")
+
+    where:
+    propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
+    propertyEnv = "test"
+    originalProperty = createPropertyWithId(propertyId)
+    executionStatus = ExecutionStatus.TERMINAL
   }
 
   @Unroll()
@@ -66,7 +108,7 @@ class PropertyChangeCleanupSpec extends Specification {
     def pipeline = Pipeline
       .builder()
       .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
-      .withGlobalContext(propertyIdList: [[propertyId: propertyId]], propertyAction: PropertyAction.UPDATE)
+      .withGlobalContext(propertyIdList: [[propertyId: propertyId]], propertyAction: PropertyAction.UPDATE.toString())
       .build()
 
     repository.retrievePipeline(pipeline.id) >> pipeline
@@ -85,7 +127,7 @@ class PropertyChangeCleanupSpec extends Specification {
   }
 
   @Unroll()
-  def "a newly created property should be deleted if the pipeline is #executionStatus and has matching original property"() {
+  def "a newly created property should be deleted if the pipeline status is #executionStatus and has matching original property"() {
     given:
     def pipeline = Pipeline
       .builder()
@@ -99,7 +141,9 @@ class PropertyChangeCleanupSpec extends Specification {
     listener.afterExecution(null, pipeline, executionStatus, false)
 
     then:
-    1 * mahe.deleteProperty(propertyId, 'spinnaker rollback',  originalProperty.env)
+    1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
+      new Response("http://mahe", 200, "OK", [] , null)
+    }
 
     where:
     propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
@@ -108,13 +152,43 @@ class PropertyChangeCleanupSpec extends Specification {
     executionStatus << [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED]
   }
 
+  def "failed rollback of delete should throw IllegalStateException"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
+      .withGlobalContext(propertyIdList: [[propertyId: propertyId]], originalProperties: [], propertyAction: PropertyAction.CREATE)
+      .build()
+
+    repository.retrievePipeline(pipeline.id) >> pipeline
+
+    when:
+    listener.afterExecution(null, pipeline, executionStatus, false)
+
+    then:
+    1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
+      new Response("http://mahe", 500, "OK", [] , null)
+    }
+
+    pipeline.context.rollbackActions == null
+
+    IllegalStateException ex = thrown()
+    assert ex.message.contains("Unable to rollback CREATE")
+    assert ex.message.contains(propertyId)
+
+    where:
+    propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
+    propertyEnv = "test"
+    originalProperty = createPropertyWithId(propertyId)
+    executionStatus << [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED]
+  }
 
   def "a property created by a pipeline stage marked for 'rollback' is cleaned up at the end"() {
     given:
     def pipeline = Pipeline
       .builder()
       .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
-      .withGlobalContext(propertyIdList: [[propertyId: propertyId]], originalProperties: [], rollbackProperties: true, propertyAction: PropertyAction.CREATE)
+      .withGlobalContext(propertyIdList: [[propertyId: propertyId]], originalProperties: [], rollback: true, propertyAction: PropertyAction.CREATE.toString())
       .build()
     repository.retrievePipeline(pipeline.id) >> pipeline
 
@@ -122,27 +196,35 @@ class PropertyChangeCleanupSpec extends Specification {
     listener.afterExecution(null, pipeline, null, true)
 
     then:
-    1 * mahe.deleteProperty(propertyId, "spinnaker rollback", propertyEnv)
+    1 * mahe.deleteProperty(propertyId, 'spinnaker rollback', propertyEnv) >> { def res ->
+      new Response("http://mahe", 200, "OK", [] , null)
+    }
 
     where:
     propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
     propertyEnv = "test"
   }
 
-  def "a property updated by a pipeline stage is cleaned up at the end"() {
+  def "a property updated by a pipeline stage is cleaned up at the end when marked for rollback"() {
     given:
     def pipeline = Pipeline
       .builder()
       .withStage(PIPELINE_CONFIG_TYPE, PIPELINE_CONFIG_TYPE)
-      .withGlobalContext(propertyIdList: [[propertyId: propertyId]], originalProperties: [previous], rollbackProperties: true, propertyAction: PropertyAction.UPDATE)
+      .withGlobalContext(propertyIdList: [[propertyId: propertyId]], originalProperties: [previous], rollback: true, propertyAction: PropertyAction.UPDATE.toString())
       .build()
     repository.retrievePipeline(pipeline.id) >> pipeline
 
     when:
     listener.afterExecution(null, pipeline, null, true)
 
+
+
     then:
-    1 * mahe.upsertProperty(previous)
+    1 * mahe.upsertProperty(previous) >> { Map res ->
+      String propId = "${res.property.key}|${res.property.value}"
+      def json = mapper.writeValueAsString([propertyId: propId])
+      new Response("http://mahe", 200, "OK", [], new TypedByteArray('application/json', json.bytes))
+    }
 
     where:
     propertyId = "test_rfletcher|mahe|test|us-west-1||||asg=mahe-test-v010|cluster=mahe-test"
