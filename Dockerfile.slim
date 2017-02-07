@@ -2,11 +2,8 @@ FROM openjdk:8u111-jre-alpine
 
 MAINTAINER delivery-engineering@netflix.com
 
-COPY ./halyard-web/build/distributions/halyard.zip /opt/halyard.zip
+COPY ./halyard-web/build/install/halyard /opt/halyard
 
-RUN apk add --update bash && \
-      unzip /opt/halyard.zip -d /opt && \
-      rm /opt/halyard.zip && \
-      rm -rf /var/cache/apk/*
+RUN apk add --update bash && rm -rf /var/cache/apk/*
 
 CMD ["/opt/halyard/bin/halyard"]
