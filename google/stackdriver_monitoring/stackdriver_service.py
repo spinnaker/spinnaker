@@ -74,6 +74,11 @@ class StackdriverMetricsService(object):
     return datetime.fromtimestamp(millis / 1000).isoformat('T') + 'Z'
 
   @property
+  def project(self):
+    """Returns the stackdriver project being used."""
+    return self.__project
+
+  @property
   def stub(self):
     """Returns the stackdriver client stub."""
     if self.__stub is None:
@@ -385,7 +390,15 @@ def make_service(options):
       credentials = GoogleCredentials.get_application_default()
 
     http = credentials.authorize(http)
-    return apiclient.discovery.build('monitoring', 'v3', http=http)
+    developerKey = os.environ.get('STACKDRIVER_API_KEY')
+    if developerKey:
+      url='https://monitoring.googleapis.com/$discovery/rest?labels=DASHBOARD_TRUSTED_TESTER&key='+developerKey
+      return apiclient.discovery.build(
+          'monitoring', 'v3', http=http,
+          discoveryServiceUrl=url)
+    else:
+      return apiclient.discovery.build('monitoring', 'v3', http=http)
+
 
   return StackdriverMetricsService(make_stub, options)
 

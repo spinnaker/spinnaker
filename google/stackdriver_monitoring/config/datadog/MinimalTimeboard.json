@@ -22,7 +22,7 @@
         ], 
         "autoscale": true
       }, 
-      "title": "Hystrix Short Circuited"
+      "title": "Hystrix Short Circuited (global)"
     }, 
     {
       "definition": {
@@ -35,8 +35,8 @@
             "type": "line"
           }, 
           {
-            "q": "diff(sum:igor.hystrix.countExceptionsThrown{*})", 
-            "type": "line"
+            "q": "diff(sum:igor.hystrix.countExceptionsThrown{*}.as_count())", 
+            "type": "bars"
           }, 
           {
             "q": "diff(sum:gate.hystrix.countExceptionsThrown{*})", 
@@ -45,7 +45,89 @@
         ], 
         "autoscale": true
       }, 
-      "title": "Hystrix Exceptions"
+      "title": "Hystrix Exceptions (global)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:orca.task.invocations{executiontype:orchestration,status:running} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Active Orchestrations (orca)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:orca.task.invocations{executiontype:orchestration,status:succeeded} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "cool"
+            }
+          }, 
+          {
+            "q": "- diff(sum:orca.task.invocations{executiontype:orchestration,status:terminal} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "warm"
+            }
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Completed Orchestrations (orca)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:orca.task.invocations{status:running,executiontype:pipeline} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Active Pipelines (orca)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:orca.task.invocations{status:succeeded,executiontype:pipeline} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "cool"
+            }
+          }, 
+          {
+            "q": " - diff(sum:orca.task.invocations{status:terminal,executiontype:pipeline} by {taskname})", 
+            "style": {
+              "palette": "warm"
+            }, 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Completed Pipelines (orca)"
     }, 
     {
       "definition": {
@@ -60,37 +142,7 @@
         ], 
         "autoscale": true
       }, 
-      "title": "Clouddriver Operations"
-    }, 
-    {
-      "definition": {
-        "viz": "timeseries", 
-        "requests": [
-          {
-            "q": "avg:system.load.1{*}", 
-            "aggregator": "avg", 
-            "conditional_formats": [], 
-            "type": "line"
-          }
-        ], 
-        "autoscale": true
-      }, 
-      "title": "This Slot Is Reserved For Future Use"
-    }, 
-    {
-      "definition": {
-        "viz": "timeseries", 
-        "requests": [
-          {
-            "q": "diff(sum:clouddriver.operations_count{success:true} by {operationtype}), - diff(sum:clouddriver.operations_count{!success:true} by {operationtype})", 
-            "aggregator": "avg", 
-            "conditional_formats": [], 
-            "type": "bars"
-          }
-        ], 
-        "autoscale": true
-      }, 
-      "title": "Active Orca Threads"
+      "title": "Active Threads (orca)"
     }, 
     {
       "definition": {
@@ -105,21 +157,38 @@
         ], 
         "autoscale": true
       }, 
-      "title": "Pipelines Triggered"
+      "title": "Pipelines Triggered (echo)"
     }, 
     {
       "definition": {
         "viz": "timeseries", 
         "requests": [
           {
-            "q": "sum:rosco.bakesActive{*}", 
+            "q": "diff(sum:rosco.bakesActive{*})", 
+            "aggregator": "avg", 
             "conditional_formats": [], 
             "type": "line"
+          }, 
+          {
+            "q": "diff(sum:rosco.bakesRequested{*} by {flavor})", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "cool"
+            }
+          }, 
+          {
+            "q": "diff(sum:rosco.bakesCompleted_count{success:false} by {region})", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "warm"
+            }
           }
         ], 
         "autoscale": true
       }, 
-      "title": "Bakes in Progress"
+      "title": "Bake Activity (rosco)"
     }, 
     {
       "definition": {
@@ -134,7 +203,37 @@
         ], 
         "autoscale": true
       }, 
-      "title": "Front50 Item Cache Sizes"
+      "title": "Item Cache Size (front50)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:clouddriver.operations_count{success:true} by {operationtype})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Successful Operations (clouddriver)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:clouddriver.operations_count{success:false} by {operationtype})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Failed Operations (clouddriver)"
     }, 
     {
       "definition": {
@@ -196,5 +295,5 @@
     }
   ], 
   "description": "A bare-bones dashboard for monitoring a Spinnaker deployment", 
-  "title": "MinimalSpinnaker"
+  "title": "Minimal Spinnaker"
 }

@@ -238,7 +238,7 @@ services:
 
   spectator:
     webEndpoint:
-      enabled: false
+      enabled: true
 
   stackdriver:
     enabled: ${SPINNAKER_STACKDRIVER_ENABLED:false}

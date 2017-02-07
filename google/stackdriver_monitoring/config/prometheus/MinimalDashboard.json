@@ -165,7 +165,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(front50:hystrix:countExceptionsThrown[1m])",
+              "expr": "idelta(front50:hystrix:countExceptionsThrown[1m])",
               "intervalFactor": 2,
               "legendFormat": "front50/{{metricType}}({{metricGroup}})",
               "metric": "front50:hystrix:countExceptionsThrown",
@@ -173,7 +173,7 @@
               "step": 10
             },
             {
-              "expr": "delta(gate:hystrix:countExceptionsThrown[1m])",
+              "expr": "idelta(gate:hystrix:countExceptionsThrown[1m])",
               "intervalFactor": 2,
               "legendFormat": "gate/{{metricType}}({{metricGroup}})",
               "metric": "gate:hystrix:countExceptionsThrown",
@@ -181,7 +181,7 @@
               "step": 10
             },
             {
-              "expr": "delta(igor:hystrix:countExceptionsThrown[1m])",
+              "expr": "idelta(igor:hystrix:countExceptionsThrown[1m])",
               "intervalFactor": 2,
               "legendFormat": "igor/{{metricType}}({{metricGroup}})",
               "metric": "igor:hystrix:countExceptionsThrown",
@@ -211,7 +211,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -219,7 +219,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -234,14 +234,14 @@
     },
     {
       "collapse": false,
-      "height": 282,
+      "height": 262,
       "panels": [
         {
           "aliasColors": {},
           "bars": false,
           "datasource": "${DS_SPINNAKER}",
           "fill": 1,
-          "id": 1,
+          "id": 55,
           "legend": {
             "avg": false,
             "current": false,
@@ -249,7 +249,6 @@
             "hideZero": true,
             "max": false,
             "min": false,
-            "rightSide": false,
             "show": true,
             "total": false,
             "values": false
@@ -268,18 +267,19 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "label_replace(sum(increase(clouddriver:operations__count{success=\"true\"}[1m])) by (OperationType), \"OperationType\", \"$1\", \"OperationType\", \"(.*)AtomicOperation\")",
+              "expr": "sum(idelta(orca:task:invocations{executionType=\"Orchestration\", isComplete=\"false\"}[1m])) by (taskName)",
               "hide": false,
               "intervalFactor": 2,
-              "legendFormat": "{{OperationType}}",
-              "refId": "A",
+              "legendFormat": "{{taskName}}",
+              "metric": "",
+              "refId": "B",
               "step": 10
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Successful Operations",
+          "title": "Active Orchestrations (orca)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -298,7 +298,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -306,7 +306,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -316,7 +316,7 @@
           "bars": false,
           "datasource": "${DS_SPINNAKER}",
           "fill": 1,
-          "id": 42,
+          "id": 58,
           "legend": {
             "avg": false,
             "current": false,
@@ -324,7 +324,6 @@
             "hideZero": true,
             "max": false,
             "min": false,
-            "rightSide": false,
             "show": true,
             "total": false,
             "values": false
@@ -343,18 +342,19 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "label_replace(sum(increase(clouddriver:operations__count{success!=\"true\"}[1m])) by (OperationType), \"OperationType\", \"$1\", \"OperationType\", \"(.*)AtomicOperation\")",
+              "expr": "sum(idelta(orca:task:invocations{executionType=\"Pipeline\", isComplete=\"false\"}[1m])) by (taskName)",
               "hide": false,
               "intervalFactor": 2,
-              "legendFormat": "{{OperationType}}",
-              "refId": "A",
+              "legendFormat": "{{taskName}}",
+              "metric": "",
+              "refId": "B",
               "step": 10
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Failed Operations",
+          "title": "Active Pipelines (orca)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -373,7 +373,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -381,7 +381,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -391,7 +391,189 @@
       "repeatIteration": null,
       "repeatRowId": null,
       "showTitle": false,
-      "title": "Operations",
+      "title": "Orca Active",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 56,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(idelta(orca:task:invocations{executionType=\"Orchestration\",isComplete=\"true\", status=\"SUCCEEDED\"}[1m])) by (taskName)",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{taskName}}",
+              "metric": "orca:task:invocations",
+              "refId": "C",
+              "step": 10
+            },
+            {
+              "expr": "-1 * sum(idelta(orca:task:invocations{executionType=\"Orchestration\",isComplete=\"true\", status!=\"SUCCEEDED\"}[1m])) by (taskName)",
+              "hide": false,
+              "interval": "",
+              "intervalFactor": 2,
+              "legendFormat": "ERR {{taskName}}",
+              "metric": "orca:task:invocations",
+              "refId": "D",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Orchestrations Completed (orca)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 59,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(idelta(orca:task:invocations{executionType=\"Pipeline\",isComplete=\"true\", status=\"SUCCEEDED\"}[1m])) by (taskName)",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{taskName}}",
+              "metric": "orca:task:invocations",
+              "refId": "C",
+              "step": 10
+            },
+            {
+              "expr": "-1 * sum(idelta(orca:task:invocations{executionType=\"Pipeline\",isComplete=\"true\", status!=\"SUCCEEDED\"}[1m])) by (taskName)",
+              "hide": false,
+              "interval": "",
+              "intervalFactor": 2,
+              "legendFormat": "ERR {{taskName}}",
+              "metric": "orca:task:invocations",
+              "refId": "D",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Pipelines Completed (orca)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Orca Completed",
       "titleSize": "h6"
     },
     {
@@ -438,7 +620,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Orca Active Threads",
+          "title": "Active Threads (orca)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -499,26 +681,18 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(echo:pipelines:triggered[1m])) by (application, name)",
+              "expr": "sum(idelta(echo:pipelines:triggered[1m])) by (application, name)",
               "intervalFactor": 2,
               "legendFormat": "{{name}}({{application}})",
               "metric": "echo:pipelines:triggered",
               "refId": "A",
-              "step": 10
-            },
-            {
-              "expr": "sum(delta(echo:pipelines:triggered[1m])) by (application, name)",
-              "intervalFactor": 2,
-              "legendFormat": "{{name}}({{application}})",
-              "metric": "echo:pipelines:triggered",
-              "refId": "B",
               "step": 10
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Pipelines Triggered",
+          "title": "Pipelines Triggered (echo)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -537,7 +711,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -545,7 +719,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -602,18 +776,20 @@
               "step": 10
             },
             {
-              "expr": "sum(idelta(rosco:bakeRequests[1m])) by (flavor)",
+              "expr": "sum(idelta(rosco:bakesRequested[1m])) by (flavor)",
               "hide": false,
               "intervalFactor": 2,
               "legendFormat": "Request({{flavor}})",
-              "metric": "rosco:bakeRequests",
+              "metric": "rosco:bakes",
               "refId": "B",
               "step": 10
             },
             {
-              "expr": "-1 * sum(idelta(rosco:bakesCompleted{success=\"false\"}[1m])) by (region)",
+              "expr": "-1 * sum(idelta(rosco:bakesCompleted__count{success=\"false\"}[1m])) by (region)",
+              "hide": false,
               "intervalFactor": 2,
               "legendFormat": "Failed {{region}}",
+              "metric": "bakesC",
               "refId": "C",
               "step": 10
             }
@@ -621,7 +797,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Bake Requests",
+          "title": "Bake Activity (rosco)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -640,7 +816,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "-5",
               "show": true
             },
             {
@@ -648,7 +824,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "-5",
               "show": true
             }
           ]
@@ -696,7 +872,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Item Cache Size",
+          "title": "Item Cache Size (front50)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -734,6 +910,168 @@
       "repeatRowId": null,
       "showTitle": false,
       "title": "Bakes and Items",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 282,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 1,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "label_replace(sum(idelta(clouddriver:operations__count{success=\"true\"}[1m])) by (OperationType), \"OperationType\", \"$1\", \"OperationType\", \"(.*)AtomicOperation\")",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{OperationType}}",
+              "refId": "A",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Successful Operations (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 42,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "label_replace(sum(idelta(clouddriver:operations__count{success!=\"true\"}[1m])) by (OperationType), \"OperationType\", \"$1\", \"OperationType\", \"(.*)AtomicOperation\")",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{OperationType}}",
+              "refId": "A",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Failed Operations (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Operations",
       "titleSize": "h6"
     },
     {
@@ -913,6 +1251,6 @@
     ]
   },
   "timezone": "browser",
-  "title": "Minimal Spinnaker",
-  "version": 3
+  "title": "Spinnaker Minimalist",
+  "version": 1
 }

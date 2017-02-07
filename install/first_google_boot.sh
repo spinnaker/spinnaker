@@ -320,6 +320,18 @@ function extract_spinnaker_gcr_credentials() {
   fi
 }
 
+function do_experimental_startup() {
+  local monitor_config=$(get_instance_metadata_attribute "monitor_spinnaker")
+  if [[ ! -z $monitor_config && \
+          -f /opt/spinnaker/install/install_monitor_spinnaker.tz ]]; then
+     echo "$STATUS_PREFIX  Install Monitoring with flags '$monitor_config' "
+     tar xzf /opt/spinnaker/install/install_monitor_spinnaker.tz \
+         -C /opt --no-same-owner
+     /opt/monitor_spinnaker/install_monitoring.sh $monitor_config
+     clear_instance_metadata "monitor_spinnaker"
+  fi
+}
+
 function process_args() {
   while [[ $# > 0 ]]
   do
@@ -381,6 +393,8 @@ extract_spinnaker_credentials
 
 echo "$STATUS_PREFIX  Configuring Spinnaker"
 $SPINNAKER_INSTALL_DIR/scripts/reconfigure_spinnaker.sh
+
+do_experimental_startup
 
 
 # Replace this first time boot with the normal startup script
