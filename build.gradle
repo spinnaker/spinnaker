@@ -57,6 +57,7 @@ task karma(type: NodeTask) {
 }
 
 task generateVersionFile << {
+  'git update-index --assume-unchanged version.json'.execute()
   def buildInfo = [
     version: project.hasProperty('deckVersion') ? "${deckVersion}" : "n/a",
     created: new Date().getTime()
