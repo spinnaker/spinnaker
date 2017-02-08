@@ -21,7 +21,7 @@
     <div class="header-text">
       <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
       <h3 select-on-dbl-click>
-        {{instance.instanceId}}
+        {{instance ? instance.instanceId : instanceIdNotFound}}
       </h3>
     </div>
     <div>
@@ -50,7 +50,7 @@
       </div>
     </div>
   </div>
-  <div class="content" ng-if="!state.loading">
+  <div class="content" ng-if="!state.loading && instance">
     <collapsible-section heading="Instance Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>ID</dt>
@@ -107,12 +107,7 @@
         </dd>
       </dl>
     </collapsible-section>
-    <div class="content-section" ng-if="instance.notFound">
-      <div class="content-body">
-        <p>Could not find the instance. No other details provided.</p>
-      </div>
-    </div>
-    <collapsible-section heading="DNS" ng-if="!instance.notFound">
+    <collapsible-section heading="DNS">
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="instance.ipv4">Private IP Address</dt>
         <dd ng-if="instance.ipv4">
@@ -143,7 +138,7 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
+    <collapsible-section heading="Security Groups">
         <ul>
           <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
             <a ui-sref="^.securityGroupDetails({name:securityGroup.groupName, accountId: instance.account, region: instance.region, vpcId: instance.vpcId, provider: instance.provider})">
@@ -152,7 +147,7 @@
           </li>
         </ul>
     </collapsible-section>
-    <collapsible-section ng-if="!instance.notFound" heading="Metadata">
+    <collapsible-section heading="Metadata">
       <div ng-if=" !instance.metadata">No metadata associated with this server</div>
       <dl ng-if="instance.metadata">
         <dt ng-repeat-start="(key,value) in instance.metadata">{{key}}</dt>
@@ -166,5 +161,12 @@
         </li>
       </ul>
     </collapsible-section>
+  </div>
+  <div class="content" ng-if="!state.loading && !instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
+      </div>
+    </div>
   </div>
 </div>

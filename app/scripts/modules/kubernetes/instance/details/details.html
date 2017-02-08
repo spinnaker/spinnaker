@@ -21,7 +21,7 @@
     <div class="header-text">
       <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
       <h3 select-on-dbl-click>
-        {{instance.instanceId}}
+        {{instance ? instance.instanceId : instanceIdNotFound}}
       </h3>
     </div>
     <div>
@@ -49,7 +49,7 @@
       </div>
     </div>
   </div>
-  <div class="content" ng-if="!state.loading">
+  <div class="content" ng-if="!state.loading && instance">
     <collapsible-section heading="Instance Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Launched</dt>
@@ -87,12 +87,7 @@
         </dd>
       </dl>
     </collapsible-section>
-    <div class="content-section" ng-if="instance.notFound">
-      <div class="content-body">
-        <p>Could not find the instance. No other details provided.</p>
-      </div>
-    </div>
-    <collapsible-section heading="DNS" ng-if="!instance.notFound">
+    <collapsible-section heading="DNS">
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="instance.dnsPolicy">DNS Policy</dt>
         <dd ng-if="instance.dnsPolicy">
@@ -117,7 +112,7 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section ng-if="!instance.notFound" heading="Labels">
+    <collapsible-section heading="Labels">
       <dl class="dl-horizontal dl-flex">
         <kubernetes-key-value-details map="instance.metadata.labels">
         </kubernetes-key-value-details>
@@ -201,5 +196,12 @@
         No events.
       </div>
     </collapsible-section>
+  </div>
+  <div class="content" ng-if="!state.loading && !instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
+      </div>
+    </div>
   </div>
 </div>

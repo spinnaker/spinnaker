@@ -1,5 +1,4 @@
-import {module, IScope, IPromise, IQService} from 'angular';
-import {IStateService} from 'angular-ui-router';
+import {module, IPromise, IQService} from 'angular';
 import {flattenDeep, cloneDeep} from 'lodash';
 
 import {Application} from 'core/application/application.model';
@@ -21,6 +20,7 @@ interface InstanceContainer {
 class AppengineInstanceDetailsController {
   public state = {loading: true};
   public instance: IAppengineInstance;
+  public instanceIdNotFound: String;
   public upToolTip: string = 'An App Engine instance is \'Up\' if a load balancer is directing traffic to its server group.';
   public outOfServiceToolTip: string = `
     An App Engine instance is 'Out Of Service' if no load balancers are directing traffic to its server group.`;
@@ -29,9 +29,7 @@ class AppengineInstanceDetailsController {
     return ['$scope', '$state', '$q', 'app', 'instanceReader', 'instanceWriter', 'confirmationModalService', 'instance'];
   }
 
-  constructor(private $scope: IScope,
-              private $state: IStateService,
-              private $q: IQService,
+  constructor(private $q: IQService,
               private app: Application,
               private instanceReader: InstanceReader,
               private instanceWriter: InstanceWriter,
@@ -43,7 +41,10 @@ class AppengineInstanceDetailsController {
         this.instance = instanceDetails;
         this.state.loading = false;
       })
-      .catch(() => this.autoClose());
+      .catch(() => {
+        this.instanceIdNotFound = instance.instanceId;
+        this.state.loading = false;
+      });
   }
 
   public terminateInstance(): void {
@@ -73,13 +74,6 @@ class AppengineInstanceDetailsController {
       taskMonitorConfig: taskMonitor,
       submitMethod: submitMethod
     });
-  }
-
-  private autoClose(): void {
-    if (!(this.$scope as any).$$destroyed) {
-      (this.$state as any).params.allowModalToStayOpen = true;
-      this.$state.go('^', null, {location: 'replace'});
-    }
   }
 
   private retrieveInstance(instance: InstanceFromStateParams): IPromise<IAppengineInstance> {

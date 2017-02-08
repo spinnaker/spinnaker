@@ -134,7 +134,8 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       }
 
       if (!instanceSummary) {
-        autoClose();
+        $scope.instanceIdNotFound = instance.instanceId;
+        $scope.state.loading = false;
       }
 
       return $q.when(null);

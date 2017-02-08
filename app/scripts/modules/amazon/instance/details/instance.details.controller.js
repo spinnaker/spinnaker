@@ -155,7 +155,8 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
       }
 
       if (!instanceSummary) {
-        autoClose();
+        $scope.instanceIdNotFound = instance.instanceId;
+        $scope.state.loading = false;
       }
 
       return $q.when(null);
@@ -166,9 +167,9 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
         return;
       }
       if (app.isStandalone) {
-        $scope.instanceId = instance.instanceId;
         $scope.state.loading = false;
-        $scope.state.notFound = true;
+        $scope.instanceIdNotFound = instance.instanceId;
+        $scope.state.notFoundStandalone = true;
         recentHistoryService.removeLastItem('instances');
       } else {
         $state.params.allowModalToStayOpen = true;

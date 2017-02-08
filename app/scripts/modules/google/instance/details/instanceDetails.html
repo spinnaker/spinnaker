@@ -21,7 +21,7 @@
     <div class="header-text">
       <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
       <h3 select-on-dbl-click>
-        {{instance.instanceId}}
+        {{instance ? instance.instanceId : instanceIdNotFound}}
       </h3>
       <copy-to-clipboard
           ng-if="instance.gcloudSSHCommand"
@@ -59,7 +59,7 @@
       </div>
     </div>
   </div>
-  <div class="content" ng-if="!state.loading">
+  <div class="content" ng-if="!state.loading && instance">
     <collapsible-section heading="Instance Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Launched</dt>
@@ -113,12 +113,7 @@
         </dd>
       </dl>
     </collapsible-section>
-    <div class="content-section" ng-if="instance.notFound">
-      <div class="content-body">
-        <p>Could not find the instance. No other details provided.</p>
-      </div>
-    </div>
-    <collapsible-section heading="DNS" ng-if="!instance.notFound">
+    <collapsible-section heading="DNS">
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="instance.internalDnsName">Internal DNS Name</dt>
         <dd ng-if="instance.internalDnsName">
@@ -149,7 +144,7 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
+    <collapsible-section heading="Security Groups">
         <ul>
           <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
             <a ui-sref="^.securityGroupDetails({name:securityGroup.groupName, accountId: instance.account, region: 'global', provider: instance.provider})">
@@ -177,7 +172,7 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="SSH" ng-if="!instance.notFound">
+    <collapsible-section heading="SSH">
       <dl>
         <dt ng-if="instance.sshLink">SSH into this instance</dt>
         <dd ng-if="instance.sshLink">
@@ -206,5 +201,12 @@
       </ul>
     </collapsible-section>
     <instance-links address="baseIpAddress" application="application" instance="instance"></instance-links>
+  </div>
+  <div class="content" ng-if="!state.loading && !instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
+      </div>
+    </div>
   </div>
 </div>

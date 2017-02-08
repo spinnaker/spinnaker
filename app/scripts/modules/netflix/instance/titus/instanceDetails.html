@@ -18,10 +18,11 @@
     <div class="header-text">
       <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
       <h3 select-on-dbl-click>
-        {{instance.id}}
+        {{instance ? instance.id : instanceIdNotFound}}
       </h3>
 
       <copy-to-clipboard
+        ng-if="instance"
         class="copy-to-clipboard"
         text="ssh -t {{ctrl.bastionHost}} 'titus-ssh {{ctrl.bastionStack}} -region {{instance.region}} -id {{instance.id}}'"
         tool-tip="Copy titus-ssh command to clipboard">
@@ -51,7 +52,7 @@
       </div>
     </div>
   </div>
-  <div class="content" ng-if="!state.loading">
+  <div class="content" ng-if="!state.loading && instance">
     <collapsible-section heading="Titus Task Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Task Id</dt>
@@ -129,16 +130,18 @@
         </li>
       </ul>
     </collapsible-section>
-    <div class="content-section" ng-if="instance.notFound">
-      <div class="content-body">
-        <p>Could not find the instance. No other details provided.</p>
-      </div>
-    </div>
     <collapsible-section heading="Task Logs">
       <ul>
         <li><a href="{{ctrl.titusUiEndpoint}}tasklogs.html?tid={{instance.id}}" target="_blank">Task Logs</a></li>
       </ul>
     </collapsible-section>
     <instance-links address="baseIpAddress" application="application" instance="instance"></instance-links>
+  </div>
+  <div class="content" ng-if="!state.loading && !instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
+      </div>
+    </div>
   </div>
 </div>
