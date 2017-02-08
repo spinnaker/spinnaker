@@ -1,0 +1,16 @@
+FROM openjdk:8u111-jre-alpine
+
+MAINTAINER delivery-engineering@netflix.com
+
+COPY ./rosco-web/build/install/rosco /opt/rosco
+
+WORKDIR /packer
+
+RUN apk --nocache add --update bash wget  && \
+  wget https://releases.hashicorp.com/packer/0.12.1/packer_0.12.1_linux_amd64.zip && \
+  unzip packer_0.12.1_linux_amd64.zip && \
+  rm packer_0.12.1_linux_amd64.zip
+
+ENV PATH "/packer:$PATH"
+
+CMD ["/opt/rosco/bin/rosco"]
