@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-//BEN_TODO: where is this defined?
-
 module.exports = angular.module('spinnaker.core.pipeline.stage.destroyAsgStage', [
   require('../../pipelineConfigProvider.js')
 ])

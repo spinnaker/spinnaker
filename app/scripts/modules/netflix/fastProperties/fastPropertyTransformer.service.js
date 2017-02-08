@@ -1,7 +1,5 @@
 'use strict';
 
-// BEN_TODO this file is spelled incorrectly
-
 import _ from 'lodash';
 
 let angular = require('angular');

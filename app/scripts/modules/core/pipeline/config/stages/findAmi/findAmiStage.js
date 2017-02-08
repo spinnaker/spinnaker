@@ -2,7 +2,6 @@
 
 let angular = require('angular');
 
-//BEN_TODO
 module.exports = angular.module('spinnaker.core.pipeline.stage.findAmiStage', [
   require('../../pipelineConfigProvider.js')
 ])

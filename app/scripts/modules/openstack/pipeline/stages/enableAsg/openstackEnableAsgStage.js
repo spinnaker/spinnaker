@@ -1,7 +1,5 @@
 'use strict';
 
-//BEN_TODO: where is this defined?
-
 let angular = require('angular');
 
 import {StageConstants} from 'core/pipeline/config/stages/stageConstants';

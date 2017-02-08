@@ -3,8 +3,6 @@
 let angular = require('angular');
 import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
-//BEN_TODO: where is this defined?
-
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.destroyAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
