@@ -61,9 +61,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.advancedSele
 
       $scope.diskOptions = [
         {
+          key: 4096,
+          label: '4GB',
+          description: 'Double check if you REALLY need this'
+        },
+        {
           key: 2048,
           label: '2GB',
-          description: 'Maximum available'
+          description: 'Max preset'
         },
         {
           key: 1024,
