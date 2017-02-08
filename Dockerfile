@@ -11,4 +11,6 @@ RUN docker/setup-apache2.sh && \
   cd .. && \
   rm -rf deck
 
-CMD docker/run-apache2.sh
+COPY docker/run-apache2.sh /deck/run-apache2.sh
+
+CMD /deck/run-apache2.sh
