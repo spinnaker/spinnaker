@@ -146,7 +146,8 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
       }
 
       if (!instanceSummary) {
-        $state.go('^');
+        $scope.instanceIdNotFound = instance.instanceId;
+        $scope.state.loading = false;
       }
 
       return $q.when(null);

@@ -21,7 +21,7 @@
     <div class="header-text">
       <span class="glyphicon glyphicon-hdd {{ctrl.instance.healthState}}"></span>
       <h3 select-on-dbl-click>
-        {{ctrl.instance.name}}
+        {{ctrl.instance ? ctrl.instance.name : ctrl.instanceIdNotFound}}
       </h3>
     </div>
     <div>
@@ -38,7 +38,7 @@
       </div>
     </div>
   </div>
-  <div class="content" ng-if="!ctrl.state.loading">
+  <div class="content" ng-if="!ctrl.state.loading && ctrl.instance">
     <collapsible-section heading="Instance Information" expanded="true">
       <dl class="dl-horizontal dl-narrow">
         <dt>Launched</dt>
@@ -96,5 +96,12 @@
         <appengine-conditional-dt-dd component="ctrl.instance" key="vmDebugEnabled" label="Debug Enabled"></appengine-conditional-dt-dd>
       </dl>
     </collapsible-section>
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading && !ctrl.instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
+      </div>
+    </div>
   </div>
 </div>

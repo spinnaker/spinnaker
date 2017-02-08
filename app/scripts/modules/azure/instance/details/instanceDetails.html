@@ -21,11 +21,11 @@
     <div class="header-text">
       <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
       <h3 select-on-dbl-click>
-        {{instance.instanceId}}
+        {{instance ? instance.instanceId : instanceIdNotFound}}
       </h3>
     </div>
   </div>
-  <div class="content" ng-if="!state.loading">
+  <div class="content" ng-if="!state.loading && instance">
     <collapsible-section heading="Instance Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Launched</dt>
@@ -47,9 +47,11 @@
         </dd>
       </dl>
     </collapsible-section>
-    <div class="content-section" ng-if="instance.notFound">
-      <div class="content-body">
-        <p>Could not find the instance. No other details provided.</p>
+  </div>
+  <div class="content" ng-if="!state.loading && !instance">
+    <div class="content-section">
+      <div class="content-body text-center">
+        <h3>Instance not found.</h3>
       </div>
     </div>
   </div>
