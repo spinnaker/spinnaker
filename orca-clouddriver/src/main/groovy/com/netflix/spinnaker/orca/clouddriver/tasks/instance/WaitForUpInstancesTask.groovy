@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper.HealthCountSnapshot
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
@@ -34,7 +35,10 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   @Override
   Map getAdditionalRunningStageContext(Stage stage, Map serverGroup) {
-    [ targetDesiredSize: calculateTargetDesiredSize(stage, serverGroup) ]
+    [
+      targetDesiredSize: calculateTargetDesiredSize(stage, serverGroup),
+      lastCapacityCheck: getHealthCountSnapshot(stage, serverGroup)
+    ]
   }
 
   static boolean allInstancesMatch(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
@@ -99,5 +103,49 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   @Override
   protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames)
+  }
+
+  private static HealthCountSnapshot getHealthCountSnapshot(Stage stage, Map serverGroup) {
+    HealthCountSnapshot snapshot = new HealthCountSnapshot()
+    Collection<String> interestingHealthProviderNames = stage.context.interestingHealthProviderNames as Collection
+    if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
+      snapshot.up = serverGroup.instances.size()
+      return snapshot
+    }
+    serverGroup.instances.each { Map instance ->
+      List<Map> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
+      if (HealthHelper.someAreUpAndNoneAreDown(instance, interestingHealthProviderNames)) {
+        snapshot.up++
+      } else if (someAreDown(instance, interestingHealthProviderNames)) {
+        snapshot.down++
+      } else if (healths.any { it.state == 'OutOfService' } ) {
+        snapshot.outOfService++
+      } else if (healths.any { it.state == 'Starting' } ) {
+        snapshot.starting++
+      } else if (healths.every { it.state == 'Succeeded' } ) {
+        snapshot.succeeded++
+      } else if (healths.any { it.state == 'Failed' } ) {
+        snapshot.failed++
+      } else {
+        snapshot.unknown++
+      }
+    }
+    return snapshot
+  }
+
+  private static boolean someAreDown(Map instance, Collection<String> interestingHealthProviderNames) {
+    List<Map> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
+
+    if (!interestingHealthProviderNames && !healths) {
+      // No health indications (and no specific providers to check), consider instance to be in an unknown state.
+      return false
+    }
+
+    if (HealthHelper.isDownConsideringPlatformHealth(healths)) {
+      return true
+    }
+
+    // no health indicators is indicative of being down
+    return !healths || healths.any { it.state == 'Down' || it.state == 'OutOfService' }
   }
 }

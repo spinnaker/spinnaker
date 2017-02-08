@@ -82,7 +82,6 @@ class HealthHelper {
     } as Map
   }
 
-
   static boolean someAreDownAndNoneAreUp(Map instance, Collection<String> interestingHealthProviderNames) {
 
     List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
@@ -110,29 +109,6 @@ class HealthHelper {
 
     boolean noneAreDown = !healths.any { Map health -> health.state == 'Down' }
     return someAreUp && noneAreDown
-  }
-
-  static HealthCountSnapshot getHealthCountSnapshot(List<Map> instances, Collection<String> interestingHealthProviderNames) {
-    HealthCountSnapshot snapshot = new HealthCountSnapshot()
-    instances.each { instance ->
-      List<Map> healths = filterHealths(instance, interestingHealthProviderNames)
-      if (areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, healths.any { Map health -> health.state == 'Up' } )) {
-        snapshot.up++
-      } else if (isDownConsideringPlatformHealth(healths) || healths.every { it.state == 'Down' } ) {
-        snapshot.down++
-      } else if (healths.any { it.state == 'OutOfService' } ) {
-        snapshot.outOfService++
-      } else if (healths.any { it.state == 'Starting' } ) {
-        snapshot.starting++
-      } else if (healths.every { it.state == 'Succeeded' } ) {
-        snapshot.succeeded++
-      } else if (healths.any { it.state == 'Failed' } ) {
-        snapshot.failed++
-      } else {
-        snapshot.unknown++
-      }
-    }
-    return snapshot
   }
 
   static class HealthCountSnapshot {
