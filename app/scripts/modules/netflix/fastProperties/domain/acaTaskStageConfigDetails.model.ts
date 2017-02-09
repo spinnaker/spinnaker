@@ -7,7 +7,7 @@ export class AcaTaskStageConfigDetails {
 
   notificationHours: string = '1';
   useLookback = false;
-  lookbackMins =  0;
+  lookbackMins = 0;
   configName: string = '';
   beginCanaryAnalysisAfterMins: string = '0';
   canaryAnalysisIntervalMins: string = '15';

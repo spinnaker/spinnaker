@@ -4,7 +4,7 @@ import './loadBalancingPolicySelector.component.less';
 
 class GceLoadBalancingPolicySelectorController implements ng.IComponentController {
 
-  public maxPort =  65535;
+  public maxPort = 65535;
   public command: any;
   [key: string]: any;
 

@@ -19,8 +19,8 @@ export interface IMigrationStrategyType {}
 
 export class RollingPushStrategy implements IMigrationStrategyType {
   static get type(): MigrationStrategyType { return 'rollingPush'; }
-  concurrentRelaunches =  1;
-  waitTime =  0;
+  concurrentRelaunches = 1;
+  waitTime = 0;
 }
 
 export class PipelineStrategy implements IMigrationStrategyType {

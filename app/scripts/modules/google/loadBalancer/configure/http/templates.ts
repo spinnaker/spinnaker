@@ -21,11 +21,11 @@ export class BackendServiceTemplate {
 
 export class HealthCheckTemplate {
   requestPath: string = '/';
-  port =  80;
-  checkIntervalSec =  10;
-  timeoutSec =  5;
-  healthyThreshold =  10;
-  unhealthyThreshold =  2;
+  port = 80;
+  checkIntervalSec = 10;
+  timeoutSec = 5;
+  healthyThreshold = 10;
+  unhealthyThreshold = 2;
 }
 
 export class HostRuleTemplate {

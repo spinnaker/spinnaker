@@ -84,7 +84,7 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
   public atlasEnabled = false;
 
   // Used to determine how tall to make the execution window bars - it's just the max of the SPS data
-  private maxCount =  0;
+  private maxCount = 0;
 
   static get $inject() { return ['$http', '$filter', 'settings']; }
 
