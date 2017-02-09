@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.googlecommon.deploy
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import groovy.util.logging.Slf4j
 
@@ -24,6 +25,13 @@ import java.util.concurrent.TimeUnit
 
 @Slf4j
 abstract class GoogleCommonSafeRetry {
+  public static class SafeRetryState {
+    Object finalResult
+    Exception lastSeenException
+    int tries = 1
+    boolean success = false
+  }
+
   /**
    * Retry an operation if it fails. Treat any error codes in successfulErrorCodes as success.
    *
@@ -38,50 +46,92 @@ abstract class GoogleCommonSafeRetry {
    * @return Object returned from the operation.
    */
   public Object doRetry(Closure operation,
-                        String action,
                         String resource,
                         Task task,
-                        String phase,
                         List<Integer> retryCodes,
                         List<Integer> successfulErrorCodes,
                         Long maxWaitInterval,
                         Long retryIntervalBase,
                         Long jitterMultiplier,
-                        Long maxRetries) {
+                        Long maxRetries,
+                        Map tags,
+                        Registry registry) {
+    long startTime = registry.clock().monotonicTime()
+    SafeRetryState state = performOperation(
+        operation, tags.action, resource, task, tags.phase,
+        retryCodes, successfulErrorCodes,
+        maxWaitInterval, retryIntervalBase, jitterMultiplier, maxRetries)
+
+    def all_tags = [:]
+    all_tags.putAll(tags)
+    all_tags.success = state.success ? "true" : "false"
+    registry.timer(registry.createId("google.safeRetry", all_tags))
+        .record(registry.clock().monotonicTime() - startTime, TimeUnit.NANOSECONDS)
+    
+    return determineFinalResult(state, tags.action, resource)
+  }
+
+
+  protected SafeRetryState performOperation(Closure operation,
+                                            String action,
+                                            String resource,
+                                            Task task,
+                                            String phase,
+                                            List<Integer> retryCodes,
+                                            List<Integer> successfulErrorCodes,
+                                            Long maxWaitInterval,
+                                            Long retryIntervalBase,
+                                            Long jitterMultiplier,
+                                            Long maxRetries) {
+    SafeRetryState state = new SafeRetryState()
     try {
       task?.updateStatus phase, "Attempting $action of $resource..."
-      return operation()
+      state.finalResult = operation()
+      state.success = true
+      return state
     } catch (GoogleJsonResponseException | SocketTimeoutException | SocketException _) {
       log.warn "Initial $action of $resource failed, retrying..."
 
-      int tries = 1
-      Exception lastSeenException = null
-      while (tries < maxRetries) {
+      while (state.tries < maxRetries) {
         try {
-          tries++
+          def tries = ++state.tries
           // Sleep with exponential backoff based on the number of retries. Add retry jitter with Math.random() to
           // prevent clients syncing up and bursting at regular intervals. Don't wait longer than a minute.
           Long thisIntervalWait = TimeUnit.SECONDS.toMillis(Math.pow(retryIntervalBase, tries) as Integer)
           sleep(Math.min(thisIntervalWait, maxWaitInterval) + Math.round(Math.random() * jitterMultiplier))
           log.warn "$action $resource attempt #$tries..."
-          return operation()
+          state.finalResult = operation()
+          state.success = true
+          return state
         } catch (GoogleJsonResponseException jsonException) {
           if (jsonException.statusCode in successfulErrorCodes) {
             log.warn "Retry $action of $resource encountered ${jsonException.statusCode}, treating as success..."
-            return null
+            state.success = true
+            return state
           } else if (jsonException.statusCode in retryCodes) {
             log.warn "Retry $action of $resource encountered ${jsonException.statusCode} with error message: ${jsonException.message}. Trying again..."
           } else {
             throw jsonException
           }
-          lastSeenException = jsonException
+          state.lastSeenException = jsonException
         } catch (SocketTimeoutException toEx) {
           log.warn "Retry $action timed out again, trying again..."
-          lastSeenException = toEx
+          state.lastSeenException = toEx
         }
       }
+    }
+    return state
+  }
 
-      if (lastSeenException && lastSeenException instanceof GoogleJsonResponseException) {
+  protected Object determineFinalResult(SafeRetryState state,
+                                        String action,
+                                        String resource) {
+    if (state.success) {
+      return state.finalResult
+    }
+    Exception lastSeenException = state.lastSeenException
+    int tries = state.tries
+    if (lastSeenException instanceof GoogleJsonResponseException) {
         def lastSeenError = lastSeenException?.getDetails()?.getErrors()[0] ?: null
         if (lastSeenError) {
           if (lastSeenError.getReason() == 'resourceInUseByAnotherResource') {
@@ -100,13 +150,12 @@ abstract class GoogleCommonSafeRetry {
           throw providerOperationException("Failed to $action $resource after #$tries."
             + " Last seen exception has status code ${lastSeenException.getStatusCode()} with message ${lastSeenException.getMessage()}.")
         }
-      } else if (lastSeenException && lastSeenException instanceof SocketTimeoutException) {
+      } else if (lastSeenException instanceof SocketTimeoutException) {
         throw providerOperationException("Failed to $action $resource after #$tries."
           + " Last operation timed out.")
-      } else {
-        throw new IllegalStateException("Caught exception is neither a JsonResponseException nor a OperationTimedOutException."
-          + " Caught exception: ${lastSeenException}")
-      }
+    } else {
+      throw new IllegalStateException("Caught exception is neither a JsonResponseException nor a OperationTimedOutException."
+        + " Caught exception: ${lastSeenException}")
     }
   }
 

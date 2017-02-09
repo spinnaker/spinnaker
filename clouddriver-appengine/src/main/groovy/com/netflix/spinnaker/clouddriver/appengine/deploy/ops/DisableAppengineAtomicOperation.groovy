@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 import java.math.RoundingMode
 
-class DisableAppengineAtomicOperation implements AtomicOperation<Void> {
+class DisableAppengineAtomicOperation extends AppengineAtomicOperation<Void> {
   private static final String BASE_PHASE = "DISABLE_SERVER_GROUP";
 
   private static Task getTask() {
@@ -71,12 +71,12 @@ class DisableAppengineAtomicOperation implements AtomicOperation<Void> {
 
     safeRetry.doRetry(
       { buildNewLoadBalancerAndCallApi(credentials.project, loadBalancerName, serverGroupName, priorOutputs) },
-      "disable",
       "version",
       task,
-      BASE_PHASE,
       [409],
-      []
+      [],
+      [action: "Disable", phase: BASE_PHASE],
+      registry
     )
 
     return null

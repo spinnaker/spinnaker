@@ -90,7 +90,7 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
 
     // If specified, replace the instance local names with full urls.
     if (description.instances) {
-      description.instances = GCEUtil.queryInstanceUrls(project, region, description.instances, compute, task, BASE_PHASE)
+      description.instances = GCEUtil.queryInstanceUrls(project, region, description.instances, compute, task, BASE_PHASE, this)
     }
 
     ForwardingRule existingForwardingRule
@@ -108,7 +108,7 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
 
     // Check if there already exists a forwarding rule with the requested name.
     existingForwardingRule =
-      GCEUtil.queryRegionalForwardingRule(project, description.loadBalancerName, compute, task, BASE_PHASE)
+      GCEUtil.queryRegionalForwardingRule(project, description.loadBalancerName, compute, task, BASE_PHASE, this)
 
     if (existingForwardingRule) {
       if (description.region != GCEUtil.getLocalName(existingForwardingRule.region)) {
@@ -124,7 +124,7 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
            || description.portRange != existingForwardingRule.portRange)
 
       existingTargetPool = GCEUtil.queryTargetPool(
-        project, region, GCEUtil.getLocalName(existingForwardingRule.target), compute, task, BASE_PHASE)
+        project, region, GCEUtil.getLocalName(existingForwardingRule.target), compute, task, BASE_PHASE, this)
 
       if (existingTargetPool) {
         // Existing set of instances is only updated if the instances property is specified on description. We don't
@@ -137,7 +137,7 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
 
         if (existingTargetPool.healthChecks) {
           existingHttpHealthCheck = GCEUtil.queryHttpHealthCheck(
-            project, GCEUtil.getLocalName(existingTargetPool.healthChecks[0]), compute, task, BASE_PHASE)
+            project, GCEUtil.getLocalName(existingTargetPool.healthChecks[0]), compute, task, BASE_PHASE, this)
 
           if (description.healthCheck) {
             // If any of these properties are different, we'll need to update the http health check.
@@ -336,7 +336,7 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
         compute.targetPools().removeHealthCheck(project, region, targetPoolName, targetPoolsRemoveHealthCheckRequest),
         "compute.targetPools.removeHealthCheck",
         TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
-                   
+
     targetPoolResourceOperation
   }
 

@@ -82,12 +82,12 @@ class DeleteGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void
             compute.forwardingRules().get(project, region, forwardingRuleName),
             "compute.forwardingRules.get",
             TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      'Get',
       "Regional forwarding rule $forwardingRuleName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      []
+      [],
+      [action: "get", phase: BASE_PHASE, operation: "compute.forwardingRules.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+      registry
     ) as ForwardingRule
     if (forwardingRule == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
@@ -102,12 +102,12 @@ class DeleteGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void
             compute.targetPools().get(project, region, targetPoolName),
             "compute.targetPools.get",
             TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      'Get',
       "Target pool $targetPoolName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      []
+      [],
+      [action: "get", phase: BASE_PHASE, operation: "compute.targetPools.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+      registry
     ) as TargetPool
     if (targetPool == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Target pool $targetPoolName not found in $region for $project",
@@ -130,12 +130,12 @@ class DeleteGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void
             compute.forwardingRules().delete(project, region, forwardingRuleName),
             "compute.forwardingRules.delete",
             TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      'Delete',
       "Regional forwarding rule $forwardingRuleName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      [404]
+      [404],
+      [action: "delete", phase: BASE_PHASE, operation: "compute.forwardingRules.delete", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+      registry
     ) as Operation
 
     googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOperation.getName(),
@@ -147,12 +147,12 @@ class DeleteGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void
             compute.targetPools().delete(project, region, targetPoolName),
             "compute.targetPools.delete",
             TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      'Delete',
       "Target pool $targetPoolName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      [404]
+      [404],
+      [action: "delete", phase: BASE_PHASE, operation: "compute.targetPools.delete", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+      registry
     ) as Operation
 
     googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
@@ -173,7 +173,8 @@ class DeleteGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void
           project,
           task,
           BASE_PHASE,
-          safeRetry
+          safeRetry,
+          this
         )
         if (deleteHealthCheckOp) {
           deleteHealthCheckAsyncOperations.add(new HealthCheckAsyncDeleteOperation(

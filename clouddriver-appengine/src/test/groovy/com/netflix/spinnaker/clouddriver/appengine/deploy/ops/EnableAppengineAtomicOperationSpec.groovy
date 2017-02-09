@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 import com.google.api.services.appengine.v1.Appengine
 import com.google.api.services.appengine.v1.model.Service
 import com.google.api.services.appengine.v1.model.TrafficSplit
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.EnableDisableAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineLoadBalancer
@@ -91,6 +92,7 @@ class EnableAppengineAtomicOperationSpec extends Specification {
       @Subject def operation = new EnableAppengineAtomicOperation(description)
       operation.appengineClusterProvider = clusterProviderMock
       operation.appengineLoadBalancerProvider = loadBalancerProviderMock
+      operation.registry = new DefaultRegistry()
       operation.safeRetry = safeRetry
 
     when:

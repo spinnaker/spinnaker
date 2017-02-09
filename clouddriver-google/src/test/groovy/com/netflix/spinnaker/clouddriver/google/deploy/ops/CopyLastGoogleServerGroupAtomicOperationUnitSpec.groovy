@@ -21,6 +21,7 @@ import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Scheduling
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
@@ -87,6 +88,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private def instanceProperties
   private def instanceTemplate
   private def serverGroup
+  private def registry = new DefaultRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -183,6 +185,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def newDescription = description.clone()
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
       @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
 
@@ -236,6 +239,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
       @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
       operation.googleClusterProvider = googleClusterProviderMock
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
 

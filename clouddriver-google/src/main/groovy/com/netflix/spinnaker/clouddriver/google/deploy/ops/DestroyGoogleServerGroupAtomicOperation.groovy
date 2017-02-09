@@ -113,7 +113,8 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
   }
 
   void destroy(Closure operation, String resource) {
-    safeRetry.doRetry(operation, "destroy", resource, task, BASE_PHASE, RETRY_ERROR_CODES, SUCCESSFUL_ERROR_CODES)
+    safeRetry.doRetry(operation, resource, task, RETRY_ERROR_CODES, SUCCESSFUL_ERROR_CODES,
+                      [action: "destroy", phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL], registry)
   }
 
   Closure destroyInstanceTemplate(Compute compute, String instanceTemplateName, String project) {
@@ -157,32 +158,32 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
     }
   }
 
-  static Closure destroyHttpLoadBalancerBackends(Compute compute,
-                                                 String project,
-                                                 GoogleServerGroup.View serverGroup,
-                                                 GoogleLoadBalancerProvider googleLoadBalancerProvider) {
+  Closure destroyHttpLoadBalancerBackends(Compute compute,
+                                          String project,
+                                          GoogleServerGroup.View serverGroup,
+                                          GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
-      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE)
+      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, this)
       null
     }
   }
 
-  static Closure destroyInternalLoadBalancerBackends(Compute compute,
-                                                     String project,
-                                                     GoogleServerGroup.View serverGroup,
-                                                     GoogleLoadBalancerProvider googleLoadBalancerProvider) {
+  Closure destroyInternalLoadBalancerBackends(Compute compute,
+                                              String project,
+                                              GoogleServerGroup.View serverGroup,
+                                              GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
-      GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE)
+      GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, this)
       null
     }
   }
 
-  static Closure destroySslLoadBalancerBackends(Compute compute,
-                                                String project,
-                                                GoogleServerGroup.View serverGroup,
-                                                GoogleLoadBalancerProvider googleLoadBalancerProvider) {
+  Closure destroySslLoadBalancerBackends(Compute compute,
+                                         String project,
+                                         GoogleServerGroup.View serverGroup,
+                                         GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
-      GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE)
+      GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, this)
       null
     }
   }

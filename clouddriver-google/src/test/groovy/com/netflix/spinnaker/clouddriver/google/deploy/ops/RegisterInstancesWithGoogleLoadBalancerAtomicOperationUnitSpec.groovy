@@ -54,7 +54,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperationUnitSpec extends Spe
   private static final INSTANCE_IDS = [INSTANCE_ID1, INSTANCE_ID2]
   private static final INSTANCE_URLS = [INSTANCE_URL1, INSTANCE_URL2]
 
-  def registry = new DefaultRegistry()
+  @Shared def registry = new DefaultRegistry()
   @Shared SafeRetry safeRetry
 
   def setupSpec() {

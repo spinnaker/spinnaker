@@ -80,12 +80,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
             compute.forwardingRules().get(project, region, forwardingRuleName),
             "compute.forwardingRules.get",
             TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      'Get',
       "Regional forwarding rule $forwardingRuleName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      []
+      [],
+      [action: "get", phase: BASE_PHASE, operation: "compute.forwardingRules.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+      registry
     ) as ForwardingRule
     if (forwardingRule == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
@@ -101,12 +101,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
             compute.regionBackendServices().get(project, region, backendServiceName),
             "compute.regionBackendServices.get",
             TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      'Get',
       "Region backend service $backendServiceName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      []
+      [],
+      [action: "get", phase: "BASE_PHASE", operation: "compute.regionBackendServices.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+      registry
     ) as BackendService
     if (backendService == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Backend service $backendServiceName not found in $region for $project",
@@ -117,22 +117,26 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
     def healthCheckType = Utils.getHealthCheckType(healthCheckUrl)
     def healthCheckGet = null
+    def operationName = null
     switch (healthCheckType) {
       case "httpHealthChecks":
+        operationName = "compute.httpHealthChecks.get"
         healthCheckGet = {
             timeExecute(
                 compute.httpHealthChecks().get(project, healthCheckName),
-                "compute.httpHealthChecks",
+                "compute.httpHealthChecks.get",
                 TAG_SCOPE, SCOPE_GLOBAL) }
         break
       case "httpsHealthChecks":
+        operationName = "copmute.httpsHealthChecks.get"
         healthCheckGet = {
             timeExecute(
                 compute.httpsHealthChecks().get(project, healthCheckName),
-                "compute.httpsHealthChecks",
+                "compute.httpsHealthChecks.get",
                 TAG_SCOPE, SCOPE_GLOBAL) }
         break
       case "healthChecks":
+        operationName = "compute.healthChecks.get"
         healthCheckGet = {
             timeExecute(
                 compute.healthChecks().get(project, healthCheckName),
@@ -147,12 +151,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     // GenericJson is the only base class the health checks share...
     def healthCheck = safeRetry.doRetry(
       healthCheckGet,
-      'Get',
       "Health check $healthCheckName",
       task,
-      BASE_PHASE,
       [400, 403, 412],
-      []
+      [],
+      [action: "get", phase: BASE_PHASE, operation: operationName, (TAG_SCOPE): SCOPE_GLOBAL],
+      registry
     )
     if (healthCheck == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Health check $healthCheckName not found for $project",
@@ -168,12 +172,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
               compute.forwardingRules().delete(project, region, forwardingRuleName),
               "compute.forwardingRules.delete",
               TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      'Delete',
       "Regional forwarding rule $forwardingRuleName",
       task,
-      BASE_PHASE,
       [400, 412],
-      [404]
+      [404],
+      [action: "delete", phase: BASE_PHASE, operation: "compute.forwardingRules.delete", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+      registry
     ) as Operation
 
     if (deleteForwardingRuleOp) {
@@ -190,7 +194,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
       project,
       task,
       BASE_PHASE,
-      safeRetry
+      safeRetry,
+      this
     )
     if (deleteBackendServiceOp) {
       googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteBackendServiceOp.getName(),
@@ -230,7 +235,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
       project,
       task,
       BASE_PHASE,
-      safeRetry
+      safeRetry,
+      this
     )
     if (deleteHealthCheckOp) {
       googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),

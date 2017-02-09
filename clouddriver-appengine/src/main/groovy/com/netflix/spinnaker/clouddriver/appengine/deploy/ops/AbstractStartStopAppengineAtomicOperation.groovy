@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 
-abstract class AbstractStartStopAppengineAtomicOperation implements AtomicOperation<Void> {
+abstract class AbstractStartStopAppengineAtomicOperation extends AppengineAtomicOperation<Void> {
   @Autowired
   AppengineClusterProvider appengineClusterProvider
 
@@ -73,12 +73,12 @@ abstract class AbstractStartStopAppengineAtomicOperation implements AtomicOperat
 
     safeRetry.doRetry(
       { callApi(project, loadBalancerName, serverGroupName, version) },
-      verb,
       "version",
       task,
-      basePhase,
       [409],
-      []
+      [],
+      [action: verb, phase: basePhase],
+      registry
     )
 
     task.updateStatus basePhase, "Done ${presentParticipling.toLowerCase()} $serverGroupName."

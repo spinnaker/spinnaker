@@ -474,7 +474,6 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def targetHttpProxiesDeleteOp = new Operation(
         name: TARGET_HTTP_PROXY_DELETE_OP_NAME,
         status: PENDING)
-      GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, HTTP_LOAD_BALANCER_NAME, safeRetry) >> targetHttpProxiesDeleteOp
 
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
@@ -482,8 +481,9 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           loadBalancerName: HTTP_LOAD_BALANCER_NAME,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
-      @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
-      operation.googleOperationPoller =
+     @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+     GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, HTTP_LOAD_BALANCER_NAME, safeRetry, operation) >> targetHttpProxiesDeleteOp
+     operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
           threadSleeper: threadSleeperMock,

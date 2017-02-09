@@ -75,8 +75,8 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
     def zone = serverGroup.zone
     def managedInstanceGroup =
       isRegional
-      ? GCEUtil.queryRegionalManagedInstanceGroup(project, region, serverGroupName, credentials, task, phaseName, safeRetry)
-      : GCEUtil.queryZonalManagedInstanceGroup(project, zone, serverGroupName, credentials, task, phaseName, safeRetry)
+      ? GCEUtil.queryRegionalManagedInstanceGroup(project, region, serverGroupName, credentials, task, phaseName, safeRetry, this)
+      : GCEUtil.queryZonalManagedInstanceGroup(project, zone, serverGroupName, credentials, task, phaseName, safeRetry, this)
     def currentTargetPoolUrls = managedInstanceGroup.getTargetPools()
     def newTargetPoolUrls = []
 
@@ -113,36 +113,36 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
       safeRetry.doRetry(
         destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
-        "destroy",
         "Http load balancer backends",
         task,
-        phaseName,
         RETRY_ERROR_CODES,
-        SUCCESSFUL_ERROR_CODES
+        SUCCESSFUL_ERROR_CODES,
+        [operation: "destroyHttpLoadBalancerBackends", action: "destroy", phase: phaseName, (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
 
       task.updateStatus phaseName, "Deregistering server group from internal load balancers..."
 
       safeRetry.doRetry(
         destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
-        "destroy",
         "Internal load balancer backends",
         task,
-        phaseName,
         RETRY_ERROR_CODES,
-        SUCCESSFUL_ERROR_CODES
+        SUCCESSFUL_ERROR_CODES,
+        [operation: "destroyInternalLoadBalancerBackends", action: "destroy", phase: phaseName, (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
 
       task.updateStatus phaseName, "Deregistering server group from ssl load balancers..."
 
       safeRetry.doRetry(
         destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
-        "destroy",
         "Ssl load balancer backends",
         task,
-        phaseName,
         RETRY_ERROR_CODES,
-        SUCCESSFUL_ERROR_CODES
+        SUCCESSFUL_ERROR_CODES,
+        [operation: "destroySslLoadBalancerBackends", action: "destroy", phase: phaseName, (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
 
       task.updateStatus phaseName, "Deregistering server group from network load balancers..."
@@ -154,12 +154,12 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
         def targetPool = safeRetry.doRetry(
           getTargetPool(compute, project, region, targetPoolLocalName),
-          "get",
           "target pool",
           task,
-          phaseName,
           RETRY_ERROR_CODES,
-          []
+          [],
+          [operation: "getTargetPool", action: "destroy", phase: phaseName, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+          registry
         ) as TargetPool
 
         def instanceUrls = targetPool.getInstances()
@@ -172,12 +172,12 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
           safeRetry.doRetry(
             removeInstancesFromTargetPool(compute, project, region, targetPoolLocalName, targetPoolsRemoveInstanceRequest),
-            "deregister",
             "instances",
             task,
-            phaseName,
             RETRY_ERROR_CODES,
-            []
+            [],
+            [operation: "removeInstancesFromTargetPool", action: "deregister", phase: phaseName, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+            registry
           )
         }
       }
@@ -186,36 +186,36 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
       safeRetry.doRetry(
         addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
-        "add",
         "Http load balancer backends",
         task,
-        phaseName,
         RETRY_ERROR_CODES,
-        []
+        [],
+        [operation: "addHttpLoadBalancerBackends", action: "add", phase: phaseName, (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
 
       task.updateStatus phaseName, "Registering server group with Internal load balancers..."
 
       safeRetry.doRetry(
         addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
-        "add",
         "Internal load balancer backends",
         task,
-        phaseName,
         RETRY_ERROR_CODES,
-        []
+        [],
+        [operation: "addInternalLoadbalancerBackends", action: "add", phase: phaseName, (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
 
       task.updateStatus phaseName, "Registering server group with Ssl load balancers..."
 
       safeRetry.doRetry(
         addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName),
-        "add",
         "Ssl load balancer backends",
         task,
-        phaseName,
         RETRY_ERROR_CODES,
-        []
+        [],
+        [operation: "addSslLoadbalancerBackends", action: "add", phase: phaseName, (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       )
 
       task.updateStatus phaseName, "Registering instances with network load balancers..."
@@ -224,21 +224,21 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
         isRegional
         ? safeRetry.doRetry(
             listInstancesInRegionalGroup(compute, project, region, serverGroupName, new RegionInstanceGroupsListInstancesRequest()),
-            "list",
             "instances in regional group",
             task,
-            phaseName,
             RETRY_ERROR_CODES,
-            []
+            [],
+            [operation: "listInstanesInRegionalGroup", action: "list", phase: phaseName, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+            registry
           )
         : safeRetry.doRetry(
             listInstancesInZonalGroup(compute, project, zone, serverGroupName, new InstanceGroupsListInstancesRequest()),
-            "list",
             "instances in zonal group",
             task,
-            phaseName,
             RETRY_ERROR_CODES,
-            []
+            [],
+            [operation: "listInstanesInZonalGroup", action: "list", phase: phaseName, (TAG_SCOPE): SCOPE_ZONAL, (TAG_ZONE): zone],
+            registry
           )
 
       def instanceReferencesToAdd = groupInstances.collect { groupInstance ->
@@ -248,12 +248,12 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
       def instanceTemplateUrl = managedInstanceGroup.getInstanceTemplate()
       def instanceTemplate = safeRetry.doRetry(
         getInstanceTemplate(compute, project, instanceTemplateUrl),
-        "get",
         "instance template",
         task,
-        phaseName,
         RETRY_ERROR_CODES,
-        []
+        [],
+        [operation: "getInstanceTemplate", action: "get", phase: phaseName, (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       ) as InstanceTemplate
       def metadataItems = instanceTemplate?.properties?.metadata?.items
       def newForwardingRuleNames = []
@@ -264,7 +264,7 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
         }
       }
 
-      def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, newForwardingRuleNames, compute, task, phaseName, safeRetry)
+      def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, newForwardingRuleNames, compute, task, phaseName, safeRetry, this)
 
       newTargetPoolUrls = forwardingRules.collect { forwardingRule ->
         forwardingRule.target
@@ -280,12 +280,12 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
           safeRetry.doRetry(
             addInstancesToTargetPool(compute, project, region, targetPoolLocalName, targetPoolsAddInstanceRequest),
-            "register",
             "instances",
             task,
-            phaseName,
             RETRY_ERROR_CODES,
-            []
+            [],
+            [operation: "addInstancesToTargetPool", action: "register", phase: phaseName, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+            registry
           )
         }
       }
@@ -333,42 +333,42 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
 
   Closure destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      GCEUtil.destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
       null
     }
   }
 
   Closure destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      GCEUtil.destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
       null
     }
   }
 
   Closure destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
       null
     }
   }
 
   Closure addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      GCEUtil.addHttpLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
       null
     }
   }
 
   Closure addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      GCEUtil.addSslLoadBalancerBackends(compute, objectMapper, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
       null
     }
   }
 
   Closure addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName) {
     return {
-      GCEUtil.addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName)
+      GCEUtil.addInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, phaseName, this)
       null
     }
   }

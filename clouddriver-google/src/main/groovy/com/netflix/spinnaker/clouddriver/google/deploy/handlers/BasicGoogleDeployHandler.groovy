@@ -125,7 +125,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def location = isRegional ? region : zone
     def instanceMetadata = description.instanceMetadata
 
-    def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials, safeRetry)
+    def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials, safeRetry, this)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
     task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster $clusterName in $location..."
@@ -150,7 +150,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                          task,
                                          BASE_PHASE,
                                          clouddriverUserAgentApplicationName,
-                                         googleConfigurationProperties.baseImageProjects)
+                                         googleConfigurationProperties.baseImageProjects,
+                                         this)
 
     def network = GCEUtil.queryNetwork(accountName, description.network ?: DEFAULT_NETWORK_NAME, task, BASE_PHASE, googleNetworkProvider)
 
@@ -211,7 +212,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       backendServices.addAll(sslLoadBalancers.collect { it.backendService.name })
 
       // Set the load balancer name metadata.
-      def globalLbNames = sslLoadBalancers.collect { it.name } + GCEUtil.resolveHttpLoadBalancerNamesMetadata(backendServices, compute, project)
+      def globalLbNames = sslLoadBalancers.collect { it.name } + GCEUtil.resolveHttpLoadBalancerNamesMetadata(backendServices, compute, project, this)
       instanceMetadata[GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES] = globalLbNames.join(",")
 
       String sourcePolicyJson = instanceMetadata[GoogleServerGroup.View.LOAD_BALANCING_POLICY]
@@ -344,7 +345,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                    compute,
                                                    cacheView,
                                                    task,
-                                                   BASE_PHASE).selfLink,
+                                                   BASE_PHASE,
+                                                   this).selfLink,
              initialDelaySec: description.autoHealingPolicy.initialDelaySec)]
       : null
 
@@ -453,12 +455,12 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       backendServicesToUpdate.each { BackendService backendService ->
         safeRetry.doRetry(
           updateBackendServices(compute, project, backendService.name, backendService),
-          "update",
           "Load balancer backend service",
           task,
-          BASE_PHASE,
           [400, 412],
-          []
+          [],
+          [action: "update", phase: BASE_PHASE, operation: "updateBackendServices", (TAG_SCOPE): SCOPE_GLOBAL],
+          registry
         )
         task.updateStatus BASE_PHASE, "Done associating server group $serverGroupName with backend service ${backendService.name}."
       }
@@ -468,12 +470,12 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       regionBackendServicesToUpdate.each { BackendService backendService ->
         safeRetry.doRetry(
           updateRegionBackendServices(compute, project, region, backendService.name, backendService),
-          "update",
           "Internal load balancer backend service",
           task,
-          BASE_PHASE,
           [400, 412],
-          []
+          [],
+          [action: "update", phase: BASE_PHASE, operation: "updateRegionBackendServices", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+          registry
         )
         task.updateStatus BASE_PHASE, "Done associating server group $serverGroupName with backend service ${backendService.name}."
       }

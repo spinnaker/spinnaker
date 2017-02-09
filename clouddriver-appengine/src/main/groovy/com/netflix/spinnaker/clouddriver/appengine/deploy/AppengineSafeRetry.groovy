@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineOperationException
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.googlecommon.deploy.GoogleCommonSafeRetry
@@ -37,24 +38,24 @@ class AppengineSafeRetry extends GoogleCommonSafeRetry {
   Long maxRetries
 
   public Object doRetry(Closure operation,
-                        String action,
                         String resource,
                         Task task,
-                        String phase,
                         List<Integer> retryCodes,
-                        List<Integer> successfulErrorCodes) {
+                        List<Integer> successfulErrorCodes,
+                        Map tags,
+                        Registry registry) {
     return super.doRetry(
       operation,
-      action,
       resource,
       task,
-      phase,
       retryCodes,
       successfulErrorCodes,
       maxWaitInterval,
       retryIntervalBase,
       jitterMultiplier,
-      maxRetries
+      maxRetries,
+      tags,
+      registry
     )
   }
 

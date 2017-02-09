@@ -31,7 +31,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
-class UpsertAppengineLoadBalancerAtomicOperation implements AtomicOperation<Map> {
+class UpsertAppengineLoadBalancerAtomicOperation extends AppengineAtomicOperation<Map> {
   private static final String BASE_PHASE = "UPSERT_LOAD_BALANCER"
 
   private static Task getTask() {
@@ -83,12 +83,12 @@ class UpsertAppengineLoadBalancerAtomicOperation implements AtomicOperation<Map>
     if (retryApiCall) {
       safeRetry.doRetry(
         callApiClosure,
-        "upsert",
         "service",
         task,
-        BASE_PHASE,
         [409],
-        []
+        [],
+        [action: "Upsert", phase: BASE_PHASE],
+        registry
       )
     } else {
       callApiClosure()

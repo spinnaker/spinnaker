@@ -59,31 +59,28 @@ class GoogleOperationPoller {
   Operation waitForZonalOperation(Compute compute, String projectName, String zone, String operationName,
                                   Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     def tags = [basePhase: basePhase, scope: "zonal", zone:zone]
-    registry.counter(registry.createId(STARTED_METRIC_NAME, tags)).increment()
-    Id metricId = registry.createId(METRIC_NAME, tags)
     return handleFinishedAsyncOperation(
-      waitForOperation({compute.zoneOperations().get(projectName, zone, operationName).execute()},
-        metricId, getTimeout(timeoutSeconds)), task, resourceString, basePhase)
+        waitForOperation({compute.zoneOperations().get(projectName, zone, operationName).execute()},
+                         tags, basePhase, getTimeout(timeoutSeconds)),
+        task, resourceString, basePhase)
   }
 
   Operation waitForRegionalOperation(Compute compute, String projectName, String region, String operationName,
                                      Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     def tags = [basePhase: basePhase, scope: "regional", region: region]
-    registry.counter(registry.createId(STARTED_METRIC_NAME, tags)).increment()
-    Id metricId = registry.createId(METRIC_NAME, tags)
     return handleFinishedAsyncOperation(
         waitForOperation({compute.regionOperations().get(projectName, region, operationName).execute()},
-                         metricId, getTimeout(timeoutSeconds)), task, resourceString, basePhase)
+                         tags, basePhase, getTimeout(timeoutSeconds)),
+        task, resourceString, basePhase)
   }
 
   Operation waitForGlobalOperation(Compute compute, String projectName, String operationName,
                                    Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     def tags = [basePhase: basePhase, scope: "global"]
-    registry.counter(registry.createId(STARTED_METRIC_NAME, tags)).increment()
-    Id metricId = registry.createId(METRIC_NAME, tags)
     return handleFinishedAsyncOperation(
         waitForOperation({compute.globalOperations().get(projectName, operationName).execute()},
-                         metricId, getTimeout(timeoutSeconds)), task, resourceString, basePhase)
+                         tags, basePhase, getTimeout(timeoutSeconds)),
+        task, resourceString, basePhase)
   }
 
   private long getTimeout(Long timeoutSeconds) {
@@ -114,7 +111,7 @@ class GoogleOperationPoller {
     The timeoutSeconds parameter is really treated as a lower-bound. We will poll until the operation reaches a DONE
     state or until <em>at least</em> that many seconds have passed.
    */
-  private Operation waitForOperation(Closure<Operation> getOperation, Id metricId, long timeoutSeconds) {
+  private Operation waitForOperation(Closure<Operation> getOperation, Map timerTags, String basePhase, long timeoutSeconds) {
     Clock clock = registry.clock()
     long startNs = clock.monotonicTime();
     int totalTimePollingSeconds = 0
@@ -124,12 +121,14 @@ class GoogleOperationPoller {
     int pollInterval = 1
     int pollIncrement = 0
 
+    registry.counter(registry.createId(STARTED_METRIC_NAME, timerTags)).increment()
+    Id metricId = registry.createId(METRIC_NAME, timerTags)
     while (!timeoutExceeded) {
       threadSleeper.sleep(pollInterval)
 
       totalTimePollingSeconds += pollInterval
 
-      Operation operation = safeRetry.doRetry(getOperation, "wait", "operation", null, null, [], []) as Operation
+      Operation operation = safeRetry.doRetry(getOperation, "operation", null, [], [], [action: "wait", phase: basePhase], registry) as Operation
 
       if (operation.getStatus() == "DONE") {
         registry.timer(metricId.withTag("status", "DONE")).record(clock.monotonicTime() - startNs, TimeUnit.NANOSECONDS);

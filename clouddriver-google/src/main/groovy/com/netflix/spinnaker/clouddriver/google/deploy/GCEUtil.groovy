@@ -24,14 +24,13 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
-import com.google.api.client.json.GenericJson
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.Compute.InstanceGroupManagers.AggregatedList
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
@@ -77,7 +76,8 @@ class GCEUtil {
                           Task task,
                           String phase,
                           String clouddriverUserAgentApplicationName,
-                          List<String> baseImageProjects) {
+                          List<String> baseImageProjects,
+                          GoogleExecutorTraits executor) {
     task.updateStatus phase, "Looking up image $imageName..."
 
     def imageProjects = [projectName] + credentials?.imageProjects + baseImageProjects - null
@@ -107,7 +107,7 @@ class GCEUtil {
       compute.images().list(imageProject).queue(imageListBatch, imageListCallback)
     }
 
-    imageListBatch.execute()
+    executor.timeExecuteBatch( imageListBatch, "findImage")
 
     if (sourceImage) {
       return sourceImage
@@ -153,13 +153,19 @@ class GCEUtil {
 
   // If a forwarding rule with the specified name is found in any region, it is returned.
   static ForwardingRule queryRegionalForwardingRule(
-    String projectName, String forwardingRuleName, Compute compute, Task task, String phase) {
+    String projectName, String forwardingRuleName, Compute compute, Task task, String phase, GoogleExecutorTraits executor) {
     task.updateStatus phase, "Checking for existing network load balancer (forwarding rule) $forwardingRuleName..."
 
     // Try to retrieve this forwarding rule in each region.
-    for (def region : compute.regions().list(projectName).execute().items) {
+    def all_regions = executor.timeExecute(compute.regions().list(projectName),
+                                           "compute.regions.list",
+                                           executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+    for (def region : all_regions.items) {
       try {
-        return compute.forwardingRules().get(projectName, region.name, forwardingRuleName).execute()
+        return executor.timeExecute(
+          compute.forwardingRules().get(projectName, region.name, forwardingRuleName),
+          "compute.forwardingRules.get",
+          executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region.name)
       } catch (GoogleJsonResponseException e) {
         // 404 is thrown if the forwarding rule does not exist in the given region. Any other exception needs to be propagated.
         if (e.getStatusCode() != 404) {
@@ -169,11 +175,14 @@ class GCEUtil {
     }
   }
 
-  static BackendService queryBackendService(Compute compute, String project, String serviceName, Task task, String phase) {
+  static BackendService queryBackendService(Compute compute, String project, String serviceName, Task task, String phase, GoogleExecutorTraits executor) {
     task.updateStatus phase, "Checking for existing backend service $serviceName..."
 
     try {
-      return compute.backendServices().get(project, serviceName).execute()
+      return executor.timeExecute(
+        compute.backendServices().get(project, serviceName),
+        "compute.backendServices.get",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
     } catch (GoogleJsonResponseException e) {
       if (e.getStatusCode() != 404) {
         throw e
@@ -183,22 +192,26 @@ class GCEUtil {
   }
 
   static TargetPool queryTargetPool(
-    String projectName, String region, String targetPoolName, Compute compute, Task task, String phase) {
+    String projectName, String region, String targetPoolName, Compute compute, Task task, String phase, GoogleExecutorTraits executor) {
     task.updateStatus phase, "Checking for existing network load balancer (target pool) $targetPoolName..."
 
-    return compute.targetPools().list(projectName, region).execute().items.find { existingTargetPool ->
-      existingTargetPool.name == targetPoolName
-    }
+    def all_pools = executor.timeExecute(
+      compute.targetPools().list(projectName, region),
+      "compute.targetPools.list",
+      executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+    return all_pools.items.find { existingTargetPool -> existingTargetPool.name == targetPoolName }
   }
 
   // TODO(duftler): Update this to query for the exact health check instead of searching all.
   static HttpHealthCheck queryHttpHealthCheck(
-    String projectName, String httpHealthCheckName, Compute compute, Task task, String phase) {
+    String projectName, String httpHealthCheckName, Compute compute, Task task, String phase, GoogleExecutorTraits executor) {
     task.updateStatus phase, "Checking for existing network load balancer (http health check) $httpHealthCheckName..."
 
-    return compute.httpHealthChecks().list(projectName).execute().items.find { existingHealthCheck ->
-      existingHealthCheck.name == httpHealthCheckName
-    }
+    def all_checks = executor.timeExecute(
+      compute.httpHealthChecks().list(projectName),
+      "compute.httpHealthChecks.list",
+      executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+    return all_checks.items.find { existingHealthCheck -> existingHealthCheck.name == httpHealthCheckName }
   }
 
   static def queryHealthCheck(String projectName,
@@ -207,7 +220,8 @@ class GCEUtil {
                               Compute compute,
                               Cache cacheView,
                               Task task,
-                              String phase) {
+                              String phase,
+                              GoogleExecutorTraits executor) {
     task.updateStatus phase, "Looking up http(s) health check $healthCheckName..."
 
     def httpHealthCheckIdentifiers = cacheView.filterIdentifiers(HTTP_HEALTH_CHECKS.ns, Keys.getHttpHealthCheckKey(account, healthCheckName))
@@ -218,7 +232,10 @@ class GCEUtil {
     } else {
       try {
         // TODO(duftler): Update this to use the cache instead of a live call once we are caching https health checks.
-        return compute.httpsHealthChecks().get(projectName, healthCheckName).execute()
+        return executor.timeExecute(
+          compute.httpsHealthChecks().get(projectName, healthCheckName),
+          "compute.httpsHealthChecks.get",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
       } catch (GoogleJsonResponseException | SocketTimeoutException | SocketException _) {
         updateStatusAndThrowNotFoundException("Http(s) health check $healthCheckName not found.", task, phase)
       }
@@ -231,17 +248,23 @@ class GCEUtil {
                                                            Compute compute,
                                                            Task task,
                                                            String phase,
-                                                           SafeRetry safeRetry) {
+                                                           SafeRetry safeRetry,
+                                                           GoogleExecutorTraits executor) {
     task.updateStatus phase, "Looking up regional load balancers $forwardingRuleNames..."
 
     def forwardingRules = safeRetry.doRetry(
-      { return compute.forwardingRules().list(projectName, region).execute().items },
-      "list",
+      { return executor.timeExecute(
+          compute.forwardingRules().list(projectName, region),
+          "compute.forwardingRules.list",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+        ).items
+      },
       "regional forwarding rules",
       task,
-      phase,
       RETRY_ERROR_CODES,
-      []
+      [],
+      [action: "list", phase: phase, operation: "compute.forwardingRuels.list", (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
+      executor.registry
     ) as List<ForwardingRule>
     def foundForwardingRules = forwardingRules.findAll {
       it.name in forwardingRuleNames
@@ -276,10 +299,15 @@ class GCEUtil {
                                         List<String> instanceLocalNames,
                                         Compute compute,
                                         Task task,
-                                        String phase) {
+                                        String phase,
+                                        GoogleExecutorTraits executor) {
     task.updateStatus phase, "Looking up instances $instanceLocalNames..."
 
-    Map<String, InstancesScopedList> zoneToInstancesMap = compute.instances().aggregatedList(projectName).execute().items
+    Map<String, InstancesScopedList> zoneToInstancesMap = executor.timeExecute(
+      compute.instances().aggregatedList(projectName),
+      "compute.instances.aggregatedList",
+      executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+    ).items
 
     // Build up a list of all instances in the specified region with a name specified in instanceLocalNames:
     //   1) Build a list of lists where each sublist represents the matching instances in one zone.
@@ -309,15 +337,20 @@ class GCEUtil {
                                                                 GoogleNamedAccountCredentials credentials,
                                                                 Task task,
                                                                 String phase,
-                                                                SafeRetry safeRetry) {
+                                                                SafeRetry safeRetry,
+                                                                GoogleExecutorTraits executor) {
     return safeRetry.doRetry(
-      { return credentials.compute.regionInstanceGroupManagers().get(projectName, region, serverGroupName).execute() },
-      "get",
+      { return timeExecute(
+            credentials.compute.regionInstanceGroupManagers().get(projectName, region, serverGroupName),
+            "compute.regionInstanceGroupManagers.get",
+            executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      },
       "regional managed instance group",
       task,
-      phase,
       RETRY_ERROR_CODES,
-      []
+      [],
+      [action: "get", phase: phase, operation: "compute.regionInstanceGroupManagers.get", (executor.TAG_SCOPE): executor.SCOPE_REGIONAL, (executor.TAG_REGION): region],
+      executor.registry
     ) as InstanceGroupManager
   }
 
@@ -327,15 +360,20 @@ class GCEUtil {
                                                              GoogleNamedAccountCredentials credentials,
                                                              Task task,
                                                              String phase,
-                                                             SafeRetry safeRetry) {
+                                                             SafeRetry safeRetry,
+                                                             GoogleExecutorTraits executor) {
     return safeRetry.doRetry(
-      { return credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName).execute() },
-      "get",
+      { return executor.timeExecute(
+            credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName),
+            "compute.instanceGroupManagers.get",
+            executor.TAG_SCOPE, executor.SCOPE_ZONAL, executor.TAG_ZONE, zone)
+      },
       "zonal managed instance group",
       task,
-      phase,
       RETRY_ERROR_CODES,
-      []
+      [],
+      [action: "get", phase: phase, operation: "compute.instanceGroupManagers.get", (executor.TAG_SCOPE): executor.SCOPE_ZONAL, (executor.TAG_ZONE): zone],
+      executor.registry
     ) as InstanceGroupManager
   }
 
@@ -344,15 +382,21 @@ class GCEUtil {
                                                                   GoogleNamedAccountCredentials credentials,
                                                                   Task task,
                                                                   String phase,
-                                                                  SafeRetry safeRetry) {
+                                                                  SafeRetry safeRetry,
+                                                                  GoogleExecutorTraits executor) {
     Map<String, InstanceGroupManagersScopedList> aggregatedList = safeRetry.doRetry(
-      { return credentials.compute.instanceGroupManagers().aggregatedList(projectName).execute().getItems() },
-      "list",
+      { return executor.timeExecute(
+            credentials.compute.instanceGroupManagers().aggregatedList(projectName),
+            "compute.instanceGroupManagers.aggregatedList",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+        ).getItems()
+      },
       "aggregated managed instance groups",
       task,
-      phase,
       RETRY_ERROR_CODES,
-      []
+      [],
+      [action: "list", phase: phase, operation: "compute.instanceGroupManagers.aggregatedList", (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
+      executor.registry
     ) as Map<String, InstanceGroupManagersScopedList>
 
     def zonesInRegion = credentials.getZonesFromRegion(region)
@@ -718,7 +762,8 @@ class GCEUtil {
                                               GoogleServerGroup.View serverGroup,
                                               GoogleLoadBalancerProvider googleLoadBalancerProvider,
                                               Task task,
-                                              String phase) {
+                                              String phase,
+                                              GoogleExecutorTraits executor) {
     String serverGroupName = serverGroup.name
     String region = serverGroup.region
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
@@ -728,7 +773,11 @@ class GCEUtil {
       .findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL }
     if (!internalLoadBalancersToAddTo) {
       log.warn("Cache call missed for internal load balancer, making a call to GCP")
-      List<ForwardingRule> projectRegionalForwardingRules = compute.forwardingRules().list(project, region).execute().getItems()
+      List<ForwardingRule> projectRegionalForwardingRules = executor.timeExecute(
+            compute.forwardingRules().list(project, region),
+            "compute.forwardingRules.list",
+            executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
+      ).getItems()
       internalLoadBalancersToAddTo = projectRegionalForwardingRules.findAll {
         // TODO(jacobkiefer): Update this check if any other types of loadbalancers support backend services from regional forwarding rules.
         it.backendService && it.name in serverGroup.loadBalancers
@@ -739,7 +788,10 @@ class GCEUtil {
       internalLoadBalancersToAddTo.each { GoogleLoadBalancerView loadBalancerView ->
         def ilbView = loadBalancerView as GoogleInternalLoadBalancer.View
         def backendServiceName = ilbView.backendService.name
-        BackendService backendService = compute.regionBackendServices().get(project, region, backendServiceName).execute()
+        BackendService backendService = executor.timeExecute(
+          compute.regionBackendServices().get(project, region, backendServiceName),
+          "compute.regionBackendServices",
+          executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
         Backend backendToAdd = new Backend(balancingMode: 'CONNECTION')
         if (serverGroup.regional) {
           backendToAdd.setGroup(buildRegionalServerGroupUrl(project, region, serverGroupName))
@@ -750,7 +802,10 @@ class GCEUtil {
           backendService.backends = []
         }
         backendService.backends << backendToAdd
-        compute.regionBackendServices().update(project, region, backendServiceName, backendService).execute()
+        executor.timeExecute(
+          compute.regionBackendServices().update(project, region, backendServiceName, backendService),
+          "compute.regionBackendServices.update",
+          executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.SCOPE_REGION, region)
         task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in Internal load balancer backend service ${backendServiceName}."
       }
     }
@@ -762,7 +817,8 @@ class GCEUtil {
                                           GoogleServerGroup.View serverGroup,
                                           GoogleLoadBalancerProvider googleLoadBalancerProvider,
                                           Task task,
-                                          String phase) {
+                                          String phase,
+                                          GoogleExecutorTraits executor) {
     String serverGroupName = serverGroup.name
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
@@ -774,7 +830,11 @@ class GCEUtil {
         .findAll { it.loadBalancerType == GoogleLoadBalancerType.HTTP }
     if (!httpLoadBalancersToAddTo) {
       log.warn("Cache call missed for Http load balancers ${httpLoadBalancersInMetadata}, making a call to GCP")
-      List<ForwardingRule> projectGlobalForwardingRules = compute.globalForwardingRules().list(project).execute().getItems()
+      List<ForwardingRule> projectGlobalForwardingRules = executor.timeExecute(
+        compute.globalForwardingRules().list(project),
+        "compute.globalForwardingRules.list",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+      ).getItems()
       httpLoadBalancersToAddTo = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
         forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != GoogleTargetProxyType.SSL &&
           forwardingRule.name in serverGroup.loadBalancers
@@ -791,7 +851,10 @@ class GCEUtil {
       List<String> backendServiceNames = metadataMap?.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(",") ?: []
       if (backendServiceNames) {
         backendServiceNames.each { String backendServiceName ->
-          BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+          BackendService backendService = executor.timeExecute(
+            compute.backendServices().get(project, backendServiceName),
+            "compute.backendServices.get",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           Backend backendToAdd = backendFromLoadBalancingPolicy(policy)
           if (serverGroup.regional) {
             backendToAdd.setGroup(buildRegionalServerGroupUrl(project, serverGroup.region, serverGroupName))
@@ -802,7 +865,10 @@ class GCEUtil {
             backendService.backends = []
           }
           backendService.backends << backendToAdd
-          compute.backendServices().update(project, backendServiceName, backendService).execute()
+        executor.timeExecute(
+            compute.backendServices().update(project, backendServiceName, backendService),
+            "compute.backendServices.update",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in Http(s) load balancer backend service ${backendServiceName}."
         }
       }
@@ -815,7 +881,8 @@ class GCEUtil {
                                          GoogleServerGroup.View serverGroup,
                                          GoogleLoadBalancerProvider googleLoadBalancerProvider,
                                          Task task,
-                                         String phase) {
+                                         String phase,
+                                         GoogleExecutorTraits executor) {
     String serverGroupName = serverGroup.name
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
@@ -827,7 +894,11 @@ class GCEUtil {
       .findAll { it.loadBalancerType == GoogleLoadBalancerType.SSL }
     if (!sslLoadBalancersToAddTo) {
       log.warn("Cache call missed for ssl load balancer, making a call to GCP")
-      List<ForwardingRule> projectGlobalForwardingRules = compute.globalForwardingRules().list(project).execute().getItems()
+      List<ForwardingRule> projectGlobalForwardingRules = executor.timeExecute(
+        compute.globalForwardingRules().list(project),
+        "compute.globalForwardingRules",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+      ).getItems()
       sslLoadBalancersToAddTo = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
         forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == GoogleTargetProxyType.SSL &&
           forwardingRule.name in serverGroup.loadBalancers
@@ -844,7 +915,10 @@ class GCEUtil {
       sslLoadBalancersToAddTo.each { GoogleLoadBalancerView loadBalancerView ->
         def sslView = loadBalancerView as GoogleSslLoadBalancer.View
         String backendServiceName = sslView.backendService.name
-        BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+        BackendService backendService = executor.timeExecute(
+          compute.backendServices().get(project, backendServiceName),
+          "compute.backendServices",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
         Backend backendToAdd = backendFromLoadBalancingPolicy(policy)
         if (serverGroup.regional) {
           backendToAdd.setGroup(buildRegionalServerGroupUrl(project, serverGroup.region, serverGroupName))
@@ -855,7 +929,10 @@ class GCEUtil {
           backendService.backends = []
         }
         backendService.backends << backendToAdd
-        compute.backendServices().update(project, backendServiceName, backendService).execute()
+        executor.timeExecute(
+            compute.backendServices().update(project, backendServiceName, backendService),
+            "compute.backendServices.update",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
         task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in ssl load balancer backend service ${backendServiceName}."
       }
     }
@@ -901,7 +978,8 @@ class GCEUtil {
                                              GoogleServerGroup.View serverGroup,
                                              GoogleLoadBalancerProvider googleLoadBalancerProvider,
                                              Task task,
-                                             String phase) {
+                                             String phase,
+                                             GoogleExecutorTraits executor) {
     def serverGroupName = serverGroup.name
     def region = serverGroup.region
     def foundSslLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
@@ -909,7 +987,11 @@ class GCEUtil {
     }
     if (!foundSslLoadBalancers) {
       log.warn("Cache call missed for ssl load balancer, making a call to GCP")
-      List<ForwardingRule> projectGlobalForwardingRules = compute.globalForwardingRules().list(project).execute().getItems()
+      List<ForwardingRule> projectGlobalForwardingRules = executor.timeExecute(
+        compute.globalForwardingRules().list(project),
+        "compute.globalForwardingRules.list",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+      ).getItems()
       foundSslLoadBalancers = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
         forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == GoogleTargetProxyType.SSL &&
           forwardingRule.name in serverGroup.loadBalancers
@@ -921,12 +1003,18 @@ class GCEUtil {
       foundSslLoadBalancers.each { GoogleLoadBalancerView loadBalancerView ->
         def sslView = loadBalancerView as GoogleSslLoadBalancer.View
         String backendServiceName = sslView.backendService.name
-        BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+        BackendService backendService = executor.timeExecute(
+          compute.backendServices().get(project, backendServiceName),
+          "compute.backendServices.get",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
         backendService?.backends?.removeAll { Backend backend ->
           (getLocalName(backend.group) == serverGroupName) &&
             (Utils.getRegionFromGroupUrl(backend.group) == region)
         }
-        compute.backendServices().update(project, backendServiceName, backendService).execute()
+        executor.timeExecute(
+            compute.backendServices().update(project, backendServiceName, backendService),
+            "compute.backendServices.update",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
         task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from ssl load balancer backend service ${backendServiceName}."
       }
     }
@@ -937,7 +1025,8 @@ class GCEUtil {
                                                   GoogleServerGroup.View serverGroup,
                                                   GoogleLoadBalancerProvider googleLoadBalancerProvider,
                                                   Task task,
-                                                  String phase) {
+                                                  String phase,
+                                                  GoogleExecutorTraits executor) {
     def serverGroupName = serverGroup.name
     def region = serverGroup.region
     def foundInternalLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
@@ -945,7 +1034,11 @@ class GCEUtil {
     }
     if (!foundInternalLoadBalancers) {
       log.warn("Cache call missed for internal load balancer, making a call to GCP")
-      List<ForwardingRule> projectRegionalForwardingRules = compute.forwardingRules().list(project, region).execute().getItems()
+      List<ForwardingRule> projectRegionalForwardingRules = executor.timeExecute(
+        compute.forwardingRules().list(project, region),
+        "compute.forwardingRules.list",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
+      ).getItems()
       foundInternalLoadBalancers = projectRegionalForwardingRules.findAll {
         // TODO(jacobkiefer): Update this check if any other types of loadbalancers support backend services from regional forwarding rules.
         it.backendService && it.name in serverGroup.loadBalancers
@@ -957,12 +1050,18 @@ class GCEUtil {
       foundInternalLoadBalancers.each { GoogleLoadBalancerView loadBalancerView ->
         def ilbView = loadBalancerView as GoogleInternalLoadBalancer.View
         String backendServiceName = ilbView.backendService.name
-        BackendService backendService = compute.regionBackendServices().get(project, region, backendServiceName).execute()
+        BackendService backendService = executor.timeExecute(
+          compute.regionBackendServices().get(project, region, backendServiceName),
+          "compute.regionBackendServices.get",
+          executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
         backendService?.backends?.removeAll { Backend backend ->
           (getLocalName(backend.group) == serverGroupName) &&
             (Utils.getRegionFromGroupUrl(backend.group) == region)
         }
-        compute.regionBackendServices().update(project, region, backendServiceName, backendService).execute()
+        executor.timeExecute(
+            compute.regionBackendServices().update(project, region, backendServiceName, backendService),
+            "compute.backendServices.update",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
         task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from internal load balancer backend service ${backendServiceName}."
       }
     }
@@ -973,7 +1072,8 @@ class GCEUtil {
                                               GoogleServerGroup.View serverGroup,
                                               GoogleLoadBalancerProvider googleLoadBalancerProvider,
                                               Task task,
-                                              String phase) {
+                                              String phase,
+                                              GoogleExecutorTraits executor) {
     def serverGroupName = serverGroup.name
     def httpLoadBalancersInMetadata = serverGroup?.asg?.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES) ?: []
     log.debug("Attempting to delete backends for ${serverGroup.name} from the following Http load balancers: ${httpLoadBalancersInMetadata}")
@@ -984,7 +1084,11 @@ class GCEUtil {
     }
     if (!foundHttpLoadBalancers) {
       log.warn("Cache call missed for Http load balancers ${httpLoadBalancersInMetadata}, making a call to GCP")
-      List<ForwardingRule> projectGlobalForwardingRules = compute.globalForwardingRules().list(project).execute().getItems()
+      List<ForwardingRule> projectGlobalForwardingRules = executor.timeExecute(
+        compute.globalForwardingRules().list(project),
+        "compute.globalForwardingRules",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+      ).getItems()
       foundHttpLoadBalancers = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
         forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != GoogleTargetProxyType.SSL &&
           forwardingRule.name in serverGroup.loadBalancers
@@ -1002,12 +1106,18 @@ class GCEUtil {
       List<String> backendServiceNames = metadataMap?.(GoogleServerGroup.View.BACKEND_SERVICE_NAMES)?.split(",")
       if (backendServiceNames) {
         backendServiceNames.each { String backendServiceName ->
-          BackendService backendService = compute.backendServices().get(project, backendServiceName).execute()
+          BackendService backendService = executor.timeExecute(
+            compute.backendServices().get(project, backendServiceName),
+            "compute.backendService.get",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           backendService?.backends?.removeAll { Backend backend ->
             (getLocalName(backend.group) == serverGroupName) &&
                 (Utils.getRegionFromGroupUrl(backend.group) == serverGroup.region)
           }
-          compute.backendServices().update(project, backendServiceName, backendService).execute()
+          executor.timeExecute(
+              compute.backendServices().update(project, backendServiceName, backendService),
+              "compute.backendServices.update",
+              executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from Http(s) load balancer backend service ${backendServiceName}."
         }
       }
@@ -1039,9 +1149,13 @@ class GCEUtil {
    * @param project
    * @return List of L7 load balancer names to put into the instance metadata.
    */
-  static List<String> resolveHttpLoadBalancerNamesMetadata(List<String> backendServiceNames, Compute compute, String project) {
+  static List<String> resolveHttpLoadBalancerNamesMetadata(List<String> backendServiceNames, Compute compute, String project, GoogleExecutorTraits executor) {
     def loadBalancerNames = []
-    def projectUrlMaps = compute.urlMaps().list(project).execute().getItems()
+    def projectUrlMaps = executor.timeExecute(
+      compute.urlMaps().list(project),
+      "compute.urlMaps.list",
+      executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+    ).getItems()
     def servicesByUrlMap = projectUrlMaps.collectEntries { UrlMap urlMap ->
       [(urlMap.name): Utils.getBackendServicesFromUrlMap(urlMap)]
     }
@@ -1055,16 +1169,24 @@ class GCEUtil {
       }
     }
 
-    def globalForwardingRules = compute.globalForwardingRules().list(project).execute().getItems()
+    def globalForwardingRules = executor.timeExecute(
+      compute.globalForwardingRules().list(project),
+      "compute.globalForwardingRules",
+      executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+    ).getItems()
     globalForwardingRules.each { ForwardingRule fr ->
       GoogleTargetProxyType proxyType = Utils.getTargetProxyType(fr.target)
       def proxy = null
       switch (proxyType) {
         case GoogleTargetProxyType.HTTP:
-          proxy = compute.targetHttpProxies().get(project, getLocalName(fr.target)).execute()
+          proxy = executor.timeExecute(compute.targetHttpProxies().get(project, getLocalName(fr.target)),
+            "compute.targetHttpProxies.get",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           break
         case GoogleTargetProxyType.HTTPS:
-          proxy = compute.targetHttpsProxies().get(project, getLocalName(fr.target)).execute()
+          proxy = executor.timeExecute(compute.targetHttpsProxies().get(project, getLocalName(fr.target)),
+            "compute.targetHttpsProxies.get",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           break
         default:
           break
@@ -1076,21 +1198,37 @@ class GCEUtil {
     return loadBalancerNames
   }
 
-  def static getTargetProxyFromRule(Compute compute, String project, ForwardingRule forwardingRule, SafeRetry safeRetry) {
+  def static getTargetProxyFromRule(Compute compute, String project, ForwardingRule forwardingRule, SafeRetry safeRetry, GoogleExecutorTraits executor) {
     String target = forwardingRule.getTarget()
     GoogleTargetProxyType targetProxyType = Utils.getTargetProxyType(target)
     String targetProxyName = getLocalName(target)
 
+    def operationName
     def proxyGet = null
     switch (targetProxyType) {
       case GoogleTargetProxyType.HTTP:
-        proxyGet = { compute.targetHttpProxies().get(project, targetProxyName).execute() }
+        proxyGet = { executor.timeExecute(
+          compute.targetHttpProxies().get(project, targetProxyName),
+          "compute.targetHttpProxies",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        }
+        operationName = "compute.targetHttpProxies.get"
         break
       case GoogleTargetProxyType.HTTPS:
-        proxyGet = { compute.targetHttpsProxies().get(project, targetProxyName).execute() }
+        proxyGet = { executor.timeExecute(
+          compute.targetHttpsProxies().get(project, targetProxyName),
+          "compute.targetHttpsProxies.get",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        }
+        operationName = "compute.targetHttpsProxies.get"
         break
       case GoogleTargetProxyType.SSL:
-        proxyGet = { compute.targetSslProxies().get(project, targetProxyName).execute() }
+        proxyGet = { executor.timeExecute(
+          compute.targetSslProxies().get(project, targetProxyName),
+          "compute.targetSslProxies.get",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        }
+        operationName = "compute.targetSslProxies.get"
         break
       default:
         log.warn("Unexpected target proxy type for $targetProxyName.")
@@ -1099,12 +1237,12 @@ class GCEUtil {
     }
     def retrievedTargetProxy = safeRetry.doRetry(
       proxyGet,
-      'Get',
       "Target proxy $targetProxyName",
       null,
-      null,
       [400, 403, 412],
-      []
+      [],
+      [action: "get", operation: operationName],
+      executor.registry
     )
     return retrievedTargetProxy
   }
@@ -1118,18 +1256,27 @@ class GCEUtil {
   static Operation deleteGlobalListener(Compute compute,
                                         String project,
                                         String forwardingRuleName,
-                                        SafeRetry safeRetry) {
+                                        SafeRetry safeRetry,
+                                        GoogleExecutorTraits executor) {
     ForwardingRule ruleToDelete = safeRetry.doRetry(
-      { compute.globalForwardingRules().get(project, forwardingRuleName).execute() },
-      'get',
+      { executor.timeExecute(
+          compute.globalForwardingRules().get(project, forwardingRuleName),
+          "compute.globalForwardingRules.get",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+      },
       "global forwarding rule ${forwardingRuleName}",
       null,
-      null,
       [400, 412],
-      [404]
+      [404],
+      [action: "get", operation: "compute.globalForwardingRules.get", (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
+      executor.registry
     ) as ForwardingRule
     if (ruleToDelete) {
-      compute.globalForwardingRules().delete(project, ruleToDelete.getName()).execute()
+      def operation_name
+      executor.timeExecute(
+        compute.globalForwardingRules().delete(project, ruleToDelete.getName()),
+        "compute.globalForwardingRules.delete",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
       String targetProxyLink = ruleToDelete.getTarget()
       String targetProxyName = getLocalName(targetProxyLink)
       GoogleTargetProxyType targetProxyType = Utils.getTargetProxyType(targetProxyLink)
@@ -1137,18 +1284,30 @@ class GCEUtil {
       switch (targetProxyType) {
         case GoogleTargetProxyType.HTTP:
           deleteProxyClosure = {
-            compute.targetHttpProxies().delete(project, targetProxyName).execute()
+            executor.timeExecute(
+              compute.targetHttpProxies().delete(project, targetProxyName),
+              "compute.targetHttpProxies.delete",
+              executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           }
+          operation_name = "compute.targetHttpProxies.delete"
           break
         case GoogleTargetProxyType.HTTPS:
           deleteProxyClosure = {
-            compute.targetHttpsProxies().delete(project, targetProxyName).execute()
+            executor.timeExecute(
+              compute.targetHttpsProxies().delete(project, targetProxyName),
+              "compute.targetHttpsProxies.delete",
+              executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           }
+          operation_name = "compute.targetHttpsProxies.delete"
           break
         case GoogleTargetProxyType.SSL:
           deleteProxyClosure = {
-            compute.targetSslProxies().delete(project, targetProxyName).execute()
+            executor.timeExecute(
+              compute.targetSslProxies().delete(project, targetProxyName),
+              "compute.targetSslProxies.delete",
+              executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           }
+          operation_name = "compute.targetSslProxies.delete"
           break
         default:
           log.warn("Unexpected target proxy type for $targetProxyName.")
@@ -1157,12 +1316,12 @@ class GCEUtil {
 
       Operation result = safeRetry.doRetry(
         deleteProxyClosure,
-        'delete',
         "target proxy ${targetProxyName}",
         null,
-        null,
         [400, 412],
-        [404]
+        [404],
+        [action: "delete", operation: operation_name],
+        executor.registry
       ) as Operation
       return result
     }
@@ -1173,18 +1332,19 @@ class GCEUtil {
                                     String project,
                                     Task task,
                                     String phase,
-                                    SafeRetry safeRetry) {
+                                    SafeRetry safeRetry,
+                                    GoogleExecutorTraits executor) {
     task.updateStatus phase, "Deleting $component for $project..."
     Operation deleteOp
     try {
       deleteOp = safeRetry.doRetry(
         closure,
-        'Delete',
         component,
         task,
-        phase,
         [400, 412],
-        [404]
+        [404],
+        [action: "delete", phase: phase, operation: "DeleteIfNotInUse"],
+        executor.registry
       ) as Operation
     } catch (GoogleJsonResponseException e) {
       if (e.details?.code == 400 && e.details?.errors?.getAt(0)?.reason == "resourceInUseByAnotherResource") {

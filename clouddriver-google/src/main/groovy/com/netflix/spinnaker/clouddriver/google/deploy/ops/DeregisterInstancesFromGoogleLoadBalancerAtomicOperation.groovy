@@ -61,8 +61,8 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperation extends GoogleAto
     def region = description.region
     def compute = description.credentials.compute
 
-    def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, loadBalancerNames, compute, task, BASE_PHASE, safeRetry)
-    def instanceUrls = GCEUtil.queryInstanceUrls(project, region, instanceIds, compute, task, BASE_PHASE)
+    def forwardingRules = GCEUtil.queryRegionalForwardingRules(project, region, loadBalancerNames, compute, task, BASE_PHASE, safeRetry, this)
+    def instanceUrls = GCEUtil.queryInstanceUrls(project, region, instanceIds, compute, task, BASE_PHASE, this)
 
     loadBalancerNames.each { lbName ->
       def forwardingRule = forwardingRules.find { it.name == lbName }

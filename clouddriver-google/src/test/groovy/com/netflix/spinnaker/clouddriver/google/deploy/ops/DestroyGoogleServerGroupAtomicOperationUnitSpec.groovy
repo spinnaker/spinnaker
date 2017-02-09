@@ -560,9 +560,10 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           registry: registry,
           safeRetry: safeRetry
         )
+      destroy.registry = registry
       destroy.safeRetry = safeRetry
       destroy.destroy(
-          DestroyGoogleServerGroupAtomicOperation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
+          destroy.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
           "Http load balancer backends"
       )
 
@@ -596,7 +597,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     when:
       destroy.destroy(
-        DestroyGoogleServerGroupAtomicOperation.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
+        destroy.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
         "Http load balancer backends"
       )
 

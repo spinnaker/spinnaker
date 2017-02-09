@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 import com.google.api.services.appengine.v1.Appengine
 import com.google.api.services.appengine.v1.model.Service
 import com.google.api.services.appengine.v1.model.TrafficSplit
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineLoadBalancer
@@ -49,6 +50,7 @@ class UpsertAppengineLoadBalancerAtomicOperationSpec extends Specification {
 
   @Shared
   AppengineSafeRetry safeRetry
+  def registry = new DefaultRegistry()
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -89,6 +91,7 @@ class UpsertAppengineLoadBalancerAtomicOperationSpec extends Specification {
 
       @Subject def operation = new UpsertAppengineLoadBalancerAtomicOperation(description)
       operation.appengineLoadBalancerProvider = appengineLoadBalancerProviderMock
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
     when:
@@ -140,6 +143,7 @@ class UpsertAppengineLoadBalancerAtomicOperationSpec extends Specification {
 
       @Subject def operation = new UpsertAppengineLoadBalancerAtomicOperation(description)
       operation.appengineLoadBalancerProvider = appengineLoadBalancerProviderMock
+      operation.registry = registry
       operation.safeRetry = safeRetry
 
       def expectedService = new Service(split: new TrafficSplit(

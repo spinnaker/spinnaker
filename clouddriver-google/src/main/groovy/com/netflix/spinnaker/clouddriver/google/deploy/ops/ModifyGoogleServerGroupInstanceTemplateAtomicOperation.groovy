@@ -165,7 +165,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
                                              task,
                                              BASE_PHASE,
                                              clouddriverUserAgentApplicationName,
-                                             googleConfigurationProperties.baseImageProjects)
+                                             googleConfigurationProperties.baseImageProjects,
+                                             this)
         def attachedDisks = GCEUtil.buildAttachedDisks(project,
                                                        null,
                                                        sourceImage,
