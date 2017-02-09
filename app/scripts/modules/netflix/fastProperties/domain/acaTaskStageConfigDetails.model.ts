@@ -1,5 +1,5 @@
 export class AcaTaskStageConfigDetails {
-  watchers: string = '';
+  watchers = '';
   lifetimeHours = '1';
   minimumCanaryResultScore = '10';
   combinedCanaryResultStrategy = 'LOWEST';
@@ -8,14 +8,14 @@ export class AcaTaskStageConfigDetails {
   notificationHours = '1';
   useLookback = false;
   lookbackMins = 0;
-  configName: string = '';
+  configName = '';
   beginCanaryAnalysisAfterMins = '0';
   canaryAnalysisIntervalMins = '15';
 
-  accountName: string = '';
-  region: string = '';
-  baseline: string = '';
-  canary: string = '';
-  type: string = '';
+  accountName = '';
+  region = '';
+  baseline = '';
+  canary = '';
+  type = '';
 }
 

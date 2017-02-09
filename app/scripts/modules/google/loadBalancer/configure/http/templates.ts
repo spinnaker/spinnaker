@@ -1,10 +1,10 @@
 export class HttpLoadBalancerTemplate {
   provider = 'gce';
-  stack: string = '';
-  detail: string = '';
+  stack = '';
+  detail = '';
   region = 'global';
   loadBalancerType = 'HTTP';
-  certificate: string = '';
+  certificate = '';
   defaultService: BackendServiceTemplate;
   hostRules: HostRuleTemplate[] = [];
   listeners: ListenerTemplate[] = [];
