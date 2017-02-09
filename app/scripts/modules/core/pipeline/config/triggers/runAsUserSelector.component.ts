@@ -6,7 +6,7 @@ class RunAsUserSelectorComponent implements ng.IComponentOptions {
     component: '=',
     field: '@',
   };
-  template: string = `
+  template = `
     <div class="col-md-3 sm-label-right">
       Run As User
       <help-field key="pipeline.config.trigger.runAsUser"></help-field>

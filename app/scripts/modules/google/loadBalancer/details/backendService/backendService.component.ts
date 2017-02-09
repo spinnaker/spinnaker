@@ -4,7 +4,7 @@ class GceBackendServiceDetailsComponent implements ng.IComponentOptions {
   bindings: any = {
     backendService: '<'
   };
-  template: string = `
+  template = `
     <dt>Name</dt>
     <dd>{{$ctrl.backendService.name}}</dd>
     <dt>Health Check</dt>

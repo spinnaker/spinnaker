@@ -16,15 +16,15 @@ interface IFastPropertyScope {
 
 
 class FastPropertyFilterSearchController implements ng.IComponentController {
-  public querying: boolean = false;
-  public showSearchResults: boolean = false;
+  public querying = false;
+  public showSearchResults = false;
   public categories: any = [];
   public query: string;
   public filteredCategories: any[];
   public filters: any;
   public focussedResult: any;
   public createFilterTag: any;
-  public showAllCategories: boolean = false;
+  public showAllCategories = false;
 
   public properties: any;
 

@@ -99,8 +99,8 @@ class CopyStageModalCtrl implements ng.IComponentController {
         });
   }
 
-  private isStrategyConfig(config: IPipeline | IStrategy): config is IStrategy {
-    return (config as IStrategy).strategy;
+  private isStrategyConfig(config: IPipeline | IStrategy): boolean {
+    return 'strategy' in config;
   }
 }
 

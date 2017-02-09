@@ -22,7 +22,7 @@ class TitusMigrationConfigurerController implements ng.IComponentController {
   public configChanged: () => void;
   public applications: any[];
   public pipelineOptions: IPipelineOption[];
-  public pipelinesLoaded: boolean = false;
+  public pipelinesLoaded = false;
 
   public migrationOptions: string[] = [RollingPushStrategy.type, PipelineStrategy.type];
 

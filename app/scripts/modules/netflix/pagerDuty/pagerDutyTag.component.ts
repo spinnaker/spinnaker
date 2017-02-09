@@ -22,7 +22,7 @@ class PagerDutyTagComponent implements ng.IComponentOptions {
     apiKey: '='
   };
   public controller: any = PagerDutyTagController;
-  public template: string = `
+  public template = `
     <span>{{$ctrl.currentService.name}}</span>
     <span>( {{$ctrl.currentService.integration_key}} )</span>
   `;

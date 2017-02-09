@@ -4,7 +4,7 @@ import {PropertyCommand} from '../../domain/propertyCommand.model';
 import {Scope} from '../../domain/scope.domain';
 
 export class FastPropertyScopeComponentController implements ng.IComponentController {
-  public isEditing: boolean = false;
+  public isEditing = false;
   public impactCount: string;
   public impactLoading: boolean;
   public selectedScope: any;

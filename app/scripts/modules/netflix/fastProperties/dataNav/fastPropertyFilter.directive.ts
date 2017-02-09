@@ -10,7 +10,7 @@ class FastPropertyFilterDirective implements ng.IDirective {
     'filters': '=',
     'createFilterTag': '='
   };
-  template: string = `<input type="search" class="form-control" placeholder="Filters: type '?'">`;
+  template = `<input type="search" class="form-control" placeholder="Filters: type '?'">`;
   restrict: string = 'E';
   fields: string[] = ['app', 'env', 'region', 'stack', 'cluster'];
 

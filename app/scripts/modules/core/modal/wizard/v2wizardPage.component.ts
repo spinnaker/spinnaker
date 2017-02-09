@@ -74,7 +74,7 @@ export class WizardPageController implements ng.IComponentController {
    * Offset to add to the heading when making them sticky
    * @type {number}
    */
-  public pageOffset: number = 0;
+  public pageOffset =  0;
 
   static get $inject() { return ['$scope', 'v2modalWizardService']; }
 
@@ -106,7 +106,7 @@ class WizardPageComponent implements ng.IComponentOptions {
     label: '@',
     render: '<',
   };
-  public transclude: boolean = true;
+  public transclude = true;
   public templateUrl: string = require('./v2wizardPage.component.html');
   public controller: any = WizardPageController;
 }

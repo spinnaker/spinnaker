@@ -89,7 +89,7 @@ class HelpFieldComponent implements ng.IComponentOptions {
     expand: '=',
   };
   public controller: any = HelpFieldCtrl;
-  public template: string = `
+  public template = `
     <div ng-if="$ctrl.expand && $ctrl.contents.content"
          class="help-contents small"
          ng-bind-html="$ctrl.contents.content"></div>

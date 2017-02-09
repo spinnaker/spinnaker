@@ -72,8 +72,8 @@ class PageNavigatorComponent implements ng.IComponentOptions {
     scrollableContainer: '@',
   };
   public controller: any = PageNavigatorController;
-  public transclude: boolean = true;
-  public template: string = `
+  public transclude = true;
+  public template = `
     <div class="row">
       <div class="col-md-3 hidden-sm hidden-xs">
         <ul class="page-navigation">

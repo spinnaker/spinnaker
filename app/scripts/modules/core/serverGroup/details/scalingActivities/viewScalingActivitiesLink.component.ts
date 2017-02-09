@@ -26,7 +26,7 @@ class ViewScalingActivitiesLink implements ng.IComponentOptions {
     serverGroup: '='
   };
   public controller: any = ViewScalingActivitiesLinkCtrl;
-  public template: string = `<a href ng-click="$ctrl.showScalingActivities()">View Scaling Activities</a>`;
+  public template = `<a href ng-click="$ctrl.showScalingActivities()">View Scaling Activities</a>`;
 }
 
 export const VIEW_SCALING_ACTIVITIES_LINK = 'spinnaker.core.serverGroup.details.viewScalingActivities.link';

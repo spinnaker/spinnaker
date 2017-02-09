@@ -6,7 +6,7 @@ class CopyStageCardComponent implements ng.IComponentOptions {
   public bindings: any = {
     stageWrapper: '<'
   };
-  public template: string = `
+  public template = `
     <div class="row">
       <div class="col-md-10">
         <b>{{::$ctrl.stageWrapper.stage.name}}</b>

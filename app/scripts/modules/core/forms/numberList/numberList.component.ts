@@ -99,7 +99,7 @@ class NumberListComponent implements ng.IComponentOptions {
   };
 
   public controller: any = NumberListController;
-  public template: string = `
+  public template = `
     <div ng-if="$ctrl.parameterized">
       <input type="text" class="form-control input-sm" ng-model="$ctrl.model"/>
     </div>

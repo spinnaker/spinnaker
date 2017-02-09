@@ -1,7 +1,7 @@
 import {module} from 'angular';
 
 class PropertyStatusComponent implements ng.IComponentOptions {
-  public template: string = `
+  public template = `
         <div style="display: flex; align-items: center; justify-content: center; height:100%">
           <p ng-if="$ctrl.monitor.pipeline && !$ctrl.monitor.error" style="font-size: 20px">
               The Property Pipeline has been started. You can

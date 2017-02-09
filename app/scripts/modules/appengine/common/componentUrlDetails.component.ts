@@ -2,7 +2,7 @@ import {module, IComponentOptions} from 'angular';
 
 class AppengineComponentUrlDetailsComponent implements IComponentOptions {
   public bindings: any = {component: '<'};
-  public template: string = `
+  public template = `
     <dt>HTTPS</dt>
     <dl class="small">
       <a href="{{$ctrl.component.httpsUrl}}" target="_blank">{{$ctrl.component.httpsUrl}}</a>

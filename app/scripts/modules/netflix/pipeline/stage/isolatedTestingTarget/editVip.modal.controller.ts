@@ -3,7 +3,7 @@ import {IModalServiceInstance} from 'angular-ui-bootstrap';
 
 class EditVipModalCtrl {
   public cancel: (reason?: any) => void;
-  public invalid: boolean = false;
+  public invalid = false;
   public errorMessage: string = null;
 
   constructor(public vip: string, private $uibModalInstance: IModalServiceInstance) {
