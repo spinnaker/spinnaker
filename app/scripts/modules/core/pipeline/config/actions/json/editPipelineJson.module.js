@@ -1,11 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
+import {JSON_UTILITY_SERVICE} from 'core/utils/json/json.utility.service';
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson', [])
-  .controller('EditPipelineJsonModalCtrl', function($scope, pipeline, $uibModalInstance) {
+module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson', [
+  JSON_UTILITY_SERVICE
+])
+  .controller('EditPipelineJsonModalCtrl', function($scope, pipeline, $uibModalInstance, jsonUtilityService) {
 
     this.cancel = $uibModalInstance.dismiss;
 
@@ -27,7 +30,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson
       $scope.isStrategy = pipelineCopy.strategy || false;
 
       $scope.command = {
-        pipelineJSON: JSON.stringify(pipelineCopy, null, 2),
+        pipelineJSON: jsonUtilityService.makeSortedStringFromObject(pipelineCopy),
         locked: pipelineCopy.locked,
       };
     };

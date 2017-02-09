@@ -3,6 +3,7 @@
 const angular = require('angular');
 
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+import {JSON_UTILITY_SERVICE} from 'core/utils/json/json.utility.service';
 
 require('./showHistory.less');
 
@@ -10,13 +11,13 @@ module.exports = angular
   .module('spinnaker.core.pipeline.config.actions.history.controller', [
     PIPELINE_CONFIG_SERVICE,
     require('core/utils/jQuery'),
-    require('./jsonDiff.service'),
+    JSON_UTILITY_SERVICE,
     require('./diffSummary.component'),
     require('./diffView.component'),
   ])
-  .controller('ShowHistoryCtrl', function ($window, pipelineConfigService, jsonDiffService,
+  .controller('ShowHistoryCtrl', function ($window, pipelineConfigService, jsonUtilityService,
                                            pipelineConfigId, currentConfig,
-                                           $uibModalInstance, $, $filter) {
+                                           $uibModalInstance, $filter) {
     this.state = {
       loading: true,
       error: false,
@@ -64,7 +65,7 @@ module.exports = angular
           this.left = this.history[this.version + 1].contents;
         }
       }
-      this.diff = jsonDiffService.diff(this.left, this.right);
+      this.diff = jsonUtilityService.diff(this.left, this.right, true);
     };
 
     this.close = $uibModalInstance.dismiss;
