@@ -4,7 +4,7 @@ let angular = require('angular');
 import _ from 'lodash';
 
 module.exports = angular
-  .module('spinnaker.netfilx.globalFastProperty.pods.component', [
+  .module('spinnaker.netflix.globalFastProperty.pods.component', [
     require('angular-ui-router'),
   ])
   .component('globalFastPropertyPods', {

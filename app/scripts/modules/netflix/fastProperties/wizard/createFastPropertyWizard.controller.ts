@@ -63,7 +63,7 @@ class CreateFastPropertyWizardController {
 
 }
 
-export const CREATE_FAST_PROPERTY_WIZARD_CONTROLLER = 'spinnaker.netfilx.fastProperty.createWizard.controller';
+export const CREATE_FAST_PROPERTY_WIZARD_CONTROLLER = 'spinnaker.netflix.fastProperty.createWizard.controller';
 
 module(CREATE_FAST_PROPERTY_WIZARD_CONTROLLER, [
   FAST_PROPERTY_DETAILS_COMPONENT,

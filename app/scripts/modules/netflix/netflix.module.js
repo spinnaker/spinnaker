@@ -1,6 +1,8 @@
 import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {TABLEAU_STATES} from './tableau/tableau.states';
+import {ISOLATED_TESTING_TARGET_STAGE_MODULE} from './pipeline/stage/isolatedTestingTarget/isolatedTestingTargetStage.module';
+
 
 let angular = require('angular');
 
@@ -20,6 +22,7 @@ module.exports = angular
     require('./instance/aws/netflixAwsInstanceDetails.controller.js'),
     require('./instance/titus/netflixTitusInstanceDetails.controller.js'),
     require('./pipeline/stage/canary/canaryStage.module.js'),
+    ISOLATED_TESTING_TARGET_STAGE_MODULE,
     require('./pipeline/stage/acaTask/acaTaskStage.module'),
     require('./pipeline/stage/properties'),
     require('./pipeline/stage/quickPatchAsg/quickPatchAsgStage.module.js'),
