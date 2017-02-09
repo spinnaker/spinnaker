@@ -6,7 +6,7 @@ import {ICanaryDeployment} from './canaryDeployment.interface';
 import {AcaTaskStageConfigDetails} from './acaTaskStageConfigDetails.model';
 
 export class Canary {
-  public application: string = 'spinnakerfp';
+  public application = 'spinnakerfp';
   public owner: string;
   public canaryConfig: CanaryConfig;
   public watchers: string[] = [];
@@ -63,12 +63,12 @@ class CanarySuccessCriteria {
 }
 
 class CanaryHealthCheckHandler {
-  '@class': string = 'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler';
+  '@class' = 'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler';
   constructor(public minimumCanaryResultScore: string) {}
 }
 
 class CanaryDeployments {
-  '@class': string = '.CanaryTaskDeployment';
+  '@class' = '.CanaryTaskDeployment';
 
   public region: string;
   public accountName: string;

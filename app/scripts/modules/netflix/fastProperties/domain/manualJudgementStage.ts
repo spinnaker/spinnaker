@@ -10,7 +10,7 @@ export class ManualJudgementStage implements IStage {
   notifications: any[] = [];
   judgmentInputs: any[] = [];
   failPipeline = true;
-  instructions: string = 'Is Fast Property good to move forward?';
+  instructions = 'Is Fast Property good to move forward?';
   propagateAuthenticationContext = true;
 
   constructor(user: IUser, previousStage?: IStage) {

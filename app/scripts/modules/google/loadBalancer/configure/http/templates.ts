@@ -1,9 +1,9 @@
 export class HttpLoadBalancerTemplate {
-  provider: string = 'gce';
+  provider = 'gce';
   stack: string = '';
   detail: string = '';
-  region: string = 'global';
-  loadBalancerType: string = 'HTTP';
+  region = 'global';
+  loadBalancerType = 'HTTP';
   certificate: string = '';
   defaultService: BackendServiceTemplate;
   hostRules: HostRuleTemplate[] = [];
@@ -15,12 +15,12 @@ export class HttpLoadBalancerTemplate {
 export class BackendServiceTemplate {
   backends: any[] = [];
   healthCheck: HealthCheckTemplate;
-  sessionAffinity: string = 'NONE';
+  sessionAffinity = 'NONE';
   affinityCookieTtlSec: number | null = null;
 }
 
 export class HealthCheckTemplate {
-  requestPath: string = '/';
+  requestPath = '/';
   port = 80;
   checkIntervalSec = 10;
   timeoutSec = 5;

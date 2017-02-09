@@ -203,7 +203,7 @@ class FastPropertyFilterSearchComponent implements ng.IComponentOptions {
     'createFilterTag': '='
   };
   public controller: any = FastPropertyFilterSearchController;
-  public controllerAs: string = 'fpFilter';
+  public controllerAs = 'fpFilter';
   public templateUrl: string = require('./fastPropertyFilterSearch.component.html');
 
 }

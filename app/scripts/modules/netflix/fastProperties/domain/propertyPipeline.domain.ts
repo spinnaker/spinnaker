@@ -14,7 +14,7 @@ export class PropertyPipeline implements IPipeline {
   parallel: boolean;
   triggers: ITrigger[];
   stages: IStage[];
-  executionEngine: string = 'v2';
+  executionEngine = 'v2';
   id: string;
   updateTs = Date.now();
 

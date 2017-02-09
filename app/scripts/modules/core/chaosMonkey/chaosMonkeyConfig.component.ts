@@ -17,7 +17,7 @@ export class ChaosMonkeyConfig {
   public enabled = false;
   public meanTimeBetweenKillsInWorkDays = 2;
   public minTimeBetweenKillsInWorkDays = 1;
-  public grouping: string = 'cluster';
+  public grouping = 'cluster';
   public regionsAreIndependent = true;
   public exceptions: any[] = [];
 
