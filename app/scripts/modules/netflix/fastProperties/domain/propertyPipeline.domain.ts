@@ -16,7 +16,7 @@ export class PropertyPipeline implements IPipeline {
   stages: IStage[];
   executionEngine: string = 'v2';
   id: string;
-  updateTs =  Date.now();
+  updateTs = Date.now();
 
   constructor(pipelineConfigId: string) {
     this.id = pipelineConfigId;
