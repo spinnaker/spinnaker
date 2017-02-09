@@ -37,7 +37,7 @@ class AppengineAllocationConfigurationRowCtrl implements ng.IComponentController
 
 class AppengineAllocationConfigurationRowComponent implements ng.IComponentOptions {
   public bindings: any = {allocation: '<', removeAllocation: '&', serverGroupOptions: '<', onAllocationChange: '&', allowTextInput: '<', initializeAsTextInput: '<'};
-  public template: string = `
+  public template = `
     <div class="form-group">
       <div class="row">
         <div class="col-md-7">

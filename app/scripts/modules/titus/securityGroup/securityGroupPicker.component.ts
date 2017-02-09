@@ -22,7 +22,7 @@ class SecurityGroupPickerController implements ng.IComponentController {
   public regionChanged: Subject<void>;
   public groupsRemoved: Subject<string[]>;
   public hideLabel: boolean;
-  public loaded: boolean = false;
+  public loaded = false;
   private vpcs: IVpc[];
   private subscriptions: Subscription[];
 
@@ -144,7 +144,7 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
     hideLabel: '<',
   };
   public controller: any = SecurityGroupPickerController;
-  public template: string = `
+  public template = `
     <div class="clearfix" ng-if="$ctrl.loaded">
       <server-group-security-groups-removed removed="$ctrl.removedGroups"></server-group-security-groups-removed>
       <server-group-security-group-selector command="$ctrl.command" hide-label="$ctrl.hideLabel" 

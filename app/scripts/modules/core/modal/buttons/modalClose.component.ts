@@ -4,7 +4,7 @@ class ModalCloseComponent implements ng.IComponentOptions {
   public bindings: any = {
     dismiss: '&'
   };
-  public template: string = `
+  public template = `
     <div class="close-button pull-right">
       <a href class="btn btn-link" ng-click="$ctrl.dismiss()" >
         <span class="glyphicon glyphicon-remove"></span>

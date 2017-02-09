@@ -27,14 +27,14 @@ export class DataSourceConfig {
    *
    * If omitted, the value will default to false
    */
-  public optIn: boolean = false;
+  public optIn = false;
 
   /**
    * (Optional) whether this data source can be disabled
    *
    * If omitted, the value will default to false
    */
-  public optional: boolean = false;
+  public optional = false;
 
   /**
    * (Optional) a description of the data source that will be displayed on the app config screen
@@ -69,13 +69,13 @@ export class DataSourceConfig {
    *
    * Default: true
    */
-  public visible: boolean = true;
+  public visible= true;
 
   /**
    * Determines whether the data source should participate in the application's refresh cycle. If set to true, the
    * data source will not be loaded unless "activate()" has been called on it
    */
-  public lazy: boolean = false;
+  public lazy = false;
 
   /**
    * (Optional) Method used to populate the data source. The method must return a promise; the return value of the
@@ -164,17 +164,17 @@ export class ApplicationDataSource {
   /**
    * See DataSourceConfig#visible
    */
-  public visible: boolean = true;
+  public visible = true;
 
   /**
    * See DataSourceConfig#lazy
    */
-  public lazy: boolean = false;
+  public lazy = false;
 
   /**
    * See DataSourceConfig#optional
    */
-  public optional: boolean = false;
+  public optional = false;
 
   /**
    * See DataSourceConfig#description
@@ -184,7 +184,7 @@ export class ApplicationDataSource {
   /**
    * See DataSourceConfig#optIn
    */
-  public optIn: boolean = false;
+  public optIn = false;
 
   /**
    * See DataSourceConfig#credentialsField
@@ -205,12 +205,12 @@ export class ApplicationDataSource {
    * State flag that indicates whether the data source has been loaded. If the data source does not have a declared
    * "loader", this flag will be set to true immediately once the "refresh" method has been called.
    */
-  public loaded: boolean = false;
+  public loaded = false;
 
   /**
    * State flag that indicates a data source is in the process of refreshing its data
    */
-  public loading: boolean = false;
+  public loading = false;
 
   /**
    * Indicates the data source is not used by the application. A disabled data source does not contribute to the
@@ -218,12 +218,12 @@ export class ApplicationDataSource {
    *
    * This flag is set by the applicationReader, based on the dataSources attribute, which is stored in Front50.
    */
-  public disabled: boolean = false;
+  public disabled = false;
 
   /**
    * State flag that indicates an error occurred when the "loader" method rejects
    */
-  public loadFailure: boolean = false;
+  public loadFailure = false;
 
   /**
    * State flag that indicates the data source should participate in the application refresh cycle.
@@ -232,7 +232,7 @@ export class ApplicationDataSource {
    *
    * To activate a data source, call "activate()"
    */
-  public active: boolean = false;
+  public active = false;
 
   /**
    * The actual data (if any) for the data source. This field should only be populated by the "loader" method.

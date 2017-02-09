@@ -16,7 +16,7 @@ import { IPlatformProperty } from '../domain/platformProperty.model';
 class UpdateFastPropertyWizardController {
 
   public command: PropertyCommand = new PropertyCommand();
-  public loading: boolean = false;
+  public loading = false;
   public propertyMonitor: any;
   public isEditing: boolean;
 

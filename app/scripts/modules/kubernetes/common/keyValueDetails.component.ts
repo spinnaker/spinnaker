@@ -4,7 +4,7 @@ class KubernetesKeyValueDetailsComponent implements ng.IComponentOptions {
   bindings: any = {
     map: '<'
   };
-  template: string = `
+  template = `
     <div ng-repeat="(key, value) in $ctrl.map">{{key}}: <i>{{value}}</i></div>
   `;
 }

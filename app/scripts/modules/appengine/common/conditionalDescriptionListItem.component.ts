@@ -22,7 +22,7 @@ class AppengineConditionalDescriptionListItem implements IComponentOptions {
     keyLabel: '?keyText',
     valueLabel: '?valueLabel',
   };
-  public template: string = `
+  public template = `
     <dt ng-if="$ctrl.component[$ctrl.key]">{{$ctrl.label}}<span ng-transclude="keyLabel"></span></dt>
     <dd ng-if="$ctrl.component[$ctrl.key]">{{$ctrl.component[$ctrl.key]}}<span ng-transclude="valueLabel"></span></dd>
   `;

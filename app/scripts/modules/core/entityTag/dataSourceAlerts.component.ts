@@ -46,7 +46,7 @@ class DataSourceAlertsComponent implements ng.IComponentOptions {
     alerts: '=',
   };
   public controller: any = DataSourceAlertsCtrl;
-  public template: string = `
+  public template = `
     <span ng-if="$ctrl.alerts.length > 0"
           class="tag-marker small" 
           ng-mouseover="$ctrl.showPopover()" 

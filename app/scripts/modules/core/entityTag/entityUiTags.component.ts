@@ -118,7 +118,7 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
     entityType: '@',
   };
   public controller: any = EntityUiTagsCtrl;
-  public template: string = `
+  public template = `
     <span ng-if="$ctrl.component.entityTags.alerts.length + $ctrl.component.entityTags.notices.length > 0">
       <span ng-if="$ctrl.component.entityTags.alerts.length > 0"
             class="tag-marker" 

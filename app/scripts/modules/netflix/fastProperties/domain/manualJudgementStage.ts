@@ -9,9 +9,9 @@ export class ManualJudgementStage implements IStage {
   requisiteStageRefIds: (string | number)[] = [];
   notifications: any[] = [];
   judgmentInputs: any[] = [];
-  failPipeline: boolean = true;
+  failPipeline = true;
   instructions: string = 'Is Fast Property good to move forward?';
-  propagateAuthenticationContext: boolean = true;
+  propagateAuthenticationContext = true;
 
   constructor(user: IUser, previousStage?: IStage) {
     this.refId = previousStage ? `${toInteger(previousStage.refId) + 1}` : '1';

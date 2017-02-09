@@ -6,7 +6,7 @@ import {IImpactCounts} from '../../domain/impactCounts.interface';
 
 export class FastPropertyScopeReadOnlyComponentController implements ng.IComponentController {
   public applicationList: any = ['deck', 'mahe'];
-  public isEditing: boolean = false;
+  public isEditing = false;
   public impactCount: string;
   public impactLoading: boolean;
   public selectedScope: any;

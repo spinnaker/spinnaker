@@ -14,11 +14,11 @@ class GroupingOption {
 }
 
 export class ChaosMonkeyConfig {
-  public enabled: boolean = false;
-  public meanTimeBetweenKillsInWorkDays: number = 2;
-  public minTimeBetweenKillsInWorkDays: number = 1;
+  public enabled = false;
+  public meanTimeBetweenKillsInWorkDays =  2;
+  public minTimeBetweenKillsInWorkDays =  1;
   public grouping: string = 'cluster';
-  public regionsAreIndependent: boolean = true;
+  public regionsAreIndependent = true;
   public exceptions: any[] = [];
 
   public constructor(config: any) {
@@ -30,7 +30,7 @@ export class ChaosMonkeyConfigController implements ng.IComponentController {
 
   public application: Application;
   public config: ChaosMonkeyConfig;
-  public chaosEnabled: boolean = false;
+  public chaosEnabled = false;
   public groupingOptions: GroupingOption[] = [];
   public viewState: IViewState = {
     originalConfig: null,

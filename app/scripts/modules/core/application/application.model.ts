@@ -65,13 +65,13 @@ export class Application {
    * Indicates that the application was not found in Front50
    * @type {boolean}
    */
-  public notFound: boolean = false;
+  public notFound = false;
 
   /**
    * Indicates that the application does not exist and is used as a stub
    * @type {boolean}
    */
-  public isStandalone: boolean = false;
+  public isStandalone = false;
 
   private refreshStream: Subject<any> = new Subject();
 

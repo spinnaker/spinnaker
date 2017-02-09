@@ -15,8 +15,8 @@ import {ServerGroup} from 'core/domain/serverGroup';
 export class FastPropertyScopeSearchComponentController implements ng.IComponentController {
 
   public query: string;
-  public querying: boolean = false;
-  public showSearchResults: boolean = false;
+  public querying = false;
+  public showSearchResults = false;
   public focussedResult: any;
   public selectedResult: any;
   public categories: any[];

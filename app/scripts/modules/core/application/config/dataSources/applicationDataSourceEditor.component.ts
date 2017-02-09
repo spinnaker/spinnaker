@@ -15,9 +15,9 @@ export class DataSourceEditorController implements ng.IComponentController {
   public model: any = {};
   public explicitlyEnabled: string[] = [];
   public explicitlyDisabled: string[] = [];
-  public isDirty: boolean = false;
-  public saving: boolean = false;
-  public saveError: boolean = false;
+  public isDirty = false;
+  public saving = false;
+  public saveError = false;
   public original: string;
 
   public dataSources: ApplicationDataSource[];

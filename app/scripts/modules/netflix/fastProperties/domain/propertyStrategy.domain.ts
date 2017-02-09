@@ -23,7 +23,7 @@ export interface PropertyStrategy {
 export class ManualStrategy implements PropertyStrategy {
   public name: string = 'ManualStrategy';
   public displayName = 'Manual Judgement Strategy';
-  public description: string = `Manual Strategy will add a Manual Judgement Stage after each Property Stage`;
+  public description = `Manual Strategy will add a Manual Judgement Stage after each Property Stage`;
   public configDetails: any = {};
 
   buildStage(user: IUser, _command: PropertyCommand, previousStage?: IStage): IStage {
@@ -40,7 +40,7 @@ export class ManualStrategy implements PropertyStrategy {
 export class AcaStrategy implements PropertyStrategy {
   public name: string = 'AcaStrategy';
   public displayName = 'ACA Strategy';
-  public description: string = `Aca Strategy will add an ACA Task stage after each Property Stage`;
+  public description = `Aca Strategy will add an ACA Task stage after each Property Stage`;
   public configDetails: AcaTaskStageConfigDetails = new AcaTaskStageConfigDetails();
 
   buildStage(user: IUser, command: PropertyCommand, previousStage?: IStage): IStage {
@@ -56,7 +56,7 @@ export class AcaStrategy implements PropertyStrategy {
 export class ForcePushStrategy implements PropertyStrategy {
   public name: string = 'ForcePushStrategy';
   public displayName = 'Force Push Strategy';
-  public description: string = `Force Push Strategy will not put any safeguards in place and will push the Property change through.`;
+  public description = `Force Push Strategy will not put any safeguards in place and will push the Property change through.`;
   public configDetails: any = {};
 
   buildStage(_user: IUser, _command: PropertyCommand, _previousStage?: IStage): IStage {

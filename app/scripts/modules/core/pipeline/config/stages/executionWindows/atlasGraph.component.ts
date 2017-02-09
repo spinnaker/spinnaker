@@ -81,10 +81,10 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
   public chartData: IChartData;
 
   // convenience flag based on settings
-  public atlasEnabled: boolean = false;
+  public atlasEnabled = false;
 
   // Used to determine how tall to make the execution window bars - it's just the max of the SPS data
-  private maxCount: number = 0;
+  private maxCount =  0;
 
   static get $inject() { return ['$http', '$filter', 'settings']; }
 
@@ -284,7 +284,7 @@ class AtlasGraphComponent implements ng.IComponentOptions {
     stage: '<',
   };
   public controller: any = ExecutionWindowAtlasGraphController;
-  public template: string = `
+  public template = `
     <div class="form-group" ng-if="$ctrl.atlasEnabled">
       <div class="col-md-9 col-md-offset-1">
         <div class="checkbox">

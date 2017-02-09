@@ -59,7 +59,7 @@ class AddEntityTagLinksComponent implements ng.IComponentOptions {
     ownerOptions: '<?',
   };
   public controller: any = AddEntityTagLinksCtrl;
-  public template: string = `
+  public template = `
     <li role="presentation" class="divider"></li>
     <li>
       <a href ng-click="$ctrl.addTag('notice')">

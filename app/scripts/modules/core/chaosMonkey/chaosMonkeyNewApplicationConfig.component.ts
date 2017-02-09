@@ -4,7 +4,7 @@ export class ChaosMonkeyNewApplicationConfigController {
 
   static get $inject() { return ['settings']; }
 
-  public enabled: boolean = false;
+  public enabled = false;
   public applicationConfig: any;
 
   public constructor(settings: any) {
@@ -27,7 +27,7 @@ class ChaosMonkeyNewApplicationConfigComponent implements ng.IComponentOptions {
     applicationConfig: '='
   };
   public controller: any = ChaosMonkeyNewApplicationConfigController;
-  public template: string = `
+  public template = `
     <div class="form-group row" ng-if="$ctrl.enabled">
       <div class="col-sm-3 sm-label-right">
         Chaos Monkey

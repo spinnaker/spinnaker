@@ -73,7 +73,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
   public existingHealthCheckNames: string[];
 
   public viewState: ViewState = new ViewState('None');
-  public maxCookieTtl: number = 60 * 60 * 24; // One day.
+  public maxCookieTtl =  60 * 60 * 24; // One day.
   public taskMonitor: any;
 
   private sessionAffinityModelToViewMap: any = _.invert(this.sessionAffinityViewToModelMap);

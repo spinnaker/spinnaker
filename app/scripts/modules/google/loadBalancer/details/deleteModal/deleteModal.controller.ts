@@ -7,11 +7,11 @@ import {
 import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
 
 class Verification {
-  verified: boolean = false;
+  verified = false;
 }
 
 class Params {
-  deleteHealthChecks: boolean = false;
+  deleteHealthChecks = false;
 }
 
 interface IGoogleLoadBalancerDeleteOperation extends ILoadBalancerDeleteDescription {

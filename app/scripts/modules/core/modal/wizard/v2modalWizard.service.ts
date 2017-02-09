@@ -23,7 +23,7 @@ export class V2ModalWizardService {
   public pageRegistry: WizardPage[] = [];
   public currentPage: WizardPage;
   public heading: string;
-  public pageOffset: number = -30;
+  public pageOffset =  -30;
 
   public constructor(private scrollToService: ScrollToService) {}
 

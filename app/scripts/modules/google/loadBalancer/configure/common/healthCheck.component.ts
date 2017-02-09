@@ -6,11 +6,11 @@ class HealthCheckCreateCtrl implements ng.IComponentController {
   healthCheck: IGceHealthCheck;
   healthCheckPlaceholder: IGceHealthCheck;
   healthChecksByAccountAndType: {[account: string]: {[healthCheckType: string]: IGceHealthCheck[]}};
-  editExisting: boolean = false;
+  editExisting = false;
   existingHealthChecksForProtocol: IGceHealthCheck[];
   existingHealthCheckNames: string[];
   credentials: string;
-  max: number = Number.MAX_SAFE_INTEGER;
+  max =  Number.MAX_SAFE_INTEGER;
 
   constructor (private $scope: ng.IScope) {}
 

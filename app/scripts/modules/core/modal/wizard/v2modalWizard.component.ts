@@ -46,7 +46,7 @@ class V2ModalWizardComponent implements ng.IComponentOptions {
     dismiss: '&',
   };
 
-  public transclude: boolean = true;
+  public transclude = true;
   public templateUrl: string = require('./v2modalWizard.component.html');
   public controller: any = V2ModalWizard;
 }

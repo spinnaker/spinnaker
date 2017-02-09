@@ -25,7 +25,7 @@ class AppengineLoadBalancerAdvancedSettingsCtrl implements ng.IComponentControll
 
 class AppengineLoadBalancerAdvancedSettingsComponent implements ng.IComponentOptions {
   public bindings: any = {loadBalancer: '=', application: '<'};
-  public template: string = `
+  public template = `
     <ng-form name="advancedSettingsForm">
       <div class="row">
         <div class="form-group">

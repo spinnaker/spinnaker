@@ -17,7 +17,7 @@ export class AutoScrollController implements ng.IComponentController {
   public $scope: ng.IScope;
 
   private scrollableContainer: JQuery;
-  private scrollEnabled: boolean = true;
+  private scrollEnabled = true;
 
   private containerEvent: string = 'scroll.autoScrollWatcher';
 

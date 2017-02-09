@@ -10,7 +10,7 @@ class ServerGroupRunningTasksComponent implements ng.IComponentOptions {
     serverGroup: '<',
   };
   public controller: any = ServerGroupRunningTasksCtrl;
-  public template: string = `
+  public template = `
     <collapsible-section heading="Running Tasks" expanded="true" body-class="details-running-tasks" ng-if="$ctrl.serverGroup.runningTasks.length > 0 || $ctrl.serverGroup.runningExecutions.length > 0">
       <div class="container-fluid no-padding" ng-repeat="task in $ctrl.serverGroup.runningTasks | orderBy:'-startTime'">
         <div class="row">
