@@ -3,6 +3,7 @@
 import _ from 'lodash';
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {JSON_UTILITY_SERVICE} from 'core/utils/json/json.utility.service';
 
 let angular = require('angular');
 
@@ -12,12 +13,12 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
     require('../snapshot.read.service.js'),
     require('../snapshot.write.service.js'),
     CONFIRMATION_MODAL_SERVICE,
-    require('../../pipeline/config/actions/history/jsonDiff.service.js'),
+    JSON_UTILITY_SERVICE,
     require('../../pipeline/config/actions/history/diffSummary.component.js'),
     require('../../pipeline/config/actions/history/diffView.component.js'),
   ])
   .controller('SnapshotDiffModalCtrl', function (availableAccounts, application, $filter, $uibModalInstance,
-                                                 snapshotReader, snapshotWriter, jsonDiffService, confirmationModalService) {
+                                                 snapshotReader, snapshotWriter, jsonUtilityService, confirmationModalService) {
     this.availableAccounts = availableAccounts;
     this.selectedAccount = _.head(availableAccounts);
     this.compareOptions = ['most recent', 'previous version'];
@@ -38,7 +39,7 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
         loading: true,
         error: false
       };
-      this.diff = jsonDiffService.diff([], []);
+      this.diff = jsonUtilityService.diff([], []);
       this.snapshots = [];
       this.version = 0;
     };
@@ -114,7 +115,7 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
 
       this.right = this.snapshots[this.version].contents;
       this.left = this.findLeftMap[this.compareTo](this.right, this.version);
-      this.diff = jsonDiffService.diff(this.left, this.right);
+      this.diff = jsonUtilityService.diff(this.left, this.right);
     };
 
     this.getSnapshotHistoryForAccount(this.selectedAccount);
