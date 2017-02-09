@@ -5,8 +5,8 @@ import {IAppengineServerGroupCommand} from './configure/serverGroupCommandBuilde
 import {IAppengineGitTrigger, IAppengineJenkinsTrigger, GitCredentialType} from 'appengine/domain/index';
 
 export class AppengineDeployDescription {
-  cloudProvider: string = 'appengine';
-  provider: string = 'appengine';
+  cloudProvider = 'appengine';
+  provider = 'appengine';
   credentials: string;
   account: string;
   application: string;

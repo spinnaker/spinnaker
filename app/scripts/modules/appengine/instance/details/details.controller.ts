@@ -21,7 +21,7 @@ class AppengineInstanceDetailsController {
   public state = {loading: true};
   public instance: IAppengineInstance;
   public instanceIdNotFound: String;
-  public upToolTip: string = 'An App Engine instance is \'Up\' if a load balancer is directing traffic to its server group.';
+  public upToolTip = 'An App Engine instance is \'Up\' if a load balancer is directing traffic to its server group.';
   public outOfServiceToolTip = `
     An App Engine instance is 'Out Of Service' if no load balancers are directing traffic to its server group.`;
 

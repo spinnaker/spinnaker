@@ -19,7 +19,7 @@ export class AutoScrollController implements ng.IComponentController {
   private scrollableContainer: JQuery;
   private scrollEnabled = true;
 
-  private containerEvent: string = 'scroll.autoScrollWatcher';
+  private containerEvent = 'scroll.autoScrollWatcher';
 
   private toggleAutoScrollEnabled(newVal: boolean): void {
     if (newVal !== undefined) {
@@ -55,9 +55,9 @@ export class AutoScrollController implements ng.IComponentController {
 
 @DirectiveFactory('$timeout')
 class AutoScrollDirective implements ng.IDirective {
-  restrict: string = 'A';
+  restrict = 'A';
   controller: any = AutoScrollController;
-  controllerAs: string = '$ctrl';
+  controllerAs = '$ctrl';
   bindToController: any = {
     autoScrollParent: '@?',
     autoScrollEnabled: '@?',

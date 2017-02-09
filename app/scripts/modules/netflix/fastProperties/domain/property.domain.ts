@@ -2,8 +2,8 @@ import {IPlatformProperty} from './platformProperty.model';
 
 export class Property {
   public propertyId: string;
-  public env: string = 'prod';
-  public sourceOfUpdate: string = 'spinnaker';
+  public env = 'prod';
+  public sourceOfUpdate = 'spinnaker';
   public updatedBy: string;
   public constraints: string;
   public description: string;

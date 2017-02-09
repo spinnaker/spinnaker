@@ -32,13 +32,13 @@ class InternalLoadBalancer implements IGceLoadBalancer {
   detail: string;
   loadBalancerName: string;
   ports: any;
-  ipProtocol: string = 'TCP';
-  loadBalancerType: string = 'INTERNAL';
+  ipProtocol = 'TCP';
+  loadBalancerType = 'INTERNAL';
   credentials: string;
   account: string;
-  network: string = 'default';
+  network = 'default';
   subnet: string;
-  cloudProvider: string = 'gce';
+  cloudProvider = 'gce';
   backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
 
   constructor (public region: string) {}

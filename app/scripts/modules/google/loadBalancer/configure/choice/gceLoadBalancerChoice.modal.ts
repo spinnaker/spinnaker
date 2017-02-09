@@ -7,7 +7,7 @@ import {Application} from 'core/application/application.model';
 
 class GceLoadBalancerChoiceCtrl implements ng.IComponentController {
   public choices: string[];
-  public choice: string = 'Network';
+  public choice = 'Network';
 
   static get $inject () { return ['$uibModal', '$uibModalInstance', 'application', 'loadBalancerTypeToWizardMap']; }
 

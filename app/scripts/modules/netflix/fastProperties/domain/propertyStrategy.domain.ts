@@ -21,7 +21,7 @@ export interface PropertyStrategy {
 }
 
 export class ManualStrategy implements PropertyStrategy {
-  public name: string = 'ManualStrategy';
+  public name = 'ManualStrategy';
   public displayName = 'Manual Judgement Strategy';
   public description = `Manual Strategy will add a Manual Judgement Stage after each Property Stage`;
   public configDetails: any = {};
@@ -38,7 +38,7 @@ export class ManualStrategy implements PropertyStrategy {
 }
 
 export class AcaStrategy implements PropertyStrategy {
-  public name: string = 'AcaStrategy';
+  public name = 'AcaStrategy';
   public displayName = 'ACA Strategy';
   public description = `Aca Strategy will add an ACA Task stage after each Property Stage`;
   public configDetails: AcaTaskStageConfigDetails = new AcaTaskStageConfigDetails();
@@ -54,7 +54,7 @@ export class AcaStrategy implements PropertyStrategy {
 }
 
 export class ForcePushStrategy implements PropertyStrategy {
-  public name: string = 'ForcePushStrategy';
+  public name = 'ForcePushStrategy';
   public displayName = 'Force Push Strategy';
   public description = `Force Push Strategy will not put any safeguards in place and will push the Property change through.`;
   public configDetails: any = {};

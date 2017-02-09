@@ -37,9 +37,9 @@ class SslLoadBalancer implements IGceLoadBalancer {
   stack: string;
   detail: string;
   loadBalancerName: string;
-  portRange: string = '443';
-  ipProtocol: string = 'TCP';
-  loadBalancerType: string = 'SSL';
+  portRange = '443';
+  ipProtocol = 'TCP';
+  loadBalancerType = 'SSL';
   credentials: string;
   account: string;
   certificate: string;
