@@ -13,4 +13,6 @@ RUN docker/setup-apache2.sh && \
 
 COPY docker /opt/deck/docker
 
+WORKDIR /opt/deck
+
 CMD /opt/deck/docker/run-apache2.sh
