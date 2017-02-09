@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.Nameable
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
@@ -39,10 +40,11 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
   String name = this.type
 
   @Override
-  def <T extends Execution> List<Stage<T>> aroundStages(Stage<T> parentStage) {
+  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> parentStage) {
     return composeTargets(parentStage)
   }
 
+  @Memoized
   List<Stage> composeTargets(Stage stage) {
     stage.resolveStrategyParams()
     def params = TargetServerGroup.Params.fromStage(stage)
