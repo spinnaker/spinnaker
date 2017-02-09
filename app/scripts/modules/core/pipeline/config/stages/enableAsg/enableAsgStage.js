@@ -1,7 +1,5 @@
 'use strict';
 
-//BEN_TODO: where is this defined?
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.enableAsgStage', [
