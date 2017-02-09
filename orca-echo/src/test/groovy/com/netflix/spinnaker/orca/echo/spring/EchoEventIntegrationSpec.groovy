@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunnerSpec.TestTask
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
@@ -185,13 +186,18 @@ abstract class EchoEventIntegrationSpec<R extends ExecutionRunner> extends Speci
     }
 
     @Bean
+    Front50Service front50Service() {
+      mockFactory.Mock(Front50Service)
+    }
+
+    @Bean
     EchoNotifyingStageListener echoNotifyingStageListener(EchoService echoService) {
       new EchoNotifyingStageListener(echoService)
     }
 
     @Bean
-    EchoNotifyingExecutionListener echoNotifyingExecutionListener(EchoService echoService) {
-      new EchoNotifyingExecutionListener(echoService)
+    EchoNotifyingExecutionListener echoNotifyingExecutionListener(EchoService echoService, Front50Service front50Service) {
+      new EchoNotifyingExecutionListener(echoService, front50Service)
     }
 
     @Bean

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.batch.stages.SpringBatchStageBuilderProvider
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
@@ -66,6 +67,7 @@ class EchoEventSpec extends Specification {
   public static final taskMustRepeat = new DefaultTaskResult(ExecutionStatus.RUNNING)
 
   def echoService = Mock(EchoService)
+  def front50Service = Mock(Front50Service)
 
   @Autowired
   AbstractApplicationContext applicationContext
@@ -114,7 +116,7 @@ class EchoEventSpec extends Specification {
       autowireBean pipelineJobBuilder
     }
 
-    ((SpringBatchExecutionListenerProvider) executionListenerProvider).executionListeners.add(0, new EchoNotifyingExecutionListener(echoService))
+    ((SpringBatchExecutionListenerProvider) executionListenerProvider).executionListeners.add(0, new EchoNotifyingExecutionListener(echoService, front50Service))
     ((SpringBatchExecutionListenerProvider) executionListenerProvider).stageListeners.add(0, new EchoNotifyingStageListener(echoService))
     ((SpringBatchStageBuilderProvider) stageBuilderProvider).stageBuilders.addAll(stageBuilders)
 
