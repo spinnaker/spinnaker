@@ -27,10 +27,10 @@ import java.util.List;
 @Component
 public class PersistentStorageService {
   @Autowired
-  LookupService lookupService;
+  private LookupService lookupService;
 
   @Autowired
-  DeploymentService deploymentService;
+  private DeploymentService deploymentService;
 
   public PersistentStorage getPersistentStorage(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPersistentStorage();

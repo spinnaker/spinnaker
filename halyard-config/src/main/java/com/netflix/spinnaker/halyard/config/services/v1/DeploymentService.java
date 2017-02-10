@@ -35,10 +35,10 @@ import java.util.List;
 @Component
 public class DeploymentService {
   @Autowired
-  LookupService lookupService;
+  private LookupService lookupService;
 
   @Autowired
-  ValidateService validateService;
+  private ValidateService validateService;
 
   public DeploymentConfiguration getDeploymentConfiguration(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName);

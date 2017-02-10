@@ -37,13 +37,13 @@ import java.util.List;
 @Component
 public class AccountService {
   @Autowired
-  LookupService lookupService;
+  private LookupService lookupService;
 
   @Autowired
-  ProviderService providerService;
+  private ProviderService providerService;
 
   @Autowired
-  ValidateService validateService;
+  private ValidateService validateService;
 
   public List<Account> getAllAccounts(String deploymentName, String providerName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).withAnyAccount();
@@ -64,7 +64,7 @@ public class AccountService {
     switch (matchingAccounts.size()) {
       case 0:
         throw new ConfigNotFoundException(new ConfigProblemBuilder(
-            Severity.FATAL, "No matching named \"" + accountName + "\" was found")
+            Severity.FATAL, "No account with name \"" + accountName + "\" was found")
             .setRemediation("Check if this account was defined in another provider, or create a new one").build());
       case 1:
         return matchingAccounts.get(0);

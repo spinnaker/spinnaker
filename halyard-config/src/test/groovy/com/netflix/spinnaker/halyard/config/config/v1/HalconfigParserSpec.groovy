@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1
 
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification

@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigService {
   @Autowired
-  HalconfigParser halconfigParser;
+  private HalconfigParser halconfigParser;
 
   public Halconfig getConfig() {
     return halconfigParser.getHalconfig(true);

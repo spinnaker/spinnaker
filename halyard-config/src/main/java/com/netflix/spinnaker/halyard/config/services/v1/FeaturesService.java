@@ -27,10 +27,10 @@ import java.util.List;
 @Component
 public class FeaturesService {
   @Autowired
-  LookupService lookupService;
+  private LookupService lookupService;
 
   @Autowired
-  DeploymentService deploymentService;
+  private DeploymentService deploymentService;
 
   public Features getFeatures(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setFeatures();
