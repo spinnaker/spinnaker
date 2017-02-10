@@ -3,6 +3,7 @@ clouddriver:
     - "../../config:/opt/spinnaker/config"
     - "../../config/aws:/root/.aws"
     - "../../config/gcp:/root/.gcp"
+    - "../../config/gcp:/root/.azure"
 echo: 
   volumes: 
     - "../../config:/opt/spinnaker/config"
