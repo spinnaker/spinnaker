@@ -15,23 +15,24 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.config.errors.v1;
+package com.netflix.spinnaker.halyard.config.error.v1;
 
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import lombok.Getter;
 
-import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
- * This is meant for requests that Halyard cannot figure out how to handle.
- * For example: Asking to load an account that isn't in your config.
+ * This is reserved for Halyard configs that fall between unparseable (not valid yaml), and incorrectly configured
+ * (provider-specific error). Essentially, when a config has problems that prevent halyard from validating it, although
+ * it is readable by our yaml parser into the halconfig Object, this is thrown
  */
-public class ConfigNotFoundException extends HalException {
-  @Getter
-  private int responseCode = HttpServletResponse.SC_NOT_FOUND;
+public class IllegalConfigException extends HalException {
+  public IllegalConfigException(List<Problem> problems) {
+    super(problems);
+  }
 
-  public ConfigNotFoundException(Problem problem) {
+  public IllegalConfigException(Problem problem) {
     super(problem);
   }
 }

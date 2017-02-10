@@ -18,7 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.providers.appengine;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
 public class AppengineProvider extends Provider<AppengineAccount> {
   @Override

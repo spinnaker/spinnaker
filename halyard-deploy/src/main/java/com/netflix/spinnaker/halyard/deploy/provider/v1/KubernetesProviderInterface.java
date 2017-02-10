@@ -20,7 +20,7 @@ import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact
 import spock.lang.Specification
 

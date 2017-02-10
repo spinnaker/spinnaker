@@ -15,10 +15,10 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.config.errors.v1;
+package com.netflix.spinnaker.halyard.config.error.v1;
 
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import org.yaml.snakeyaml.parser.ParserException;

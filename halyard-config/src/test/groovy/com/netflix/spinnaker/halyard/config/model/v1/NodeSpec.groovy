@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder
 import spock.lang.Specification
 
 class NodeSpec extends Specification {

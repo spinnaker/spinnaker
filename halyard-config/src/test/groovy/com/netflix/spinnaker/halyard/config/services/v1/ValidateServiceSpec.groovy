@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.config.services.v1
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder
 import com.netflix.spinnaker.halyard.config.validate.v1.ValidatorCollection
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem
 import spock.lang.Specification

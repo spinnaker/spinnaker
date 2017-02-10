@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

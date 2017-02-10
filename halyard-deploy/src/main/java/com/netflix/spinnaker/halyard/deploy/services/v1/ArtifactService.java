@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper;
-import com.netflix.spinnaker.halyard.config.errors.v1.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.problem.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
