@@ -264,8 +264,8 @@ services:
       enabled: false
 
     # To use an Azure storage account instead of Cassandra:
-    # Disable Cassandra above, enable Azure, and set the storage account name and key
-    azure:
+    # Disable Cassandra above, enable azs, and set the storage account name and key
+    azs:
       enabled: false
       storageAccountName:
       storageAccountKey:
