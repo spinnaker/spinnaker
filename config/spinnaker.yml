@@ -115,6 +115,8 @@ services:
       enabled: false
     gcs:
       enabled: false
+      project: ${providers.google.primaryCredentials.project}
+      jsonPath: ${providers.google.primaryCredentials.jsonPath}
     s3:
       enabled: false
 
