@@ -38,7 +38,7 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
 
 @RestController
 @RequestMapping("/snapshots")
-@ConditionalOnExpression('${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false} || ${spinnaker.azure.enabled:false}')
+@ConditionalOnExpression('${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false} || ${spinnaker.azs.enabled:false}')
 class SnapshotsController {
 
     @Autowired

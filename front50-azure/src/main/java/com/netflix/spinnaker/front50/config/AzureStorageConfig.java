@@ -48,7 +48,7 @@ import rx.schedulers.Schedulers;
 import java.util.concurrent.Executors;
 
 @Configuration
-@ConditionalOnExpression("${spinnaker.azure.enabled:false}")
+@ConditionalOnExpression("${spinnaker.azs.enabled:false}")
 @EnableConfigurationProperties(AzureStorageProperties.class)
 public class AzureStorageConfig {
 

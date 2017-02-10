@@ -18,7 +18,7 @@ package com.netflix.spinnaker.front50.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("spinnaker.azure")
+@ConfigurationProperties("spinnaker.azs")
 public class AzureStorageProperties {
   private String storageAccountKey;
   private String storageAccountName;

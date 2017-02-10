@@ -34,7 +34,7 @@ import retrofit.RetrofitError
 @Slf4j
 @RestController
 @RequestMapping("/serviceAccounts")
-@ConditionalOnExpression('${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false} || ${spinnaker.azure.enabled:false}')
+@ConditionalOnExpression('${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false} || ${spinnaker.azs.enabled:false}')
 public class ServiceAccountsController {
 
   @Autowired
