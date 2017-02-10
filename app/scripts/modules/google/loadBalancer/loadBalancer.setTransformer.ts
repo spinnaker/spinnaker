@@ -3,7 +3,7 @@ import {module} from 'angular';
 
 export class GceLoadBalancerSetTransformer {
 
-  private static normalizeElSevenGroup = (group: any[]): any[] => {
+  private static normalizeElSevenGroup (group: any[]): any[] {
     let normalized = cloneDeep(group[0]);
 
     normalized.listeners = group.map((loadBalancer) => {
@@ -17,11 +17,11 @@ export class GceLoadBalancerSetTransformer {
 
     normalized.name = normalized.urlMapName;
     return normalized;
-  };
+  }
 
-  private static parsePortRange = (portRange: string): string => {
+  private static parsePortRange (portRange: string): string {
     return portRange.split('-')[0];
-  };
+  }
 
   static get $inject() {
     return ['elSevenUtils'];

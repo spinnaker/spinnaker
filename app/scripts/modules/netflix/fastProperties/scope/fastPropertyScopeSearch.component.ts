@@ -187,7 +187,7 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
     categories.unshift({order: 79, category: 'Stack', results: appsClusters });
 
     return categories;
-  };
+  }
 
   private createScopesForEachCategoryResult(categories: any[]) {
     return categories.map((category) => {
