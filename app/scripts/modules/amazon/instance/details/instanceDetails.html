@@ -25,7 +25,7 @@
     <div class="header-text">
       <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
       <h3 select-on-dbl-click>
-        {{instance ? instance.instanceId ? instanceIdNotFound }}
+        {{instance ? instance.instanceId : instanceIdNotFound }}
       </h3>
     </div>
     <div>
