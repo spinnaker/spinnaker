@@ -1,26 +1,13 @@
+import {cloneDeep, groupBy, map, partition} from 'lodash';
 import {module} from 'angular';
-import * as _ from 'lodash';
 
 export class GceLoadBalancerSetTransformer {
 
-  static get $inject() { return ['elSevenUtils']; }
-
-  constructor(private elSevenUtils: any) {}
-
-  public normalizeLoadBalancerSet = (loadBalancers: any[]): any[] => {
-    let [elSevenLoadBalancers, otherLoadBalancers] = _.partition(loadBalancers, this.elSevenUtils.isElSeven);
-
-    let groupedByUrlMap = _.groupBy(elSevenLoadBalancers, 'urlMapName');
-    let normalizedElSevenLoadBalancers = _.map(groupedByUrlMap, this.normalizeElSevenGroup);
-
-    return normalizedElSevenLoadBalancers.concat(otherLoadBalancers);
-  };
-
-  private normalizeElSevenGroup = (group: any[]): any[] => {
-    let normalized = _.cloneDeep(group[0]);
+  private static normalizeElSevenGroup = (group: any[]): any[] => {
+    let normalized = cloneDeep(group[0]);
 
     normalized.listeners = group.map((loadBalancer) => {
-      let port = loadBalancer.portRange ? this.parsePortRange(loadBalancer.portRange) : null;
+      let port = loadBalancer.portRange ? GceLoadBalancerSetTransformer.parsePortRange(loadBalancer.portRange) : null;
       return {
         port,
         name: loadBalancer.name,
@@ -32,8 +19,23 @@ export class GceLoadBalancerSetTransformer {
     return normalized;
   };
 
-  private parsePortRange = (portRange: string): string => {
+  private static parsePortRange = (portRange: string): string => {
     return portRange.split('-')[0];
+  };
+
+  static get $inject() {
+    return ['elSevenUtils'];
+  }
+
+  constructor(private elSevenUtils: any) {}
+
+  public normalizeLoadBalancerSet = (loadBalancers: any[]): any[] => {
+    let [elSevenLoadBalancers, otherLoadBalancers] = partition(loadBalancers, this.elSevenUtils.isElSeven);
+
+    let groupedByUrlMap = groupBy(elSevenLoadBalancers, 'urlMapName');
+    let normalizedElSevenLoadBalancers = map(groupedByUrlMap, GceLoadBalancerSetTransformer.normalizeElSevenGroup);
+
+    return normalizedElSevenLoadBalancers.concat(otherLoadBalancers);
   };
 }
 

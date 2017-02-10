@@ -40,7 +40,7 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
     ];
   }
 
-  $onInit() {
+  public $onInit() {
     this.accountService.getAllAccountDetailsForProvider('aws')
       .then((accounts: any) => {
         let regions = accounts.reduce((acc: any, account: any) => {
@@ -67,15 +67,13 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
       });
   }
 
-  constructor(
-    private $q: ng.IQService,
-    infrastructureSearchService: any,
-    private accountService: AccountService,
-    private fastPropertyScopeSearchCategoryService: FastPropertyScopeCategoryService) {
+  constructor(private $q: ng.IQService,
+              infrastructureSearchService: any,
+              private accountService: AccountService,
+              private fastPropertyScopeSearchCategoryService: FastPropertyScopeCategoryService) {
     this.search = infrastructureSearchService();
     this.executeQuery = debounce(this.executeQuery, 400);
   }
-
 
   public clearFilters() {
     this.query = '';
@@ -99,9 +97,7 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
     this.showNoImpactListForCategory[categoryName] = this.showNoImpactListForCategory[categoryName]
                                                     ? !this.showNoImpactListForCategory[categoryName]
                                                     : true;
-
   }
-
 
   /*
    * Query and build the category list
@@ -114,14 +110,14 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
     this.querying = true;
     this.search
       .query(this.query)
-      .then(this.excludeUnnecessaryCategories)
-      .then(this.filterCategoriesByStartWithQuery)
-      .then(this.addGlobalCategory)
-      .then(this.addRegionCategory)
-      .then(this.fetchApplicationInfo)
-      .then(this.addStackCategory)
-      .then(this.createScopesForEachCategoryResult)
-      .then(this.doneQuerying);
+      .then((data: any) => this.excludeUnnecessaryCategories(data))
+      .then((data: any) => this.filterCategoriesByStartWithQuery(data))
+      .then((data: any) => this.addGlobalCategory(data))
+      .then((data: any) => this.addRegionCategory(data))
+      .then((data: any) => this.fetchApplicationInfo(data))
+      .then((data: any) => this.addStackCategory(data))
+      .then((data: any) => this.createScopesForEachCategoryResult(data))
+      .then((data: any) => this.doneQuerying(data));
   }
 
   /*
@@ -131,18 +127,18 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
     return categoryScope.instanceCounts.up < 1;
   }
 
-  private excludeUnnecessaryCategories = (results: any[]) => {
+  private excludeUnnecessaryCategories(results: any[]) {
     return this.fastPropertyScopeSearchCategoryService.includeNeededCategories(results);
-  };
+  }
 
-  private filterCategoriesByStartWithQuery = (categories: any[]): any => {
+  private filterCategoriesByStartWithQuery(categories: any[]): any {
     return categories.map((category: any) => {
       category.results = category.results.filter((r: any) => r.displayName.toLowerCase().startsWith(this.query.toLowerCase()));
       return category;
     });
-  };
+  }
 
-  public fetchApplicationInfo = (categories: any[]): any  => {
+  public fetchApplicationInfo(categories: any[]): any {
     let listOfPromises: ng.IPromise<any>[] = [];
 
     categories.forEach((category) => {
@@ -162,19 +158,19 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
     return this.$q.all(listOfPromises).then(() => {
       return categories;
     });
-  };
+  }
 
-  private addGlobalCategory = (categories: any[]) => {
+  private addGlobalCategory(categories: any[]) {
     categories.unshift({ order: 90, category: 'Global', results: [{displayName: 'Global'}] });
     return categories;
-  };
+  }
 
-  private addRegionCategory = (categories: any[]) => {
+  private addRegionCategory(categories: any[]) {
     categories.unshift({order: 80, category: 'Regions', results: this.regions});
     return categories;
-  };
+  }
 
-  private addStackCategory = (categories: any[]) => {
+  private addStackCategory(categories: any[]) {
     let appsClusters = values(this.applicationDictionary).reduce((acc: any[], app: Application): any[] => {
       app.clusters.forEach((cluster: ICluster) => {
         cluster.serverGroups.forEach((serverGroup: ServerGroup) => {
@@ -193,30 +189,26 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
     return categories;
   };
 
-  private createScopesForEachCategoryResult = (categories: any[]) => {
-    let categoriesWithScope = categories.map((category) => {
-      let scopes = category.results.reduce((acc: any[], result: any) => {
+  private createScopesForEachCategoryResult(categories: any[]) {
+    return categories.map((category) => {
+      category.scopes = category.results.reduce((acc: any[], result: any) => {
         this.fastPropertyScopeSearchCategoryService.buildScopeList(this.applicationDictionary, category.category, result)
           .forEach((scope: any) => acc.push(scope));
         return acc;
       }, []);
-      category.scopes = scopes;
       return category;
     });
+  }
 
-    return categoriesWithScope;
-  };
-
-  private doneQuerying = (categories: any[]) => {
+  private doneQuerying(categories: any[]) {
       this.categories = categories;
       this.displayResults();
       this.querying = false;
-  };
+  }
 
   public selectScope(scopeOption: Scope) {
     this.onScopeSelected({ scopeOption: scopeOption });
   }
-
 }
 
 class FastPropertyScopeSearchComponent implements ng.IComponentOptions {

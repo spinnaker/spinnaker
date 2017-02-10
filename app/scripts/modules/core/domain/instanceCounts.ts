@@ -1,5 +1,5 @@
 export interface InstanceCounts {
-  [k: string]: any; //Index Signature
+  [k: string]: any; // Index Signature
 
   up: number;
   down: number;

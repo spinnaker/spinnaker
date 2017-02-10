@@ -1,4 +1,4 @@
-import {IStage} from "./IStage";
+import {IStage} from './IStage';
 import {ITrigger} from './ITrigger';
 
 export interface IPipeline {
