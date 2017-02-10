@@ -33,14 +33,15 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import static java.util.Collections.emptySet;
 
 @Configuration
-@ComponentScan("com.netflix.spinnaker.orca.batch.legacy")
-@Import(SpringBatchExecutionListenerProvider.class)
+@Import({
+  SpringBatchExecutionListenerProvider.class,
+  SpringBatchActiveExecutionTracker.class
+})
 public class SpringBatchConfiguration {
   @Bean
   ExecutionRunner springBatchExecutionRunner(Collection<StageDefinitionBuilder> stageDefinitionBuilders,

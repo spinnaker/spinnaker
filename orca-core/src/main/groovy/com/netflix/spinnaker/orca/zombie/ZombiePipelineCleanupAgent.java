@@ -53,12 +53,12 @@ public class ZombiePipelineCleanupAgent {
   /**
    * How often the agent runs.
    */
-  private static final long FREQUENCY_MS = 21600000; // 6 hours
+  private static final long FREQUENCY_MS = 21_600_000; // 6 hours
 
   /**
    * Delay before running the agent the first time.
    */
-  private static final long INITIAL_DELAY_MS = 300000; // 5 minutes
+  private static final long INITIAL_DELAY_MS = 300_000; // 5 minutes
 
   private final ExecutionRepository repository;
   private final Clock clock;
