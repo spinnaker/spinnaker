@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
@@ -11,7 +10,6 @@ import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.controller', [
   require('angular-ui-router'),
   LOAD_BALANCER_WRITE_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
   ACCOUNT_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
@@ -20,7 +18,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
   require('../../transformer.js'),
 ])
   .controller('kubernetesUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
-                                                                 application, loadBalancer, isNew, loadBalancerReader,
+                                                                 application, loadBalancer, isNew,
                                                                  accountService, kubernetesLoadBalancerTransformer,
                                                                  searchService, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
     var ctrl = this;
@@ -34,7 +32,6 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
 
     $scope.state = {
       accountsLoaded: false,
-      loadBalancerNamesLoaded: false,
       submitting: false
     };
 
@@ -69,8 +66,6 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
       onTaskComplete: onTaskComplete,
     });
 
-    var allLoadBalancerNames = {};
-
     function initializeEditMode() {
     }
 
@@ -88,35 +83,20 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
       });
     }
 
-    function initializeLoadBalancerNames() {
-      loadBalancerReader.listLoadBalancers('kubernetes').then(function (loadBalancers) {
-        loadBalancers.forEach((loadBalancer) => {
-          let account = loadBalancer.account;
-          if (!allLoadBalancerNames[account]) {
-            allLoadBalancerNames[account] = {};
-          }
-          let namespace = loadBalancer.namespace;
-          if (!allLoadBalancerNames[account][namespace]) {
-            allLoadBalancerNames[account][namespace] = [];
-          }
-          allLoadBalancerNames[account][namespace].push(loadBalancer.name);
-        });
-
-        updateLoadBalancerNames();
-        $scope.state.loadBalancerNamesLoaded = true;
-      });
-    }
-
     function updateLoadBalancerNames() {
-      var account = $scope.loadBalancer.account;
-      var namespace = $scope.loadBalancer.namespace;
+      var account = $scope.loadBalancer.credentials,
+          namespace = $scope.loadBalancer.namespace;
 
-      $scope.existingLoadBalancerNames = [];
-      if (account && namespace &&
-          allLoadBalancerNames[account] &&
-          allLoadBalancerNames[account][namespace]) {
-        $scope.existingLoadBalancerNames = allLoadBalancerNames[account][namespace];
-      }
+      const accountLoadBalancersByNamespace = {};
+      application.getDataSource('loadBalancers').refresh(true).then(() => {
+        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
+          if (loadBalancer.account === account) {
+            accountLoadBalancersByNamespace[loadBalancer.namespace] = accountLoadBalancersByNamespace[loadBalancer.namespace] || [];
+            accountLoadBalancersByNamespace[loadBalancer.namespace].push(loadBalancer.name);
+          }
+        });
+        $scope.existingLoadBalancerNames = accountLoadBalancersByNamespace[namespace] || [];
+      });
     }
 
     // initialize controller
@@ -126,7 +106,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
       initializeCreateMode();
     } else {
       $scope.loadBalancer = kubernetesLoadBalancerTransformer.constructNewLoadBalancerTemplate();
-      initializeLoadBalancerNames();
+      updateLoadBalancerNames();
       initializeCreateMode();
     }
 

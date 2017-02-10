@@ -1,23 +1,27 @@
 'use strict';
 
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
+
 describe('Controller: awsCreateLoadBalancerCtrl', function () {
 
   // load the controller's module
   beforeEach(
     window.module(
-      require('./createLoadBalancer.controller')
+      require('./createLoadBalancer.controller'),
+      APPLICATION_MODEL_BUILDER
     )
   );
 
   // Initialize the controller and a mock scope
-  beforeEach(window.inject(function ($controller, $rootScope) {
+  beforeEach(window.inject(function ($controller, $rootScope, applicationModelBuilder) {
     this.settings = {};
     this.$scope = $rootScope.$new();
+    const app = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: true});
     this.initialize = () => {
       this.ctrl = $controller('awsCreateLoadBalancerCtrl', {
         $scope: this.$scope,
         $uibModalInstance: {dismiss: angular.noop, result: {then: angular.noop}},
-        application: {name: 'app', defaultCredentials: {}, defaultRegions: {}},
+        application: app,
         loadBalancer: null,
         isNew: true,
         forPipelineConfig: false,

@@ -1,8 +1,9 @@
 'use strict';
 
+import _ from 'lodash';
+
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
@@ -13,7 +14,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
   require('angular-ui-router'),
   require('../loadBalancer.write.service.js'),
-  LOAD_BALANCER_READ_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
   V2_MODAL_WIZARD_SERVICE,
@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
 ])
   .controller('azureCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                       accountService, azureLoadBalancerTransformer,
-                                                      infrastructureCaches, loadBalancerReader, networkReader,
+                                                      infrastructureCaches, networkReader,
                                                       v2modalWizardService, azureLoadBalancerWriter, taskMonitorBuilder,
                                                       namingService, application, loadBalancer, isNew) {
 
@@ -42,7 +42,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
 
     $scope.state = {
       accountsLoaded: false,
-      loadBalancerNamesLoaded: false,
       submitting: false,
     };
 
@@ -79,8 +78,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
       onTaskComplete: onTaskComplete,
     });
 
-    var allLoadBalancerNames = {};
-
     function initializeCreateMode() {
       accountService.listAccounts('azure').then(function (accounts) {
         $scope.accounts = accounts;
@@ -102,44 +99,26 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
         $scope.loadBalancer = azureLoadBalancerTransformer.constructNewLoadBalancerTemplate(application);
       }
       if (isNew) {
-        initializeLoadBalancerNames();
+        updateLoadBalancerNames();
         initializeCreateMode();
       }
     }
 
-    function initializeLoadBalancerNames() {
-      loadBalancerReader.listLoadBalancers('azure').then(function(loadBalancers) {
-        loadBalancers.forEach((loadBalancer) => {
-          if (loadBalancer.accounts) {
-            loadBalancer.accounts.forEach((account) => {
-              var accountName = account.name;
-              account.regions.forEach((region) => {
-                var regionName = region.name;
-                if (!allLoadBalancerNames[accountName]) {
-                  allLoadBalancerNames[accountName] = {};
-                }
-                if (!allLoadBalancerNames[accountName][regionName]) {
-                  allLoadBalancerNames[accountName][regionName] = [];
-                }
-                allLoadBalancerNames[accountName][regionName].push(loadBalancer.name);
-              });
-            });
-          }
-        });
-        updateLoadBalancerNames();
-        $scope.state.loadBalancerNamesLoaded = true;
-      });
-    }
-
     function updateLoadBalancerNames() {
       var account = $scope.loadBalancer.credentials,
-        region = $scope.loadBalancer.region;
+          region = $scope.loadBalancer.region;
 
-      if (allLoadBalancerNames[account] && allLoadBalancerNames[account][region]) {
-        $scope.existingLoadBalancerNames = allLoadBalancerNames[account][region];
-      } else {
-        $scope.existingLoadBalancerNames = [];
-      }
+      const accountLoadBalancersByRegion = {};
+      application.getDataSource('loadBalancers').refresh(true).then(() => {
+        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
+          if (loadBalancer.account === account) {
+            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
+            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+          }
+        });
+
+        $scope.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
+      });
     }
 
     initializeController();

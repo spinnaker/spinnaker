@@ -1,6 +1,7 @@
 'use strict';
 
 import {API_SERVICE} from 'core/api/api.service';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: azureCreateLoadBalancerCtrl', function () {
 
@@ -11,18 +12,20 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
   beforeEach(
     window.module(
       require('./createLoadBalancer.controller'),
-      API_SERVICE
+      API_SERVICE,
+      APPLICATION_MODEL_BUILDER
     )
   );
 
   // Initialize the controller and a mock scope
-  beforeEach(window.inject(function ($controller, $rootScope, _API_) {
+  beforeEach(window.inject(function ($controller, $rootScope, _API_, applicationModelBuilder) {
     API = _API_;
+    const app = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: true});
     this.$scope = $rootScope.$new();
     this.ctrl = $controller('azureCreateLoadBalancerCtrl', {
       $scope: this.$scope,
       $uibModalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
-      application: {name: 'app'},
+      application: app,
       loadBalancer: null,
       isNew: true
     });
@@ -47,13 +50,11 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
 
   it('makes the expected REST calls for data for a new loadbalancer', function() {
     $http.when('GET', API.baseUrl + '/networks').respond([]);
-    $http.when('GET', API.baseUrl + '/loadBalancers?provider=azure').respond([]);
     $http.when('GET', API.baseUrl + '/securityGroups').respond({});
     $http.when('GET', API.baseUrl + '/credentials').respond([]);
     $http.when('GET', API.baseUrl + '/credentials/azure-test').respond([]);
     $http.when('GET', API.baseUrl + '/subnets').respond([]);
 
-    $http.expectGET(API.baseUrl + '/loadBalancers?provider=azure');
     $http.flush();
   });
 
