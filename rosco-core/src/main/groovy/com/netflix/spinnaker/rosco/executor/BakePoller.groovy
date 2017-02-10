@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.executor
 
-import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
@@ -77,81 +76,89 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
     // Update this rosco instance's incomplete bakes.
     Schedulers.io().createWorker().schedulePeriodically(
       {
-        rx.Observable.from(bakeStore.thisInstanceIncompleteBakeIds)
-          .subscribe(
-            { String incompleteBakeId ->
-              try {
-                updateBakeStatusAndLogs(incompleteBakeId)
-              } catch (Exception e) {
-                log.error("Polling Error:", e)
-              }
-            },
-            {
-              log.error("Error: ${it.message}")
-            },
-            {} as Action0
-        )
+        try {
+          rx.Observable.from(bakeStore.thisInstanceIncompleteBakeIds)
+            .subscribe(
+              { String incompleteBakeId ->
+                try {
+                  updateBakeStatusAndLogs(incompleteBakeId)
+                } catch (Exception e) {
+                  log.error("Update Polling Error:", e)
+                }
+              },
+              {
+                log.error("Update Error: ${it.message}")
+              },
+              {} as Action0
+            )
+        } catch (Exception e) {
+          log.error("Update Polling Error:", e)
+        }
       } as Action0, 0, pollingIntervalSeconds, TimeUnit.SECONDS
     )
 
     // Check _all_ rosco instances' incomplete bakes for staleness.
     Schedulers.io().createWorker().schedulePeriodically(
       {
-        rx.Observable.from(bakeStore.allIncompleteBakeIds.entrySet())
-          .subscribe(
-            { Map.Entry<String, Set<String>> entry ->
-              String roscoInstanceId = entry.key
-              Set<String> incompleteBakeIds = entry.value
+        try {
+          rx.Observable.from(bakeStore.allIncompleteBakeIds.entrySet())
+            .subscribe(
+              { Map.Entry<String, Set<String>> entry ->
+                String roscoInstanceId = entry.key
+                Set<String> incompleteBakeIds = entry.value
 
-              if (roscoInstanceId != this.roscoInstanceId) {
-                try {
-                  rx.Observable.from(incompleteBakeIds)
-                    .subscribe(
-                      { String statusId ->
-                        BakeStatus bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
+                if (roscoInstanceId != this.roscoInstanceId) {
+                  try {
+                    rx.Observable.from(incompleteBakeIds)
+                      .subscribe(
+                        { String statusId ->
+                          BakeStatus bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
 
-                        // The updatedTimestamp key will not be present if the in-flight bake is managed by an
-                        // older-style (i.e. rosco/rush) rosco instance.
-                        if (bakeStatus?.updatedTimestamp) {
-                          long currentTimeSeconds = TimeUnit.MILLISECONDS.toSeconds(bakeStore.timeInMilliseconds)
-                          long lastUpdatedTimeSeconds = TimeUnit.MILLISECONDS.toSeconds(bakeStatus.updatedTimestamp)
-                          long eTimeMinutes = TimeUnit.SECONDS.toMinutes(currentTimeSeconds - lastUpdatedTimeSeconds)
+                          // The updatedTimestamp key will not be present if the in-flight bake is managed by an
+                          // older-style (i.e. rosco/rush) rosco instance.
+                          if (bakeStatus?.updatedTimestamp) {
+                            long currentTimeSeconds = TimeUnit.MILLISECONDS.toSeconds(bakeStore.timeInMilliseconds)
+                            long lastUpdatedTimeSeconds = TimeUnit.MILLISECONDS.toSeconds(bakeStatus.updatedTimestamp)
+                            long eTimeMinutes = TimeUnit.SECONDS.toMinutes(currentTimeSeconds - lastUpdatedTimeSeconds)
 
-                          // This can only be true if the rosco instance that owns this bake has not been updating the status.
-                          // Note that this only applies to bakes owned by _other_ rosco instances, not _this_ one.
-                          if (eTimeMinutes >= orphanedJobTimeoutMinutes) {
-                            log.info("The staleness of bake $statusId ($eTimeMinutes minutes) has met or exceeded the " +
-                                     "value of orphanedJobTimeoutMinutes ($orphanedJobTimeoutMinutes minutes).")
+                            // This can only be true if the rosco instance that owns this bake has not been updating the status.
+                            // Note that this only applies to bakes owned by _other_ rosco instances, not _this_ one.
+                            if (eTimeMinutes >= orphanedJobTimeoutMinutes) {
+                              log.info("The staleness of bake $statusId ($eTimeMinutes minutes) has met or exceeded the " +
+                                       "value of orphanedJobTimeoutMinutes ($orphanedJobTimeoutMinutes minutes).")
 
-                            boolean cancellationSucceeded = bakeStore.cancelBakeById(statusId)
+                              boolean cancellationSucceeded = bakeStore.cancelBakeById(statusId)
 
-                            if (!cancellationSucceeded) {
-                              bakeStore.removeFromIncompletes(roscoInstanceId, statusId)
+                              if (!cancellationSucceeded) {
+                                bakeStore.removeFromIncompletes(roscoInstanceId, statusId)
+                              }
+
+                              // This will have the most up-to-date timestamp.
+                              bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
+                              def tags = [success: "false", cause: "orphanTimedOut", region: bakeStore.retrieveRegionById(statusId)]
+                              long millis = bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp
+                              registry.timer(registry.createId("bakesCompleted", tags)).record(millis, TimeUnit.MILLISECONDS)
                             }
-
-                            // This will have the most up-to-date timestamp.
-                            bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
-                            def tags = [success: "false", cause: "orphanTimedOut", region: bakeStore.retrieveRegionById(statusId)]
-                            long millis = bakeStatus.updatedTimestamp - bakeStatus.createdTimestamp
-                            registry.timer(registry.createId("bakesCompleted", tags)).record(millis, TimeUnit.MILLISECONDS)
                           }
-                        }
-                      },
-                      {
-                        log.error("Error: ${it.message}")
-                      },
-                      {} as Action0
-                  )
-                } catch (Exception e) {
-                  log.error("Polling Error:", e)
+                        },
+                        {
+                          log.error("Error: ${it.message}")
+                        },
+                        {} as Action0
+                    )
+                  } catch (Exception e) {
+                    log.error("Zombie Killer Polling Error:", e)
+                  }
                 }
-              }
-            },
-            {
-              log.error("Error: ${it.message}")
-            },
-            {} as Action0
-        )
+              },
+              {
+                log.error("Zombie Killer Error: ${it.message}")
+              },
+              {} as Action0
+            )
+        } catch (Exception e) {
+          log.error("Zombie Killer Polling Error:", e)
+        }
       } as Action0, 0, orphanedJobPollingIntervalSeconds, TimeUnit.SECONDS
     )
   }

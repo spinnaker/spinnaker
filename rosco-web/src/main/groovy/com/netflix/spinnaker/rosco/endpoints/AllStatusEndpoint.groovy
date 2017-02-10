@@ -37,6 +37,6 @@ class AllStatusEndpoint extends AbstractEndpoint<Map<String, Object>> {
 
   @Override
   public Map<String, Object> invoke() {
-    return statusHandler.AllIncompleteBakes()
+    return statusHandler.allIncompleteBakes()
   }
 }

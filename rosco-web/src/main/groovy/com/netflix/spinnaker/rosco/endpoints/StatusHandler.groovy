@@ -42,7 +42,7 @@ class StatusHandler {
     return getBakesAndInstanceStatus(instanceIncompleteBakeIds)
   }
 
-  public Map<String, Object> AllIncompleteBakes() {
+  public Map<String, Object> allIncompleteBakes() {
     def instances = [:]
     def allIncompleteBakeIds = bakeStore.getAllIncompleteBakeIds()
     if (allIncompleteBakeIds) {
