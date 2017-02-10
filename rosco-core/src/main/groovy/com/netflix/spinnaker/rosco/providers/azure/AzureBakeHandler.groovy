@@ -25,6 +25,8 @@ import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import java.time.Clock
+
 @Component
 public class AzureBakeHandler extends CloudProviderBakeHandler{
 
@@ -92,9 +94,25 @@ public class AzureBakeHandler extends CloudProviderBakeHandler{
       azure_location: region,
       azure_image_publisher: selectedImage?.baseImage?.publisher,
       azure_image_offer: selectedImage?.baseImage?.offer,
-      azure_image_sku: selectedImage?.baseImage?.sku,
-      azure_image_name: "$bakeRequest.build_number-$bakeRequest.base_name"
+      azure_image_sku: selectedImage?.baseImage?.sku
     ]
+
+    if (bakeRequest.build_number && bakeRequest.base_name) {
+      parameterMap.azure_image_name = "$bakeRequest.build_number-$bakeRequest.base_name"
+    } else if (imageName) {
+      parameterMap.azure_image_name = imageName
+    } else {
+      parameterMap.azure_image_name = Clock.systemUTC.millis().toString()
+    }
+
+    // Ensure 'azure_image_name' conforms to CaptureNamePrefix regex in packer.
+    // https://github.com/mitchellh/packer/blob/master/builder/azure/arm/config.go#L45
+    def azureImageName = parameterMap.azure_image_name
+    azureImageName = azureImageName.replaceAll(/[^A-Za-z0-9_\-\.]/, "")
+    azureImageName = azureImageName.length() <= 23 ? azureImageName : azureImageName.substring(0, 23)
+    azureImageName = azureImageName.replaceAll(/[\-\.]+$/, "")
+
+    parameterMap.azure_image_name = azureImageName
 
     if (appVersionStr) {
       parameterMap.appversion = appVersionStr

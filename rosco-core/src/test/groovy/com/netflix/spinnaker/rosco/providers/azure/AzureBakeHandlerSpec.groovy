@@ -331,4 +331,34 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
     1 * imageNameFactoryMock.buildPackagesParameter(NUPKG_PACKAGE_TYPE, osPackages) >> NUPKG_PACKAGES_NAME
     1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/azure-windows-2012-r2.json")
   }
+
+  void 'Create proper azure_image_name'() {
+    setup:
+    def azureBakeHandler = new AzureBakeHandler(azureBakeryDefaults: azureBakeryDefaults)
+
+    when:
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+      package_name: NUPKG_PACKAGES_NAME,
+      base_os: "windows-2012-r2",
+      cloud_provider_type: BakeRequest.CloudProviderType.azure,
+      build_number: buildNumber,
+      base_name: baseName)
+    def azureVirtualizationSettings = azureBakeHandler.findVirtualizationSettings(REGION, bakeRequest)
+    def parameterMap = azureBakeHandler.buildParameterMap(REGION, azureVirtualizationSettings, imageName, bakeRequest, "SomeVersion")
+
+    then:
+    parameterMap.azure_image_name == expectedAzureImageName
+
+    where:
+    buildNumber   | baseName    | imageName                                           || expectedAzureImageName
+    null          | null        | "namethatexceeds.23char.acters"                     || "namethatexceeds.23char"
+    BUILD_NUMBER  | BUILD_NAME  | IMAGE_NAME                                          || IMAGE_NAME
+    BUILD_NUMBER  | BUILD_NAME  | null                                                || IMAGE_NAME
+    BUILD_NUMBER  | null        | IMAGE_NAME                                          || IMAGE_NAME
+    null          | BUILD_NAME  | IMAGE_NAME                                          || IMAGE_NAME
+    null          | null        | IMAGE_NAME                                          || IMAGE_NAME
+    null          | null        | "test-with!>#characters.morethan.23characters"      || "test-withcharacters.mor"
+    null          | null        | "test-with!>#characters..-."                        || "test-withcharacters"
+    BUILD_NUMBER  | BUILD_NAME  | "this-is-a--test-withnamethatexceeds.23characters"  || IMAGE_NAME
+  }
 }
