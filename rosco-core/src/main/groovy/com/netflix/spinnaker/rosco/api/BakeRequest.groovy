@@ -18,6 +18,10 @@ package com.netflix.spinnaker.rosco.api
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.annotations.SerializedName
+import com.netflix.spinnaker.rosco.providers.util.PackageUtil
+import com.netflix.spinnaker.rosco.providers.util.packagespecific.DebPackageUtil
+import com.netflix.spinnaker.rosco.providers.util.packagespecific.NupkgPackageUtil
+import com.netflix.spinnaker.rosco.providers.util.packagespecific.RpmPackageUtil
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import io.swagger.annotations.ApiModelProperty
@@ -84,24 +88,18 @@ class BakeRequest {
   }
 
   static enum PackageType {
-    RPM('rpm', '-'),
-    DEB('deb', '='),
-    NUPKG('nupkg', '.')
+    RPM(new RpmPackageUtil()),
+    DEB(new DebPackageUtil()),
+    NUPKG(new NupkgPackageUtil())
 
-    private final String packageType
-    private final String versionDelimiter
+    private final PackageUtil util
 
-    private PackageType(String packageType, String versionDelimiter) {
-      this.packageType = packageType
-      this.versionDelimiter = versionDelimiter
+    private PackageType(PackageUtil util) {
+      this.util = util
     }
 
-    String getPackageType() {
-      return this.packageType
-    }
-
-    String getVersionDelimiter() {
-      return this.versionDelimiter
+    PackageUtil getUtil() {
+      return util
     }
   }
 

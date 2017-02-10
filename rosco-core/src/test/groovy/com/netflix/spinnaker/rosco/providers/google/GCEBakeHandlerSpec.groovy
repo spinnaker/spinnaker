@@ -208,7 +208,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: SOURCE_PRECISE_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -248,7 +248,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: SOURCE_CENTOS_HVM_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: YUM_REPOSITORY,
-        package_type: RPM_PACKAGE_TYPE.packageType,
+        package_type: RPM_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -289,7 +289,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: "some-gce-image-name",
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -330,7 +330,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: SOURCE_PRECISE_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -371,7 +371,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: SOURCE_PRECISE_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir,
         someAttr1: "someValue1",
@@ -419,7 +419,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: SOURCE_PRECISE_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -460,7 +460,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: SOURCE_PRECISE_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -502,7 +502,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -539,7 +539,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                         build_host: buildHost,
                                         build_info_url: buildInfoUrl,
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
-      def osPackage = PackageNameConverter.parseDebPackageName(bakeRequest.package_name)
+      def osPackage = PackageNameConverter.buildOsPackageName(DEB_PACKAGE_TYPE, bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
@@ -548,7 +548,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: fullyQualifiedPackageName,
         configDir: configDir,
         appversion: appVersionStr,
@@ -593,7 +593,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -633,7 +633,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image_family: SOURCE_XENIAL_IMAGE_NAME + "-family",
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -674,7 +674,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: "some-gce-image-name",
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -714,7 +714,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_source_image: SOURCE_YAKKETY_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]

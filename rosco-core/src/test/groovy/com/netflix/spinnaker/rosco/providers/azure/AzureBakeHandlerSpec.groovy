@@ -22,7 +22,6 @@ import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.azure.config.RoscoAzureConfiguration
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
-import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.util.TestDefaults
 import spock.lang.Shared
@@ -260,7 +259,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
         azure_image_sku: IMAGE_SKU,
         azure_image_name: IMAGE_NAME,
         repository: DEBIAN_REPOSITORY,
-        package_type: BakeRequest.PackageType.DEB.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -309,7 +308,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
       azure_image_sku: IMAGE_SKU_WINDOWS,
       azure_image_name: IMAGE_NAME,
       repository: CHOCOLATEY_REPOSITORY,
-      package_type: NUPKG_PACKAGE_TYPE.packageType,
+      package_type: NUPKG_PACKAGE_TYPE.util.packageType,
       packages: NUPKG_PACKAGES_NAME,
       configDir: configDir
     ]

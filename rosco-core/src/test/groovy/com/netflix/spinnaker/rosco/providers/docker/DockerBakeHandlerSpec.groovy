@@ -163,7 +163,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         docker_target_image_tag: SOME_COMMIT_HASH,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -206,7 +206,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         docker_target_image_tag: SOME_COMMIT_HASH,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -249,7 +249,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         docker_target_image_tag: SOME_DOCKER_TAG,
         docker_target_repository: TARGET_REPOSITORY,
         repository: YUM_REPOSITORY,
-        package_type: RPM_PACKAGE_TYPE.packageType,
+        package_type: RPM_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -285,7 +285,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                         request_id: SOME_UUID,
                                         extended_attributes: [docker_target_image_tag: SOME_DOCKER_TAG],
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
-      def osPackage = PackageNameConverter.parseDebPackageName(bakeRequest.package_name)
+      def osPackage = PackageNameConverter.buildOsPackageName(DEB_PACKAGE_TYPE, bakeRequest.package_name)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
         appversion: SOME_MILLISECONDS,
@@ -295,7 +295,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         docker_target_image_tag: SOME_DOCKER_TAG,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: fullyQualifiedPackageName,
         configDir: configDir,
         build_host: buildHost
@@ -348,7 +348,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         docker_target_image_tag: SOME_COMMIT_HASH,
         docker_target_repository: TARGET_REPOSITORY,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: fullyQualifiedPackageName,
         configDir: configDir
       ]

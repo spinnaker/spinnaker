@@ -161,7 +161,7 @@ abstract class CloudProviderBakeHandler {
       parameterMap.repository = chocolateyRepository
     }
 
-    parameterMap.package_type = selectedOptions.baseImage.packageType.packageType
+    parameterMap.package_type = selectedOptions.baseImage.packageType.util.packageType
     parameterMap.packages = packagesParameter
 
     if (bakeRequest.build_host) {

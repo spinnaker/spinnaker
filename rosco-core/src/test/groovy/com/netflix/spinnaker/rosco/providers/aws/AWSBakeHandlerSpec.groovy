@@ -308,7 +308,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_source_ami: SOURCE_UBUNTU_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -348,7 +348,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_source_ami: SOURCE_AMZN_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: YUM_REPOSITORY,
-        package_type: RPM_PACKAGE_TYPE.packageType,
+        package_type: RPM_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -412,7 +412,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_source_ami: SOURCE_AMZN_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: YUM_REPOSITORY,
-        package_type: RPM_PACKAGE_TYPE.packageType,
+        package_type: RPM_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -454,7 +454,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_source_ami: "ami-12345678",
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -494,7 +494,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -535,7 +535,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -576,7 +576,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir,
         someAttr1: "someValue1",
@@ -618,7 +618,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -656,7 +656,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                         build_info_url: buildInfoUrl,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-trusty"
-      def osPackages = [PackageNameConverter.parseDebPackageName(fullyQualifiedPackageName)]
+      def osPackages = [PackageNameConverter.buildOsPackageName(DEB_PACKAGE_TYPE, fullyQualifiedPackageName)]
       def parameterMap = [
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
@@ -664,7 +664,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: fullyQualifiedPackageName,
         configDir: configDir,
         appversion: appVersionStr,
@@ -708,7 +708,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_source_ami: SOURCE_UBUNTU_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         upgrade: true,
         configDir: configDir
@@ -749,7 +749,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       aws_source_ami: SOURCE_WINDOWS_2012_R2_HVM_IMAGE_NAME,
       aws_target_ami: targetImageName,
       repository: CHOCOLATEY_REPOSITORY,
-      package_type: NUPKG_PACKAGE_TYPE.packageType,
+      package_type: NUPKG_PACKAGE_TYPE.util.packageType,
       packages: NUPKG_PACKAGES_NAME,
       configDir: configDir
     ]
@@ -967,7 +967,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         repository: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,
         share_with_1: "000001",
@@ -1021,7 +1021,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         repository: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,
         copy_to_1: "us-west-1",

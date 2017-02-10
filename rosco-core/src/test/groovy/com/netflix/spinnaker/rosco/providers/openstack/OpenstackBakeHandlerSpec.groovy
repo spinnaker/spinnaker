@@ -243,7 +243,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
         openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -297,7 +297,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
             openstack_security_groups: openstackBakeryDefaults.securityGroups,
             openstack_project_name: openstackBakeryDefaults.projectName,
             repository: DEBIAN_REPOSITORY,
-            package_type: BakeRequest.PackageType.DEB.packageType,
+            package_type: BakeRequest.PackageType.DEB.util.packageType,
             packages: PACKAGES_NAME,
             configDir: configDir,
             appversion: appVersionStr,
@@ -350,7 +350,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
         openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -401,7 +401,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
         openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -451,7 +451,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
         openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir,
         someAttr1: "someValue1",
@@ -503,7 +503,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
         openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir
       ]
@@ -553,7 +553,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         openstack_security_groups: openstackBakeryDefaults.securityGroups,
         openstack_project_name: openstackBakeryDefaults.projectName,
         repository: DEBIAN_REPOSITORY,
-        package_type: DEB_PACKAGE_TYPE.packageType,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
         packages: PACKAGES_NAME,
         configDir: configDir,
         upgrade: true
