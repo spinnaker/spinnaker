@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeVpcsResult
 import com.amazonaws.services.ec2.model.IpPermission
+import com.amazonaws.services.ec2.model.IpRange
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.model.UserIdGroupPair
@@ -540,10 +541,10 @@ class MigrateSecurityGroupStrategySpec extends Specification {
     def targetGroup1 = new SecurityGroup(groupName: 'group1', groupId: 'sg-5', ownerId: prodCredentials.accountId)
     def targetGroup2 = new SecurityGroup(groupName: 'group2', groupId: 'sg-6', ownerId: prodCredentials.accountId)
     sourceGroup.ipPermissions = [
-      new IpPermission().withUserIdGroupPairs([]).withIpRanges("1.2.3.4").withFromPort(7001).withToPort(7003)
+      new IpPermission().withUserIdGroupPairs([]).withIpv4Ranges(new IpRange().withCidrIp("1.2.3.4")).withFromPort(7001).withToPort(7003)
     ]
     targetGroup1.ipPermissions = [
-      new IpPermission().withUserIdGroupPairs([]).withIpRanges("1.2.3.4").withFromPort(7001).withToPort(7003)
+      new IpPermission().withUserIdGroupPairs([]).withIpv4Ranges(new IpRange().withCidrIp("1.2.3.4")).withFromPort(7001).withToPort(7003)
     ]
     def sourceUpdater = Stub(SecurityGroupUpdater) {
       getSecurityGroup() >> sourceGroup

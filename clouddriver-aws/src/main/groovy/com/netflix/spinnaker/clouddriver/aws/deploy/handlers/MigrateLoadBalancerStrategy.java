@@ -483,7 +483,8 @@ public abstract class MigrateLoadBalancerStrategy implements MigrateStrategySupp
       .withIpProtocol("tcp")
       .withFromPort(l.getListener().getLoadBalancerPort())
       .withToPort(l.getListener().getLoadBalancerPort())
-      .withIpRanges("0.0.0.0/0")
+      .withIpv4Ranges(new IpRange().withCidrIp("0.0.0.0/0"))
+      //TODO(cfieber)-ipv6
     ).collect(Collectors.toList());
 
     targetAmazonEC2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest()

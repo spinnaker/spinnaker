@@ -416,12 +416,19 @@ public abstract class MigrateSecurityGroupStrategy {
             && targetPermission.getUserIdGroupPairs().stream().anyMatch(t -> t.getGroupId().equals(pair.getGroupId()))
         )
       );
-      permission.getIpRanges().removeIf(range ->
+      permission.getIpv4Ranges().removeIf(range ->
         targetGroup.getIpPermissions().stream().anyMatch(targetPermission ->
           targetPermission.getFromPort().equals(permission.getFromPort())
             && targetPermission.getToPort().equals(permission.getToPort())
-            && targetPermission.getIpRanges().contains(range)
+            && targetPermission.getIpv4Ranges().contains(range)
         )
+      );
+      permission.getIpv6Ranges().removeIf(range ->
+          targetGroup.getIpPermissions().stream().anyMatch(targetPermission ->
+              targetPermission.getFromPort().equals(permission.getFromPort())
+                  && targetPermission.getToPort().equals(permission.getToPort())
+                  && targetPermission.getIpv6Ranges().contains(range)
+          )
       );
     });
   }

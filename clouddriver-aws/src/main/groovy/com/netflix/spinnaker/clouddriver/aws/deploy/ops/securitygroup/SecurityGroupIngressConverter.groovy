@@ -83,12 +83,18 @@ class SecurityGroupIngressConverter {
           .withToPort(ipPermission.toPort)
           .withIpProtocol(ipPermission.ipProtocol)
           .withUserIdGroupPairs(it)
-      } + ipPermission.ipRanges.collect {
+      } + ipPermission.ipv4Ranges.collect {
         new IpPermission()
           .withFromPort(ipPermission.fromPort)
           .withToPort(ipPermission.toPort)
           .withIpProtocol(ipPermission.ipProtocol)
-          .withIpRanges(it)
+          .withIpv4Ranges(it)
+      } + ipPermission.ipv6Ranges.collect {
+        new IpPermission()
+          .withFromPort(ipPermission.fromPort)
+          .withToPort(ipPermission.toPort)
+          .withIpProtocol(ipPermission.ipProtocol)
+          .withIpv6Ranges(it)
       }
     }.flatten().unique()
   }
