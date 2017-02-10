@@ -48,12 +48,12 @@ spinnaker:
     bucket: ${services.front50.storage_bucket:}
     rootFolder: ${services.front50.bucket_root:front50}
 
-  azure:
-    enabled: ${services.front50.azure.enabled:false}
-    storageAccountName: ${services.front50.azure.storageAccountName}
-    storageAccountKey: ${services.front50.azure.storageAccountKey}
-    storageContainerName: ${services.front50.azure.storageContainerName:spinnaker}
-    rootFolder: ${services.front50.azure.rootFolder:front50}
+  azs:
+    enabled: ${services.front50.azs.enabled:false}
+    storageAccountName: ${services.front50.azs.storageAccountName}
+    storageAccountKey: ${services.front50.azs.storageAccountKey}
+    storageContainerName: ${services.front50.azs.storageContainerName:spinnaker}
+    rootFolder: ${services.front50.azs.rootFolder:front50}
 
 spectator:
   applicationName: ${spring.application.name}
