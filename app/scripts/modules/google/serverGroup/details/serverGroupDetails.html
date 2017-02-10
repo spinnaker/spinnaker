@@ -240,8 +240,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Port Name Mapping" ng-if="ctrl.serverGroup.loadBalancingPolicy">
-      <dl class="horizontal-when-filters-collapsed">
-          ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
+      <dl class="horizontal-when-filters-collapsed" ng-if="ctrl.serverGroup.loadBalancingPolicy.listeningPort">
         <dd>http &rarr; {{ ctrl.serverGroup.loadBalancingPolicy.listeningPort }}</dd>
       </dl>
     </collapsible-section>
