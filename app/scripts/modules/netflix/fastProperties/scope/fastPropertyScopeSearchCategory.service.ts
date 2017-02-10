@@ -1,11 +1,12 @@
 import {flatMap, uniqBy, mergeWith, flatten} from 'lodash';
 import { module } from 'angular';
+
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
 import { Application } from 'core/application/application.model';
 import {Scope} from '../domain/scope.domain';
 import {IImpactCounts} from '../domain/impactCounts.interface';
-import {ICluster} from '../../../core/domain/ICluster';
-import {ServerGroup} from '../../../core/domain/serverGroup';
+import {ICluster} from 'core/domain/ICluster';
+import {ServerGroup} from 'core/domain/serverGroup';
 
 export let CATEGORY: any = {
   APPLICATIONS: 'Applications',
@@ -197,12 +198,12 @@ export class FastPropertyScopeCategoryService {
       .shift();
 
     if (foundCluster && foundCluster.serverGroups) {
-      let serverGroup = foundCluster.serverGroups
-        .filter((serverGroup: ServerGroup) => serverGroup.name === scope.asg)
+      const serverGroup = foundCluster.serverGroups
+        .filter((sg: ServerGroup) => sg.name === scope.asg)
         .shift();
 
       return serverGroup ? serverGroup.instanceCounts : scope.instanceCounts;
-    };
+    }
 
     return scope.instanceCounts;
   }

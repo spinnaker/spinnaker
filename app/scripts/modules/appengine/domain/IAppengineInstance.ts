@@ -4,7 +4,7 @@ export interface IAppengineInstance extends Instance {
   name: string;
   id: string;
   account?: string;
-  region?:string;
+  region?: string;
   instanceStatus: 'DYNAMIC' | 'RESIDENT' | 'UNKNOWN';
   launchTime: number;
   loadBalancers: string[];

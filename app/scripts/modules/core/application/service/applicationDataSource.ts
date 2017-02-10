@@ -69,7 +69,7 @@ export class DataSourceConfig {
    *
    * Default: true
    */
-  public visible= true;
+  public visible = true;
 
   /**
    * Determines whether the data source should participate in the application's refresh cycle. If set to true, the

@@ -6,12 +6,6 @@ import {Application} from 'core/application/application.model';
 import {ICluster} from 'core/domain/ICluster';
 import {IConfirmationModalParams} from 'core/confirmationModal/confirmationModal.service';
 
-export interface IDisableWarningContents {
-  activeInstancesAfterDisable: number;
-  body: string;
-  verificationLabel: string;
-}
-
 export class ServerGroupWarningMessageService {
 
   public addDestroyWarningMessage(application: Application, serverGroup: ServerGroup, params: IConfirmationModalParams): void {

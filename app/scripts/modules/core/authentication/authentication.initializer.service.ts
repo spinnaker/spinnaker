@@ -4,7 +4,7 @@ import {module} from 'angular';
 import {IModalService, IModalStackService} from 'angular-ui-bootstrap';
 
 import {IDeckRootScope} from '../domain/deckRootScope';
-import {REDIRECT_SERVICE} from './redirect.service';
+import {REDIRECT_SERVICE, RedirectService} from './redirect.service';
 import {AUTHENTICATION_SERVICE, AuthenticationService} from './authentication.service';
 
 interface IAuthResponse {
@@ -29,7 +29,7 @@ export class AuthenticationInitializer {
               private $uibModal: IModalService,
               private $uibModalStack: IModalStackService,
               private settings: any,
-              private redirectService: any,
+              private redirectService: RedirectService,
               private authenticationService: AuthenticationService) {
   }
 
