@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
         label: 'Canary',
         description: 'Canary tests new changes against a baseline version',
         key: 'canary',
-        cloudProviders: ['aws'],
+        cloudProviders: ['aws', 'titus'],
         templateUrl: require('./canaryStage.html'),
         executionDetailsUrl: require('./canaryExecutionDetails.html'),
         executionSummaryUrl: require('./canaryExecutionSummary.html'),
@@ -40,7 +40,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
   .controller('CanaryStageCtrl', function ($scope, $uibModal, stage,
                                            namingService, providerSelectionService,
                                            authenticationService, cloudProviderRegistry,
-                                           serverGroupCommandBuilder, awsServerGroupTransformer, accountService, appListExtractorService) {
+                                           serverGroupCommandBuilder, titusServerGroupTransformer, awsServerGroupTransformer, accountService, appListExtractorService) {
 
     var user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;
@@ -59,6 +59,20 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       {action: 'DISABLE'},
       {action: 'TERMINATE', delayBeforeActionInMins: 60}
     ];
+
+    let overriddenCloudProvider = 'aws';
+
+    if ($scope.stage.isNew) {
+      accountService.listProviders($scope.application).then(function (providers) {
+        if (providers.length === 1) {
+          overriddenCloudProvider = providers[0];
+        } else if (!$scope.stage.cloudProviderType && $scope.stage.cloudProvider) {
+          overriddenCloudProvider = $scope.stage.cloudProvider;
+        } else {
+          $scope.providers = providers;
+        }
+      });
+    }
 
     this.recipients = $scope.stage.canary.watchers
       ? angular.isArray($scope.stage.canary.watchers)
@@ -108,11 +122,14 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       return terminateAction ? terminateAction.delayBeforeActionInMins : 60;
     };
 
-    $scope.application.serverGroups.ready().then(() => {
-      accountService.listAccounts('aws').then(accounts => $scope.accounts = accounts);
+    let filterServerGroups = () => {
+      accountService.listAccounts(this.getCloudProvider()).then(accounts => $scope.accounts = accounts);
       setClusterList();
-    });
+    };
 
+    $scope.application.serverGroups.ready().then(() => {
+      filterServerGroups();
+    });
 
     this.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
 
@@ -127,6 +144,9 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
     };
 
     this.getRegion = function(cluster) {
+      if (cluster.region) {
+        return cluster.region;
+      }
       var availabilityZones = cluster.availabilityZones;
       if (availabilityZones) {
         var regions = Object.keys(availabilityZones);
@@ -150,7 +170,22 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       setClusterList();
     };
 
+    let getCloudProvider = () => {
+      return $scope.stage.baseline.cloudProvider || overriddenCloudProvider || 'aws';
+    };
 
+    this.getCloudProvider = getCloudProvider;
+
+    let resetCloudProvider = () => {
+      delete $scope.stage.baseline.cluster;
+      delete $scope.stage.baseline.account;
+      delete $scope.stage.clusterPairs;
+      filterServerGroups();
+    };
+
+    if ($scope.stage.isNew) {
+      $scope.$watch('stage.baseline.cloudProvider', resetCloudProvider);
+    }
 
     function getClusterName(cluster) {
       return namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
@@ -179,7 +214,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
     this.addClusterPair = function() {
       $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
       providerSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
-        let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
+        let config = cloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
         $uibModal.open({
           templateUrl: config.cloneServerGroupTemplateUrl,
           controller: `${config.cloneServerGroupController} as ctrl`,
@@ -209,17 +244,18 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
             },
           }
         }).result.then(function(command) {
-            var baselineCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command),
-                canaryCluster = _.cloneDeep(baselineCluster);
-            cleanupClusterConfig(baselineCluster, 'baseline');
-            cleanupClusterConfig(canaryCluster, 'canary');
-            $scope.stage.clusterPairs.push({baseline: baselineCluster, canary: canaryCluster});
-          });
+          var transformer = getCloudProvider() === 'aws' ? awsServerGroupTransformer : titusServerGroupTransformer;
+          var baselineCluster = transformer.convertServerGroupCommandToDeployConfiguration(command),
+            canaryCluster = _.cloneDeep(baselineCluster);
+          cleanupClusterConfig(baselineCluster, 'baseline');
+          cleanupClusterConfig(canaryCluster, 'canary');
+          $scope.stage.clusterPairs.push({baseline: baselineCluster, canary: canaryCluster});
+        });
       });
     };
 
     this.editCluster = function(cluster, index, type) {
-      cluster.provider = cluster.provider || 'aws';
+      cluster.provider = cluster.provider || getCloudProvider() || 'aws';
       let config = cloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
       $uibModal.open({
         templateUrl: config.cloneServerGroupTemplateUrl,
@@ -246,10 +282,11 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
           },
         }
       }).result.then(function(command) {
-          var stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
-          cleanupClusterConfig(stageCluster, type);
-          $scope.stage.clusterPairs[index][type.toLowerCase()] = stageCluster;
-        });
+        var transformer = getCloudProvider() === 'aws' ? awsServerGroupTransformer : titusServerGroupTransformer;
+        var stageCluster = transformer.convertServerGroupCommandToDeployConfiguration(command);
+        cleanupClusterConfig(stageCluster, type);
+        $scope.stage.clusterPairs[index][type.toLowerCase()] = stageCluster;
+      });
     };
 
     this.deleteClusterPair = function(index) {
