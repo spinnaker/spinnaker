@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.controllers
 
 import java.time.Clock
+import com.netflix.spinnaker.orca.ActiveExecutionTracker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
@@ -67,6 +68,9 @@ class TaskController {
 
   @Autowired
   Optional<ZombiePipelineCleanupAgent> zombiePipelineCleanupAgent
+
+  @Autowired
+  ActiveExecutionTracker activeExecutionTracker
 
   @Value('${tasks.daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
@@ -292,6 +296,11 @@ class TaskController {
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
 
     return filterPipelinesByHistoryCutoff(allPipelines)
+  }
+
+  @RequestMapping(value = "/executions/activeByInstance", method = RequestMethod.GET)
+  Map<String, Integer> activeExecutionsByInstance() {
+    activeExecutionTracker.activeExecutionsByInstance()
   }
 
   private List<Pipeline> filterPipelinesByHistoryCutoff(List<Pipeline> pipelines) {
