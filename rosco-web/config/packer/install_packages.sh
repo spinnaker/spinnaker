@@ -55,14 +55,17 @@ function provision_deb() {
 
 function provision_rpm() {
   if [[ "$repository" != "" ]]; then
-    cat > /tmp/spinnaker.repo <<EOF
-[spinnaker]
-name=spinnaker
-baseurl=$repository
+    IFS=';' read -ra repo <<< "$repository"
+    for i in "${!repo[@]}"; do
+      cat > /tmp/spinnaker-$i.repo <<EOF
+[spinnaker-$i]
+name=spinnaker-$i
+baseurl=${repo[$i]}
 gpgcheck=0
 enabled=1
 EOF
-    sudo mv /tmp/spinnaker.repo /etc/yum.repos.d/
+    done
+    sudo mv /tmp/spinnaker*.repo /etc/yum.repos.d/
   fi
 
   if [[ "$upgrade" == "true" ]]; then
@@ -74,7 +77,7 @@ EOF
 
   if [[ "$repository" != "" ]]; then
     # Cleanup repository configuration
-    sudo rm /etc/yum.repos.d/spinnaker.repo
+    sudo rm /etc/yum.repos.d/spinnaker*.repo
   fi
 }
 
