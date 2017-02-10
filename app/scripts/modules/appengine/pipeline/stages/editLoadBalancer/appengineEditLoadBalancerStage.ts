@@ -4,6 +4,7 @@ import {cloneDeep, get} from 'lodash';
 
 import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {ILoadBalancer} from 'core/domain/index';
+import {APPENGINE_EDIT_LOAD_BALANCER_EXECUTION_DETAILS_CTRL} from './appengineEditLoadBalancerExecutionDetails.controller';
 import {APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL} from './loadBalancerChoice.modal.controller';
 
 class AppengineEditLoadBalancerStageCtrl {
@@ -52,6 +53,7 @@ class AppengineEditLoadBalancerStageCtrl {
 
 export const APPENGINE_EDIT_LOAD_BALANCER_STAGE = 'spinnaker.appengine.pipeline.stage.editLoadBalancerStage';
 module(APPENGINE_EDIT_LOAD_BALANCER_STAGE, [
+  APPENGINE_EDIT_LOAD_BALANCER_EXECUTION_DETAILS_CTRL,
   APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL,
   require('core/config/settings.js'),
 ]).config((pipelineConfigProvider: any, settings: any) => {
@@ -62,6 +64,7 @@ module(APPENGINE_EDIT_LOAD_BALANCER_STAGE, [
         key: 'upsertLoadBalancers',
         cloudProvider: 'appengine',
         templateUrl: require('./editLoadBalancerStage.html'),
+        executionDetailsUrl: require('./editLoadBalancerExecutionDetails.html'),
         controller: 'appengineEditLoadBalancerStageCtrl',
         controllerAs: 'editLoadBalancerStageCtrl',
         validators: [],
