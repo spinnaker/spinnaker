@@ -1,6 +1,6 @@
 'use strict';
 
-import _ from 'lodash';
+import {isArray, findIndex, uniqWith, flatten, compact, uniq, values, isEmpty, sortBy, groupBy, debounce } from 'lodash';
 import { CREATE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../wizard/createFastPropertyWizard.controller';
 
 
@@ -13,9 +13,12 @@ module.exports = angular
     require('../fastProperty.read.service.js'),
     CREATE_FAST_PROPERTY_WIZARD_CONTROLLER,
   ])
-  .controller('FastPropertiesController', function ($scope, $filter, $state, $stateParams, $location, $uibModal, settings, fastPropertyReader) {
+  .controller('FastPropertiesController', function ($scope, $filter, $state, $urlRouter, $stateParams, $location, $uibModal, settings, app, fastPropertyReader) {
+
     let vm = this;
     let filterNames = ['app','env', 'region', 'stack', 'cluster'];
+
+    vm.application = app;
 
     vm.isOn = settings.feature.fastProperty;
     vm.fetchingProperties = false;
@@ -28,34 +31,58 @@ module.exports = angular
     };
 
     $scope.createFilterTag = function(tag) {
-      if(tag) {
+      if (tag) {
         return {
           label: tag.label,
           value: tag.value,
           clear: () => {
-            $scope.filters.list.splice(_.findIndex($scope.filters.list, {label: tag.label, value: tag.value}), 1);
+            $scope.filters.list.splice(findIndex($scope.filters.list, {label: tag.label, value: tag.value}), 1);
             vm.updateFilter();
           }
         };
       }
     };
 
+    function fetchFastPropertiesForApp() {
+      fastPropertyReader.fetchForAppName(vm.application.name)
+        .then( (data) => {
+          var list = data.propertiesList || [];
+          // vm.propertiesList = list;
+          vm.searchResults = list.map((fp) => {
+            fp.scope = extractFastPropertyScopeFromId(fp.propertyId);
+            fp.appId = fp.appId || 'All (Global)';
+            return fp;
+          });
+          return vm.searchResults;
+        })
+        .then((searchResults) => {
+          vm.filterAndGroup(searchResults);
+        }).catch(() => {
+          vm.propertiesList = undefined;
+          vm.searchError = `No results found for: ${vm.application.name}`;
+        }).finally(() => {
+          vm.fetchingProperties = false;
+        });
+    }
+
+
+
 
     /*
      * Convert the url filter params to tag objects
      */
-    let paramToTagList = (label) => _.flatten([$stateParams[label]]).reduce((acc, val) => {
-      if (!_.isEmpty(val)) {
+    let paramToTagList = (label) => flatten([$stateParams[label]]).reduce((acc, val) => {
+      if (!isEmpty(val)) {
         acc.push($scope.createFilterTag({label:label, value: val}));
       }
       return acc;
     }, []);
 
     let createTagsFromUrlParams = () => {
-      return _.flatten(filterNames.map(paramToTagList));
+      return flatten(filterNames.map(paramToTagList));
     };
 
-    $scope.filters.list = _.uniqWith(_.flatten([createTagsFromUrlParams()]), (a, b) => a.label === b.label && a.value === b.value);
+    $scope.filters.list = uniqWith(flatten([createTagsFromUrlParams()]), (a, b) => a.label === b.label && a.value === b.value);
 
     $scope.$watchCollection('filters', () => {
       if(vm.propertiesList) {
@@ -77,7 +104,7 @@ module.exports = angular
     };
 
 
-    vm.isPropertiesListEmpty = () => _.isEmpty(vm.propertiesList);
+    vm.isPropertiesListEmpty = () => isEmpty(vm.propertiesList);
 
     // FILTER SETTINGS
     vm.filterName = $stateParams.filter || vm.filterNames.SHOW_ALL;
@@ -131,42 +158,59 @@ module.exports = angular
     let predicateList = filterNames.map(name => scopeFilterPredicateFactory(name));
 
     let filters = {
-      showall: (propertiesList) => angular.copy(propertiesList).filter(allPass([...predicateList])),
-      global: (propertiesList) => angular.copy(propertiesList).filter(allPass([globalFilterPredicate, ...predicateList])),
+      showall: (propertiesList) => {
+        let copy = propertiesList ? angular.copy(propertiesList) : [];
+        return copy.filter(allPass([...predicateList]));
+      },
+      global: (propertiesList) => {
+        let copy = propertiesList ? angular.copy(propertiesList) : [];
+        return copy.filter(allPass([globalFilterPredicate, ...predicateList]));
+      }
     };
 
     let groupByFn = {
-      none: (propertiesList) => _.sortBy(angular.copy(propertiesList), (prop) => prop.key.toLowerCase()),
+      none: (propertiesList) => sortBy(angular.copy(propertiesList), (prop) => prop.key.toLowerCase()),
       app: (propertiesList) => {
-        let groups = _.groupBy(angular.copy(propertiesList), 'appId' );
+        let groups = groupBy(angular.copy(propertiesList), 'appId' );
         for (let key in groups) {
-          groups[key] = _.sortBy(groups[key], (prop) => prop.key.toLowerCase());
+          groups[key] = sortBy(groups[key], (prop) => prop.key.toLowerCase());
         }
         return groups;
       },
-      property: (propertiesList) => _.groupBy(angular.copy(propertiesList), 'key')
+      property: (propertiesList) => groupBy(angular.copy(propertiesList), 'key')
     };
 
     vm.filterAndGroup = (propertyList) => {
+      if(!isArray(propertyList)) {
+        propertyList = flatten(values(propertyList));
+      }
       vm.propertiesList = groupByFn[vm.groupName]( filters[vm.filterName](propertyList) );
       setStateParams();
     };
 
     let setStateParams = () => {
-      $location.search('q', vm.searchTerm);
+      if (!vm.application) {
+        $location.search('q', vm.searchTerm);
+      }
       $location.search('group', vm.groupName);
       $location.search('filter', vm.filterName);
 
       filterNames.forEach((name) => {
-        $location.search(name, $scope.filters.list.filter(tag => tag.label === name).map(tag => tag.value));
+        $location.search(name, $scope.filters.list
+          .filter((tag) => {
+            return tag.label === name;
+          }).map((tag) => {
+            return tag.value;
+          }));
       });
+      $urlRouter.update(true);
     };
 
     vm.filteredResultPage = function() {
       return vm.resultPage(vm.filter(vm.applications));
     };
 
-    vm.search = _.debounce(function () {
+    vm.search = debounce(function () {
 
       $location.search('q', vm.searchTerm);
 
@@ -197,7 +241,6 @@ module.exports = angular
 
     }, 500);
 
-
     let extractFastPropertyScopeFromId = (propertyId) => {
       // Property Id is a pipe delimited key of that has most of the scope info in it.
       // $NAME|$APPLICATION|$ENVIRONMENT|$REGION||$STACK|$COUNTRY(|cluster=$CLUSTER)
@@ -223,7 +266,7 @@ module.exports = angular
 
     vm.getRegions = () => {
       if(vm.searchResults) {
-        return _.compact(_.uniq(vm.searchResults.map((fp) => {
+        return compact(uniq(vm.searchResults.map((fp) => {
           return fp.scope.region;
         })));
       }
@@ -231,7 +274,7 @@ module.exports = angular
 
     vm.getStacks = () => {
       if(vm.searchResults) {
-        return _.compact(_.uniq(vm.searchResults.map((fp) => {
+        return compact(uniq(vm.searchResults.map((fp) => {
           return fp.scope.stack;
         })));
       }
@@ -245,15 +288,16 @@ module.exports = angular
         size: 'lg',
         resolve: {
           title: () => 'Create New Fast Property',
-          applicationName: () => 'spinnakerfp'
+          applicationName: () => vm.application ? vm.application.applicationName : 'spinnakerfp'
         }
       });
     };
 
-
-
-    vm.search();
-
+    if (vm.application) {
+      fetchFastPropertiesForApp();
+    } else {
+      vm.search();
+    }
 
     return vm;
   });

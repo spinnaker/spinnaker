@@ -13,7 +13,7 @@ module.exports = angular
     UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER,
     DELETE_FAST_PROPERTY_WIZARD_CONTROLLER
   ])
-  .controller('GlobalFastPropertiesDetailsController', function($scope, $state, $uibModal, fastProperty, fastPropertyReader) {
+  .controller('GlobalFastPropertiesDetailsController', function($scope, $state, $uibModal, app, fastProperty, fastPropertyReader) {
 
     let vm = this;
 
@@ -43,7 +43,7 @@ module.exports = angular
         resolve: {
           title: () => 'Update Fast Property',
           property: property,
-          applicationName: () => 'spinnakerfp'
+          applicationName: () => app ? app.applicationName : 'spinnakerfp'
         }
       });
     };
@@ -57,7 +57,7 @@ module.exports = angular
         resolve: {
           title: () => 'Delete Fast Property',
           property: property,
-          applicationName: () => 'spinnakerfp'
+          applicationName: () => app ? app.applicationName : 'spinnakerfp'
         }
       });
     };

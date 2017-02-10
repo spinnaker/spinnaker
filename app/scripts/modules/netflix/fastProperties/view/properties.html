@@ -2,7 +2,7 @@
     <div class="col-md-12 fastProperty">
 
       <form class="form form-inline">
-        <div class="form-group">
+        <div class="form-group" ng-if="!fp.application">
           <label for="propertySearch">Search</label>
           <input type="search"
                  id="propertySearch"
@@ -20,14 +20,24 @@
           <div class="btn-group"
                role="group"
                id="propertyGroup">
-            <button class="btn btn-default" ng-class="{active: fp.selectedGroupIs(fp.groupNames.NONE)}"
-                    ng-click="fp.setGroupTo(fp.groupNames.NONE)">None
+            <button
+              class="btn btn-default"
+              ng-class="{active: fp.selectedGroupIs(fp.groupNames.NONE)}"
+              ng-click="fp.setGroupTo(fp.groupNames.NONE)">
+              None
             </button>
-            <button class="btn btn-default" ng-class="{active: fp.selectedGroupIs(fp.groupNames.APP)}"
-                    ng-click="fp.setGroupTo(fp.groupNames.APP)">App
+            <button
+              ng-if="!fp.application"
+              class="btn btn-default"
+              ng-class="{active: fp.selectedGroupIs(fp.groupNames.APP)}"
+              ng-click="fp.setGroupTo(fp.groupNames.APP)">
+              App
             </button>
-            <button class="btn btn-default" ng-class="{active: fp.selectedGroupIs(fp.groupNames.PROPERTY)}"
-                    ng-click="fp.setGroupTo(fp.groupNames.PROPERTY)">Property
+            <button
+              class="btn btn-default"
+              ng-class="{active: fp.selectedGroupIs(fp.groupNames.PROPERTY)}"
+              ng-click="fp.setGroupTo(fp.groupNames.PROPERTY)">
+              Property
             </button>
           </div>
         </div>
@@ -64,7 +74,7 @@
         {{fp.searchError}}
       </h2>
 
-      <h2 ng-if="!fp.fetchingProperties && !fp.propertiesList && !fp.searchError && !fp.propertiesList && fp.searchTerm.length === 0" class="text-center">
+      <h2 ng-if="!fp.application && !fp.fetchingProperties && !fp.propertiesList && !fp.searchError && !fp.propertiesList && fp.searchTerm.length === 0" class="text-center">
           Enter a search term to begin
       </h2>
 
@@ -75,8 +85,8 @@
 
       <div class="row" ng-if="!fp.isPropertiesListEmpty()">
         <div class="col-md-12">
-          <global-fast-property-pods properties="fp.propertiesList"
-                                     grouped-by="fp.groupName"></global-fast-property-pods>
+          <fast-property-pods properties="fp.propertiesList"
+                                     grouped-by="fp.groupName"></fast-property-pods>
         </div>
       </div>
     </div>

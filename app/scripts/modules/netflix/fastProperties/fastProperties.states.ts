@@ -18,7 +18,7 @@ module(FAST_PROPERTY_STATES, [
   STATE_CONFIG_PROVIDER,
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
-  const executionDetails: INestedState = {
+  const globalFastPropertyRolloutExecutionDetails: INestedState = {
     name: 'execution',
     url: '/:executionId?refId&stage&step&details',
     params: {
@@ -37,7 +37,7 @@ module(FAST_PROPERTY_STATES, [
     }
   };
 
-  const fastPropertyRollouts: INestedState = {
+  const globalFastPropertyRollouts: INestedState = {
     name: 'executions',
     url: '/rollouts',
     views: {
@@ -52,17 +52,18 @@ module(FAST_PROPERTY_STATES, [
         title: 'Fast Property Rollout'
       }
     },
-    children: [executionDetails]
+    children: [globalFastPropertyRolloutExecutionDetails]
 
   };
 
-  const appFastPropertyDetails: INestedState = {
+  const applicationFastPropertyDetails: INestedState = {
     name: 'propertyDetails',
     url: '/:propertyId',
+    reloadOnSearch: true,
     views: {
       'detail@../propInsights': {
-        templateUrl: require('./fastPropertyDetails.html'),
-        controller: 'FastPropertiesDetailsController',
+        templateUrl: require('./globalFastPropertyDetails.html'),
+        controller: 'GlobalFastPropertiesDetailsController',
         controllerAs: 'details'
       }
     },
@@ -87,18 +88,19 @@ module(FAST_PROPERTY_STATES, [
   };
 
 
-  const mainProperty: INestedState = {
+  const applicationFastProperty: INestedState = {
     name: 'properties',
     url: '/properties',
+    reloadOnSearch: false,
     views: {
       'master': {
-        templateUrl: require('./applicationProperties.html'),
-        controller: 'ApplicationPropertiesController',
+        templateUrl: require('./view/properties.html'),
+        controller: 'FastPropertiesController',
         controllerAs: 'fp'
       },
     },
     children: [
-      appFastPropertyDetails
+      applicationFastPropertyDetails
     ]
   };
 
@@ -108,8 +110,6 @@ module(FAST_PROPERTY_STATES, [
     views: {
       'insight': {
         templateUrl: require('./mainApplicationProperties.html'),
-        controller: 'ApplicationPropertiesController',
-        controllerAs: 'fp'
       }
     },
     data: {
@@ -118,7 +118,7 @@ module(FAST_PROPERTY_STATES, [
       }
     },
     children: [
-      mainProperty
+      applicationFastProperty
     ]
   };
 
@@ -154,13 +154,13 @@ module(FAST_PROPERTY_STATES, [
   };
 
 
-  const fastProperties: INestedState = {
+  const globalFastProperties: INestedState = {
     name: 'properties',
-    url: '/properties?q&group&app&env&stack&region',
+    url: '/properties',
     reloadOnSearch: false,
     views: {
       'master': {
-        templateUrl: require('./dataNav/properties.html'),
+        templateUrl: require('./view/properties.html'),
         controller: 'FastPropertiesController',
         controllerAs: 'fp'
       }
@@ -177,8 +177,6 @@ module(FAST_PROPERTY_STATES, [
     views: {
       'main@': {
         templateUrl: require('./dataNav/main.html'),
-        controller: 'FastPropertiesController',
-        controllerAs: 'fp'
       }
     },
     data: {
@@ -186,13 +184,18 @@ module(FAST_PROPERTY_STATES, [
         label: 'Properties'
       }
     },
+    resolve: {
+      app: (): any => {
+        return null;
+      }
+    },
     children: [
-      fastProperties,
-      fastPropertyRollouts,
+      globalFastProperties,
+      globalFastPropertyRollouts,
     ]
   };
 
-  applicationStateProvider.addChildState(fastPropertyRollouts);
+  applicationStateProvider.addChildState(globalFastPropertyRollouts);
   applicationStateProvider.addChildState(propInsights);
   stateConfigProvider.addToRootState(data);
 });

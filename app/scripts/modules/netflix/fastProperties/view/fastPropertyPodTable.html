@@ -4,10 +4,11 @@
   <tr>
     <th width="20%" ng-if="$ctrl.groupedBy !== 'property'">Property</th>
     <th width="20%">Value</th>
-    <th width="20%" ng-if="$ctrl.groupedBy !== 'app'">Application</th>
-    <th width="10%">Env</th>
+    <th width="10%" ng-if="$ctrl.groupedBy !== 'app'">Application</th>
+    <th width="5%">Env</th>
     <th width="10%">Region</th>
     <th width="10%">Stack</th>
+    <th width="10%">Scope</th>
   </tr>
   </thead>
   <tbody>
@@ -33,6 +34,9 @@
     </td>
     <td>
       {{ property.scope.stack }}
+    </td>
+    <td>
+      {{ $ctrl.getBaseOfScope(property.scope) }}
     </td>
   </tr>
   </tbody>
