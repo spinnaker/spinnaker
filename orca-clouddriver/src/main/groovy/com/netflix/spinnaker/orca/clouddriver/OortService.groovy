@@ -17,13 +17,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter
-import com.fasterxml.jackson.annotation.JsonAnySetter
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import retrofit.client.Response
-import retrofit.http.Body
 import retrofit.http.GET
-import retrofit.http.POST
 import retrofit.http.Path
 import retrofit.http.Query
 import retrofit.http.QueryMap
@@ -61,21 +56,6 @@ public interface OortService {
                                             @Path("summaryType") String summaryType,
                                             @Query("onlyEnabled") String onlyEnabled)
 
-  @POST("/applications/{app}/jobs/{account}/{region}/{id}")
-  Response collectJob(@Path("app") String app,
-                      @Path("account") String account,
-                      @Path("region") String region,
-                      @Path("id") String id,
-                      @Body String details)
-
-  @GET("/applications/{app}/jobs/{account}/{region}/{id}/{fileName}")
-  Map<String, Object> getFileContents(@Path("app") String app,
-                         @Path("account") String account,
-                         @Path("region") String region,
-                         @Path("id") String id,
-                         @Path("fileName") String fileName)
-
-
   @GET("/search")
   Response getSearchResults(@Query("q") String searchTerm,
                             @Query("type") String type,
@@ -94,15 +74,6 @@ public interface OortService {
                                    @Path("account") String account,
                                    @Path("region") String region,
                                    @Path("name") String name)
-
-  @POST("/cache/{cloudProvider}/{type}")
-  Response forceCacheUpdate(@Path("cloudProvider") String cloudProvider,
-                            @Path("type") String type,
-                            @Body Map<String, ? extends Object> data)
-
-  @GET("/cache/{cloudProvider}/{type}")
-  Collection<Map> pendingForceCacheUpdates(@Path("cloudProvider") String cloudProvider,
-                                           @Path("type") String type)
 
   @GET("/{type}/images/{account}/{region}/{imageId}")
   List<Map> getByAmiId(@Path("type") String type,

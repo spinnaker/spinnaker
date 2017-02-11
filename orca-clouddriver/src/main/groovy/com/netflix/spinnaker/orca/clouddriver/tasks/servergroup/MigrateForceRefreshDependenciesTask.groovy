@@ -20,8 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.MortService
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup.SecurityGroupForceCacheRefreshTask
@@ -33,10 +32,7 @@ import org.springframework.stereotype.Component
 class MigrateForceRefreshDependenciesTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired
-  OortService oort
-
-  @Autowired
-  MortService mort
+  CloudDriverCacheService cacheService
 
   @Override
   TaskResult execute(Stage stage) {
@@ -49,7 +45,7 @@ class MigrateForceRefreshDependenciesTask extends AbstractCloudProviderAwareTask
     }
 
     migratedGroup.loadBalancers.each { Map loadBalancer ->
-      oort.forceCacheUpdate(
+      cacheService.forceCacheUpdate(
         cloudProvider,
         UpsertLoadBalancerForceRefreshTask.REFRESH_TYPE,
         [loadBalancerName: loadBalancer.targetName, region: target.region, account: target.credentials]
@@ -64,7 +60,7 @@ class MigrateForceRefreshDependenciesTask extends AbstractCloudProviderAwareTask
 
   private void migrateSecurityGroups(Map migratedGroup, String cloudProvider, String region, String targetCredentials) {
     (migratedGroup.created + migratedGroup.reused).flatten().each { Map securityGroup ->
-      mort.forceCacheUpdate(
+      cacheService.forceCacheUpdate(
         cloudProvider,
         SecurityGroupForceCacheRefreshTask.REFRESH_TYPE,
         [securityGroupName: securityGroup.targetName, region: region, account: targetCredentials ?: securityGroup.credentials, vpcId: securityGroup.vpcId]

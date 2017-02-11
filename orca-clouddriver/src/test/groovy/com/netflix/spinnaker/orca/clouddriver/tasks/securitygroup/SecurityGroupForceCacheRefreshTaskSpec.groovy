@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
-import com.netflix.spinnaker.orca.clouddriver.MortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -39,13 +39,13 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
 
   void "should force cache refresh security groups via mort"() {
     setup:
-    task.mort = Mock(MortService)
+    task.cacheService = Mock(CloudDriverCacheService)
 
     when:
     task.execute(stage)
 
     then:
-    1 * task.mort.forceCacheUpdate('aws', SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, _) >> {
+    1 * task.cacheService.forceCacheUpdate('aws', SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, _) >> {
       String cloudProvider, String type, Map<String, ? extends Object> body ->
 
       assert body.securityGroupName == config.name

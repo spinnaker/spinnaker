@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.clouddriver.MortService
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -31,12 +30,10 @@ class MigrateForceRefreshDependenciesTaskSpec extends Specification {
   def stage = new PipelineStage(new Pipeline(), "refreshTask")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
-  OortService oort = Mock(OortService)
-  MortService mort = Mock(MortService)
+  CloudDriverCacheService cacheService = Mock(CloudDriverCacheService)
 
   void setup() {
-    task.oort = oort
-    task.mort = mort
+    task.cacheService = cacheService
     stage.context = [
       cloudProvider: 'aws',
       target       : [
@@ -84,8 +81,8 @@ class MigrateForceRefreshDependenciesTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    1 * mort.forceCacheUpdate('aws', 'SecurityGroup', [securityGroupName: 'new-sg-1', region: 'us-east-1', account: 'test', vpcId: 'vpc-1'])
-    1 * mort.forceCacheUpdate('aws', 'SecurityGroup', [securityGroupName: 'new-sg-2', region: 'us-east-1', account: 'prod', vpcId: 'vpc-2'])
+    1 * cacheService.forceCacheUpdate('aws', 'SecurityGroup', [securityGroupName: 'new-sg-1', region: 'us-east-1', account: 'test', vpcId: 'vpc-1'])
+    1 * cacheService.forceCacheUpdate('aws', 'SecurityGroup', [securityGroupName: 'new-sg-2', region: 'us-east-1', account: 'prod', vpcId: 'vpc-2'])
     0 * _
   }
 
@@ -110,9 +107,9 @@ class MigrateForceRefreshDependenciesTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    1 * oort.forceCacheUpdate('aws', 'LoadBalancer', [loadBalancerName: 'newElb-vpc1', region: 'us-east-1', account: 'test'])
-    1 * mort.forceCacheUpdate('aws', 'SecurityGroup', [securityGroupName: 'new-sg-1', region: 'us-east-1', account: 'test', vpcId: 'vpc-1'])
-    1 * mort.forceCacheUpdate('aws', 'SecurityGroup', [securityGroupName: 'new-sg-2', region: 'us-east-1', account: 'prod', vpcId: 'vpc-2'])
+    1 * cacheService.forceCacheUpdate('aws', 'LoadBalancer', [loadBalancerName: 'newElb-vpc1', region: 'us-east-1', account: 'test'])
+    1 * cacheService.forceCacheUpdate('aws', 'SecurityGroup', [securityGroupName: 'new-sg-1', region: 'us-east-1', account: 'test', vpcId: 'vpc-1'])
+    1 * cacheService.forceCacheUpdate('aws', 'SecurityGroup', [securityGroupName: 'new-sg-2', region: 'us-east-1', account: 'prod', vpcId: 'vpc-2'])
     0 * _
   }
 }

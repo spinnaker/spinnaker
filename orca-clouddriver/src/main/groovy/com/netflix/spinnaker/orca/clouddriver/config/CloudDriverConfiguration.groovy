@@ -17,18 +17,19 @@
 package com.netflix.spinnaker.orca.clouddriver.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
 import com.netflix.spinnaker.orca.clouddriver.FeaturesRestService
 import com.netflix.spinnaker.orca.clouddriver.KatoRestService
-import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
+import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -49,16 +50,10 @@ import static retrofit.Endpoints.newFixedEndpoint
   "com.netflix.spinnaker.orca.kato.tasks"
 ])
 @CompileStatic
+@EnableConfigurationProperties(CloudDriverConfigurationProperties)
+@Slf4j
 class CloudDriverConfiguration {
 
-  @Autowired
-  Client retrofitClient
-
-  @Autowired
-  RestAdapter.LogLevel retrofitLogLevel
-
-  @Autowired
-  RequestInterceptor spinnakerRequestInterceptor
 
   @ConditionalOnMissingBean(ObjectMapper)
   @Bean
@@ -67,58 +62,86 @@ class CloudDriverConfiguration {
   }
 
   @Bean
-  MortService mortDeployService(
-    @Value('${mort.baseUrl}') String mortBaseUrl, ObjectMapper mapper) {
-    new RestAdapter.Builder()
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setEndpoint(newFixedEndpoint(mortBaseUrl))
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new RetrofitSlf4jLog(MortService))
-      .setConverter(new JacksonConverter(mapper))
-      .build()
-      .create(MortService)
+  ClouddriverRetrofitBuilder clouddriverRetrofitBuilder(ObjectMapper objectMapper,
+                                                        Client retrofitClient,
+                                                        RestAdapter.LogLevel retrofitLogLevel,
+                                                        RequestInterceptor spinnakerRequestInterceptor,
+                                                        CloudDriverConfigurationProperties cloudDriverConfigurationProperties) {
+    return new ClouddriverRetrofitBuilder(objectMapper, retrofitClient, retrofitLogLevel, spinnakerRequestInterceptor, cloudDriverConfigurationProperties)
+  }
+
+
+  static class ClouddriverRetrofitBuilder {
+    ObjectMapper objectMapper
+    Client retrofitClient
+    RestAdapter.LogLevel retrofitLogLevel
+    RequestInterceptor spinnakerRequestInterceptor
+    CloudDriverConfigurationProperties cloudDriverConfigurationProperties
+
+    ClouddriverRetrofitBuilder(ObjectMapper objectMapper,
+                               Client retrofitClient,
+                               RestAdapter.LogLevel retrofitLogLevel,
+                               RequestInterceptor spinnakerRequestInterceptor,
+                               CloudDriverConfigurationProperties cloudDriverConfigurationProperties) {
+      this.objectMapper = objectMapper
+      this.retrofitClient = retrofitClient
+      this.retrofitLogLevel = retrofitLogLevel
+      this.spinnakerRequestInterceptor = spinnakerRequestInterceptor
+      this.cloudDriverConfigurationProperties = cloudDriverConfigurationProperties
+    }
+
+    public <T> T buildWriteableService(Class<T> type) {
+      return buildService(type, cloudDriverConfigurationProperties.cloudDriverBaseUrl)
+    }
+
+    private <T> T buildService(Class<T> type, String url) {
+      new RestAdapter.Builder()
+          .setRequestInterceptor(spinnakerRequestInterceptor)
+          .setEndpoint(newFixedEndpoint(url))
+          .setClient(retrofitClient)
+          .setLogLevel(retrofitLogLevel)
+          .setLog(new RetrofitSlf4jLog(type))
+          .setConverter(new JacksonConverter(objectMapper))
+          .build()
+          .create(type)
+    }
+
+    public <T> T buildReadOnlyService(Class<T> type) {
+      if (cloudDriverConfigurationProperties.cloudDriverReadOnlyBaseUrl == cloudDriverConfigurationProperties.cloudDriverBaseUrl) {
+        log.info("readonly URL not configured for clouddriver, using writeable clouddriver $cloudDriverConfigurationProperties.cloudDriverBaseUrl for $type.simpleName")
+      }
+
+      return buildService(type, cloudDriverConfigurationProperties.cloudDriverReadOnlyBaseUrl)
+    }
   }
 
   @Bean
-  OortService oortDeployService(
-    @Value('${oort.baseUrl}') String oortBaseUrl, ObjectMapper mapper) {
-    new RestAdapter.Builder()
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setEndpoint(newFixedEndpoint(oortBaseUrl))
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new RetrofitSlf4jLog(OortService))
-      .setConverter(new JacksonConverter(mapper))
-      .build()
-      .create(OortService)
+  MortService mortDeployService(ClouddriverRetrofitBuilder builder) {
+    return builder.buildReadOnlyService(MortService)
   }
 
   @Bean
-  KatoRestService katoDeployService(
-    @Value('${kato.baseUrl}') String katoBaseUrl, ObjectMapper mapper) {
-    new RestAdapter.Builder()
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setEndpoint(newFixedEndpoint(katoBaseUrl))
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new RetrofitSlf4jLog(KatoService))
-      .setConverter(new JacksonConverter(mapper))
-      .build()
-      .create(KatoRestService)
+  CloudDriverCacheService clouddriverCacheService(ClouddriverRetrofitBuilder builder) {
+    return builder.buildWriteableService(CloudDriverCacheService)
   }
 
   @Bean
-  FeaturesRestService featuresRestService(
-    @Value('${kato.baseUrl}') String katoBaseUrl, ObjectMapper mapper) {
-    new RestAdapter.Builder()
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setEndpoint(newFixedEndpoint(katoBaseUrl))
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new RetrofitSlf4jLog(KatoService))
-      .setConverter(new JacksonConverter(mapper))
-      .build()
-      .create(FeaturesRestService)
+  CloudDriverCacheStatusService cloudDriverCacheStatusService(ClouddriverRetrofitBuilder builder) {
+    return builder.buildReadOnlyService(CloudDriverCacheStatusService)
+  }
+
+  @Bean
+  OortService oortDeployService(ClouddriverRetrofitBuilder builder) {
+    return builder.buildReadOnlyService(OortService)
+  }
+
+  @Bean
+  KatoRestService katoDeployService(ClouddriverRetrofitBuilder builder) {
+    return builder.buildWriteableService(KatoRestService)
+  }
+
+  @Bean
+  FeaturesRestService featuresRestService(ClouddriverRetrofitBuilder builder) {
+    return builder.buildWriteableService(FeaturesRestService)
   }
 }

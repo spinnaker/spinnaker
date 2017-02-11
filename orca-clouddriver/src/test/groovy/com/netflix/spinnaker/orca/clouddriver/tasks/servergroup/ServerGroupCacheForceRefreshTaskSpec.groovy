@@ -19,7 +19,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -44,10 +45,11 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
   def setup() {
     stage.context.putAll(deployConfig)
     stage.startTime = 0
-    task.oort = Mock(OortService)
+    task.cacheService = Mock(CloudDriverCacheService)
+    task.cacheStatusService = Mock(CloudDriverCacheStatusService)
   }
 
-  void "should force cache refresh server groups via oort"() {
+  void "should force cache refresh server groups via clouddriver"() {
     setup:
     task.clock = Mock(Clock) {
       1 * millis() >> 0
@@ -58,10 +60,10 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * task.oort.forceCacheUpdate(stage.context.cloudProvider, ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> {
+    1 * task.cacheService.forceCacheUpdate(stage.context.cloudProvider, ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> {
       String cloudProvider, String type, Map<String, ? extends Object> body ->
         expectations = body
-        return new Response('oort', 202, 'ok', [], new TypedString("[]"))
+        return new Response('clouddriver', 202, 'ok', [], new TypedString("[]"))
     }
     expectations.serverGroupName == (deployConfig."deploy.server.groups"."us-east-1").get(0)
     expectations.account == deployConfig."account.name"
@@ -95,10 +97,11 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     def optionalTaskResult = task.performForceCacheRefresh("test", "aws", stageData)
 
     then:
-    forceCacheUpdatedServerGroups.size() * task.oort.forceCacheUpdate("aws", "ServerGroup", _) >> {
+    forceCacheUpdatedServerGroups.size() * task.cacheService.forceCacheUpdate("aws", "ServerGroup", _) >> {
       return new Response('', executionStatus == SUCCEEDED ? 200 : 202, 'ok', [], new TypedString(""))
     }
-    0 * task.oort._
+    0 * task.cacheService._
+    0 * task.cacheStatusService._
 
     optionalTaskResult.present == !forceCacheUpdatedServerGroups.isEmpty()
     forceCacheUpdatedServerGroups.every {
@@ -129,7 +132,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     def processingComplete = task.processPendingForceCacheUpdates("test", "aws", stageData, 0,)
 
     then:
-    1 * task.oort.pendingForceCacheUpdates("aws", "ServerGroup") >> { return pendingForceCacheUpdates }
+    1 * task.cacheStatusService.pendingForceCacheUpdates("aws", "ServerGroup") >> { return pendingForceCacheUpdates }
     processingComplete == expectedProcessingComplete
 
     where:

@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.MortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,14 +31,14 @@ public class SecurityGroupForceCacheRefreshTask extends AbstractCloudProviderAwa
   static final String REFRESH_TYPE = "SecurityGroup"
 
   @Autowired
-  MortService mort
+  CloudDriverCacheService cacheService
 
   @Override
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
 
     stage.context.targets.each { Map target ->
-      mort.forceCacheUpdate(
+      cacheService.forceCacheUpdate(
         cloudProvider, REFRESH_TYPE, [account: target.accountName, securityGroupName: target.name, region: target.region]
       )
     }

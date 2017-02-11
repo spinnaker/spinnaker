@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,14 +31,14 @@ public class UpsertLoadBalancerForceRefreshTask extends AbstractCloudProviderAwa
   static final String REFRESH_TYPE = "LoadBalancer"
 
   @Autowired
-  OortService oort
+  CloudDriverCacheService cacheService
 
   @Override
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
     stage.context.targets.each { Map target ->
       target.availabilityZones.keySet().each { String region ->
-        oort.forceCacheUpdate(
+        cacheService.forceCacheUpdate(
           cloudProvider, REFRESH_TYPE, [loadBalancerName: target.name, region: region, account: target.credentials]
         )
       }
