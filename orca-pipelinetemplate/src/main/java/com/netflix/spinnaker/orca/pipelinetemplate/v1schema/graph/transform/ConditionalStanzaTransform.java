@@ -23,16 +23,19 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 
 import java.util.List;
+import java.util.Map;
 
 public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
 
   private TemplateConfiguration templateConfiguration;
 
   private Renderer renderer;
+  private Map<String, Object> trigger;
 
-  public ConditionalStanzaTransform(TemplateConfiguration templateConfiguration, Renderer renderer) {
+  public ConditionalStanzaTransform(TemplateConfiguration templateConfiguration, Renderer renderer, Map<String, Object> trigger) {
     this.templateConfiguration = templateConfiguration;
     this.renderer = renderer;
+    this.trigger = trigger;
   }
 
   @Override
@@ -51,7 +54,7 @@ public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
         continue;
       }
 
-      RenderContext context = new RenderContext(templateConfiguration.getPipeline().getApplication(), template);
+      RenderContext context = new RenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
       context.putAll(templateConfiguration.getPipeline().getVariables());
 
       for (String conditional : el.getWhen()) {

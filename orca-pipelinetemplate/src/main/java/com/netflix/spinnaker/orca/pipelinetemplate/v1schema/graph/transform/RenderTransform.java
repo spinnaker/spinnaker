@@ -38,12 +38,15 @@ public class RenderTransform implements PipelineTemplateVisitor {
 
   Registry registry;
 
+  Map<String, Object> trigger;
+
   private final Timer renderTemplateTimer;
 
-  public RenderTransform(TemplateConfiguration templateConfiguration, Renderer renderer, Registry registry) {
+  public RenderTransform(TemplateConfiguration templateConfiguration, Renderer renderer, Registry registry, Map<String, Object> trigger) {
     this.templateConfiguration = templateConfiguration;
     this.renderer = renderer;
     this.registry = registry;
+    this.trigger = trigger;
     this.renderTemplateTimer = registry.timer("server.renderPipelineTemplate");
   }
 
@@ -56,7 +59,7 @@ public class RenderTransform implements PipelineTemplateVisitor {
   }
 
   private void render(PipelineTemplate template) {
-    RenderContext context = new RenderContext(templateConfiguration.getPipeline().getApplication(), template);
+    RenderContext context = new RenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
     context.putAll(templateConfiguration.getPipeline().getVariables());
 
     // We only render the stages here, whereas modules will be rendered only if used within stages.

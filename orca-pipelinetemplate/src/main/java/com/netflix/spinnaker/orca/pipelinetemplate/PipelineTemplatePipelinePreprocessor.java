@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -71,8 +72,9 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     List<PipelineTemplate> templates = templateLoader.load(templateConfiguration.getPipeline().getTemplate());
 
     PipelineTemplate template = TemplateMerge.merge(templates);
+    Map<String, Object> trigger = (HashMap<String, Object>) pipeline.get("trigger");
 
-    GraphMutator graphMutator = new GraphMutator(templateConfiguration, renderer, registry);
+    GraphMutator graphMutator = new GraphMutator(templateConfiguration, renderer, registry, trigger);
     graphMutator.mutate(template);
 
     // TODO validation
@@ -84,6 +86,7 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
   private static class TemplatedPipelineRequest {
     String type;
+    Map<String, Object> trigger;
     TemplateConfiguration config;
 
     public boolean isTemplatedPipelineRequest() {
@@ -104,6 +107,14 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
     public void setConfig(TemplateConfiguration config) {
       this.config = config;
+    }
+
+    public Map<String, Object> getTrigger() {
+      return trigger;
+    }
+
+    public void setTrigger(Map<String, Object> trigger) {
+      this.trigger = trigger;
     }
   }
 }
