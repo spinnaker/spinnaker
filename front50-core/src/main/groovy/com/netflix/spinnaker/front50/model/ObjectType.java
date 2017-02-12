@@ -31,6 +31,7 @@ public enum ObjectType {
   NOTIFICATION(Notification.class, "notifications", "notification-metadata.json"),
   SERVICE_ACCOUNT(ServiceAccount.class, "serviceAccounts", "serviceAccount-metadata.json"),
   APPLICATION(Application.class, "applications", "application-metadata.json"),
+  // TODO(ewiseblatt) Add migration logic to allow GCS to use application-permission.json like the other providers.
   APPLICATION_PERMISSION(Application.Permission.class, "applications", "application-permission.json"),
   SNAPSHOT(Snapshot.class, "snapshots", "snapshot.json"),
   ENTITY_TAGS(EntityTags.class, "tags", "entity-tags-metadata.json");
