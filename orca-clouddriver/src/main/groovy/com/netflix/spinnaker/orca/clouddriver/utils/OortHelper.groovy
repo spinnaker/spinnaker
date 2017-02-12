@@ -51,8 +51,8 @@ class OortHelper {
     }
   }
 
-  Optional<Map> getCluster(String application, String account, String cluster, String type) {
-    return convertedResponse(Map) { oortService.getCluster(application, account, cluster, type) }
+  Optional<Map> getCluster(String application, String account, String cluster, String cloudProvider) {
+    return convertedResponse(Map) { oortService.getCluster(application, account, cluster, cloudProvider) }
   }
 
   Optional<TargetServerGroup> getTargetServerGroup(String account,

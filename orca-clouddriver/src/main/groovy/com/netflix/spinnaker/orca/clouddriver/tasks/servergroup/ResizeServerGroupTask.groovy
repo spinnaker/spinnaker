@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
@@ -34,6 +35,9 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
 
   @Autowired
   List<ResizeStrategy> resizeStrategies
+
+  @Autowired
+  TrafficGuard trafficGuard
 
   Map getAdditionalStageOutputs(Stage stage, Map operation) {
     [capacity: operation.capacity]
@@ -56,5 +60,15 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
     operation.capacity = [min: newCapacity.min, desired: newCapacity.desired, max: newCapacity.max]
 
     return operation
+  }
+
+  @Override
+  void validateClusterStatus(Map operation) {
+    if (operation.capacity.desired == 0) {
+      trafficGuard.verifyTrafficRemoval(operation.serverGroupName as String,
+        getCredentials(operation),
+        getLocation(operation),
+        getCloudProvider(operation), "Removal of all instances in ")
+    }
   }
 }

@@ -17,13 +17,27 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class DisableServerGroupTask extends AbstractServerGroupTask {
+
+  @Autowired
+  TrafficGuard trafficGuard
+
   @Override
   protected boolean isAddTargetOpOutputs() {
     true
   }
   String serverGroupAction = DisableServerGroupStage.PIPELINE_CONFIG_TYPE
+
+  @Override
+  void validateClusterStatus(Map operation) {
+    trafficGuard.verifyTrafficRemoval(operation.serverGroupName as String,
+      getCredentials(operation),
+      getLocation(operation),
+      getCloudProvider(operation), "Disabling")
+  }
 }
