@@ -49,6 +49,10 @@ public class PersistentStorageController {
 
     builder.setBuildResponse(() -> persistentStorageService.getPersistentStorage(deploymentName));
 
+    if (validate) {
+      builder.setValidateResponse(() -> persistentStorageService.validatePersistentStorage(deploymentName, severity));
+    }
+
     return builder.build();
   }
 
@@ -64,6 +68,10 @@ public class PersistentStorageController {
     builder.setUpdate(() -> persistentStorageService.setPersistentStorage(deploymentName, persistentStorage));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
+
+    if (validate) {
+      doValidate = () -> persistentStorageService.validatePersistentStorage(deploymentName, severity);
+    }
 
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());

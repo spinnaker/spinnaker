@@ -19,6 +19,8 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +33,9 @@ public class PersistentStorageService {
 
   @Autowired
   private DeploymentService deploymentService;
+
+  @Autowired
+  private ValidateService validateService;
 
   public PersistentStorage getPersistentStorage(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPersistentStorage();
@@ -52,5 +57,13 @@ public class PersistentStorageService {
   public void setPersistentStorage(String deploymentName, PersistentStorage newPersistentStorage) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setPersistentStorage(newPersistentStorage);
+  }
+
+  public ProblemSet validatePersistentStorage(String deploymentName, Problem.Severity severity) {
+    NodeFilter filter = new NodeFilter()
+        .setDeployment(deploymentName)
+        .setPersistentStorage();
+
+    return validateService.validateMatchingFilter(filter, severity);
   }
 }

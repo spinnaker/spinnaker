@@ -24,6 +24,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import lombok.AccessLevel;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Parameters()
 public class EditPersistentStorageCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
@@ -54,6 +56,13 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
   )
   private String rootFolder = "spinnaker";
 
+  @Parameter(
+      names = "--location",
+      description = "This is only required if the bucket you specify doesn't exist yet. In that case, the "
+          + "bucket will be created in that location."
+  )
+  private String location;
+
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
@@ -63,6 +72,13 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
     persistentStorage.setAccountName(isSet(accountName) ? accountName : persistentStorage.getAccountName());
     persistentStorage.setBucket(isSet(bucket) ? bucket : persistentStorage.getBucket());
     persistentStorage.setRootFolder(isSet(rootFolder) ? rootFolder : persistentStorage.getRootFolder());
+    persistentStorage.setLocation(isSet(location) ? location : persistentStorage.getLocation());
+
+    if (persistentStorage.getBucket() == null) {
+      String bucketName = "spin-" + UUID.randomUUID().toString();
+      AnsiUi.raw("Generated bucket name: " + bucketName);
+      persistentStorage.setBucket(bucketName);
+    }
 
     Daemon.setPersistentStorage(currentDeployment, !noValidate, persistentStorage);
 

@@ -3,6 +3,7 @@ dependencies {
   compile spinnaker.dependency('clouddriverGoogle')
   compile spinnaker.dependency('clouddriverKubernetes')
   compile spinnaker.dependency('clouddriverAppengine')
+  compile spinnaker.dependency('front50Gcs')
 
   compile project(':halyard-core')
 }
