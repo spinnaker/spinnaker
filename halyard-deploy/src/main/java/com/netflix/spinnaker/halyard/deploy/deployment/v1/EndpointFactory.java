@@ -72,6 +72,8 @@ public class EndpointFactory {
         services.getOrca().setAddress("spin-orca.spinnaker").setHost("0.0.0.0");
         services.getRosco().setAddress("spin-rosco.spinnaker").setHost("0.0.0.0");
         services.getRedis().setAddress("spin-redis.spinnaker").setHost("0.0.0.0");
+
+        return endpoints;
       default:
         throw new IllegalArgumentException("No Clustered Simple Deployment for " + providerType.getId());
     }

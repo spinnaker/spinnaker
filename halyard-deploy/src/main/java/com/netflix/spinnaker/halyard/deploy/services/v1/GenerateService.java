@@ -126,6 +126,7 @@ public class GenerateService {
     }
 
     // Step 2.
+    DaemonTaskHandler.newStage("Generating all Spinnaker profile files");
     Map<String, List<String>> profileRequirements = new HashMap<>();
     Map<SpinnakerArtifact, String> artifactVersions = new HashMap<>();
     FileSystem defaultFileSystem = FileSystems.getDefault();
@@ -145,6 +146,7 @@ public class GenerateService {
     Path userProfilePath = Paths.get(halconfigDirectory, deploymentName);
 
     if (Files.isDirectory(userProfilePath)) {
+      DaemonTaskHandler.newStage("Copying user-provided profiles");
       File[] files = userProfilePath.toFile().listFiles();
       if (files == null) {
         files = new File[0];

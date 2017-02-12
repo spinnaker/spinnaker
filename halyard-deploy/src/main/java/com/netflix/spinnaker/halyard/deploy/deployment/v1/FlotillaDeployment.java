@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
@@ -49,6 +50,7 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
   @Override
   public void deploy() {
     SpinnakerEndpoints.Services services = getEndpoints().getServices();
+    DaemonTaskHandler.newStage("Deploying Spinnaker services and dependencies");
 
     providerInterface.deployService(deploymentDetails, services.getRedis());
 

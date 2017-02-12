@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.halyard.core.tasks.v1;
 
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +28,14 @@ public class TaskRepository {
       task.setState(State.RUNNING);
       try {
         task.setResponse(runner.get());
+        task.setState(State.SUCCESS);
       } catch (Exception e) {
         log.info("Task " + uuid + " failed");
         task.setState(State.FATAL);
         task.setFatalError(e);
       }
       log.info("Task " + uuid + " completed");
-      task.setState(State.COMPLETED);
+      task.finishStage();
     };
 
     Thread t = new Thread(r);
@@ -58,7 +60,7 @@ public class TaskRepository {
       case FATAL:
         log.error("Task " + uuid + " encountered a fatal exception");
         fatalError = task.getFatalError();
-      case COMPLETED:
+      case SUCCESS:
         log.info("Terminating task " + uuid);
         try {
           status.getRunner().join();
@@ -69,7 +71,11 @@ public class TaskRepository {
     }
 
     if (fatalError != null) {
-      throw new RuntimeException("Failed running task: " + fatalError.getMessage(), fatalError);
+      if (fatalError instanceof HalException) {
+        throw (HalException) fatalError;
+      } else {
+        throw new RuntimeException("Failed running task: " + fatalError.getMessage(), fatalError);
+      }
     }
     return task;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,24 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.halyard.cli.ui.v1;
 
-public class AnsiPrinter {
-  public static void println(String ansiText) {
-    try {
-      System.out.print(ansiText);
-    } finally {
-      System.out.println(AnsiSpecial.RESET.format());
-    }
-  }
+import lombok.Getter;
 
-  public static void print(String ansiText) {
-    try {
-      System.out.print(ansiText);
-    } finally {
-      System.out.print(AnsiSpecial.RESET.format());
-    }
+public enum AnsiErase implements AnsiCode {
+  ERASE_END_LINE("\033[K"),
+  ERASE_START_LINE("\033[1K\r"),
+  ERASE_LINE("\033[2K");
+
+  @Getter
+  private final String code;
+
+  AnsiErase(String code) {
+    this.code = code;
   }
 }

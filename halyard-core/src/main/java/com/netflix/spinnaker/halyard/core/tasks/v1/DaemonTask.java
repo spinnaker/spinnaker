@@ -8,29 +8,49 @@ import java.util.List;
 
 /**
  * This represents a long-running task managed by the Daemon that can be polled for status information.
+ * It is made up of multiple stages, each of which have multiple events.
  */
 @Data
 public class DaemonTask<T> {
-  List<DaemonEvent> events = new ArrayList<>();
-
-  DaemonTask writeEvent(String message) {
-    DaemonEvent event = new DaemonEvent()
-        .setMessage(message)
-        .setTimestamp(System.currentTimeMillis());
-
-    events.add(event);
-    return this;
-  }
-
+  List<DaemonStage> stages = new ArrayList<>();
   String uuid;
   State state = State.NOT_STARTED;
   DaemonResponse<T> response;
   Exception fatalError;
 
+  void finishStage() {
+    DaemonStage lastStage = getLastStage();
+    if (lastStage != null) {
+      lastStage.setState(DaemonStage.State.INACTIVE);
+    }
+  }
+
+  void newStage(String name) {
+    finishStage();
+    stages.add(new DaemonStage(name));
+  }
+
+  void writeEvent(String message) {
+    DaemonStage lastStage = getLastStage();
+    if (lastStage == null) {
+      throw new RuntimeException("Illegal attempt to write an event when no stage has started");
+    }
+
+    stages.get(stages.size() - 1).writeEvent(message);
+  }
+
+  private DaemonStage getLastStage() {
+    if (stages.isEmpty()) {
+      return null;
+    } else {
+      return stages.get(stages.size() - 1);
+    }
+  }
+
   public enum State {
     NOT_STARTED,
     RUNNING,
-    COMPLETED,
+    SUCCESS,
     FATAL
   }
 }

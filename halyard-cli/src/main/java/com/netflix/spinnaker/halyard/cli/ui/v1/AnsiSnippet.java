@@ -26,11 +26,16 @@ public class AnsiSnippet {
   private AnsiForegroundColor foregroundColor;
   private AnsiBackgroundColor backgroundColor;
   private List<AnsiStyle> styles = new ArrayList<>();
+  private AnsiErase erase = null;
   private String message;
 
   @Override
   public String toString() {
     StringBuilder result = new StringBuilder();
+
+    if (erase != null) {
+      result.append(erase.format());
+    }
 
     if (backgroundColor != null) {
       result.append(backgroundColor.format());

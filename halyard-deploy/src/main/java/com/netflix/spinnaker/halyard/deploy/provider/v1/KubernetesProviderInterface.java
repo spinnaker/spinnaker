@@ -105,9 +105,11 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   @Override
   public Object connectTo(AccountDeploymentDetails<KubernetesAccount> details, EndpointType endpointType) {
+    KubernetesAccount account = details.getAccount();
+    DaemonTaskHandler.newStage("Connecting to the Kubernetes cluster in account \"" + details.getAccount() + "\"");
     Proxy proxy = proxyMap.getOrDefault(details.getDeploymentName(), new Proxy());
     if (proxy.jobId == null || proxy.jobId.isEmpty()) {
-      List<String> command = kubectlAccountCommand(details.getAccount());
+      List<String> command = kubectlAccountCommand(account);
       command.add("proxy");
       command.add("--port=0"); // select a random port
       JobRequest request = new JobRequest().setTokenizedCommand(command);
@@ -125,7 +127,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       // This should be a long-running job.
       if (status.getState() == State.COMPLETED) {
         throw new HalException(new ConfigProblemBuilder(Severity.FATAL,
-            "Unable to establish a proxy against account " + details.getAccount().getName()
+            "Unable to establish a proxy against account " + account.getName()
             + ":\n" + status.getStdOut() + "\n" + status.getStdErr()).build());
       }
 
@@ -135,7 +137,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       if (matcher.find()) {
         proxy.setPort(Integer.valueOf(matcher.group(1)));
         proxyMap.put(details.getDeploymentName(), proxy);
-        DaemonTaskHandler.log("Connected to kubernetes cluster for account " + details.getAccount().getName() + " on port " + proxy.getPort());
+        DaemonTaskHandler.log("Connected to kubernetes cluster for account " + account.getName() + " on port " + proxy.getPort());
       } else {
         throw new HalException(new ConfigProblemBuilder(Severity.FATAL,
             "Could not parse connection information from:\n" + connectionMessage).build());

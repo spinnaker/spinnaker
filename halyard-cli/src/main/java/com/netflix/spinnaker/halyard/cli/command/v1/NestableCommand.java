@@ -82,12 +82,15 @@ public abstract class NestableCommand {
         AnsiUi.error(e.getCause().getMessage());
         AnsiUi.remediation("Is your daemon running?");
         System.exit(1);
-      } else if (e.getBody() instanceof DaemonResponse) {
+      }
+
+      try {
         DaemonResponse d = (DaemonResponse) e.getBodyAs(DaemonResponse.class);
         if (d.getProblemSet() != null) {
           ResponseUnwrapper.get(d);
           System.exit(1);
         }
+      } catch (RuntimeException re) {
       }
       AnsiUi.error(e.getMessage());
       AnsiUi.remediation("Try the command again with the --debug flag.");

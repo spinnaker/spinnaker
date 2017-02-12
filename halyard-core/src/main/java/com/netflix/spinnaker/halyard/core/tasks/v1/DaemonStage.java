@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,35 +12,43 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.ui.v1;
+package com.netflix.spinnaker.halyard.core.tasks.v1;
 
 import lombok.Getter;
-import org.apache.commons.lang.StringUtils;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AnsiMessageList {
+public class DaemonStage {
   @Getter
-  List<AnsiSnippet> messages = new ArrayList<>();
+  private List<DaemonEvent> events = new ArrayList<>();
 
-  private AnsiSnippet addIndentedMessage(int indentWidth, String messageText) {
-    String indent = StringUtils.leftPad("", indentWidth);
-    messages.add(new AnsiSnippet(indent));
+  @Getter
+  private final String name;
 
-    AnsiSnippet message = new AnsiSnippet(messageText);
-    messages.add(message);
+  @Getter
+  @Setter
+  private State state = State.ACTIVE;
 
-    return message;
+  DaemonStage writeEvent(String message) {
+    DaemonEvent event = new DaemonEvent()
+        .setMessage(message)
+        .setTimestamp(System.currentTimeMillis());
+
+    events.add(event);
+    return this;
   }
 
-  public AnsiSnippet addMessage(String messageText) {
-    return addIndentedMessage(0, messageText);
+  public enum State {
+    ACTIVE,
+    INACTIVE
   }
 
-  public void addNewline() {
-    messages.add(new AnsiSnippet("\n"));
+  DaemonStage(String name) {
+    this.name = name;
   }
 }

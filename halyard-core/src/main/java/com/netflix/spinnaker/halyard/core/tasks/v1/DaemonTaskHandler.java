@@ -14,6 +14,12 @@ public class DaemonTaskHandler {
     return localTask.get();
   }
 
+  public static void newStage(String name) {
+    if (getTask() != null) {
+      getTask().newStage(name);
+    }
+  }
+
   public static void log(String message) {
     if (getTask() != null) {
       getTask().writeEvent(message);

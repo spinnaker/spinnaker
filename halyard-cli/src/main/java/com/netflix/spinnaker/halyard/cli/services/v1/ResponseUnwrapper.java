@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.ui.v1.*;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonEvent;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonStage;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonStage.State;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
@@ -37,9 +40,9 @@ public class ResponseUnwrapper<T> {
   }
 
   public static <T> T get(DaemonTask<T> task) {
-    int eventsSeen = 0;
-    while (task.getState() != DaemonTask.State.COMPLETED) {
-      eventsSeen = formatEvents(task.getEvents(), eventsSeen);
+    PrintCoordinates coords = new PrintCoordinates();
+    while (task.getState() != DaemonTask.State.SUCCESS) {
+      coords = formatStages(task.getStages(), coords);
 
       try {
         Thread.sleep(WAIT_MILLIS);
@@ -49,16 +52,38 @@ public class ResponseUnwrapper<T> {
       task = Daemon.getTask(task.getUuid());
     }
 
-    formatEvents(task.getEvents(), eventsSeen);
+    formatStages(task.getStages(), coords);
+    AnsiSnippet clear = new AnsiSnippet("").setErase(AnsiErase.ERASE_START_LINE);
+    AnsiPrinter.print(clear.toString());
 
     return get(task.getResponse());
   }
 
-  private static int formatEvents(List<DaemonEvent> events, int eventsSeen) {
-    for (DaemonEvent event : events.subList(eventsSeen, events.size())) {
-      AnsiUi.listItem(event.getMessage());
+  private static PrintCoordinates formatStages(List<DaemonStage> stages, PrintCoordinates coords) {
+    for (DaemonStage stage : stages.subList(coords.getLastStage(), stages.size())) {
+      coords = formatEvents(stage.getName(), stage.getEvents(), coords);
+
+      if (stage.getState() == State.INACTIVE) {
+        coords.setLastEvent(0);
+        coords.setLastStage(coords.getLastStage() + 1);
+      }
     }
-    return events.size();
+
+    return coords;
+  }
+
+  private static PrintCoordinates formatEvents(String stageName, List<DaemonEvent> events, PrintCoordinates coords) {
+    for (DaemonEvent event : events.subList(coords.getLastEvent(), events.size())) {
+      AnsiSnippet snippet = new AnsiSnippet("- " + event.getMessage())
+          .setErase(AnsiErase.ERASE_START_LINE);
+      AnsiPrinter.println(snippet.toString());
+
+      snippet = new AnsiSnippet("~ " + stageName)
+          .addStyle(AnsiStyle.BOLD);
+      AnsiPrinter.print(snippet.toString());
+    }
+    coords.setLastEvent(events.size());
+    return coords;
   }
 
   private static void formatProblemSet(ProblemSet problemSet) {
@@ -101,5 +126,11 @@ public class ResponseUnwrapper<T> {
         AnsiUi.raw("");
       }
     }
+  }
+
+  @Data
+  private static class PrintCoordinates {
+    int lastStage = 0;
+    int lastEvent = 0;
   }
 }
