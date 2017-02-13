@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.front50.model;
 
+import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
@@ -155,17 +156,26 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   }
 
   public T findById(String id) throws NotFoundException {
-    return new SimpleHystrixCommand<T>(
-        getClass().getSimpleName(),
-        getClass().getSimpleName() + "-findById",
-        ClosureHelper.toClosure(args -> service.loadObject(objectType, buildObjectKey(id))),
-        ClosureHelper.toClosure(
-            args -> allItemsCache.get().stream()
-            .filter(item -> item.getId().equalsIgnoreCase(id))
-            .findFirst()
-            .orElseThrow(() -> new NotFoundException(
-                String.format("No item found in cache with id of %s", id.toLowerCase()))))
-    ).execute();
+    try {
+      return new SimpleHystrixCommand<T>(
+          getClass().getSimpleName(),
+          getClass().getSimpleName() + "-findById",
+          ClosureHelper.toClosure(args -> service.loadObject(objectType, buildObjectKey(id))),
+          ClosureHelper.toClosure(
+              args -> allItemsCache.get().stream()
+              .filter(item -> item.getId().equalsIgnoreCase(id))
+              .findFirst()
+              .orElseThrow(() -> new NotFoundException(
+                  String.format("No item found in cache with id of %s", id.toLowerCase()))))
+      ).execute();
+    } catch (HystrixRuntimeException e) {
+      // This handles the case where the hystrix command times out.
+      if (e.getFallbackException() instanceof NotFoundException) {
+        throw (NotFoundException)e.getFallbackException();
+      } else {
+        throw e;
+      }
+    }
   }
 
   public void update(String id, T item) {

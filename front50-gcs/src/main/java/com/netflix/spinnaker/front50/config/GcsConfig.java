@@ -37,6 +37,7 @@ import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -53,6 +54,18 @@ import java.util.concurrent.TimeUnit;
 @ConditionalOnExpression("${spinnaker.gcs.enabled:false}")
 @EnableConfigurationProperties(GcsProperties.class)
 public class GcsConfig {
+  @Value("${spinnaker.gcs.safeRetry.maxWaitIntervalMs:60000}")
+  Long maxWaitInterval;
+
+  @Value("${spinnaker.gcs.safeRetry.retryIntervalBaseSec:2}")
+  Long retryIntervalBase;
+
+  @Value("${spinnaker.gcs.safeRetry.jitterMultiplier:1000}")
+  Long jitterMultiplier;
+
+  @Value("${spinnaker.gcs.safeRetry.maxRetries:10}")
+  Long maxRetries;
+
   @Autowired
   Registry registry;
 
@@ -75,9 +88,30 @@ public class GcsConfig {
     String applicationVersion = Optional.ofNullable(getClass().getPackage().getImplementationVersion()).orElse("Unknown");
     GcsStorageService service;
     if (dataFilename == null || dataFilename.isEmpty()) {
-      service = new GcsStorageService(gcsProperties.getBucket(), gcsProperties.getBucketLocation(), gcsProperties.getRootFolder(), gcsProperties.getProject(), gcsProperties.getJsonPath(), applicationVersion, registry);
+      service = new GcsStorageService(gcsProperties.getBucket(),
+        gcsProperties.getBucketLocation(),
+        gcsProperties.getRootFolder(),
+        gcsProperties.getProject(),
+        gcsProperties.getJsonPath(),
+        applicationVersion,
+        maxWaitInterval,
+        retryIntervalBase,
+        jitterMultiplier,
+        maxRetries,
+        registry);
     } else {
-      service = new GcsStorageService(gcsProperties.getBucket(), gcsProperties.getBucketLocation(), gcsProperties.getRootFolder(), gcsProperties.getProject(), gcsProperties.getJsonPath(), applicationVersion, dataFilename, registry);
+      service = new GcsStorageService(gcsProperties.getBucket(),
+        gcsProperties.getBucketLocation(),
+        gcsProperties.getRootFolder(),
+        gcsProperties.getProject(),
+        gcsProperties.getJsonPath(),
+        applicationVersion,
+        dataFilename,
+        maxWaitInterval,
+        retryIntervalBase,
+        jitterMultiplier,
+        maxRetries,
+        registry);
     }
     service.ensureBucketExists();
     log.info("Using Google Cloud Storage bucket={} in project={}",
