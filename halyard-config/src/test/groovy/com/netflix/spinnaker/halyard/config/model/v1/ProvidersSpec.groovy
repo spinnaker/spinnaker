@@ -16,31 +16,13 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider
+import spock.lang.Specification
 
-class ProvidersSpec {
-  void "filter matches providers"() {
-    when:
-    def filter = new NodeFilter().setProvider("anything")
-    def providers = new Providers()
-
-    then:
-    providers.matchesToRoot(filter)
-  }
-
-  void "filter doesn't match providers"() {
-    when:
-    def filter = new NodeFilter().setProvider(null)
-    def providers = new Providers()
-
-    then:
-    !providers.matchesToRoot(filter)
-  }
-
+class ProvidersSpec extends Specification {
   void "providers correctly reports configurable providers"() {
     setup:
     def providers = new Providers()
