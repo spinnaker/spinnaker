@@ -145,3 +145,4 @@ spring:
       email: email
       firstName:
       lastName: name
+      username: login
