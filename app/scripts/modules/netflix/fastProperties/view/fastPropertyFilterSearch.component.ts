@@ -3,6 +3,8 @@ import {module} from 'angular';
 
 interface IFastProperty {
   scope: IFastPropertyScope;
+  key: string;
+  value: string;
 }
 
 interface IFastPropertyScope {
@@ -78,6 +80,7 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
     this.filters.list = uniqWith(copy, (a: any, b: any) => a.label === b.label && a.value === b.value);
     this.$element.find('input').val('');
     this.showSearchResults = false;
+    this.query = null;
   }
 
 
@@ -170,6 +173,8 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
   private createFilterCategories(properties: IFastProperty[]) {
     this.categories = properties.reduce((acc: any, property: IFastProperty) => {
       let scope: IFastPropertyScope = property.scope;
+      acc = this.addToList(acc, 'key', property.key );
+      acc = this.addToList(acc, 'value', property.value);
       acc = this.addToList(acc, 'app', scope.app );
       acc = this.addToList(acc, 'env', scope.env );
       acc = this.addToList(acc, 'region', scope.region );
@@ -177,7 +182,6 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
       acc = this.addToList(acc, 'cluster', scope.cluster);
       return acc;
     }, []);
-
   }
 
   private addToList(acc: any[], scopeKey: string, scopeValue: string): any {

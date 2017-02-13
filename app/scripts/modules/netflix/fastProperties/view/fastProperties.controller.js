@@ -16,7 +16,7 @@ module.exports = angular
   .controller('FastPropertiesController', function ($scope, $filter, $state, $urlRouter, $stateParams, $location, $uibModal, settings, app, fastPropertyReader) {
 
     let vm = this;
-    let filterNames = ['app','env', 'region', 'stack', 'cluster'];
+    let filterNames = ['key', 'value', 'app','env', 'region', 'stack', 'cluster'];
 
     vm.application = app;
 
@@ -145,17 +145,19 @@ module.exports = angular
       });
     };
 
-    let scopeFilterPredicateFactory = (scopeLabel) => {
+    let filterPredicateFactory = (filterLabel) => {
       return (property) => {
         let scopeAttrList = $scope.filters.list
-          .filter((filter) => filter.label === scopeLabel)
+          .filter((filter) => filter.label === filterLabel)
           .map((filter) => filter.value);
-        return scopeAttrList.length ? normalizeForNone(scopeAttrList).includes(property.scope[scopeLabel]) : true;
+
+        let item = property.scope[filterLabel] || property[filterLabel];
+        return (scopeAttrList.length && item) ? normalizeForNone(scopeAttrList).includes(item) : true;
       };
     };
 
 
-    let predicateList = filterNames.map(name => scopeFilterPredicateFactory(name));
+    let predicateList = filterNames.map(name => filterPredicateFactory(name));
 
     let filters = {
       showall: (propertiesList) => {
@@ -215,6 +217,7 @@ module.exports = angular
       $location.search('q', vm.searchTerm);
 
       if(vm.searchTerm.length) {
+        vm.clearFilters();
         vm.fetchingProperties = true;
         vm.propertiesList = undefined;
         vm.searchError = undefined;
