@@ -105,6 +105,19 @@ openstack:
         pollTimeout: 60
         pollInterval: 5
 
+appengine:
+  enabled: ${providers.appengine.enabled:false}
+
+  accounts:
+    - name: ${providers.appengine.primaryCredentials.name}
+      project: ${providers.appengine.primaryCredentials.project}
+      jsonPath: ${providers.appengine.primaryCredentials.jsonPath}
+      sshPrivateKeyFilePath: ${providers.appengine.primaryCredentials.sshPrivateKeyFilePath}
+      sshPrivateKeyPassphrase: ${providers.appengine.primaryCredentials.sshPrivateKeyPassphrase}
+      gitHttpsUsername: ${providers.appengine.primaryCredentials.gitHttpsUsername}
+      gitHttpsPassword: ${providers.appengine.primaryCredentials.gitHttpsPassword}
+      githubOAuthAccessToken: ${providers.appengine.primaryCredentials.githubOAuthAccessToken}
+
 dockerRegistry:
   enabled: ${providers.dockerRegistry.enabled:false}
   accounts:

@@ -35,6 +35,7 @@
 // var fiatEnabled = ${services.fiat.enabled};
 // var openstackPrimaryAccount = ${providers.openstack.primaryCredentials.name};
 // var openstackDefaultRegion = ${providers.openstack.defaultRegion};
+// var appenginePrimaryAccount = ${providers.appengine.primaryCredentials.name};
 
 // END reconfigure_spinnaker
 /**
@@ -93,7 +94,13 @@ window.spinnakerSettings = {
         account: openstackPrimaryAccount,
         region: openstackDefaultRegion
       }
-    }
+    },
+    appengine: {
+      defaults: {
+        account: appenginePrimaryAccount,
+        editLoadBalancerStageEnabled: false,
+      }
+    },
   },
   notifications: {
     email: {

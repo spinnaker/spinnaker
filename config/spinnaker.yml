@@ -365,3 +365,16 @@ providers:
       domainName: ${OS_USER_DOMAIN_NAME:Default}
       regions: ${OS_REGION_NAME:RegionOne}
       insecure: false
+
+  appengine:
+    enabled: ${SPINNAKER_APPENGINE_ENABLED:false}
+
+    primaryCredentials:
+      name: my-appengine-account
+      project: ${SPINNAKER_APPENGINE_PROJECT_ID:}
+      jsonPath: ${SPINNAKER_APPENGINE_PROJECT_CREDENTIALS_PATH:}
+      sshPrivateKeyFilePath: ${SPINNAKER_APPENGINE_PRIVATE_KEY_FILE_PATH:}
+      sshPrivateKeyPassphrase: ${SPINNAKER_APPENGINE_PRIVATE_KEY_PASSPHRASE:}
+      gitHttpsUsername: ${SPINNAKER_APPENGINE_GIT_HTTPS_USERNAME:}
+      gitHttpsPassword: ${SPINNAKER_APPENGINE_GIT_HTTPS_PASSWORD:}
+      githubOAuthAccessToken: ${SPINNAKER_APPENGINE_GITHUB_OAUTH_ACCESS_TOKEN:}
