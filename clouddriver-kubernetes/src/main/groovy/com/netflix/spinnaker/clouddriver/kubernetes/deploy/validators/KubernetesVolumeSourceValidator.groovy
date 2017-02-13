@@ -55,6 +55,18 @@ class KubernetesVolumeSourceValidator {
 
         break
 
+      case KubernetesVolumeSourceType.ConfigMap:
+        if (!(helper.validateNotEmpty(source.configMap, "${prefix}.configMap") &&
+            helper.validateNotEmpty(source.configMap.items, "${prefix}.configMap.items"))) {
+          break
+        }
+        helper.validateNotEmpty(source.configMap.configMapName, "${prefix}.configMap.configMapName")
+        source.configMap.items.eachWithIndex { item, index ->
+          helper.validateRelativePath(item.path, "${prefix}.configMap.items[$index].path")
+          helper.validateNotEmpty(item.key, "${prefix}.configMap.items[$index].key")
+        }
+        break
+
       default:
         helper.reject("${prefix}.type", "$source.type not supported")
     }

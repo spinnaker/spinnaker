@@ -26,6 +26,7 @@ class StandardKubernetesAttributeValidator {
   static final credentialsPattern = /^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$/
   static final prefixPattern = /^[a-z0-9]+$/
   static final pathPattern = /^\/.*$/
+  static final relativePathPattern = /^[^\/].*$/
   static final quantityPattern = /^([+-]?[0-9.]+)([eEimkKMGTP]*[-+]?[0-9]*)$/
   static final protocolList = ['TCP', 'UDP']
   static final serviceTypeList = ['ClusterIP', 'NodePort', 'LoadBalancer']
@@ -89,6 +90,14 @@ class StandardKubernetesAttributeValidator {
   def validatePath(String value, String attribute) {
     if (validateNotEmpty(value, attribute)) {
       return validateByRegex(value, attribute, pathPattern)
+    } else {
+      return false
+    }
+  }
+
+  def validateRelativePath(String value, String attribute) {
+    if (validateNotEmpty(value, attribute)) {
+      return validateByRegex(value, attribute, relativePathPattern)
     } else {
       return false
     }
