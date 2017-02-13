@@ -2,11 +2,8 @@ FROM openjdk:8u111-jre-alpine
 
 MAINTAINER delivery-engineering@netflix.com
 
-COPY ./fiat-web/build/distributions/fiat.zip /opt/fiat.zip
+COPY ./fiat-web/build/install/fiat /opt/fiat
 
-RUN apk add --update bash && \
-      unzip /opt/fiat.zip -d /opt && \
-      rm /opt/fiat.zip && \
-      rm -rf /var/cache/apk/*
+RUN apk --nocache add --update bash
 
 CMD ["/opt/fiat/bin/fiat"]
