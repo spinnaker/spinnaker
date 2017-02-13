@@ -1,5 +1,5 @@
 <div class="form-group container-fluid form-horizontal" ng-controller="kubernetesServerGroupVolumesController as volumesController">
-  <div ng-repeat="source in command.volumeSources">
+  <div ng-repeat="source in command.volumeSources" ng-init="sourceIndex = $index">
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
         Volume Source
@@ -24,6 +24,49 @@
       </div>
       <div class="col-md-4">
         <input type="text" class="form-control input-sm" name="path" ng-model="source.name"/>
+      </div>
+    </div>
+    <div class="form-group" ng-show="source.type === 'CONFIGMAP'">
+      <div class="col-md-3 sm-label-right">
+        Config Map Name
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" name="path" ng-model="source.configMap.configMapName"/>
+      </div>
+    </div>
+    <div class="form-group" ng-show="source.type === 'CONFIGMAP'">
+      <div class="col-md-3 sm-label-right">
+        Items
+        <help-field key="kubernetes.pod.volume.configMap.items"></help-field>
+      </div>
+      <div class="col-md-8">
+        <table class="table table-condensed packed tags">
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Path</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat="item in source.configMap.items track by $index" ng-init="itemIndex = $index">
+            <td>
+              <input class="form-control input-sm" type="text" ng-model="item.key">
+            </td>
+            <td>
+              <input class="form-control input-sm" type="text" ng-pattern="volumesController.relativePathPattern" ng-model="item.path">
+            </td>
+            <td class="table-remove-button">
+              <a class="btn btn-link sm-label" style="margin-top: 0;" ng-click="volumesController.removeItem(sourceIndex, itemIndex)">
+                <span class="glyphicon glyphicon-trash"></span>
+              </a>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+        <button class="add-new col-md-12" ng-click="volumesController.addItem(sourceIndex)">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add item
+        </button>
       </div>
     </div>
     <div class="form-group" ng-show="source.type === 'EMPTYDIR'">

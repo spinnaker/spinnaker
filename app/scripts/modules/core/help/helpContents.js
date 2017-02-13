@@ -424,6 +424,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.service.externalIps': 'IP addresses for which nodes in the cluster also accept traffic. This is not managed by Kubernetes and the ' +
     'responsibility of the user to configure.',
     'kubernetes.pod.volume': '<p>A storage volume to be mounted and shared by containers in this pod. The lifecycle depends on the volume type selected.</p>' +
+    '<p><b>CONFIGMAP</b>: Intended to act as a reference to multiple properties files. Similar to the /etc directory, and the files within, on a Linux computer.</p>' +
     '<p><b>EMPTYDIR</b>: A transient volume tied to the lifecycle of this pod.</p>' +
     '<p><b>HOSTPATH</b>: A directory on the host node. Most pods do not need this.</p>' +
     '<p><b>PERSISTENTVOLUMECLAIM</b>: An already created persistent volume claim to be bound by this pod.</p>' +

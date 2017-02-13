@@ -5,9 +5,10 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.volumes', [
 ])
   .controller('kubernetesServerGroupVolumesController', function($scope) {
-    this.volumeTypes = ['EMPTYDIR', 'HOSTPATH', 'PERSISTENTVOLUMECLAIM', 'SECRET'];
+    this.volumeTypes = ['CONFIGMAP', 'EMPTYDIR', 'HOSTPATH', 'PERSISTENTVOLUMECLAIM', 'SECRET'];
     this.mediumTypes = ['DEFAULT', 'MEMORY'];
     this.pathPattern = '^/.*$';
+    this.relativePathPattern = '^[^/].*';
 
     this.defaultHostPath = function() {
       return {
@@ -34,6 +35,28 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.volu
       };
     };
 
+    this.defaultConfigMap = function() {
+      return {
+        configMapName: '',
+        items: [this.defaultItem()],
+      };
+    };
+
+    this.defaultItem = function() {
+      return {
+        key: '',
+        path: '',
+      };
+    };
+
+    this.addItem = function(sourceIndex) {
+      $scope.command.volumeSources[sourceIndex].configMap.items.push(this.defaultItem());
+    };
+
+    this.removeItem = function(sourceIndex, itemIndex) {
+      $scope.command.volumeSources[sourceIndex].configMap.items.splice(itemIndex, 1);
+    };
+
     this.defaultVolume = function() {
       return {
         type: this.volumeTypes[0],
@@ -42,6 +65,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.volu
         emptyDir: this.defaultEmptyDir(),
         defaultPersistentVolumeClaim: this.defaultPersistentVolumeClaim(),
         secret: this.defaultSecret(),
+        configMap: this.defaultConfigMap(),
       };
     };
 
@@ -70,6 +94,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.volu
 
         if (!source.secret) {
           source.secret = this.defaultSecret();
+        }
+
+        if (!source.configMap) {
+          source.configMap = this.defaultConfigMap();
         }
 
         return source;

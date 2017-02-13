@@ -16,9 +16,10 @@ module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [
         }
       });
 
-      this.volumeTypes = ['EMPTYDIR', 'HOSTPATH', 'PERSISTENTVOLUMECLAIM', 'SECRET'];
+      this.volumeTypes = ['CONFIGMAP', 'EMPTYDIR', 'HOSTPATH', 'PERSISTENTVOLUMECLAIM', 'SECRET'];
       this.mediumTypes = ['DEFAULT', 'MEMORY'];
       this.pathPattern = '^/.*$';
+      this.relativePathPattern = '^[^/].*';
 
       this.defaultHostPath = () => {
         return {
@@ -45,6 +46,28 @@ module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [
         };
       };
 
+      this.defaultConfigMap = () => {
+        return {
+          configMapName: '',
+          items: [this.defaultItem()],
+        };
+      };
+
+      this.defaultItem = () => {
+        return {
+          key: '',
+          path: '',
+        };
+      };
+
+      this.addItem = (sourceIndex) => {
+        this.volumeSources[sourceIndex].configMap.items.push(this.defaultItem());
+      };
+
+      this.removeItem = (sourceIndex, itemIndex) => {
+        this.volumeSources[sourceIndex].configMap.items.splice(itemIndex, 1);
+      };
+
       this.defaultVolumeSource = (name = '') => {
         return {
           type: this.volumeTypes[0],
@@ -53,6 +76,7 @@ module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [
           emptyDir: this.defaultEmptyDir(),
           defaultPersistentVolumeClaim: this.defaultPersistentVolumeClaim(),
           secret: this.defaultSecret(),
+          configMap: this.defaultConfigMap(),
         };
       };
 
@@ -88,6 +112,10 @@ module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [
 
           if (!source.secret) {
             source.secret = this.defaultSecret();
+          }
+
+          if (!source.configMap) {
+            source.configMap = this.defaultConfigMap();
           }
 
           return source;
