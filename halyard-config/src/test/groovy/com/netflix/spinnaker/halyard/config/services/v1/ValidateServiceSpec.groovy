@@ -32,6 +32,8 @@ class ValidateServiceSpec extends Specification {
   final static String KUBERNETES_PROVIDER = "kubernetes"
   final static String DOCKER_REGISTRY_PROVIDER = "dockerRegistry"
   final static String GOOGLE_PROVIDER = "google"
+  final static String AZURE_ACCOUNT_NAME = "my-azure-account"
+  final static String AZURE_PROVIDER = "azure"
   final HalconfigParserMocker mocker = new HalconfigParserMocker()
 
   def "tracking validator hits all accounts"() {
@@ -55,6 +57,10 @@ deploymentConfigurations:
       enabled: true
       accounts:
         - name: $GOOGLE_ACCOUNT_NAME
+    $AZURE_PROVIDER:
+      enabled: true
+      accounts:
+        - name: $AZURE_ACCOUNT_NAME
 """
     def validateService = new ValidateService()
     validateService.parser = mocker.mockHalconfigParser(config)
@@ -70,10 +76,11 @@ deploymentConfigurations:
     validateService.validateMatchingFilter(filter, Problem.Severity.NONE)
 
     then:
-    validator.validatedAccounts.size() == 3
+    validator.validatedAccounts.size() == 4
     validator.validatedAccounts.contains(KUBERNETES_ACCOUNT_NAME)
     validator.validatedAccounts.contains(DOCKER_REGISTRY_ACCOUNT_NAME)
     validator.validatedAccounts.contains(GOOGLE_ACCOUNT_NAME)
+    validator.validatedAccounts.contains(AZURE_ACCOUNT_NAME)
   }
 
   class TrackingAccountValidator extends Validator<Account> {

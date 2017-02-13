@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers
+import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider
@@ -30,6 +31,7 @@ class ProvidersSpec extends Specification {
     def kubernetes = false
     def dockerRegistry = false
     def google = false
+    def azure = false
 
     when:
     def child = iterator.getNext()
@@ -46,6 +48,10 @@ class ProvidersSpec extends Specification {
         google = true
       }
 
+      if (child instanceof AzureProvider) {
+        azure = true
+      }
+
       child = iterator.getNext()
     }
 
@@ -53,5 +59,6 @@ class ProvidersSpec extends Specification {
     kubernetes
     dockerRegistry
     google
+    azure
   }
 }

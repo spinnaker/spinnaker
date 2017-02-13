@@ -29,6 +29,8 @@ class LookupServiceSpec extends Specification {
   final static String KUBERNETES_PROVIDER = "kubernetes"
   final static String DOCKER_REGISTRY_PROVIDER = "dockerRegistry"
   final static String GOOGLE_PROVIDER = "google"
+  final static String AZURE_ACCOUNT_NAME = "my-azure-account"
+  final static String AZURE_PROVIDER = "azure"
   final HalconfigParserMocker mocker = new HalconfigParserMocker()
 
   def "find a kubernetes account"() {
@@ -314,6 +316,10 @@ deploymentConfigurations:
       enabled: true
       accounts:
         - name: $GOOGLE_ACCOUNT_NAME
+    $AZURE_PROVIDER:
+      enabled: true
+      accounts:
+        - name: $AZURE_ACCOUNT_NAME
 """
     def lookupService = new LookupService()
     lookupService.parser = mocker.mockHalconfigParser(config)
@@ -327,10 +333,13 @@ deploymentConfigurations:
 
     then:
     !result.isEmpty()
-    result.size() == 3
+    result.size() == 4
     result[0].getNodeName() != result[1].getNodeName()
     result[1].getNodeName() != result[2].getNodeName()
     result[0].getNodeName() != result[2].getNodeName()
+    result[0].getNodeName() != result[3].getNodeName()
+    result[1].getNodeName() != result[3].getNodeName()
+    result[2].getNodeName() != result[3].getNodeName()
   }
 
   def "find kubernetes provider"() {
@@ -367,6 +376,48 @@ deploymentConfigurations:
     then:
     !result.isEmpty()
     result[0].getNodeName() == KUBERNETES_PROVIDER
+    result.size() == 1
+  }
+
+  def "find an azure account"() {
+    setup:
+    String config = """
+halyardVersion: 1
+currentDeployment: $DEPLOYMENT_NAME
+deploymentConfigurations:
+- name: $DEPLOYMENT_NAME
+  version: 1
+  providers:
+    $KUBERNETES_PROVIDER:
+      enabled: true
+      accounts:
+        - name: $KUBERNETES_ACCOUNT_NAME
+    $DOCKER_REGISTRY_PROVIDER:
+      enabled: true
+      accounts:
+        - name: $DOCKER_REGISTRY_ACCOUNT_NAME
+    $GOOGLE_PROVIDER:
+      enabled: true
+      accounts:
+        - name: $GOOGLE_ACCOUNT_NAME
+    $AZURE_PROVIDER:
+      enabled: true
+      accounts:
+        - name: $AZURE_ACCOUNT_NAME
+"""
+    def lookupService = new LookupService()
+    lookupService.parser = mocker.mockHalconfigParser(config)
+    def filter = new NodeFilter()
+        .setDeployment(DEPLOYMENT_NAME)
+        .setProvider(AZURE_PROVIDER)
+        .setAccount(AZURE_ACCOUNT_NAME)
+
+    when:
+    def result = lookupService.getMatchingNodesOfType(filter, Account.class)
+
+    then:
+    !result.isEmpty()
+    result[0].nodeName == AZURE_ACCOUNT_NAME
     result.size() == 1
   }
 }

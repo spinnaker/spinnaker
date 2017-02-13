@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.appengine.AppengineCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.azure.AzureCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.dockerRegistry.DockerRegistryCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.GoogleCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes.KubernetesCommand;
@@ -43,6 +44,7 @@ public class ProviderCommand extends NestableCommand {
     registerSubcommand(new DockerRegistryCommand());
     registerSubcommand(new GoogleCommand());
     registerSubcommand(new AppengineCommand());
+    registerSubcommand(new AzureCommand());
   }
 
   @Override

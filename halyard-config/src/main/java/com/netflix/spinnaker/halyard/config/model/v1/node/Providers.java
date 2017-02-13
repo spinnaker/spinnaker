@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
@@ -35,6 +36,7 @@ public class Providers extends Node implements Cloneable {
   DockerRegistryProvider dockerRegistry = new DockerRegistryProvider();
   GoogleProvider google = new GoogleProvider();
   AppengineProvider appengine = new AppengineProvider();
+  AzureProvider azure = new AzureProvider();
 
   @Override
   public String getNodeName() {
