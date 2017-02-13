@@ -2,11 +2,8 @@ FROM openjdk:8u111-jre-alpine
 
 MAINTAINER delivery-engineering@netflix.com
 
-COPY ./clouddriver-web/build/distributions/clouddriver.zip /opt/clouddriver.zip
+COPY ./clouddriver-web/build/install/clouddriver /opt/clouddriver
 
-RUN apk add --update bash && \
-      unzip /opt/clouddriver.zip -d /opt && \
-      rm /opt/clouddriver.zip && \
-      rm -rf /var/cache/apk/*
+RUN apk --nocache add --update bash
 
 CMD ["/opt/clouddriver/bin/clouddriver"]
