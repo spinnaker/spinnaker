@@ -30,6 +30,16 @@ public abstract class Provider<T extends Account> extends Node implements Clonea
   boolean enabled = false;
   List<T> accounts = new ArrayList<>();
 
+  private String primaryAccount;
+
+  public String getPrimaryAccount() {
+    if (primaryAccount == null && accounts.size() > 0) {
+      return accounts.get(0).getName();
+    } else {
+      return primaryAccount;
+    }
+  }
+
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeListIterator(accounts.stream().map(a -> (Node) a).collect(Collectors.toList()));

@@ -51,6 +51,8 @@ public class DeploymentConfiguration extends Node {
 
   Features features = new Features();
 
+  String timezone = "America/Los_Angeles";
+
   /**
    * Webhooks, e.g. Jenkins, TravisCI, ...
    */

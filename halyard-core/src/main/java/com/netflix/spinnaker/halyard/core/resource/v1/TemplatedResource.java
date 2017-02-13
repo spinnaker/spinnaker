@@ -40,7 +40,8 @@ abstract public class TemplatedResource {
   public String toString() {
     String contents = getContents();
     for (Entry<String, String> binding : bindings.entrySet()) {
-      contents = contents.replace(formatKey(binding.getKey()), binding.getValue());
+      String value = binding.getValue();
+      contents = contents.replace(formatKey(binding.getKey()), value != null ? value : "");
     }
 
     return contents;
