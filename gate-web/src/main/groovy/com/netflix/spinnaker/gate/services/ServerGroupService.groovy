@@ -50,8 +50,13 @@ class ServerGroupService {
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName) {
     HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
       try {
-        def context = getContext(applicationName, account, region, serverGroupName)
-        return clouddriverService.getServerGroupDetails(applicationName, account, region, serverGroupName) + [
+        def serverGroupDetails = clouddriverService.getServerGroupDetails(applicationName, account, region, serverGroupName)
+        def serverGroupContext = serverGroupDetails.collectEntries {
+          return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
+        } as Map<String, String>
+
+        def context = getContext(applicationName, account, region, serverGroupName) + serverGroupContext
+        return serverGroupDetails + [
           "insightActions": insightConfiguration.serverGroup.collect { it.applyContext(context) }
         ]
       } catch (RetrofitError e) {

@@ -26,19 +26,21 @@ class ServerGroupServiceSpec extends Specification {
     given:
     def service = new ServerGroupService(
         clouddriverService: Mock(ClouddriverService) {
-          1 * getServerGroupDetails(_, _, _, _) >> { return [:] }
+          1 * getServerGroupDetails(_, _, _, _) >> { return [cloudProvider: "aws"] }
         },
         providerLookupService: Stub(ProviderLookupService) {
           providerForAccount(_) >> "test"
         },
         insightConfiguration: new InsightConfiguration(
-            serverGroup: [new InsightConfiguration.Link(url: '${application}-${account}-${region}-${serverGroup}-{DNE}')]
+            serverGroup: [new InsightConfiguration.Link(
+              url: '${application}-${account}-${region}-${serverGroup}-${cloudProvider}-{DNE}'
+            )]
         )
     )
 
     expect:
     service.getForApplicationAndAccountAndRegion("application", "account", "region", "serverGroup").insightActions*.url == [
-        "application-account-region-serverGroup-{DNE}"
+        "application-account-region-serverGroup-aws-{DNE}"
     ]
   }
 
