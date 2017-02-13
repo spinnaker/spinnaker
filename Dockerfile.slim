@@ -4,6 +4,6 @@ MAINTAINER delivery-engineering@netflix.com
 
 COPY ./echo-web/build/install/echo /opt/echo
 
-RUN apk add --update bash && rm -rf /var/cache/apk/*
+RUN apk --nocache add --update bash
 
 CMD ["/opt/echo/bin/echo"]
