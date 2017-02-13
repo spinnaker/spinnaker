@@ -46,6 +46,7 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
         def packageExtension = project.extensions.create('bintrayPackage', OspackageBintrayExtension)
 
         project.tasks.withType(Deb) { Deb deb ->
+            deb.release = packageExtension.buildNumber
             String debTaskName = "${Character.toUpperCase(deb.name.charAt(0))}${deb.name.substring(1)}"
             def publishDeb = project.tasks.create("publish$debTaskName")
             publishDeb.doFirst {

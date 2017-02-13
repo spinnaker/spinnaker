@@ -68,6 +68,7 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
             bintrayPackage.debDistribution = 'trusty'
             bintrayPackage.debComponent = 'spinnaker'
             bintrayPackage.debArchitectures = 'i386,amd64'
+            bintrayPackage.buildNumber = propOrDefault('bintrayPackageBuildNumber', '')
         }
 
         project.repositories.jcenter()

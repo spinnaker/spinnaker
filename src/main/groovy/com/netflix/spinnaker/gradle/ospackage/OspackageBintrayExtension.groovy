@@ -21,4 +21,5 @@ class OspackageBintrayExtension {
     String debDistribution
     String debComponent
     String debArchitectures
+    String buildNumber
 }
