@@ -231,7 +231,7 @@ services:
 
   spectator:
     webEndpoint:
-      enabled: false
+      enabled: true
 
   stackdriver:
     enabled: false

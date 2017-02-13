@@ -30,37 +30,36 @@ function make_spinnaker_monitor_zip() {
   local zip_file="$TEMP_DIR/monitor_spinnaker.zip"
 
   cd "$SOURCE_DIR"
-  zip -r "$zip_file" `ls *.py | grep -v _test.py`
+  zip -qr "$zip_file" `ls *.py | grep -v _test.py`
 
   cp spinnaker_metric_tool.py $TEMP_DIR/__main__.py
   cd $TEMP_DIR
-  zip $zip_file __main__.py
+  zip -q $zip_file __main__.py
   rm -f __main__.py
 
   cd "$BUILD_DIR/spinnaker"
-  zip -r $zip_file pylib
-
-  cd "$BUILD_DIR/citest"
-  zip -r $zip_file citest
+  zip -qr $zip_file pylib
 }
 
 function make_install_tar() {
-  local tar_file="$TEMP_DIR/install.tz"
+  local tar_file="$1"
   local staging_dir="$TEMP_DIR/monitor_spinnaker"
   mkdir $staging_dir
 
   cd "$SOURCE_DIR"
-  cp *.json README.md $TEMP_DIR/monitor_spinnaker.zip $staging_dir
+  cp -pr install_monitoring.sh config README.md $TEMP_DIR/monitor_spinnaker.zip $staging_dir
   cat requirements.txt | grep -v mock > $staging_dir/requirements.txt
 
   cd $TEMP_DIR
-  tar czf $tar_file monitor_spinnaker
+  if [[ "$tar_file" == *.tz || "$tar_file" == *.tar.gz ]]; then
+    tar czf $tar_file monitor_spinnaker
+  else
+    tar cf $tar_file monitor_spinnaker
+  fi
 }
 
 make_spinnaker_monitor_zip
-make_install_tar
+make_install_tar "$TARGET_PATH"
 
-cp "$TEMP_DIR/install.tz" "$TARGET_PATH"
-rm -rf $TEMP_DIR
 
 echo "WROTE $TARGET_PATH"

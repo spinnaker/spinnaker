@@ -314,6 +314,36 @@
         "viz": "timeseries", 
         "requests": [
           {
+            "q": "diff(sum:clouddriver.operations_count{success:true} by {operationtype})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Successful Operations (per minute)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:clouddriver.operations_count{success:false} by {operationtype})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Failed Operations (per minute)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
             "q": "per_second(sum:front50.controller.invocations_count{*} by {method})", 
             "aggregator": "avg", 
             "conditional_formats": [], 
@@ -422,28 +452,99 @@
         "viz": "timeseries", 
         "requests": [
           {
-            "q": "sum:orca.threadpool.activeCount{*}", 
+            "q": "diff(sum:orca.task.invocations{executiontype:orchestration,status:running} by {taskname})", 
             "aggregator": "avg", 
             "conditional_formats": [], 
-            "type": "line"
+            "type": "bars"
           }
-        ]
+        ], 
+        "autoscale": true
       }, 
-      "title": "Active Orca Threads (per minute)"
+      "title": "Active Orchestrations (orca)"
     }, 
     {
       "definition": {
         "viz": "timeseries", 
         "requests": [
           {
-            "q": "per_minute(sum:igor.controller.invocations_totalTime{*} by {method}) / 1000000 / per_minute(avg:igor.controller.invocations_count{*} by {method})", 
+            "q": "diff(sum:orca.task.invocations{executiontype:orchestration,status:succeeded} by {taskname})", 
             "aggregator": "avg", 
             "conditional_formats": [], 
-            "type": "line"
+            "type": "bars", 
+            "style": {
+              "palette": "cool"
+            }
+          }, 
+          {
+            "q": "- diff(sum:orca.task.invocations{executiontype:orchestration,status:terminal} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "warm"
+            }
           }
-        ]
+        ], 
+        "autoscale": true
       }, 
-      "title": "Igor Controller Invocation Time (ms per minute)"
+      "title": "Completed Orchestrations (orca)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:orca.task.invocations{status:running,executiontype:pipeline} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Active Pipelines (orca)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:orca.task.invocations{status:succeeded,executiontype:pipeline} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "cool"
+            }
+          }, 
+          {
+            "q": "- diff(sum:orca.task.invocations{status:terminal,executiontype:pipeline} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "warm"
+            }
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Completed Pipelines (orca)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "sum:orca.threadpool.activeCount{*} by {id}", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Active Orca Threads (per minute)"
     }, 
     {
       "definition": {
@@ -459,6 +560,20 @@
         "precision": "0"
       }, 
       "title": "Last known Orca Active Threads"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "per_minute(sum:igor.controller.invocations_totalTime{*} by {method}) / 1000000 / per_minute(avg:igor.controller.invocations_count{*} by {method})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "line"
+          }
+        ]
+      }, 
+      "title": "Igor Controller Invocation Time (ms per minute)"
     }, 
     {
       "definition": {
@@ -545,24 +660,31 @@
         "viz": "timeseries", 
         "requests": [
           {
-            "q": "per_minute(sum:rosco.bakes{*} by {success})", 
+            "q": "diff(sum:rosco.bakesActive{*})", 
             "aggregator": "avg", 
-            "style": {
-              "palette": "cool"
-            }, 
-            "type": "bars", 
-            "conditional_formats": []
+            "conditional_formats": [], 
+            "type": "line"
           }, 
           {
-            "q": "per_minute(sum:rosco.bakes.local{*} by {active})", 
+            "q": "diff(sum:rosco.bakesRequested{*} by {flavor})", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "cool"
+            }
+          }, 
+          {
+            "q": "diff(sum:rosco.bakesCompleted_count{success:false} by {region})", 
+            "conditional_formats": [], 
+            "type": "bars", 
             "style": {
               "palette": "warm"
-            }, 
-            "type": "bars"
+            }
           }
-        ]
+        ], 
+        "autoscale": true
       }, 
-      "title": "Rosco Bakes (local warm, per minute)"
+      "title": "Rosco Bake Activity"
     }, 
     {
       "definition": {
@@ -817,7 +939,7 @@
         "viz": "timeseries", 
         "requests": [
           {
-            "q": " - diff(sum:clouddriver.google.api_count{success:false} by {api,scope}.as_rate()), diff(sum:clouddriver.google.api_count{success:true} by {api,scope}.as_rate())", 
+            "q": "- diff(sum:clouddriver.google.api_count{success:false} by {api,scope}.as_rate()), diff(sum:clouddriver.google.api_count{success:true} by {api,scope}.as_rate())", 
             "aggregator": "avg", 
             "style": {
               "palette": "dog_classic"
@@ -828,7 +950,7 @@
         ], 
         "autoscale": true
       }, 
-      "title": "Google API Call Rate (per minute, lines by scope, bars by api)"
+      "title": "Google API Call Rate"
     }, 
     {
       "definition": {
@@ -856,7 +978,7 @@
             "q": "per_minute(sum:clouddriver.google.api_totalTime{*} by {api,scope}) / 1000000 / per_minute(sum:clouddriver.google.api_count{*} by {api,scope}.as_count())", 
             "aggregator": "avg", 
             "conditional_formats": [], 
-            "type": "bars"
+            "type": "line"
           }
         ], 
         "autoscale": true
@@ -868,20 +990,58 @@
         "viz": "timeseries", 
         "requests": [
           {
-            "q": "diff(sum:clouddriver.google.operationWaits_count{*} by {basephase})", 
+            "q": "per_minute(sum:clouddriver.google.batchExecute_count{*} by {context})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "line"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Google Batch Count (per minute)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "per_minute(sum:clouddriver.google.batchExecute_totalTime{*} by {context}) / 1000000 / per_minute(sum:clouddriver.google.batchExecute_count{*} by {context})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "line"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Batch Call Latency (ms per call minute)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "per_minute(sum:clouddriver.google.batchSize{*} by {context})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "line"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Batch Call Size (per minute)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:clouddriver.google.operationWaits_count{status:done} by {basephase,scope})", 
             "aggregator": "avg", 
             "conditional_formats": [], 
             "type": "bars", 
             "style": {
-              "palette": "cool"
+              "palette": "dog_classic"
             }
-          }, 
-          {
-            "q": "diff(sum:clouddriver.google.operationWaits_count{*} by {scope})", 
-            "style": {
-              "palette": "warm"
-            }, 
-            "type": "line"
           }
         ], 
         "autoscale": true, 
@@ -891,7 +1051,53 @@
           }
         }
       }, 
-      "title": "Google Waiting Operations (diff, bars by phase, lines by scope)"
+      "title": "Successful Google Operations (clouddriver)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:clouddriver.google.operationWaits_count{!status:done} by {basephase,scope})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "dog_classic"
+            }
+          }
+        ], 
+        "autoscale": true, 
+        "yaxis": {
+          "filter": {
+            "below": 0.01
+          }
+        }
+      }, 
+      "title": "Failed Google Operations (clouddriver)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:clouddriver.google.operationWaitRequests{*} by {basephase,scope})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "dog_classic"
+            }
+          }
+        ], 
+        "autoscale": true, 
+        "yaxis": {
+          "filter": {
+            "below": 0.01
+          }
+        }
+      }, 
+      "title": "Google Operations Started (clouddriver)"
     }, 
     {
       "definition": {
@@ -933,36 +1139,6 @@
         "viz": "timeseries", 
         "requests": [
           {
-            "q": "per_minute(sum:clouddriver.onDemand_total_totalTime{*} by {ondemandtype}) / 1000000000 / per_minute(sum:clouddriver.onDemand_total_count{*} by {ondemandtype})", 
-            "aggregator": "avg", 
-            "conditional_formats": [], 
-            "type": "bars"
-          }
-        ], 
-        "autoscale": true
-      }, 
-      "title": "Clouddriver OnDemand Invocation Time (ms per call per minute)"
-    }, 
-    {
-      "definition": {
-        "viz": "timeseries", 
-        "requests": [
-          {
-            "q": "diff(sum:clouddriver.operations_count{*} by {operationtype})", 
-            "aggregator": "avg", 
-            "conditional_formats": [], 
-            "type": "bars"
-          }
-        ], 
-        "autoscale": true
-      }, 
-      "title": "Clouddriver Operations (type per minute)"
-    }, 
-    {
-      "definition": {
-        "viz": "timeseries", 
-        "requests": [
-          {
             "q": "avg:clouddriver.spectator.datapoints{*}, avg:echo.spectator.datapoints{*}, avg:fiat.spectator.datapoints{*}, avg:front50.spectator.datapoints{*}, avg:gate.spectator.datapoints{*}, avg:orca.spectator.datapoints{*}, avg:rosco.spectator.datapoints{*}", 
             "aggregator": "avg", 
             "conditional_formats": [], 
@@ -972,23 +1148,8 @@
         "autoscale": true
       }, 
       "title": "Spectator Time Series Streams"
-    }, 
-    {
-      "definition": {
-        "viz": "timeseries", 
-        "requests": [
-          {
-            "q": "diff(sum:clouddriver.google.batchExecute_count{*} by {context})", 
-            "aggregator": "avg", 
-            "conditional_formats": [], 
-            "type": "area"
-          }
-        ], 
-        "autoscale": true
-      }, 
-      "title": "Google Batch Execution Count"
     }
   ], 
   "description": "Contains graphs of various metrics within Spinnaker to illustrate what is available.", 
-  "title": "FullSpinnaker"
+  "title": "Spinnaker Kitchen Sink"
 }

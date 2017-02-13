@@ -15,6 +15,7 @@
 import cgi
 import httplib
 import json
+import os
 import logging
 
 from command_processor import CommandHandler
@@ -469,6 +470,107 @@ class UpsertCustomDescriptorsHandler(BaseStackdriverCommandHandler):
         project, upsert_descriptors, type_map, self.output)
 
 
+class ListDashboardsHandler(BaseStackdriverCommandHandler):
+  """Administrative handler to list all dashboards (not just spinnaker)."""
+
+  def process_commandline_request(self, options):
+    """Implements CommandHandler."""
+    stackdriver = stackdriver_service.make_service(options)
+
+    parent = 'projects/{0}'.format(stackdriver.project)
+    dashboards = stackdriver.stub.projects().dashboards()
+    request = dashboards.list(parent=parent)
+    all_dashboards = []
+    while  request:
+      response = request.execute()
+      all_dashboards.extend(response.get('dashboards', []))
+      request = dashboards.list_next(request, response)
+
+    found = {elem['name']: elem['displayName'] for elem in all_dashboards}
+    self.output(options, str(found))
+
+
+def lookup_dashboard(stackdriver, display_name):
+  """Find the dashboard definition with the given display_name."""
+  parent = 'projects/{0}'.format(stackdriver.project)
+  dashboards = stackdriver.stub.projects().dashboards()
+  request = dashboards.list(parent=parent)
+  while request:
+    response = request.execute()
+    for elem in response.get('dashboards', []):
+      if elem['displayName'] == display_name:
+        return elem
+      request = dashboards.list_next(request, response)
+  return None
+
+
+class GetDashboardHandler(BaseStackdriverCommandHandler):
+  """Administrative handler to get a dashboard from its name."""
+
+  def add_argparser(self, subparsers):
+    """Implements CommandHandler."""
+    parser = super(GetDashboardHandler, self).add_argparser(subparsers)
+    parser.add_argument(
+        '--name', required=True,
+      help='The name of the dashboard to get.')
+    return parser
+
+  def process_commandline_request(self, options):
+    """Implements CommandHandler."""
+    display_name = options.get('name', None)
+    if not display_name:
+      raise ValueError('No name provided.')
+
+    stackdriver = stackdriver_service.make_service(options)
+    found = lookup_dashboard(stackdriver, display_name)
+
+    if found is None:
+      raise ValueError('"{0}" not found.'.format(display_name))
+    json_text = json.JSONEncoder(indent=2).encode(found)
+    self.output(options, json_text)
+
+
+class UploadDashboardHandler(BaseStackdriverCommandHandler):
+  """Administrative handler to upload a dashboard."""
+
+  def add_argparser(self, subparsers):
+    """Implements CommandHandler."""
+    parser = super(UploadDashboardHandler, self).add_argparser(subparsers)
+    parser.add_argument('--dashboard', required=True,
+                        help='The path to the json dashboard file.')
+    parser.add_argument(
+        '--update', default=False, action='store_true',
+      help='Update an existing dashboard rather than create a new one.')
+    return parser
+
+  def process_commandline_request(self, options):
+    """Implements CommandHandler."""
+    path = options.get('dashboard', None)
+    if not path:
+      raise ValueError('No dashboard provided.')
+    with open(path, 'r') as infile:
+      specification = json.JSONDecoder().decode(infile.read())
+
+    stackdriver = stackdriver_service.make_service(options)
+    dashboards = stackdriver.stub.projects().dashboards()
+
+    parent = 'projects/{0}'.format(stackdriver.project)
+    if options.get('update', False):
+      display_name = specification['displayName']
+      found = lookup_dashboard(stackdriver, display_name)
+      if found is None:
+        raise ValueError('"{0}" not found.'.format(display_name))
+      response = dashboards.update(
+          name=found['name'], body=specification).execute()
+      action = 'Updated'
+    else:
+      response = dashboards.create(parent=parent, body=specification).execute()
+      action = 'Created'
+
+    self.output(options, '{action} "{title}" with name {name}'.format(
+      action=action, title=response['displayName'], name=response['name']))
+
+
 def add_handlers(handler_list, subparsers):
   """Registers CommandHandlers for interacting with Stackdriver."""
   command_handlers = [
@@ -487,6 +589,19 @@ def add_handlers(handler_list, subparsers):
           ' update the existing ones and add the new ones.'
           ' WARNING: Historic time-series data may be lost on update.')
   ]
+  if os.environ.get('STACKDRIVER_API_KEY'):
+    command_handlers.extend([
+      ListDashboardsHandler('/stackdriver/list_dashboards',
+                            'list_stackdriver_dashboards',
+                            'List the available Stackdriver Dashboards'),
+      GetDashboardHandler(None,
+                          'get_stackdriver_dashboard',
+                          'Get a specific dashboard by display name'),
+      UploadDashboardHandler(None,
+                            'upload_stackdriver_dashboard',
+                            'Create or update specific dashboard')
+    ])
+
   for handler in command_handlers:
     handler.add_argparser(subparsers)
     handler_list.append(handler)
