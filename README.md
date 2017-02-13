@@ -1,7 +1,7 @@
 # Igor
 [![Build Status](https://api.travis-ci.org/spinnaker/igor.svg?branch=master)](https://travis-ci.org/spinnaker/igor)
 
-Igor provides a single point of integration with Jenkins, Travis and Git repositories ( Stash and Github ) within Spinnaker.
+Igor provides a single point of integration with Jenkins, Travis and Git repositories ( BitBucket, Stash, and Github ) within Spinnaker.
 
 Igor keeps track of the credentials for multiple Jenkins and/or Travis hosts and sends events to [echo](http://www.github.com/spinnaker/echo) whenever build information has changed. 
 
@@ -61,6 +61,12 @@ stash:
   baseUrl: "<stash url>"
   username: '<stash username>'
   password: '<stash password>'
+
+bitbucket:
+  baseUrl: "https://api.bitbucket.org"
+  username: '<bitbucket username>'
+  password: '<bitbucket password>'
+  commitDisplayLength: 7
 ```
 
 Currently git credentials are used in Spinnaker pipelines to retrieve commit changes across different build versions. 
