@@ -16,40 +16,48 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry;
 
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.storage.Storage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import retrofit.RestAdapter;
-import retrofit.client.OkClient;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.GeneralSecurityException;
 
 @Component
 public class ProfileRegistry {
   @Autowired
-  OkClient okClient;
-
-  @Autowired
-  ProfileRegistryService profileRegistryService;
-
-  @Autowired
   String spinconfigBucket;
 
+  @Autowired
+  Storage googleStorage;
+
   @Bean
-  public ProfileRegistryService componentProfileRegistryService() {
-    return new RestAdapter.Builder()
-        .setClient(okClient)
-        .setEndpoint("https://www.googleapis.com")
-        .build()
-        .create(ProfileRegistryService.class);
+  public Storage googleStorage() {
+    HttpTransport httpTransport = null;
+    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    String applicationName = "Spinnaker/Halyard";
+
+    try {
+      httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+      return new Storage.Builder(httpTransport, jsonFactory, null)
+          .setApplicationName(applicationName)
+          .build();
+    } catch (IOException | GeneralSecurityException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public InputStream getObjectContents(String objectName) throws IOException {
-    ProfileRegistryService service = profileRegistryService;
-
-    StoredObjectMetadata metadata = service.getMetadata(spinconfigBucket, objectName);
-
-    return service.getContents(spinconfigBucket, objectName, metadata.getGeneration(), "media").getBody().in();
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    googleStorage.objects().get(spinconfigBucket, objectName).executeMediaAndDownloadTo(output);
+    return new ByteArrayInputStream(output.toByteArray());
   }
 }
