@@ -18,6 +18,9 @@
     <v2-wizard-page key="chaos" label="Chaos Monkey" done="true" ng-if="config.feature.chaosMonkey">
       <chaos-monkey-config application="config.application"></chaos-monkey-config>
     </v2-wizard-page>
+    <v2-wizard-page key="traffic-guards" label="Traffic Guards" done="true">
+      <traffic-guard-config application="config.application"></traffic-guard-config>
+    </v2-wizard-page>
     <v2-wizard-page key="snapshot" label="Serialize Application" done="true" ng-if="config.feature.snapshots">
       <application-snapshot-section application="config.application"></application-snapshot-section>
     </v2-wizard-page>
