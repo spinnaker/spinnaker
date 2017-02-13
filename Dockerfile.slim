@@ -4,6 +4,6 @@ MAINTAINER delivery-engineering@netflix.com
 
 COPY ./front50-web/build/install/front50 /opt/front50
 
-RUN apk add --update bash && rm -rf /var/cache/apk/*
+RUN apk --nocache add --update bash
 
 CMD ["/opt/front50/bin/front50"]
