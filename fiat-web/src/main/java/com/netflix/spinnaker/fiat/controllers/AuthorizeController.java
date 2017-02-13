@@ -23,6 +23,7 @@ import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +80,16 @@ public class AuthorizeController {
                                 .stream()
                                 .map(Account::getView)
                                 .collect(Collectors.toSet());
+  }
+
+  @RequestMapping(value = "/{userId:.+}/roles", method = RequestMethod.GET)
+  public Set<Role.View> getUserRoles(@PathVariable String userId) {
+    return permissionsRepository.get(ControllerSupport.convert(userId))
+            .orElseThrow(NotFoundException::new)
+            .getRoles()
+            .stream()
+            .map(Role::getView)
+            .collect(Collectors.toSet());
   }
 
   @RequestMapping(value = "/{userId:.+}/accounts/{accountName:.+}", method = RequestMethod.GET)

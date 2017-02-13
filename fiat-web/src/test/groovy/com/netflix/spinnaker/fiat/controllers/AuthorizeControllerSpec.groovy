@@ -212,4 +212,26 @@ class AuthorizeControllerSpec extends Specification {
            .andExpect(status().isOk())
            .andExpect(content().json(expected))
   }
+
+  def "get list of roles for user"() {
+    setup:
+    permissionsRepository.put(roleAUser)
+    permissionsRepository.put(roleAroleBUser)
+
+    when:
+    def expected = objectMapper.writeValueAsString(roleAUser.getRoles().view)
+
+    then:
+    mockMvc.perform(get("/authorize/roleAUser/roles"))
+            .andExpect(status().isOk())
+            .andExpect(content().json(expected))
+
+    when:
+    expected = objectMapper.writeValueAsString(roleAroleBUser.getRoles().view)
+
+    then:
+    mockMvc.perform(get("/authorize/roleAroleBUser/roles"))
+            .andExpect(status().isOk())
+            .andExpect(content().json(expected))
+  }
 }
