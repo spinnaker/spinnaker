@@ -71,6 +71,16 @@ class EntityTagsController {
     return taggedEntityDAO.create(tag.id, tag)
   }
 
+  @RequestMapping(value = "/batchUpdate", method = RequestMethod.POST)
+  void batchUpdate(@RequestBody final Collection<EntityTags> tags, HttpServletResponse response) {
+    if (!taggedEntityDAO) {
+      throw new BadRequestException("Tagging is not supported")
+    }
+
+    taggedEntityDAO.bulkImport(tags)
+    response.setStatus(HttpStatus.ACCEPTED.value())
+  }
+
   @RequestMapping(method = RequestMethod.DELETE, value = "/**")
   void delete(HttpServletRequest request, HttpServletResponse response) {
     String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
