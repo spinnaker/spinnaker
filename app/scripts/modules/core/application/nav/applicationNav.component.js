@@ -20,7 +20,9 @@ module.exports = angular
              analytics-event="{{dataSource.title}}"
              ng-class="{active: $ctrl.isActive(dataSource)}">
             {{dataSource.label}}
-             <ds-alerts alerts="dataSource.alerts"></ds-alerts>
+             <ds-alerts alerts="dataSource.alerts" 
+                        application-name="$ctrl.application.name" 
+                        tab-name="{{dataSource.key}}"></ds-alerts>
             <span class="badge"
                   ng-if="dataSource.badge && $ctrl.application[dataSource.badge].data.length">
               {{$ctrl.application[dataSource.badge].data.length}}

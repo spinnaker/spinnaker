@@ -23,7 +23,10 @@
       <span class="icon icon-elb"></span>
       <h3 select-on-dbl-click>
         {{loadBalancer.name}}
-        <entity-ui-tags component="loadBalancer" application="ctrl.application" entity-type="loadBalancer"
+        <entity-ui-tags component="loadBalancer"
+                        application="ctrl.application"
+                        entity-type="loadBalancer"
+                        page-location="details"
                         on-update="ctrl.application.loadBalancers.refresh()"></entity-ui-tags>
       </h3>
     </div>
