@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.front50.model.Application;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -74,7 +75,16 @@ public class TrafficGuard {
 
   public boolean hasDisableLock(String cluster, String account, Location location) {
     Names names = Names.parseName(cluster);
-    Application application = front50Service.get(names.getApp());
+    Application application;
+    try {
+      application = front50Service.get(names.getApp());
+    } catch (RetrofitError e) {
+      if (e.getResponse().getStatus() == 404) {
+        application = null;
+      } else {
+        throw e;
+      }
+    }
     if (application == null || !application.details().containsKey("trafficGuards")) {
       return false;
     }
