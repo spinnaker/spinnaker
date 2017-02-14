@@ -20,6 +20,8 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location.Type
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
+import retrofit.RetrofitError
+import retrofit.client.Response
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -180,7 +182,21 @@ class TrafficGuardSpec extends Specification {
     then:
     !applicationDetails.containsKey("trafficGuards")
     result == false
-    1 * front50Service.get("app") >> application
+    1 * front50Service.get("app") >> {
+      throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
+    }
+  }
+
+  void "throws exception if application retrieval throws an exception"() {
+    when:
+    Exception thrownException = new RuntimeException("bad read")
+    trafficGuard.hasDisableLock("app", "test", location)
+
+    then:
+    thrown(RuntimeException)
+    1 * front50Service.get("app") >> {
+      throw thrownException
+    }
   }
 
   void "hasDisableLock returns false on applications with empty guards configured"() {
