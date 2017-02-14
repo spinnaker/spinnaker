@@ -5,4 +5,4 @@ server:
   address: ${services.gate.host:localhost}
 
 redis:
-  connection: ${services.redis.connection:redis://localhost:6379}
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
