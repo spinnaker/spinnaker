@@ -44,7 +44,7 @@
       <input type="text" class="form-control input-sm"
               ng-model="stage.baseName"/>
     </stage-config-field>
-    <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
+    <div ng-class="{collapse: showAdvancedOptions !== true, 'collapse.in': showAdvancedOptions === true}">
       <stage-config-field label="Template File Name" help-key="pipeline.config.bake.templateFileName"
                           ng-if="bakeStageCtrl.showTemplateFileName()">
         <input type="text" class="form-control input-sm"

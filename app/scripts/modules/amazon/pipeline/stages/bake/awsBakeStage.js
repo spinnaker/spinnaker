@@ -87,6 +87,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];
         }
         $scope.viewState.roscoMode = settings.feature.roscoMode;
+        $scope.showAdvancedOptions = showAdvanced();
         $scope.viewState.loading = false;
       });
     }
@@ -97,6 +98,12 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
           delete $scope.stage[key];
         }
       });
+    }
+
+    function showAdvanced() {
+      const stg = $scope.stage;
+      return !!(stg.templateFileName || (stg.extendedAttributes && _.size(stg.extendedAttributes) > 0) ||
+        stg.varFileName || stg.baseName || stg.baseAmi || stg.amiName || stg.amiSuffix || stg.enhancedNetworking);
     }
 
     this.addExtendedAttribute = function() {
