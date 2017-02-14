@@ -2,11 +2,11 @@
   <h4>Canary Config</h4>
   <stage-config-field label="Name" field-columns="3">
     <input type="text" required ng-model="stage.canary.canaryConfig.name"
-           class="form-control input-sm" />
+           class="form-control input-sm"/>
   </stage-config-field>
   <stage-config-field label="Canary Lifetime" field-columns="3">
     <input type="text" required ng-model="stage.canary.canaryConfig.lifetimeHours"
-           class="form-control input-sm" style="display: inline-block; width: 33%" />
+           class="form-control input-sm" style="display: inline-block; width: 33%"/>
     <span class="form-control-static">hours</span>
   </stage-config-field>
   <stage-config-field label="Result Strategy" help-key="pipeline.config.canary.resultStrategy" field-columns="3">
@@ -23,7 +23,7 @@
     </div>
     <div class="col-md-1">
       <input type="text" required ng-model="stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore"
-             class="form-control input-sm" />
+             class="form-control input-sm"/>
     </div>
     <div class="col-md-2 col-md-offset-1 sm-label-right">
       <label>Unhealthy Score</label>
@@ -31,7 +31,7 @@
     </div>
     <div class="col-md-1">
       <input type="text" required ng-model="stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore"
-             class="form-control input-sm" />
+             class="form-control input-sm"/>
     </div>
   </div>
   <div class="checkbox col-md-offset-1">
@@ -48,7 +48,7 @@
     </div>
     <div class="col-md-1">
       <input type="text" required ng-model="stage.scaleUp.capacity"
-             class="form-control input-sm" />
+             class="form-control input-sm"/>
     </div>
     <div class="col-md-2 col-md-offset-1 sm-label-right">
       <label>Scale Up Delay</label>
@@ -56,14 +56,15 @@
     </div>
     <div class="col-md-1">
       <input type="text" required ng-model="stage.scaleUp.delay"
-             class="form-control input-sm" />
+             class="form-control input-sm"/>
     </div>
     <div class="col-md-1 form-control-static">minutes</div>
   </div>
 
   <div class="checkbox col-md-offset-1">
     <label>
-      <input type="checkbox" ng-model="canaryStageCtrl.terminateUnhealthyCanaryEnabled" ng-model-options="{ getterSetter: true }" />
+      <input type="checkbox" ng-model="canaryStageCtrl.terminateUnhealthyCanaryEnabled"
+             ng-model-options="{ getterSetter: true }"/>
       <b>Terminate Unhealthy Canary</b>
       <help-field key="pipeline.config.canary.scaleUp"></help-field>
     </label>
@@ -73,7 +74,8 @@
       <label>Terminate After</label>
     </div>
     <div class="col-md-2">
-      <input type="text" required ng-model="canaryStageCtrl.terminateUnhealthyCanaryMinutes"  ng-model-options="{ getterSetter: true }"
+      <input type="text" required ng-model="canaryStageCtrl.terminateUnhealthyCanaryMinutes"
+             ng-model-options="{ getterSetter: true }"
              class="form-control input-sm" style="display: inline-block; width: 40%"/>
       <span class="form-control-static"> minutes</span>
     </div>
@@ -84,8 +86,8 @@
   <div class="horizontal-rule"></div>
   <stage-config-field label="Name" help-key="pipeline.config.canary.canaryConfigurationName" field-columns="3">
     <canary-analysis-name-selector
-        model="stage.canary.canaryConfig.canaryAnalysisConfig.name"
-        class-name="form-control input-sm">
+      model="stage.canary.canaryConfig.canaryAnalysisConfig.name"
+      class-name="form-control input-sm">
     </canary-analysis-name-selector>
   </stage-config-field>
   <stage-config-field label="Warmup Period">
@@ -97,7 +99,7 @@
   </stage-config-field>
   <stage-config-field label="Notification Hours" help-key="pipeline.config.canary.notificationHours" field-columns="3">
     <input type="text" ng-model="canaryStageCtrl.notificationHours"
-           class="form-control input-sm" ng-change="canaryStageCtrl.splitNotificationHours()" />
+           class="form-control input-sm" ng-change="canaryStageCtrl.splitNotificationHours()"/>
   </stage-config-field>
   <stage-config-field label="Frequency" help-key="pipeline.config.canary.canaryInterval" field-columns="3">
     <input type="text" required ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins"
@@ -134,8 +136,9 @@
     </div>
     <div
       class="error-message col-md-6"
-      ng-if="stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins > 0 && stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins < 30" >
-      <b>NOTE:</b> To provide enough data points for the Canary Analysis it is recommended to set the look-back time to at least 30 minutes.
+      ng-if="stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins > 0 && stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins < 30">
+      <b>NOTE:</b> To provide enough data points for the Canary Analysis it is recommended to set the look-back time to
+      at least 30 minutes.
     </div>
   </div>
 
@@ -144,7 +147,7 @@
   <div class="horizontal-rule"></div>
   <stage-config-field label="Email">
     <input type="email" required ng-model="stage.canary.owner"
-           class="form-control input-sm" />
+           class="form-control input-sm"/>
   </stage-config-field>
 
   <h5>Watchers</h5>
@@ -155,19 +158,26 @@
     ng-paste="canaryStageCtrl.updateWatchersList()"
     label="Emails">
     <textarea ng-model="canaryStageCtrl.recipients"
-              class="form-control input-sm" ></textarea>
+              class="form-control input-sm"></textarea>
   </stage-config-field>
 
-  <h5>Baseline Version <help-field key="pipeline.config.canary.baselineVersion"></help-field></h5>
+  <h5>Baseline Version
+    <help-field key="pipeline.config.canary.baselineVersion"></help-field>
+  </h5>
   <div class="horizontal-rule"></div>
+  <stage-config-field label="Provider" ng-if="providers.length > 1 && stage.isNew">
+    <provider-selector providers="providers"
+                       component="stage.baseline" field="cloudProvider"
+                       read-only="!stage.isNew"></provider-selector>
+  </stage-config-field>
   <stage-config-field label="Account">
     <account-select-field
       component="stage.baseline"
       field="account"
       accounts="accounts"
-      provider="'aws'"
+      provider="getCloudProvider()"
       on-change="resetSelectedCluster()"
-      required >
+      required>
     </account-select-field>
   </stage-config-field>
   <stage-config-field label="Cluster">
@@ -177,7 +187,9 @@
       model="stage.baseline.cluster">
     </cluster-selector>
   </stage-config-field>
-  <h5>Canary / Baseline Cluster Pairs <help-field key="pipeline.config.canary.clusterPairs"></help-field></h5>
+  <h5>Canary / Baseline Cluster Pairs
+    <help-field key="pipeline.config.canary.clusterPairs"></help-field>
+  </h5>
   <div class="horizontal-rule"></div>
   <div class="row">
     <div style="margin: 10px 10px 0px 50px;">
