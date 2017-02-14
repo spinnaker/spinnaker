@@ -5,7 +5,7 @@ server:
   address: ${services.rosco.host:localhost}
 
 redis:
-  connection: ${services.redis.connection:redis://localhost:6379}
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
 
 rosco:
   configDir: ${services.rosco.configDir:/opt/rosco/config/packer}
