@@ -135,8 +135,8 @@ class Annotator(Refresher):
   repositories through extending the Refresher class.
   """
 
-  # regex for 'version-X.Y.Z-$build' versions
-  TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$')
+  # regex for 'version-X.Y.Z' versions
+  TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+$')
 
   def __init__(self, options):
     self.__next_tag = options.next_tag
@@ -144,9 +144,12 @@ class Annotator(Refresher):
     self.__initial_branch = options.initial_branch
     self.__stable_branch = options.stable_branch
     self.__build_number = options.build_number or os.environ.get('BUILD_NUMBER', '')
+    self.__force_rebuild = options.force_rebuild
     self.__tags_to_delete = []
     self.__filtered_tags = []
+    self.__current_version = None
     self.__partition_tags_on_pattern()
+    self.__determine_current_version()
     super(Annotator, self).__init__(options)
 
   def __partition_tags_on_pattern(self):
@@ -170,29 +173,37 @@ class Annotator(Refresher):
   def tag_head(self):
     """Tags the current branch's HEAD with the next semver tag.
     """
-    version_bump = self.determine_next_tag()
-    if version_bump is None:
-      # next_tag is None if we don't need to add a tag. There is already a
-      # 'version-X.Y.Z-$build' tag at HEAD.
-      logging.warn("There is already a tag of the form 'version-X.Y.Z-$build' at HEAD.")
-      return
+    if self.__is_head_current():
+      if self.__force_rebuild:
+        self.__tag_head_with_build(self.__current_version.tag)
+      else:
+        logging.warn("There is already a tag of the form 'version-X.Y.Z' at HEAD. Not forcing rebuild.")
+        return
+    else:
+      version_bump = self.determine_new_tag()
+      # This tag is for logical identification for developers. This will be pushed
+      # to the upstream git repository if we choose to use this version in a
+      # formal Spinnaker product release.
+      run_quick('git -C {path} tag {next_tag} HEAD'
+                .format(path=self.__path, next_tag=version_bump.version_str))
+      self.__tag_head_with_build(version_bump.version_str)
 
-    next_tag = '{0}-{1}'.format(version_bump.version_str, self.__build_number)
-    # This tag is for logical identification for developers. This will be pushed
-    # to the upstream git repository if we choose to use this version in a
-    # formal Spinnaker product release.
-    run_quick('git -C {path} tag {next_tag} HEAD'
-              .format(path=self.__path, next_tag=next_tag))
+  def __tag_head_with_build(self, version_bump_tag):
+    """Tags the current branch's HEAD with the next semver gradle build tag.
 
+    Args:
+      version_bump [VersionBump]: Semver to add as a gradle build tag.
+    """
+    next_tag_with_build = '{0}-{1}'.format(version_bump_tag,
+                                           self.__build_number)
     # This tag is for gradle to use as the package version. It incorporates the
     # build number for uniqueness when publishing. This tag is of the form
     # 'X.Y.Z-$build_number' for gradle to use correctly. This is not pushed
     # to the upstream git repository.
-    first_dash_idx = next_tag.index('-')
-    if first_dash_idx != -1:
-      gradle_version = next_tag[first_dash_idx + 1:]
-      run_quick('git -C {path} tag {next_tag} HEAD'
-                .format(path=self.__path, next_tag=gradle_version))
+    first_dash_idx = next_tag_with_build.index('-')
+    gradle_version = next_tag_with_build[first_dash_idx + 1:]
+    run_quick('git -C {path} tag {next_tag} HEAD'
+              .format(path=self.__path, next_tag=gradle_version))
 
   def delete_unwanted_tags(self):
     """Locally deletes tags that don't match TAG_MATCHER.
@@ -214,38 +225,43 @@ class Annotator(Refresher):
     run_quick('git -C {path} checkout -b {stable_branch}'
               .format(path=self.__path, stable_branch=self.__stable_branch))
 
-  def determine_next_tag(self):
-    """Determines the next semver tag for the repository at the path.
-
-    If the commit at HEAD is already tagged with a tag matching --tag_regex_str,
-    this function is a no-op. Otherwise it determines the semantic version bump
-    for the commits since the last tag matching 'version-X.Y.Z-$build' and suggests a new tag
-    based on the commit messages. This suggestion can be overridden with
-    --next_tag, which will be used if there are any commits after the last
-    semver tag matching 'version-X.Y.Z-$build'.
+  def __is_head_current(self):
+    """Checks if the current version is at HEAD.
 
     Returns:
-      [VersionBump]: Next semantic version tag to be used, along with what type
-      of version bump it was. Version tag is of the form 'version-X.Y.Z'.
+      [Boolean]: True if the current version tag is on HEAD, else False.
     """
     head_commit_res = run_quick('git -C {path} rev-parse HEAD'
                                     .format(path=self.__path),
                                 echo=False)
     head_commit = head_commit_res.stdout.strip()
+    return self.__current_version.hash == head_commit
 
+  def __determine_current_version(self):
+    """Determines and stores the current (latest) semantic version from
+    'version-X.Y.Z' tags.
+    """
     sorted_filtered_tags = sorted(self.__filtered_tags,
                                   key=lambda ht: ht.version, reverse=True)
-
     if len(sorted_filtered_tags) == 0:
-      raise GitTagMissingException("No previous version tags of the form 'version-X.Y.Z-$build'.")
+      raise GitTagMissingException("No version tags of the form 'version-X.Y.Z'.")
 
-    prev_version = sorted_filtered_tags[0]
-    if prev_version.hash == head_commit:
-      # HEAD already has a tag matching 'version-X.Y.Z-$build', so we don't want to add
-      # another.
-      logging.warn("There is already a tag of the form 'version-X.Y.Z-$build' at HEAD.")
-      return None
+    self.__current_version = sorted_filtered_tags[0]
 
+  def determine_new_tag(self):
+    """Determines the next semver tag for the repository at the path.
+
+    If the commit at HEAD is already tagged with a tag matching --tag_regex_str,
+    this function is a no-op. Otherwise it determines the semantic version bump
+    for the commits since the last tag matching 'version-X.Y.Z' and suggests a new tag
+    based on the commit messages. This suggestion can be overridden with
+    --next_tag, which will be used if there are any commits after the last
+    semver tag matching 'version-X.Y.Z'.
+
+    Returns:
+      [VersionBump]: Next semantic version tag to be used, along with what type
+      of version bump it was. Version tag is of the form 'version-X.Y.Z'.
+    """
     if self.__next_tag:
       return self.__next_tag
 
@@ -263,16 +279,16 @@ class Annotator(Refresher):
     if len(commit_hashes) != len(msgs):
       raise IOError('Git commit hash list and commit message list are unequal sizes.')
 
-    return self.bump_semver(prev_version, commit_hashes, msgs)
+    return self.bump_semver(self.__current_version, commit_hashes, msgs)
 
-  def bump_semver(self, prev_version, commit_hashes, commit_msgs):
+  def bump_semver(self, curr_version, commit_hashes, commit_msgs):
     """Determines the semver version bump based on commit messages in 'git log'.
 
     Uses 'conventional-changelog' format to search for features and breaking
     changes.
 
     Args:
-      prev_version [CommitTag]: Previous 'version-X.Y.Z-$build' tag/commit hash pair
+      curr_version [CommitTag]: Latest 'version-X.Y.Z' tag/commit hash pair
       calcluated by semver sort.
 
       commit_hashes [String list]: List of ordered commit hashes.
@@ -292,14 +308,13 @@ class Annotator(Refresher):
     feature = False
     breaking_change = False
 
-    first_dash_idx = prev_version.tag.index('-')
+    first_dash_idx = curr_version.tag.index('-')
     if first_dash_idx == -1:
-      raise GitTagMissingException("No previous version tags of the form 'version-X.Y.Z-$build'.")
-    major, minor, patch_build = prev_version.tag[first_dash_idx + 1:].split('.')
-    patch = patch_build.split('-')[0]
+      raise GitTagMissingException("No version tags of the form 'version-X.Y.Z'.")
+    major, minor, patch = curr_version.tag[first_dash_idx + 1:].split('.')
 
     # TODO(jacobkiefer): Fail if changelog conventions aren't followed?
-    while commit is not None and commit.hash != prev_version.hash:
+    while commit is not None and commit.hash != curr_version.hash:
       msg_lines = commit.msg.split('\n')
       if any([bc_matcher.match(m.strip()) for m in msg_lines]):
         breaking_change = True
@@ -330,6 +345,8 @@ class Annotator(Refresher):
                         help='Path to the git repository we want to annotate.')
     parser.add_argument('--stable_branch', default='',
                         help='Name of the stable release branch to create.')
+    parser.add_argument('--force_rebuild', default=False, action='store_true',
+                        help='Force a rebuild even if there is a git tag at HEAD.')
     super(Annotator, cls).init_argument_parser(parser)
 
   @classmethod
