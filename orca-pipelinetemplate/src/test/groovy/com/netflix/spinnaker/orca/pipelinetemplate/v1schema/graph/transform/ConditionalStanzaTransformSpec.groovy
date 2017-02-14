@@ -35,7 +35,7 @@ class ConditionalStanzaTransformSpec extends Specification {
     }
   }
 
-  @Subject ConditionalStanzaTransform subject = new ConditionalStanzaTransform(configuration, renderer)
+  @Subject ConditionalStanzaTransform subject = new ConditionalStanzaTransform(configuration, renderer, [:])
 
   def 'should remove falsy conditional stages'() {
     given:

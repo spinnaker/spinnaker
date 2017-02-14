@@ -130,7 +130,7 @@ class RenderTransformSpec extends Specification {
     )
 
     when:
-    new RenderTransform(configuration, renderer, registry).visitPipelineTemplate(template)
+    new RenderTransform(configuration, renderer, registry, [:]).visitPipelineTemplate(template)
 
     then:
     noExceptionThrown()

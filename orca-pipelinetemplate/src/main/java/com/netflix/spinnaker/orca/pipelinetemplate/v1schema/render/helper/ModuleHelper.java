@@ -69,7 +69,7 @@ public class ModuleHelper implements Helper<Object> {
       .findFirst()
       .orElseThrow((Supplier<RuntimeException>) () -> new TemplateRenderException("requested module '" + context + "' does not exist"));
 
-    RenderContext moduleContext = new RenderContext(options.get("application"), template);
+    RenderContext moduleContext = new RenderContext(options.get("application"), template, options.get("trigger"));
 
     List<String> missing = new ArrayList<>();
     for (NamedHashMap var : module.getVariables()) {
