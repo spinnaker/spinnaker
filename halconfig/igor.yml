@@ -3,12 +3,4 @@ server:
   address: ${services.igor.host:localhost}
 
 redis:
-  connection: ${services.redis.connection:redis://localhost:6379}
-
-services:
-  clouddriver:
-    baseUrl: ${services.clouddriver.baseUrl:localhost:7002}
-
-  echo:
-    baseUrl: ${services.echo.baseUrl:localhost:8089}
-
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
