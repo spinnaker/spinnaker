@@ -17,9 +17,10 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform
 
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition.InjectionRule
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
-import spock.lang.Ignore
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ConfigStageInjectionTransformSpec extends Specification {
 
@@ -65,26 +66,105 @@ class ConfigStageInjectionTransformSpec extends Specification {
     template.stages.find { it.id == 's1' }.type == 'findImageFromCluster'
   }
 
-  @Ignore(value = 'inject not implemented yet')
-  def 'should inject stages from configuration into template'() {
+  @Unroll('#subject should have #requisiteStages as requisites')
+  def 'should create dag from dependsOn'() {
     given:
-    PipelineTemplate template = new PipelineTemplate(
-      stages: [
-        new StageDefinition(id: 's1', type: 'findImageFromTags'),
-        new StageDefinition(id: 's2', type: 'deploy')
-      ]
-    )
-
-    TemplateConfiguration configuration = new TemplateConfiguration(
-      stages: [
-        new StageDefinition(id: 's3', type: 'manualJudgement', inject: [before: 's2'])
-      ]
-    )
+    def stages = [
+      new StageDefinition(id: 's1', type: 'findImageFromTags'),
+      new StageDefinition(id: 's2', type: 'deploy', dependsOn: ['s1']),
+      new StageDefinition(id: 's3', type: 'jenkins', dependsOn: ['s1']),
+      new StageDefinition(id: 's4', type: 'wait', dependsOn: ['s2']),
+      new StageDefinition(id: 's5', type: 'wait', dependsOn: ['s3'])
+    ]
 
     when:
-    new ConfigStageInjectionTransform(configuration).visitPipelineTemplate(template)
+    ConfigStageInjectionTransform.createDag(stages)
 
     then:
-    template.stages*.id == ['s1', 's3', 's2']
+    requisiteStageIds(subject, stages) == requisiteStages
+
+    where:
+    subject || requisiteStages
+    's1'    || []
+    's2'    || ['s1']
+    's3'    || ['s1']
+    's4'    || ['s2']
+    's5'    || ['s3']
+  }
+
+  def 'should inject stage into dag'() {
+    given:
+    // s1 <- s2 <- s4
+    //     \- s3 <- s5
+    def templateBuilder = {
+      new PipelineTemplate(
+        stages: [
+          new StageDefinition(id: 's1', type: 'findImageFromTags'),
+          new StageDefinition(id: 's2', type: 'deploy', dependsOn: ['s1']),
+          new StageDefinition(id: 's3', type: 'jenkins', dependsOn: ['s1']),
+          new StageDefinition(id: 's4', type: 'wait', dependsOn: ['s2']),
+          new StageDefinition(id: 's5', type: 'wait', dependsOn: ['s3'])
+        ]
+      )
+    }
+
+    def configBuilder = { injectRule ->
+      new TemplateConfiguration(
+        stages: [
+          new StageDefinition(id: 'injected', type: 'manualJudgement', inject: injectRule)
+        ]
+      )
+    }
+
+    PipelineTemplate template
+
+    when: 'injecting stage first in dag'
+    template = templateBuilder()
+    new ConfigStageInjectionTransform(configBuilder(new InjectionRule(first: true))).visitPipelineTemplate(template)
+
+    then:
+    // injected <- s1 <- s2 <- s4
+    //           \- s3 <- s5
+    requisiteStageIds('s1', template.stages) == ['injected']
+
+    when: 'injecting stage last in dag'
+    template = templateBuilder()
+    new ConfigStageInjectionTransform(configBuilder(new InjectionRule(last: true))).visitPipelineTemplate(template)
+
+    then:
+    // s1 <- s2 <- s4  <- injected
+    //     \- s3 <- s5 -/
+    requisiteStageIds('injected', template.stages) == ['s4', 's5']
+
+    when: 'injecting stage before another stage in dag'
+    template = templateBuilder()
+    new ConfigStageInjectionTransform(configBuilder(new InjectionRule(before: 's2'))).visitPipelineTemplate(template)
+
+    then:
+    // s1 <- injected <- s2 <- s4
+    //     \- s3 <- s5
+    requisiteStageIds('s1', template.stages) == []
+    requisiteStageIds('s2', template.stages) == ['injected']
+    requisiteStageIds('s3', template.stages) == ['s1']
+    requisiteStageIds('injected', template.stages) == ['s1']
+
+    when: 'injecting stage after another stage in dag'
+    template = templateBuilder()
+    new ConfigStageInjectionTransform(configBuilder(new InjectionRule(after: 's2'))).visitPipelineTemplate(template)
+
+    then:
+    // s1 <- s2 <- injected <- s4
+    //     \- s3 <- s5
+    requisiteStageIds('s2', template.stages) == ['s1']
+    requisiteStageIds('s4', template.stages) == ['injected']
+    requisiteStageIds('injected', template.stages) == ['s2']
+  }
+
+  static StageDefinition getStageById(String id, List<StageDefinition> allStages) {
+    return allStages.find { it.id == id }
+  }
+
+  static List<String> requisiteStageIds(String stageId, List<StageDefinition> allStages) {
+    getStageById(stageId, allStages).requisiteStageRefIds
   }
 }

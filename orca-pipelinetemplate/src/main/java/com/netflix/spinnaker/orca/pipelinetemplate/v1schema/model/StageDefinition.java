@@ -34,6 +34,8 @@ public class StageDefinition implements Identifiable, Conditional {
   private List<String> when;
   private InheritanceControl inheritanceControl;
 
+  private List<String> requisiteStageRefIds = new ArrayList<>();
+
   public static class InjectionRule {
 
     private Boolean first;
@@ -205,6 +207,14 @@ public class StageDefinition implements Identifiable, Conditional {
 
   public void setInheritanceControl(InheritanceControl inheritanceControl) {
     this.inheritanceControl = inheritanceControl;
+  }
+
+  public List<String> getRequisiteStageRefIds() {
+    return requisiteStageRefIds;
+  }
+
+  public void setRequisiteStageRefIds(List<String> requisiteStageRefIds) {
+    this.requisiteStageRefIds = requisiteStageRefIds;
   }
 
   @Override
