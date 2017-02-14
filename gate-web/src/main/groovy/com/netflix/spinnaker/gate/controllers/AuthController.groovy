@@ -70,7 +70,15 @@ class AuthController {
 
   @RequestMapping("/user")
   User user(@SpinnakerUser User user) {
-    user
+    if (!user) {
+      return user
+    }
+
+    def fiatRoles = permissionService.getRoles(user.username)?.collect{ it.name }
+    if (fiatRoles) {
+      user.roles = fiatRoles
+    }
+    return user
   }
 
   @RequestMapping("/user/serviceAccounts")

@@ -83,7 +83,7 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
         lastName: details[userInfoMapping.lastName] as String,
         allowedAccounts: credentialsService.getAccountNames(roles),
         roles: roles,
-        username: username).asImmutable()
+        username: username)
 
     PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(
         spinnakerUser,

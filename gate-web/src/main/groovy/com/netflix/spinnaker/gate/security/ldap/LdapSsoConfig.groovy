@@ -91,7 +91,7 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
 
       return new User(username: username,
                       email: ctx.getStringAttribute("mail"),
-                      roles: roles).asImmutable()
+                      roles: roles)
     }
 
     @Override

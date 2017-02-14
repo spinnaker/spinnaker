@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.config.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.model.UserPermission
+import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.gate.security.SpinnakerUser
@@ -60,6 +61,13 @@ class PermissionService {
     if (fiatConfig.enabled) {
       fiatService.sync()
     }
+  }
+
+  Set<Role> getRoles(String userId) {
+    if (!fiatConfig.enabled) {
+      return []
+    }
+    return fiatService.getUserPermission(userId)?.roles ?: []
   }
 
   List<String> getServiceAccounts(@SpinnakerUser User user) {
