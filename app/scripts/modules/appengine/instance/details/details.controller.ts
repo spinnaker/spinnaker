@@ -26,7 +26,7 @@ class AppengineInstanceDetailsController {
     An App Engine instance is 'Out Of Service' if no load balancers are directing traffic to its server group.`;
 
   static get $inject() {
-    return ['$scope', '$state', '$q', 'app', 'instanceReader', 'instanceWriter', 'confirmationModalService', 'instance'];
+    return ['$q', 'app', 'instanceReader', 'instanceWriter', 'confirmationModalService', 'instance'];
   }
 
   constructor(private $q: IQService,
