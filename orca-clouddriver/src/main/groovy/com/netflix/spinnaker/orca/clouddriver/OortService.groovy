@@ -17,31 +17,26 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter
-import com.fasterxml.jackson.annotation.JsonAnySetter
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import retrofit.client.Response
-import retrofit.http.Body
 import retrofit.http.GET
-import retrofit.http.POST
 import retrofit.http.Path
 import retrofit.http.Query
 import retrofit.http.QueryMap
 
-public interface OortService {
-  @GET("/applications/{app}/clusters/{account}/{cluster}/{type}")
+interface OortService {
+  @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}")
   Response getCluster(@Path("app") String app,
                       @Path("account") String account,
                       @Path("cluster") String cluster,
-                      @Path("type") String type)
+                      @Path("cloudProvider") String cloudProvider)
 
-  @GET("/applications/{app}/clusters/{account}/{cluster}/{type}/serverGroups/{serverGroup}")
+  @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
   Response getServerGroup(@Path("app") String app,
                           @Path("account") String account,
                           @Path("cluster") String cluster,
                           @Path("serverGroup") String serverGroup,
                           @Query("region") String region,
-                          @Path("type") String type)
+                          @Path("cloudProvider") String cloudProvider)
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{scope}/serverGroups/target/{target}")
   Response getTargetServerGroup(@Path("app") String app,
@@ -61,25 +56,10 @@ public interface OortService {
                                             @Path("summaryType") String summaryType,
                                             @Query("onlyEnabled") String onlyEnabled)
 
-  @POST("/applications/{app}/jobs/{account}/{region}/{id}")
-  Response collectJob(@Path("app") String app,
-                      @Path("account") String account,
-                      @Path("region") String region,
-                      @Path("id") String id,
-                      @Body String details)
-
-  @GET("/applications/{app}/jobs/{account}/{region}/{id}/{fileName}")
-  Map<String, Object> getFileContents(@Path("app") String app,
-                         @Path("account") String account,
-                         @Path("region") String region,
-                         @Path("id") String id,
-                         @Path("fileName") String fileName)
-
-
   @GET("/search")
   Response getSearchResults(@Query("q") String searchTerm,
                             @Query("type") String type,
-                            @Query("platform") String platform)
+                            @Query("cloudProvider") String cloudProvider)
 
   @GET("/applications/{app}")
   Response getApplication(@Path("app") String app)
@@ -95,25 +75,23 @@ public interface OortService {
                                    @Path("region") String region,
                                    @Path("name") String name)
 
-  @POST("/cache/{cloudProvider}/{type}")
-  Response forceCacheUpdate(@Path("cloudProvider") String cloudProvider,
-                            @Path("type") String type,
-                            @Body Map<String, ? extends Object> data)
-
-  @GET("/cache/{cloudProvider}/{type}")
-  Collection<Map> pendingForceCacheUpdates(@Path("cloudProvider") String cloudProvider,
-                                           @Path("type") String type)
-
   @GET("/{type}/images/{account}/{region}/{imageId}")
   List<Map> getByAmiId(@Path("type") String type,
                        @Path("account") String account,
                        @Path("region") String region,
                        @Path("imageId") imageId)
 
-  @GET("/{type}/images/find")
-  List<Map> findImage(@Path("type") String type,
+  @GET("/{cloudProvider}/images/find")
+  List<Map> findImage(@Path("cloudProvider") String cloudProvider,
                       @Query("q") String query,
                       @Query("account") String account,
                       @Query("region") String region,
                       @QueryMap Map additionalFilters)
+
+  @GET("/tags")
+  List<Map> getEntityTags(@Query("cloudProvider") String cloudProvider,
+                          @Query("entityType") String entityType,
+                          @Query("entityId") String entityId,
+                          @Query("account") String account,
+                          @Query("region") String region)
 }

@@ -1,0 +1,9 @@
+FROM openjdk:8u111-jre-alpine
+
+MAINTAINER delivery-engineering@netflix.com
+
+COPY ./orca-web/build/install/orca /opt/orca
+
+RUN apk --nocache add --update bash
+
+CMD ["/opt/orca/bin/orca"]

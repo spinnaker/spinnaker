@@ -24,7 +24,7 @@ enum ExecutionStatus {
   /**
    * The task has yet to start.
    */
-  NOT_STARTED(false, false, ExitStatus.EXECUTING),
+    NOT_STARTED(false, false, ExitStatus.EXECUTING),
 
   /**
    * The task is still running and the {@code Task} may be re-executed in order

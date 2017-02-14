@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.MortService
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -55,6 +56,9 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   @Autowired
   MineService mineService
 
+  @Autowired
+  MortService mortService
+
   @Override
   String getType() {
     PIPELINE_CONFIG_TYPE
@@ -67,7 +71,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
 
   @Override
   com.netflix.spinnaker.orca.Task completeParallelTask() {
-    return new CompleteDeployCanaryTask(Optional.of(diffTasks))
+    return new CompleteDeployCanaryTask(Optional.of(diffTasks), mortService)
   }
 
   @Override
@@ -84,12 +88,13 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
       def baseline = canaryDeployment.baseline
       baseline.strategy = "highlander"
       def baselineAmi = baselineAmis.find {
-        it.region == baseline.availabilityZones.keySet()[0]
+        it.region == (baseline.region ?: baseline.availabilityZones.keySet()[0])
       }
       if (!baselineAmi) {
         throw new IllegalStateException("Could not find an image for the baseline cluster")
       }
       baseline.amiName = baselineAmi?.imageId
+      baseline.imageId = baselineAmi?.imageId
       baseline.buildUrl = createBuildUrl(baselineAmi)
 
       [baseline, canary]
@@ -101,9 +106,14 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   @CompileDynamic
   List<Map> findBaselineAmis(Stage stage) {
     Set<String> regions = stage.context.clusterPairs.collect {
-      it.canary.availabilityZones.keySet() + it.baseline.availabilityZones.keySet()
+      if (it.canary.availabilityZones) {
+        it.canary.availabilityZones?.keySet() + it.baseline.availabilityZones?.keySet()
+      } else {
+        [it.canary.region] + [it.baseline.region]
+      }
     }.flatten()
-    def findImageCtx = [application: stage.execution.application, account: stage.context.baseline.account, cluster: stage.context.baseline.cluster, regions: regions]
+
+    def findImageCtx = [application: stage.execution.application, account: stage.context.baseline.account, cluster: stage.context.baseline.cluster, regions: regions, cloudProvider: stage.context.baseline.cloudProvider ?: 'aws']
     Stage s = new OrchestrationStage(new Orchestration(), "findImage", findImageCtx)
     TaskResult result = findImage.execute(s)
     return result.stageOutputs.amiDetails
@@ -129,9 +139,12 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
 
     private final List<DiffTask> diffTasks
 
+    private final MortService mortService
+
     @Autowired
-    CompleteDeployCanaryTask(Optional<List<DiffTask>> diffTasks) {
+    CompleteDeployCanaryTask(Optional<List<DiffTask>> diffTasks, MortService mortService) {
       this.diffTasks = diffTasks.orElse((List<DiffTask>) emptyList())
+      this.mortService = mortService
     }
 
     @CompileDynamic
@@ -150,9 +163,10 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
               it.context.application == cluster.application &&
               it.context.stack == cluster.stack &&
               it.context.freeFormDetails == cluster.freeFormDetails &&
-              it.context.availabilityZones.keySet()[0] == cluster.availabilityZones.keySet()[0]
+              (it.context.region && it.context.region == cluster.region ||
+                it.context.availabilityZones && it.context.availabilityZones.keySet()[0] == cluster.availabilityZones.keySet()[0])
           }
-          def region = cluster.availabilityZones.keySet()[0]
+          def region = cluster.region ?: cluster.availabilityZones.keySet()[0]
           def nameBuilder = new NameBuilder() {
             @Override
             String combineAppStackDetail(String appName, String stack, String detail) {
@@ -167,14 +181,18 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
             cluster.amiName = ami?.ami
             cluster.buildUrl = createBuildUrl(ami) ?: ((Pipeline) stage.execution).trigger?.buildInfo?.url
           }
+
+          def accountDetails = mortService.getAccountDetails(cluster.account)
+
           resultPair[type + "Cluster"] = [
-            name       : nameBuilder.combineAppStackDetail(cluster.application, cluster.stack, cluster.freeFormDetails),
-            serverGroup: deployStage.context.'deploy.server.groups'[region].first(),
-            type       : 'aws',
-            accountName: cluster.account,
-            region     : region,
-            imageId    : cluster.amiName,
-            buildId    : cluster.buildUrl
+            name          : nameBuilder.combineAppStackDetail(cluster.application, cluster.stack, cluster.freeFormDetails),
+            serverGroup   : deployStage.context.'deploy.server.groups'[region].first(),
+            accountName   : accountDetails.environment ?: cluster.account,
+            type          : cluster.cloudProvider ?: 'aws',
+            clusterAccount: cluster.account,
+            region        : region,
+            imageId       : cluster.amiName,
+            buildId       : cluster.buildUrl
           ]
         }
         if (diffTasks) {

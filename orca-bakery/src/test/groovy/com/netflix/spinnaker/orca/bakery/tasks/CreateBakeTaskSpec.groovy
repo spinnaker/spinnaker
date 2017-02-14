@@ -90,7 +90,8 @@ class CreateBakeTaskSpec extends Specification {
   def buildInfo = [
     artifacts: [
       [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm']
+      [fileName: 'hodor-1.1.noarch.rpm'],
+      [fileName: 'hodor.1.1.nupkg']
     ]
   ]
 
@@ -99,7 +100,8 @@ class CreateBakeTaskSpec extends Specification {
     url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
     artifacts: [
       [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm']
+      [fileName: 'hodor-1.1.noarch.rpm'],
+      [fileName: 'hodor.1.1.nupkg']
     ]
   ]
 
@@ -108,7 +110,8 @@ class CreateBakeTaskSpec extends Specification {
     url: "http://spinnaker.builds.test.netflix.net/job/folder/job/SPINNAKER-package-echo/69/",
     artifacts: [
       [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm']
+      [fileName: 'hodor-1.1.noarch.rpm'],
+      [fileName: 'hodor.1.1.nupkg']
     ]
   ]
 
@@ -117,7 +120,8 @@ class CreateBakeTaskSpec extends Specification {
     url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
     artifacts: [
       [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm']
+      [fileName: 'hodor-1.1.noarch.rpm'],
+      [fileName: 'hodor.1.1.nupkg']
     ],
     scm: [
       [name  : "refs/remotes/origin/master",
@@ -131,7 +135,8 @@ class CreateBakeTaskSpec extends Specification {
     url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
     artifacts: [
       [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm']
+      [fileName: 'hodor-1.1.noarch.rpm'],
+      [fileName: 'hodor.1.1.nupkg']
     ],
     scm: [
       [name  : "refs/remotes/origin/master",
@@ -148,7 +153,8 @@ class CreateBakeTaskSpec extends Specification {
     url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
     artifacts: [
       [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm']
+      [fileName: 'hodor-1.1.noarch.rpm'],
+      [fileName: 'hodor.1.1.nupkg']
     ],
     scm: [
       [name  : "refs/remotes/origin/master",
@@ -164,7 +170,8 @@ class CreateBakeTaskSpec extends Specification {
   def buildInfoNoMatch = [
     artifacts: [
       [fileName: 'hodornodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm']
+      [fileName: 'hodor-1.1.noarch.rpm'],
+      [fileName: 'hodor.1.1.nupkg']
     ]
   ]
 
@@ -297,7 +304,8 @@ class CreateBakeTaskSpec extends Specification {
     bakeConfig.buildInfo = [
       artifacts: [
         [fileName: 'hodor_1.2_all.deb'],
-        [fileName: 'hodor-1.2.noarch.rpm']
+        [fileName: 'hodor-1.2.noarch.rpm'],
+        [fileName: 'hodor.1.2.nupkg']
       ]
     ]
 

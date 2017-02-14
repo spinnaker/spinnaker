@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver
 
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.GET
 import retrofit.http.POST
@@ -46,5 +47,19 @@ interface KatoRestService {
 
   @GET("/task/{id}")
   Observable<Task> lookupTask(@Path("id") String id)
+
+  @POST("/applications/{app}/jobs/{account}/{region}/{id}")
+  Response collectJob(@Path("app") String app,
+                      @Path("account") String account,
+                      @Path("region") String region,
+                      @Path("id") String id,
+                      @Body String details)
+
+  @GET("/applications/{app}/jobs/{account}/{region}/{id}/{fileName}")
+  Map<String, Object> getFileContents(@Path("app") String app,
+                                      @Path("account") String account,
+                                      @Path("region") String region,
+                                      @Path("id") String id,
+                                      @Path("fileName") String fileName)
 
 }

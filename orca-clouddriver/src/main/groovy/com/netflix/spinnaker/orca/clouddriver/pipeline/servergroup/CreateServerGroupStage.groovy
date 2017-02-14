@@ -16,18 +16,24 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupMetadataTagTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class CreateServerGroupStage extends AbstractDeployStrategyStage {
   public static final String PIPELINE_CONFIG_TYPE = "createServerGroup"
+
+  @Autowired
+  private FeaturesService featuresService
 
   CreateServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
@@ -35,12 +41,25 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
 
   @Override
   protected List<TaskNode.TaskDefinition> basicTasks(Stage stage) {
-    return [
+    def taggingEnabled = featuresService.isStageAvailable("upsertEntityTags")
+
+    def tasks = [
       new TaskNode.TaskDefinition("createServerGroup", CreateServerGroupTask),
       new TaskNode.TaskDefinition("monitorDeploy", MonitorKatoTask),
       new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+      ]
+
+    if (taggingEnabled) {
+      tasks += [
+        new TaskNode.TaskDefinition("tagServerGroup", ServerGroupMetadataTagTask)
+      ]
+    }
+
+    tasks += [
       new TaskNode.TaskDefinition("waitForUpInstances", WaitForUpInstancesTask),
       new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     ]
+
+    return tasks
   }
 }

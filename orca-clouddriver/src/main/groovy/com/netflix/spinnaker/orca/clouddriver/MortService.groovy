@@ -19,10 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver
 
 import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
-import retrofit.client.Response
-import retrofit.http.Body
 import retrofit.http.GET
-import retrofit.http.POST
 import retrofit.http.Path
 import retrofit.http.Query
 
@@ -48,11 +45,6 @@ interface MortService {
   @GET("/search")
   List<SearchResult> getSearchResults(@Query("q") String searchTerm,
                                       @Query("type") String type)
-
-  @POST("/cache/{cloudProvider}/{type}")
-  Response forceCacheUpdate(@Path("cloudProvider") String cloudProvider,
-                            @Path("type") String type,
-                            @Body Map<String, ? extends Object> data)
 
   @GET("/credentials/{account}")
   Map getAccountDetails(@Path("account") String account)

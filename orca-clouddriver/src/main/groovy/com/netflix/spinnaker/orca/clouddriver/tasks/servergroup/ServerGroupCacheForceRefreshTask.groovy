@@ -21,7 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
@@ -38,13 +39,16 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask implements RetryableTask {
   static final String REFRESH_TYPE = "ServerGroup"
 
-  long backoffPeriod = TimeUnit.SECONDS.toMillis(5)
+  long backoffPeriod = TimeUnit.SECONDS.toMillis(10)
   long timeout = TimeUnit.MINUTES.toMillis(15)
 
   long autoSucceedAfterMs = TimeUnit.MINUTES.toMillis(12)
 
   @Autowired
-  OortService oort
+  CloudDriverCacheStatusService cacheStatusService
+
+  @Autowired
+  CloudDriverCacheService cacheService
 
   @Autowired
   ObjectMapper objectMapper
@@ -111,7 +115,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
     def status = RUNNING
     refreshableServerGroups.each { Map<String, String> model ->
       try {
-        def response = oort.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
+        def response = cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
         if (response.status == HttpURLConnection.HTTP_OK) {
           // cache update was applied immediately, no need to poll for completion
           status = SUCCEEDED
@@ -139,7 +143,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
                                                   String cloudProvider,
                                                   StageData stageData,
                                                   Long startTime) {
-    def pendingForceCacheUpdates = oort.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE)
+    def pendingForceCacheUpdates = cacheStatusService.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE)
 
     boolean finishedProcessing = true
     stageData.deployServerGroups.each { String region, Set<String> serverGroups ->

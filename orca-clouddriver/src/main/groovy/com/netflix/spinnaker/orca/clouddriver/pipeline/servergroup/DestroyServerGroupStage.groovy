@@ -36,8 +36,6 @@ class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport {
   @Override
   <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     try {
-      composeTargets(stage)
-
       builder
         .withTask("disableServerGroup", DisableServerGroupTask)
         .withTask("monitorServerGroup", MonitorKatoTask)

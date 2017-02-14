@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.http.Body
 import rx.Observable
 
 @Component
@@ -34,7 +33,7 @@ class KatoService {
     katoRestService.requestOperations(clientRequestId, operations)
   }
 
-  Observable<TaskId> requestOperations(String cloudProvider, @Body Collection<? extends Map<String, Map>> operations) {
+  Observable<TaskId> requestOperations(String cloudProvider, Collection<? extends Map<String, Map>> operations) {
     String clientRequestId = UUID.randomUUID().toString()
     katoRestService.requestOperations(clientRequestId, cloudProvider, operations)
   }

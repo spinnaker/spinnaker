@@ -62,10 +62,14 @@ class OperationsController {
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, String> orchestrate(@RequestBody Map pipeline) {
+    parsePipelineTrigger(executionRepository, buildService, pipeline)
+    Map trigger = pipeline.trigger
 
     for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
       pipeline = preprocessor.process(pipeline)
     }
+
+    pipeline.trigger = trigger
 
     def json = objectMapper.writeValueAsString(pipeline)
     log.info('received pipeline {}:{}', pipeline.id, json)
@@ -79,12 +83,21 @@ class OperationsController {
       convertLinearToParallel(pipeline)
     }
 
+    def augmentedContext = [trigger: pipeline.trigger]
+    def processedPipeline = ContextParameterProcessor.process(pipeline, augmentedContext, false)
+
+    startPipeline(processedPipeline)
+  }
+
+  private void parsePipelineTrigger(ExecutionRepository executionRepository, BuildService buildService, Map pipeline) {
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
     }
+
     if (!pipeline.trigger.type) {
       pipeline.trigger.type = "manual"
     }
+
     if (!pipeline.trigger.user) {
       pipeline.trigger.user = AuthenticatedRequest.getSpinnakerUser().orElse("[anonymous]")
     }
@@ -112,11 +125,6 @@ class OperationsController {
         pipeline.trigger.parameters[it.name] = pipeline.trigger.parameters.containsKey(it.name) ? pipeline.trigger.parameters[it.name] : it.default
       }
     }
-
-    def augmentedContext = [trigger: pipeline.trigger]
-    def processedPipeline = ContextParameterProcessor.process(pipeline, augmentedContext, false)
-
-    startPipeline(processedPipeline)
   }
 
   private void getBuildInfo(Map trigger) {

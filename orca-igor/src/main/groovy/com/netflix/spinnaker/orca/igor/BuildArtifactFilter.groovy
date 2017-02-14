@@ -27,7 +27,7 @@ class BuildArtifactFilter {
   static final int MAX_ARTIFACTS_DEFAULT = 20
 
   static final String PREFERRED_ARTIFACTS_PROP = BuildArtifactFilter.simpleName + ".preferredArtifacts"
-  static final String PREFERRED_ARTIFACTS_DEFAULT = ['deb', 'rpm', 'properties', 'yml', 'json', 'xml', 'html', 'txt'].join(',')
+  static final String PREFERRED_ARTIFACTS_DEFAULT = ['deb', 'rpm', 'properties', 'yml', 'json', 'xml', 'html', 'txt', 'nupkg'].join(',')
 
   @Autowired
   Environment environment

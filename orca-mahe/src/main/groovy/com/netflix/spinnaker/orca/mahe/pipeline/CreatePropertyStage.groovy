@@ -44,14 +44,6 @@ class CreatePropertyStage implements StageDefinitionBuilder, CancellableStage {
 
   @Override
   CancellableStage.Result cancel(Stage stage) {
-//    log.info("Cancelling stage (stageId: ${stage.id}, executionId: ${stage.execution.id}, context: ${stage.context as Map})")
-//
-//    def deletedProperties = deletePropertyTask.execute(stage)
-//
-//    return new CancellableStage.Result(stage, [
-//       deletedPropertyIdList: stage.context.propertyIdList,
-//       deletedPropertiesResults: deletedProperties
-//    ])
     return null
   }
 }

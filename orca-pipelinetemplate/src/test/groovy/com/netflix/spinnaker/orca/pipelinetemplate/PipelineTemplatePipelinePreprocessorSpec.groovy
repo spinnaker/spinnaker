@@ -73,6 +73,12 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     given:
     def request = [
       type: 'templatedPipeline',
+      trigger: [
+        type: "jenkins",
+        master: "master",
+        job: "job",
+        buildNumber: 1111
+      ],
       config: [
         id: 'myTemplate',
         pipeline: [

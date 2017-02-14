@@ -29,17 +29,18 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class GraphMutator {
 
   List<PipelineTemplateVisitor> visitors = new ArrayList<>();
 
-  public GraphMutator(TemplateConfiguration configuration, Renderer renderer, Registry registry) {
-    visitors.add(new ConditionalStanzaTransform(configuration, renderer));
+  public GraphMutator(TemplateConfiguration configuration, Renderer renderer, Registry registry, Map<String, Object> trigger) {
+    visitors.add(new ConditionalStanzaTransform(configuration, renderer, trigger));
     visitors.add(new ConfigModuleReplacementTransform(configuration));
     visitors.add(new PipelineConfigInheritanceTransform(configuration));
     visitors.add(new ConfigStageInjectionTransform(configuration));
-    visitors.add(new RenderTransform(configuration, renderer, registry));
+    visitors.add(new RenderTransform(configuration, renderer, registry, trigger));
     visitors.add(new StageInheritanceControlTransform());
   }
 

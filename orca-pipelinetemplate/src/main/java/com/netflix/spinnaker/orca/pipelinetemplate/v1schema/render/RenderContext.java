@@ -18,11 +18,13 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class RenderContext extends HashMap<String, Object> {
 
-  public RenderContext(String application, PipelineTemplate pipelineTemplate) {
+  public RenderContext(String application, PipelineTemplate pipelineTemplate, Map<String, Object> trigger) {
     put("application", application);
     put("pipelineTemplate", pipelineTemplate);
+    put("trigger", trigger);
   }
 }

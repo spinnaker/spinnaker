@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class MonitorKatoTask implements RetryableTask {
 
-  long getBackoffPeriod() { 1000L }
+  long getBackoffPeriod() { 10000L }
 
   long getTimeout() { 3600000L }
 

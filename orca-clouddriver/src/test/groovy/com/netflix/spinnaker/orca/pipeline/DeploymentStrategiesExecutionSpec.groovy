@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.batch.StageBuilderProvider
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.NoStrategy
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.Strategy
@@ -200,6 +201,11 @@ abstract class DeploymentStrategiesExecutionSpec<R extends ExecutionRunner> exte
 
   @CompileStatic
   static class Config {
+    @Bean
+    FactoryBean<FeaturesService> featuresService() {
+      new SpockMockFactoryBean(FeaturesService)
+    }
+
     @Bean
     FactoryBean<ExceptionHandler> exceptionHandler() {
       new SpockMockFactoryBean(ExceptionHandler)

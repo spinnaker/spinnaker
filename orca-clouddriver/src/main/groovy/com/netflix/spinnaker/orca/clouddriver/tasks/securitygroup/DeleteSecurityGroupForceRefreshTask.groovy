@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.MortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,7 +31,7 @@ class DeleteSecurityGroupForceRefreshTask extends AbstractCloudProviderAwareTask
   static final String REFRESH_TYPE = "SecurityGroup"
 
   @Autowired
-  MortService mort
+  CloudDriverCacheService cacheService
 
   @Override
   TaskResult execute(Stage stage) {
@@ -44,7 +44,7 @@ class DeleteSecurityGroupForceRefreshTask extends AbstractCloudProviderAwareTask
 
     regions.each { region ->
       def model = [securityGroupName: name, vpcId: vpcId, region: region, account: account, evict: true]
-      mort.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
+      cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
     }
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   }

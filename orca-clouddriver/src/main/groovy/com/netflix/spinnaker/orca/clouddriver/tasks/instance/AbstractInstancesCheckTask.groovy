@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
@@ -125,8 +124,6 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
               newContext.zeroDesiredCapacityCount = 0
             }
           }
-          newContext.lastCapacityCheck =
-            HealthHelper.getHealthCountSnapshot(serverGroup.instances ?: [], interestingHealthProviderNames)
 
           return new DefaultTaskResult(ExecutionStatus.RUNNING, newContext)
         }

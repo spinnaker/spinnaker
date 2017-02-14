@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -38,13 +38,13 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
 
   void "should force cache refresh server groups via oort when clusterName provided"() {
     setup:
-    task.oort = Mock(OortService)
+    task.cacheService = Mock(CloudDriverCacheService)
 
     when:
     task.execute(stage)
 
     then:
-    1 * task.oort.forceCacheUpdate(stage.context.cloudProvider, DeleteLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> {
+    1 * task.cacheService.forceCacheUpdate(stage.context.cloudProvider, DeleteLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> {
       String cloudProvider, String type, Map<String, ? extends Object> body ->
 
       assert body.loadBalancerName == config.loadBalancerName
