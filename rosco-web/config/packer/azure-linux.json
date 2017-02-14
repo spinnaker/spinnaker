@@ -51,5 +51,17 @@
       "upgrade={{user `upgrade`}}"
     ],
     "pause_before": "30s"
-  }]
+  },
+  {
+    "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+    "inline": [
+      "apt-get update",
+      "apt-get upgrade -y",
+
+      "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+    ],
+    "inline_shebang": "/bin/sh -x",
+    "type": "shell"
+  }
+  ]
 }
