@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerToken
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService
+import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryAuthenticationException
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryOperationException
 import com.squareup.okhttp.OkHttpClient
 import groovy.util.logging.Slf4j
@@ -334,29 +335,34 @@ class DockerRegistryClient {
    * The tokenService also caches tokens for us, so it will attempt to use an old token before retrying.
    */
   public Response request(Closure<Response> withoutToken, Closure<Response> withToken, String target) {
-    DockerBearerToken dockerToken = tokenService.getToken(target)
-    String token
-    if (dockerToken) {
-      token = "Bearer ${dockerToken.bearer_token ?: dockerToken.token}"
-    }
-
-    Response response
     try {
-      if (token) {
-        response = withToken(token)
-      } else {
-        response = withoutToken()
-      }
-    } catch (RetrofitError error) {
-      if (error.response?.status == 401) {
-        dockerToken = tokenService.getToken(target, error.response.headers)
+      DockerBearerToken dockerToken = tokenService.getToken(target)
+      String token
+      if (dockerToken) {
         token = "Bearer ${dockerToken.bearer_token ?: dockerToken.token}"
-        response = withToken(token)
-      } else {
-        throw error
       }
-    }
 
-    return response
+      Response response
+      try {
+        if (token) {
+          response = withToken(token)
+        } else {
+          response = withoutToken()
+        }
+      } catch (RetrofitError error) {
+        if (error.response?.status == 401) {
+          dockerToken = tokenService.getToken(target, error.response.headers)
+          token = "Bearer ${dockerToken.bearer_token ?: dockerToken.token}"
+          response = withToken(token)
+        } else {
+          throw error
+        }
+      }
+
+      return response
+    } catch (DockerRegistryAuthenticationException e) {
+      log.error "Error authenticating with registry $address, for request '$target': ${e.getMessage()}"
+      throw e
+    }
   }
 }
