@@ -151,7 +151,7 @@ EOF
 # Start script
 
 # Install node
-NODE_VERSION=4.4.1
+NODE_VERSION=7.0.0
 . /etc/profile.d/nvm.sh
 nvm install $NODE_VERSION
 nvm alias default $NODE_VERSION
@@ -160,7 +160,7 @@ nvm alias default $NODE_VERSION
 have_packer=$(which packer)
 if [[ ! $have_packer ]]; then
   echo "Installing packer"
-  url=https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
+  url=https://releases.hashicorp.com/packer/0.12.1/packer_0.12.1_linux_amd64.zip
   pushd $HOME
   if ! curl -s --location -O "$url"; then
      popd

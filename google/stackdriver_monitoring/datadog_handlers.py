@@ -82,12 +82,23 @@ class GetArtifactHandler(BaseDatadogCommandHandler):
       help='The name of the {0} to get.'.format(self.__type_name))
     return parser
 
+  def __unpack_dashboard(self, dashboard_obj):
+    """Unpack a timeboard response to comply with a creation payload."""
+    dash = dashboard_obj['dash']
+    return {
+      'description': dash.get('description', ''),
+      'read_only': dash.get('read_only', False),
+      'title': dash.get('title', 'Dashboard'),
+      'graphs': dash.get('graphs', {})
+    }
+
   def process_commandline_request(self, options):
     """Implements CommandHandler."""
     title = options.get('name', None)
     if not title:
       raise ValueError('No name provided.')
 
+    transform_json_obj = None
     api = datadog_service.make_datadog_service(options).api
     if self.__type_name == 'screenboard':
       list_method = api.Screenboard.get_all
@@ -97,6 +108,7 @@ class GetArtifactHandler(BaseDatadogCommandHandler):
       list_method = api.Timeboard.get_all
       get_method = api.Timeboard.get
       result_key = 'dashes'
+      transform_json_obj = self.__unpack_dashboard
     else:
       raise ValueError('Unknown datadog artifact "{0}". '
                        ' Either "screenboard" or "timeboard"'
@@ -112,7 +124,10 @@ class GetArtifactHandler(BaseDatadogCommandHandler):
     if artifact_id is None:
       raise ValueError('Could not find title "{0}"'.format(title))
 
-    json_text = json.JSONEncoder(indent=2).encode(get_method(artifact_id))
+    json_obj = get_method(artifact_id)
+    if transform_json_obj:
+      json_obj = transform_json_obj(json_obj)
+    json_text = json.JSONEncoder(indent=2).encode(json_obj)
     self.output(options, json_text)
 
 

@@ -16,6 +16,7 @@ azure:
       appKey: ${providers.azure.primaryCredentials.appKey}
       tenantId: ${providers.azure.primaryCredentials.tenantId}
       subscriptionId: ${providers.azure.primaryCredentials.subscriptionId}
+      objectId: ${providers.azure.primaryCredentials.objectId}
       packerResourceGroup: ${providers.azure.primaryCredentials.packerResourceGroup}
       packerStorageAccount: ${providers.azure.primaryCredentials.packerStorageAccount}
 

@@ -39,6 +39,7 @@ azure:
       appKey: ${providers.azure.primaryCredentials.appKey}
       tenantId: ${providers.azure.primaryCredentials.tenantId}
       subscriptionId: ${providers.azure.primaryCredentials.subscriptionId}
+      objectId: ${provider.azure.primaryCredentials.objectId}
       defaultResourceGroup: ${providers.azure.primaryCredentials.defaultResourceGroup}
       defaultKeyVault: ${providers.azure.primaryCredentials.defaultKeyVault}
 
@@ -103,6 +104,19 @@ openstack:
       lbaas:
         pollTimeout: 60
         pollInterval: 5
+
+appengine:
+  enabled: ${providers.appengine.enabled:false}
+
+  accounts:
+    - name: ${providers.appengine.primaryCredentials.name}
+      project: ${providers.appengine.primaryCredentials.project}
+      jsonPath: ${providers.appengine.primaryCredentials.jsonPath}
+      sshPrivateKeyFilePath: ${providers.appengine.primaryCredentials.sshPrivateKeyFilePath}
+      sshPrivateKeyPassphrase: ${providers.appengine.primaryCredentials.sshPrivateKeyPassphrase}
+      gitHttpsUsername: ${providers.appengine.primaryCredentials.gitHttpsUsername}
+      gitHttpsPassword: ${providers.appengine.primaryCredentials.gitHttpsPassword}
+      githubOAuthAccessToken: ${providers.appengine.primaryCredentials.githubOAuthAccessToken}
 
 dockerRegistry:
   enabled: ${providers.dockerRegistry.enabled:false}

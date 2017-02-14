@@ -1,0 +1,324 @@
+{
+  "displayName": "Minimal Spinnaker Dashboard",
+  "version": 14,
+  "root": {
+    "gridLayout": {
+      "widgets": [
+        {
+          "title": "Hystrix Short Circuited (global)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/front50/hystrix.countShortCircuited\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/gate/hystrix.countShortCircuited\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/igor/hystrix.countShortCircuited\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Hystrix Exceptions Thrown (global)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/front50/hystrix.countExceptionsThrown\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/gate/hystrix.countExceptionsThrown\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/igor/hystrix.countExceptionsThrown\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Active Orchestrations (orca)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/orca/task.invocations\" AND metric.label.isComplete=\"false\" AND metric.label.executionType=\"Orchestration\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Active Pipelines (orca)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/orca/task.invocations\" AND metric.label.isComplete=\"false\" AND metric.label.executionType=\"Pipeline\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Completed Orchestrations (orca)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/orca/task.invocations\" AND metric.label.status=\"SUCCEEDED\" AND metric.label.executionType=\"Orchestration\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/orca/task.invocations\" AND metric.label.status!=\"SUCCEEDED\" AND metric.label.executionType=\"Orchestration\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Completed Pipelines (orca)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/orca/task.invocations\" AND metric.label.status=\"SUCCEEDED\" AND metric.label.executionType=\"Pipeline\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/orca/task.invocations\" AND metric.label.status!=\"SUCCEEDED\" AND metric.label.executionType=\"Pipeline\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Active Threads (orca)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/orca/threadpool.activeCount\""
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Pipelines Triggered (echo)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/echo/pipelines.triggered\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Bake Activity (rosco)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/rosco/bakesActive\""
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Cached Items (front50)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/front50/storageServiceSupport.cacheSize\""
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Successful Operations (clouddriver)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/clouddriver/operations__count\" AND metric.label.success=\"true\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "Failed Operations (clouddriver)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/clouddriver/operations__count\" AND metric.label.success=\"false\"",
+                  "perSeriesAligner": "ALIGN_DELTA"
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        },
+        {
+          "title": "JVM Memory (global)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/clouddriver/jvm.memory.used\" AND metric.label.memtype=\"HEAP\""
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/echo/jvm.memory.used\" AND metric.label.memtype=\"HEAP\""
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/fiat/jvm.memory.used\" AND metric.label.memtype=\"HEAP\""
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/front50/jvm.memory.used\" AND metric.label.memtype=\"HEAP\""
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/gate/jvm.memory.used\" AND metric.label.memtype=\"HEAP\""
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/igor/jvm.memory.used\" AND metric.label.memtype=\"HEAP\""
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/orca/jvm.memory.used\" AND metric.label.memtype=\"HEAP\""
+                }
+              },
+              {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"custom.googleapis.com/spinnaker/rosco/jvm.memory.used\" AND metric.label.memtype=\"HEAP\""
+                }
+              }
+            ],
+            "constantLines": [
+              {}
+            ],
+            "options": {},
+            "y1Axis": {},
+            "xAxis": {}
+          }
+        }
+      ]
+    }
+  }
+}

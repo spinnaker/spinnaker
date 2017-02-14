@@ -97,12 +97,7 @@ dockerRegistry:
 In the above entry you need to update the `repositories` field to contain the
 list of all images you want to index.
 
-### Anything else... except for ECR
-
-> ECR doesn't support enough of the [v2 registry
-> api](https://docs.docker.com/registry/spec/api/) to be supportable by
-> Spinnaker.
-
+### Everything else
 
 In `./config/clouddriver-local.yml`, you'll find the following:
 

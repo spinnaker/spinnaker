@@ -40,13 +40,20 @@ spinnaker:
     # See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location
     bucketLocation: ${services.front50.bucket_location:}
     rootFolder: ${services.front50.bucket_root:front50}
-    project: ${providers.google.primaryCredentials.project}
-    jsonPath: ${providers.google.primaryCredentials.jsonPath}
+    project: ${services.front50.gcs.project}
+    jsonPath: ${services.front50.gcs.jsonPath}
 
   s3:
     enabled: ${services.front50.s3.enabled:false}
     bucket: ${services.front50.storage_bucket:}
     rootFolder: ${services.front50.bucket_root:front50}
+
+  azs:
+    enabled: ${services.front50.azs.enabled:false}
+    storageAccountName: ${services.front50.azs.storageAccountName}
+    storageAccountKey: ${services.front50.azs.storageAccountKey}
+    storageContainerName: ${services.front50.azs.storageContainerName:spinnaker}
+    rootFolder: ${services.front50.azs.rootFolder:front50}
 
 spectator:
   applicationName: ${spring.application.name}

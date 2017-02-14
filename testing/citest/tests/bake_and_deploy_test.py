@@ -37,10 +37,12 @@
 #            as $JENKINS_AUTH_PATH (also chmod 400).
 #            Or, set JENKINS_USER and JENKINS_PASSWORD environment variables.
 #
-#         3. Take note of the Jenkins job you have configured in Igor,
-#            and store its name as $JENKINS_JOB.
+#         3. Take note of the Jenkins master you have configured in Igor,
+#            and store its name as $JENKINS_MASTER.
 #
-#         4. On your Jenkins server, navigate to /job/$JENKINS_JOB/configure
+#         4. Choose a name for your jenkins job and store it in $JENKINS_JOB.
+#
+#         5. On your Jenkins server, navigate to /job/$JENKINS_JOB/configure
 #               a) Under "Build Triggers", check "Trigger builds remotely".
 #               b) In the "Authentication Token" field, write some token
 #                  and store it as $JENKINS_TOKEN.
@@ -53,12 +55,13 @@
 #                  files to archive: somedir/vim_2:7.4.052-1ubuntu3_amd64.deb
 #
 #
-#   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
-#     python $CITEST_ROOT/spinnaker/spinnaker_system/bake_and_deploy_test.py \
+#   PYTHONPATH=$CITEST_ROOT/testing/citest \
+#     python $CITEST_ROOT/testing/citest/tests/bake_and_deploy_test.py \
 #     --gce_ssh_passphrase_file=$PASSPHRASE_FILE \
 #     --gce_project=$PROJECT \
 #     --gce_zone=$ZONE \
 #     --gce_instance=$INSTANCE \
+#     --jenkins_master=$JENKINS_MASTER \
 #     --jenkins_url=$JENKINS_URL \
 #     --jenkins_auth_path=$JENKINS_AUTH_PATH \
 #     --jenkins_job=$JENKINS_JOB \
@@ -66,8 +69,8 @@
 #     --test_google \
 #     --test_aws
 # or
-#   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
-#     python $CITEST_ROOT/spinnaker/spinnaker_system/bake_and_deploy_test.py \
+#   PYTHONPATH=$CITEST_ROOT/testing/citest \
+#     python $CITEST_ROOT/testing/citest/tests/bake_and_deploy_test.py \
 #     --native_hostname=host-running-smoke-test
 #     --managed_gce_project=$PROJECT \
 #     --test_gce_zone=$ZONE
@@ -132,28 +135,51 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     defaults = defaults or {}
     parser.add_argument(
-      '--jenkins_master', default='jenkins',
-      help='The name of the jenkins master as configured in igor.')
+      '--jenkins_master', default='',
+      help='The name of the jenkins master as configured in igor.'
+           ' You may need to override this to an alias depending on firewalls.'
+           ' The Spinnaker server may have permissions, but the citest machine'
+           ' may not. Otherwise, this defaults to Spinnaker\'s binding.')
     parser.add_argument(
       '--jenkins_job', default='TestTriggerProject',
-      help='The name of the jenkins job to trigger off.')
+      help='The name of the jenkins job to trigger off.'
+           ' You will need to add this to your --jenkins_master.')
     parser.add_argument(
       '--jenkins_auth_path', default=None,
       help='The path to a file containing the jenkins username password pair.'
            'The contents should look like: <username> <password>.')
     parser.add_argument(
-      '--jenkins_token', default='token',
-      help='The authentication token for the jenkins build trigger.')
+      '--jenkins_token', default='TRIGGER_TOKEN',
+      help='The authentication token for the jenkins build trigger.'
+      ' This corresponds to the --jenkins_job on the --jenkins_url server')
+
     parser.add_argument(
-      '--jenkins_url', default='http://localhost:8080/',
-      help='The baseUrl of the jenkins service, '
-           'i.e. <protocol>://<host>[:port]/[basePath].')
+      '--jenkins_url', default='',
+      help='The baseUrl of the jenkins service,'
+           ' i.e. <protocol>://<host>[:port]/[basePath].'
+           ' You may need to override this to an alias depending on firewalls.'
+           ' The Spinnaker server may have permissions, but the citest machine'
+           ' may not. Otherwise, this can be empty for Spinnaker\'s current'
+           ' binding.')
     parser.add_argument(
       '--test_google', action='store_true',
       help='Test Google pipelines.')
     parser.add_argument(
       '--test_aws', action='store_true',
       help='Test AWS pipelines.')
+
+  def _do_init_bindings(self):
+    logger = logging.getLogger(__name__)
+    bindings = self.bindings
+    deployed = self.agent.deployed_config
+    yaml_node_path = 'services.jenkins.defaultMaster'
+    if not bindings.get('JENKINS_MASTER'):
+      bindings['JENKINS_MASTER'] = deployed[yaml_node_path + '.name']
+      logger.info('Infering JENKINS_MASTER %s', bindings['JENKINS_MASTER'])
+
+    if not bindings.get('JENKINS_URL'):
+      bindings['JENKINS_URL'] = deployed[yaml_node_path + '.baseUrl']
+      logger.info('Infering JENKINS_URL %s', bindings['JENKINS_URL'])
 
   def __init__(self, bindings, agent=None):
     super(BakeAndDeployTestScenario, self).__init__(bindings, agent)

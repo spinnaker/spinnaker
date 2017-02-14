@@ -165,28 +165,28 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "delta(front50:hystrix:countExceptionsThrown[1m])",
+              "expr": "sum(idelta(front50:hystrix:countExceptionsThrown[$SamplePeriod])) by (metricType, metricGroup)",
               "intervalFactor": 2,
               "legendFormat": "front50/{{metricType}}({{metricGroup}})",
               "metric": "front50:hystrix:countExceptionsThrown",
               "refId": "A",
-              "step": 20
+              "step": 10
             },
             {
-              "expr": "delta(gate:hystrix:countExceptionsThrown[1m])",
+              "expr": "sum(idelta(gate:hystrix:countExceptionsThrown[$SamplePeriod])) by (metricType, metricGroup)",
               "intervalFactor": 2,
               "legendFormat": "gate/{{metricType}}({{metricGroup}})",
               "metric": "gate:hystrix:countExceptionsThrown",
               "refId": "B",
-              "step": 20
+              "step": 10
             },
             {
-              "expr": "delta(igor:hystrix:countExceptionsThrown[1m])",
+              "expr": "sum(idelta(igor:hystrix:countExceptionsThrown[$SamplePeriod])) by (metricType, metricGroup)",
               "intervalFactor": 2,
               "legendFormat": "igor/{{metricType}}({{metricGroup}})",
               "metric": "igor:hystrix:countExceptionsThrown",
               "refId": "C",
-              "step": 20
+              "step": 10
             }
           ],
           "thresholds": [],
@@ -211,7 +211,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -219,7 +219,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -359,7 +359,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(clouddriver:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(idelta(clouddriver:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "hide": false,
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
@@ -389,7 +389,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -397,7 +397,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -433,7 +433,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(clouddriver:controller:invocations__totalTime[1m])) by (controller, method) / 1000000 / sum(rate(clouddriver:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(rate(clouddriver:controller:invocations__totalTime[$SamplePeriod])) by (controller, method) / 1000000 / sum(rate(clouddriver:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "hide": false,
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
@@ -519,7 +519,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(idelta(clouddriver:operations__count{success=\"true\"}[1m])) by (OperationType)",
+              "expr": "label_replace(sum(idelta(clouddriver:operations__count{success=\"true\"}[$SamplePeriod])) by (OperationType), \"OperationType\", \"$1\", \"OperationType\", \"(.*)AtomicOperation\")",
               "hide": false,
               "intervalFactor": 2,
               "legendFormat": "{{OperationType}}",
@@ -530,7 +530,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Successful Operations",
+          "title": "Successful Operations (clouddriver)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -549,7 +549,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -557,7 +557,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -593,7 +593,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(idelta(clouddriver:operations__count{success=\"false\"}[1m])) by (OperationType)",
+              "expr": "label_replace(label_replace(sum(idelta(clouddriver:operations__count{success=\"false\"}[$SamplePeriod])) by (OperationType, cause), \"OperationType\", \"$1\", \"OperationType\", \"(.*)AtomicOperation\"), \"cause\", \"$1\", \"cause\", \"(.*)Exception\")",
               "intervalFactor": 2,
               "legendFormat": "{{OperationType}}/{{cause}}",
               "refId": "A",
@@ -603,7 +603,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Failed Operations",
+          "title": "Failed Operations (clouddriver)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -622,7 +622,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -630,7 +630,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -645,7 +645,7 @@
     },
     {
       "collapse": false,
-      "height": 264,
+      "height": 276,
       "panels": [
         {
           "aliasColors": {},
@@ -673,17 +673,17 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 2,
+          "span": 3,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(echo:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "sum(idelta(echo:controller:invocations__count[$SamplePeriod])) by (controller, method)",
               "hide": false,
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "C",
-              "step": 40
+              "step": 20
             }
           ],
           "thresholds": [],
@@ -708,7 +708,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -716,7 +716,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -747,17 +747,17 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 2,
+          "span": 3,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(echo:controller:invocations__totalTime[1m])) by (controller, method) / 1000000 / sum(rate(echo:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "sum(rate(echo:controller:invocations__totalTime[$SamplePeriod])) by (controller, method) / 1000000 / sum(rate(echo:controller:invocations__count[$SamplePeriod])) by (controller, method)",
               "hide": false,
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "C",
-              "step": 40
+              "step": 20
             }
           ],
           "thresholds": [],
@@ -804,6 +804,8 @@
           "legend": {
             "avg": false,
             "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
             "max": false,
             "min": false,
             "show": true,
@@ -819,14 +821,15 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 8,
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(echo:pipelines:triggered[1m])) by (application, name)",
+              "expr": "sum(idelta(echo:pipelines:triggered[$SamplePeriod])) by (name)",
+              "hide": false,
               "intervalFactor": 2,
-              "legendFormat": "{{name}}({{application}})",
+              "legendFormat": "{{name}}",
               "metric": "echo:pipelines:triggered",
               "refId": "A",
               "step": 10
@@ -835,7 +838,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Pipelines Triggered",
+          "title": "Pipelines Triggered (echo)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -854,7 +857,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -862,7 +865,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -910,7 +913,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(gate:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(idelta(gate:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
@@ -939,7 +942,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -947,7 +950,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -982,7 +985,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(gate:controller:invocations__totalTime[1m])) by (controller, method) / 1000000 / sum(rate(gate:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(rate(gate:controller:invocations__totalTime[$SamplePeriod])) by (controller, method) / 1000000 / sum(rate(gate:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
@@ -1055,6 +1058,7 @@
           },
           "lines": true,
           "linewidth": 1,
+          "links": [],
           "nullPointMode": "null",
           "percentage": false,
           "pointradius": 5,
@@ -1066,7 +1070,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(igor:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(idelta(igor:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
@@ -1076,7 +1080,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Igor Controller Invocation Latency",
+          "title": "Igor Controller Invocations",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1095,7 +1099,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -1103,7 +1107,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -1138,7 +1142,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(igor:controller:invocations__totalTime[1m])) by (controller, method) / 1000000 / sum(rate(igor:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(rate(igor:controller:invocations__totalTime[$SamplePeriod])) by (controller, method) / 1000000 / sum(rate(igor:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
@@ -1223,7 +1227,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(orca:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(idelta(orca:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
@@ -1252,7 +1256,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -1260,7 +1264,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -1293,11 +1297,11 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(orca:controller:invocations__totalTime[1m])) by (controller, method) / 1000000 / sum(rate(orca:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(rate(orca:controller:invocations__totalTime[$SamplePeriod])) by (controller, method) / 1000000 / sum(rate(orca:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
-              "step": 20
+              "step": 10
             }
           ],
           "thresholds": [],
@@ -1375,7 +1379,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Orca Active Threads",
+          "title": "Active Threads (orca)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1417,7 +1421,339 @@
     },
     {
       "collapse": false,
-      "height": 227,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 55,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 3,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(idelta(orca:task:invocations{executionType=\"Orchestration\", isComplete=\"false\"}[$SamplePeriod])) by (taskName)",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{taskName}}",
+              "metric": "",
+              "refId": "B",
+              "step": 20
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Active Orchestrations (orca)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 56,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 3,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(idelta(orca:task:invocations{executionType=\"Orchestration\",isComplete=\"true\", status=\"SUCCEEDED\"}[$SamplePeriod])) by (taskName)",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{taskName}}",
+              "metric": "orca:task:invocations",
+              "refId": "C",
+              "step": 20
+            },
+            {
+              "expr": "-1 * sum(idelta(orca:task:invocations{executionType=\"Orchestration\",isComplete=\"true\", status!=\"SUCCEEDED\"}[$SamplePeriod])) by (taskName)",
+              "hide": false,
+              "interval": "",
+              "intervalFactor": 2,
+              "legendFormat": "ERR {{taskName}}",
+              "metric": "orca:task:invocations",
+              "refId": "D",
+              "step": 20
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Orchestrations Completed (orca)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 58,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 3,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(idelta(orca:task:invocations{executionType=\"Pipeline\", isComplete=\"false\"}[$SamplePeriod])) by (taskName)",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{taskName}}",
+              "metric": "",
+              "refId": "B",
+              "step": 20
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Active Pipelines (orca)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 59,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 3,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(idelta(orca:task:invocations{executionType=\"Pipeline\",isComplete=\"true\", status=\"SUCCEEDED\"}[$SamplePeriod])) by (taskName)",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{taskName}}",
+              "metric": "orca:task:invocations",
+              "refId": "C",
+              "step": 20
+            },
+            {
+              "expr": "-1 * sum(idelta(orca:task:invocations{executionType=\"Pipeline\",isComplete=\"true\", status!=\"SUCCEEDED\"}[$SamplePeriod])) by (taskName)",
+              "hide": false,
+              "interval": "",
+              "intervalFactor": 2,
+              "legendFormat": "ERR {{taskName}}",
+              "metric": "orca:task:invocations",
+              "refId": "D",
+              "step": 20
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Pipelines Completed (orca)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Orca Pipelines",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 221,
       "panels": [
         {
           "aliasColors": {},
@@ -1443,16 +1779,16 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 4,
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(rosco:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(idelta(rosco:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
-              "step": 20
+              "step": 10
             }
           ],
           "thresholds": [],
@@ -1477,7 +1813,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -1485,7 +1821,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -1513,16 +1849,16 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 5,
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(rosco:controller:invocations__totalTime[1m])) by (controller, method) / 1000000 / sum(rate(rosco:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(rate(rosco:controller:invocations__totalTime[$SamplePeriod])) by (controller, method) / 1000000 / sum(rate(rosco:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
-              "step": 20
+              "step": 10
             }
           ],
           "thresholds": [],
@@ -1559,7 +1895,19 @@
               "show": true
             }
           ]
-        },
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Rosco",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
         {
           "aliasColors": {},
           "bars": false,
@@ -1583,26 +1931,120 @@
           "nullPointMode": "null",
           "percentage": false,
           "pointradius": 5,
-          "points": false,
+          "points": true,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 3,
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rosco:bakes:local) ",
+              "expr": "sum(rate(rosco:bakesCompleted__totalTime[$SamplePeriod]) / 1000000000) by (region) / sum(rate(rosco:bakesCompleted__count[$SamplePeriod])) by (region)",
+              "hide": false,
               "intervalFactor": 2,
-              "legendFormat": "Active",
-              "metric": "rosco:bakes:local",
+              "legendFormat": "{{region}}",
+              "metric": "",
               "refId": "A",
-              "step": 20
+              "step": 10
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Rosco Bakes",
+          "title": "Bakes Completed (rosco)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "s",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "s",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 41,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(rosco:bakesActive)",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "Active",
+              "metric": "rosco:bakesActive",
+              "refId": "A",
+              "step": 10
+            },
+            {
+              "expr": "sum(idelta(rosco:bakesRequested[$SamplePeriod])) by (flavor)",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "Request({{flavor}})",
+              "metric": "rosco:bakes",
+              "refId": "B",
+              "step": 10
+            },
+            {
+              "expr": "-1 * sum(idelta(rosco:bakesCompleted__count{success=\"false\"}[$SamplePeriod])) by (region)",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "Failed {{region}}",
+              "metric": "bakesC",
+              "refId": "C",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Bake Requests and Failures  (rosco)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1639,7 +2081,7 @@
       "repeatIteration": null,
       "repeatRowId": null,
       "showTitle": false,
-      "title": "Rosco",
+      "title": "Bakes",
       "titleSize": "h6"
     },
     {
@@ -1677,7 +2119,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(front50:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "sum(idelta(front50:controller:invocations__count[$SamplePeriod])) by (controller, method)",
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
@@ -1706,7 +2148,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -1714,7 +2156,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -1749,7 +2191,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(front50:controller:invocations__totalTime[1m])) by (controller, method) / 1000000 / sum(rate(front50:controller:invocations__count[1m])) by (controller, method)",
+              "expr": "label_replace(sum(rate(front50:controller:invocations__totalTime[$SamplePeriod])) by (controller, method) / 1000000 / sum(rate(front50:controller:invocations__count[$SamplePeriod])) by (controller, method), \"controller\", \"$1\", \"controller\", \"(.*)Controller\")",
               "intervalFactor": 2,
               "legendFormat": "{{controller}}({{method}})",
               "refId": "A",
@@ -1837,15 +2279,16 @@
             {
               "expr": "sum(front50:storageServiceSupport:cacheSize) by (objectType)",
               "intervalFactor": 2,
+              "legendFormat": "{{objectType}}",
               "metric": "front50:storageServiceSupport:cacheSize",
               "refId": "A",
-              "step": 20
+              "step": 10
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Item Cache Size",
+          "title": "Item Cache Size (front50)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1917,7 +2360,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(front50:storageServiceSupport:numAdded[1m])) by (objectType)",
+              "expr": "sum(idelta(front50:storageServiceSupport:numAdded[$SamplePeriod])) by (objectType)",
               "intervalFactor": 2,
               "legendFormat": "add {{objectType}}",
               "metric": "front50:storageServiceSupport:numAdded",
@@ -1925,7 +2368,7 @@
               "step": 20
             },
             {
-              "expr": "-1 * sum(delta(front50:storageServiceSupport:numRemoved[1m])) by (objectType)",
+              "expr": "-1 * sum(idelta(front50:storageServiceSupport:numRemoved[$SamplePeriod])) by (objectType)",
               "intervalFactor": 2,
               "legendFormat": "del {{objectType}}",
               "refId": "B",
@@ -1935,7 +2378,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Item Cache Adds (+) and Removes (-)",
+          "title": "Item Cache Adds (+) and Removes (-) (front50)",
           "tooltip": {
             "shared": false,
             "sort": 0,
@@ -2000,7 +2443,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(front50:storageServiceSupport:numUpdated[1m])) by (objectType)",
+              "expr": "sum(idelta(front50:storageServiceSupport:numUpdated[$SamplePeriod])) by (objectType)",
               "intervalFactor": 2,
               "legendFormat": "{{objectType}}",
               "metric": "front50:storageServiceSupport:numUpdated",
@@ -2011,7 +2454,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Item Cache Updates",
+          "title": "Item Cache Updates (front50)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2030,7 +2473,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -2038,7 +2481,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -2086,25 +2529,17 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(front50:storageServiceSupport:cacheSize) by (objectType)",
-              "intervalFactor": 2,
-              "legendFormat": "{{objectType}}",
-              "metric": "front50:storageServiceSupport:cacheSize",
-              "refId": "A",
-              "step": 10
-            },
-            {
               "expr": "drop_common_labels(front50:storageServiceSupport:cacheAge) / 1000",
               "intervalFactor": 2,
               "legendFormat": "{{objectType}}",
-              "refId": "B",
+              "refId": "A",
               "step": 10
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Front50 Item Cache Age",
+          "title": "Item Cache Age (front50)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2176,7 +2611,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(front50:storageServiceSupport:autoRefreshTime__count[1m])) by (objectType)",
+              "expr": "sum(idelta(front50:storageServiceSupport:autoRefreshTime__count[$SamplePeriod])) by (objectType)",
               "hide": false,
               "intervalFactor": 2,
               "legendFormat": "force/{{objectType}}",
@@ -2185,7 +2620,7 @@
               "step": 10
             },
             {
-              "expr": "-1 * (sum(delta(front50:storageServiceSupport:scheduledRefreshTime__count[1m])) by (objectType))",
+              "expr": "-1 * (sum(idelta(front50:storageServiceSupport:scheduledRefreshTime__count[$SamplePeriod])) by (objectType))",
               "hide": false,
               "intervalFactor": 2,
               "legendFormat": "{{objectType}}",
@@ -2196,7 +2631,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Front50 Cache Refreshes / Minute  (negative are scheduled)",
+          "title": "Cache Refreshes / Minute  (negative are scheduled) (front50)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2238,7 +2673,7 @@
     },
     {
       "collapse": false,
-      "height": 250,
+      "height": 227,
       "panels": [
         {
           "aliasColors": {},
@@ -2271,7 +2706,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(front50:google:storage:invocation__count[1m])) by (method)",
+              "expr": "sum(idelta(front50:google:storage:invocation__count[$SamplePeriod])) by (method)",
               "intervalFactor": 2,
               "legendFormat": "{{method}}",
               "refId": "A",
@@ -2281,7 +2716,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Front50 Google Storage Service Invocations",
+          "title": "Google Storage Service Invocations (front50)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2300,7 +2735,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -2308,7 +2743,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -2343,7 +2778,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(front50:google:storage:invocation__totalTime[1m])) by (method) / 1000000 / sum(rate(front50:google:storage:invocation__count[1m])) by (method)",
+              "expr": "sum(rate(front50:google:storage:invocation__totalTime[$SamplePeriod])) by (method) / 1000000 / sum(rate(front50:google:storage:invocation__count[$SamplePeriod])) by (method)",
               "intervalFactor": 2,
               "legendFormat": "{{method}}",
               "refId": "A",
@@ -2353,7 +2788,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Front50 Google Storage Service Invocation Latency",
+          "title": "Google Storage Service Invocation Latency (front50)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2426,7 +2861,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "drop_common_labels(clouddriver:jvm:memory:used{memtype=\"HEAP\"}) / (1024 * 1024)",
+              "expr": "sum(clouddriver:jvm:memory:used{memtype=\"HEAP\"}) by (id, memtype)",
               "intervalFactor": 2,
               "legendFormat": "Clouddriver({{id}}/{{memtype}})",
               "metric": "clouddriver:jvm:memory:used",
@@ -2434,7 +2869,7 @@
               "step": 4
             },
             {
-              "expr": "echo:jvm:memory:used{memtype=\"HEAP\"} / (1024 * 1024)",
+              "expr": "sum(echo:jvm:memory:used{memtype=\"HEAP\"}) by (id, memtype)",
               "intervalFactor": 2,
               "legendFormat": "Echo({{id}}/{{memtype}})",
               "metric": "echo:jvm:memory:used",
@@ -2442,7 +2877,7 @@
               "step": 4
             },
             {
-              "expr": "fiat:jvm:memory:used{memtype=\"HEAP\"} / (1024 * 1024)",
+              "expr": "sum(fiat:jvm:memory:used{memtype=\"HEAP\"}) by (id, memtype)",
               "intervalFactor": 2,
               "legendFormat": "Fiat({{id}}/{{memtype}})",
               "metric": "fiat:jvm:memory:used",
@@ -2450,7 +2885,7 @@
               "step": 4
             },
             {
-              "expr": "front50:jvm:memory:used{memtype=\"HEAP\"} / (1024 * 1024)",
+              "expr": "sum(front50:jvm:memory:used{memtype=\"HEAP\"}) by (id, memtype)",
               "intervalFactor": 2,
               "legendFormat": "Front50({{id}}/{{memtype}})",
               "metric": "front50:jvm:memory:used",
@@ -2458,7 +2893,7 @@
               "step": 4
             },
             {
-              "expr": "gate:jvm:memory:used{memtype=\"HEAP\"} / (1024 * 1024)",
+              "expr": "sum(gate:jvm:memory:used{memtype=\"HEAP\"}) by (id, memtype)",
               "intervalFactor": 2,
               "legendFormat": "Gate({{id}}/{{memtype}})",
               "metric": "gate:jvm:memory:used",
@@ -2466,7 +2901,7 @@
               "step": 4
             },
             {
-              "expr": "igor:jvm:memory:used{memtype=\"HEAP\"} / (1024 * 1024)",
+              "expr": "sum(igor:jvm:memory:used{memtype=\"HEAP\"}) by (id, memtype)",
               "intervalFactor": 2,
               "legendFormat": "Igor({{id}}/{{memtype}})",
               "metric": "igor:jvm:memory:used",
@@ -2474,7 +2909,7 @@
               "step": 4
             },
             {
-              "expr": "orca:jvm:memory:used{memtype=\"HEAP\"} / (1024 * 1024)",
+              "expr": "sum(orca:jvm:memory:used{memtype=\"HEAP\"}) by (id, memtype)",
               "intervalFactor": 2,
               "legendFormat": "Orca({{id}}/{{memtype}})",
               "metric": "orca:jvm:memory:used",
@@ -2482,7 +2917,7 @@
               "step": 4
             },
             {
-              "expr": "rosco:jvm:memory:used{memtype=\"HEAP\"} / (1024 * 1024)",
+              "expr": "sum(rosco:jvm:memory:used{memtype=\"HEAP\"}) by (id, memtype)",
               "intervalFactor": 2,
               "legendFormat": "Rosco({{id}}/{{memtype}})",
               "metric": "rosco:jvm:memory:used",
@@ -2493,7 +2928,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "JVM Memory Usage (Megabytes)",
+          "title": "JVM Memory Usage",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2508,7 +2943,7 @@
           },
           "yaxes": [
             {
-              "format": "short",
+              "format": "decbytes",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -2516,7 +2951,7 @@
               "show": true
             },
             {
-              "format": "short",
+              "format": "decbytes",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -2577,7 +3012,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "AWS Delay (not sure of units)",
+          "title": "AWS Delay (clouddriver)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2640,7 +3075,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(clouddriver:aws:request:httpRequestTime__count{error=\"true\"}[1m])) by (requestType, serviceName, statusCode)",
+              "expr": "label_replace(sum(idelta(clouddriver:aws:request:httpRequestTime__count{error=\"true\"}[$SamplePeriod])) by (requestType, serviceName, statusCode, AWSErrorCode), \"requestType\", \"$1\", \"requestType\", \"(.*)Request(.*)\")",
               "intervalFactor": 2,
               "legendFormat": "{{statusCode}}/{{requestType}}({{serviceName}})->{{AWSErrorCode}}",
               "metric": "clouddriver:aws:request:httpRequestTime__count",
@@ -2651,7 +3086,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "AWS Errors",
+          "title": "AWS Errors (clouddriver)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2670,7 +3105,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -2678,7 +3113,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -2726,7 +3161,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(clouddriver:aws:request:httpRequestTime__count{serviceName=\"AmazonEC2\", error=\"false\"}[1m])) by (requestType, serviceName)",
+              "expr": "label_replace(sum(idelta(clouddriver:aws:request:httpRequestTime__count{serviceName=\"AmazonEC2\", error=\"false\"}[$SamplePeriod])) by (requestType, serviceName), \"requestType\", \"$1\", \"requestType\", \"(.*)Request\")",
               "intervalFactor": 2,
               "legendFormat": "{{requestType}}",
               "metric": "clouddriver:aws:request:httpRequestTime__count",
@@ -2737,7 +3172,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "AWS EC2 Requests",
+          "title": "AWS EC2 Requests (clouddriver)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2756,7 +3191,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -2764,7 +3199,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -2800,7 +3235,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(clouddriver:aws:request:httpRequestTime__count{serviceName!=\"AmazonEC2\", error=\"false\"}[1m])) by (requestType, serviceName)",
+              "expr": "sum(idelta(clouddriver:aws:request:httpRequestTime__count{serviceName!=\"AmazonEC2\", error=\"false\"}[$SamplePeriod])) by (requestType, serviceName)",
               "intervalFactor": 2,
               "legendFormat": "{{requestType}}({{serviceName}})",
               "metric": "clouddriver:aws:request:httpRequestTime__count",
@@ -2811,7 +3246,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "AWS Requests (non EC2)",
+          "title": "AWS Requests (non EC2) (clouddrier)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2830,7 +3265,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -2838,7 +3273,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             }
           ]
@@ -2886,7 +3321,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(clouddriver:aws:request:httpRequestTime__totalTime{serviceName=\"AmazonEC2\"}[1m])) by (requestType, serviceName) / 1000000 / sum(delta(clouddriver:aws:request:httpRequestTime__count{serviceName=\"AmazonEC2\", error=\"false\"}[1m])) by (requestType, serviceName)",
+              "expr": "sum(rate(clouddriver:aws:request:httpRequestTime__totalTime{serviceName=\"AmazonEC2\"}[$SamplePeriod])) by (requestType, serviceName) / 1000000 / sum(rate(clouddriver:aws:request:httpRequestTime__count{serviceName=\"AmazonEC2\", error=\"false\"}[$SamplePeriod])) by (requestType, serviceName)",
               "intervalFactor": 2,
               "legendFormat": "{{requestType}}",
               "metric": "",
@@ -2897,7 +3332,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "AWS EC2 Request Latency",
+          "title": "AWS EC2 Request Latency (clouddriver)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2960,7 +3395,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(delta(clouddriver:aws:request:httpRequestTime__totalTime{serviceName!=\"AmazonEC2\"}[1m])) by (requestType, serviceName) / 1000000 / sum(delta(clouddriver:aws:request:httpRequestTime__count{serviceName!=\"AmazonEC2\", error=\"false\"}[1m])) by (requestType, serviceName)",
+              "expr": "label_replace(sum(rate(clouddriver:aws:request:httpRequestTime__totalTime{serviceName!=\"AmazonEC2\"}[$SamplePeriod])) by (requestType, serviceName) / 1000000 / sum(rate(clouddriver:aws:request:httpRequestTime__count{serviceName!=\"AmazonEC2\", error=\"false\"}[$SamplePeriod])) by (requestType, serviceName), \"requestType\", \"$1\", \"requestType\", \"(.*)Request\")",
               "intervalFactor": 2,
               "legendFormat": "{{requestType}}",
               "metric": "",
@@ -2971,7 +3406,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "AWS Non-EC2 Request Latency",
+          "title": "AWS Non-EC2 Request Latency (clouddriver)",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -3010,13 +3445,1029 @@
       "showTitle": false,
       "title": "AWS Latency",
       "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 54,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(idelta(clouddriver:google:operationWaits__count{status=\"DONE\"}[$SamplePeriod])) by (basePhase)",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{basePhase}}",
+              "metric": "clouddriver:google:operationWaits__count",
+              "refId": "A",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Successful Google Operations (clouddriver)",
+          "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": [
+              "total"
+            ]
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 46,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(idelta(clouddriver:google:operationWaits__count{status!=\"DONE\"}[$SamplePeriod])) by (basePhase, scope) ",
+              "intervalFactor": 2,
+              "legendFormat": "{{scope}}/{{basePhase}}",
+              "metric": "",
+              "refId": "A",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Failed Google Operations (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "s",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Google Operations Outcome",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 200,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 45,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(idelta(clouddriver:google:operationWaitRequests[$SamplePeriod])) by (basePhase, scope)",
+              "intervalFactor": 2,
+              "legendFormat": "{{scope}}/{{basePhase}}",
+              "metric": "clouddriver:google:operationWaitRequests",
+              "refId": "A",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Google Operations Started (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 44,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(rate(clouddriver:google:operationWaits__totalTime[$SamplePeriod])) by (basePhase, scope) / 1000000000 / sum(rate(clouddriver:google:operationWaits__count[$SamplePeriod])) by (basePhase, scope) ",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{scope}}/{{basePhase}}",
+              "metric": "wai",
+              "refId": "A",
+              "step": 10
+            },
+            {
+              "expr": "sum((clouddriver:google:operationWaits__totalTime)) by (basePhase, scope) / 1000000000 / sum((clouddriver:google:operationWaits__count)) by (basePhase, scope) ",
+              "hide": true,
+              "intervalFactor": 2,
+              "legendFormat": "{{scope}}/{{basePhase}}",
+              "metric": "wai",
+              "refId": "B",
+              "step": 10
+            },
+            {
+              "expr": "clouddriver:google:operationWaits__count",
+              "hide": true,
+              "intervalFactor": 2,
+              "legendFormat": "",
+              "metric": "wai",
+              "refId": "C",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Google Operation Wait Until Done Time (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "s",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "s",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Google Operation Attempts",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 42,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "label_replace(sum(idelta(clouddriver:google:api__count[$SamplePeriod])) by (api), \"api\", \"$1\", \"api\", \"compute.(.*)\")",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{api}}",
+              "metric": "clouddriver:google:api__count",
+              "refId": "A",
+              "step": 20
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Google API Call Count (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "transparent": false,
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 43,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "label_replace(sum(rate(clouddriver:google:api__totalTime{success=\"true\"}[$SamplePeriod])) by (api) / 1000000 / sum(rate(clouddriver:google:api__count{success=\"true\"}[$SamplePeriod])) by (api), \"api\", \"$1\", \"api\", \"compute.(.*)\")",
+              "intervalFactor": 2,
+              "legendFormat": "{{api}}",
+              "metric": "clouddriver:google:api__count",
+              "refId": "A",
+              "step": 20
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Google API Call Latency (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "ms",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "ms",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 51,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "label_replace(sum(idelta(clouddriver:google:api__count{success=\"false\"}[$SamplePeriod])) by (api), \"api\", \"$1\", \"api\", \"compute.(.*)\")",
+              "intervalFactor": 2,
+              "legendFormat": "{{api}}",
+              "metric": "clouddriver:google:api__count",
+              "refId": "A",
+              "step": 20
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Google API Failures (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Google API",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 196,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 47,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 3,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "label_replace(sum(idelta(clouddriver:google:batchSize[$SamplePeriod])) by (context), \"context\", \"$1$2\", \"context\", \"(.*)Caching(.*)\")",
+              "intervalFactor": 2,
+              "legendFormat": "{{context}}",
+              "metric": "clouddriver:google:batchSize",
+              "refId": "A",
+              "step": 20
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Google API Batch Size (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 50,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 5,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "label_replace(sum(idelta(clouddriver:google:batchExecute__count[$SamplePeriod])) by (context), \"context\", \"$1$2\", \"context\", \"(.*)Caching(.*)\")",
+              "intervalFactor": 2,
+              "legendFormat": "{{context}}",
+              "metric": "clouddriver:google:batchExecute__count",
+              "refId": "A",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Google API Batch Count (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 49,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "label_replace(rate(clouddriver:google:batchExecute__totalTime[$SamplePeriod]) / 1000000 / rate(clouddriver:google:batchExecute__count[$SamplePeriod]), \"context\", \"$1$2\", \"context\", \"(.*)Caching(.*)\")",
+              "intervalFactor": 2,
+              "legendFormat": "{{context}}",
+              "metric": "",
+              "refId": "A",
+              "step": 20
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Google API Batch Latency (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "ms",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "ms",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Google Batch",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 52,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "idelta(clouddriver:google:safeRetry__count[$SamplePeriod])",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{operation}}({{phase}})",
+              "metric": "clouddriver:google:safeRetry__count",
+              "refId": "A",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Google API Safe Retries (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": "0",
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_SPINNAKER}",
+          "fill": 1,
+          "id": 53,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(rate(clouddriver:google:safeRetry__totalTime[$SamplePeriod])) by (operation, phase) / 1000000 / sum(rate(clouddriver:google:safeRetry__count[$SamplePeriod])) by (operation, phase)",
+              "intervalFactor": 2,
+              "legendFormat": "{{operation}}({{phase}})",
+              "metric": "clouddriver:google:safeRetry__count",
+              "refId": "A",
+              "step": 10
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Google API Safe Retry Latency (clouddriver)",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "ms",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "ms",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Google Safe Retry",
+      "titleSize": "h6"
     }
   ],
   "schemaVersion": 14,
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "auto": false,
+        "auto_count": 30,
+        "auto_min": "10s",
+        "current": {
+          "text": "1m",
+          "value": "1m"
+        },
+        "hide": 0,
+        "label": "Sample Period",
+        "name": "SamplePeriod",
+        "options": [
+          {
+            "selected": true,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "10m",
+            "value": "10m"
+          },
+          {
+            "selected": false,
+            "text": "15m",
+            "value": "15m"
+          },
+          {
+            "selected": false,
+            "text": "30m",
+            "value": "30m"
+          }
+        ],
+        "query": "1m,5m,10m,15m,30m",
+        "refresh": 2,
+        "type": "interval"
+      }
+    ]
   },
   "time": {
     "from": "now-1h",
@@ -3048,6 +4499,6 @@
     ]
   },
   "timezone": "browser",
-  "title": "Spinnaker",
-  "version": 3
+  "title": "Spinnaker Kitchen Sink",
+  "version": 1
 }

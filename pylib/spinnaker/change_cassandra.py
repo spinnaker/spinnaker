@@ -31,7 +31,7 @@ instance, or you have a providers.google.primaryCredentials.jsonPath configured
 with service account credentials.
 
 Usage:
-   --echo=(cassandra|inMemory)  --front50=(cassandra|gcs|s3)
+   --echo=(cassandra|inMemory)  --front50=(cassandra|gcs|s3|azs)
    [--bucket=<storage_bucket_name>]
    [--change_local=(true|false)]
    [--change_defaults=(true|false)]
@@ -52,12 +52,12 @@ from configurator import Configurator
 
 ECHO_CHOICES = ['cassandra', 'inMemory']
 
-FRONT50_CHOICES = ['cassandra', 's3', 'gcs', 'redis']
+FRONT50_CHOICES = ['cassandra', 's3', 'gcs', 'redis', 'azs']
 
 _ECHO_KEYS = ['echo.cassandra.enabled', 'echo.inMemory.enabled']
 _FRONT50_KEYS = ['front50.cassandra.enabled', 'front50.redis.enabled',
                  'front50.s3.enabled', 'front50.gcs.enabled',
-                 'front50.storage_bucket']
+                 'front50.storage_bucket', 'front50.azs.enabled']
 
 SPINNAKER_INSTALLED_PATH = '/opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA'
 SPINNAKER_DISABLED_PATH = '/opt/spinnaker/cassandra/SPINNAKER_DISABLED_CASSANDRA'
@@ -110,7 +110,8 @@ class CassandraChanger(object):
               'front50': {'cassandra': {'enabled': options.front50 == 'cassandra'},
                           'redis': {'enabled': options.front50 == 'redis'},
                           's3': {'enabled': options.front50 == 's3'},
-                          'gcs': {'enabled': options.front50 == 'gcs'}
+                          'gcs': {'enabled': options.front50 == 'gcs'},
+                          'azs': {'enabled': options.front50 == 'azs'}
                          }}
     if options.bucket:
         config['front50']['storage_bucket'] = options.bucket

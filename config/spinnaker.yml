@@ -115,8 +115,19 @@ services:
       enabled: false
     gcs:
       enabled: false
+      project: ${providers.google.primaryCredentials.project}
+      jsonPath: ${providers.google.primaryCredentials.jsonPath}
     s3:
       enabled: false
+
+    # To use an Azure storage account instead of Cassandra:
+    # Disable Cassandra above, enable azs, and set the storage account name and key
+    azs:
+      enabled: false
+      storageAccountName:
+      storageAccountKey:
+      storageContainerName: spinnaker
+      rootFolder: front50
 
   gate:
     host: ${services.default.host}
@@ -227,7 +238,7 @@ services:
 
   spectator:
     webEndpoint:
-      enabled: false
+      enabled: true
 
   stackdriver:
     enabled: ${SPINNAKER_STACKDRIVER_ENABLED:false}
@@ -297,12 +308,13 @@ providers:
     primaryCredentials:
       name: my-azure-account
 
-      # To set Azure credentials, enter your Azure supscription values for:
-      # clientId, appKey, tenantId, and subscriptionId.
+      # To set Azure credentials, enter your Azure subscription values for:
+      # clientId, appKey, tenantId, subscriptionId, and objectId.
       clientId:
       appKey:
       tenantId:
       subscriptionId:
+      objectId:
 
   titan:
     # If you want to deploy some services to titan,
@@ -353,3 +365,16 @@ providers:
       domainName: ${OS_USER_DOMAIN_NAME:Default}
       regions: ${OS_REGION_NAME:RegionOne}
       insecure: false
+
+  appengine:
+    enabled: ${SPINNAKER_APPENGINE_ENABLED:false}
+
+    primaryCredentials:
+      name: my-appengine-account
+      project: ${SPINNAKER_APPENGINE_PROJECT_ID:}
+      jsonPath: ${SPINNAKER_APPENGINE_PROJECT_CREDENTIALS_PATH:}
+      sshPrivateKeyFilePath: ${SPINNAKER_APPENGINE_PRIVATE_KEY_FILE_PATH:}
+      sshPrivateKeyPassphrase: ${SPINNAKER_APPENGINE_PRIVATE_KEY_PASSPHRASE:}
+      gitHttpsUsername: ${SPINNAKER_APPENGINE_GIT_HTTPS_USERNAME:}
+      gitHttpsPassword: ${SPINNAKER_APPENGINE_GIT_HTTPS_PASSWORD:}
+      githubOAuthAccessToken: ${SPINNAKER_APPENGINE_GITHUB_OAUTH_ACCESS_TOKEN:}

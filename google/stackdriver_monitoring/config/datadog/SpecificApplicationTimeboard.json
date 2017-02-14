@@ -1,0 +1,186 @@
+{
+  "read_only": false, 
+  "graphs": [
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:orca.task.invocations{$SourceApplication,executiontype:orchestration,status:running} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "$SourceApplication Active Orchestrations (orca)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:orca.task.invocations{$SourceApplication,executiontype:orchestration,status:running} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "$SourceApplication Active Orchestrations (orca)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:orca.task.invocations{$SourceApplication,status:running,executiontype:pipeline} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "$SourceApplication Active Pipelines (orca)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:orca.task.invocations{$SourceApplication,status:succeeded,executiontype:pipeline} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "cool"
+            }
+          }, 
+          {
+            "q": "- diff(sum:orca.task.invocations{$SourceApplication,status:terminal,executiontype:pipeline} by {taskname})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "warm"
+            }
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "$SourceApplication Completed Pipelines (orca)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:echo.pipelines.triggered{$Application} by {name})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "$Application Pipelines Triggered (echo)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:rosco.bakesActive{*})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "line"
+          }, 
+          {
+            "q": "diff(sum:rosco.bakesRequested{*} by {flavor})", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "cool"
+            }
+          }, 
+          {
+            "q": "diff(sum:rosco.bakesCompleted_count{success:false} by {region})", 
+            "conditional_formats": [], 
+            "type": "bars", 
+            "style": {
+              "palette": "warm"
+            }
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Global Bake Activity (rosco)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "per_minute(sum:rosco.bakesCompleted_totalTime{*} by {region}) / 1000000000 / per_minute(sum:rosco.bakesCompleted_count{*} by {region}) / 60", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "area"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Global Bake Completion Time Minutes (rosco)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:gate.hystrix.rollingCountShortCircuited{*} by {metricgroup})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "bars"
+          }, 
+          {
+            "q": "diff(sum:igor.hystrix.rollingCountShortCircuited{*} by {metricgroup})", 
+            "type": "bars"
+          }, 
+          {
+            "q": "diff(sum:front50.hystrix.rollingCountShortCircuited{*} by {metricgroup})", 
+            "type": "bars"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Hystrix Short Circuited (global)"
+    }, 
+    {
+      "definition": {
+        "viz": "timeseries", 
+        "requests": [
+          {
+            "q": "diff(sum:front50.hystrix.countExceptionsThrown{*})", 
+            "aggregator": "avg", 
+            "conditional_formats": [], 
+            "type": "line"
+          }, 
+          {
+            "q": "diff(sum:igor.hystrix.countExceptionsThrown{*}.as_count())", 
+            "type": "bars"
+          }, 
+          {
+            "q": "diff(sum:gate.hystrix.countExceptionsThrown{*})", 
+            "type": "line"
+          }
+        ], 
+        "autoscale": true
+      }, 
+      "title": "Hystrix Exceptions Thrown (global)"
+    }
+  ], 
+  "description": "Templated dashboard to show details for a specific Application", 
+  "title": "Specific Spinnaker Application"
+}

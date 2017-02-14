@@ -20,7 +20,8 @@
     "project_id": "{{user `project_id`}}",
     "source_image": "{{user `source_image`}}",
     "zone": "{{user `zone`}}",
-    "image_name": "{{user `target_image`}}"
+    "image_name": "{{user `target_image`}}",
+    "ssh_username": "root"
  }],
 
  "provisioners": [
