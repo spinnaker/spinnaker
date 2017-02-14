@@ -90,6 +90,10 @@ public class Daemon {
     ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, ""));
   }
 
+  public static String deployDeploymentPlan(String deploymentName, boolean validate) {
+    return ResponseUnwrapper.get(getService().deployDeploymentPlan(deploymentName, validate));
+  }
+
   public static <C, T> DaemonTask<C, T> getTask(String uuid) {
     return getService().getTask(uuid);
   }

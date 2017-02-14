@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.EndpointFactory;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +42,31 @@ public class DeployService {
   DeploymentFactory deploymentFactory;
 
   @Autowired
+  EndpointFactory endpointFactory;
+
+  @Autowired
+  ArtifactService artifactService;
+
+  @Autowired
   GenerateService generateService;
 
   @Autowired
   String spinnakerOutputPath;
+
+  public String deploySpinnakerPlan(String deploymentName) {
+    // TODO(lwander) https://github.com/spinnaker/halyard/issues/141
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerEndpoints endpoints = endpointFactory.create(deploymentConfiguration);
+    BillOfMaterials billOfMaterials = artifactService.getBillOfMaterials(deploymentName);
+
+    StringBuilder result = new StringBuilder();
+    result.append("## ENDPOINTS\n\n");
+    result.append(generateService.yamlToString(endpoints));
+    result.append("\n## VERSIONS\n\n");
+    result.append(generateService.yamlToString(billOfMaterials));
+
+    return result.toString();
+  }
 
   public void deploySpinnaker(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);

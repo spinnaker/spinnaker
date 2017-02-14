@@ -12,33 +12,31 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1;
+package com.netflix.spinnaker.halyard.cli.command.v1.deploy;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.deploy.PlanDeployCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.deploy.RunDeployCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters()
-public class DeployCommand extends NestableCommand {
+public class PlanDeployCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "deploy";
+  private String commandName = "plan";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Manage the deployment of Spinnaker. This includes where it's deployed,"
-      + " what the infrastructure footprint looks, what the currently running deployment looks like, etc...";
-
-  public DeployCommand() {
-    registerSubcommand(new RunDeployCommand());
-    registerSubcommand(new PlanDeployCommand());
-  }
+  private String description = "This is effectively a dry-run of your Spinnaker deployment, displaying what changes"
+      + " will be made, and how your deployment will look.";
 
   @Override
   protected void executeThis() {
-    showHelp();
+    String deploymentName = Daemon.getCurrentDeployment();
+
+    AnsiUi.raw(Daemon.deployDeploymentPlan(deploymentName, false));
   }
 }

@@ -61,6 +61,11 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body String _ignore);
 
+  @GET("/v1/config/deployments/{deploymentName}/deployPlan/")
+  DaemonTask<Halconfig, String> deployDeploymentPlan(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
   @GET("/v1/config/deployments/{deploymentName}/deploymentEnvironment/")
   DaemonTask<Halconfig, DeploymentEnvironment> getDeploymentEnvironment(
       @Path("deploymentName") String deploymentName,

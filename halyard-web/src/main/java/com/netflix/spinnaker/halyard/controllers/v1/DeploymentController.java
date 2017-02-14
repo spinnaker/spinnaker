@@ -96,4 +96,13 @@ public class DeploymentController {
 
     return TaskRepository.submitTask(builder::build);
   }
+
+  @RequestMapping(value = "/{deploymentName:.+}/deployPlan/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, String> deployPlan(@PathVariable String deploymentName) {
+    StaticRequestBuilder<String> builder = new StaticRequestBuilder<>();
+
+    builder.setBuildResponse(() -> deployService.deploySpinnakerPlan(deploymentName));
+
+    return TaskRepository.submitTask(builder::build);
+  }
 }

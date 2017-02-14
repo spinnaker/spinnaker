@@ -47,7 +47,7 @@ public class ArtifactService {
   @Autowired
   DeploymentService deploymentService;
 
-  public String getArtifactVersion(String deploymentName, SpinnakerArtifact artifact) {
+  public BillOfMaterials getBillOfMaterials(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     String version = deploymentConfiguration.getVersion();
     if (version == null || version.isEmpty()) {
@@ -66,13 +66,17 @@ public class ArtifactService {
           BillOfMaterials.class
       );
 
-      return bom.getServices().getArtifactVersion(artifact);
+      return bom;
     } catch (RetrofitError | IOException e) {
       throw new HalException(
           new ConfigProblemBuilder(Severity.FATAL,
-              "Unable to retrieve a profile for \"" + artifact + "\": " + e.getMessage())
+              "Unable to retrieve the Spinnaker bill of materials: " + e.getMessage())
               .build()
       );
     }
+  }
+
+  public String getArtifactVersion(String deploymentName, SpinnakerArtifact artifact) {
+    return getBillOfMaterials(deploymentName).getServices().getArtifactVersion(artifact);
   }
 }
