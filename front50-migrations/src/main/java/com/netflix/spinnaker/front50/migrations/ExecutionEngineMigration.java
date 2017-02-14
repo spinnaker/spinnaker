@@ -43,9 +43,8 @@ public class ExecutionEngineMigration implements Migration {
     Observable
       .from(pipelineDAO.all())
       .filter(this::isV1)
-      .filter(this::hasDeployStage)
+      .filter(this::hasNoDeployStage)
       .filter(this::hasNoCanaryStage)
-      .filter(this::deploysOnlyToTest)
       .subscribe(this::migrate, this::onError);
   }
 
@@ -53,8 +52,8 @@ public class ExecutionEngineMigration implements Migration {
     return !"v2".equals(pipeline.get("executionEngine"));
   }
 
-  private boolean hasDeployStage(Pipeline pipeline) {
-    return Observable
+  private boolean hasNoDeployStage(Pipeline pipeline) {
+    return !Observable
       .from((List<Map<String, Object>>) pipeline.get("stages"))
       .exists(stage -> "deploy".equals(stage.get("type")))
       .toBlocking()
@@ -65,16 +64,6 @@ public class ExecutionEngineMigration implements Migration {
     return !Observable
       .from((List<Map<String, Object>>) pipeline.get("stages"))
       .exists(stage -> "canary".equals(stage.get("type")))
-      .toBlocking()
-      .first();
-  }
-
-  private boolean deploysOnlyToTest(Pipeline pipeline) {
-    return Observable
-      .from((List<Map<String, Object>>) pipeline.get("stages"))
-      .filter(stage -> "deploy".equals(stage.get("type")))
-      .flatMapIterable(stage -> (List<Map<String, Object>>) stage.get("clusters"))
-      .all(cluster -> "test".equals(cluster.get("account")))
       .toBlocking()
       .first();
   }
