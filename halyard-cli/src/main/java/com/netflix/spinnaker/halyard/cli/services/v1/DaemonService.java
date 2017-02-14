@@ -33,87 +33,87 @@ import retrofit.http.Query;
 
 public interface DaemonService {
   @GET("/v1/tasks/{uuid}/")
-  <T> DaemonTask<T> getTask(@Path("uuid") String uuid);
+  <C, T> DaemonTask<C, T> getTask(@Path("uuid") String uuid);
 
   @GET("/v1/config/")
-  DaemonResponse<Halconfig> getHalconfig();
+  DaemonTask<Halconfig, Halconfig> getHalconfig();
 
   @GET("/v1/config/currentDeployment/")
-  DaemonResponse<String> getCurrentDeployment();
+  DaemonTask<Halconfig, String> getCurrentDeployment();
 
   @GET("/v1/config/deployments/")
-  DaemonResponse<List<DeploymentConfiguration>> getDeployments();
+  DaemonTask<Halconfig, List<DeploymentConfiguration>> getDeployments();
 
   @GET("/v1/config/deployments/{deploymentName}/")
-  DaemonResponse<DeploymentConfiguration> getDeployment(
+  DaemonTask<Halconfig, DeploymentConfiguration> getDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
   @POST("/v1/config/deployments/{deploymentName}/generate/")
-  DaemonTask<Void> generateDeployment(
+  DaemonTask<Halconfig, Void> generateDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body String _ignore);
 
   @POST("/v1/config/deployments/{deploymentName}/deploy/")
-  DaemonTask<Void> deployDeployment(
+  DaemonTask<Halconfig, Void> deployDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body String _ignore);
 
   @GET("/v1/config/deployments/{deploymentName}/features/")
-  DaemonResponse<Features> getFeatures(
+  DaemonTask<Halconfig, Features> getFeatures(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
 
   @PUT("/v1/config/deployments/{deploymentName}/features/")
-  DaemonResponse<Void> setFeatures(
+  DaemonTask<Halconfig, Void> setFeatures(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body Features features);
 
   @GET("/v1/config/deployments/{deploymentName}/persistentStorage/")
-  DaemonResponse<PersistentStorage> getPersistentStorage(
+  DaemonTask<Halconfig, PersistentStorage> getPersistentStorage(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
 
   @PUT("/v1/config/deployments/{deploymentName}/persistentStorage/")
-  DaemonResponse<Void> setPersistentStorage(
+  DaemonTask<Halconfig, Void> setPersistentStorage(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body PersistentStorage persistentStorage);
 
   @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/")
-  DaemonResponse<Object> getProvider(
+  DaemonTask<Halconfig, Object> getProvider(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/enabled/")
-  DaemonResponse<Void> setProviderEnabled(
+  DaemonTask<Halconfig, Void> setProviderEnabled(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Query("validate") boolean validate,
       @Body boolean enabled);
 
   @POST("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/")
-  DaemonResponse<Void> addAccount(
+  DaemonTask<Halconfig, Void> addAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Query("validate") boolean validate,
       @Body Account account);
 
   @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/{accountName}/")
-  DaemonResponse<Object> getAccount(
+  DaemonTask<Halconfig, Object> getAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/{accountName}/")
-  DaemonResponse<Void> setAccount(
+  DaemonTask<Halconfig, Void> setAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
@@ -121,12 +121,12 @@ public interface DaemonService {
       @Body Account account);
 
   @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/{accountName}/")
-  DaemonResponse<Object> deleteAccount(
+  DaemonTask<Halconfig, Object> deleteAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
 
   @GET("/v1/versions/")
-  DaemonResponse<Versions> getVersions();
+  DaemonTask<Halconfig, Versions> getVersions();
 }

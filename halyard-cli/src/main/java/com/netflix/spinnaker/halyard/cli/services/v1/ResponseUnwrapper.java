@@ -32,14 +32,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class ResponseUnwrapper<T> {
-  private static final Long WAIT_MILLIS = 500L;
+  private static final Long WAIT_MILLIS = 200L;
 
   public static <T> T get(DaemonResponse<T> response) {
     formatProblemSet(response.getProblemSet());
     return response.getResponseBody();
   }
 
-  public static <T> T get(DaemonTask<T> task) {
+  public static <C, T> T get(DaemonTask<C, T> task) {
     PrintCoordinates coords = new PrintCoordinates();
     while (task.getState() != DaemonTask.State.SUCCESS) {
       coords = formatStages(task.getStages(), coords);

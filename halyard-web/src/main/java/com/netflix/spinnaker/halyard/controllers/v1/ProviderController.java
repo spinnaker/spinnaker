@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.services.v1.ProviderService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
@@ -24,6 +25,8 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +43,7 @@ public class ProviderController {
   ProviderService providerService;
 
   @RequestMapping(value = "/{providerName:.+}", method = RequestMethod.GET)
-  DaemonResponse<Provider> provider(
+  DaemonTask<Halconfig, Provider> provider(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
@@ -53,11 +56,11 @@ public class ProviderController {
       builder.setValidateResponse(() -> providerService.validateProvider(deploymentName, providerName, severity));
     }
 
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 
   @RequestMapping(value = "/{providerName:.+}/enabled", method = RequestMethod.PUT)
-  DaemonResponse<Void> setEnabled(
+  DaemonTask<Halconfig, Void> setEnabled(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
@@ -76,11 +79,11 @@ public class ProviderController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonResponse<List<Provider>> providers(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, List<Provider>> providers(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<List<Provider>> builder = new StaticRequestBuilder<>();
@@ -91,6 +94,6 @@ public class ProviderController {
       builder.setValidateResponse(() -> providerService.validateAllProviders(deploymentName, severity));
     }
 
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 }

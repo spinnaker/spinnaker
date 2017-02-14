@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
@@ -26,6 +27,9 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +49,7 @@ public class AccountController {
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonResponse<List<Account>> accounts(@PathVariable String deploymentName, @PathVariable String providerName,
+  DaemonTask<Halconfig, List<Account>> accounts(@PathVariable String deploymentName, @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<List<Account>> builder = new StaticRequestBuilder<>();
@@ -55,11 +59,11 @@ public class AccountController {
       builder.setValidateResponse(() -> accountService.validateAllAccounts(deploymentName, providerName, severity));
     }
 
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 
   @RequestMapping(value = "/{accountName:.+}", method = RequestMethod.GET)
-  DaemonResponse<Account> account(
+  DaemonTask<Halconfig, Account> account(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
@@ -72,11 +76,11 @@ public class AccountController {
       builder.setValidateResponse(() -> accountService.validateAccount(deploymentName, providerName, accountName, severity));
     }
 
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 
   @RequestMapping(value = "/{accountName:.+}", method = RequestMethod.DELETE)
-  DaemonResponse<Void> deleteAccount(
+  DaemonTask<Halconfig, Void> deleteAccount(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
@@ -95,11 +99,11 @@ public class AccountController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 
   @RequestMapping(value = "/{accountName:.+}", method = RequestMethod.PUT)
-  DaemonResponse<Void> setAccount(
+  DaemonTask<Halconfig, Void> setAccount(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @PathVariable String accountName,
@@ -124,11 +128,11 @@ public class AccountController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
-  DaemonResponse<Void> addAccount(
+  DaemonTask<Halconfig, Void> addAccount(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
@@ -152,6 +156,6 @@ public class AccountController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 }

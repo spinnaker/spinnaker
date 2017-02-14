@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.error.v1.ParseConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -54,8 +55,6 @@ public class HalconfigParser {
   @Autowired
   Yaml yamlParser;
 
-  static Halconfig halconfig;
-
   /**
    * Parse Halyard's config.
    *
@@ -80,18 +79,15 @@ public class HalconfigParser {
    * Returns the current halconfig stored at the halconfigPath.
    *
    * @see Halconfig
-   * @param reload if we should check the disk for the halconfig.
    * @return the fully parsed halconfig.
    */
-  public Halconfig getHalconfig(boolean reload) {
-    Halconfig res = null;
+  public Halconfig getHalconfig() {
+    Halconfig local = (Halconfig) DaemonTaskHandler.getContext();
 
-    if (!reload && halconfig != null) {
-      res = halconfig;
-    } else {
+    if (local == null) {
       try {
         InputStream is = getHalconfigStream();
-        res = parseHalconfig(is);
+        local = parseHalconfig(is);
       } catch (FileNotFoundException ignored) {
         // leave res as `null`
       } catch (ParserException e) {
@@ -103,12 +99,13 @@ public class HalconfigParser {
       }
     }
 
-    halconfig = transformHalconfig(res);
+    local = transformHalconfig(local);
+    DaemonTaskHandler.setContext(local);
 
-    return halconfig;
+    return local;
   }
 
-  Halconfig transformHalconfig(Halconfig input) {
+  private Halconfig transformHalconfig(Halconfig input) {
     if (input == null) {
       log.info("No halconfig found - generating a new one...");
       input = new Halconfig();
@@ -124,14 +121,15 @@ public class HalconfigParser {
    * Undoes changes to the staged in-memory halconfig.
    */
   public void undoChanges() {
-    halconfig = null;
+    DaemonTaskHandler.setContext(null);
   }
 
   /**
    * Write your halconfig object to the halconfigPath.
    */
   public void saveConfig() {
-    if (halconfig == null) {
+    Halconfig local = (Halconfig) DaemonTaskHandler.getContext();
+    if (local == null) {
       throw new HalException(
           new ConfigProblemBuilder(Severity.WARNING,
               "No halconfig changes have been made, nothing to write")
@@ -142,7 +140,7 @@ public class HalconfigParser {
     AtomicFileWriter writer = null;
     try {
       writer = new AtomicFileWriter(halconfigPath);
-      writer.write(yamlParser.dump(objectMapper.convertValue(halconfig, Map.class)));
+      writer.write(yamlParser.dump(objectMapper.convertValue(local, Map.class)));
       writer.commit();
     } catch (IOException e) {
       throw new HalException(
@@ -150,7 +148,7 @@ public class HalconfigParser {
               "Failure writing your halconfig to path \"" + halconfigPath + "\"").build()
       );
     } finally {
-      halconfig = null;
+      DaemonTaskHandler.setContext(null);
       if (writer != null) {
         writer.close();
       }

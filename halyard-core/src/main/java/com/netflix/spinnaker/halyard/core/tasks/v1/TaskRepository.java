@@ -18,10 +18,10 @@ import java.util.function.Supplier;
 public class TaskRepository {
   static final Map<String, DaemonTaskStatus> tasks = new ConcurrentHashMap<>();
 
-  static public <T> DaemonTask<T> submitTask(Supplier<DaemonResponse<T>> runner) {
+  static public <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> runner) {
     String uuid = UUID.randomUUID().toString();
     log.info("Scheduling task " + uuid);
-    DaemonTask<T> task = new DaemonTask<T>().setUuid(uuid);
+    DaemonTask<C, T> task = new DaemonTask<C, T>().setUuid(uuid);
     Runnable r = () -> {
       log.info("Starting task " + uuid);
       DaemonTaskHandler.setTask(task);
@@ -45,13 +45,13 @@ public class TaskRepository {
     return task;
   }
 
-  static public <T> DaemonTask<T> getTask(String uuid) {
+  static public <C, T> DaemonTask<C, T> getTask(String uuid) {
     DaemonTaskStatus status = tasks.get(uuid);
 
     if (status == null) {
       return null;
     }
-    DaemonTask<T> task = status.getTask();
+    DaemonTask<C, T> task = status.getTask();
     Exception fatalError = null;
     switch (task.getState()) {
       case NOT_STARTED:

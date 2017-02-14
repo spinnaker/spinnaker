@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.halyard.core.tasks.v1;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import lombok.Data;
 
@@ -11,12 +12,13 @@ import java.util.List;
  * It is made up of multiple stages, each of which have multiple events.
  */
 @Data
-public class DaemonTask<T> {
+public class DaemonTask<C, T> {
   List<DaemonStage> stages = new ArrayList<>();
   String uuid;
   State state = State.NOT_STARTED;
   DaemonResponse<T> response;
   Exception fatalError;
+  @JsonIgnore C context;
 
   void finishStage() {
     DaemonStage lastStage = getLastStage();

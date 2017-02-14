@@ -35,7 +35,7 @@ class HalconfigParserMocker extends Specification {
     Halconfig halconfig = parserStub.parseHalconfig(stream)
     halconfig = parserStub.transformHalconfig(halconfig)
     HalconfigParser parser = Mock(HalconfigParser)
-    parser.getHalconfig(_) >> halconfig
+    parser.getHalconfig() >> halconfig
     return parser
   }
 }

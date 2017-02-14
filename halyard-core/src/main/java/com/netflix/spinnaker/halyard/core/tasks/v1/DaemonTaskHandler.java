@@ -14,6 +14,14 @@ public class DaemonTaskHandler {
     return localTask.get();
   }
 
+  public static Object getContext() {
+    return localTask.get().getContext();
+  }
+
+  public static void setContext(Object context) {
+    localTask.get().setContext(context);
+  }
+
   public static void newStage(String name) {
     if (getTask() != null) {
       getTask().newStage(name);

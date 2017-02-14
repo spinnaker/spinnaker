@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
@@ -73,7 +74,7 @@ public class DeploymentController {
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/generate/", method = RequestMethod.POST)
-  DaemonTask<Void> generateConfig(@PathVariable String deploymentName) {
+  DaemonTask<Halconfig, Void> generateConfig(@PathVariable String deploymentName) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> {
@@ -85,7 +86,7 @@ public class DeploymentController {
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
-  DaemonTask<Void> deploy(@PathVariable String deploymentName) {
+  DaemonTask<Halconfig, Void> deploy(@PathVariable String deploymentName) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> {

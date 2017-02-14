@@ -30,19 +30,21 @@ public class Daemon {
   }
 
   public static Features getFeatures(String deploymentName, boolean validate) {
-    return ResponseUnwrapper.get(service.getFeatures(deploymentName, validate));
+    Object rawFeatures = ResponseUnwrapper.get(getService().getFeatures(deploymentName, validate));
+    return getObjectMapper().convertValue(rawFeatures, Features.class);
   }
 
   public static void setFeatures(String deploymentName, boolean validate, Features features) {
-    ResponseUnwrapper.get(service.setFeatures(deploymentName, validate, features));
+    ResponseUnwrapper.get(getService().setFeatures(deploymentName, validate, features));
   }
 
   public static PersistentStorage getPersistentStorage(String deploymentName, boolean validate) {
-    return ResponseUnwrapper.get(service.getPersistentStorage(deploymentName, validate));
+    Object rawStorage = ResponseUnwrapper.get(getService().getPersistentStorage(deploymentName, validate));
+    return getObjectMapper().convertValue(rawStorage, PersistentStorage.class);
   }
 
   public static void setPersistentStorage(String deploymentName, boolean validate, PersistentStorage persistentStorage) {
-    ResponseUnwrapper.get(service.setPersistentStorage(deploymentName, validate, persistentStorage));
+    ResponseUnwrapper.get(getService().setPersistentStorage(deploymentName, validate, persistentStorage));
   }
 
   public static Account getAccount(String deploymentName, String providerName, String accountName, boolean validate) {
@@ -79,12 +81,13 @@ public class Daemon {
     ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, ""));
   }
 
-  public static <T> DaemonTask<T> getTask(String uuid) {
+  public static <C, T> DaemonTask<C, T> getTask(String uuid) {
     return getService().getTask(uuid);
   }
 
   public static Versions getVersions() {
-    return ResponseUnwrapper.get(getService().getVersions());
+    Object rawVersions = ResponseUnwrapper.get(getService().getVersions());
+    return getObjectMapper().convertValue(rawVersions, Versions.class);
   }
 
   private static DaemonService getService() {

@@ -33,7 +33,7 @@ public class ConfigService {
   private HalconfigParser halconfigParser;
 
   public Halconfig getConfig() {
-    return halconfigParser.getHalconfig(true);
+    return halconfigParser.getHalconfig();
   }
 
   public String getCurrentDeployment() {

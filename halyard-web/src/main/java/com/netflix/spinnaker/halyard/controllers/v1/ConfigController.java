@@ -20,6 +20,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.ConfigService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -35,16 +37,16 @@ public class ConfigController {
   ConfigService configService;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonResponse<Halconfig> config() {
+  DaemonTask<Halconfig, Halconfig> config() {
     StaticRequestBuilder<Halconfig> builder = new StaticRequestBuilder<>();
     builder.setBuildResponse(() -> configService.getConfig());
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 
   @RequestMapping(value = "/currentDeployment", method = RequestMethod.GET)
-  DaemonResponse<String> currentDeployment() {
+  DaemonTask<Halconfig, String> currentDeployment() {
     StaticRequestBuilder<String> builder = new StaticRequestBuilder<>();
     builder.setBuildResponse(() -> configService.getCurrentDeployment());
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 }

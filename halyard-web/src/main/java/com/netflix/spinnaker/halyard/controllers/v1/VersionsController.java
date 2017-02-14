@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import com.netflix.spinnaker.halyard.deploy.services.v1.VersionsService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +34,9 @@ public class VersionsController {
   VersionsService versionsService;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonResponse<Versions> config() {
+  DaemonTask<Halconfig, Versions> config() {
     DaemonResponse.StaticRequestBuilder<Versions> builder = new DaemonResponse.StaticRequestBuilder<>();
     builder.setBuildResponse(() -> versionsService.getVersions());
-    return builder.build();
+    return TaskRepository.submitTask(builder::build);
   }
 }

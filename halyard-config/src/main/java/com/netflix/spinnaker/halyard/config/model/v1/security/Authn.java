@@ -40,4 +40,6 @@ public class Authn extends Node {
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeEmptyIterator();
   }
+
+  private boolean enabled;
 }
