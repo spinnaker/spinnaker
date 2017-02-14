@@ -23,20 +23,20 @@ import retrofit.http.Path
 import retrofit.http.Query
 import retrofit.http.QueryMap
 
-public interface OortService {
-  @GET("/applications/{app}/clusters/{account}/{cluster}/{type}")
+interface OortService {
+  @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}")
   Response getCluster(@Path("app") String app,
                       @Path("account") String account,
                       @Path("cluster") String cluster,
-                      @Path("type") String type)
+                      @Path("cloudProvider") String cloudProvider)
 
-  @GET("/applications/{app}/clusters/{account}/{cluster}/{type}/serverGroups/{serverGroup}")
+  @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/serverGroups/{serverGroup}")
   Response getServerGroup(@Path("app") String app,
                           @Path("account") String account,
                           @Path("cluster") String cluster,
                           @Path("serverGroup") String serverGroup,
                           @Query("region") String region,
-                          @Path("type") String type)
+                          @Path("cloudProvider") String cloudProvider)
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{scope}/serverGroups/target/{target}")
   Response getTargetServerGroup(@Path("app") String app,
@@ -59,7 +59,7 @@ public interface OortService {
   @GET("/search")
   Response getSearchResults(@Query("q") String searchTerm,
                             @Query("type") String type,
-                            @Query("platform") String platform)
+                            @Query("cloudProvider") String cloudProvider)
 
   @GET("/applications/{app}")
   Response getApplication(@Path("app") String app)
@@ -81,10 +81,17 @@ public interface OortService {
                        @Path("region") String region,
                        @Path("imageId") imageId)
 
-  @GET("/{type}/images/find")
-  List<Map> findImage(@Path("type") String type,
+  @GET("/{cloudProvider}/images/find")
+  List<Map> findImage(@Path("cloudProvider") String cloudProvider,
                       @Query("q") String query,
                       @Query("account") String account,
                       @Query("region") String region,
                       @QueryMap Map additionalFilters)
+
+  @GET("/tags")
+  List<Map> getEntityTags(@Query("cloudProvider") String cloudProvider,
+                          @Query("entityType") String entityType,
+                          @Query("entityId") String entityId,
+                          @Query("account") String account,
+                          @Query("region") String region)
 }

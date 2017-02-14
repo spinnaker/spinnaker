@@ -51,6 +51,27 @@ class TargetServerGroup {
     return Support.locationFromServerGroup(serverGroup, exactLocationType)
   }
 
+  /**
+   * Used in TrafficGuard, which is Java, which doesn't play nice with @Delegate
+   */
+  String getName() {
+    return serverGroup.name
+  }
+
+  /**
+   * Used in TrafficGuard, which is Java, which doesn't play nice with @Delegate
+   */
+  Boolean isDisabled() {
+    return serverGroup.isDisabled
+  }
+
+  /**
+   * Used in TrafficGuard, which is Java, which doesn't play nice with @Delegate
+   */
+  List<Map> getInstances() {
+    return (serverGroup.instances ?: []) as List<Map>
+  }
+
   Map toClouddriverOperationPayload(String account) {
     //TODO(cfieber) - add an endpoint on Clouddriver to do provider appropriate conversion of a TargetServerGroup
     def op = [
