@@ -25,6 +25,6 @@ import lombok.Data;
 public class DeploymentDetails {
   String deploymentName;
   DeploymentEnvironment deploymentEnvironment;
-  SpinnakerEndpoints endpoints = new SpinnakerEndpoints();
+  SpinnakerEndpoints endpoints;
   GenerateResult generateResult;
 }

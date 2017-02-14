@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,22 +42,36 @@ public class DeploymentConfiguration extends Node {
   String version = "latest";
 
   /**
-   * Providers, e.g. Kubernetes, GCE, AWS, ...
+   * Providers, e.g. Kubernetes, GCE, AWS, etc...
    */
   Providers providers = new Providers();
 
+  /**
+   * Details about how Spinnaker is deployed, e.g. which account is it running in, what's the footprint, etc...
+   */
   DeploymentEnvironment deploymentEnvironment = new DeploymentEnvironment();
 
+  /**
+   * GCS/S3 configuration for front50.
+   */
   PersistentStorage persistentStorage = new PersistentStorage();
 
+  /**
+   * Spinnaker feature flags.
+   */
   Features features = new Features();
 
   String timezone = "America/Los_Angeles";
 
   /**
-   * Webhooks, e.g. Jenkins, TravisCI, ...
+   * Webhooks, e.g. Jenkins, TravisCI, etc...
    */
   Webhooks webhooks = new Webhooks();
+
+  /**
+   * Authn & Authz configuration.
+   */
+  Security security = new Security();
 
   @Override
   public String getNodeName() {

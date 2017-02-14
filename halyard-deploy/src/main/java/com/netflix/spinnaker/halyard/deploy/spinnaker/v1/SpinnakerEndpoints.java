@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import static com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact.*;
 
@@ -25,18 +27,37 @@ import static com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifac
 public class SpinnakerEndpoints {
   Services services = new Services();
 
+  public SpinnakerEndpoints(Security security) {
+    services.clouddriver = new Service(security).setPort(7002).setArtifact(CLOUDDRIVER);
+    services.deck = (PublicService) new PublicService(security)
+        .setPublicAddress(security.getApiAddress())
+        .setPort(9000)
+        .setArtifact(DECK);
+    services.echo = new Service(security).setPort(8089).setArtifact(ECHO);
+    services.fiat = new Service(security).setPort(7003).setArtifact(FIAT);
+    services.front50 = new Service(security).setPort(8080).setArtifact(FRONT50);
+    services.gate = (PublicService) new PublicService(security)
+        .setPublicAddress(security.getApiAddress())
+        .setPort(8084)
+        .setArtifact(GATE);
+    services.igor = new Service(security).setPort(8088).setArtifact(IGOR);
+    services.orca = new Service(security).setPort(8083).setArtifact(ORCA);
+    services.rosco = new Service(security).setPort(8087).setArtifact(ROSCO);
+    services.redis = new Service(security).setPort(6379).setArtifact(REDIS).setProtocol("redis");
+  }
+
   @Data
   public class Services {
-    Service clouddriver = new Service().setPort(7002).setArtifact(CLOUDDRIVER);
-    Service deck = new Service().setPort(9000).setArtifact(DECK);
-    Service echo = new Service().setPort(8089).setArtifact(ECHO);
-    Service fiat = new Service().setPort(7003).setArtifact(FIAT);
-    Service front50 = new Service().setPort(8080).setArtifact(FRONT50);
-    Service gate = new Service().setPort(8084).setArtifact(GATE);
-    Service igor = new Service().setPort(8088).setArtifact(IGOR);
-    Service orca = new Service().setPort(8083).setArtifact(ORCA);
-    Service rosco = new Service().setPort(8087).setArtifact(ROSCO);
-    Service redis = new Service().setPort(6379).setArtifact(REDIS).setProtocol("redis");
+    Service clouddriver;
+    PublicService deck;
+    Service echo;
+    Service fiat;
+    Service front50;
+    PublicService gate;
+    Service igor;
+    Service orca;
+    Service rosco;
+    Service redis;
   }
 
   @Data
@@ -53,6 +74,30 @@ public class SpinnakerEndpoints {
 
     public String getBaseUrl() {
       return protocol + "://" + address + ":" + port;
+    }
+
+    Service(Security security) {
+      if (security.getSsl().isEnabled()) {
+        protocol = "https";
+      }
+    }
+  }
+
+  /**
+   * Like a Service, but this has a publicly accessible endpoint (that is likely different from the one
+   * assigned within the Spinnaker cluster).
+   */
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public class PublicService extends Service {
+    String publicAddress;
+
+    public String getPublicEndpoint() {
+      return protocol + "://" + publicAddress + ":" + port;
+    }
+
+    PublicService(Security security) {
+      super(security);
     }
   }
 }

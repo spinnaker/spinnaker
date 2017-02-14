@@ -37,7 +37,7 @@ public class EndpointFactory {
     DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
     switch (type) {
       case LocalhostDebian:
-        return new SpinnakerEndpoints();
+        return new SpinnakerEndpoints(deploymentConfiguration.getSecurity());
       case Flotilla:
         return createFlotillaEndpoints(deploymentConfiguration);
       default:
@@ -48,6 +48,7 @@ public class EndpointFactory {
   private SpinnakerEndpoints createFlotillaEndpoints(DeploymentConfiguration deploymentConfiguration) {
     DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
     String accountName = deploymentEnvironment.getAccountName();
+    SpinnakerEndpoints endpoints = new SpinnakerEndpoints(deploymentConfiguration.getSecurity());
 
     if (accountName == null || accountName.isEmpty()) {
       throw new HalException(new ConfigProblemBuilder(Problem.Severity.FATAL, "An account name must be "
@@ -59,7 +60,6 @@ public class EndpointFactory {
 
     switch (providerType) {
       case KUBERNETES:
-        SpinnakerEndpoints endpoints = new SpinnakerEndpoints();
         SpinnakerEndpoints.Services services = endpoints.getServices();
 
         services.getClouddriver().setAddress("spin-clouddriver.spinnaker").setHost("0.0.0.0");

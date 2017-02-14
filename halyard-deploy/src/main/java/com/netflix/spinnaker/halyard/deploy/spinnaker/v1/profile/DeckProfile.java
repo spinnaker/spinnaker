@@ -59,7 +59,7 @@ public class DeckProfile extends SpinnakerProfile {
 
     Map<String, String> bindings = new HashMap<>();
     // Configure global settings
-    bindings.put("gate.baseUrl", endpoints.getServices().getGate().getBaseUrl());
+    bindings.put("gate.baseUrl", endpoints.getServices().getGate().getPublicEndpoint());
     bindings.put("timezone", deploymentConfiguration.getTimezone());
 
     // Configure feature-flags

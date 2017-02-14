@@ -56,7 +56,7 @@ public class LocalhostDebianDeployment extends Deployment {
 
   @Override
   public SpinnakerEndpoints getEndpoints() {
-    return new SpinnakerEndpoints();
+    return deploymentDetails.getEndpoints();
   }
 
   @Override
