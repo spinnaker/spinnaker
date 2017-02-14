@@ -1,1 +1,1 @@
-kubectl delete rc,svc -l stack=redis --namespace=spinnaker
+kubectl delete rs,rc,svc -l stack=redis --namespace=spinnaker
