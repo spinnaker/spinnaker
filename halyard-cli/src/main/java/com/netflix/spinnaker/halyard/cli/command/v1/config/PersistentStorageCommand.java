@@ -19,25 +19,29 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters()
-public class GetFeaturesCommand extends AbstractConfigCommand {
+public class PersistentStorageCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "get-features";
+  private String commandName = "storage";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Display the state of Spinnaker's feature flags.";
+  private String description = "Show Spinnaker's persistent storage options.";
+
+  public PersistentStorageCommand() {
+    registerSubcommand(new EditPersistentStorageCommand());
+  }
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    Features features = Daemon.getFeatures(currentDeployment, !noValidate);
+    PersistentStorage persistentStorage = Daemon.getPersistentStorage(currentDeployment, !noValidate);
 
-    AnsiUi.success("Features: ");
-    AnsiUi.raw(features.toString());
+    AnsiUi.success("Configure storage options:");
+    AnsiUi.raw(persistentStorage.toString());
   }
 }

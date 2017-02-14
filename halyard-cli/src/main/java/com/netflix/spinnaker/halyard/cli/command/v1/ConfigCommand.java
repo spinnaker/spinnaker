@@ -36,12 +36,11 @@ public class ConfigCommand extends NestableCommand {
   private String description = "Configure, validate, and view your halconfig";
 
   ConfigCommand() {
-    registerSubcommand(new ProviderCommand());
+    registerSubcommand(new DeploymentEnvironmentCommand());
+    registerSubcommand(new FeaturesCommand());
     registerSubcommand(new GenerateCommand());
-    registerSubcommand(new EditFeaturesCommand());
-    registerSubcommand(new GetFeaturesCommand());
-    registerSubcommand(new EditPersistentStorageCommand());
-    registerSubcommand(new GetPersistentStorageCommand());
+    registerSubcommand(new PersistentStorageCommand());
+    registerSubcommand(new ProviderCommand());
   }
 
   @Override

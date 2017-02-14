@@ -27,7 +27,7 @@ import lombok.Getter;
 @Parameters()
 public class EditFeaturesCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "edit-features";
+  private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
   private String description = "Enable and disable Spinnaker feature flags.";

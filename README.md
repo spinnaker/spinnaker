@@ -78,50 +78,66 @@ To delete an account, run:
 $ hal config provider PROVIDER delete-account ACCOUNT-NAME
 ```
 
-#### hal config edit-features
+#### hal config deploy
 
-To enable either the experimental or non-standard features of Spinnaker, use
-the command:
-
-```
-$ hal config edit-features [--feature true/false]
-```
-
-If you're unsure of what features are available, check:
+To show how your deployment of Spinnaker has been configured, run:
 
 ```
-$ hal config edit-features --help
+$ hal config deploy
 ```
 
-#### hal config get-features
-
-To display the state of the feature flags, run:
+The default is to download & run packages locally. To change this, run:
 
 ```
-$ hal config get-features
-```
-
-#### hal config edit-storage
-
-Spinnaker needs persistant storage configured in the form of an S3 or GCS
-bucket. To configure this, run:
-
-```
-$ hal config edit-storage [--flags]
+$ hal config deploy edit [--flags]
 ```
 
 If you're unsure of what needs to be set, run:
 
 ```
-$ hal config edit-storage --help
+$ hal config deploy edit --help
 ```
 
-#### hal config get-storage
+#### hal config features
+
+To display the state of the feature flags, run:
+
+```
+$ hal config features
+```
+
+To enable either the experimental or non-standard features of Spinnaker, use
+the command:
+
+```
+$ hal config features edit [--feature true/false]
+```
+
+If you're unsure of what features are available, check:
+
+```
+$ hal config features edit --help
+```
+
+#### hal config storage
 
 To show how your storage has been configured, run:
 
 ```
-$ hal config get-storage
+$ hal config storage
+```
+
+Spinnaker needs persistant storage configured in the form of an S3 or GCS
+bucket. To configure this, run:
+
+```
+$ hal config storage edit [--flags]
+```
+
+If you're unsure of what needs to be set, run:
+
+```
+$ hal config storage edit --help
 ```
 
 #### hal config generate

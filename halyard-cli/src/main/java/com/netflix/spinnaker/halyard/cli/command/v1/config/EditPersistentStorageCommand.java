@@ -29,7 +29,7 @@ import java.util.UUID;
 @Parameters()
 public class EditPersistentStorageCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "edit-storage";
+  private String commandName = "edit";
 
   @Getter(AccessLevel.PUBLIC)
   private String description = "Configure Spinnaker's persistent storage options.";

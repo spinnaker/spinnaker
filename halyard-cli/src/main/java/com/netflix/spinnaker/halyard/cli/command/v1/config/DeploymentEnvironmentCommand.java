@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config;
@@ -19,25 +20,29 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters()
-public class GetPersistentStorageCommand extends AbstractConfigCommand {
+public class DeploymentEnvironmentCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "get-storage";
+  private String commandName = "deploy";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Show Spinnaker's persistent storage options.";
+  private String description = "Display the configured Spinnaker deployment.";
+
+  public DeploymentEnvironmentCommand() {
+    registerSubcommand(new EditDeploymentEnvironmentCommand());
+  }
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    PersistentStorage persistentStorage = Daemon.getPersistentStorage(currentDeployment, !noValidate);
+    DeploymentEnvironment deploymentEnvironment = Daemon.getDeploymentEnvironment(currentDeployment, !noValidate);
 
-    AnsiUi.success("Persistent Storage:");
-    AnsiUi.raw(persistentStorage.toString());
+    AnsiUi.success("Configured deployment:");
+    AnsiUi.raw(deploymentEnvironment.toString());
   }
 }

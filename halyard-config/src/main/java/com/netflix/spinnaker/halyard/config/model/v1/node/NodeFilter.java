@@ -91,6 +91,11 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter setDeploymentEnvironment() {
+    matchers.add(Node.thisNodeAcceptor(DeploymentEnvironment.class));
+    return this;
+  }
+
   public NodeFilter setPersistentStorage() {
     matchers.add(Node.thisNodeAcceptor(PersistentStorage.class));
     return this;

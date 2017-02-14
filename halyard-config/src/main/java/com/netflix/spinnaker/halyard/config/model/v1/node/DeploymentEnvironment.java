@@ -21,6 +21,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 /**
  * A DeploymentEnvironment is a location where Spinnaker is installed.
  */
@@ -55,7 +57,19 @@ public class DeploymentEnvironment extends Node {
     DeploymentType(String description) {
       this.description = description;
     }
+
+    public static DeploymentType fromString(String name) {
+      for (DeploymentType type : DeploymentType.values()) {
+        if (type.toString().equalsIgnoreCase(name)) {
+          return type;
+        }
+      }
+
+      throw new IllegalArgumentException("DeploymentType \"" + name + "\" is not a valid choice. The options are: "
+          + Arrays.toString(DeploymentType.values()));
+    }
   }
+
 
   private DeploymentType type = DeploymentType.LocalhostDebian;
   private String accountName;

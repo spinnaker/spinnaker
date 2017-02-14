@@ -29,6 +29,15 @@ public class Daemon {
     return ResponseUnwrapper.get(getService().getCurrentDeployment());
   }
 
+  public static DeploymentEnvironment getDeploymentEnvironment(String deploymentName, boolean validate) {
+    Object rawDeploymentEnvironment = ResponseUnwrapper.get(getService().getDeploymentEnvironment(deploymentName, validate));
+    return getObjectMapper().convertValue(rawDeploymentEnvironment, DeploymentEnvironment.class);
+  }
+
+  public static void setDeploymentEnvironment(String deploymentName, boolean validate, DeploymentEnvironment deploymentEnvironment) {
+    ResponseUnwrapper.get(getService().setDeploymentEnvironment(deploymentName, validate, deploymentEnvironment));
+  }
+
   public static Features getFeatures(String deploymentName, boolean validate) {
     Object rawFeatures = ResponseUnwrapper.get(getService().getFeatures(deploymentName, validate));
     return getObjectMapper().convertValue(rawFeatures, Features.class);

@@ -14,29 +14,34 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1;
+package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.deploy.RunDeployCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters()
-public class DeployCommand extends NestableCommand {
+public class FeaturesCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "deploy";
+  private String commandName = "features";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Manage the deployment of Spinnaker. This includes where it's deployed,"
-      + " what the infrastructure footprint looks, what the currently running deployment looks like, etc...";
+  private String description = "Display the state of Spinnaker's feature flags.";
 
-  public DeployCommand() {
-    registerSubcommand(new RunDeployCommand());
+  public FeaturesCommand() {
+    registerSubcommand(new EditFeaturesCommand());
   }
 
   @Override
   protected void executeThis() {
-    showHelp();
+    String currentDeployment = getCurrentDeployment();
+
+    Features features = Daemon.getFeatures(currentDeployment, !noValidate);
+
+    AnsiUi.success("Configure feature flags: ");
+    AnsiUi.raw(features.toString());
   }
 }
