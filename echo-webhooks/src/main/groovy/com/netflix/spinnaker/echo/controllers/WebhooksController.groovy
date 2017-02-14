@@ -65,8 +65,7 @@ class WebhooksController {
         if (event.content.hash.toString().startsWith('000000000')) {
           sendEvent = false
         }
-      }
-      if (source == 'github') {
+      } else if (source == 'github') {
         if (event.content.hook_id) {
           log.info("Webook ping received from github hook_id=${event.content.hook_id} repository=${event.content.repository.full_name}")
           sendEvent = false
@@ -76,6 +75,25 @@ class WebhooksController {
           event.content.repoProject = postedEvent.repository.owner.name
           event.content.slug = postedEvent.repository.name
         }
+      } else if (source == 'bitbucket') {
+
+        if (headers.containsKey('X-Event-Key')) {
+          event.content.event_type = headers['X-Event-Key'][0]
+        }
+
+        if (event.content.event_type == "repo:push" && event.content.push) {
+          event.content.hash = postedEvent.push.changes?.first().commits?.first().hash
+          event.content.branch = postedEvent.push.changes?.first().new.name
+        } else if (event.content.event_type == "pullrequest:fulfilled" && event.content.pullrequest) {
+          event.content.hash = postedEvent.pullrequest.merge_commit?.hash
+          event.content.branch = postedEvent.pullrequest.destination?.branch?.name
+        }
+        event.content.repoProject = postedEvent.repository.owner.username
+        event.content.slug = postedEvent.repository.full_name.tokenize('/')[1]
+        if (event.content.hash.toString().startsWith('000000000')) {
+          sendEvent = false
+        }
+        log.info("Webhook event received from ${type} event_type=${event.content.event_type} hook_id=${event.content.hook_id} repository=${event.content.repository.full_name} request_id=${event.content.request_id} branch=${event.content.branch}")
       }
     }
 
