@@ -62,13 +62,14 @@ public class UpsertEntityTagsAtomicOperationConverter extends AbstractAtomicOper
 
   public UpsertEntityTagsDescription convertDescription(Map input) {
     UpsertEntityTagsDescription upsertEntityTagsDescription = objectMapper.convertValue(input, UpsertEntityTagsDescription.class);
-    upsertEntityTagsDescription.getTags().forEach(entityTag -> {
-      if (entityTag.getValueType() == null) {
-        boolean isObject = entityTag.getValue() instanceof Map || entityTag.getValue() instanceof Collection;
-        entityTag.setValueType(isObject ? EntityTags.EntityTagValueType.object : EntityTags.EntityTagValueType.literal);
-      }
-    });
-
+    upsertEntityTagsDescription.getTags().forEach(UpsertEntityTagsAtomicOperationConverter::setTagValueType);
     return upsertEntityTagsDescription;
+  }
+
+  static void setTagValueType(EntityTags.EntityTag entityTag) {
+    if (entityTag.getValueType() == null) {
+      boolean isObject = entityTag.getValue() instanceof Map || entityTag.getValue() instanceof Collection;
+      entityTag.setValueType(isObject ? EntityTags.EntityTagValueType.object : EntityTags.EntityTagValueType.literal);
+    }
   }
 }

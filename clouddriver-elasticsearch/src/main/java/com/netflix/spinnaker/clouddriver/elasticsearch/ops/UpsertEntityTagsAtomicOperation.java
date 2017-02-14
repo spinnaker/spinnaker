@@ -117,7 +117,7 @@ public class UpsertEntityTagsAtomicOperation implements AtomicOperation<Void> {
     return null;
   }
 
-  private static EntityRefIdBuilder.EntityRefId entityRefId(AccountCredentialsProvider accountCredentialsProvider,
+  public static EntityRefIdBuilder.EntityRefId entityRefId(AccountCredentialsProvider accountCredentialsProvider,
                                                             UpsertEntityTagsDescription description) {
     EntityTags.EntityRef entityRef = description.getEntityRef();
     String entityRefAccount = entityRef.getAccount();
