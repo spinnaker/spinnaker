@@ -23,7 +23,7 @@ global OPTIONS # argparse Namespace
 
 class SourceAnnotatorTest(unittest.TestCase):
 
-  PREV_VERSION = CommitTag('z refs/tag/version-1.0.0-0')
+  PREV_VERSION = CommitTag('z refs/tag/version-1.0.0')
 
   def test_patch_version(self):
     expect = VersionBump('version-1.0.1', patch=True)
@@ -68,7 +68,7 @@ class SourceAnnotatorTest(unittest.TestCase):
       'b\n\nfeat(stuff): I added a sweet new feature.',
       'z\n\nfix(stuff): I fixed some stuff.'
     ]
-    prev_version = CommitTag('z refs/tag/version-1.9.0-0')
+    prev_version = CommitTag('z refs/tag/version-1.9.0')
     result = annotator.bump_semver(prev_version, commit_hashes, commit_msgs)
     self.assertEqual(expect, result)
 
@@ -85,7 +85,7 @@ class SourceAnnotatorTest(unittest.TestCase):
       'b\n\nfeat(stuff): I added a sweet new feature.',
       'z\n\nfix(stuff): I fixed some stuff.'
     ]
-    prev_version = CommitTag('z refs/tag/version-1.9.4-0')
+    prev_version = CommitTag('z refs/tag/version-1.9.4')
     result = annotator.bump_semver(prev_version, commit_hashes, commit_msgs)
     self.assertEqual(expect, result)
 
@@ -118,7 +118,7 @@ class SourceAnnotatorTest(unittest.TestCase):
       'b\n\nfeat(stuff): I added a sweet new feature.\n\nBREAKING CHANGE: This breaks stuff really bad.',
       'z\n\nfix(stuff): I fixed some stuff.'
     ]
-    prev_version = CommitTag('z refs/tag/version-1.9.4-0')
+    prev_version = CommitTag('z refs/tag/version-1.9.4')
     result = annotator.bump_semver(prev_version, commit_hashes, commit_msgs)
     self.assertEqual(expect, result)
 
@@ -135,7 +135,7 @@ class SourceAnnotatorTest(unittest.TestCase):
       'b\n\nfeat(stuff): I added a sweet new feature.\n\nBREAKING CHANGE: This breaks stuff really bad.',
       'z\n\nfix(stuff): I fixed some stuff.'
     ]
-    prev_version = CommitTag('z refs/tag/version-1.9.0-0')
+    prev_version = CommitTag('z refs/tag/version-1.9.0')
     result = annotator.bump_semver(prev_version, commit_hashes, commit_msgs)
     self.assertEqual(expect, result)
 
