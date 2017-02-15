@@ -54,9 +54,10 @@ public class AccountController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<List<Account>> builder = new StaticRequestBuilder<>();
     builder.setBuildResponse(() -> accountService.getAllAccounts(deploymentName, providerName));
+    builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> accountService.validateAllAccounts(deploymentName, providerName, severity));
+      builder.setValidateResponse(() -> accountService.validateAllAccounts(deploymentName, providerName));
     }
 
     return TaskRepository.submitTask(builder::build);
@@ -71,9 +72,10 @@ public class AccountController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<Account> builder = new StaticRequestBuilder<>();
     builder.setBuildResponse(() -> accountService.getProviderAccount(deploymentName, providerName, accountName));
+    builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> accountService.validateAccount(deploymentName, providerName, accountName, severity));
+      builder.setValidateResponse(() -> accountService.validateAccount(deploymentName, providerName, accountName));
     }
 
     return TaskRepository.submitTask(builder::build);
@@ -89,10 +91,11 @@ public class AccountController {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> accountService.deleteAccount(deploymentName, providerName, accountName));
+    builder.setSeverity(severity);
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> accountService.validateAllAccounts(deploymentName, providerName, severity);
+      doValidate = () -> accountService.validateAllAccounts(deploymentName, providerName);
     }
 
     builder.setValidate(doValidate);
@@ -118,10 +121,11 @@ public class AccountController {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> accountService.setAccount(deploymentName, providerName, accountName, account));
+    builder.setSeverity(severity);
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> accountService.validateAccount(deploymentName, providerName, account.getName(), severity);
+      doValidate = () -> accountService.validateAccount(deploymentName, providerName, account.getName());
     }
 
     builder.setValidate(doValidate);
@@ -144,12 +148,13 @@ public class AccountController {
     );
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
+    builder.setSeverity(severity);
 
     builder.setUpdate(() -> accountService.addAccount(deploymentName, providerName, account));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> accountService.validateAccount(deploymentName, providerName, account.getName(), severity);
+      doValidate = () -> accountService.validateAccount(deploymentName, providerName, account.getName());
     }
 
     builder.setValidate(doValidate);

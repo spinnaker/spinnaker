@@ -67,7 +67,7 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    PersistentStorage persistentStorage = Daemon.getPersistentStorage(currentDeployment, !noValidate);
+    PersistentStorage persistentStorage = Daemon.getPersistentStorage(currentDeployment, false);
 
     persistentStorage.setAccountName(isSet(accountName) ? accountName : persistentStorage.getAccountName());
     persistentStorage.setBucket(isSet(bucket) ? bucket : persistentStorage.getBucket());

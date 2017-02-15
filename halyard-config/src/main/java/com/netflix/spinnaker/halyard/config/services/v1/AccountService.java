@@ -115,13 +115,13 @@ public class AccountService {
     provider.getAccounts().add(newAccount);
   }
 
-  public ProblemSet validateAccount(String deploymentName, String providerName, String accountName, Severity severity) {
+  public ProblemSet validateAccount(String deploymentName, String providerName, String accountName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).setAccount(accountName);
-    return validateService.validateMatchingFilter(filter, severity);
+    return validateService.validateMatchingFilter(filter);
   }
 
-  public ProblemSet validateAllAccounts(String deploymentName, String providerName, Severity severity) {
+  public ProblemSet validateAllAccounts(String deploymentName, String providerName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).withAnyAccount();
-    return validateService.validateMatchingFilter(filter, severity);
+    return validateService.validateMatchingFilter(filter);
   }
 }

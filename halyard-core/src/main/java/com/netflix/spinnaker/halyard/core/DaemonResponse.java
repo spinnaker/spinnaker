@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.core;
 
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.Data;
 import lombok.Getter;
@@ -48,6 +49,7 @@ public class DaemonResponse<T> {
   public static class StaticRequestBuilder<K> {
     private Supplier<K> buildResponse;
     private Supplier<ProblemSet> validateResponse;
+    private Severity severity = Severity.WARNING;
 
     public DaemonResponse<K> build() {
       if (buildResponse == null) {
@@ -57,11 +59,13 @@ public class DaemonResponse<T> {
       K responseBody;
       ProblemSet problemSet;
       try {
-        responseBody = buildResponse.get();
-        problemSet = new ProblemSet();
         if (validateResponse != null) {
           problemSet = validateResponse.get();
+        } else {
+          problemSet = new ProblemSet();
         }
+        problemSet.throwifSeverityExceeds(severity);
+        responseBody = buildResponse.get();
       } catch (HalException e) {
         // This is OK, propagate the exception to the HalconfigExceptionHandler
         throw e;
@@ -80,6 +84,7 @@ public class DaemonResponse<T> {
     private Runnable save;
     private Runnable update;
     private Supplier<ProblemSet> validate;
+    private Severity severity = Severity.WARNING;
 
     public DaemonResponse<Void> build() {
       ProblemSet result;
@@ -95,7 +100,9 @@ public class DaemonResponse<T> {
         throw e;
       }
 
+      result.throwifSeverityExceeds(severity);
       save.run();
+
       return new DaemonResponse<>(null, result);
     }
   }

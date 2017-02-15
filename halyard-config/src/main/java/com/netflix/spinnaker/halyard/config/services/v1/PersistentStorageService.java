@@ -59,11 +59,11 @@ public class PersistentStorageService {
     deploymentConfiguration.setPersistentStorage(newPersistentStorage);
   }
 
-  public ProblemSet validatePersistentStorage(String deploymentName, Problem.Severity severity) {
+  public ProblemSet validatePersistentStorage(String deploymentName) {
     NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
         .setPersistentStorage();
 
-    return validateService.validateMatchingFilter(filter, severity);
+    return validateService.validateMatchingFilter(filter);
   }
 }

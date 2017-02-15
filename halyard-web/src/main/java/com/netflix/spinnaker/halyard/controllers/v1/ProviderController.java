@@ -51,9 +51,10 @@ public class ProviderController {
     StaticRequestBuilder<Provider> builder = new StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> providerService.getProvider(deploymentName, providerName));
+    builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> providerService.validateProvider(deploymentName, providerName, severity));
+      builder.setValidateResponse(() -> providerService.validateProvider(deploymentName, providerName));
     }
 
     return TaskRepository.submitTask(builder::build);
@@ -69,10 +70,11 @@ public class ProviderController {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> providerService.setEnabled(deploymentName, providerName, enabled));
+    builder.setSeverity(severity);
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> providerService.validateProvider(deploymentName, providerName, severity);
+      doValidate = () -> providerService.validateProvider(deploymentName, providerName);
     }
 
     builder.setValidate(doValidate);
@@ -89,9 +91,10 @@ public class ProviderController {
     StaticRequestBuilder<List<Provider>> builder = new StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> providerService.getAllProviders(deploymentName));
+    builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> providerService.validateAllProviders(deploymentName, severity));
+      builder.setValidateResponse(() -> providerService.validateAllProviders(deploymentName));
     }
 
     return TaskRepository.submitTask(builder::build);

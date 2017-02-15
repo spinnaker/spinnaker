@@ -51,9 +51,10 @@ public class PersistentStorageController {
     DaemonResponse.StaticRequestBuilder<PersistentStorage> builder = new DaemonResponse.StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> persistentStorageService.getPersistentStorage(deploymentName));
+    builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> persistentStorageService.validatePersistentStorage(deploymentName, severity));
+      builder.setValidateResponse(() -> persistentStorageService.validatePersistentStorage(deploymentName));
     }
 
     return TaskRepository.submitTask(builder::build);
@@ -69,11 +70,12 @@ public class PersistentStorageController {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> persistentStorageService.setPersistentStorage(deploymentName, persistentStorage));
+    builder.setSeverity(severity);
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
 
     if (validate) {
-      doValidate = () -> persistentStorageService.validatePersistentStorage(deploymentName, severity);
+      doValidate = () -> persistentStorageService.validatePersistentStorage(deploymentName);
     }
 
     builder.setValidate(doValidate);

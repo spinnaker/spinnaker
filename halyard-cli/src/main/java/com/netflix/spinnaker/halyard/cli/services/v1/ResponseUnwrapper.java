@@ -91,6 +91,9 @@ public class ResponseUnwrapper<T> {
       return;
     }
 
+    AnsiSnippet snippet = new AnsiSnippet("").setErase(AnsiErase.ERASE_START_LINE);
+    AnsiPrinter.print(snippet.toString());
+
     Map<String, List<Problem>> locationGroup = problemSet.groupByLocation();
     for (Entry<String, List<Problem>> entry: locationGroup.entrySet()) {
 

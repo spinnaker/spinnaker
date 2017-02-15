@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -76,6 +77,7 @@ public class ValidatorCollection {
 
     try {
       Method m = validator.getClass().getMethod("validate", ConfigProblemSetBuilder.class, c);
+      DaemonTaskHandler.log("Validating " + node.getNodeName() + " with " + validator.getClass().getSimpleName());
       m.invoke(validator, psBuilder, node);
       result = 1;
     } catch (NoSuchMethodException e) {

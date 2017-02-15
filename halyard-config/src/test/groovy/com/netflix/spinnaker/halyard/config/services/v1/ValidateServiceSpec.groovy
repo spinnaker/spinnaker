@@ -73,7 +73,7 @@ deploymentConfigurations:
     validateService.validatorCollection.validators = [validator]
 
     when:
-    validateService.validateMatchingFilter(filter, Problem.Severity.NONE)
+    validateService.validateMatchingFilter(filter)
 
     then:
     validator.validatedAccounts.size() == 4

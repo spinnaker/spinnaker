@@ -48,7 +48,7 @@ public class ConfigProblemBuilder {
   public Problem build() {
     String location = "Global";
     if (node != null) {
-      node.getNameToRoot();
+      location = node.getNameToRoot();
     }
 
     return new Problem(message, remediation, options, severity, location);

@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.config.problem.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
@@ -30,9 +31,6 @@ import java.util.stream.Collectors;
 
 public class ConfigProblemSetBuilder {
   private List<ConfigProblemBuilder> builders = new ArrayList<>();
-
-  @Setter(AccessLevel.PUBLIC)
-  private Severity severity = Severity.NONE;
 
   @Setter(AccessLevel.PUBLIC)
   private Node node;
@@ -55,16 +53,23 @@ public class ConfigProblemSetBuilder {
     return problemBuilder;
   }
 
+  public ConfigProblemSetBuilder extend(HalException e) {
+    e.getProblems()
+        .getProblems()
+        .forEach(p -> addProblem(p.getSeverity(), p.getMessage())
+            .setOptions(p.getOptions())
+            .setRemediation(p.getRemediation())
+        );
+
+    return this;
+  }
+
   public ProblemSet build() {
     List<Problem> problems = builders
         .stream()
         .map(ConfigProblemBuilder::build)
-        .map(p -> (Problem) p)
         .collect(Collectors.toList());
 
-    ProblemSet result = new ProblemSet(problems);
-    result.throwifSeverityExceeds(severity);
-
-    return result;
+    return new ProblemSet(problems);
   }
 }

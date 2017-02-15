@@ -26,6 +26,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,17 +42,22 @@ public class PersistentStorageValidator extends Validator<PersistentStorage> {
   private Registry registry;
 
   @Override
-  public void validate(ConfigProblemSetBuilder p, PersistentStorage n) {
+  public void validate(ConfigProblemSetBuilder ps, PersistentStorage n) {
     String accountName = n.getAccountName();
     if (accountName == null || accountName.isEmpty()) {
-      p.addProblem(Severity.WARNING, "You have not chosen an AWS or Google account to use as a persistent object store.");
+      ps.addProblem(Severity.ERROR, "You have not chosen an AWS or Google account to use as a persistent object store.", "accountName");
       return;
     }
 
     String deploymentName = n.parentOfType(DeploymentConfiguration.class).getName();
-
+    GoogleAccount googleAccount;
     // TODO(lwander) This will need an AWS validation path as well once it's supported: https://github.com/spinnaker/halyard/issues/116
-    GoogleAccount googleAccount = (GoogleAccount) accountService.getProviderAccount(deploymentName, GOOGLE.getId(), accountName);
+    try {
+      googleAccount = (GoogleAccount) accountService.getProviderAccount(deploymentName, GOOGLE.getId(), accountName);
+    } catch (HalException e) {
+      ps.extend(e);
+      return;
+    }
 
     String jsonPath = googleAccount.getJsonPath();
     StorageService storageService = new GcsStorageService(
@@ -66,7 +72,7 @@ public class PersistentStorageValidator extends Validator<PersistentStorage> {
     try {
       storageService.ensureBucketExists();
     } catch (Exception e) {
-      p.addProblem(Severity.ERROR, "Failed to ensure the required bucket \"" + n.getBucket() + "\" exists: " + e.getMessage());
+      ps.addProblem(Severity.ERROR, "Failed to ensure the required bucket \"" + n.getBucket() + "\" exists: " + e.getMessage());
     }
   }
 }

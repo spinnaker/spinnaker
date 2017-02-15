@@ -48,11 +48,12 @@ public class DeploymentController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<DeploymentConfiguration> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
 
     builder.setBuildResponse(() -> deploymentService.getDeploymentConfiguration(deploymentName));
 
     if (validate) {
-      builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName, severity));
+      builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
     }
 
     return builder.build();
@@ -63,45 +64,67 @@ public class DeploymentController {
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<List<DeploymentConfiguration>> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
 
     builder.setBuildResponse(() -> deploymentService.getAllDeploymentConfigurations());
 
     if (validate) {
-      builder.setValidateResponse(() -> deploymentService.validateAllDeployments(severity));
+      builder.setValidateResponse(() -> deploymentService.validateAllDeployments());
     }
 
     return builder.build();
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/generate/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> generateConfig(@PathVariable String deploymentName) {
+  DaemonTask<Halconfig, Void> generateConfig(@PathVariable String deploymentName,
+    @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+    @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
 
     builder.setBuildResponse(() -> {
       generateService.generateConfig(deploymentName);
       return null;
     });
 
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
+    }
+
     return TaskRepository.submitTask(builder::build);
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> deploy(@PathVariable String deploymentName) {
+  DaemonTask<Halconfig, Void> deploy(@PathVariable String deploymentName,
+    @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+    @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
 
     builder.setBuildResponse(() -> {
       deployService.deploySpinnaker(deploymentName);
       return null;
     });
 
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
+    }
+
     return TaskRepository.submitTask(builder::build);
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/deployPlan/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, String> deployPlan(@PathVariable String deploymentName) {
+  DaemonTask<Halconfig, String> deployPlan(@PathVariable String deploymentName,
+    @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+    @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<String> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
 
     builder.setBuildResponse(() -> deployService.deploySpinnakerPlan(deploymentName));
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
+    }
 
     return TaskRepository.submitTask(builder::build);
   }

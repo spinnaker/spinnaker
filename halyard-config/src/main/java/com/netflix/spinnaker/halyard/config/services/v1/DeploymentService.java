@@ -73,18 +73,25 @@ public class DeploymentService {
     }
   }
 
-  public ProblemSet validateAllDeployments(Severity severity) {
+  public ProblemSet validateAllDeployments() {
     NodeFilter filter = new NodeFilter()
         .withAnyDeployment()
         .withAnyProvider()
-        .withAnyAccount();
+        .withAnyAccount()
+        .setPersistentStorage()
+        .setFeatures();
 
-    return validateService.validateMatchingFilter(filter, severity);
+    return validateService.validateMatchingFilter(filter);
   }
 
-  public ProblemSet validateDeployment(String deploymentName, Severity severity) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyProvider().withAnyAccount();
+  public ProblemSet validateDeployment(String deploymentName) {
+    NodeFilter filter = new NodeFilter()
+        .setDeployment(deploymentName)
+        .withAnyProvider()
+        .withAnyAccount()
+        .setPersistentStorage()
+        .setFeatures();
 
-    return validateService.validateMatchingFilter(filter, severity);
+    return validateService.validateMatchingFilter(filter);
   }
 }

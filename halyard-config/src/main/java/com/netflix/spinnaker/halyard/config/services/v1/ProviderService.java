@@ -78,23 +78,23 @@ public class ProviderService {
     provider.setEnabled(enabled);
   }
 
-  public ProblemSet validateProvider(String deploymentName, String providerName, Severity severity) {
+  public ProblemSet validateProvider(String deploymentName, String providerName) {
     NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
         .setProvider(providerName)
         .withAnyAccount()
         .withAnyWebhook();
 
-    return validateService.validateMatchingFilter(filter, severity);
+    return validateService.validateMatchingFilter(filter);
   }
 
-  public ProblemSet validateAllProviders(String deploymentName, Severity severity) {
+  public ProblemSet validateAllProviders(String deploymentName) {
     NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
         .withAnyProvider()
         .withAnyAccount()
         .withAnyWebhook();
 
-    return validateService.validateMatchingFilter(filter, severity);
+    return validateService.validateMatchingFilter(filter);
   }
 }
