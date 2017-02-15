@@ -71,6 +71,7 @@ swagger:
     - .*subnets.*
     - .*networks.*
     - .*bakery.*
+    - .*executions.*
 
 hystrix:
   command:
