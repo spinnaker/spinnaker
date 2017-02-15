@@ -6,7 +6,6 @@ import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
@@ -19,7 +18,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
   require('angular-ui-router'),
   LOAD_BALANCER_WRITE_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
   SECURITY_GROUP_READER,
@@ -37,7 +35,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,
-                                                    cacheInitializer, infrastructureCaches, loadBalancerReader,
+                                                    cacheInitializer, infrastructureCaches,
                                                     v2modalWizardService, loadBalancerWriter, taskMonitorBuilder,
                                                     subnetReader, namingService, settings,
                                                     application, loadBalancer, isNew, forPipelineConfig) {
@@ -63,7 +61,6 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     $scope.state = {
       securityGroupsLoaded: false,
       accountsLoaded: false,
-      loadBalancerNamesLoaded: false,
       submitting: false,
       removedSecurityGroups: [],
     };
@@ -102,7 +99,6 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     });
 
     var allSecurityGroups = {},
-        allLoadBalancerNames = {},
         defaultSecurityGroups = [];
 
     function initializeEditMode() {
@@ -157,31 +153,9 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
         $scope.loadBalancer = awsLoadBalancerTransformer.constructNewLoadBalancerTemplate(application);
       }
       if (isNew) {
-        initializeLoadBalancerNames();
+        updateLoadBalancerNames();
         initializeCreateMode();
       }
-    }
-
-    function initializeLoadBalancerNames() {
-      loadBalancerReader.listLoadBalancers('aws').then(function(loadBalancers) {
-        loadBalancers.forEach((loadBalancer) => {
-          loadBalancer.accounts.forEach((account) => {
-            var accountName = account.name;
-            account.regions.forEach((region) => {
-              var regionName = region.name;
-              if (!allLoadBalancerNames[accountName]) {
-                allLoadBalancerNames[accountName] = {};
-              }
-              if (!allLoadBalancerNames[accountName][regionName]) {
-                allLoadBalancerNames[accountName][regionName] = [];
-              }
-              allLoadBalancerNames[accountName][regionName].push(loadBalancer.name);
-            });
-          });
-        });
-        updateLoadBalancerNames();
-        $scope.state.loadBalancerNamesLoaded = true;
-      });
     }
 
     function updateAvailableSecurityGroups(availableVpcIds) {
@@ -221,13 +195,19 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
 
     function updateLoadBalancerNames() {
       var account = $scope.loadBalancer.credentials,
-        region = $scope.loadBalancer.region;
+          region = $scope.loadBalancer.region;
 
-      if (allLoadBalancerNames[account] && allLoadBalancerNames[account][region]) {
-        $scope.existingLoadBalancerNames = allLoadBalancerNames[account][region];
-      } else {
-        $scope.existingLoadBalancerNames = [];
-      }
+      const accountLoadBalancersByRegion = {};
+      application.getDataSource('loadBalancers').refresh(true).then(() => {
+        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
+          if (loadBalancer.account === account) {
+            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
+            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+          }
+        });
+
+        $scope.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
+      });
     }
 
     function getAvailableSubnets() {

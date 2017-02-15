@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
@@ -14,7 +13,6 @@ require('../../loadBalancer.less');
 module.exports = angular.module('spinnaker.loadBalancer.openstack.create.controller', [
     require('angular-ui-router'),
     LOAD_BALANCER_WRITE_SERVICE,
-    LOAD_BALANCER_READ_SERVICE,
     ACCOUNT_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
@@ -27,7 +25,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     SECURITY_GROUP_READER
   ])
   .controller('openstackUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
-                                                                application, loadBalancer, isNew, loadBalancerReader,
+                                                                application, loadBalancer, isNew,
                                                                 accountService, openstackLoadBalancerTransformer,
                                                                 loadBalancerWriter, taskMonitorBuilder, securityGroupReader) {
     var ctrl = this;
@@ -43,7 +41,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
 
     $scope.state = {
       accountsLoaded: false,
-      loadBalancerNamesLoaded: false,
       submitting: false
     };
 
@@ -67,7 +64,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       $scope.loadBalancer = openstackLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
     } else {
       $scope.loadBalancer = openstackLoadBalancerTransformer.constructNewLoadBalancerTemplate();
-      initializeLoadBalancerNames();
+      updateLoadBalancerNames();
     }
 
     finishInitialization();
@@ -103,8 +100,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       onTaskComplete: onTaskComplete,
     });
 
-    var allLoadBalancerNames = {};
-
     function finishInitialization() {
       accountService.listAccounts('openstack').then(function (accounts) {
         $scope.accounts = accounts;
@@ -119,28 +114,22 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       });
     }
 
-    function initializeLoadBalancerNames() {
-      loadBalancerReader.listLoadBalancers('openstack').then(function (loadBalancers) {
-        loadBalancers.forEach((loadBalancer) => {
-          let account = loadBalancer.account;
-          if (!allLoadBalancerNames[account]) {
-            allLoadBalancerNames[account] = {};
+    function updateLoadBalancerNames() {
+      var account = $scope.loadBalancer.credentials;
+
+      const accountLoadBalancersByRegion = {};
+      application.getDataSource('loadBalancers').refresh(true).then(() => {
+        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
+          if (loadBalancer.account === account) {
+            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
+            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
           }
-          let region = loadBalancer.region;
-          if (!allLoadBalancerNames[account][region]) {
-            allLoadBalancerNames[account][region] = [];
-          }
-          allLoadBalancerNames[account][region].push(loadBalancer.name);
         });
 
-        $scope.state.loadBalancerNamesLoaded = true;
-        updateLoadBalancerNames();
+        $scope.existingLoadBalancerNames = _.flatten(_.map(accountLoadBalancersByRegion));
       });
     }
 
-    function updateLoadBalancerNames() {
-      $scope.existingLoadBalancerNames = _.flatten(_.map(allLoadBalancerNames[$scope.loadBalancer.account || ''] || []));
-    }
 
     function updateSecurityGroups() {
       var account = _.get($scope, ['loadBalancer', 'account']);

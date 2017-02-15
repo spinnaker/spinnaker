@@ -60,7 +60,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
     }
 
     function constructNewLoadBalancerTemplate(application) {
-      var defaultCredentials = application.defaultCredentials || settings.providers.azure.defaults.account,
+      var defaultCredentials = application.defaultCredentials.azure || settings.providers.azure.defaults.account,
           defaultRegion = application.defaultRegion || settings.providers.azure.defaults.region;
       return {
         stack: '',

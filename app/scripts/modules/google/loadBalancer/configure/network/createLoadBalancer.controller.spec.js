@@ -1,5 +1,6 @@
 'use strict';
 
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
 
 describe('Controller: gceCreateLoadBalancerCtrl', function () {
 
@@ -8,17 +9,19 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
   // load the controller's module
   beforeEach(function() {
       window.module(
-        require('./createLoadBalancer.controller.js')
+        require('./createLoadBalancer.controller.js'),
+        APPLICATION_MODEL_BUILDER
       );
     });
 
   // Initialize the controller and a mock scope
-  beforeEach(window.inject(function ($controller, $rootScope, _v2modalWizardService_) {
+  beforeEach(window.inject(function ($controller, $rootScope, _v2modalWizardService_, applicationModelBuilder) {
     this.$scope = $rootScope.$new();
+    const app = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: true});
     this.ctrl = $controller('gceCreateLoadBalancerCtrl', {
       $scope: this.$scope,
       $uibModalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
-      application: {name: 'testApp'},
+      application: app,
       loadBalancer: null,
       isNew: true
     });
@@ -51,11 +54,11 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
     expect(lb.name).toBeUndefined();
 
     this.ctrl.updateName();
-    expect(lb.name).toBe('testApp');
+    expect(lb.name).toBe('app');
 
     this.$scope.loadBalancer.stack = 'testStack';
     this.ctrl.updateName();
-    expect(lb.name).toBe('testApp-testStack');
+    expect(lb.name).toBe('app-testStack');
   });
 
   it('should make the health check tab invisible then visible again', function() {

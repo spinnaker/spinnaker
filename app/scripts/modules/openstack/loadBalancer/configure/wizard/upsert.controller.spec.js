@@ -1,17 +1,21 @@
 'use strict';
 
+import _ from 'lodash';
+import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
+
 describe('Controller: openstackCreateLoadBalancerCtrl', function () {
 
   // load the controller's module
   beforeEach(
     window.module(
-      require('./upsert.controller')
+      require('./upsert.controller'),
+      APPLICATION_MODEL_BUILDER
     )
   );
 
   // Initialize the controller and a mock scope
   var testSuite;
-  beforeEach(window.inject(function ($controller, $rootScope, $q, settings) {
+  beforeEach(window.inject(function ($controller, $rootScope, $q, settings, applicationModelBuilder) {
     testSuite = this;
     this.settings = settings;
 
@@ -71,15 +75,12 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
       dismiss: jasmine.createSpy('modal.dismiss'),
       close: jasmine.createSpy('modal.close')
     };
-    this.mockApplication = {
-      name: 'app',
-      loadBalancers: {
-        refresh: jasmine.createSpy('application.loadBalancers.refresh'),
-        onNextRefresh: jasmine.createSpy('application.loadBalancers.onNextRefresh').and.callFake(function(scope, callback) {
-          testSuite.applicationRefreshCallback = callback;
-        })
-      }
-    };
+
+    this.mockApplication = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: false, data: this.testData.loadBalancerList});
+    spyOn(this.mockApplication.loadBalancers, 'refresh').and.callThrough();
+    this.mockApplication.loadBalancers.onNextRefresh = jasmine.createSpy('application.loadBalancers.onNextRefresh').and.callFake(function(scope, callback) {
+      testSuite.applicationRefreshCallback = callback;
+    });
 
     function addDeferredMock(obj, method) {
       obj[method] = jasmine.createSpy(method).and.callFake(function() {
@@ -112,7 +113,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
         application: this.mockApplication,
         loadBalancer: loadBalancer,
         isNew: !loadBalancer,
-        loadBalancerReader: this.mockLoadBalancerReader,
         accountService: this.mockAccountService,
         loadBalancerWriter: this.mockLoadBalancerWriter,
         taskMonitorBuilder: this.mockTaskMonitorBuilder,
@@ -139,7 +139,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
     it('initializes the scope', function() {
       expect(this.$scope.state).toEqual({
         accountsLoaded: false,
-        loadBalancerNamesLoaded: false,
         submitting: false
       });
       expect(this.$scope.isNew).toBeTruthy();
@@ -149,10 +148,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
 
     it('builds the task monitor', function() {
       expect(this.mockTaskMonitorBuilder.buildTaskMonitor).toHaveBeenCalled();
-    });
-
-    it('requests the list of existing load balancers', function() {
-      expect(this.mockLoadBalancerReader.listLoadBalancers).toHaveBeenCalled();
     });
 
     it('requests the list of accounts', function() {
@@ -188,12 +183,10 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
 
       describe('& load balancer list returned', function() {
         beforeEach(function() {
-          this.mockLoadBalancerReader.listLoadBalancers.deferred.resolve(this.testData.loadBalancerList);
           this.$scope.$digest();
         });
 
         it('- updates the list of load balancer names', function() {
-          expect(this.$scope.state.loadBalancerNamesLoaded).toBeTruthy();
           expect(this.$scope.existingLoadBalancerNames).toEqual(
             _.map(_.filter(this.testData.loadBalancerList, {account: 'account1'}), function(lb) { return lb.name; })
           );
@@ -365,7 +358,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
     it('initializes the scope', function() {
       expect(this.$scope.state).toEqual({
         accountsLoaded: false,
-        loadBalancerNamesLoaded: false,
         submitting: false
       });
       expect(this.$scope.isNew).toBeFalsy();

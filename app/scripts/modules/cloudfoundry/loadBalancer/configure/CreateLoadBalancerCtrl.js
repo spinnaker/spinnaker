@@ -3,14 +3,12 @@
 let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   require('angular-ui-router'),
   LOAD_BALANCER_WRITE_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
   require('core/modal/wizard/modalWizard.service.js'),
@@ -18,7 +16,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   require('core/search/search.service.js'),
 ])
   .controller('cfCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
-                                                   application, loadBalancer, isNew, loadBalancerReader,
+                                                   application, loadBalancer, isNew,
                                                    accountService, cfLoadBalancerTransformer,
                                                    searchService, modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
 
@@ -32,7 +30,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
 
     $scope.state = {
       accountsLoaded: false,
-      loadBalancerNamesLoaded: false,
       submitting: false
     };
 
@@ -67,8 +64,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
       onTaskComplete: onTaskComplete,
     });
 
-    var allLoadBalancerNames = {};
-
     function initializeEditMode() {
     }
 
@@ -86,36 +81,20 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
       });
     }
 
-    function initializeLoadBalancerNames() {
-      loadBalancerReader.listLoadBalancers('cf').then(function (loadBalancers) {
-        loadBalancers.forEach((loadBalancer) => {
-          loadBalancer.accounts.forEach((account) => {
-            var accountName = account.name;
-            account.regions.forEach((region) => {
-              var regionName = region.name;
-              if (!allLoadBalancerNames[accountName]) {
-                allLoadBalancerNames[accountName] = {};
-              }
-              if (!allLoadBalancerNames[accountName][regionName]) {
-                allLoadBalancerNames[accountName][regionName] = [];
-              }
-              allLoadBalancerNames[accountName][regionName].push(loadBalancer.name);
-            });
-          });
-        });
-        updateLoadBalancerNames();
-        $scope.state.loadBalancerNamesLoaded = true;
-      });
-    }
-
     function updateLoadBalancerNames() {
       var account = $scope.loadBalancer.credentials;
 
-      if (allLoadBalancerNames[account]) {
-        $scope.existingLoadBalancerNames = _.flatten(_.map(allLoadBalancerNames[account]));
-      } else {
-        $scope.existingLoadBalancerNames = [];
-      }
+      const accountLoadBalancersByRegion = {};
+      application.getDataSource('loadBalancers').refresh(true).then(() => {
+        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
+          if (loadBalancer.account === account) {
+            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
+            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+          }
+        });
+
+        $scope.existingLoadBalancerNames = _.flatten(_.map(accountLoadBalancersByRegion));
+      });
     }
 
     // initialize controller
@@ -124,7 +103,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
       initializeEditMode();
     } else {
       $scope.loadBalancer = cfLoadBalancerTransformer.constructNewLoadBalancerTemplate();
-      initializeLoadBalancerNames();
+      updateLoadBalancerNames();
       initializeCreateMode();
     }
 
