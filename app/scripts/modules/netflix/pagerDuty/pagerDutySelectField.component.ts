@@ -4,6 +4,8 @@ import {PAGER_DUTY_READ_SERVICE, IPagerDutyService} from './pagerDuty.read.servi
 export class PagerDutySelectFieldController implements ng.IComponentController {
   public pagerDutyServices: [IPagerDutyService];
   public servicesLoaded: boolean;
+  public helpContents: string = `<p>Make sure your service exists in Pager Duty and includes the "Generic API" 
+      integration (from your service in Pager Duty, click "New Integration", then select "Use our API directly").`;
 
   static get $inject() { return ['pagerDutyReader']; }
 
@@ -24,7 +26,7 @@ class PagerDutySelectFieldComponent implements ng.IComponentOptions {
   public controller: any = PagerDutySelectFieldController;
   public template = `
   <div class="form-group row">
-    <div class="col-sm-3 sm-label-right">PagerDuty *</div>
+    <div class="col-sm-3 sm-label-right">PagerDuty * <help-field content="{{$ctrl.helpContents}}"></help-field></div>
     <div class="col-sm-9">
       <ui-select ng-if="$ctrl.servicesLoaded" ng-model="$ctrl.component.pdApiKey" class="form-control input-sm" required>
         <ui-select-match placeholder="Select a PagerDuty Service">{{$select.selected.name}}</ui-select-match>
