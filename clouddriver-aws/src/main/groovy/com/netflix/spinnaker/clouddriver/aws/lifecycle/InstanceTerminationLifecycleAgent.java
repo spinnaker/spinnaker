@@ -146,6 +146,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
         if (lifecycleMessage != null) {
           if (!SUPPORTED_LIFECYCLE_TRANSITION.equalsIgnoreCase(lifecycleMessage.lifecycleTransition)) {
             log.info("Ignoring unsupported lifecycle transition: " + lifecycleMessage.lifecycleTransition);
+            deleteMessage(amazonSQS, queueId, message);
             messagesSkipped.incrementAndGet();
             return;
           }
