@@ -70,6 +70,12 @@ public class Front50Profile extends SpringProfile {
     static class Spinnaker {
       GCS gcs = new GCS();
       S3 s3 = new S3();
+      Cassandra cassandra = new Cassandra();
+
+      @Data
+      static class Cassandra {
+        private boolean enabled = false;
+      }
 
       @Data
       static class GCS {

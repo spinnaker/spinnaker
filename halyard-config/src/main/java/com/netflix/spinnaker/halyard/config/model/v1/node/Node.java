@@ -142,9 +142,17 @@ abstract public class Node implements Validatable {
   }
 
   public List<Field> localFiles() {
-    return Arrays.stream(getClass().getDeclaredFields())
-        .filter(f -> f.getDeclaredAnnotation(LocalFile.class) != null)
-        .collect(Collectors.toList());
+    Class<?> clazz = getClass();
+    List<Field> res = new ArrayList<>();
+
+    while (clazz != null) {
+      res.addAll(Arrays.stream(clazz.getDeclaredFields())
+          .filter(f -> f.getDeclaredAnnotation(LocalFile.class) != null)
+          .collect(Collectors.toList()));
+      clazz = clazz.getSuperclass();
+    }
+
+    return res;
   }
 
   public void recursiveConsume(Consumer<Node> consumer) {
