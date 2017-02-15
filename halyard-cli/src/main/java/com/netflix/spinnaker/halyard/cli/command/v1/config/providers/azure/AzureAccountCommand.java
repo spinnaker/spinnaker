@@ -18,13 +18,13 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.azure;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractAccountCommand;
 
 /**
  * Describe a specific azure account
  */
 @Parameters()
-public class AzureAccountCommand extends AbstractNamedProviderCommand {
+public class AzureAccountCommand extends AbstractAccountCommand {
   protected String getProviderName() {
     return "azure";
   }

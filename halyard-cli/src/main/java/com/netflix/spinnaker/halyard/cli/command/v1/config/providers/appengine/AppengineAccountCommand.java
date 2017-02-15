@@ -18,10 +18,10 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.appengine;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractAccountCommand;
 
 @Parameters()
-public class AppengineAccountCommand extends AbstractNamedProviderCommand {
+public class AppengineAccountCommand extends AbstractAccountCommand {
   protected String getProviderName() {
     return "appengine";
   }
