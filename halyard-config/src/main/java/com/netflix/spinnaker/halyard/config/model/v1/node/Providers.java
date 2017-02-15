@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
@@ -32,11 +33,12 @@ import java.util.Optional;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Providers extends Node implements Cloneable {
-  KubernetesProvider kubernetes = new KubernetesProvider();
+  AppengineProvider appengine = new AppengineProvider();
+  AwsProvider aws = new AwsProvider();
+  AzureProvider azure = new AzureProvider();
   DockerRegistryProvider dockerRegistry = new DockerRegistryProvider();
   GoogleProvider google = new GoogleProvider();
-  AppengineProvider appengine = new AppengineProvider();
-  AzureProvider azure = new AzureProvider();
+  KubernetesProvider kubernetes = new KubernetesProvider();
 
   @Override
   public String getNodeName() {

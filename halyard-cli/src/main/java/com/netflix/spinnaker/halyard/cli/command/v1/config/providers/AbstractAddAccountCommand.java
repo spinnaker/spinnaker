@@ -32,7 +32,7 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "add-account";
+  private String commandName = "add";
 
   protected abstract Account buildAccount(String accountName);
 
