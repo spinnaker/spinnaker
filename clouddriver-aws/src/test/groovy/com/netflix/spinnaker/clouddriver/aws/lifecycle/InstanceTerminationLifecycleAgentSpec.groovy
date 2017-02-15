@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport.DiscoveryStatus
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -56,9 +57,12 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
   def queueARN = new ARN([mgmtCredentials, testCredentials], "arn:aws:sqs:us-west-2:100:queueName")
   def topicARN = new ARN([mgmtCredentials, testCredentials], "arn:aws:sns:us-west-2:100:topicName")
 
+  @Shared
+  def objectMapper = new ObjectMapper()
+
   @Subject
   def subject = new InstanceTerminationLifecycleAgent(
-    Mock(ObjectMapper),
+    objectMapper,
     Mock(AmazonClientProvider),
     accountCredentialsProvider,
     new InstanceTerminationConfigurationProperties(
@@ -135,4 +139,40 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
       ['i-1234']
     )
   }
+
+  def 'should process both sns and sqs messages'() {
+    given:
+    LifecycleMessage lifecycleMessage = new LifecycleMessage(
+      accountId: '1234',
+      autoScalingGroupName: 'clouddriver-main-v000',
+      ec2InstanceId: 'i-1324',
+      lifecycleTransition: 'autoscaling:EC2_INSTANCE_TERMINATING'
+    )
+    String sqsMessage = objectMapper.writeValueAsString(lifecycleMessage)
+    String snsMessage = objectMapper.writeValueAsString(new NotificationMessageWrapper(
+      subject: 'lifecycle message',
+      message: sqsMessage
+    ))
+
+    when:
+    LifecycleMessage result = subject.unmarshalLifecycleMessage(snsMessage)
+
+    then:
+    result.accountId == lifecycleMessage.accountId
+    result.autoScalingGroupName == lifecycleMessage.autoScalingGroupName
+    result.ec2InstanceId == lifecycleMessage.ec2InstanceId
+    result.lifecycleTransition == lifecycleMessage.lifecycleTransition
+
+    when:
+    result = subject.unmarshalLifecycleMessage(sqsMessage)
+
+    then:
+    result.accountId == lifecycleMessage.accountId
+    result.autoScalingGroupName == lifecycleMessage.autoScalingGroupName
+    result.ec2InstanceId == lifecycleMessage.ec2InstanceId
+    result.lifecycleTransition == lifecycleMessage.lifecycleTransition
+  }
+
+
+
 }

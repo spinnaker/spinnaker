@@ -126,6 +126,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
     ensureTopicExists(amazonSNS, topicARN, allAccountIds, queueARN);
 
     AtomicInteger messagesProcessed = new AtomicInteger(0);
+    AtomicInteger messagesSkipped = new AtomicInteger(0);
     while (messagesProcessed.get() < properties.getMaxMessagesPerCycle()) {
       ReceiveMessageResult receiveMessageResult = amazonSQS.receiveMessage(
         new ReceiveMessageRequest(queueId)
@@ -140,22 +141,26 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
       }
 
       receiveMessageResult.getMessages().forEach(message -> {
-        try {
-          LifecycleMessage lifecycleMessage = objectMapper.readValue(message.getBody(), LifecycleMessage.class);
+        LifecycleMessage lifecycleMessage = unmarshalLifecycleMessage(message.getBody());
 
-          if (SUPPORTED_LIFECYCLE_TRANSITION.equalsIgnoreCase(lifecycleMessage.lifecycleTransition)) {
-            Task originalTask = TaskRepository.threadLocalTask.get();
-            try {
-              TaskRepository.threadLocalTask.set(
-                Optional.ofNullable(originalTask).orElse(new DefaultTask(InstanceTerminationLifecycleAgent.class.getSimpleName()))
-              );
-              handleMessage(lifecycleMessage, TaskRepository.threadLocalTask.get());
-            } finally {
-              TaskRepository.threadLocalTask.set(originalTask);
-            }
+        if (lifecycleMessage != null) {
+          if (!SUPPORTED_LIFECYCLE_TRANSITION.equalsIgnoreCase(lifecycleMessage.lifecycleTransition)) {
+            log.info("Ignoring unsupported lifecycle transition: " + lifecycleMessage.lifecycleTransition);
+            messagesSkipped.incrementAndGet();
+            return;
           }
-        } catch (IOException e) {
-          log.error("Unable to convert NotificationMessage (body: {})", message.getBody(), e);
+
+          Task originalTask = TaskRepository.threadLocalTask.get();
+          try {
+            TaskRepository.threadLocalTask.set(
+              Optional.ofNullable(originalTask).orElse(new DefaultTask(InstanceTerminationLifecycleAgent.class.getSimpleName()))
+            );
+            handleMessage(lifecycleMessage, TaskRepository.threadLocalTask.get());
+          } finally {
+            TaskRepository.threadLocalTask.set(originalTask);
+          }
+        } else {
+          messagesSkipped.incrementAndGet();
         }
 
         deleteMessage(amazonSQS, queueId, message);
@@ -163,7 +168,30 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
       });
     }
 
-    log.info("Processed {} messages (queueARN: {})", messagesProcessed.get(), queueARN.arn);
+    log.info("Processed {} messages, {} skipped (queueARN: {})", messagesProcessed.get(), messagesSkipped.get(), queueARN.arn);
+  }
+
+  private LifecycleMessage unmarshalLifecycleMessage(String messageBody) {
+    String body = messageBody;
+    try {
+      NotificationMessageWrapper wrapper = objectMapper.readValue(messageBody, NotificationMessageWrapper.class);
+      if (wrapper != null && wrapper.message != null) {
+        body = wrapper.message;
+      }
+    } catch (IOException e) {
+      // Try to unwrap a notification message; if that doesn't work,
+      // assume that we're dealing with a message directly from SQS.
+      log.debug("Unable unmarshal NotificationMessageWrapper. Assuming SQS message. (body: {})", messageBody, e);
+    }
+
+    LifecycleMessage lifecycleMessage = null;
+    try {
+      lifecycleMessage = objectMapper.readValue(body, LifecycleMessage.class);
+    } catch (IOException e) {
+      log.error("Unable to unmarshal LifecycleMessage (body: {})", body, e);
+    }
+
+    return lifecycleMessage;
   }
 
   private void handleMessage(LifecycleMessage message, Task task) {
