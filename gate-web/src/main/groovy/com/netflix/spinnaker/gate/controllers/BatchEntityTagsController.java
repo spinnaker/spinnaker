@@ -37,7 +37,7 @@ public class BatchEntityTagsController {
     this.taskService = taskService;
   }
 
-  @RequestMapping(value = "/batch", method = RequestMethod.POST)
+  @RequestMapping(method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map batchUpdate(@RequestBody List<Map> entityTags) {
     Map<String, Object> job = new HashMap<>();
