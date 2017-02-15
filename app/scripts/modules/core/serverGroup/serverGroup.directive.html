@@ -26,8 +26,11 @@
             <span ng-if="viewModel.images">
               {{ viewModel.images }}
             </span>
-            <entity-ui-tags component="serverGroup" application="application" entity-type="serverGroup"
-                          on-update="application.serverGroups.refresh()"></entity-ui-tags>
+            <entity-ui-tags component="serverGroup"
+                            application="application"
+                            entity-type="serverGroup"
+                            page-location="pod"
+                            on-update="application.serverGroups.refresh()"></entity-ui-tags>
           </div>
           <div class="col-md-{{ viewModel.images ? 3 : 4 }} col-sm-6 text-right">
             <health-counts container="viewModel.serverGroup.instanceCounts"></health-counts>

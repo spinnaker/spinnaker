@@ -6,7 +6,10 @@
   <h6 sticky-header added-offset-height="39">
     <span class="glyphicon glyphicon-transfer"></span>
     {{heading | uppercase}}
-    <entity-ui-tags component="securityGroup" application="application" entity-type="securityGroup"
+    <entity-ui-tags component="securityGroup"
+                    application="application"
+                    entity-type="securityGroup"
+                    page-location="details"
                     on-update="application.securityGroups.refresh()"></entity-ui-tags>
   </h6>
 

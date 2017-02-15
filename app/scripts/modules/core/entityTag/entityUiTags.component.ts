@@ -13,10 +13,13 @@ class EntityUiTagsCtrl implements ng.IComponentController {
 
   public application: Application;
   public entityType: string;
+  public pageLocation: string; // for tracking
   public popoverTemplate: string = require('./entityUiTags.popover.html');
   public popoverType: string;
   public displayPopover: boolean;
   public popoverContents: IEntityTag[] = [];
+  public alertAnalyticsLabel: string;
+  public noticeAnalyticsLabel: string;
   private popoverClose: ng.IPromise<void>;
   private onUpdate: () => any;
 
@@ -31,6 +34,30 @@ class EntityUiTagsCtrl implements ng.IComponentController {
     if (this.popoverClose) {
       this.$timeout.cancel(this.popoverClose);
     }
+  }
+
+  public $onInit(): void {
+    if (!this.component.entityTags) {
+      return;
+    }
+    this.alertAnalyticsLabel = [
+      this.pageLocation,
+      this.entityType,
+      this.component.entityTags.entityRef.account,
+      this.component.entityTags.entityRef.region,
+      this.component.entityTags.entityRef.entityId,
+      this.component.entityTags.entityRef.region,
+      this.component.entityTags.alerts.map((a: IEntityTag) => a.name).join(',')
+    ].join(':');
+
+    this.noticeAnalyticsLabel = [
+      this.pageLocation,
+      this.entityType,
+      this.component.entityTags.entityRef.account,
+      this.component.entityTags.entityRef.region,
+      this.component.entityTags.entityRef.entityId,
+      this.component.entityTags.notices.map((a: IEntityTag) => a.name).join(',')
+    ].join(':');
   }
 
   public deleteTag(tag: IEntityTag): void {
@@ -114,6 +141,7 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
   public bindings: any = {
     component: '<',
     application: '<',
+    pageLocation: '@',
     onUpdate: '&?',
     entityType: '@',
   };
@@ -127,9 +155,12 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
         <span uib-popover-template="$ctrl.popoverTemplate"
               popover-placement="auto top"
               popover-trigger="none"
+              analytics-on="mouseenter"
+              analytics-category="Notice hovered"
+              analytics-label="{{$ctrl.alertAnalyticsLabel}}"
               popover-is-open="$ctrl.popoverType === 'alert' && $ctrl.displayPopover"
               popover-class="no-padding">
-          <i class="fa fa-exclamation-triangle"></i>
+          <i class="entity-tag fa fa-exclamation-triangle"></i>
         </span>
       </span>
       <span ng-if="$ctrl.component.entityTags.notices.length > 0"
@@ -139,9 +170,12 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
         <span uib-popover-template="$ctrl.popoverTemplate"
               popover-placement="auto top"
               popover-trigger="none"
+              analytics-on="mouseenter"
+              analytics-category="Notice hovered"
+              analytics-label="{{$ctrl.noticeAnalyticsLabel}}"
               popover-is-open="$ctrl.popoverType === 'notice' && $ctrl.displayPopover"
               popover-class="no-padding">
-          <i class="fa fa-info-circle"></i>
+          <i class="entity-tag fa fa-flag"></i>
         </span>
       </span>
     </span>
