@@ -64,48 +64,58 @@
 
               <div ng-if="propertyStage.applicationsLoaded">
 
-                <stage-config-field label="Application">
-                  <p class="form-control-static input-sm ">{{application.name}}</p>
+                <stage-config-field label="Choose Scope">
+                  <fast-property-scope-search-component
+                    on-scope-selected="propertyStage.selectScope(scopeOption)"
+                    application-name="application.name">
+                  </fast-property-scope-search-component>
                 </stage-config-field>
 
-                <stage-config-field
-                  label="Region"
-                  ng-if="propertyStage.stage.scope.appIdList && propertyStage.scopeLists.region.length">
-                  <region-selector
-                    model="propertyStage.stage.scope.region"
-                    regions="propertyStage.scopeLists.region"
-                    on-change="propertyStage.regionChange(region)"
-                  >
-                  </region-selector>
-                </stage-config-field>
+                <stage-config-field label="Seleced Scope">
 
-                <stage-config-field
-                  label="Stack"
-                  ng-if="propertyStage.stage.scope.region">
-                  <stack-selector
-                    model="propertyStage.stage.scope.stack"
-                    stacks="propertyStage.scopeLists.stack"
-                    on-change="propertyStage.stackChange(stack)">
-                  </stack-selector>
-                </stage-config-field>
+                  <div ng-if="propertyStage.stage.scope.instanceCounts">
+                    <table class="table table-hover">
+                      <tbody>
+                      <tr ng-if="propertyStage.stage.scope.env">
+                        <td><b>Env</b></td>
+                        <td>{{propertyStage.stage.scope.env}}</td>
+                      </tr>
+                      <tr ng-if="propertyStage.stage.scope.appId">
+                        <td><b>Apps</b></td>
+                        <td>{{propertyStage.stage.scope.appId}}</td>
+                      </tr>
+                      <tr ng-if="propertyStage.stage.scope.region">
+                        <td><b>Region</b></td>
+                        <td>{{propertyStage.stage.scope.region}}</td>
+                      </tr>
+                      <tr ng-if="propertyStage.stage.scope.stack">
+                        <td><b>Stack</b></td>
+                        <td>{{propertyStage.stage.scope.stack}}</td>
+                      </tr>
+                      <tr ng-if="propertyStage.stage.scope.cluster">
+                        <td><b>Cluster</></td>
+                        <td>{{propertyStage.stage.scope.cluster}}</td>
+                      </tr>
+                      <tr ng-if="propertyStage.stage.scope.asg">
+                        <td><b>ASG</b></td>
+                        <td>{{propertyStage.stage.scope.asg}}</td>
+                      </tr>
+                      <tr ng-if="propertyStage.stage.scope.zone">
+                        <td><b>Zone</b></td>
+                        <td>{{propertyStage.stage.scope.zone}}</td>
+                      </tr>
+                      <tr ng-if="propertyStage.stage.scope.serverId">
+                        <td><b>Instance</b></td>
+                        <td>{{propertyStage.stage.scope.serverId}}</td>
+                      </tr>
+                      <tr ng-if="propertyStage.stage.scope.instanceCounts">
+                        <td><b>Instance Count</b></td>
+                        <td style="color:#b82525; font-weight: 600; font-size: larger; padding-top: 3px; margin-left: 9px">{{propertyStage.stage.scope.instanceCounts.up}} instances</td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
-                <stage-config-field
-                  label="Cluster"
-                  ng-if="propertyStage.stage.scope.stack">
-                  <cluster-selector-component
-                    model="propertyStage.stage.scope.cluster"
-                    clusters="propertyStage.scopeLists.cluster"
-                    on-change="propertyStage.clusterChange(cluster)" >
-                  </cluster-selector-component>
-                </stage-config-field>
-
-
-                <stage-config-field label="Impact Count">
-                  <p ng-if="!propertyStage.impactLoading"
-                     style="color:#b82525; font-weight: 600; font-size: larger; padding-top: 3px; margin-left: 9px">
-                    {{propertyStage.impact}} instances
-                  </p>
-                  <p ng-if="propertyStage.impactLoading" us-spinner="{radius:8, width:3, length: 5}"></p>
                 </stage-config-field>
 
               </div>

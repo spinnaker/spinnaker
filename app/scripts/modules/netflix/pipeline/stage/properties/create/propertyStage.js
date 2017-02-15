@@ -8,8 +8,6 @@ import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage', [
   AUTHENTICATION_SERVICE,
   require('core/config/settings.js'),
-  require('netflix/fastProperties/modal/wizard/scope/index'),
-  require('netflix/fastProperties/modal/fastPropertyScopeBuilder.service.js'),
   require('netflix/fastProperties/fastProperty.read.service.js')
 ])
   .config(function (pipelineConfigProvider, settings) {
@@ -31,29 +29,10 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
     }
   })
   .controller('PropertyStageCtrl', function ($scope, $uibModal, stage, authenticationService,
-                                             namingService, providerSelectionService, fastPropertyReader,
-                                             awsServerGroupTransformer, accountService,
-                                             fastPropertyScopeBuilderService) {
+                                             namingService, providerSelectionService, fastPropertyReader) {
 
     let applicationList = [];
     let vm = this;
-
-    let getImpact = () => {
-      vm.impactLoading = true;
-      Object.assign(vm.stage.scope, {asg: ''});
-      fastPropertyScopeBuilderService.getImpact(vm.stage.scope, vm.stage.scope.env)
-        .then((impactCount) => {
-          vm.impact = impactCount;
-        })
-        .catch(() => {
-          vm.impact = 'Unknown';
-        })
-        .finally(() => {
-          vm.impactLoading = false;
-          vm.applicationsLoaded = true;
-        });
-    };
-
 
     vm.applicationList = [];
     vm.chosenApps = {};
@@ -75,25 +54,21 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
       instance: [],
     };
 
-
-    let bindChangeFunctions = () => {
-      //vm.asgChange = fastPropertyScopeBuilderService.createAsgChangeFn(vm, vm.stage.property.targetScope, vm.scopeLists, getImpact);
-      vm.clusterChange = fastPropertyScopeBuilderService.createClusterChangeWithoutDeleteFn(vm, vm.stage.scope, vm.scopeLists, getImpact);
-      vm.stackChange = fastPropertyScopeBuilderService.createStackChangeWithoutDeleteFn(vm, vm.stage.scope, vm.scopeLists, vm.clusterChange);
-      vm.regionChange = fastPropertyScopeBuilderService.createRegionChangeFn(vm, vm.stage.scope, vm.scopeLists, vm.stackChange);
-      vm.getRegions = fastPropertyScopeBuilderService.createGetRegionsFn(vm, vm.stage.scope, vm.scopeLists, vm.regionChange);
-      vm.applicationChange = fastPropertyScopeBuilderService.createApplicationChangeFn(vm.stage.scope, vm.getRegions);
-      vm.applicationSelected = fastPropertyScopeBuilderService.createApplicationSelectedFn(vm, vm.applicationChange, true);
-    };
-
-
     vm.appPropertyList = [];
 
     let getPropertiesForApp = (appName) => {
       fastPropertyReader.fetchForAppName(appName)
         .then((props) => {
           vm.appPropertyList = props.propertiesList;
+          vm.applicationsLoaded = true;
         });
+    };
+
+    vm.selectScope = (scopeOption) => {
+      let selectedEnv = vm.stage.scope.env;
+      vm.stage.scope = scopeOption;
+      vm.stage.scope.env = selectedEnv;
+      vm.stage.scope.appIdList = [vm.stage.scope.appId];
     };
 
     vm.refreshAppList = (query) => {
@@ -124,14 +99,10 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
       if(matchedStage) {
         Object.assign(vm.stage, {property: matchedStage.property, persistedProperties: matchedStage.persistedProperties});
       }
-      bindChangeFunctions();
       vm.applicationSelected(vm.stage.scope.appIdList);
     };
 
 
-
     vm.applicationsLoaded = false;
-    bindChangeFunctions();
     getPropertiesForApp($scope.application.name);
-    vm.applicationSelected(vm.stage.scope.appIdList);
   });

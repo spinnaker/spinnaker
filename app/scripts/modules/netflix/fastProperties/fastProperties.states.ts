@@ -62,7 +62,7 @@ module(FAST_PROPERTY_STATES, [
     reloadOnSearch: true,
     views: {
       'detail@../propInsights': {
-        templateUrl: require('./globalFastPropertyDetails.html'),
+        templateUrl: require('./view/fastPropertyDetails.html'),
         controller: 'GlobalFastPropertiesDetailsController',
         controllerAs: 'details'
       }
@@ -128,7 +128,7 @@ module(FAST_PROPERTY_STATES, [
     reloadOnSearch: true,
     views: {
       'detail@../data': {
-        templateUrl: require('./globalFastPropertyDetails.html'),
+        templateUrl: require('./view/fastPropertyDetails.html'),
         controller: 'GlobalFastPropertiesDetailsController',
         controllerAs: 'details'
       }

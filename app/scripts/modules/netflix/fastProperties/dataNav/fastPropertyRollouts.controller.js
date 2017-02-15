@@ -10,13 +10,11 @@ module.exports = angular
   .module('spinnaker.netflix.fastProperties.rollouts.controller', [
     require('./../fastProperty.read.service.js'),
     require('./../fastProperty.write.service.js'),
-    require('./../fastPropertyTransformer.service.js'),
-    require('./../fastPropertyScope.service.js'),
     require('core/delivery/executionGroup/executionGroup.directive'),
     APPLICATION_READ_SERVICE
   ])
   .controller('FastPropertyRolloutController', function ($scope, $log, fastPropertyReader, fastPropertyWriter,
-                                                         fastPropertyTransformer, FastPropertyScopeService, applicationReader) {
+                                                          applicationReader) {
     var vm = this;
 
     vm.application = undefined;

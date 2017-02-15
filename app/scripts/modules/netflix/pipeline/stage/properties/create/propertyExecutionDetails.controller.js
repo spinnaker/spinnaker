@@ -17,13 +17,14 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.property.detai
     let initialized = () => {
       $scope.detailsSection = $stateParams.details;
       $scope.properties = $scope.stage.context.persistedProperties;
+      $scope.rolledBack = $scope.stage.context.rollbackProperties;
       $scope.notificationEmail = $scope.stage.context.email;
       $scope.cmcTicket = $scope.stage.context.cmcTicket;
       $scope.scope = $scope.stage.context.scope;
     };
 
     this.propertyScopeForDisplay = () => {
-      let temp = _.omit($scope.scope, ['appIdList']);
+      let temp = _.omit($scope.scope, ['appIdList', 'instanceCounts']);
       return Object.assign(temp, {'app': _.head($scope.scope.appIdList) });
     };
 

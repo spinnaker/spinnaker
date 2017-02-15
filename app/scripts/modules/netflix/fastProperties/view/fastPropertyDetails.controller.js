@@ -2,14 +2,14 @@
 
 let angular = require('angular');
 
-import { UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER } from './wizard/updateFastPropertyWizard.controller';
-import { DELETE_FAST_PROPERTY_WIZARD_CONTROLLER } from './wizard/deleteFastPropertyWizard.controller';
+import { UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../wizard/updateFastPropertyWizard.controller';
+import { DELETE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../wizard/deleteFastPropertyWizard.controller';
 
 module.exports = angular
   .module('spinnaker.netflix.globalFastProperties.details.controller', [
     require('angular-ui-router'),
-    require('./fastProperty.read.service'),
-    require('./fastProperty.write.service'),
+    require('../fastProperty.read.service'),
+    require('../fastProperty.write.service'),
     UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER,
     DELETE_FAST_PROPERTY_WIZARD_CONTROLLER
   ])
@@ -36,7 +36,7 @@ module.exports = angular
 
     vm.editFastProperty = function(property) {
       $uibModal.open({
-        templateUrl: require('./wizard/updateFastPropertyWizard.html'),
+        templateUrl: require('./../wizard/updateFastPropertyWizard.html'),
         controller:  'updateFastPropertyWizardController',
         controllerAs: 'ctrl',
         size: 'lg',
@@ -50,7 +50,7 @@ module.exports = angular
 
     vm.delete = function(property) {
       $uibModal.open({
-        templateUrl: require('./wizard/deleteFastPropertyWizard.html'),
+        templateUrl: require('./../wizard/deleteFastPropertyWizard.html'),
         controller:  'deleteFastPropertyWizardController',
         controllerAs: 'ctrl',
         size: 'lg',
