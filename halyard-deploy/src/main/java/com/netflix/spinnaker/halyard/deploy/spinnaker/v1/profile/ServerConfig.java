@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
@@ -19,32 +20,15 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import lombok.Data;
 
-import java.util.Map;
+@Data
+public class ServerConfig {
+  SslConfig ssl = new SslConfig();
 
-abstract public class SpringProfile extends SpinnakerProfile {
-  public abstract String getProfileName();
+  String port;
+  String address;
 
-  @Override
-  public String getProfileFileName() {
-    return getProfileName() + ".yml";
-  }
-
-  @Override
-  public String commentPrefix() {
-    return "## ";
-  }
-
-  String yamlToString(Object o) {
-    return yamlParser.dump(objectMapper.convertValue(o, Map.class));
-  }
-
-
-  @Data
-  static class SpringProfileConfig {
-    ServerConfig serverConfig;
-
-    SpringProfileConfig(SpinnakerEndpoints.Service service) {
-      serverConfig = new ServerConfig(service);
-    }
+  ServerConfig(SpinnakerEndpoints.Service service) {
+    port = Integer.toString(service.getPort());
+    address = service.getHost();
   }
 }

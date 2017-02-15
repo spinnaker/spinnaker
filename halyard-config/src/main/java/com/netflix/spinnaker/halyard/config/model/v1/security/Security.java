@@ -45,4 +45,12 @@ public class Security extends Node {
 
   private Ssl ssl = new Ssl();
   private Authn authn = new Authn();
+
+  public String getApiDomain() {
+    return apiDomain != null ? apiDomain : apiAddress;
+  }
+
+  public String getUiDomain() {
+    return apiDomain != null ? apiDomain : apiAddress;
+  }
 }

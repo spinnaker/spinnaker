@@ -20,7 +20,6 @@ package com.netflix.spinnaker.halyard.config.model.v1.security;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Data
@@ -44,6 +43,7 @@ public class Ssl extends Node {
   @LocalFile private String caKeyPath;
 
   @LocalFile private String keystorePath;
-  private String keystoreAlias;
-  private String keystorePassword;
+  private String keyAlias;
+  private String keyStoreType;
+  private String keyStorePassword;
 }
