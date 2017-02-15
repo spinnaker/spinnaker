@@ -61,7 +61,7 @@
     "@types/angular-mocks": "1.5.8",
     "@types/angular-ui-bootstrap": "^0.13.38",
     "@types/angular-ui-router": "^1.1.35",
-    "@types/jasmine": "^2.5.38",
+    "@types/jasmine": "2.5.41",
     "@types/jquery": "^2.0.34",
     "@types/lodash": "4.14.41",
     "@types/moment-timezone": "^0.2.32",
