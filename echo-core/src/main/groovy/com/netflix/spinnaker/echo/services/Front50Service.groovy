@@ -25,8 +25,6 @@ import retrofit.http.Path
 import rx.Observable
 
 interface Front50Service {
-  @GET('/notifications/application/{application}/')
-  Map getNotificationPreferences(@Path("application") String application)
 
   @GET("/pipelines?restricted=false")
   @Headers("Accept: application/json")

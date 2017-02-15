@@ -77,20 +77,6 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
 
       def sendRequests = []
 
-      // application level
-      def preferenceList = front50Service.getNotificationPreferences(application)
-      def preferences = []
-
-      if (preferenceList) {
-        preferences = preferenceList[getNotificationType()]
-      }
-
-      preferences.each { preference ->
-        if (preference.when?.contains("$config.type.$status".toString())) {
-          sendRequests << preference
-        }
-      }
-
       // pipeline level
       if (config.type == 'pipeline') {
         event.content?.execution.notifications?.each { notification ->
