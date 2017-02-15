@@ -34,7 +34,7 @@ public abstract class AbstractDeleteAccountCommand extends AbstractHasAccountCom
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "delete-account";
+  private String commandName = "delete";
 
   public String getDescription() {
     return "Delete a specific " + getProviderName() + " account by name.";

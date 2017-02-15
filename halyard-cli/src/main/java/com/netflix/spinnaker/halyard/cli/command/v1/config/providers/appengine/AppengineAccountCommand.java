@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.appengine;
@@ -20,13 +21,14 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
 
 @Parameters()
-public class AppengineCommand extends AbstractNamedProviderCommand {
+public class AppengineAccountCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "appengine";
   }
 
-  public AppengineCommand() {
+  public AppengineAccountCommand() {
     super();
-    registerSubcommand(new AppengineAccountCommand());
+    registerSubcommand(new AppengineAddAccountCommand());
+    registerSubcommand(new AppengineEditAccountCommand());
   }
 }

@@ -57,25 +57,25 @@ $ hal config provider PROVIDER disable
 If you want to examine only a particular account's configuration, run:
 
 ```
-$ hal config provider PROVIDER get-account ACCOUNT-NAME
+$ hal config provider PROVIDER account get ACCOUNT-NAME
 ```
 
 To add an account, run:
 
 ```
-$ hal config provider PROVIDER add-account ACCOUNT-NAME [provider-specific flags]
+$ hal config provider PROVIDER account add ACCOUNT-NAME [provider-specific flags]
 ```
 
 To edit an account, run:
 
 ```
-$ hal config provider PROVIDER edit-account ACCOUNT-NAME [provider-specific flags]
+$ hal config provider PROVIDER account edit ACCOUNT-NAME [provider-specific flags]
 ```
 
 To delete an account, run:
 
 ```
-$ hal config provider PROVIDER delete-account ACCOUNT-NAME
+$ hal config provider PROVIDER account delete ACCOUNT-NAME
 ```
 
 #### hal config deploy
@@ -168,6 +168,28 @@ $ tree ~/.hal
     └── gate-googleOAuth.yml
 
 1 directory, 4 files
+```
+
+### hal deploy
+
+Deploy your configured Spinnaker installation. Prior to running this, it's
+recommended that you've run `hal config deploy [...]` to ensure your deployment
+has the correct footprint.
+
+#### hal deploy plan
+
+Examine what your deployed Spinnaker will look like with this command:
+
+```
+$ hal deploy plan
+```
+
+#### hal deploy run
+
+Deploy Spinnaker:
+
+```
+$ hal deploy run
 ```
 
 ### hal versions

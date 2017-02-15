@@ -30,7 +30,7 @@ abstract class AbstractListAccountsCommand extends AbstractProviderCommand {
   }
 
   @Getter
-  private String commandName = "list-accounts";
+  private String commandName = "list";
 
   private Provider getProvider() {
     String currentDeployment = Daemon.getCurrentDeployment();

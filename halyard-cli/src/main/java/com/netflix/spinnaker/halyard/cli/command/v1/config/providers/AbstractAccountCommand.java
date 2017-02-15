@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
@@ -19,39 +20,43 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 
-public abstract class AbstractNamedProviderCommand extends AbstractProviderCommand {
+public abstract class AbstractAccountCommand extends AbstractHasAccountCommand {
   @Override
   public String getCommandName() {
-    return getProviderName();
+    return "account";
   }
 
   @Override
   public String getDescription() {
-    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider";
+    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider's account";
   }
 
-  protected AbstractNamedProviderCommand() {
-    registerSubcommand(new ProviderEnableDisableCommandBuilder()
+  protected AbstractAccountCommand() {
+    registerSubcommand(new DeleteAccountCommandBuilder()
         .setProviderName(getProviderName())
-        .setEnable(false)
         .build()
     );
 
-    registerSubcommand(new ProviderEnableDisableCommandBuilder()
+    registerSubcommand(new GetAccountCommandBuilder()
         .setProviderName(getProviderName())
-        .setEnable(true)
         .build()
     );
-  }
 
-  private Provider getProvider() {
-    return Daemon.getProvider(getCurrentDeployment(), getProviderName(), !noValidate);
+    registerSubcommand(new ListAccountsCommandBuilder()
+        .setProviderName(getProviderName())
+        .build()
+    );
   }
 
   @Override
   protected void executeThis() {
-    AnsiUi.success(AnsiFormatUtils.format(getProvider()));
+    AnsiUi.success(AnsiFormatUtils.format(getAccount(getAccountName())));
+  }
+
+  private Account getAccount(String accountName) {
+    String currentDeployment = getCurrentDeployment();
+    return Daemon.getAccount(currentDeployment, getProviderName(), accountName, !noValidate);
   }
 }

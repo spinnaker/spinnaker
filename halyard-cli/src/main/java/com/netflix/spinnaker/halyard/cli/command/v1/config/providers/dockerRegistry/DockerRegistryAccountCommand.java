@@ -12,21 +12,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.appengine;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.dockerRegistry;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
 
+/**
+ * Describe a specific docker-registry account
+ */
 @Parameters()
-public class AppengineCommand extends AbstractNamedProviderCommand {
+public class DockerRegistryAccountCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
-    return "appengine";
+    return "dockerRegistry";
   }
 
-  public AppengineCommand() {
+  public DockerRegistryAccountCommand() {
     super();
-    registerSubcommand(new AppengineAccountCommand());
+    registerSubcommand(new DockerRegistryAddAccountCommand());
+    registerSubcommand(new DockerRegistryEditAccountCommand());
   }
 }

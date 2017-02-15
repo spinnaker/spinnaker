@@ -30,7 +30,6 @@ public class KubernetesCommand extends AbstractNamedProviderCommand {
 
   public KubernetesCommand() {
     super();
-    registerSubcommand(new KubernetesAddAccountCommand());
-    registerSubcommand(new KubernetesEditAccountCommand());
+    registerSubcommand(new KubernetesAccountCommand());
   }
 }

@@ -30,7 +30,6 @@ public class AzureCommand extends AbstractNamedProviderCommand {
 
   public AzureCommand() {
     super();
-    registerSubcommand(new AzureAddAccountCommand());
-    registerSubcommand(new AzureEditAccountCommand());
+    registerSubcommand(new AzureAccountCommand());
   }
 }

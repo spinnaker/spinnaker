@@ -12,21 +12,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.appengine;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes;
 
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
 
+/**
+ * Interact with the kubernetes provider's accounts
+ */
 @Parameters()
-public class AppengineCommand extends AbstractNamedProviderCommand {
+public class KubernetesAccountCommand extends AbstractAccountCommand {
   protected String getProviderName() {
-    return "appengine";
+    return "kubernetes";
   }
 
-  public AppengineCommand() {
+  public KubernetesAccountCommand() {
     super();
-    registerSubcommand(new AppengineAccountCommand());
+    registerSubcommand(new KubernetesAddAccountCommand());
+    registerSubcommand(new KubernetesEditAccountCommand());
   }
 }

@@ -34,7 +34,7 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "edit-account";
+  private String commandName = "edit";
 
   protected abstract Account editAccount(T account);
 

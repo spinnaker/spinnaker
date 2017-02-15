@@ -12,21 +12,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.appengine;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.azure;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
 
+/**
+ * Describe a specific azure account
+ */
 @Parameters()
-public class AppengineCommand extends AbstractNamedProviderCommand {
+public class AzureAccountCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
-    return "appengine";
+    return "azure";
   }
 
-  public AppengineCommand() {
+  public AzureAccountCommand() {
     super();
-    registerSubcommand(new AppengineAccountCommand());
+    registerSubcommand(new AzureAddAccountCommand());
+    registerSubcommand(new AzureEditAccountCommand());
   }
 }
