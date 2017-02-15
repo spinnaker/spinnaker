@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.front50.model;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 
 import com.google.api.services.storage.Storage;
@@ -592,15 +593,15 @@ public class GcsStorageService implements StorageService {
                       String action,
                       String resource) {
       gcsSafeRetry.doRetry(operation,
-                           action,
                            resource,
-                           null,
                            null,
                            Arrays.asList(500),
                            null,
                            maxWaitInterval,
                            retryIntervalBase,
                            jitterMultiplier,
-                           maxRetries);
+                           maxRetries,
+                           ImmutableMap.of("action", action),
+                           registry);
   }
 }
