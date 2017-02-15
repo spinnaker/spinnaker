@@ -263,7 +263,7 @@ class GCEUtil {
       task,
       RETRY_ERROR_CODES,
       [],
-      [action: "list", phase: phase, operation: "compute.forwardingRuels.list", (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
+      [action: "list", phase: phase, operation: "compute.forwardingRules.list", (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
       executor.registry
     ) as List<ForwardingRule>
     def foundForwardingRules = forwardingRules.findAll {
