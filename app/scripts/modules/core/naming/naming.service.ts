@@ -41,6 +41,10 @@ export class NamingService {
     return result;
   }
 
+  public parseClusterName(clusterName: string): IComponentName {
+    return this.parseServerGroupName(clusterName);
+  }
+
   public getClusterName(app: string, stack: string, detail: string): string {
     let clusterName = app;
     if (stack) {

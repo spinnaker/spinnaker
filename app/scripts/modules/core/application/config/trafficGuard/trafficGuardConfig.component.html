@@ -19,6 +19,7 @@
               <th>Region <help-field key="trafficGuard.region"></help-field></th>
               <th>Stack <help-field key="trafficGuard.stack"></help-field></th>
               <th>Detail <help-field key="trafficGuard.detail"></help-field></th>
+              <th>Matched clusters</th>
               <th></th>
             </tr>
           </thead>
@@ -37,6 +38,7 @@
               <select class="form-control input-sm"
                       ng-model="guard.location"
                       ng-change="$ctrl.configChanged()"
+                      required
                       ng-if="guard.account">
                 <option ng-repeat="region in $ctrl.regionsByAccount[guard.account]" value="{{region}}">{{region}}</option>
               </select>
@@ -44,14 +46,21 @@
             <td>
               <input type="text" class="form-control input-sm"
                      ng-model="guard.stack"
-                     ng-change="$ctrl.configChanged()"
-                     required/>
+                     ng-change="$ctrl.configChanged()"/>
             </td>
             <td>
               <input type="text" class="form-control input-sm"
                      ng-model="guard.detail"
-                     ng-change="$ctrl.configChanged()"
-                     required/>
+                     ng-change="$ctrl.configChanged()"/>
+            </td>
+            <td>
+              <div ng-repeat="match in $ctrl.clusterMatches[$index]">
+                <account-tag account="match.account"></account-tag>
+                {{match.name}}
+                <i ng-if="match.regions">in {{match.regions.join(', ')}}</i>
+              </div>
+              <div ng-if="$ctrl.clusterMatches[$index].length === 0">(no matches)</div>
+
             </td>
             <td><a href ng-click="$ctrl.removeGuard($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove guard"></span></a></td>
           </tr>
