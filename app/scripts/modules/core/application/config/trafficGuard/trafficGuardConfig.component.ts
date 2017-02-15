@@ -1,5 +1,5 @@
 import {module, toJson} from 'angular';
-import {cloneDeep} from 'lodash';
+import {cloneDeep, uniq} from 'lodash';
 
 import {
   ACCOUNT_SERVICE, AccountService, IAccountDetails, IRegion,
@@ -8,12 +8,19 @@ import {
 import {Application} from 'core/application/application.model';
 import {IViewState} from '../footer/configSectionFooter.component';
 import {TRAFFIC_GUARD_CONFIG_HELP} from './trafficGuardConfig.help';
+import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
 
 interface ITrafficGuard {
   account: string;
   location: string;
   stack: string;
   detail: string;
+}
+
+interface IClusterMatch {
+  name: string;
+  account: string;
+  regions: string[];
 }
 
 export class TrafficGuardConfigController {
@@ -23,6 +30,7 @@ export class TrafficGuardConfigController {
   public regionsByAccount: { [account: string]: string[] };
   public config: ITrafficGuard[];
   public initializing: boolean = true;
+  public clusterMatches: IClusterMatch[][] = [];
 
   public viewState: IViewState = {
     originalConfig: null,
@@ -32,9 +40,9 @@ export class TrafficGuardConfigController {
     isDirty: false,
   };
 
-  static get $inject() { return ['accountService']; }
+  static get $inject() { return ['accountService', 'namingService']; }
 
-  public constructor(private accountService: AccountService) {}
+  public constructor(private accountService: AccountService, private namingService: NamingService) {}
 
   public $onInit(): void {
     if (this.application.notFound) {
@@ -52,6 +60,7 @@ export class TrafficGuardConfigController {
       this.accounts.forEach((details: IAccountDetails) => {
         this.regionsByAccount[details.name] = ['*'].concat(details.regions.map((region: IRegion) => region.name));
       });
+      this.application.getDataSource('serverGroups').ready().then(() => this.configureMatches());
       this.initializing = false;
     });
   }
@@ -67,7 +76,30 @@ export class TrafficGuardConfigController {
   };
 
   public configChanged(): void {
+    this.configureMatches();
     this.viewState.isDirty = this.viewState.originalStringVal !== toJson(this.config);
+  }
+
+  public configureMatches(): void {
+    this.clusterMatches.length = 0;
+    this.config.forEach(guard => {
+      this.clusterMatches.push(
+      this.application.clusters.filter(c => {
+        const clusterNames = this.namingService.parseClusterName(c.name);
+        return (guard.account === '*' || guard.account === c.account) &&
+          (guard.location === '*' || c.serverGroups.map(s => s.region).includes(guard.location)) &&
+          (guard.stack === '*' || clusterNames.stack === (guard.stack || '')) &&
+          (guard.detail === '*' || clusterNames.freeFormDetails === (guard.detail || ''));
+        }).map(c => {
+          return {
+            name: c.name,
+            account: guard.account,
+            regions: guard.location === '*' ? uniq(c.serverGroups.map(g => g.region)).sort() : [guard.location]
+          };
+      })
+      );
+    });
+    this.clusterMatches.forEach(m => m.sort((a: IClusterMatch, b: IClusterMatch) => a.name.localeCompare(b.name)));
   }
 }
 
@@ -82,6 +114,7 @@ class TrafficGuardConfigComponent implements ng.IComponentOptions {
 export const TRAFFIC_GUARD_CONFIG_COMPONENT = 'spinnaker.core.application.config.trafficGuard.component';
 module(TRAFFIC_GUARD_CONFIG_COMPONENT, [
   ACCOUNT_SERVICE,
+  NAMING_SERVICE,
   TRAFFIC_GUARD_CONFIG_HELP,
 ])
   .component('trafficGuardConfig', new TrafficGuardConfigComponent());
