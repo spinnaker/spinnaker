@@ -4,6 +4,17 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
+## Installation
+
+> WARNING: This tool is not yet stable.
+
+```
+$ wget https://raw.githubusercontent.com/spinnaker/halyard/master/InstallHalyard.sh
+$ bash InstallHalyard.sh
+```
+
+# Overview
+
 There are three parts to Halyard, the __halconfig__, the __daemon__, and
 __hal__. In short, __hal__ is a Command Line Interface (CLI) that sends
 commands to the __daemon__ to update the __halconfig__, which is ultimately
