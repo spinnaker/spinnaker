@@ -39,7 +39,6 @@ azure:
       appKey: ${providers.azure.primaryCredentials.appKey}
       tenantId: ${providers.azure.primaryCredentials.tenantId}
       subscriptionId: ${providers.azure.primaryCredentials.subscriptionId}
-      objectId: ${providers.azure.primaryCredentials.objectId}
 
 google:
   enabled: ${providers.google.enabled:false}
