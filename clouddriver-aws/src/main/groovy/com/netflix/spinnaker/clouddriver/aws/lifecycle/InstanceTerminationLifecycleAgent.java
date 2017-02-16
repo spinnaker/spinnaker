@@ -54,7 +54,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomScheduledAgent {
@@ -198,8 +197,14 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
   private void handleMessage(LifecycleMessage message, Task task) {
     List<String> instanceIds = Collections.singletonList(message.ec2InstanceId);
 
+    NetflixAmazonCredentials credentials = getAccountCredentialsById(message.accountId);
+    if (credentials == null) {
+      log.error("Unable to find credentials for account id: {}", message.accountId);
+      return;
+    }
+
     EnableDisableInstanceDiscoveryDescription description = new EnableDisableInstanceDiscoveryDescription();
-    description.setCredentials(getAccountCredentialsById(message.accountId));
+    description.setCredentials(credentials);
     description.setRegion(queueARN.region);
     description.setAsgName(message.autoScalingGroupName);
     description.setInstanceIds(instanceIds);
@@ -218,13 +223,12 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
   }
 
   private NetflixAmazonCredentials getAccountCredentialsById(String accountId) {
-    return (NetflixAmazonCredentials) accountCredentialsProvider.getAll()
-      .stream()
-      .filter(c -> c.getAccountId().equals(accountId))
-      .findFirst()
-      .orElseThrow((Supplier<RuntimeException>) () -> {
-        return new RuntimeException(String.format("Unable to find AmazonCredentials by id (id: %s)", accountId));
-      });
+    for (AccountCredentials credentials : accountCredentialsProvider.getAll()) {
+      if (credentials.getAccountId() != null && credentials.getAccountId().equals(accountId)) {
+        return (NetflixAmazonCredentials) credentials;
+      }
+    }
+    return null;
   }
 
   private static String ensureTopicExists(AmazonSNS amazonSNS,
