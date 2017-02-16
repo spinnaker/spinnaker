@@ -1,6 +1,6 @@
 'use strict';
 
-import {isArray, findIndex, uniqWith, flatten, compact, uniq, values, isEmpty, sortBy, groupBy, debounce } from 'lodash';
+import {isArray, uniqWith, flatten, compact, uniq, values, isEmpty, sortBy, groupBy, debounce } from 'lodash';
 import { CREATE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../wizard/createFastPropertyWizard.controller';
 
 
@@ -11,6 +11,7 @@ module.exports = angular
   .module('spinnaker.netflix.fastProperties.controller', [
     require('angular-ui-router'),
     require('../fastProperty.read.service.js'),
+    require('./fastPropertyTable.directive.js'),
     CREATE_FAST_PROPERTY_WIZARD_CONTROLLER,
   ])
   .controller('FastPropertiesController', function ($scope, $filter, $state, $urlRouter, $stateParams, $location, $uibModal, settings, app, fastPropertyReader) {
@@ -27,8 +28,8 @@ module.exports = angular
 
     vm.clearFilters = () => {
       $scope.filters.list = [];
-      vm.updateFilter();
     };
+
 
     $scope.createFilterTag = function(tag) {
       if (tag) {
@@ -36,18 +37,18 @@ module.exports = angular
           label: tag.label,
           value: tag.value,
           clear: () => {
-            $scope.filters.list.splice(findIndex($scope.filters.list, {label: tag.label, value: tag.value}), 1);
-            vm.updateFilter();
+            let newList = $scope.filters.list.filter((t) => t.label !== tag.label && t.value !== tag.value );
+            $scope.filters.list = newList;
           }
         };
       }
     };
 
     function fetchFastPropertiesForApp() {
+      vm.fetchingProperties = true;
       fastPropertyReader.fetchForAppName(vm.application.name)
         .then( (data) => {
           var list = data.propertiesList || [];
-          // vm.propertiesList = list;
           vm.searchResults = list.map((fp) => {
             fp.scope = extractFastPropertyScopeFromId(fp.propertyId);
             fp.appId = fp.appId || 'All (Global)';
@@ -152,17 +153,32 @@ module.exports = angular
           .map((filter) => filter.value);
 
         let item = property.scope[filterLabel] || property[filterLabel];
-        return (scopeAttrList.length && item) ? normalizeForNone(scopeAttrList).includes(item) : true;
+        let matches = (scopeAttrList.length) ? normalizeForNone(scopeAttrList).includes(item) : true;
+
+        return matches;
       };
     };
 
 
-    let predicateList = filterNames.map(name => filterPredicateFactory(name));
+    let predicateList = filterNames.reduce((acc, name) => {
+      acc[name] = filterPredicateFactory(name);
+      return acc;
+    }, {});
 
     let filters = {
       showall: (propertiesList) => {
-        let copy = propertiesList ? angular.copy(propertiesList) : [];
-        return copy.filter(allPass([...predicateList]));
+        if ($scope.filters.list.length) {
+          let copy = propertiesList ? angular.copy(propertiesList) : [];
+          let uniqFilterLabels = uniq($scope.filters.list.map(filter => filter.label));
+          let filteredPredicateList = uniqFilterLabels.reduce((acc, filterLabel) => {
+            acc.push(predicateList[filterLabel]);
+            return acc;
+          }, []);
+
+          let result = copy.filter(allPass([...filteredPredicateList]));
+          return result;
+        }
+        return propertiesList;
       },
       global: (propertiesList) => {
         let copy = propertiesList ? angular.copy(propertiesList) : [];
@@ -171,7 +187,10 @@ module.exports = angular
     };
 
     let groupByFn = {
-      none: (propertiesList) => sortBy(angular.copy(propertiesList), (prop) => prop.key.toLowerCase()),
+      none: (propertiesList) => {
+        let grouped = sortBy(propertiesList, (prop) => prop.key.toLowerCase());
+        return grouped;
+      },
       app: (propertiesList) => {
         let groups = groupBy(angular.copy(propertiesList), 'appId' );
         for (let key in groups) {
@@ -179,14 +198,18 @@ module.exports = angular
         }
         return groups;
       },
-      property: (propertiesList) => groupBy(angular.copy(propertiesList), 'key')
+      property: (propertiesList) => {
+        let grouped = groupBy(angular.copy(propertiesList), 'key');
+        return grouped;
+      }
     };
 
     vm.filterAndGroup = (propertyList) => {
       if(!isArray(propertyList)) {
         propertyList = flatten(values(propertyList));
       }
-      vm.propertiesList = groupByFn[vm.groupName]( filters[vm.filterName](propertyList) );
+      let filterResults = filters[vm.filterName](propertyList);
+      vm.propertiesList = groupByFn[vm.groupName]( filterResults );
       setStateParams();
     };
 

@@ -10,7 +10,7 @@ module.exports = angular
   .component('fastPropertyPods', {
     templateUrl: require('./fastPropertyPods.html'),
     bindings: {
-      properties: '=',
+      properties: '<',
       groupedBy: '=?'
     },
     controller: function($state, $stateParams) {
@@ -52,17 +52,6 @@ module.exports = angular
     },
     controller: function($state) {
       let vm = this;
-
-      vm.getBaseOfScope = (scope) => {
-        if (scope.serverId) { return scope.serverId; }
-        if (scope.zone) { return scope.zone; }
-        if (scope.asg) { return scope.asg; }
-        if (scope.cluster) { return scope.cluster; }
-        if (scope.stack) { return scope.stack; }
-        if (scope.region) { return scope.region; }
-        if (scope.appId) { return scope.appId; }
-        return 'GLOBAL';
-      };
 
       vm.showPropertyDetails = (propertyId) => {
         if ($state.current.name.includes('.data.properties')) {

@@ -20,10 +20,9 @@
 
 <div ng-if="$ctrl.query" >
 
-  <div class="searching"
-    ng-if="$ctrl.querying">
-    <h3>Searching...</h3>
-  </div>
+  <h2 ng-if="$ctrl.querying" class="text-center">
+    <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+  </h2>
 
   <div
     ng-repeat="category in $ctrl.categories | orderBy: 'order' "

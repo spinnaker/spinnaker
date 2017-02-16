@@ -39,17 +39,6 @@ export class Scope {
     return scope;
   }
 
-  public getBaseOfScope() {
-    if (this.serverId) { return this.serverId; }
-    if (this.zone) { return this.zone; }
-    if (this.asg) { return this.asg; }
-    if (this.cluster) { return this.cluster; }
-    if (this.stack) { return this.stack; }
-    if (this.region) { return this.region; }
-    if (this.appId) { return this.appId; }
-    return 'GLOBAL';
-  }
-
   public getCategory() {
     if (this.serverId) { return CATEGORY.INSTANCES; }
     if (this.zone || this.asg) { return CATEGORY.SERVER_GROUPS; }

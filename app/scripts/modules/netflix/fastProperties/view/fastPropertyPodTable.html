@@ -1,44 +1,6 @@
-
-<table class="table table-hover" style="word-break: break-all">
-  <thead style="border-top: none">
-  <tr>
-    <th width="20%" ng-if="$ctrl.groupedBy !== 'property'">Property</th>
-    <th width="20%">Value</th>
-    <th width="10%" ng-if="$ctrl.groupedBy !== 'app'">Application</th>
-    <th width="5%">Env</th>
-    <th width="10%">Region</th>
-    <th width="10%">Stack</th>
-    <th width="10%">Scope</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr
-    class="clickable"
-    ng-repeat="property in $ctrl.properties"
-    ng-click="$ctrl.showPropertyDetails(property.propertyId)"
-    >
-    <td ng-if="$ctrl.groupedBy !== 'property'">
-      {{ property.key }}
-    </td>
-    <td >
-      {{ property.value }}
-    </td>
-    <td ng-if="$ctrl.groupedBy !== 'app'">
-      {{ property.appId }}
-    </td>
-    <td>
-      <account-tag account="property.env" pad="right"></account-tag>
-    </td>
-    <td>
-      {{ property.scope.region }}
-    </td>
-    <td>
-      {{ property.scope.stack }}
-    </td>
-    <td>
-      {{ $ctrl.getBaseOfScope(property.scope) }}
-    </td>
-  </tr>
-  </tbody>
-</table>
+<fast-property-table
+  properties="$ctrl.properties"
+  grouped-by="$ctrl.groupedBy"
+  show-details="$ctrl.showPropertyDetails(propertyId)">
+</fast-property-table>
 

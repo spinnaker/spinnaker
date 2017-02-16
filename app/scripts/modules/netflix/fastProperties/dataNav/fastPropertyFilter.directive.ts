@@ -36,7 +36,6 @@ class FastPropertyFilterDirective implements ng.IDirective {
           let tagBody = {label: field, value: attr};
           copy.push(scope.createFilterTag(tagBody));
           scope.filters.list = uniqWith(copy, (a: any, b: any) => a.label === b.label && a.value === b.value);
-          scope.$apply();
           return '';
         }
       };

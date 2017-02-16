@@ -51,8 +51,8 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
     this.showSearchResults = true;
   }
 
-  public displayResults(): void {
-    if (this.query) {
+  public displayResults(event: any): void {
+    if (this.query && (this.query !== event.target.value)) {
       this.executeQuery();
     } else {
       this.displayAllCategories();
@@ -122,6 +122,7 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
         return;
       }
     }
+
     this.executeQuery();
 
   }
@@ -185,10 +186,13 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
   }
 
   private addToList(acc: any[], scopeKey: string, scopeValue: string): any {
-    if (scopeValue) {
+    if (scopeValue && scopeKey) {
       let categoryIndex = findIndex(acc, ['category', scopeKey]);
       if (categoryIndex > -1) {
-        acc[categoryIndex].results = Array.from(new Set(acc[categoryIndex].results).add(scopeValue));
+        let categoryResults = acc[categoryIndex].results;
+        if (categoryResults.indexOf(scopeValue) === -1) {
+          categoryResults.push(scopeValue);
+        }
       } else {
         acc.push({category: scopeKey, results: ['none', scopeValue]});
       }
@@ -198,11 +202,10 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
 }
 
 
-
 class FastPropertyFilterSearchComponent implements ng.IComponentOptions {
 
   public bindings: any = {
-    'properties': '=',
+    'properties': '<',
     'filters': '=',
     'createFilterTag': '='
   };
