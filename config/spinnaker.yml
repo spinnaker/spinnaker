@@ -126,8 +126,7 @@ services:
       enabled: false
       storageAccountName:
       storageAccountKey:
-      storageContainerName: spinnaker
-      rootFolder: front50
+      storageContainerName: front50
 
   gate:
     host: ${services.default.host}
