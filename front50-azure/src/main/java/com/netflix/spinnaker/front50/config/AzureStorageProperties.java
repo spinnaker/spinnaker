@@ -23,7 +23,6 @@ public class AzureStorageProperties {
   private String storageAccountKey;
   private String storageAccountName;
   private String storageContainerName;
-  private String rootFolder;
 
   public String getStorageConnectionString() {
     return "DefaultEndpointsProtocol=https;"
@@ -39,8 +38,4 @@ public class AzureStorageProperties {
 
   public String getStorageContainerName() { return this.storageContainerName; }
   public void setStorageContainerName(String storageContainerName) { this.storageContainerName = storageContainerName; }
-
-  public String getRootFolder() { return this.rootFolder; }
-  public void setRootFolder(String rootFolder) { this.rootFolder = rootFolder; }
-
 }

@@ -24,7 +24,6 @@ import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.*;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import okhttp3.logging.HttpLoggingInterceptor;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +31,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.*;
 
-
 public class AzureStorageService implements StorageService {
   private static final Logger log = LoggerFactory.getLogger(AzureStorageService.class);
   private String containerName;
-  private String storageAccountName;
-  private String rootFolder;
   private CloudStorageAccount storageAccount = null;
   private CloudBlobClient blobClient = null;
   private CloudBlobContainer blobContainer = null;
@@ -45,8 +41,6 @@ public class AzureStorageService implements StorageService {
 
   private static final String LAST_MODIFIED_FILENAME = "last_modified";
   private static final String LAST_MODIFIED_METADATA_NAME = "lastmodifydate";
-
-  //private final Boolean readOnlyMode;
 
   private CloudBlobClient getBlobClient() {
     if (storageAccount != null && blobClient == null) {
@@ -72,10 +66,8 @@ public class AzureStorageService implements StorageService {
     return blobContainer;
   }
 
-  public AzureStorageService(String connectionString, String storageAccountName, String containerName, String rootFolder) {
-    this.storageAccountName = storageAccountName;
+  public AzureStorageService(String connectionString, String containerName) {
     this.containerName = containerName;
-    this.rootFolder = rootFolder;
     try {
       this.storageAccount = CloudStorageAccount.parse(connectionString);
     } catch (Exception e) {
@@ -179,12 +171,11 @@ public class AzureStorageService implements StorageService {
 
   @Override
   public Map<String, Long> listObjectKeys(ObjectType objectType) {
-    String path = rootFolder + "/" + objectType.group;
     Map<String, Long> objectKeys = new HashMap<>();
     try {
       ResultContinuation token = null;
       do {
-        ResultSegment<ListBlobItem> result = getBlobContainer().listBlobsSegmented(path, true, null, 10000, token, null, null);
+        ResultSegment<ListBlobItem> result = getBlobContainer().listBlobsSegmented(objectType.group, true, null, 10000, token, null, null);
         token = result.getContinuationToken();
 
         result.getResults().stream().filter(item -> match(item, objectType.defaultMetadataFilename)).forEach(item -> {
@@ -197,7 +188,7 @@ public class AzureStorageService implements StorageService {
     } catch (StorageException se) {
       logStorageException(se, "");
     } catch (Exception e) {
-      log.error("Failed to retrieve objects from {}: {}", path, e.getMessage());
+      log.error("Failed to retrieve objects from {}: {}", objectType.group, e.getMessage());
     }
     return objectKeys;
   }
@@ -287,7 +278,7 @@ public class AzureStorageService implements StorageService {
     if (objectKey.endsWith(metadatafilename)) {
       return objectKey;
     }
-    String key = rootFolder + "/" + type + "/" + objectKey.toLowerCase();
+    String key = type + "/" + objectKey.toLowerCase();
     if (!metadatafilename.isEmpty()) {
       key += "/" + metadatafilename.replace("//", "/");
     }
@@ -296,7 +287,7 @@ public class AzureStorageService implements StorageService {
 
   private String getBlobKey(ObjectType type, String storageKey) {
     return storageKey
-      .replace(getBlobContainer().getUri().toString() + "/" + rootFolder + "/" + type.group + "/", "")
+      .replace(getBlobContainer().getUri().toString() + "/" + type.group + "/", "")
       .replace("/" + type.defaultMetadataFilename, "");
   }
 
@@ -304,11 +295,10 @@ public class AzureStorageService implements StorageService {
     return group + "/'" + LAST_MODIFIED_FILENAME;
   }
 
-  // URI of Blob: http://yourstorageaccount.blob.core.windows.net/container/rootFolder/type/key/metadatafilename
+  // URI of Blob: http://yourstorageaccount.blob.core.windows.net/container/type/key/metadatafilename
   private boolean match(ListBlobItem item, String compValue) {
     CloudBlob blob = (CloudBlob)item;
     return blob.getUri().toString().endsWith(compValue);
   }
-
 }
 

@@ -64,10 +64,7 @@ public class AzureStorageConfig {
   @Bean
   public AzureStorageService azureStorageService(AzureStorageProperties azureStorageProperties) {
     // This is where we create the service
-    return new AzureStorageService(azureStorageProperties.getStorageConnectionString(),
-      azureStorageProperties.getStorageAccountName(),
-      azureStorageProperties.getStorageContainerName(),
-      azureStorageProperties.getRootFolder());
+    return new AzureStorageService(azureStorageProperties.getStorageConnectionString(), azureStorageProperties.getStorageContainerName());
   }
 
   @Bean
