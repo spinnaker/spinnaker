@@ -49,7 +49,7 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
   private String discovery;
 
   @Parameter(
-      names = "--accountId",
+      names = "--account-id",
       description = AwsCommandProperties.ACCOUNT_ID_DESCRIPTION
   )
   private String accountId;
