@@ -18,10 +18,12 @@ package com.netflix.spinnaker.clouddriver.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.discovery.DiscoveryClient
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.redis.JedisPoolSource
 import com.netflix.spinnaker.cats.redis.JedisSource
+import com.netflix.spinnaker.cats.redis.cache.RedisCache
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
 import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
@@ -63,11 +65,17 @@ class RedisCacheConfig {
   }
 
   @Bean
+  RedisCache.CacheMetrics cacheMetrics(Registry registry) {
+    new SpectatorRedisCacheMetrics(registry)
+  }
+
+  @Bean
   NamedCacheFactory cacheFactory(
     JedisSource jedisSource,
     ObjectMapper objectMapper,
-    RedisCacheOptions redisCacheOptions) {
-    new RedisNamedCacheFactory(jedisSource, objectMapper, redisCacheOptions, null)
+    RedisCacheOptions redisCacheOptions,
+    RedisCache.CacheMetrics cacheMetrics) {
+    new RedisNamedCacheFactory(jedisSource, objectMapper, redisCacheOptions, cacheMetrics)
   }
 
   @Bean

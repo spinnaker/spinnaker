@@ -73,7 +73,7 @@ public class RedisCache implements WriteableCache {
                          int requestedSize,
                          int keysRequested,
                          int relationshipsRequested,
-                         int mgetOperationCount) {
+                         int mgetOperations) {
             //noop
         }
 
