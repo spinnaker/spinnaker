@@ -340,7 +340,7 @@ class GCEUtil {
                                                                 SafeRetry safeRetry,
                                                                 GoogleExecutorTraits executor) {
     return safeRetry.doRetry(
-      { return timeExecute(
+      { return executor.timeExecute(
             credentials.compute.regionInstanceGroupManagers().get(projectName, region, serverGroupName),
             "compute.regionInstanceGroupManagers.get",
             executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
