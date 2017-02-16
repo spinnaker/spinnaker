@@ -33,18 +33,26 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
+import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
+import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
 import com.netflix.spinnaker.clouddriver.titus.caching.TitusCachingProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
+import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import javax.inject.Provider
+
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.ON_DEMAND
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SERVER_GROUPS
@@ -59,7 +67,7 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
     AUTHORITATIVE.forType(APPLICATIONS.ns),
     INFORMATIVE.forType(CLUSTERS.ns),
-    INFORMATIVE.forType(INSTANCES.ns)
+    AUTHORITATIVE.forType(INSTANCES.ns)
   ] as Set)
 
   private final TitusCloudProvider titusCloudProvider
@@ -69,13 +77,16 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
   private final ObjectMapper objectMapper
   private final Registry registry
   private final OnDemandMetricsSupport metricsSupport
+  private final Provider<AwsLookupUtil> awsLookupUtil
 
   TitusClusterCachingAgent(TitusCloudProvider titusCloudProvider,
                            TitusClientProvider titusClientProvider,
                            NetflixTitusCredentials account,
                            String region,
                            ObjectMapper objectMapper,
-                           Registry registry) {
+                           Registry registry,
+                           Provider<AwsLookupUtil> awsLookupUtil
+  ) {
     this.titusCloudProvider = titusCloudProvider
     this.account = account
     this.region = region
@@ -83,6 +94,7 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
     this.titusClient = titusClientProvider.getTitusClient(account, region)
     this.registry = registry
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${titusCloudProvider.id}:${OnDemandAgent.OnDemandType.ServerGroup}")
+    this.awsLookupUtil = awsLookupUtil
   }
 
   @Override
@@ -268,6 +280,8 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
     Map<String, CacheData> serverGroups = createCache()
     Map<String, CacheData> instances = createCache()
 
+    Map<String, TitusSecurityGroup> titusSecurityGroupCache = [:]
+
     for (Job job : jobs) {
       def onDemandData = onDemandKeep ? onDemandKeep[Keys.getServerGroupKey(job.name, account.name, region)] : null
       if (onDemandData && onDemandData.attributes.cacheTime >= start) {
@@ -282,8 +296,7 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
           ServerGroupData data = new ServerGroupData(job, account.name, region)
           cacheApplication(data, applications)
           cacheCluster(data, clusters)
-          cacheServerGroup(data, serverGroups)
-          cacheInstances(data, instances)
+          cacheServerGroup(data, serverGroups, instances, titusSecurityGroupCache)
         } catch (Exception ex) {
           log.error("Failed to cache ${job.name} in ${account.name}", ex)
         }
@@ -317,22 +330,37 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
     }
   }
 
-  private void cacheServerGroup(ServerGroupData data, Map<String, CacheData> serverGroups) {
+  private void cacheServerGroup(ServerGroupData data, Map<String, CacheData> serverGroups, Map<String, CacheData> instances, Map titusSecurityGroupCache) {
     serverGroups[data.serverGroup].with {
-      attributes.job = objectMapper.convertValue(data.job, Job.class)
+      Job job = objectMapper.convertValue(data.job, Job.class)
+      resolveAwsDetails(titusSecurityGroupCache, job)
+      attributes.job = job
       attributes.tasks = data.job.tasks
       attributes.region = region
       attributes.account = account.name
       relationships[APPLICATIONS.ns].add(data.appName)
       relationships[CLUSTERS.ns].add(data.cluster)
       relationships[INSTANCES.ns].addAll(data.instanceIds)
+      for (Job.TaskSummary task : job.tasks) {
+        def instanceData = new InstanceData(job, task, account.name, region)
+        cacheInstance(instanceData, instances)
+      }
     }
   }
 
-  private void cacheInstances(ServerGroupData data, Map<String, CacheData> instances) {
-    for (Job.TaskSummary task : data.job.tasks) {
-      instances[Keys.getInstanceKey(task.id)].with {
+  private void cacheInstance(InstanceData data, Map<String, CacheData> instances) {
+    instances[data.instanceId].with {
+      Job.TaskSummary task = objectMapper.convertValue(data.task, Job.TaskSummary)
+      attributes.task = task
+      Map<String, Object> job = objectMapper.convertValue(data.job, Map)
+      job.remove('tasks')
+      attributes.job = job
+      attributes.put(HEALTH.ns, [getTitusHealth(task)])
+      relationships[IMAGES.ns].add(data.imageId)
+      if (data.serverGroup) {
         relationships[SERVER_GROUPS.ns].add(data.serverGroup)
+      } else {
+        relationships[SERVER_GROUPS.ns].clear()
       }
     }
   }
@@ -376,6 +404,43 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
       serverGroup = Keys.getServerGroupKey(job.name, account, region)
       instanceIds = (job.tasks.id.collect { Keys.getInstanceKey(it) } as Set).asImmutable()
     }
+  }
+
+  private void resolveAwsDetails(Map<String, TitusSecurityGroup> titusSecurityGroupCache,
+                                 Job job) {
+    Set<TitusSecurityGroup> securityGroups = awsLookupUtil.get().lookupSecurityGroupNames(
+      titusSecurityGroupCache, account.name, region, job.securityGroups
+    )
+    job.securityGroupDetails = securityGroups
+  }
+
+  private static class InstanceData {
+    private final Job job
+    private final Job.TaskSummary task
+    private final String instanceId
+    private final String serverGroup
+    private final String imageId
+
+    public InstanceData(Job job, Job.TaskSummary task, String account, String region) {
+      this.job = job
+      this.task = task
+      this.instanceId = Keys.getInstanceKey(task.id)
+      this.serverGroup = job.name
+      this.imageId = "${job.applicationName}:${job.version}"
+    }
+  }
+
+  private Map<String, String> getTitusHealth(Job.TaskSummary task) {
+    TaskState taskState = task.state
+    HealthState healthState = HealthState.Unknown
+    if (taskState in [TaskState.STOPPED, TaskState.FAILED, TaskState.CRASHED, TaskState.FINISHED, TaskState.DEAD, TaskState.TERMINATING]) {
+      healthState = HealthState.Down
+    } else if (taskState in [TaskState.STARTING, TaskState.DISPATCHED, TaskState.PENDING, TaskState.QUEUED]) {
+      healthState = HealthState.Starting
+    } else {
+      healthState = HealthState.Unknown
+    }
+    [type: 'Titus', healthClass: 'platform', state: healthState.toString()]
   }
 
 }

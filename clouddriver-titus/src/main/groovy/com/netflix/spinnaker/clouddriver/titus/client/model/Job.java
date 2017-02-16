@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
+import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup;
+
 import java.util.*;
 
 public class Job {
@@ -189,6 +191,7 @@ public class Job {
     private List<TaskSummary> tasks;
     private Map<String, String> labels;
     private List<String> securityGroups;
+    private Set<TitusSecurityGroup> securityGroupDetails;
     private String jobGroupStack;
     private String jobGroupDetail;
     private String jobGroupSequence;
@@ -413,5 +416,9 @@ public class Job {
     public Efs getEfs() { return efs; }
 
     public void setEfs(Efs efs) { this.efs = efs; }
+
+    public Set getSecurityGroupDetails() { return securityGroupDetails; }
+
+    public void setSecurityGroupDetails(Set securityGroupDetails) { this.securityGroupDetails = securityGroupDetails; }
 
 }
