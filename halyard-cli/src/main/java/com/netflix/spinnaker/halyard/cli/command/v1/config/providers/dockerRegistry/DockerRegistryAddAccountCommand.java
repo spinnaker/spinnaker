@@ -77,6 +77,7 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
         .setRepositories(repositories)
         .setPassword(password)
         .setPasswordFile(passwordFile)
+        .setUsername(username)
         .setEmail(email);
 
     return account;
