@@ -280,6 +280,20 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         '--kube_credentials',
         dest='spinnaker_kubernetes_account',
         help='DEPRECATED. Replaced by --spinnaker_kubernetes_account')
+    
+  @classmethod
+  def _initAppengineOperationConfigurationParameters(cls, parser, defaults):
+    """Initialize arguments for configuring operations for App Engine.
+    
+      parser: [argparse.ArgumentParser]
+      defaults: [dict] Default binding value overrides.
+         This is used to initialize the default commandline parameters.      
+    """
+    parser.add_argument(
+      '--spinnaker_appengine_account',
+      default=defaults.get('SPINNAKER_APPENGINE_ACCOUNT', None),
+      help='Spinnaker account name to use for test operations against'
+           'App Engine. Only used when managing resources on App Engine.')
 
   @classmethod
   def _initOperationConfigurationParameters(cls, parser, defaults):
@@ -300,6 +314,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     cls._initGoogleOperationConfigurationParameters(parser, defaults)
     cls._initAwsOperationConfigurationParameters(parser, defaults)
     cls._initKubeOperationConfigurationParameters(parser, defaults)
+    cls._initAppengineOperationConfigurationParameters(parser, defaults)
 
   @classmethod
   def _initObservationConfigurationParameters(cls, parser, defaults):
@@ -318,6 +333,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     parser.add_argument(
         '--aws_profile', default=defaults.get('AWS_PROFILE', None),
         help='aws command-line tool --profile parameter when observing AWS.')
+    
+    parser.add_argument(
+        '--appengine_credentials_path',
+        default=defaults.get('APPENGINE_CREDENTIALS_PATH', None),
+        help='A path to the JSON file with credentials to use for observing'
+             ' tests run against Google App Engine. Defaults to the value set for'
+             '--gce_credentials_path, which defaults to application default credentials.')
 
 
   @classmethod
@@ -351,6 +373,11 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
   def aws_observer(self):
     """The observer for inspecting AWS platform state, if configured."""
     return self.__aws_observer
+  
+  @property
+  def appengine_observer(self):
+    """The observer for inspecting App Engine platform state, if configured."""
+    return self.__appengine_observer
 
   def __init__(self, bindings, agent=None):
     """Constructor
@@ -368,6 +395,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       self.__init_google_bindings()
       self.__init_aws_bindings()
       self.__init_kubernetes_bindings()
+      self.__init_appengine_bindings()
       self._do_init_bindings()
     except:
       logger = logging.getLogger(__name__)
@@ -461,6 +489,16 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       self.__kube_observer = kube.KubeCtlAgent()
     else:
       self.__kube_observer = None
+      
+  def __init_appengine_bindings(self):
+    bindings = self.bindings
+    if bindings.get('SPINNAKER_APPENGINE_ACCOUNT'):
+      self.__appengine_observer = gcp.GcpAppengineAgent.make_agent(
+        scopes=(gcp.APPENGINE_FULL_SCOPE if bindings['APPENGINE_CREDENTIALS_PATH'] else None),
+        credentials_path=bindings['APPENGINE_CREDENTIALS_PATH'], 
+        default_variables={'project': bindings['APPENGINE_PRIMARY_MANAGED_PROJECT_ID']})
+    else:
+      self.__appengine_observer = None
 
   def __update_bindings_with_subsystem_configuration(self, agent):
     """Helper function for setting agent bindings from actual configuration.
@@ -496,6 +534,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     if not self.bindings['SPINNAKER_AWS_ACCOUNT']:
       self.bindings['SPINNAKER_AWS_ACCOUNT'] = self.agent.deployed_config.get(
           'providers.aws.primaryCredentials.name', None)
+      
+    if not self.bindings['SPINNAKER_APPENGINE_ACCOUNT']:
+      self.bindings['SPINNAKER_APPENGINE_ACCOUNT'] = self.agent.deployed_config.get(
+          'providers.appengine.primaryCredentials.name', None)
 
     if not self.bindings['AWS_IAM_ROLE']:
       self.bindings['AWS_IAM_ROLE'] = self.agent.deployed_config.get(
@@ -510,3 +552,15 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         # But if that wasnt defined then default to the subsystem's project.
         self.bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
             self.bindings['GCE_PROJECT'])
+        
+    if not self.bindings.get('APPENGINE_PRIMARY_MANAGED_PROJECT_ID'):
+      self.bindings['APPENGINE_PRIMARY_MANAGED_PROJECT_ID'] = (
+        self.agent.deployed_config.get(
+          'providers.appengine.primaryCredentials.project', None))
+      # Fall back on Google project and credentials.
+      if not self.bindings['APPENGINE_PRIMARY_MANAGED_PROJECT_ID']:
+        self.bindings['APPENGINE_PRIMARY_MANAGED_PROJECT_ID'] = (
+          self.bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'])
+        self.bindings['APPENGINE_CREDENTIALS_PATH'] = self.bindings['GCE_CREDENTIALS_PATH']
+        
+      
