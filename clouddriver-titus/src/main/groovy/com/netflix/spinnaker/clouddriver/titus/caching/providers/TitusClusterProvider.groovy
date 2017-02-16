@@ -30,7 +30,6 @@ import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.model.TitusCluster
 import com.netflix.spinnaker.clouddriver.titus.model.TitusInstance
-import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import com.netflix.spinnaker.clouddriver.titus.model.TitusServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -156,7 +155,6 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     serverGroup.placement.account = account
     serverGroup.placement.region = region
     serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
-    resolveAwsDetails([:], serverGroup)
     serverGroup
   }
 
@@ -212,13 +210,11 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     Collection<CacheData> allInstances = resolveRelationshipDataForCollection(serverGroupData, INSTANCES.ns, RelationshipCacheFilter.none())
     Map<String, TitusInstance> instances = translateInstances(allInstances)
 
-    def titusSecurityGroupCache = [:]
     Map<String, TitusServerGroup> serverGroups = serverGroupData.collectEntries { serverGroupEntry ->
       String json = objectMapper.writeValueAsString(serverGroupEntry.attributes.job)
       Job job = objectMapper.readValue(json, Job)
       TitusServerGroup serverGroup = new TitusServerGroup(job, serverGroupEntry.attributes.account, serverGroupEntry.attributes.region)
       serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) } as Set
-      resolveAwsDetails(titusSecurityGroupCache, serverGroup)
       [(serverGroupEntry.id): serverGroup]
     }
     serverGroups
@@ -270,17 +266,6 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
   private Collection<CacheData> resolveRelationshipData(CacheData source, String relationship, Closure<Boolean> relFilter) {
     Collection<String> filteredRelationships = source.relationships[relationship]?.findAll(relFilter)
     filteredRelationships ? cacheView.getAll(relationship, filteredRelationships) : []
-  }
-
-  private void resolveAwsDetails(Map<String, TitusSecurityGroup> titusSecurityGroupCache,
-                                 TitusServerGroup serverGroup) {
-    Set<TitusSecurityGroup> securityGroups = awsLookupUtil.lookupSecurityGroupNames(
-      titusSecurityGroupCache, serverGroup.placement.account, serverGroup.placement.region, serverGroup.securityGroups
-    )
-    serverGroup.instances.each {
-      it.securityGroups = securityGroups
-    }
-    serverGroup.securityGroupDetails = securityGroups
   }
 
 }

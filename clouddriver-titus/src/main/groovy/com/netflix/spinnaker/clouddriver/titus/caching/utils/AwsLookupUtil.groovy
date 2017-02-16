@@ -50,7 +50,7 @@ class AwsLookupUtil {
   Set<TitusSecurityGroup> lookupSecurityGroupNames(Map<String, TitusSecurityGroup> titusSecurityGroupLookupCache,
                                                    String account,
                                                    String region,
-                                                   LinkedHashSet<String> securityGroups) {
+                                                   List<String> securityGroups) {
     Set<TitusSecurityGroup> expandedGroups = new LinkedHashSet<TitusSecurityGroup>()
     securityGroups.each { securityGroupId ->
       def titusSecurityGroupLookupCacheId = "${account}-${region}-${securityGroupId}".toString()

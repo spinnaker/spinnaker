@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.caching
+
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -23,12 +24,14 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
+import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusClusterCachingAgent
-import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusInstanceCachingAgent
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
+
+import javax.inject.Provider
 
 @Configuration
 class TitusCachingProviderConfig {
@@ -39,13 +42,16 @@ class TitusCachingProviderConfig {
                                             Registry registry,
                                             AccountCredentialsRepository accountCredentialsRepository,
                                             TitusClientProvider titusClientProvider,
-                                            ObjectMapper objectMapper) {
+                                            ObjectMapper objectMapper,
+                                            Provider<AwsLookupUtil> awsLookupUtilProvider
+  ) {
     List<CachingAgent> agents = []
-    def allAccounts = accountCredentialsRepository.all.findAll { it instanceof NetflixTitusCredentials } as Collection<NetflixTitusCredentials>
+    def allAccounts = accountCredentialsRepository.all.findAll {
+      it instanceof NetflixTitusCredentials
+    } as Collection<NetflixTitusCredentials>
     allAccounts.each { NetflixTitusCredentials account ->
       account.regions.each { region ->
-        agents << new TitusClusterCachingAgent(titusCloudProvider, titusClientProvider, account, region.name, objectMapper, registry)
-        agents << new TitusInstanceCachingAgent(titusClientProvider, account, region.name, objectMapper)
+        agents << new TitusClusterCachingAgent(titusCloudProvider, titusClientProvider, account, region.name, objectMapper, registry, awsLookupUtilProvider)
       }
     }
     new TitusCachingProvider(agents)
