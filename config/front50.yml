@@ -52,8 +52,7 @@ spinnaker:
     enabled: ${services.front50.azs.enabled:false}
     storageAccountName: ${services.front50.azs.storageAccountName}
     storageAccountKey: ${services.front50.azs.storageAccountKey}
-    storageContainerName: ${services.front50.azs.storageContainerName:spinnaker}
-    rootFolder: ${services.front50.azs.rootFolder:front50}
+    storageContainerName: ${services.front50.azs.storageContainerName:front50}
 
 spectator:
   applicationName: ${spring.application.name}
