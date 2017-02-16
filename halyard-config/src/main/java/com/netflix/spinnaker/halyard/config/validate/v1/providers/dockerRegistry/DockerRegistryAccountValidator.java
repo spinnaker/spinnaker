@@ -99,25 +99,32 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
       return;
     }
 
-    try {
-      credentials.getCredentials().getClient().checkV2Availability();
-    } catch (Exception e) {
-      p.addProblem(Severity.ERROR, "Failed to assert docker registry v2 availability for registry \"" + n.getName() + "\" at address " + n.getAddress() + ": " + e.getMessage() + ".")
-        .setRemediation("Make sure that the " + credentials.getV2Endpoint() + " is reachable, and that your credentials are correct.");
-    }
-
-    try {
-      if (n.getRepositories() == null || n.getRepositories().size() == 0) {
+    if (n.getRepositories() == null || n.getRepositories().size() == 0) {
+      try {
         DockerRegistryCatalog catalog = credentials.getCredentials().getClient().getCatalog();
 
         if (catalog.getRepositories() == null || catalog.getRepositories().size() == 0) {
           p.addProblem(Severity.ERROR, "Your docker registry has no repositories specified, and the registry's catalog is empty.")
-            .setRemediation("Manually specify some repositories for this docker registry to index.");
+              .setRemediation("Manually specify some repositories for this docker registry to index.");
         }
+      } catch (Exception e) {
+        p.addProblem(Severity.ERROR, "Unable to connect the registries catalog endpoint: " + e.getMessage() + ".")
+            .setRemediation("Manually specify some repositories for this docker registry to index.");
       }
-    } catch (Exception e) {
-      p.addProblem(Severity.ERROR, "Unable to connect the registries catalog endpoint: " + e.getMessage() + ".")
-        .setRemediation("Manually specify some repositories for this docker registry to index.");
+    } else {
+      try {
+        // effectively final
+        int tagCount[] = new int[1];
+        tagCount[0] = 0;
+        n.getRepositories().forEach(r -> tagCount[0] += credentials.getCredentials().getClient().getTags(r).getTags().size());
+        if (tagCount[0] == 0) {
+          p.addProblem(Severity.WARNING, "None of your supplied repositories contain any tags. Spinnaker will not be able to deploy anything.")
+              .setRemediation("Push some images to your registry.");
+        }
+      } catch (Exception e) {
+        p.addProblem(Severity.ERROR, "Unable to reach repository: " +  e.getMessage() + ".")
+            .setRemediation("Make sure this repository exists in your registry.");
+      }
     }
   }
 }
