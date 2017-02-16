@@ -72,8 +72,23 @@ class JedisTaskRepository implements TaskRepository {
 
   @Override
   Task getByClientRequestId(String clientRequestId) {
-    String existingTask = jedis { it.get(getClientRequestKey(clientRequestId)) }
-    return get(existingTask)
+    final String clientRequestKey = getClientRequestKey(clientRequestId)
+    def lookupByClientRequestKey = { Jedis jedis -> jedis.get(clientRequestKey) }
+    String existingTask = jedis(lookupByClientRequestKey)
+    if (!existingTask) {
+      if (jedisPoolPrevious.isPresent()) {
+        try {
+          existingTask = jedisWithPool(jedisPoolPrevious.get(), lookupByClientRequestKey)
+        } catch (Exception e) {
+          //failed to hit old jedis, lets not blow up on that
+          existingTask = null
+        }
+      }
+    }
+    if (existingTask) {
+      return get(existingTask)
+    }
+    return null
   }
 
   private String getClientRequestKey(String clientRequestId) {
@@ -86,7 +101,12 @@ class JedisTaskRepository implements TaskRepository {
     Map<String, String> taskMap = jedis getTask
     boolean oldTask = jedisPoolPrevious.isPresent() && (taskMap == null || taskMap.isEmpty())
     if (oldTask) {
-      taskMap = jedisWithPool(jedisPoolPrevious.get(), getTask)
+      try {
+        taskMap = jedisWithPool(jedisPoolPrevious.get(), getTask)
+      } catch (Exception e) {
+        //failed to hit old jedis, lets not blow up on that
+        return null
+      }
     }
     if (taskMap.id && taskMap.startTimeMs) {
       return new JedisTask(
