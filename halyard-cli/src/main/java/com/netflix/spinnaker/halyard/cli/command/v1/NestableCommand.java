@@ -230,22 +230,13 @@ public abstract class NestableCommand {
     JarResource completorBody = new JarResource("/hal-completor-body");
     Map<String, String> bindings = new HashMap<>();
 
-    String body = aggregateCompletorCases();
+    String body = commandCompletorCase(0);
     bindings.put("body", body);
 
     return completorBody.setBindings(bindings).toString();
   }
 
-  private String aggregateCompletorCases() {
-    String result = commandCompletorCase();
-
-    return subcommands.entrySet()
-        .stream()
-        .map(c -> c.getValue().aggregateCompletorCases())
-        .reduce(result, (a, b) -> a + b);
-  }
-
-  private String commandCompletorCase() {
+  private String commandCompletorCase(int depth) {
     JarResource completorCase = new JarResource("/hal-completor-case");
     Map<String, String> bindings = new HashMap<>();
     String flagNames = commander.getParameters()
@@ -261,6 +252,15 @@ public abstract class NestableCommand {
     bindings.put("subcommands", subcommandNames);
     bindings.put("flags", flagNames);
     bindings.put("command", getCommandName());
+    bindings.put("depth", depth + "");
+    bindings.put("next", (depth + 1) + "");
+
+    String subCases = subcommands.entrySet()
+        .stream()
+        .map(c -> c.getValue().commandCompletorCase(depth + 1))
+        .reduce("", (a, b) -> a + b);
+
+    bindings.put("recurse", subCases.isEmpty() ? ":" : subCases);
 
     return completorCase.setBindings(bindings).toString();
   }
