@@ -12,8 +12,8 @@ if [ -z `getent passwd spinnaker` ]; then
 fi
 
 
-echo '#!/usr/bin/env bash' | sudo tee /usr/local/bin/hal
-echo '/opt/halyard/bin/hal "$@"' | sudo tee /usr/local/bin/hal
+echo '#!/usr/bin/env bash' | sudo tee /usr/local/bin/hal > /dev/null
+echo '/opt/halyard/bin/hal "$@"' | sudo tee /usr/local/bin/hal > /dev/null
 
 chmod +x /usr/local/bin/hal
 
