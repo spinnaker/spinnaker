@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.halyard.config.model.v1.security.Authn;
+import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -98,6 +101,17 @@ public class NodeFilter implements Cloneable {
 
   public NodeFilter setPersistentStorage() {
     matchers.add(Node.thisNodeAcceptor(PersistentStorage.class));
+    return this;
+  }
+
+  public NodeFilter setSecurity() {
+    matchers.add(Node.thisNodeAcceptor(Security.class));
+    return this;
+  }
+
+  public NodeFilter setOAuth2() {
+    matchers.add(Node.thisNodeAcceptor(Authn.class));
+    matchers.add(Node.thisNodeAcceptor(OAuth2.class));
     return this;
   }
 

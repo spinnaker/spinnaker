@@ -17,19 +17,13 @@
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
-
-import java.util.List;
-
-import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
-import retrofit.http.Body;
-import retrofit.http.DELETE;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.PUT;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit.http.*;
+
+import java.util.List;
 
 public interface DaemonService {
   @GET("/v1/tasks/{uuid}/")
@@ -83,18 +77,11 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
-
   @PUT("/v1/config/deployments/{deploymentName}/features/")
   DaemonTask<Halconfig, Void> setFeatures(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body Features features);
-
-  @GET("/v1/config/deployments/{deploymentName}/persistentStorage/")
-  DaemonTask<Halconfig, PersistentStorage> getPersistentStorage(
-      @Path("deploymentName") String deploymentName,
-      @Query("validate") boolean validate);
-
 
   @PUT("/v1/config/deployments/{deploymentName}/persistentStorage/")
   DaemonTask<Halconfig, Void> setPersistentStorage(
@@ -142,6 +129,33 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
+      @Query("validate") boolean validate);
+
+  @GET("/v1/config/deployments/{deploymentName}/security/")
+  DaemonTask<Halconfig, Security> getSecurity(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/")
+  DaemonTask<Halconfig, Void> setSecurity(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body Security security);
+
+  @GET("/v1/config/deployments/{deploymentName}/security/authn/oauth2/")
+  DaemonTask<Halconfig, OAuth2> getOAuth2(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/authn/oauth2/")
+  DaemonTask<Halconfig, Void> setOAuth2(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body OAuth2 security);
+
+  @GET("/v1/config/deployments/{deploymentName}/persistentStorage/")
+  DaemonTask<Halconfig, PersistentStorage> getPersistentStorage(
+      @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
   @GET("/v1/versions/")

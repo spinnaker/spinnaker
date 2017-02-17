@@ -19,6 +19,8 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.RestAdapter;
@@ -92,6 +94,24 @@ public class Daemon {
 
   public static String deployDeploymentPlan(String deploymentName, boolean validate) {
     return ResponseUnwrapper.get(getService().deployDeploymentPlan(deploymentName, validate));
+  }
+
+  public static Security getSecurity(String deploymentName, boolean validate) {
+    Object rawSecurity = ResponseUnwrapper.get(getService().getSecurity(deploymentName, validate));
+    return getObjectMapper().convertValue(rawSecurity, Security.class);
+  }
+
+  public static void setSecurity(String deploymentName, boolean validate, Security security) {
+    ResponseUnwrapper.get(getService().setSecurity(deploymentName, validate, security));
+  }
+
+  public static OAuth2 getOAuth2(String deploymentName, boolean validate) {
+    Object rawOAuth2 = ResponseUnwrapper.get(getService().getOAuth2(deploymentName, validate));
+    return getObjectMapper().convertValue(rawOAuth2, OAuth2.class);
+  }
+
+  public static void setOAuth2(String deploymentName, boolean validate, OAuth2 oauth2) {
+    ResponseUnwrapper.get(getService().setOAuth2(deploymentName, validate, oauth2));
   }
 
   public static <C, T> DaemonTask<C, T> getTask(String uuid) {

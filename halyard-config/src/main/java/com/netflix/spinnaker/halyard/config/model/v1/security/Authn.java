@@ -41,5 +41,12 @@ public class Authn extends Node {
     return NodeIteratorFactory.makeEmptyIterator();
   }
 
+  private OAuth2 OAuth2 = new OAuth2();
   private boolean enabled;
+
+  public boolean isEnabled() {
+    return getOAuth2().isEnabled();
+  }
+
+  public void setEnabled(boolean _ignored) {}
 }

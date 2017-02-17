@@ -42,14 +42,6 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
   private Boolean chaos = null;
 
   @Parameter(
-      names = "--auth",
-      description = "Enable authentication. This assumes you have followed the steps here: "
-          + "http://www.spinnaker.io/docs/securing-spinnaker.",
-      arity = 1
-  )
-  private Boolean auth = null;
-
-  @Parameter(
       names = "--fiat",
       description = "Enable Fiat (Spinnaker's access-control system). This assumes you have followed the steps here: "
           + "http://www.spinnaker.io/docs/securing-spinnaker.",
@@ -71,7 +63,6 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
     Features features = Daemon.getFeatures(currentDeployment, !noValidate);
 
     features.setChaos(chaos != null ? chaos : features.isChaos());
-    features.setAuth(auth != null ? auth : features.isAuth());
     features.setFiat(fiat != null ? fiat : features.isFiat());
     features.setJobs(jobs != null ? jobs : features.isJobs());
 

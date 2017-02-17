@@ -63,7 +63,7 @@ public class DeckProfile extends SpinnakerProfile {
     bindings.put("timezone", deploymentConfiguration.getTimezone());
 
     // Configure feature-flags
-    bindings.put("features.auth", Boolean.toString(features.isAuth()));
+    bindings.put("features.auth", Boolean.toString(features.isAuth(deploymentConfiguration)));
     bindings.put("features.chaos", Boolean.toString(features.isChaos()));
     bindings.put("features.fiat", Boolean.toString(features.isFiat()));
     bindings.put("features.jobs", Boolean.toString(features.isJobs()));

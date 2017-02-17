@@ -79,7 +79,8 @@ public class DeploymentService {
         .withAnyProvider()
         .withAnyAccount()
         .setPersistentStorage()
-        .setFeatures();
+        .setFeatures()
+        .setSecurity();
 
     return validateService.validateMatchingFilter(filter);
   }
@@ -90,7 +91,8 @@ public class DeploymentService {
         .withAnyProvider()
         .withAnyAccount()
         .setPersistentStorage()
-        .setFeatures();
+        .setFeatures()
+        .setSecurity();
 
     return validateService.validateMatchingFilter(filter);
   }

@@ -12,17 +12,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.node;
+package com.netflix.spinnaker.halyard.config.model.v1.security;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class Features extends Node {
+public class OAuth2 extends Node {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
@@ -30,7 +33,7 @@ public class Features extends Node {
 
   @Override
   public String getNodeName() {
-    return "features";
+    return "oauth2";
   }
 
   @Override
@@ -38,13 +41,31 @@ public class Features extends Node {
     return NodeIteratorFactory.makeEmptyIterator();
   }
 
-  private boolean auth;
-  private boolean fiat;
-  private boolean chaos;
-  private boolean entityTags;
-  private boolean jobs;
+  private boolean enabled;
+  private Client client = new Client();
+  private UserInfoRequirements userInfoRequirements = new UserInfoRequirements();
+  private Provider provider = null;
 
-  public boolean isAuth(DeploymentConfiguration deploymentConfiguration) {
-    return deploymentConfiguration.getSecurity().getAuthn().isEnabled();
+  @Data
+  public static class Client {
+    private String clientId;
+    private String clientSecret;
+  }
+
+  @Data
+  public static class UserInfoRequirements {
+    private String hd;
+  }
+
+  public enum Provider {
+    AZURE("azure"),
+    GITHUB("github"),
+    GOOGLE("google");
+
+    private String id;
+
+    Provider(String id) {
+      this.id = id;
+    }
   }
 }
