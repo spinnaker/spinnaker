@@ -16,33 +16,31 @@
 
 package com.netflix.spinnaker.orca.listeners
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 class ExecutionPropagationListenerSpec extends Specification {
+
+  @Subject
+  def listener = new ExecutionPropagationListener()
   def persister = Mock(Persister)
-  def execution = Mock(Execution) {
-    _ * getId() >> { return "1" }
-  }
 
-  void "beforeExecution should mark as RUNNING"() {
-    given:
-    def listener = new ExecutionPropagationListener()
-
+  def "beforeExecution should mark as RUNNING"() {
     when:
     listener.beforeExecution(persister, execution)
 
     then:
     1 * persister.updateStatus("1", RUNNING)
+
+    where:
+    execution = Pipeline.builder().withId("1").build()
   }
 
-  void "afterExecution should update execution status"() {
-    given:
-    def listener = new ExecutionPropagationListener()
-
+  @Unroll
+  def "afterExecution should update execution status to #expectedExecutionStatus if last stage is #sourceExecutionStatus"() {
     when:
     listener.afterExecution(persister, execution, sourceExecutionStatus, true)
 
@@ -55,5 +53,36 @@ class ExecutionPropagationListenerSpec extends Specification {
     CANCELED              || CANCELED
     STOPPED               || SUCCEEDED // treat STOPPED as a non-failure
     null                  || TERMINAL  // if no source execution status can be derived, consider the execution TERMINAL
+
+    execution = Pipeline.builder().withId("1").build()
+  }
+
+  @Unroll
+  def "pipeline status is #expectedExecutionStatus if an earlier failed stage was set to #description the pipeline on failure"() {
+    given:
+    execution.namedStage("one").with {
+      status = branchStatus
+      context.completeOtherBranchesThenFail = completeOtherBranchesThenFail
+    }
+    execution.namedStage("two").status = SUCCEEDED
+
+    when:
+    listener.afterExecution(persister, execution, SUCCEEDED, branchStatus == SUCCEEDED)
+
+    then:
+    1 * persister.updateStatus(execution.id, expectedExecutionStatus)
+
+    where:
+    branchStatus | completeOtherBranchesThenFail || expectedExecutionStatus
+    STOPPED      | true                          || TERMINAL
+    STOPPED      | false                         || SUCCEEDED
+
+    description = completeOtherBranchesThenFail ? "fail" : "pass"
+
+    execution = Pipeline
+      .builder()
+      .withId("1")
+      .withStages("one", "two")
+      .build()
   }
 }
