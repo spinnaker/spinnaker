@@ -25,7 +25,6 @@ set -u
 AWS_DIR=/home/spinnaker/.aws
 KUBE_DIR=/home/spinnaker/.kube
 KUBE_VERSION=v1.3.4
-GCLOUD_VERSION=125.0.0
 # Google Container Registry (GCR) password file directory.
 GCR_DIR=/home/spinnaker/.gcr
 SPINNAKER_INSTALL_DIR=/opt/spinnaker
@@ -370,8 +369,6 @@ process_args
 # Otherwise it would be running with the wrong (old/default) configuration.
 echo "Stopping spinnaker while we configure it."
 stop spinnaker || true
-
-gcloud -q components update --version $GCLOUD_VERSION --no-user-output-enabled
 
 echo "$STATUS_PREFIX  Configuring Default Values"
 write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
