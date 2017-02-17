@@ -5,20 +5,20 @@ let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
-
+import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   require('angular-ui-router'),
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
-  require('core/modal/wizard/modalWizard.service.js'),
+  V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
   require('core/search/search.service.js'),
 ])
   .controller('cfCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                    application, loadBalancer, isNew,
                                                    accountService, cfLoadBalancerTransformer,
-                                                   searchService, modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
+                                                   searchService, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
 
     var ctrl = this;
 

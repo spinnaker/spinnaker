@@ -10,7 +10,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector', [
   require('./costFactor.js'),
   require('../../../presentation/isVisible/isVisible.directive.js'),
-  require('../../../modal/wizard/modalWizard.service.js'),
   V2_MODAL_WIZARD_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
 ])
@@ -26,7 +25,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
     };
   })
   .controller('v2InstanceArchetypeSelectorCtrl', function($scope, instanceTypeService, infrastructureCaches,
-                                                        serverGroupConfigurationService, modalWizardService,
+                                                        serverGroupConfigurationService,
                                                         v2modalWizardService, $log, cloudProviderRegistry) {
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
@@ -68,19 +67,9 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
 
     this.updateInstanceType = () => {
       if ($scope.command.instanceType) {
-        try {
-          v2modalWizardService.markComplete('instance-type');
-        } catch (e) {
-          $log.warn('DEV NOTE: Using deprecated wizard service; consider upgrading to v2 modal wizard');
-          modalWizardService.getWizard().markComplete('instance-type');
-        }
+        v2modalWizardService.markComplete('instance-type');
       } else {
-        try {
-          v2modalWizardService.markIncomplete('instance-type');
-        } catch (e) {
-          $log.warn('DEV NOTE: Using deprecated wizard service; consider upgrading to v2 modal wizard');
-          modalWizardService.getWizard().markIncomplete('instance-type');
-        }
+        v2modalWizardService.markIncomplete('instance-type');
       }
     };
 
