@@ -50,6 +50,11 @@ class EntityTagsController {
     return taggedEntityDAO?.all(prefix, 100) ?: []
   }
 
+  @RequestMapping(method = RequestMethod.GET)
+  Set<EntityTags> findAllById(@RequestParam(value = "entityIds", required = true) Collection<String> entityIds) {
+    return entityIds.findResults { taggedEntityDAO.findById(it) }
+  }
+
   @RequestMapping(value = "/**", method = RequestMethod.GET)
   EntityTags tag(HttpServletRequest request) {
     String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
@@ -72,13 +77,13 @@ class EntityTagsController {
   }
 
   @RequestMapping(value = "/batchUpdate", method = RequestMethod.POST)
-  void batchUpdate(@RequestBody final Collection<EntityTags> tags, HttpServletResponse response) {
+  Collection<EntityTags> batchUpdate(@RequestBody final Collection<EntityTags> tags) {
     if (!taggedEntityDAO) {
       throw new BadRequestException("Tagging is not supported")
     }
 
     taggedEntityDAO.bulkImport(tags)
-    response.setStatus(HttpStatus.ACCEPTED.value())
+    return findAllById(tags.findResults { it.id })
   }
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/**")
