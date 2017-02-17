@@ -46,13 +46,19 @@ class EntityTagsController {
   EntityTagsDAO taggedEntityDAO
 
   @RequestMapping(method = RequestMethod.GET)
-  Set<EntityTags> tags(@RequestParam(value = "prefix", required = true) String prefix) {
+  Set<EntityTags> tags(@RequestParam(value = "prefix", required = false) String prefix,
+                       @RequestParam(value = "entityIds", required = false) Collection<String> entityIds) {
+    if (!prefix && !entityIds) {
+      throw new BadRequestException("Either 'prefix' or 'entityIds' parameter is required")
+    }
+    if (entityIds) {
+      return entityIds.findResults {
+        try {
+          taggedEntityDAO.findById(it)
+        } catch (ignored) {}
+      }
+    }
     return taggedEntityDAO?.all(prefix, 100) ?: []
-  }
-
-  @RequestMapping(method = RequestMethod.GET)
-  Set<EntityTags> findAllById(@RequestParam(value = "entityIds", required = true) Collection<String> entityIds) {
-    return entityIds.findResults { taggedEntityDAO.findById(it) }
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.GET)
