@@ -21,6 +21,11 @@ git remote add upstream git@github.com:spinnaker/halyard.git
   # approval.
 ```
 
+## Configuring Your Machine
+
+If you are developing on a mac, you will need [Xcode](https://developer.apple.com/xcode/) installed and you will need to open it once to agree to the license. 
+If you don't have it, you might see an error when you try to build the CLI (`xcrun: error: invalid active developer path`).
+
 ## Configuring IntelliJ
 
 In the project's root directory run:
