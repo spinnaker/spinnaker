@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -76,6 +76,28 @@ public class Providers extends Node implements Cloneable {
       return (Class<? extends Account>) Class.forName(accountClassName);
     } catch (ClassNotFoundException e) {
       throw new IllegalArgumentException("No account for class \"" + accountClassName + "\" found", e);
+    }
+  }
+
+  public static Class<? extends BakeryDefaults> translateBakeryDefaultsType(String providerName) {
+    Class<? extends Provider> providerClass = translateProviderType(providerName);
+
+    String bakeryDefaultsClassName = providerClass.getName().replaceAll("Provider", "BakeryDefaults");
+    try {
+      return (Class<? extends BakeryDefaults>) Class.forName(bakeryDefaultsClassName);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException("No bakeryDefaults for class \"" + bakeryDefaultsClassName + "\" found", e);
+    }
+  }
+
+  public static Class<? extends BaseImage> translateBaseImageType(String providerName) {
+    Class<? extends Provider> providerClass = translateProviderType(providerName);
+
+    String baseImageClassName = providerClass.getName().replaceAll("Provider", "BaseImage");
+    try {
+      return (Class<? extends BaseImage>) Class.forName(baseImageClassName);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException("No baseImage for class \"" + baseImageClassName + "\" found", e);
     }
   }
 }

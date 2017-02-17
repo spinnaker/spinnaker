@@ -15,23 +15,15 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes;
+package com.netflix.spinnaker.halyard.config.validate.v1.providers.google;
 
-import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractAccountCommand;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleBakeryDefaults;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
-/**
- * Interact with the kubernetes provider's accounts
- */
-@Parameters()
-public class KubernetesAccountCommand extends AbstractAccountCommand {
-  protected String getProviderName() {
-    return "kubernetes";
-  }
-
-  public KubernetesAccountCommand() {
-    super();
-    registerSubcommand(new KubernetesAddAccountCommand());
-    registerSubcommand(new KubernetesEditAccountCommand());
+public class GoogleBakeryDefaultsValidator extends Validator<GoogleBakeryDefaults> {
+  @Override
+  public void validate(ConfigProblemSetBuilder p, GoogleBakeryDefaults n) {
+    // TODO(duftler)
   }
 }

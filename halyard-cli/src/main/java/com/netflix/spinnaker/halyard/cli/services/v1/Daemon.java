@@ -40,6 +40,15 @@ public class Daemon {
     ResponseUnwrapper.get(getService().setDeploymentEnvironment(deploymentName, validate, deploymentEnvironment));
   }
 
+  public static BakeryDefaults getBakeryDefaults(String deploymentName, String providerName, boolean validate) {
+    Object rawBakeryDefaults = ResponseUnwrapper.get(getService().getBakeryDefaults(deploymentName, providerName, validate));
+    return getObjectMapper().convertValue(rawBakeryDefaults, BakeryDefaults.class);
+  }
+
+  public static void setBakeryDefaults(String deploymentName, String providerName, boolean validate, BakeryDefaults bakeryDefaults) {
+    ResponseUnwrapper.get(getService().setBakeryDefaults(deploymentName, providerName, validate, bakeryDefaults));
+  }
+
   public static Features getFeatures(String deploymentName, boolean validate) {
     Object rawFeatures = ResponseUnwrapper.get(getService().getFeatures(deploymentName, validate));
     return getObjectMapper().convertValue(rawFeatures, Features.class);
@@ -56,6 +65,23 @@ public class Daemon {
 
   public static void setPersistentStorage(String deploymentName, boolean validate, PersistentStorage persistentStorage) {
     ResponseUnwrapper.get(getService().setPersistentStorage(deploymentName, validate, persistentStorage));
+  }
+
+  public static BaseImage getBaseImage(String deploymentName, String providerName, String baseImageId, boolean validate) {
+    Object rawBaseImage = ResponseUnwrapper.get(getService().getBaseImage(deploymentName, providerName, baseImageId, validate));
+    return getObjectMapper().convertValue(rawBaseImage, Providers.translateBaseImageType(providerName));
+  }
+
+  public static void addBaseImage(String deploymentName, String providerName, boolean validate, BaseImage baseImage) {
+    ResponseUnwrapper.get(getService().addBaseImage(deploymentName, providerName, validate, baseImage));
+  }
+
+  public static void setBaseImage(String deploymentName, String providerName, String baseImageId, boolean validate, BaseImage baseImage) {
+    ResponseUnwrapper.get(getService().setBaseImage(deploymentName, providerName, baseImageId, validate, baseImage));
+  }
+
+  public static void deleteBaseImage(String deploymentName, String providerName, String baseImageId, boolean validate) {
+    ResponseUnwrapper.get(getService().deleteBaseImage(deploymentName, providerName, baseImageId, validate));
   }
 
   public static Account getAccount(String deploymentName, String providerName, String accountName, boolean validate) {

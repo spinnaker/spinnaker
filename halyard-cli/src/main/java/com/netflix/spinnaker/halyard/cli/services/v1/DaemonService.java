@@ -158,6 +158,49 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
+  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/")
+  DaemonTask<Halconfig, Void> setBakeryDefaults(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Query("validate") boolean validate,
+      @Body BakeryDefaults bakeryDefaults);
+
+  @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/")
+  DaemonTask<Halconfig, Object> getBakeryDefaults(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Query("validate") boolean validate);
+
+  @POST("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/")
+  DaemonTask<Halconfig, Void> addBaseImage(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Query("validate") boolean validate,
+      @Body BaseImage baseImage);
+
+  @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/{baseImageId}/")
+  DaemonTask<Halconfig, Object> getBaseImage(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("baseImageId") String baseImageId,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/{baseImageId}/")
+  DaemonTask<Halconfig, Void> setBaseImage(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("baseImageId") String baseImageId,
+      @Query("validate") boolean validate,
+      @Body BaseImage baseImage);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/{baseImageId}/")
+  DaemonTask<Halconfig, Object> deleteBaseImage(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("baseImageId") String baseImageId,
+      @Query("validate") boolean validate);
+
+
   @GET("/v1/versions/")
   DaemonTask<Halconfig, Versions> getVersions();
 }

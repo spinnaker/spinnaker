@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws;
 
 import com.beust.jcommander.Parameter;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractEditAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
 

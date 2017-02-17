@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
@@ -39,6 +40,19 @@ public class ProviderService {
 
   @Autowired
   private ValidateService validateService;
+
+  public HasImageProvider getHasImageProvider(String deploymentName, String providerName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName);
+    Provider provider = getProvider(deploymentName, providerName);
+    if (provider instanceof HasImageProvider) {
+      return (HasImageProvider) provider;
+    } else {
+      throw new IllegalConfigException(
+          new ConfigProblemBuilder(
+              Severity.FATAL, "Provider \"" + providerName + "\" does not support configuring images via Halyard.").build()
+      );
+    }
+  }
 
   public Provider getProvider(String deploymentName, String providerName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName);

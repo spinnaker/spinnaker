@@ -12,9 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
@@ -23,18 +24,18 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-public class ListAccountsCommandBuilder implements CommandBuilder {
+public class GetAccountCommandBuilder implements CommandBuilder {
   @Setter
   String providerName;
 
   @Override
   public NestableCommand build() {
-    return new ListAccountsCommand(providerName);
+    return new GetAccountCommand(providerName);
   }
 
   @Parameters()
-  private static class ListAccountsCommand extends AbstractListAccountsCommand {
-    private ListAccountsCommand(String providerName) {
+  private static class GetAccountCommand extends AbstractGetAccountCommand {
+    private GetAccountCommand(String providerName) {
       this.providerName = providerName;
     }
 

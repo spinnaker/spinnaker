@@ -26,41 +26,19 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 
-public abstract class AbstractAccountCommand extends AbstractHasAccountCommand {
+public abstract class AbstractBakeryCommand extends AbstractHasAccountCommand {
   @Override
   public String getCommandName() {
-    return "account";
+    return "bakery";
   }
 
   @Override
   public String getDescription() {
-    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider's account";
-  }
-
-  protected AbstractAccountCommand() {
-    registerSubcommand(new DeleteAccountCommandBuilder()
-        .setProviderName(getProviderName())
-        .build()
-    );
-
-    registerSubcommand(new GetAccountCommandBuilder()
-        .setProviderName(getProviderName())
-        .build()
-    );
-
-    registerSubcommand(new ListAccountsCommandBuilder()
-        .setProviderName(getProviderName())
-        .build()
-    );
+    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider's image bakery configuration.";
   }
 
   @Override
   protected void executeThis() {
     showHelp();
-  }
-
-  private Account getAccount(String accountName) {
-    String currentDeployment = getCurrentDeployment();
-    return Daemon.getAccount(currentDeployment, getProviderName(), accountName, !noValidate);
   }
 }

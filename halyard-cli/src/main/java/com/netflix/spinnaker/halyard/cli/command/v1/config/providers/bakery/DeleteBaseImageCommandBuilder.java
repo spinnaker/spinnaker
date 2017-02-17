@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
@@ -24,18 +24,18 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-public class GetAccountCommandBuilder implements CommandBuilder {
+public class DeleteBaseImageCommandBuilder implements CommandBuilder {
   @Setter
   String providerName;
 
   @Override
   public NestableCommand build() {
-    return new GetAccountCommand(providerName);
+    return new DeleteBaseImageCommand(providerName);
   }
 
   @Parameters()
-  private static class GetAccountCommand extends AbstractGetAccountCommand {
-    private GetAccountCommand(String providerName) {
+  private static class DeleteBaseImageCommand extends AbstractDeleteBaseImageCommand {
+    private DeleteBaseImageCommand(String providerName) {
       this.providerName = providerName;
     }
 

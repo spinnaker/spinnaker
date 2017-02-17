@@ -115,6 +115,23 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter setBakeryDefaults() {
+    matchers.add(Node.thisNodeAcceptor(BakeryDefaults.class));
+    return this;
+  }
+
+  public NodeFilter setBaseImage(String name) {
+    matchers.add(Node.thisNodeAcceptor(BakeryDefaults.class));
+    matchers.add(Node.namedNodeAcceptor(BaseImage.class, name));
+    return this;
+  }
+
+  public NodeFilter withAnyBaseImage() {
+    matchers.add(Node.thisNodeAcceptor(BakeryDefaults.class));
+    matchers.add(Node.thisNodeAcceptor(BaseImage.class));
+    return this;
+  }
+
   public NodeFilter() {
     withAnyHalconfigFile();
   }

@@ -15,23 +15,24 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractAccountCommand;
 
-/**
- * Interact with the kubernetes provider's accounts
- */
-@Parameters()
-public class KubernetesAccountCommand extends AbstractAccountCommand {
-  protected String getProviderName() {
-    return "kubernetes";
-  }
+import lombok.Data;
 
-  public KubernetesAccountCommand() {
-    super();
-    registerSubcommand(new KubernetesAddAccountCommand());
-    registerSubcommand(new KubernetesEditAccountCommand());
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Data
+abstract public class BakeryDefaults<T extends BaseImage> extends Node {
+  final private String nodeName = "bakeryDefaults";
+
+  String templateFile;
+  List<T> baseImages = new ArrayList<>();
+
+  @Override
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeListIterator(baseImages.stream().map(b -> (Node) b).collect(Collectors.toList()));
   }
 }

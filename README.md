@@ -89,6 +89,42 @@ To delete an account, run:
 $ hal config provider PROVIDER account delete ACCOUNT-NAME
 ```
 
+If you want to see your provider's bakery configuration, run:
+
+```
+$ hal config provider PROVIDER bakery
+```
+
+If you want to see edit your provider's bakery default configuration, run:
+
+```
+$ hal config provider PROVIDER bakery edit [provider-specific flags]
+```
+
+If you want to examine only a particular images's configuration, run:
+
+```
+$ hal config provider PROVIDER bakery base-image get IMAGE-ID
+```
+
+To add an image, run:
+
+```
+$ hal config provider PROVIDER bakery base-image add IMAGE-ID [provider-specific flags]
+```
+
+To edit an image, run:
+
+```
+$ hal config provider PROVIDER bakery base-image edit IMAGE-ID [provider-specific flags]
+```
+
+To delete an image, run:
+
+```
+$ hal config provider PROVIDER bakery base-image delete IMAGE-ID
+```
+
 #### hal config deploy
 
 To show how your deployment of Spinnaker has been configured, run:
