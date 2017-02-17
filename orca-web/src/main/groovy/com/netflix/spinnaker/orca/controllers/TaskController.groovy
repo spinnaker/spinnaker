@@ -300,7 +300,9 @@ class TaskController {
 
   @RequestMapping(value = "/executions/activeByInstance", method = RequestMethod.GET)
   Map<String, Integer> activeExecutionsByInstance() {
-    activeExecutionTracker.activeExecutionsByInstance()
+    activeExecutionTracker
+      .activeExecutionsByInstance()
+      .sort { a, b -> b.value <=> a.value }
   }
 
   private List<Pipeline> filterPipelinesByHistoryCutoff(List<Pipeline> pipelines) {
