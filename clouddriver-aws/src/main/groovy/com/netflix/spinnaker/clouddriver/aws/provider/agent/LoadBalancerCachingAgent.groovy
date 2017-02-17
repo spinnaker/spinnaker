@@ -163,18 +163,24 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
     }
 
     def cacheResult = metricsSupport.transformData { buildCacheResult(loadBalancers, [:], System.currentTimeMillis(), []) }
-    metricsSupport.onDemandStore {
-      def cacheData = new DefaultCacheData(
-        Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null, null),
-        10 * 60,
-        [
-          cacheTime   : new Date(),
-          cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
-        ],
-        [:]
-      )
-      providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+    if (cacheResult.cacheResults.values().flatten().isEmpty()) {
+      // avoid writing an empty onDemand cache record (instead delete any that may have previously existed)
+      providerCache.evictDeletedItems(ON_DEMAND.ns, [Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String, null)])
+    } else {
+      metricsSupport.onDemandStore {
+        def cacheData = new DefaultCacheData(
+            Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null, null),
+            10 * 60,
+            [
+                cacheTime   : new Date(),
+                cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
+            ],
+            [:]
+        )
+        providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+      }
     }
+
     Map<String, Collection<String>> evictions = loadBalancers ? [:] : [
       (LOAD_BALANCERS.ns): [
         Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String, null)
