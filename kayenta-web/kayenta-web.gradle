@@ -16,8 +16,13 @@ configurations.all {
 }
 
 dependencies {
+  compile project(':kayenta-core')
+  compile project(':kayenta-google')
+  compile project(':kayenta-stackdriver')
+
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency("korkSwagger")
 }
 
 tasks.bootRepackage.enabled = project.repackage

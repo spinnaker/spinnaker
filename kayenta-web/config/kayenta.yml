@@ -1,0 +1,23 @@
+server:
+  port: 8090
+
+kayenta:
+  google:
+    enabled: false
+#    accounts:
+#      - name:
+#        project:
+#        jsonPath:
+#        supportedTypes:
+#          - METRICS_STORE
+  stackdriver:
+    enabled: false
+
+swagger:
+  enabled: true
+  title: Spinnaker Kayenta API
+  description:
+  contact:
+  patterns:
+    - /credentials.*
+    - /fetch.*

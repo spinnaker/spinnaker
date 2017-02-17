@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.kayenta;
 
+import com.netflix.spinnaker.kayenta.config.KayentaConfiguration;
+import com.netflix.spinnaker.kayenta.config.WebConfiguration;
+import com.netflix.spinnaker.kayenta.google.config.GoogleConfiguration;
+import com.netflix.spinnaker.kayenta.stackdriver.config.StackdriverConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
@@ -23,12 +27,17 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import java.security.Security;
 import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 
 @Configuration
+@Import({
+  GoogleConfiguration.class,
+  KayentaConfiguration.class,
+  StackdriverConfiguration.class,
+  WebConfiguration.class
+})
 @ComponentScan({
   "com.netflix.spinnaker.config",
 })
