@@ -1,8 +1,4 @@
 # halconfig
 
-server:
-  port: ${services.gate.port:8084}
-  address: ${services.gate.host:localhost}
-
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
