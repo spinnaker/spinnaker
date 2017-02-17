@@ -8,7 +8,7 @@
                style="width: 200px;"
                ng-model="$ctrl.requiredGroupMembership">
       <ui-select-match>{{$item}}</ui-select-match>
-      <ui-select-choices repeat="choice in []">
+      <ui-select-choices repeat="choice in $ctrl.availableRoles | orderBy">
           {{choice}}
       </ui-select-choices>
     </ui-select>

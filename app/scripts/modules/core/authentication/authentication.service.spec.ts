@@ -17,11 +17,15 @@ describe('authenticationService', function() {
       let user: IUser = authenticationService.getAuthenticatedUser();
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
-
-      authenticationService.setAuthenticatedUser('kato@example.com');
+      authenticationService.setAuthenticatedUser({
+        name: 'kato@example.com',
+        authenticated: false,
+        roles: ['roleA', 'RoleB']
+      });
       user = authenticationService.getAuthenticatedUser();
       expect(user.name).toBe('kato@example.com');
       expect(user.authenticated).toBe(true);
+      expect(user.roles).toEqual(['roleA', 'RoleB']);
     });
 
     it('disregards falsy values', function() {
@@ -34,7 +38,10 @@ describe('authenticationService', function() {
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
 
-      authenticationService.setAuthenticatedUser('');
+      authenticationService.setAuthenticatedUser({
+        name: '',
+        authenticated: false
+      });
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
     });
@@ -45,7 +52,10 @@ describe('authenticationService', function() {
       let firedEvents = 0;
       authenticationService.onAuthentication(() => firedEvents++);
       authenticationService.onAuthentication(() => firedEvents++);
-      authenticationService.setAuthenticatedUser('foo@bar.com');
+      authenticationService.setAuthenticatedUser({
+        name: 'foo@bar.com',
+        authenticated: false
+      });
       expect(authenticationService.getAuthenticatedUser().name).toBe('foo@bar.com');
       expect(firedEvents).toBe(2);
     });
