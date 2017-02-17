@@ -280,11 +280,11 @@ following:
 
 ```
 $ ./hal config provider docker-registry enable
-$ ./hal config provider docker-registry add-account my-dockerhub-account \
+$ ./hal config provider docker-registry account add my-dockerhub-account \
     --address index.docker.io \
     --repositories library/nginx
 $ ./hal config provider kubernetes enable
-$ ./hal config provider kubernetes add-account my-kubernetes-account \
+$ ./hal config provider kubernetes account add my-kubernetes-account \
     --docker-registries my-dockerhub-account
 $ cat ~/.hal/config
 $ ./hal config generate
