@@ -27,6 +27,16 @@
                name="failureOption"
                ng-model="$ctrl.viewState.failureOption"
                ng-change="$ctrl.failureOptionChanged()"
+               value="faileventual"/> halt this branch and fail the pipeline once other branches complete
+        <help-field key="pipeline.config.haltBranchOnFailureFailPipeline"/>
+      </label>
+    </div>
+    <div class="radio">
+      <label>
+        <input type="radio"
+               name="failureOption"
+               ng-model="$ctrl.viewState.failureOption"
+               ng-change="$ctrl.failureOptionChanged()"
                value="ignore"/> ignore the failure
         <help-field key="pipeline.config.ignoreFailure"/>
       </label>
