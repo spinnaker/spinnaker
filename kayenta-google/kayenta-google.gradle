@@ -1,0 +1,8 @@
+dependencies {
+  compile project(":kayenta-core")
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('lombok')
+  spinnaker.group('google')
+
+  compile 'com.google.apis:google-api-services-monitoring:v3-rev35-1.22.0'
+}
