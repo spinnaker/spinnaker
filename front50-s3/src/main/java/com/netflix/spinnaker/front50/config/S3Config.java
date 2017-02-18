@@ -142,6 +142,6 @@ public class S3Config {
 
   @Bean
   public EntityTagsDAO entityTagsDAO(StorageService storageService) {
-    return new DefaultEntityTagsDAO(storageService, null, -1);
+    return new DefaultEntityTagsDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), -1);
   }
 }

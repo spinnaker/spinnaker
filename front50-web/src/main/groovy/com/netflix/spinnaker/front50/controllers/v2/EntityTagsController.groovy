@@ -47,16 +47,12 @@ class EntityTagsController {
 
   @RequestMapping(method = RequestMethod.GET)
   Set<EntityTags> tags(@RequestParam(value = "prefix", required = false) String prefix,
-                       @RequestParam(value = "entityIds", required = false) Collection<String> entityIds) {
-    if (!prefix && !entityIds) {
-      throw new BadRequestException("Either 'prefix' or 'entityIds' parameter is required")
+                       @RequestParam(value = "ids", required = false) Collection<String> ids) {
+    if (!prefix && !ids) {
+      throw new BadRequestException("Either 'prefix' or 'ids' parameter is required")
     }
-    if (entityIds) {
-      return entityIds.findResults {
-        try {
-          taggedEntityDAO.findById(it)
-        } catch (ignored) {}
-      }
+    if (ids) {
+      return findAllByIds(ids)
     }
     return taggedEntityDAO?.all(prefix, 100) ?: []
   }
@@ -89,7 +85,7 @@ class EntityTagsController {
     }
 
     taggedEntityDAO.bulkImport(tags)
-    return findAllById(tags.findResults { it.id })
+    return findAllByIds(tags.findResults { it.id })
   }
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/**")
@@ -99,5 +95,13 @@ class EntityTagsController {
 
     taggedEntityDAO.delete(tagId)
     response.setStatus(HttpStatus.NO_CONTENT.value())
+  }
+
+  private Set<EntityTags> findAllByIds(Collection<String> ids) {
+    return ids.findResults {
+      try {
+        taggedEntityDAO.findById(it)
+      } catch (ignored) {}
+    }
   }
 }
