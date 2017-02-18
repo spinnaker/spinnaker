@@ -17,24 +17,24 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-class UpsertAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
+class UpsertAmazonLoadBalancerClassicDescriptionValidatorSpec extends Specification {
 
   @Shared
   CreateAmazonLoadBalancerDescriptionValidator validator
 
-  UpsertAmazonLoadBalancerDescription description
+  UpsertAmazonLoadBalancerClassicDescription description
 
   void setupSpec() {
     validator = new CreateAmazonLoadBalancerDescriptionValidator()
   }
 
   void setup() {
-    description = new UpsertAmazonLoadBalancerDescription(credentials: TestCredential.named('test'))
+    description = new UpsertAmazonLoadBalancerClassicDescription(credentials: TestCredential.named('test'))
   }
 
   void "empty parameters fails validation"() {

@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,18 +22,23 @@ import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRe
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
+import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.aws.TestCredential
 
-class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceLoadBalancerRegistrationUnitSpecSupport {
+class RegisterInstancesWithTargetGroupsAtomicOperationUnitSpec extends InstanceTargetGroupRegistrationUnitSpecSupport {
   def setupSpec() {
     description.credentials = TestCredential.named('test')
     description.instanceIds = ["i-123456"]
-    op = new RegisterInstancesWithLoadBalancerAtomicOperation(description) {
-      @Override LoadBalancerLookupHelper lookupHelper() {
-        return new LoadBalancerLookupHelper()
+    op = new RegisterInstancesWithTargetGroupAtomicOperation(description) {
+      @Override TargetGroupLookupHelper lookupHelper() {
+        return new TargetGroupLookupHelper()
       }
     }
   }
@@ -45,7 +50,7 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
     })
 
     def asg = Mock(AutoScalingGroup) {
-      1 * getLoadBalancerNames() >> ["lb1"]
+      1 * getTargetGroupARNs() >> ["tg1"]
       1 * getInstances() >> [new Instance().withInstanceId("i-123456")]
       0 * _._
     }
@@ -55,9 +60,9 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
 
     then:
     1 * asgService.getAutoScalingGroup(description.asgName) >> asg
-    1 * loadBalancing.registerInstancesWithLoadBalancer(_) >> { RegisterInstancesWithLoadBalancerRequest req ->
-      assert req.instances*.instanceId == description.instanceIds
-      assert req.loadBalancerName == "lb1"
+    1 * loadBalancingV2.registerTargets(_) >> { RegisterTargetsRequest req ->
+      assert req.targets*.id == description.instanceIds
+      assert req.targetGroupArn == "tg1"
     }
   }
 
@@ -69,7 +74,7 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
     })
 
     def asg = Mock(AutoScalingGroup) {
-      1 * getLoadBalancerNames() >> []
+      1 * getTargetGroupARNs() >> []
       1 * getInstances() >> description.instanceIds.collect { new Instance().withInstanceId(it) }
       0 * _._
     }
@@ -79,24 +84,24 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
 
     then:
     1 * asgService.getAutoScalingGroup(description.asgName) >> asg
-    0 * loadBalancing.registerInstancesWithLoadBalancer(_)
+    0 * loadBalancingV2.registerTargets(_)
   }
 
   void 'should use supplied load balancer names if no ASG specified'() {
     setup:
     description.asgName = null
     description.instanceIds = ['i-123456', 'i-234567']
-    description.loadBalancerNames = ['elb-1', 'elb-2']
+    description.targetGroupNames = ['tg-1', 'tg-2']
 
     when:
     op.operate([])
 
     then:
     0 * asgService.getAutoScalingGroup(_)
-    2 * loadBalancing.describeLoadBalancers(_) >> { DescribeLoadBalancersRequest r -> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName(r.loadBalancerNames[0]))}
-    2 * loadBalancing.registerInstancesWithLoadBalancer(_) >> { RegisterInstancesWithLoadBalancerRequest req ->
-      assert req.instances*.instanceId == description.instanceIds
-      assert description.loadBalancerNames.contains(req.loadBalancerName)
+    2 * loadBalancingV2.describeTargetGroups(_) >> { DescribeTargetGroupsRequest req -> new DescribeTargetGroupsResult().withTargetGroups(new TargetGroup().withTargetGroupName(req.getNames()[0]).withTargetGroupArn(req.getNames()[0]))}
+    2 * loadBalancingV2.registerTargets(_) >> { RegisterTargetsRequest req ->
+      assert req.targets*.id == description.instanceIds
+      assert description.targetGroupNames.contains(req.targetGroupArn)
     }
   }
 
@@ -104,13 +109,13 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
     setup:
     description.asgName = null
     description.instanceIds = ['i-123456', 'i-234567']
-    description.loadBalancerNames = null
+    description.targetGroupNames = null
 
     when:
     op.operate([])
 
     then:
     0 * asgService.getAutoScalingGroup(_)
-    0 * loadBalancing.registerInstancesWithLoadBalancer(_)
+    0 * loadBalancingV2.deregisterTargets(_)
   }
 }

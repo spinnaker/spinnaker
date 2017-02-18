@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,18 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerRequest
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.DeleteAmazonLoadBalancerAtomicOperation
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
+import com.amazonaws.services.elasticloadbalancingv2.model.DeleteLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult
+import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DeleteAmazonLoadBalancerAtomicOperationSpec extends Specification {
+class DeleteAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
   private static final String ACCOUNT = "test"
 
   def credz = Stub(NetflixAmazonCredentials) {
@@ -36,7 +38,7 @@ class DeleteAmazonLoadBalancerAtomicOperationSpec extends Specification {
   def description = new DeleteAmazonLoadBalancerDescription(loadBalancerName: "foo--frontend", regions: ["us-east-1"], credentials: credz)
 
   @Subject
-    op = new DeleteAmazonLoadBalancerAtomicOperation(description)
+    op = new DeleteAmazonLoadBalancerV2AtomicOperation(description)
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -44,17 +46,20 @@ class DeleteAmazonLoadBalancerAtomicOperationSpec extends Specification {
 
   void "should perform deletion when invoked"() {
     setup:
+    def loadBalancerArn = "foo:test"
     def loadBalancing = Mock(AmazonElasticLoadBalancing)
     def amazonClientProvider = Stub(AmazonClientProvider)
-    amazonClientProvider.getAmazonElasticLoadBalancing(credz, _, true) >> loadBalancing
+    amazonClientProvider.getAmazonElasticLoadBalancingV2(credz, _, true) >> loadBalancing
     op.amazonClientProvider = amazonClientProvider
 
     when:
     op.operate([])
 
     then:
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: [description.loadBalancerName])) >> new DescribeLoadBalancersResult(loadBalancers: [ new LoadBalancer(loadBalancerArn: loadBalancerArn) ])
     1 * loadBalancing.deleteLoadBalancer(_) >> { DeleteLoadBalancerRequest req ->
-      assert req.loadBalancerName == description.loadBalancerName
+      assert req.loadBalancerArn == loadBalancerArn
     }
+    0 * _
   }
 }
