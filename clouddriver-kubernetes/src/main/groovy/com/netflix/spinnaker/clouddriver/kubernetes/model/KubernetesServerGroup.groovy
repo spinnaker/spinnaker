@@ -76,7 +76,21 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   }
 
   Boolean isDisabled() {
-    this.labels ? !(this.labels.any { key, value -> KubernetesUtil.isLoadBalancerLabel(key) && value == "true" }) : false
+    if (replicas == 0) {
+      return true
+    }
+
+    if (labels) {
+      def lbCount = labels.count { key, value -> KubernetesUtil.isLoadBalancerLabel(key) }
+      if (lbCount == 0) {
+        return false
+      }
+
+      def enabledCount = labels.count { key, value -> KubernetesUtil.isLoadBalancerLabel(key) && value == "true" }
+      return enabledCount == 0
+    }
+
+    return false
   }
 
   KubernetesServerGroup() { }

@@ -69,20 +69,22 @@ class KubernetesServerGroupSpec extends Specification {
       serverGroup.instanceCounts.starting == 1
   }
 
-  void "Should list servergroup with no load balancers as disabled"() {
+  void "Should list servergroup with no load balancers as enabled"() {
     when:
       def serverGroup = new KubernetesServerGroup(new ReplicationController(), ACCOUNT, [], null)
       serverGroup.instances = [] as Set
+      serverGroup.replicas = 1
       serverGroup.labels = ["hi": "there"]
 
     then:
-      serverGroup.isDisabled()
+      !serverGroup.isDisabled()
   }
 
   void "Should list servergroup with no enabled load balancers as disabled"() {
     when:
       def serverGroup = new KubernetesServerGroup(new ReplicationController(), ACCOUNT, [], null)
       serverGroup.instances = [] as Set
+      serverGroup.replicas = 1
       serverGroup.labels = [(KubernetesUtil.loadBalancerKey("1")): "false"]
 
     then:
@@ -93,6 +95,7 @@ class KubernetesServerGroupSpec extends Specification {
     when:
       def serverGroup = new KubernetesServerGroup(new ReplicationController(), ACCOUNT, [], null)
       serverGroup.instances = [] as Set
+      serverGroup.replicas = 1
       serverGroup.labels = [(KubernetesUtil.loadBalancerKey("1")): "true"]
 
     then:
@@ -103,9 +106,21 @@ class KubernetesServerGroupSpec extends Specification {
     when:
       def serverGroup = new KubernetesServerGroup(new ReplicationController(), ACCOUNT, [], null)
       serverGroup.instances = [] as Set
+      serverGroup.replicas = 1
       serverGroup.labels = [(KubernetesUtil.loadBalancerKey("1")): "true", (KubernetesUtil.loadBalancerKey("2")): "false"]
 
     then:
       !serverGroup.isDisabled()
+  }
+
+  void "Should list servergroup with enabled load balancers but no instances as disabled"() {
+    when:
+    def serverGroup = new KubernetesServerGroup(new ReplicationController(), ACCOUNT, [], null)
+    serverGroup.instances = [] as Set
+    serverGroup.replicas = 0
+    serverGroup.labels = [(KubernetesUtil.loadBalancerKey("1")): "true"]
+
+    then:
+    serverGroup.isDisabled()
   }
 }
