@@ -36,11 +36,6 @@ public class Front50Profile extends SpringProfile {
   AccountService accountService;
 
   @Override
-  public String getProfileName() {
-    return "front50";
-  }
-
-  @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.FRONT50;
   }

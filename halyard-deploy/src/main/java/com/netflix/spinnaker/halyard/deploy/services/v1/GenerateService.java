@@ -133,12 +133,15 @@ public class GenerateService {
     Path path;
     for (SpinnakerProfile profile : spinnakerProfiles) {
       path = defaultFileSystem.getPath(spinnakerOutputPath, profile.getProfileFileName());
+      String artifactName = profile.getArtifact().getName();
+      String outputFileName = path.getFileName().toFile().getName();
+
       ProfileConfig config = profile.getFullConfig(deploymentName, endpoints);
-      log.info("Writing " + profile.getProfileName() + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
-      DaemonTaskHandler.log("Writing profile " + path.getFileName().toFile().getName());
+      log.info("Writing " + artifactName + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
+      DaemonTaskHandler.log("Writing profile " + outputFileName);
       atomicWrite(path, config.getConfigContents());
 
-      profileRequirements.put(profile.getProfileName(), config.getRequiredFiles());
+      profileRequirements.put(artifactName, config.getRequiredFiles());
       artifactVersions.put(profile.getArtifact(), config.getVersion());
     }
 

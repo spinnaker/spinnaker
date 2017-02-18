@@ -26,11 +26,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class GateProfile extends SpringProfile {
   @Override
-  public String getProfileName() {
-    return "gate";
-  }
-
-  @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.GATE;
   }

@@ -22,11 +22,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrcaProfile extends SpringProfile {
   @Override
-  public String getProfileName() {
-    return "orca";
-  }
-
-  @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.ORCA;
   }

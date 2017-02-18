@@ -22,11 +22,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class FiatProfile extends SpringProfile {
   @Override
-  public String getProfileName() {
-    return "fiat";
-  }
-
-  @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.FIAT;
   }

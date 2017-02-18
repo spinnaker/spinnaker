@@ -27,11 +27,6 @@ import java.util.List;
 @Component
 public class ClouddriverProfile extends SpringProfile {
   @Override
-  public String getProfileName() {
-    return "clouddriver";
-  }
-
-  @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.CLOUDDRIVER;
   }

@@ -21,6 +21,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -53,6 +54,14 @@ public class ProfileRegistry {
     } catch (IOException | GeneralSecurityException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static String profilePath(SpinnakerArtifact artifact, String version, String profileFileName) {
+    return String.join("/", artifact.getName(), version, profileFileName);
+  }
+
+  public static String bomPath(String version) {
+    return String.join("/", "bom", version + ".yml");
   }
 
   public InputStream getObjectContents(String objectName) throws IOException {

@@ -70,8 +70,6 @@ abstract public class SpinnakerProfile {
 
   protected abstract String commentPrefix();
 
-  public abstract String getProfileName();
-
   public abstract SpinnakerArtifact getArtifact();
 
   public ProfileConfig getFullConfig(String deploymentName, SpinnakerEndpoints endpoints) {
@@ -102,11 +100,9 @@ abstract public class SpinnakerProfile {
    * the version of the profile specified by the Spinnaker version in the loaded halconfig.
    */
   private ProfileConfig getBaseConfig(DeploymentConfiguration deploymentConfiguration) {
-    String componentName = getProfileName();
-    String profileFileName = getProfileFileName();
     try {
       String componentVersion = artifactService.getArtifactVersion(deploymentConfiguration.getName(), getArtifact());
-      String componentObjectName = String.join("/", componentName, componentVersion, profileFileName);
+      String componentObjectName = ProfileRegistry.profilePath(getArtifact(), componentVersion, getProfileFileName());
 
       return new ProfileConfig()
           .setConfigContents(IOUtils.toString(profileRegistry.getObjectContents(componentObjectName)))
@@ -114,7 +110,7 @@ abstract public class SpinnakerProfile {
     } catch (RetrofitError | IOException e) {
       throw new HalException(
           new ConfigProblemBuilder(Severity.FATAL,
-              "Unable to retrieve a profile for \"" + componentName + "\": " + e.getMessage())
+              "Unable to retrieve a profile for \"" + getArtifact().getName() + "\": " + e.getMessage())
               .build()
       );
     }

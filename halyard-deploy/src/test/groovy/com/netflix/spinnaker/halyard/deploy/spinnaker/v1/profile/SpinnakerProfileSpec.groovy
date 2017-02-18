@@ -34,11 +34,6 @@ class SpinnakerProfileSpec extends Specification {
       }
 
       @Override
-      String getProfileName() {
-        return null
-      }
-
-      @Override
       SpinnakerArtifact getArtifact() {
         return null
       }

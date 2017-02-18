@@ -22,11 +22,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class EchoProfile extends SpringProfile {
   @Override
-  public String getProfileName() {
-    return "echo";
-  }
-
-  @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.ECHO;
   }

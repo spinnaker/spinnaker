@@ -37,11 +37,6 @@ public class DeckProfile extends SpinnakerProfile {
   }
 
   @Override
-  public String getProfileName() {
-    return "deck";
-  }
-
-  @Override
   public String getProfileFileName() {
     return "settings.js";
   }

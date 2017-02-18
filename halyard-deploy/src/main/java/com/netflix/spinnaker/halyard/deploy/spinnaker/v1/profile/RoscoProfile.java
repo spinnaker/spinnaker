@@ -22,11 +22,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class RoscoProfile extends SpringProfile {
   @Override
-  public String getProfileName() {
-    return "rosco";
-  }
-
-  @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.ROSCO;
   }

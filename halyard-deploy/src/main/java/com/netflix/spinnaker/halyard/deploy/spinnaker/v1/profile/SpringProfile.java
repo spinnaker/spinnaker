@@ -22,11 +22,9 @@ import lombok.Data;
 import java.util.Map;
 
 abstract public class SpringProfile extends SpinnakerProfile {
-  public abstract String getProfileName();
-
   @Override
   public String getProfileFileName() {
-    return getProfileName() + ".yml";
+    return getArtifact().getName() + ".yml";
   }
 
   @Override

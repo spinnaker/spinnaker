@@ -22,11 +22,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class IgorProfile extends SpringProfile {
   @Override
-  public String getProfileName() {
-    return "igor";
-  }
-
-  @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.IGOR;
   }
