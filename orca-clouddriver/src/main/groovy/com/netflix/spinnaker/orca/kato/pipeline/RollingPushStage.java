@@ -11,6 +11,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstanceHe
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
 import com.netflix.spinnaker.orca.kato.tasks.DisableInstancesTask;
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CheckForRemainingTerminationsTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.EnsureInterestingHealthProviderNamesTask;
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationCandidatesTask;
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationPhaseInstancesTask;
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.WaitForNewInstanceLaunchTask;
@@ -32,6 +33,7 @@ public class RollingPushStage implements StageDefinitionBuilder {
   @Override
   public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder
+      .withTask("ensureInterestingHealthProviderNames", EnsureInterestingHealthProviderNamesTask.class)
       .withTask("determineTerminationCandidates", DetermineTerminationCandidatesTask.class)
       .withLoop(subGraph -> {
           subGraph

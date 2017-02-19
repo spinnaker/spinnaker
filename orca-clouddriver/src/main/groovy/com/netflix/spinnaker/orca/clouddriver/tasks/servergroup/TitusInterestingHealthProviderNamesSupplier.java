@@ -35,7 +35,7 @@ public class TitusInterestingHealthProviderNamesSupplier implements InterestingH
   private static final String TITUS = "titus";
   private static final String INTERESTING_HEALTH_PROVIDER_NAMES = "interestingHealthProviderNames";
   private static final String ROLLING_PUSH = "rollingpush";
-  private static final List<String> SUPPORTED_STAGES = Arrays.asList("enableServerGroup", "cloneServerGroup", "rollingPush");
+  private static final String SUPPORTED_STAGE = "rollingPush";
 
   private final OortService oortService;
   private final ObjectMapper objectMapper;
@@ -57,7 +57,7 @@ public class TitusInterestingHealthProviderNamesSupplier implements InterestingH
     }
 
     String strategy = (String) stage.getContext().get("strategy");
-    return SUPPORTED_STAGES.contains(stage.getType()) && ROLLING_PUSH.equals(strategy);
+    return SUPPORTED_STAGE.equals(stage.getType()) && ROLLING_PUSH.equals(strategy);
   }
 
   @Override

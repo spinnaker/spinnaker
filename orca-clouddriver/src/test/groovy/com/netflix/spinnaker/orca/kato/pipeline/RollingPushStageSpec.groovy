@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.EnsureInterestingHealthProviderNamesTask
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.config.SpringBatchConfiguration
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -71,6 +72,7 @@ class RollingPushStageSpec extends Specification {
    * Task that runs before the loop
    */
   @Autowired @Qualifier("preLoop") Task preLoopTask
+  @Autowired @Qualifier("anotherPreLoop") Task anotherPreLoop
 
   /**
    * Task that is the start of the loop
@@ -103,6 +105,7 @@ class RollingPushStageSpec extends Specification {
   def "rolling push loops until completion"() {
     given: "everything in the rolling push loop will succeed"
     preLoopTask.execute(_) >> SUCCESS
+    anotherPreLoop.execute(_) >> SUCCESS
     startOfLoopTask.execute(_) >> SUCCESS
     loopTasks.each { task ->
       task.execute(_) >> SUCCESS
@@ -145,6 +148,12 @@ class RollingPushStageSpec extends Specification {
     @Qualifier("preLoop")
     FactoryBean<DetermineTerminationCandidatesTask> determineTerminationCandidatesTask() {
       new SpockMockFactoryBean<>(DetermineTerminationCandidatesTask)
+    }
+
+    @Bean
+    @Qualifier("anotherPreLoop")
+    FactoryBean<EnsureInterestingHealthProviderNamesTask> ensureInterestingHealthProviderNamesTask() {
+      new SpockMockFactoryBean<>(EnsureInterestingHealthProviderNamesTask)
     }
 
     @Bean
