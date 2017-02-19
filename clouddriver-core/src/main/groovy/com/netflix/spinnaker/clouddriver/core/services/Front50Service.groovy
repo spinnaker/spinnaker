@@ -46,7 +46,7 @@ interface Front50Service {
   @POST('/v2/tags')
   EntityTags saveEntityTags(@Body EntityTags entityTags)
 
-  @POST('v2/tags/batchUpdate')
+  @POST('/v2/tags/batchUpdate')
   Collection<EntityTags> batchUpdate(@Body Collection<EntityTags> entityTags)
 
   @GET('/v2/tags/{id}')
