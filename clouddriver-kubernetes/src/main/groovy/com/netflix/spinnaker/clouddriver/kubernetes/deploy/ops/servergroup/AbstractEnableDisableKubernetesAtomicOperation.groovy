@@ -102,6 +102,11 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
       }
     }
 
+    if (!pods) {
+      task.updateStatus basePhase, "No pods to ${basePhase.toLowerCase()}. Operation finshed successfully."
+      return
+    }
+
     task.updateStatus basePhase, "Resetting service labels for each pod..."
 
     def pool = Executors.newWorkStealingPool((int) (pods.size() / 2) + 1)
