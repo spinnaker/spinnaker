@@ -1,5 +1,5 @@
 <div modal-page>
-  <modal-close dismiss="$dismiss()"></modal-close>
+  <modal-close (dismiss)="$dismiss()"></modal-close>
   <div class="modal-header">
     <h3>Console Output: {{vm.instanceId}}</h3>
   </div>

@@ -14,7 +14,7 @@ import {APPENGINE_SERVER_GROUP_COMMAND_BUILDER} from './serverGroup/configure/se
 import {APPENGINE_SERVER_GROUP_DETAILS_CTRL} from './serverGroup/details/details.controller';
 import {APPENGINE_SERVER_GROUP_TRANSFORMER} from './serverGroup/transformer';
 import {APPENGINE_SERVER_GROUP_WRITER} from './serverGroup/writer/serverGroup.write.service';
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 
 let templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -40,7 +40,7 @@ module(APPENGINE_MODULE, [
     CLOUD_PROVIDER_REGISTRY,
     APPENGINE_SERVER_GROUP_WRITER,
   ])
-  .config((cloudProviderRegistryProvider) => {
+  .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('appengine', {
       name: 'App Engine',
       cache: {

@@ -36,7 +36,7 @@ export class GceLoadBalancerSetTransformer {
     let normalizedElSevenLoadBalancers = map(groupedByUrlMap, GceLoadBalancerSetTransformer.normalizeElSevenGroup);
 
     return normalizedElSevenLoadBalancers.concat(otherLoadBalancers);
-  };
+  }
 }
 
 export const LOAD_BALANCER_SET_TRANSFORMER = 'spinnaker.gce.loadBalancer.setTransformer.service';

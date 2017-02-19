@@ -1,5 +1,5 @@
 <div modal-page>
-  <modal-close dismiss="$ctrl.close()"></modal-close>
+  <modal-close (dismiss)="$ctrl.close()"></modal-close>
   <div class="modal-header">
     <h3>Scaling Activities for {{$ctrl.serverGroup.name}}</h3>
   </div>

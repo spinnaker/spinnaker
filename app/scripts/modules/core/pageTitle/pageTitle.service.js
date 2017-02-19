@@ -12,18 +12,18 @@ module.exports = angular
 
     function handleRoutingCanceled() {
       $rootScope.routing = false;
-      $rootScope.pageTitle = previousPageTitle;
+      document.title = previousPageTitle;
     }
 
     function handleRoutingStart() {
       $rootScope.routing = true;
-      previousPageTitle = $rootScope.pageTitle;
-      $rootScope.pageTitle = 'Spinnaker: Loading...';
+      previousPageTitle = document.title;
+      document.title = 'Spinnaker: Loading...';
     }
 
     function handleRoutingError() {
       $rootScope.routing = false;
-      $rootScope.pageTitle = 'Spinnaker: Error';
+      document.title = 'Spinnaker: Error';
     }
 
     function handleRoutingSuccess(config) {
@@ -36,7 +36,7 @@ module.exports = angular
         title += ' · ' + parts.details;
       }
       $rootScope.routing = false;
-      $rootScope.pageTitle = title;
+      document.title = title;
     }
 
     function resolveStateParams(config) {

@@ -6,7 +6,7 @@ require('angular-hotkeys/build/hotkeys.css');
 
 module.exports = angular
   .module('spinnaker.hotkeys', [
-    require('exports?"cfp.hotkeys"!angular-hotkeys'),
+    require('exports-loader?"cfp.hotkeys"!angular-hotkeys'),
   ])
   .config(function(hotkeysProvider) {
     hotkeysProvider.template =

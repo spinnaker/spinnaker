@@ -1,4 +1,7 @@
+import Spy = jasmine.Spy;
+import IProvideService = angular.auto.IProvideService;
 import {mock} from 'angular';
+
 import {PipelineConfigService} from '../services/pipelineConfig.service';
 import {
   PIPELINE_CONFIG_VALIDATOR, PipelineConfigValidator,
@@ -9,14 +12,12 @@ import {
   IStageOrTriggerBeforeTypeValidationConfig,
   StageOrTriggerBeforeTypeValidator
 } from './stageOrTriggerBeforeType.validator';
-import Spy = jasmine.Spy;
 import {IStageBeforeTypeValidationConfig} from './stageBeforeType.validator';
 import {ITargetImpedanceValidationConfig} from './targetImpedance.validator';
 import {IStage} from 'core/domain/IStage';
 import {IPipeline} from 'core/domain/IPipeline';
 import {IServiceAccountAccessValidationConfig, ITriggerWithServiceAccount} from './serviceAccountAccess.validator';
 import {ServiceAccountService} from 'core/serviceAccount/serviceAccount.service';
-import IProvideService = angular.auto.IProvideService;
 
 describe('pipelineConfigValidator', () => {
 
@@ -24,7 +25,7 @@ describe('pipelineConfigValidator', () => {
       validate: () => void,
       validationResults: IPipelineValidationResults,
       pipelineConfigValidator: PipelineConfigValidator,
-      pipelineConfig: PipelineConfigService,
+      pipelineConfig: any,
       pipelineConfigService: PipelineConfigService,
       serviceAccountService: ServiceAccountService,
       stageOrTriggerBeforeTypeValidator: StageOrTriggerBeforeTypeValidator,
@@ -88,7 +89,7 @@ describe('pipelineConfigValidator', () => {
   }));
 
   beforeEach(mock.inject((_pipelineConfigValidator_: PipelineConfigValidator,
-                          _pipelineConfig_: PipelineConfigService,
+                          _pipelineConfig_: any,
                           _pipelineConfigService_: PipelineConfigService,
                           _serviceAccountService_: ServiceAccountService,
                           _stageOrTriggerBeforeTypeValidator_: StageOrTriggerBeforeTypeValidator,

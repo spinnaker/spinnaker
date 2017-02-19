@@ -1,7 +1,7 @@
 <div modal-page>
   <task-monitor monitor="taskMonitor"></task-monitor>
   <form role="form" name="resizeForm">
-    <modal-close dismiss="$dismiss()"></modal-close>
+    <modal-close (dismiss)="$dismiss()"></modal-close>
     <div class="modal-header">
       <h3>Resize {{serverGroup.name}}</h3>
     </div>

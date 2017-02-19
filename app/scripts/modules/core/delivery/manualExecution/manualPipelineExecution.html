@@ -1,6 +1,6 @@
 <div modal-page>
   <task-monitor monitor="taskMonitor"></task-monitor>
-  <modal-close dismiss="$dismiss()"></modal-close>
+  <modal-close (dismiss)="$dismiss()"></modal-close>
   <div class="modal-header">
     <h3 ng-if="vm.command.pipeline && vm.triggers.length">Select Execution Parameters</h3>
     <h3 ng-if="vm.command.pipeline && !vm.triggers.length">Confirm Execution</h3>

@@ -55,8 +55,10 @@ describe('Component: ConfigSectionFooter', () => {
   });
 
   describe('save', () => {
+
+    let data: any;
     beforeEach(() => {
-      this.data = {
+      data = {
         application: { name: 'deck', attributes: { accounts: ['prod']}},
         viewState: {
           originalConfig: { exceptions: [], enabled: false },
@@ -72,10 +74,11 @@ describe('Component: ConfigSectionFooter', () => {
         }
       };
     });
+
     it ('sets state to saving, saves, then sets flags appropriately', () => {
-      let viewState = this.data.viewState;
+      let viewState = data.viewState;
       spyOn(applicationWriter, 'updateApplication').and.returnValue($q.when(null));
-      initializeController(this.data);
+      initializeController(data);
       $ctrl.save();
 
       expect(viewState.saving).toBe(true);
@@ -85,14 +88,14 @@ describe('Component: ConfigSectionFooter', () => {
       expect(viewState.saving).toBe(false);
       expect(viewState.saveError).toBe(false);
       expect(viewState.isDirty).toBe(false);
-      expect(viewState.originalConfig).toEqual(this.data.config);
-      expect(viewState.originalStringVal).toBe(JSON.stringify(this.data.config));
+      expect(viewState.originalConfig).toEqual(data.config);
+      expect(viewState.originalStringVal).toBe(JSON.stringify(data.config));
     });
 
     it('sets appropriate flags when save fails', () => {
-      let viewState = this.data.viewState;
+      let viewState = data.viewState;
       spyOn(applicationWriter, 'updateApplication').and.returnValue($q.reject(null));
-      initializeController(this.data);
+      initializeController(data);
       $ctrl.save();
 
       expect(viewState.saving).toBe(true);
@@ -106,6 +109,4 @@ describe('Component: ConfigSectionFooter', () => {
       expect(viewState.originalStringVal).toBe('original');
     });
   });
-
-
 });

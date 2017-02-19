@@ -16,7 +16,6 @@
       "spaces"
     ],
     "label-position": true,
-    "label-undefined": true,
     "max-line-length": false,
     "member-access": false,
     "member-ordering": [
@@ -38,9 +37,8 @@
     ],
     "no-construct": true,
     "no-debugger": true,
-    "no-duplicate-key": true,
     "no-duplicate-variable": true,
-    "no-empty": true,
+    "no-empty": false,
     "no-eval": true,
     "no-inferrable-types": true,
     "no-shadowed-variable": true,
@@ -48,8 +46,6 @@
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": true,
     "no-unused-expression": true,
-    "no-unused-variable": true,
-    "no-unreachable": true,
     "no-use-before-declare": true,
     "no-var-keyword": true,
     "object-literal-sort-keys": false,
@@ -96,29 +92,17 @@
       "check-separator",
       "check-type"
     ],
-    "directive-selector-name": [
+    "directive-selector": [
       true,
+      "attribute",
+      "deck",
       "camelCase"
     ],
-    "component-selector-name": [
+    "component-selector": [
       true,
+      "element",
+      "deck",
       "kebab-case"
-    ],
-    "directive-selector-type": [
-      true,
-      "attribute"
-    ],
-    "component-selector-type": [
-      true,
-      "element"
-    ],
-    "directive-selector-prefix": [
-      true,
-      "deck"
-    ],
-    "component-selector-prefix": [
-      true,
-      "deck"
     ],
     "use-input-property-decorator": true,
     "use-output-property-decorator": true,

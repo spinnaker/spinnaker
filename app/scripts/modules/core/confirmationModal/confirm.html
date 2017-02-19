@@ -2,7 +2,7 @@
   <form role="form" class="container-fluid no-padding" ng-submit="ctrl.confirm()">
     <task-monitor monitor="taskMonitor"></task-monitor>
     <multi-task-monitor ng-if="taskMonitors.length" monitors="taskMonitors" title="params.multiTaskTitle" close-modal="ctrl.cancel()"></multi-task-monitor>
-    <modal-close dismiss="$dismiss()"></modal-close>
+    <modal-close (dismiss)="$dismiss()"></modal-close>
     <div class="modal-header">
       <h3>{{params.header}}</h3>
     </div>

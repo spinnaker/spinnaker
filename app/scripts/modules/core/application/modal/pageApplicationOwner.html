@@ -1,6 +1,6 @@
 <div modal-page>
   <task-monitor monitor="ctrl.taskMonitor"></task-monitor>
-  <modal-close dismiss="$dismiss()"></modal-close>
+  <modal-close (dismiss)="$dismiss()"></modal-close>
   <div class="modal-header">
     <h3 data-purpose="modal-header">Page {{ctrl.application.name}} Owner</h3>
   </div>

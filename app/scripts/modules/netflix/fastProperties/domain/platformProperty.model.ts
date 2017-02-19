@@ -1,7 +1,7 @@
 // This represents the model of a Fast Property that comes from the API that is managed by the
 // Platform team.
 export interface IPlatformProperty {
-  [k: string]: any // Index signature
+  [k: string]: any; // Index signature
   propertyId: string;
   cmcTicket: string;
   constraints: string;

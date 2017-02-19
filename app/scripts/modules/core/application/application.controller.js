@@ -8,7 +8,7 @@ require('./newapplication.less');
 require('./application.less');
 
 module.exports = angular.module('spinnaker.application.controller', [
-  require('exports?"cfp.hotkeys"!angular-hotkeys'),
+  require('exports-loader?"cfp.hotkeys"!angular-hotkeys'),
   require('angular-ui-router'),
   RECENT_HISTORY_SERVICE,
   require('../presentation/refresher/componentRefresher.directive.js'),
