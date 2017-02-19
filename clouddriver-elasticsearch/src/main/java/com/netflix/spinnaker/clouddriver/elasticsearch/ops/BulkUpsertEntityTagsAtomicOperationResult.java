@@ -14,17 +14,25 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.elasticsearch.descriptions;
+package com.netflix.spinnaker.clouddriver.elasticsearch.ops;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
-import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
-public class BulkUpsertEntityTagsDescription implements NonCredentialed {
-  @JsonProperty
-  public boolean isPartial = true;
-  public List<EntityTags> entityTags = new ArrayList<>();
+public class BulkUpsertEntityTagsAtomicOperationResult {
+
+  public Collection<EntityTags> upserted = new ArrayList<>();
+  public Collection<UpsertFailureResult> failures = new ArrayList<>();
+
+  public static class UpsertFailureResult {
+    EntityTags tag;
+    Exception e;
+
+    UpsertFailureResult(EntityTags tag, Exception e) {
+      this.tag = tag;
+      this.e = e;
+    }
+  }
 }

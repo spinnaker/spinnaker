@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.core.services
 
 import com.netflix.spinnaker.clouddriver.model.EntityTags
+import com.netflix.spinnaker.clouddriver.model.EntityTags.EntityTag
 import retrofit.client.Response
 import retrofit.http.*
 
@@ -45,8 +46,14 @@ interface Front50Service {
   @POST('/v2/tags')
   EntityTags saveEntityTags(@Body EntityTags entityTags)
 
+  @POST('v2/tags/batchUpdate')
+  Collection<EntityTags> batchUpdate(@Body Collection<EntityTags> entityTags)
+
   @GET('/v2/tags/{id}')
   EntityTags getEntityTags(@Path('id') String id)
+
+  @GET('/v2/tags')
+  List<EntityTags> getAllEntityTagsById(@Query("ids") List<String> entityIds)
 
   @GET('/v2/tags?prefix=')
   Collection<EntityTags> getAllEntityTags()
