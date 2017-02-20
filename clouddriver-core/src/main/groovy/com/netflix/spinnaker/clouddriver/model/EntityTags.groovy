@@ -105,11 +105,16 @@ class EntityTags {
 
   static class EntityTag {
     String name
+    String namespace
     Object value
     EntityTagValueType valueType
 
     String getName() {
       return name.toLowerCase()
+    }
+
+    String getNamespace() {
+      return (namespace ?: "default").toLowerCase()
     }
 
     @JsonIgnore
