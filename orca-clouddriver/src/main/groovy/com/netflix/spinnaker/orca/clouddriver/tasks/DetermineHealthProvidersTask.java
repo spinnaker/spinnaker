@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.DefaultTaskResult;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.InterestingHealthProviderNamesSupplier;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.front50.Front50Service;
@@ -34,10 +33,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -47,14 +43,10 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
 
   private final Front50Service front50Service;
   private final Map<String, String> healthProviderNamesByPlatform;
-  private final Collection<InterestingHealthProviderNamesSupplier> interestingHealthProviderNamesSuppliers;
 
   @Autowired
-  public DetermineHealthProvidersTask(Front50Service front50Service,
-                                      Collection<InterestingHealthProviderNamesSupplier> interestingHealthProviderNamesSuppliers,
-                                      Collection<ServerGroupCreator> serverGroupCreators) {
+  public DetermineHealthProvidersTask(Front50Service front50Service, Collection<ServerGroupCreator> serverGroupCreators) {
     this.front50Service = front50Service;
-    this.interestingHealthProviderNamesSuppliers = interestingHealthProviderNamesSuppliers;
     this.healthProviderNamesByPlatform = serverGroupCreators
       .stream()
       .filter(serverGroupCreator ->  serverGroupCreator.getHealthProviderName().isPresent())
@@ -68,22 +60,6 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
 
   @Override
   public TaskResult execute(Stage stage) {
-    Optional<InterestingHealthProviderNamesSupplier> healthProviderNamesSupplierOptional = interestingHealthProviderNamesSuppliers
-      .stream()
-      .filter(supplier -> supplier.supports(getCloudProvider(stage), stage))
-      .findFirst();
-
-    if (healthProviderNamesSupplierOptional.isPresent()) {
-      List<String> interestingHealthProviderNames = healthProviderNamesSupplierOptional.get().process(getCloudProvider(stage), stage);
-      Map<String, List<String>> results = new HashMap<>();
-
-      if (interestingHealthProviderNames != null) {
-        // avoid a `null` value that may cause problems with ImmutableMap usage downstream
-        results.put("interestingHealthProviderNames", interestingHealthProviderNames);
-      }
-
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, results);
-    }
 
     if (stage.getContext().containsKey("interestingHealthProviderNames")) {
       // should not override any stage-specified health providers

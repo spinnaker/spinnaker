@@ -35,7 +35,7 @@ class TitusInterestingHealthProviderNamesSupplierSpec extends Specification {
   def titusInterestingHealthProviderNamesSupplier = new TitusInterestingHealthProviderNamesSupplier(oortService, new SourceResolver(), mapper)
 
   @Unroll
-  def "should only support if cloudProvider is titus and stage type in (enableServerGroup, rollingPush, cloneServerGroup)"() {
+  def "should only support if cloudProvider is titus and stage type in (rollingPush)"() {
     given:
     def stage = new PipelineStage(new Pipeline(), stageType, stageContext)
 
@@ -45,8 +45,8 @@ class TitusInterestingHealthProviderNamesSupplierSpec extends Specification {
     where:
     cloudProvider | stageType           | stageContext                || supports
     "titus"       | "createServerGroup" | [strategy: "rollingpush"]   || false
-    "titus"       | "enableServerGroup" | [strategy: "rollingpush"]   || true
-    "titus"       | "cloneServerGroup"  | [strategy: "rollingpush"]   || true
+    "titus"       | "enableServerGroup" | [strategy: "rollingpush"]   || false
+    "titus"       | "cloneServerGroup"  | [strategy: "rollingpush"]   || false
     "titus"       | "rollingPush"       | [strategy: "rollingpush"]   || true
     "titus"       | "createServerGroup" | [strategy: "custom"]        || false
   }
