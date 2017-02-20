@@ -113,11 +113,11 @@ public class ZombiePipelineCleanupAgent {
       );
   }
 
-  public void slayIfZombie(Pipeline pipeline) {
+  public void slayIfZombie(Pipeline pipeline, boolean force) {
     just(pipeline)
       .filter(this::isV2)
       .filter(this::isIncomplete)
-      .filter(this::hasZombieTask)
+      .filter(p -> hasZombieTask(p, force))
       .subscribe(this::slayZombie);
   }
 
@@ -161,11 +161,15 @@ public class ZombiePipelineCleanupAgent {
   }
 
   private boolean hasZombieTask(Pipeline pipeline) {
+    return hasZombieTask(pipeline, false);
+  }
+
+  private boolean hasZombieTask(Pipeline pipeline, boolean force) {
     return just(pipeline)
       .flatMapIterable(Pipeline::getStages)
       .flatMapIterable(Stage::getTasks)
       .filter(this::isIncomplete)
-      .exists((task) -> isZombie(pipeline, task))
+      .exists((task) -> force || isZombie(pipeline, task))
       .toBlocking()
       .first();
   }
