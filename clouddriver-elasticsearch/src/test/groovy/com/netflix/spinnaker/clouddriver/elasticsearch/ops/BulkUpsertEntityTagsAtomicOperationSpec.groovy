@@ -56,19 +56,19 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
 
   void "should perform bulk operation"() {
     given:
-    (1..11).each { addTag(it) }
+    (1..1000).each { addTag(it) }
 
     when:
     operation.operate([])
 
     then:
-    11 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
-    1 * front50Service.getAllEntityTagsById(_) >> []
-    1 * front50Service.batchUpdate(_) >> {
+    1000 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
+    20 * front50Service.getAllEntityTagsById(_) >> []
+    20 * front50Service.batchUpdate(_) >> {
       description.entityTags.findResults { new EntityTags(id: it.id, lastModified: 123, lastModifiedBy: "unknown")}
     }
-    1 * entityTagsProvider.bulkIndex(description.entityTags)
-    11 * entityTagsProvider.verifyIndex(_)
+    20 * entityTagsProvider.bulkIndex(_)
+    1000 * entityTagsProvider.verifyIndex(_)
   }
 
   void 'should set id and pattern to default if none supplied'() {
