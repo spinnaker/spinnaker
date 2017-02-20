@@ -78,8 +78,9 @@ class PipelineController {
 
   @RequestMapping(value = "{id}/cancel", method = RequestMethod.PUT)
   Map cancelPipeline(@PathVariable("id") String id,
-                     @RequestParam(required = false) String reason) {
-    pipelineService.cancelPipeline(id, reason)
+                     @RequestParam(required = false) String reason,
+                     @RequestParam(defaultValue = "false") boolean force) {
+    pipelineService.cancelPipeline(id, reason, force)
   }
 
   @RequestMapping(value = "{id}/pause", method = RequestMethod.PUT)
