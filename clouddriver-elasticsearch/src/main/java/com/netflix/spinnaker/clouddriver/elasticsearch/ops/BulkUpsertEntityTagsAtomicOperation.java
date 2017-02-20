@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.elasticsearch.ops;
 
+import com.google.common.collect.Lists;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -62,19 +63,23 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     mergeTags(bulkUpsertEntityTagsDescription);
 
     Date now = new Date();
-    getTask().updateStatus(BASE_PHASE, "Retrieving current entity tags");
 
-    Map<String, EntityTags> existingTags = retrieveExistingTags(entityTags);
+    Lists.partition(entityTags, 50).forEach(tags -> {
 
-    getTask().updateStatus(BASE_PHASE, "Merging existing tags and metadata");
+      getTask().updateStatus(BASE_PHASE, "Retrieving current entity tags");
+      Map<String, EntityTags> existingTags = retrieveExistingTags(tags);
 
-    entityTags.forEach(tag -> mergeExistingTagsAndMetadata(now, existingTags.get(tag.getId()), tag, bulkUpsertEntityTagsDescription.isPartial));
+      getTask().updateStatus(BASE_PHASE, "Merging existing tags and metadata");
+      tags.forEach(tag -> mergeExistingTagsAndMetadata(now, existingTags.get(tag.getId()), tag, bulkUpsertEntityTagsDescription.isPartial));
 
-    Map<String, EntityTags> durableTags = front50Service.batchUpdate(new ArrayList<>(entityTags))
+      getTask().updateStatus(BASE_PHASE, "Performing batch update to durable tagging service");
+      Map<String, EntityTags> durableTags = front50Service.batchUpdate(new ArrayList<>(tags))
         .stream().collect(Collectors.toMap(EntityTags::getId, Function.identity()));
 
-    updateMetadataFromDurableTagsAndIndex(entityTags, durableTags, result);
-    result.upserted.addAll(entityTags);
+      getTask().updateStatus(BASE_PHASE, "Pushing tags to Elastic Search");
+      updateMetadataFromDurableTagsAndIndex(tags, durableTags, result);
+      result.upserted.addAll(tags);
+    });
     return result;
   }
 
