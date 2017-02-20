@@ -34,7 +34,7 @@ class EventService {
     echoService.webhooks(type, source, event)
   }
 
-  void webhooks(String type, String source, Map event, String signature) {
-    echoService.webhooks(type, source, event, signature)
+  void webhooks(String type, String source, Map event, String gitHubSignature, String bitBucketEventType) {
+    echoService.webhooks(type, source, event, gitHubSignature, bitBucketEventType)
   }
 }
