@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
+import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HealthStatus
@@ -289,7 +290,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
   }
 
 
-  class TargetPoolInstanceHealthCallback<TargetPoolInstanceHealth> extends JsonBatchCallback<TargetPoolInstanceHealth> implements PlatformErrorPropagator {
+  class TargetPoolInstanceHealthCallback<TargetPoolInstanceHealth> extends JsonBatchCallback<TargetPoolInstanceHealth> {
     GoogleLoadBalancer googleLoadBalancer
     String instanceName
     String instanceZone
@@ -317,6 +318,11 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
                     state: googleLBHealthStatus.toServiceStatus())
             ])
       }
+    }
+
+    @Override
+    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+      log.error "Error while querying target pool instance health: {}", e.getMessage()
     }
   }
 }
