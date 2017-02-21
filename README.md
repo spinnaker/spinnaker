@@ -18,11 +18,11 @@ $ bash InstallHalyard.sh
 There are three parts to Halyard, the __halconfig__, the __daemon__, and
 __hal__. In short, __hal__ is a Command Line Interface (CLI) that sends
 commands to the __daemon__ to update the __halconfig__, which is ultimately
-the source all configuration for your Spinnaker deployment. 
+the source of all configuration for your Spinnaker deployment. 
 
 ## halconfig
 
-The __halconfig__ is a file is central to how Halyard configures your Spinnaker
+The __halconfig__ is a file that is central to how Halyard configures your Spinnaker
 deployment. Its goal is to centralize all configuration for your Spinnaker 
 deployment (how to authenticate against your cloud providers, which CI system 
 is in use, Spinnaker monitoring, etc...). 
@@ -95,7 +95,7 @@ If you want to see your provider's bakery configuration, run:
 $ hal config provider PROVIDER bakery
 ```
 
-If you want to see edit your provider's bakery default configuration, run:
+If you want to edit your provider's bakery default configuration, run:
 
 ```
 $ hal config provider PROVIDER bakery edit [provider-specific flags]
