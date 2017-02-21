@@ -56,18 +56,12 @@ public class FiatAuthenticationConfig {
   @Setter
   private RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.BASIC;
 
-  @Autowired
-  @Setter
-  private ObjectMapper objectMapper;
-
-  @Autowired
-  @Setter
-  private OkClient okClient;
-
   @Bean
   @ConditionalOnMissingBean(FiatService.class) // Allows for override
-  public FiatService fiatService(FiatClientConfigurationProperties fiatConfigurationProperties) {
+  public FiatService fiatService(FiatClientConfigurationProperties fiatConfigurationProperties,
+                                 OkClient okClient) {
     // New role providers break deserialization if this is not enabled.
+    val objectMapper = new ObjectMapper();
     objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
