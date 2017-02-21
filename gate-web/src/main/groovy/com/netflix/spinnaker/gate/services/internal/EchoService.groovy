@@ -33,7 +33,8 @@ interface EchoService {
   Response webhooks(@Path('type') String type,
                     @Path('source') String source,
                     @Body Map event,
-                    @Header("X-Hub-Signature") String signature)
+                    @Header("X-Hub-Signature") String gitHubSignature,
+                    @Header("X-Event-Key") String bitBucketEventType)
 
   @GET("/validateCronExpression")
   Map validateCronExpression(@Query("cronExpression") String cronExpression)

@@ -32,9 +32,11 @@ class EventController {
   void webhooks(@PathVariable("type") String type,
                 @PathVariable("source") String source,
                 @RequestBody Map event,
-                @RequestHeader(value = "X-Hub-Signature", required = false) String gitHubSignature) {
-    if (gitHubSignature) {
-      eventService.webhooks(type, source, event, gitHubSignature)
+                @RequestHeader(value = "X-Hub-Signature", required = false) String gitHubSignature,
+                @RequestHeader(value = "X-Event-Key", required = false) String bitBucketEventType)
+  {
+    if (gitHubSignature || bitBucketEventType) {
+      eventService.webhooks(type, source, event, gitHubSignature, bitBucketEventType)
     } else {
       eventService.webhooks(type, source, event)
     }
