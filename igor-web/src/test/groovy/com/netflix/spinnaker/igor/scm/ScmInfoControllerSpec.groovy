@@ -20,6 +20,8 @@ import com.netflix.spinnaker.igor.scm.github.client.GitHubClient
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
 import com.netflix.spinnaker.igor.scm.stash.client.StashClient
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
+import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketClient
+import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -33,10 +35,12 @@ class ScmInfoControllerSpec extends Specification {
 
     StashClient stashClient = Mock(StashClient)
     GitHubClient gitHubClient = Mock(GitHubClient)
+    BitBucketClient bitBucketClient = Mock(BitBucketClient)
 
     void setup() {
-        controller = new ScmInfoController(gitHubMaster: new GitHubMaster(gitHubClient: gitHubClient,
-            baseUrl: "https://github.com"), stashMaster: new StashMaster(stashClient: stashClient, baseUrl: "http://stash.com"))
+        controller = new ScmInfoController(gitHubMaster: new GitHubMaster(gitHubClient: gitHubClient, baseUrl: "https://github.com"),
+                                           stashMaster: new StashMaster(stashClient: stashClient, baseUrl: "http://stash.com"),
+                                           bitBucketMaster: new BitBucketMaster(bitBucketClient: bitBucketClient, baseUrl: "https://api.bitbucket.org"))
     }
 
     void 'list masters'() {
@@ -46,5 +50,6 @@ class ScmInfoControllerSpec extends Specification {
         then:
         listMastersResponse.stash == "http://stash.com"
         listMastersResponse.gitHub == "https://github.com"
+        listMastersResponse.bitBucket == "https://api.bitbucket.org"
     }
 }

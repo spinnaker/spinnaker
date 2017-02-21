@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.scm
 
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
+import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
@@ -37,6 +38,9 @@ class ScmInfoController {
     @Autowired(required = false)
     GitHubMaster gitHubMaster
 
+    @Autowired(required = false)
+    BitBucketMaster bitBucketMaster
+
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
     Map listMasters() {
         log.info('Getting list of masters')
@@ -46,6 +50,9 @@ class ScmInfoController {
 
         if(gitHubMaster)
             result << [gitHub : gitHubMaster.baseUrl]
+
+        if(bitBucketMaster)
+            result << [bitBucket : bitBucketMaster.baseUrl]
         result
     }
 }
