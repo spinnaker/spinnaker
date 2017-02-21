@@ -14,7 +14,7 @@ export class AppengineDeployDescription {
   freeFormDetails?: string;
   repositoryUrl: string;
   branch: string;
-  appYamlPath: string;
+  configFilepaths: string[];
   promote?: boolean;
   stopPreviousVersion?: boolean;
   type: string;
@@ -34,7 +34,7 @@ export class AppengineDeployDescription {
     this.freeFormDetails = command.freeFormDetails;
     this.repositoryUrl = command.repositoryUrl;
     this.branch = command.branch;
-    this.appYamlPath = command.appYamlPath;
+    this.configFilepaths = command.configFilepaths;
     this.promote = command.promote;
     this.stopPreviousVersion = command.stopPreviousVersion;
     this.type = command.type;

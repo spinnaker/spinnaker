@@ -21,8 +21,9 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
         value: 'The name of the branch in the above git repository to be used for this deployment.',
       },
       {
-        key: 'appengine.serverGroup.appYamlPath',
-        value: 'The path to the app.yaml file within the git repository. For example, <b>path/to/app.yaml</b>',
+        key: 'appengine.serverGroup.configFilepaths',
+        value: `Paths to App Engine application configuration files, starting from the git repository root.
+                For example, <b>path/to/app.yaml</b> or <b>path/to/cron.yaml</b>.`,
       },
       {
         key: 'appengine.serverGroup.matchBranchOnRegex',

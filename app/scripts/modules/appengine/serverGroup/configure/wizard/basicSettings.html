@@ -131,14 +131,19 @@
 
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
-        App Yaml Path <help-field key="appengine.serverGroup.appYamlPath"></help-field>
+        Config Filepaths <help-field key="appengine.serverGroup.configFilepaths"></help-field>
       </div>
       <div class="col-md-7">
-        <input type="text"
-               required
-               class="form-control input-sm"
-               name="appYamlPath"
-               ng-model="command.appYamlPath"/></div>
+        <ui-select multiple tagging tagging-label="" style="width: 380px;"
+                   name="configFilepaths" ng-model="command.configFilepaths" class="form-control input-sm" required>
+          <ui-select-match>{{$item}}</ui-select-match>
+          <ui-select-choices
+            group-by="command.groupByRegistry"
+            repeat="filepath in []">
+            <span ng-bind-html="filepath"></span>
+          </ui-select-choices>
+        </ui-select>
+      </div>
     </div>
 
     <deployment-strategy-selector label-columns="3"
