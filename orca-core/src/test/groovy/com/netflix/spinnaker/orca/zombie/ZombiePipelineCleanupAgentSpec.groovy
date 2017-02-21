@@ -197,6 +197,58 @@ class ZombiePipelineCleanupAgentSpec extends Specification {
       .build()
   }
 
+  def "does not kill a pipeline if the force flag is not set"() {
+    given:
+    pipeline.stages.first().tasks << new DefaultTask(
+      implementingClass: RandomTask,
+      startTime: notOverdue(),
+      status: RUNNING
+    )
+    executionRepository.retrievePipelines() >> just(pipeline)
+
+    when:
+    zombieSlayer.slayIfZombie(pipeline, false)
+
+    then:
+    0 * executionRepository.updateStatus(pipeline.id, CANCELED)
+
+    where:
+    pipeline = Pipeline
+      .builder()
+      .withId(1)
+      .withExecutionEngine("v2")
+      .withStage("whatever")
+      .withStatus(RUNNING)
+      .withStartTime(startTime)
+      .build()
+  }
+
+  def "does kill a pipeline if the force flag is set"() {
+    given:
+    pipeline.stages.first().tasks << new DefaultTask(
+      implementingClass: RandomTask,
+      startTime: notOverdue(),
+      status: RUNNING
+    )
+    executionRepository.retrievePipelines() >> just(pipeline)
+
+    when:
+    zombieSlayer.slayIfZombie(pipeline, true)
+
+    then:
+    1 * executionRepository.updateStatus(pipeline.id, CANCELED)
+
+    where:
+    pipeline = Pipeline
+      .builder()
+      .withId(1)
+      .withExecutionEngine("v2")
+      .withStage("whatever")
+      .withStatus(RUNNING)
+      .withStartTime(startTime)
+      .build()
+  }
+
   @SuppressWarnings("ChangeToOperator")
   private long overdue() {
     clock
