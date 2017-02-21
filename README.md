@@ -166,6 +166,44 @@ If you're unsure of what features are available, check:
 $ hal config features edit --help
 ```
 
+#### hal config security
+
+To show how your security has been configured, run:
+
+```
+$ hal config security
+```
+
+By default, Spinnaker runs without SSL, authentication, or authorization
+mechanisms in place. This can be changed with the following set of 
+commands.
+
+_OAuth2.0_
+
+To see how OAuth2 was configured, run:
+
+```
+$ hal config security oauth2
+```
+
+To see enable/disable OAuth2 configuration, run:
+
+```
+$ hal config security oauth2 [enable/disable]
+```
+
+To configure OAuth2 authentication, run:
+
+```
+$ hal config security oauth2 --provider <provider> [provider flags]
+```
+
+If you're unsure of what needs to be set, run:
+
+```
+$ hal config security oauth2 --help
+```
+
 #### hal config storage
 
 To show how your storage has been configured, run:

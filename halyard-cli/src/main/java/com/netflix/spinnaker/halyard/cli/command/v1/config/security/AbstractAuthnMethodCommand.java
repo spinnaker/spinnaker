@@ -17,15 +17,14 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
 
+import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
+import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
+import lombok.AccessLevel;
+import lombok.Getter;
 
-public class OAuth2Command extends AuthnMethodCommand {
-  public AuthnMethod.Method getMethod() {
-    return AuthnMethod.Method.OAuth2;
-  }
-
-  public OAuth2Command() {
-    super();
-    registerSubcommand(new EditOAuth2Command());
-  }
+abstract public class AbstractAuthnMethodCommand extends AbstractConfigCommand {
+  abstract public AuthnMethod.Method getMethod();
 }

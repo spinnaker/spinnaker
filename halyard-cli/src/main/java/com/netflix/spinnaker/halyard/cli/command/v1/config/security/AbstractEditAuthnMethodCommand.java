@@ -15,13 +15,13 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -29,28 +29,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Parameters()
-public abstract class AbstractEditAccountCommand<T extends Account> extends AbstractHasAccountCommand {
+public abstract class AbstractEditAuthnMethodCommand<T extends AuthnMethod> extends AbstractAuthnMethodCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
 
-  protected abstract Account editAccount(T account);
+  protected abstract AuthnMethod editAuthnMethod(T authnMethod);
 
   public String getDescription() {
-    return "Edit a " + getProviderName() + " account.";
+    return "Edit the " + getMethod().id + " authentication method.";
   }
 
   @Override
   protected void executeThis() {
-    String accountName = getAccountName();
-    String providerName = getProviderName();
     String currentDeployment = getCurrentDeployment();
+    String authnMethodName = getMethod().id;
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Account account = Daemon.getAccount(currentDeployment, providerName, accountName, false);
+    AuthnMethod authnMethod = Daemon.getAuthnMethod(currentDeployment, authnMethodName, false);
 
-    Daemon.setAccount(currentDeployment, providerName, accountName, !noValidate, editAccount((T) account));
-    AnsiUi.success("Edited " + providerName + " account \"" + accountName + "\"");
+    Daemon.setAuthnMethod(currentDeployment, authnMethodName, !noValidate, editAuthnMethod((T) authnMethod));
+    AnsiUi.success("Edited \"" + authnMethodName + "\" config.");
   }
 }

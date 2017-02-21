@@ -20,8 +20,12 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Authn;
+import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -56,6 +60,12 @@ public class SecurityService {
     }
   }
 
+  public void setAuthnMethodEnabled(String deploymentName, String methodName, boolean enabled) {
+    AuthnMethod method = getAuthnMethod(deploymentName, methodName);
+    method.setEnabled(enabled);
+    setAuthnMethod(deploymentName, method);
+  }
+
   public Authn getAuthn(String deploymentName) {
     Security security = getSecurity(deploymentName);
     Authn result = security.getAuthn();
@@ -67,15 +77,27 @@ public class SecurityService {
     return result;
   }
 
-  public OAuth2 getOAuth2(String deploymentName) {
-    Authn authn = getAuthn(deploymentName);
-    OAuth2 result = authn.getOAuth2();
-    if (result == null) {
-      result = new OAuth2();
-      authn.setOAuth2(result);
-    }
+  public AuthnMethod getAuthnMethod(String deploymentName, String methodName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setAuthnMethod(methodName);
 
-    return result;
+    List<AuthnMethod> matching = lookupService.getMatchingNodesOfType(filter, AuthnMethod.class);
+
+    try {
+      switch (matching.size()) {
+        case 0:
+          AuthnMethod security = AuthnMethod.translateAuthnMethodName(methodName).newInstance();
+          setAuthnMethod(deploymentName, security);
+          return security;
+        case 1:
+          return matching.get(0);
+        default:
+          throw new RuntimeException("It shouldn't be possible to have multiple security nodes. This is a bug.");
+      }
+    } catch (InstantiationException | IllegalAccessException e) {
+      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Can't create an empty authn node "
+          + "for authn method name \"" + methodName + "\"").build()
+      );
+    }
   }
 
   public void setSecurity(String deploymentName, Security newSecurity) {
@@ -87,8 +109,15 @@ public class SecurityService {
     getSecurity(deploymentName).setAuthn(authn);
   }
 
-  public void setOAuth2(String deploymentName, OAuth2 oauth2) {
-    getAuthn(deploymentName).setOAuth2(oauth2);
+  public void setAuthnMethod(String deploymentName, AuthnMethod method) {
+    Authn authn = getAuthn(deploymentName);
+    switch (method.getMethod()) {
+      case OAuth2:
+        authn.setOauth2((OAuth2) method);
+        break;
+      default:
+        throw new RuntimeException("Unknown Authn method " + method.getMethod());
+    }
   }
 
   public ProblemSet validateSecurity(String deploymentName) {
@@ -96,8 +125,8 @@ public class SecurityService {
     return validateService.validateMatchingFilter(filter);
   }
 
-  public ProblemSet validateOAuth2(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setOAuth2();
+  public ProblemSet validateAuthnMethod(String deploymentName, String methodName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setAuthnMethod(methodName);
     return validateService.validateMatchingFilter(filter);
   }
 }

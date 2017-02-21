@@ -32,7 +32,7 @@ public class GateProfile extends SpringProfile {
 
   @Override
   public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
-    GateConfig gateConfig = new GateConfig(endpoints.getServices().getGate());
+    GateConfig gateConfig = new GateConfig(endpoints.getServices().getGate(), deploymentConfiguration.getSecurity());
     gateConfig.getCors().setAllowedOriginsPattern(deploymentConfiguration.getSecurity(), endpoints.getServices().getDeck());
     return config.appendConfig(yamlToString(gateConfig));
   }
@@ -41,8 +41,9 @@ public class GateProfile extends SpringProfile {
   private static class GateConfig extends SpringProfileConfig {
     Cors cors = new Cors();
 
-    GateConfig(SpinnakerEndpoints.Service gate) {
+    GateConfig(SpinnakerEndpoints.Service gate, Security security) {
       super(gate);
+      spring = new SpringConfig(security);
     }
 
     @Data

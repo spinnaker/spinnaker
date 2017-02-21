@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
-import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
+import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
@@ -131,13 +131,17 @@ public class Daemon {
     ResponseUnwrapper.get(getService().setSecurity(deploymentName, validate, security));
   }
 
-  public static OAuth2 getOAuth2(String deploymentName, boolean validate) {
-    Object rawOAuth2 = ResponseUnwrapper.get(getService().getOAuth2(deploymentName, validate));
-    return getObjectMapper().convertValue(rawOAuth2, OAuth2.class);
+  public static AuthnMethod getAuthnMethod(String deploymentName, String methodName, boolean validate) {
+    Object rawOAuth2 = ResponseUnwrapper.get(getService().getAuthnMethod(deploymentName, methodName, validate));
+    return getObjectMapper().convertValue(rawOAuth2, AuthnMethod.translateAuthnMethodName(methodName));
   }
 
-  public static void setOAuth2(String deploymentName, boolean validate, OAuth2 oauth2) {
-    ResponseUnwrapper.get(getService().setOAuth2(deploymentName, validate, oauth2));
+  public static void setAuthnMethod(String deploymentName, String methodName, boolean validate, AuthnMethod authnMethod) {
+    ResponseUnwrapper.get(getService().setAuthnMethod(deploymentName, methodName, validate, authnMethod));
+  }
+
+  public static void setAuthnMethodEnabled(String deploymentName, String methodName, boolean validate, boolean enabled) {
+    ResponseUnwrapper.get(getService().setAuthnMethodEnabled(deploymentName, methodName, validate, enabled));
   }
 
   public static <C, T> DaemonTask<C, T> getTask(String uuid) {

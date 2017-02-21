@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
+import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.services.v1.SecurityService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
@@ -31,6 +31,8 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/security")
@@ -60,17 +62,18 @@ public class SecurityController {
     return TaskRepository.submitTask(builder::build);
   }
 
-  @RequestMapping(value = "/authn/oauth2", method = RequestMethod.GET)
-  DaemonTask<Halconfig, OAuth2> getOAuth2(@PathVariable String deploymentName,
+  @RequestMapping(value = "/authn/{methodName:.+}", method = RequestMethod.GET)
+  DaemonTask<Halconfig, AuthnMethod> getAuthmethod(@PathVariable String deploymentName,
+      @PathVariable String methodName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    DaemonResponse.StaticRequestBuilder<OAuth2> builder = new DaemonResponse.StaticRequestBuilder<>();
+    DaemonResponse.StaticRequestBuilder<AuthnMethod> builder = new DaemonResponse.StaticRequestBuilder<>();
 
     builder.setSeverity(severity);
-    builder.setBuildResponse(() -> securityService.getOAuth2(deploymentName));
+    builder.setBuildResponse(() -> securityService.getAuthnMethod(deploymentName, methodName));
 
     if (validate) {
-      builder.setValidateResponse(() -> securityService.validateOAuth2(deploymentName));
+      builder.setValidateResponse(() -> securityService.validateAuthnMethod(deploymentName, methodName));
     }
 
     return TaskRepository.submitTask(builder::build);
@@ -99,21 +102,47 @@ public class SecurityController {
     return TaskRepository.submitTask(builder::build);
   }
 
-  @RequestMapping(value = "/authn/oauth2", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setOAuth2(@PathVariable String deploymentName,
+  @RequestMapping(value = "/authn/{methodName:.+}", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setAuthnMethod(@PathVariable String deploymentName,
+      @PathVariable String methodName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
-      @RequestBody Object rawOAuth2) {
-    OAuth2 oauth2 = objectMapper.convertValue(rawOAuth2, OAuth2.class);
+      @RequestBody Object rawMethod) {
+    AuthnMethod method = objectMapper.convertValue(
+        rawMethod,
+        AuthnMethod.translateAuthnMethodName(methodName)
+    );
 
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setSeverity(severity);
-    builder.setUpdate(() -> securityService.setOAuth2(deploymentName, oauth2));
+    builder.setUpdate(() -> securityService.setAuthnMethod(deploymentName, method));
 
     builder.setValidate(ProblemSet::new);
     if (validate) {
-      builder.setValidate(() -> securityService.validateOAuth2(deploymentName));
+      builder.setValidate(() -> securityService.validateAuthnMethod(deploymentName, methodName));
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/authn/{methodName:.+}/enabled/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
+      @PathVariable String methodName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody boolean enabled) {
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setUpdate(() -> securityService.setAuthnMethodEnabled(deploymentName, methodName, enabled));
+    builder.setSeverity(severity);
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> securityService.validateAuthnMethod(deploymentName, methodName));
     }
 
     builder.setRevert(() -> halconfigParser.undoChanges());

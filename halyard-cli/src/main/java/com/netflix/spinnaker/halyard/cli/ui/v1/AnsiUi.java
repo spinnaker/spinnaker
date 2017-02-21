@@ -83,7 +83,7 @@ public class AnsiUi {
   public static void remediation(String message) {
     AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
         .setIndentFirstLine(false)
-        .setIndentWidth(4);
+        .setIndentWidth(2);
 
     builder.addSnippet("? ")
         .setForegroundColor(AnsiForegroundColor.MAGENTA)

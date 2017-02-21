@@ -15,17 +15,21 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import lombok.Data;
 
-public class OAuth2Command extends AuthnMethodCommand {
-  public AuthnMethod.Method getMethod() {
-    return AuthnMethod.Method.OAuth2;
-  }
+@Data
+public class SpringConfig {
+  OAuth2 oauth2;
 
-  public OAuth2Command() {
-    super();
-    registerSubcommand(new EditOAuth2Command());
+  public SpringConfig(Security security) {
+    OAuth2 oauth2 = security.getAuthn().getOauth2();
+    if (oauth2.isEnabled()) {
+      this.oauth2 = oauth2;
+    }
   }
 }

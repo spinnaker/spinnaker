@@ -17,36 +17,55 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.security;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Optional;
 
 @Data
-public class Authn extends Node {
+abstract public class AuthnMethod extends Node {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
 
-  @Getter
-  private String nodeName = "authn";
-
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeReflectiveIterator(this);
+    return NodeIteratorFactory.makeEmptyIterator();
   }
 
-  private OAuth2 oauth2 = new OAuth2();
   private boolean enabled;
 
-  public boolean isEnabled() {
-    return getOauth2().isEnabled();
+  @JsonIgnore
+  abstract public Method getMethod();
+
+  public static Class<? extends AuthnMethod> translateAuthnMethodName(String authnMethodName) {
+    Optional<? extends Class<?>> res = Arrays.stream(Authn.class.getDeclaredFields())
+        .filter(f -> f.getName().equals(authnMethodName))
+        .map(Field::getType)
+        .findFirst();
+
+    if (res.isPresent()) {
+      return (Class<? extends AuthnMethod>)res.get();
+    } else {
+      throw new IllegalArgumentException("No authn method with name \"" + authnMethodName + "\" handled by halyard");
+    }
   }
 
-  public void setEnabled(boolean _ignored) {}
+  public enum Method {
+    OAuth2("oauth2");
+
+    public final String id;
+
+    Method(String id) {
+      this.id = id;
+    }
+  }
 }

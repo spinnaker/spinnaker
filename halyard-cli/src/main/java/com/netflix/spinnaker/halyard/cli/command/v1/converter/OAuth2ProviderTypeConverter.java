@@ -15,17 +15,19 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
+package com.netflix.spinnaker.halyard.cli.command.v1.converter;
 
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.beust.jcommander.IStringConverter;
+import com.beust.jcommander.ParameterException;
+import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 
-public class OAuth2Command extends AuthnMethodCommand {
-  public AuthnMethod.Method getMethod() {
-    return AuthnMethod.Method.OAuth2;
-  }
-
-  public OAuth2Command() {
-    super();
-    registerSubcommand(new EditOAuth2Command());
+public class OAuth2ProviderTypeConverter implements IStringConverter<OAuth2.Provider> {
+  @Override
+  public OAuth2.Provider convert(String value) {
+    try {
+      return OAuth2.Provider.fromString(value);
+    } catch (IllegalArgumentException e) {
+      throw new ParameterException(e.getMessage(), e);
+    }
   }
 }

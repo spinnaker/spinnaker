@@ -39,10 +39,11 @@ abstract public class SpringProfile extends SpinnakerProfile {
 
   @Data
   static class SpringProfileConfig {
-    ServerConfig serverConfig;
+    ServerConfig server;
+    SpringConfig spring;
 
     SpringProfileConfig(SpinnakerEndpoints.Service service) {
-      serverConfig = new ServerConfig(service);
+      server = new ServerConfig(service);
     }
   }
 }

@@ -397,11 +397,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         File f = new File(s);
         String name = f.getName();
         String data = new String(Base64.getEncoder().encode(IOUtils.toString(new FileInputStream(f)).getBytes()));
-        if (secretContents.get(name) != null) {
-          throw new RuntimeException("Improper use of upsert secret, all file names must be distinct.");
-        } else {
-          secretContents.put(name, data);
-        }
+        secretContents.putIfAbsent(name, data);
       } catch (IOException e) {
         throw new HalException(
             new ConfigProblemBuilder(Severity.ERROR, "Unable to read contents of \"" + s + "\": " + e).build()

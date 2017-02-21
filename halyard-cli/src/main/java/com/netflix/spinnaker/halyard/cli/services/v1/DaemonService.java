@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
@@ -64,7 +65,6 @@ public interface DaemonService {
   DaemonTask<Halconfig, DeploymentEnvironment> getDeploymentEnvironment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
-
 
   @PUT("/v1/config/deployments/{deploymentName}/deploymentEnvironment/")
   DaemonTask<Halconfig, Void> setDeploymentEnvironment(
@@ -142,16 +142,25 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Security security);
 
-  @GET("/v1/config/deployments/{deploymentName}/security/authn/oauth2/")
-  DaemonTask<Halconfig, OAuth2> getOAuth2(
+  @GET("/v1/config/deployments/{deploymentName}/security/authn/{methodName}/")
+  DaemonTask<Halconfig, AuthnMethod> getAuthnMethod(
       @Path("deploymentName") String deploymentName,
+      @Path("methodName") String methodName,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/security/authn/oauth2/")
-  DaemonTask<Halconfig, Void> setOAuth2(
+  @PUT("/v1/config/deployments/{deploymentName}/security/authn/{methodName}/")
+  DaemonTask<Halconfig, Void> setAuthnMethod(
       @Path("deploymentName") String deploymentName,
+      @Path("methodName") String methodName,
       @Query("validate") boolean validate,
-      @Body OAuth2 security);
+      @Body AuthnMethod authnMethod);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/authn/{methodName}/enabled/")
+  DaemonTask<Halconfig, Void> setAuthnMethodEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Path("methodName") String methodName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
 
   @GET("/v1/config/deployments/{deploymentName}/persistentStorage/")
   DaemonTask<Halconfig, PersistentStorage> getPersistentStorage(
