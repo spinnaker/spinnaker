@@ -8,7 +8,7 @@ let angular = require('angular');
 require('./pipelines.less');
 
 module.exports = angular.module('spinnaker.core.pipeline', [
-  require('exports?"ui.sortable"!angular-ui-sortable'),
+  require('exports-loader?"ui.sortable"!angular-ui-sortable'),
   require('./config/pipelineConfig.module.js'),
   AUTHENTICATION,
   COPY_STAGE_MODAL_CONTROLLER,

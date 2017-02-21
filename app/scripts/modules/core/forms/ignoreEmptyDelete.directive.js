@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.utils.ignoreEmptyDelete.directive', [
-    require('exports?"ui.select"!ui-select'),
+    require('exports-loader?"ui.select"!ui-select'),
   ])
   .config(function($provide) {
     $provide.decorator('uiSelectMultipleDirective', function($delegate) {

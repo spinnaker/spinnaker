@@ -4,7 +4,7 @@ const path = require('path');
 const webpackCommon = require('./webpack.common');
 const webpackConfig = webpackCommon(true);
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
     autoWatch: true,
 
@@ -16,18 +16,11 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      './node_modules/jquery/dist/jquery.js',
-      './node_modules/angular/angular.js',
-      './node_modules/angular-mocks/angular-mocks.js',
-      'settings.js',
-      'test/test_index.js'
+      {pattern: './karma-shim.js', watched: false}
     ],
 
     preprocessors: {
-      './**/*.spec.js': ['webpack'],
-      './**/*.spec.ts': ['webpack'],
-      'settings.js': ['webpack'],
-      'test/**/*.js': ['webpack'],
+      './karma-shim.js': ['webpack']
     },
 
     webpack: webpackConfig,
@@ -43,7 +36,7 @@ module.exports = function(config) {
       },
       ChromeActive: {
         base: 'Chrome',
-        flags: [ '--override-plugin-power-saver-for-testing=0' ]
+        flags: ['--override-plugin-power-saver-for-testing=0']
       }
     },
 
@@ -53,7 +46,7 @@ module.exports = function(config) {
       require('karma-chrome-launcher'),
       require('karma-junit-reporter'),
       require('karma-mocha-reporter'),
-      require('karma-coverage'),
+      require('karma-coverage')
     ],
 
     // list of files / patterns to exclude
@@ -77,20 +70,22 @@ module.exports = function(config) {
 
     // the default configuration
     junitReporter: {
-      outputFile: 'test-results.xml'
+     outputFile: 'test-results.xml'
     },
 
     mochaReporter: {
-      ignoreSkipped: true,
+     ignoreSkipped: true,
     },
 
     coverageReporter: {
-      type : 'html',
-      dir : 'coverage/'
+     type : 'html',
+     dir : 'coverage/'
     },
 
     client: {
       captureConsole: true,
-    }
+    },
+
+    browserNoActivityTimeout: 200000
   });
 };

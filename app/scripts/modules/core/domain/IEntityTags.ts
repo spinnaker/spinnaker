@@ -7,7 +7,7 @@ export interface IEntityTagsMetadata {
 }
 
 export interface ICreationMetadata {
-  executionType: 'orchestration' | 'pipeline',
+  executionType: 'orchestration' | 'pipeline';
   stageId?: string;
   executionId?: string;
   pipelineConfigId?: string;

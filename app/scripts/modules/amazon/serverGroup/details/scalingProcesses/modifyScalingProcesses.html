@@ -1,7 +1,7 @@
 <div modal-page class="confirmation-modal">
   <task-monitor monitor="taskMonitor"></task-monitor>
   <form role="form">
-    <modal-close dismiss="$dismiss()"></modal-close>
+    <modal-close (dismiss)="$dismiss()"></modal-close>
     <div class="modal-header">
       <h3>Modify Scaling Processes for {{serverGroup.name}}</h3>
     </div>

@@ -6,9 +6,13 @@
     "baseUrl": "app/scripts/modules",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "lib": ["es2016", "dom"],
+    "lib": [
+      "es2016",
+      "dom"
+    ],
     "moduleResolution": "node",
     "module": "commonjs",
+    "noEmitHelpers": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": false, // should really get to a place where we can turn this on
@@ -25,6 +29,10 @@
     "typeRoots": [
       "node_modules/@types"
     ]
+  },
+  "awesomeTypescriptLoaderOptions": {
+    "useBabel": true,
+    "useCache": true
   },
   "exclude": [
     "build",

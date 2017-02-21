@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-let later = require('later');
+import {later} from 'core/utils/later/later';
 
 module.exports = angular
   .module('spinnaker.core.deliver.triggers.nextRun', [

@@ -1,7 +1,8 @@
-import {mock} from 'angular';
+import {ReflectiveInjector} from '@angular/core';
+import {mock, module} from 'angular';
 
 import {AUTHENTICATION_INTERCEPTOR_SERVICE, AuthenticationInterceptor} from './authentication.interceptor.service';
-import {AuthenticationService} from './authentication.service';
+import {AUTHENTICATION_SERVICE, AuthenticationService} from './authentication.service';
 
 describe('authenticationInterceptor', function() {
 
@@ -9,6 +10,14 @@ describe('authenticationInterceptor', function() {
     settings: any,
     authenticationService: AuthenticationService,
     $rootScope: ng.IRootScopeService;
+
+  module(AUTHENTICATION_SERVICE, [])
+    .factory('injector', function () {
+      return ReflectiveInjector.resolveAndCreate([AuthenticationService]);
+    })
+    .factory('authenticationService', function (injector: ReflectiveInjector) {
+      return injector.get(AuthenticationService);
+    });
 
   beforeEach(mock.module(require('../config/settings'), AUTHENTICATION_INTERCEPTOR_SERVICE));
 

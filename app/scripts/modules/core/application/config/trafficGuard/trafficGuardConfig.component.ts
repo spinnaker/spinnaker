@@ -29,7 +29,7 @@ export class TrafficGuardConfigController {
   public accounts: IAccountDetails[] = [];
   public regionsByAccount: { [account: string]: string[] };
   public config: ITrafficGuard[];
-  public initializing: boolean = true;
+  public initializing = true;
   public clusterMatches: IClusterMatch[][] = [];
 
   public viewState: IViewState = {

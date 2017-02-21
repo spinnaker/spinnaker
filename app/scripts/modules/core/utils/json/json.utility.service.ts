@@ -1,7 +1,7 @@
 import {module} from 'angular';
 import {isPlainObject, isArray, isNumber, isString} from 'lodash';
 
-const DiffMatchPatch = require('expose?diff_match_patch!diff-match-patch');
+const DiffMatchPatch = require('expose-loader?diff_match_patch!diff-match-patch');
 
 interface IDiffDetails {
   type: string;

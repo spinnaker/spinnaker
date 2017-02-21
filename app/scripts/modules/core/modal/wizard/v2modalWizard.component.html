@@ -1,6 +1,6 @@
 <div modal-page>
   <task-monitor ng-if="$ctrl.taskMonitor" monitor="$ctrl.taskMonitor"></task-monitor>
-  <modal-close ng-if="!$ctrl.notReallyModal" dismiss="$ctrl.dismiss()"></modal-close>
+  <modal-close ng-if="!$ctrl.notReallyModal" (dismiss)="$ctrl.dismiss()"></modal-close>
   <div class="modal-header" ng-if="$ctrl.wizard.heading">
     <h3>{{$ctrl.wizard.heading}}</h3>
   </div>

@@ -4,7 +4,7 @@ import {PAGER_DUTY_READ_SERVICE, IPagerDutyService} from './pagerDuty.read.servi
 export class PagerDutySelectFieldController implements ng.IComponentController {
   public pagerDutyServices: [IPagerDutyService];
   public servicesLoaded: boolean;
-  public helpContents: string = `<p>Make sure your service exists in Pager Duty and includes the "Generic API" 
+  public helpContents = `<p>Make sure your service exists in Pager Duty and includes the "Generic API" 
       integration (from your service in Pager Duty, click "New Integration", then select "Use our API directly").`;
 
   static get $inject() { return ['pagerDutyReader']; }

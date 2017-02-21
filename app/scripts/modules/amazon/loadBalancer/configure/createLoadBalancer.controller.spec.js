@@ -79,7 +79,9 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
   });
 
   describe('prependForwardSlash', function () {
-    beforeEach(this.initialize);
+    beforeEach(function() {
+      this.initialize();
+    });
     it('should add the leading slash if it is NOT present', function () {
       let result = this.ctrl.prependForwardSlash('foo');
       expect(result).toEqual('/foo');

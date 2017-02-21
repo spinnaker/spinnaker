@@ -1,5 +1,5 @@
 <div modal-page class="form-inline">
-  <modal-close dismiss="$dismiss()"></modal-close>
+  <modal-close (dismiss)="$dismiss()"></modal-close>
   <div class="modal-header">
     <h3>Host And Path Rules for {{ ctrl.loadBalancerName }}</h3>
   </div>

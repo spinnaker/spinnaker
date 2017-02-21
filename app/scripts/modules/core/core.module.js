@@ -32,16 +32,15 @@ templates.keys().forEach(function(key) {
   templates(key);
 });
 
-
 module.exports = angular
   .module('spinnaker.core', [
     require('angular-messages'),
     require('angular-sanitize'),
     require('angular-ui-router'),
     require('angular-ui-bootstrap'),
-    require('exports?"angular.filter"!angular-filter'),
-    require('exports?"ui.select"!ui-select'),
-    require('imports?define=>false!exports?"angularSpinner"!angular-spinner'),
+    require('exports-loader?"angular.filter"!angular-filter'),
+    require('exports-loader?"ui.select"!ui-select'),
+    require('imports-loader?define=>false!exports-loader?"angularSpinner"!angular-spinner'),
 
     require('./projects/projects.module.js'),
 
