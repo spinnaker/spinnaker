@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.gate.config
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.gate.ratelimit.RateLimiter
+import com.netflix.spinnaker.gate.ratelimit.RateLimitingInterceptor
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -41,6 +44,12 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
   @Autowired
   Registry registry
 
+  @Autowired(required = false)
+  RateLimiter rateLimiter
+
+  @Value('${rateLimit.learning:true}')
+  Boolean rateLimitLearningMode
+
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(
@@ -48,6 +57,10 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
         this.registry, "controller.invocations", ["account", "region"], ["BasicErrorController"]
       )
     )
+
+    if (rateLimiter != null) {
+      registry.addInterceptor(new RateLimitingInterceptor(rateLimiter, rateLimitLearningMode))
+    }
   }
 
   @Bean
