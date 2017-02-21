@@ -72,4 +72,8 @@ abstract public class AbstractConfigCommand extends NestableCommand {
       return old;
     }
   }
+
+  protected static boolean isSet(Object o) {
+    return o != null;
+  }
 }

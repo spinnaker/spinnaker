@@ -28,9 +28,16 @@ import java.util.stream.Collectors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public abstract class HasImageProvider<A extends Account, B extends BakeryDefaults> extends Provider<A> implements Cloneable {
-  B bakeryDefaults;
+  private B bakeryDefaults = emptyBakeryDefaults();
 
   // When a user config deletes the bakery defaults, we want to be able to repopulate this. Due to type erasure
   // the call to B's constructor must be done in the subclass of HasImageProvider.
   abstract public B emptyBakeryDefaults();
+
+  @Override
+  public NodeIterator getChildren() {
+    NodeIterator parent = super.getChildren();
+    NodeIterator thisIterator = NodeIteratorFactory.makeSingletonIterator(bakeryDefaults);
+    return NodeIteratorFactory.makeAppendNodeIterator(parent, thisIterator);
+  }
 }

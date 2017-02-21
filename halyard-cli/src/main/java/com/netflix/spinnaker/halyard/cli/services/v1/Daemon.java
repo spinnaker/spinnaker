@@ -42,7 +42,7 @@ public class Daemon {
 
   public static BakeryDefaults getBakeryDefaults(String deploymentName, String providerName, boolean validate) {
     Object rawBakeryDefaults = ResponseUnwrapper.get(getService().getBakeryDefaults(deploymentName, providerName, validate));
-    return getObjectMapper().convertValue(rawBakeryDefaults, BakeryDefaults.class);
+    return getObjectMapper().convertValue(rawBakeryDefaults, Providers.translateBakeryDefaultsType(providerName));
   }
 
   public static void setBakeryDefaults(String deploymentName, String providerName, boolean validate, BakeryDefaults bakeryDefaults) {

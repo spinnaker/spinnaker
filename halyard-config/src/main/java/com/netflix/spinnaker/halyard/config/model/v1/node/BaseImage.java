@@ -21,8 +21,9 @@ import lombok.Data;
 import lombok.Getter;
 
 abstract public class BaseImage<I extends BaseImage.ImageSettings, V> extends Node {
-  @Getter
-  final private String nodeName = getBaseImage().getId();
+  public String getNodeName() {
+    return getBaseImage().getId();
+  }
 
   @Override
   public NodeIterator getChildren() {

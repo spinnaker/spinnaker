@@ -22,4 +22,8 @@ class GoogleCommandProperties {
 
   static final String ALPHA_LISTED_DESCRIPTION = "Enable this flag if your project has access to alpha features "
       + "and you want Spinnaker to take advantage of them.";
+
+  static final String SOURCE_IMAGE_FAMILY_DESCRIPTION = "The source image family to create the image from. The newest, non-deprecated image is used.";
+
+  static final String IS_IMAGE_FAMILY_DESCRIPTION = "todo(duftler) I couldn't find a description on the packer website of what this is.";
 }

@@ -15,21 +15,24 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google;
 
-public abstract class AbstractBakeryCommand extends AbstractProviderCommand {
-  @Override
-  public String getCommandName() {
-    return "bakery";
+import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.AbstractBaseImageCommand;
+
+/**
+ * Interact with the google provider's bakery
+ */
+@Parameters()
+public class GoogleBaseImageCommand extends AbstractBaseImageCommand {
+  protected String getProviderName() {
+    return "google";
   }
 
-  @Override
-  public String getDescription() {
-    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider's image bakery configuration.";
-  }
-
-  @Override
-  protected void executeThis() {
-    showHelp();
+  public GoogleBaseImageCommand() {
+    super();
+    registerSubcommand(new GoogleAddBaseImageCommand());
+    registerSubcommand(new GoogleEditBaseImageCommand());
   }
 }
+

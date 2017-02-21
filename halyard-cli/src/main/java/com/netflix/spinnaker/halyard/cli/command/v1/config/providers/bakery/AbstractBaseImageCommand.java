@@ -17,10 +17,11 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery;
 
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractProviderCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 
-public abstract class AbstractBaseImageCommand extends AbstractHasBaseImageCommand {
+public abstract class AbstractBaseImageCommand extends AbstractProviderCommand {
   @Override
   public String getCommandName() {
     return "base-image";

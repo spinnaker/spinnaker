@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.sun.jersey.core.impl.provider.entity.XMLJAXBElementProvider;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -71,8 +72,18 @@ public class NodeIteratorFactory {
     return new NodeListIterator(nodes);
   }
 
+  public static NodeIterator makeSingletonIterator(Node node) {
+    List<Node> nodes = new ArrayList<>();
+    nodes.add(node);
+    return new NodeListIterator(nodes);
+  }
+
   public static NodeIterator makeEmptyIterator() {
     return new NodeEmptyIterator();
+  }
+
+  public static NodeIterator makeAppendNodeIterator(NodeIterator a, NodeIterator b) {
+    return new AppendNodeIterator(a, b);
   }
 
   private static class NodeEmptyIterator implements NodeIterator {
@@ -84,6 +95,28 @@ public class NodeIteratorFactory {
     @Override
     public Node getNext() {
       return null;
+    }
+  }
+
+  private static class AppendNodeIterator implements NodeIterator {
+    NodeIterator a;
+    NodeIterator b;
+
+    AppendNodeIterator(NodeIterator a, NodeIterator b) {
+      this.a = a;
+      this.b = b;
+    }
+
+    @Override
+    public Node getNext(NodeFilter filter) {
+      Node aNext = a.getNext(filter);
+      return aNext != null ? aNext : b.getNext(filter);
+    }
+
+    @Override
+    public Node getNext() {
+      Node aNext = a.getNext();
+      return aNext != null ? aNext : b.getNext();
     }
   }
 

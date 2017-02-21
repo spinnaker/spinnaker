@@ -49,7 +49,7 @@ abstract class AbstractListBaseImagesCommand extends AbstractProviderCommand {
     List<BaseImage> baseImages = bakeryDefaults.getBaseImages();
 
     if (baseImages.isEmpty()) {
-      AnsiUi.success("No configured for base images for " + getProviderName() + ".");
+      AnsiUi.success("No configured base images for " + getProviderName() + ".");
     } else {
       AnsiUi.success("Base images for " + getProviderName() + ":");
       baseImages.forEach(baseImage -> AnsiUi.listItem(baseImage.getBaseImage().getId()));
