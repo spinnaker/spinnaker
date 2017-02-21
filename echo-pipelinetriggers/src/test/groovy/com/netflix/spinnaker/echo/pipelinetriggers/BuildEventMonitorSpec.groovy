@@ -127,6 +127,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     disabledJenkinsTrigger                  | "disabled"
     nonJenkinsTrigger                       | "non-Jenkins"
     enabledStashTrigger                     | "stash"
+    enabledBitBucketTrigger                 | "bitbucket"
     enabledJenkinsTrigger.withMaster("FOO") | "different master"
     enabledJenkinsTrigger.withJob("FOO")    | "different job"
 

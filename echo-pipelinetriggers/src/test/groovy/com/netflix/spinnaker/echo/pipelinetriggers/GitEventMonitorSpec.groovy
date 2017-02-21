@@ -57,8 +57,9 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     })
 
     where:
-    event            | trigger
-    createGitEvent() | enabledStashTrigger
+    event                       | trigger
+    createGitEvent("stash")     | enabledStashTrigger
+    createGitEvent("bitbucket") | enabledBitBucketTrigger
   }
 
   def "attaches stash trigger to the pipeline"() {
@@ -77,8 +78,28 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     })
 
     where:
-    event = createGitEvent()
+    event = createGitEvent("stash")
     pipeline = createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger, enabledStashTrigger, disabledStashTrigger)
+  }
+
+  def "attaches bitbucket trigger to the pipeline"() {
+    given:
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+    then:
+    1 * subscriber.call({
+      it.trigger.type == enabledBitBucketTrigger.type
+      it.trigger.project == enabledBitBucketTrigger.project
+      it.trigger.slug == enabledBitBucketTrigger.slug
+      it.trigger.hash == event.content.hash
+    })
+
+    where:
+    event = createGitEvent("bitbucket")
+    pipeline = createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger, enabledBitBucketTrigger, disabledBitBucketTrigger)
   }
 
   def "an event can trigger multiple pipelines"() {
@@ -92,7 +113,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     pipelines.size() * subscriber.call(_ as Pipeline)
 
     where:
-    event = createGitEvent()
+    event = createGitEvent("stash")
     pipelines = (1..2).collect {
       Pipeline.builder()
         .application("application")
@@ -120,7 +141,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     nonJenkinsTrigger    | "non-Jenkins"
 
     pipeline = createPipelineWith(trigger)
-    event = createGitEvent()
+    event = createGitEvent("stash")
   }
 
   @Unroll
@@ -143,7 +164,30 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     enabledStashTrigger.withBranch("notMaster")   | "different branch"
 
     pipeline = createPipelineWith(trigger)
-    event = createGitEvent()
+    event = createGitEvent("stash")
+  }
+
+  @Unroll
+  def "does not trigger #description pipelines for bitbucket"() {
+    given:
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+    then:
+    0 * subscriber._
+
+    where:
+    trigger                                           | description
+    disabledBitBucketTrigger                          | "disabled bitbucket trigger"
+    enabledBitBucketTrigger.withSlug("notSlug")       | "different slug"
+    enabledBitBucketTrigger.withSource("github")      | "different source"
+    enabledBitBucketTrigger.withProject("notProject") | "different project"
+    enabledBitBucketTrigger.withBranch("notMaster")   | "different branch"
+
+    pipeline = createPipelineWith(trigger)
+    event = createGitEvent("bitbucket")
   }
 
   @Unroll
@@ -163,15 +207,37 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
     enabledStashTrigger.withProject(null) | "project"
     enabledStashTrigger.withSource(null)  | "source"
 
-    event = createGitEvent()
+    event = createGitEvent("stash")
     goodPipeline = createPipelineWith(enabledStashTrigger)
+    badPipeline = createPipelineWith(trigger)
+  }
+
+  @Unroll
+  def "does not trigger a pipeline that has an enabled bitbucket trigger with missing #field"() {
+    given:
+    pipelineCache.getPipelines() >> [badPipeline, goodPipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+    then:
+    1 * subscriber.call({ it.id == goodPipeline.id })
+
+    where:
+    trigger                                   | field
+    enabledBitBucketTrigger.withSlug(null)    | "slug"
+    enabledBitBucketTrigger.withProject(null) | "project"
+    enabledBitBucketTrigger.withSource(null)  | "source"
+
+    event = createGitEvent("bitbucket")
+    goodPipeline = createPipelineWith(enabledBitBucketTrigger)
     badPipeline = createPipelineWith(trigger)
   }
 
   @Unroll
   def "triggers events on branch when #description"() {
     given:
-    def gitEvent = createGitEvent()
+    def gitEvent = createGitEvent("stash")
     gitEvent.content.branch = eventBranch
     def trigger = enabledStashTrigger.atBranch(triggerBranch)
     def pipeline = createPipelineWith(trigger)
@@ -197,7 +263,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not triggers events on branch on mistmatch branch"() {
     given:
-    def gitEvent = createGitEvent()
+    def gitEvent = createGitEvent("stash")
     gitEvent.content.branch = eventBranch
     def trigger = enabledStashTrigger.atBranch(triggerBranch)
     def pipeline = createPipelineWith(trigger)
@@ -217,7 +283,7 @@ class GitEventMonitorSpec extends Specification implements RetrofitStubs {
 
   @Unroll
   def "computes and compares GitHub signature, if available"() {
-    def gitEvent = createGitEvent()
+    def gitEvent = createGitEvent("github")
     gitEvent.rawContent = "toBeHashed"
     gitEvent.details.source = "github"
     if (signature) {

@@ -25,6 +25,8 @@ trait RetrofitStubs {
   final Trigger nonJenkinsTrigger = new Trigger(true, null, 'not jenkins', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null,null, null, null)
   final Trigger enabledStashTrigger = new Trigger(true, null, 'git', null, null, null, null, null, 'stash', 'project', 'slug', null, null, null, null, null, null,null, null, null)
   final Trigger disabledStashTrigger = new Trigger(false, null, 'git', 'master', 'job', null, null, null, 'stash', 'project', 'slug', null, null, null, null, null, null,null, null, null)
+  final Trigger enabledBitBucketTrigger = new Trigger(true, null, 'git', null, null, null, null, null, 'bitbucket', 'project', 'slug', null, null, null, null, null, null,null, null, null)
+  final Trigger disabledBitBucketTrigger = new Trigger(false, null, 'git', 'master', 'job', null, null, null, 'bitbucket', 'project', 'slug', null, null, null, null, null, null,null, null, null)
 
   final Trigger enabledGithubTrigger = new Trigger(true, null, 'git', null, null, null, null, null, 'github', 'project', 'slug', null, null, null, null, null, null,null, null, null)
 
@@ -52,10 +54,10 @@ trait RetrofitStubs {
     return res
   }
 
-  GitEvent createGitEvent() {
+  GitEvent createGitEvent(String eventSource) {
     def res = new GitEvent()
     res.content = new GitEvent.Content("project", "slug", "hash", "master")
-    res.details = new Metadata([type: GitEvent.TYPE, source: "stash"])
+    res.details = new Metadata([type: GitEvent.TYPE, source: eventSource])
     return res
   }
 
