@@ -2,8 +2,6 @@
   <div class="modal-body">
     <div class="row">
 
-      <!--{{propertyStage.stage}}-->
-
       <div class="row">
           <div class="col-md-12">
             <h4 class="section">Properties</h4>
@@ -42,6 +40,7 @@
                   name="env"
                   class="form-control input-sm"
                   ng-model="propertyStage.stage.scope.env"
+                  ng-change="propertyStage.resetScope()"
                   required
                   ng-options="env for env in ['prod', 'test']">
                 </select>
@@ -67,13 +66,13 @@
                 <stage-config-field label="Choose Scope">
                   <fast-property-scope-search-component
                     on-scope-selected="propertyStage.selectScope(scopeOption)"
+                    env="{{propertyStage.stage.scope.env}}"
                     application-name="application.name">
                   </fast-property-scope-search-component>
                 </stage-config-field>
 
-                <stage-config-field label="Seleced Scope">
-
-                  <div ng-if="propertyStage.stage.scope.instanceCounts">
+                <stage-config-field label="Seleced Scope" ng-if="propertyStage.stage.scope.instanceCounts">
+                  <div>
                     <table class="table table-hover">
                       <tbody>
                       <tr ng-if="propertyStage.stage.scope.env">

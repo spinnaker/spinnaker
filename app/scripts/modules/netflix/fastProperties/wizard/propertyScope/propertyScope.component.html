@@ -1,8 +1,5 @@
 <form role="form" novalidate name="fastPropertyScopeForm">
-  <div class="modal-body" ng-if="!$ctrl.command.property.isValid()">
-    <h4>Enter Property Details</h4>
-  </div>
-  <div class="modal-body" ng-if="$ctrl.command.property.isValid()">
+  <div class="modal-body">
     <div class="row" style="display: flex; flex-wrap: wrap">
 
       <p>Setting the <b>scope</b> of a property determines what instances will have access to a given property.</p>
@@ -25,7 +22,8 @@
           <div class="col-md-12">
             <fast-property-scope-search-component
               on-scope-selected="$ctrl.selectScope(scopeOption)"
-              application-name="$ctrl.command.applicationName">
+              application-name="$ctrl.command.applicationName"
+              env="{{$ctrl.command.property.env}}">
             </fast-property-scope-search-component>
           </div>
         </div>
@@ -38,7 +36,7 @@
       <div class="col-md-4">
         <h4 ng-if="$ctrl.selectedScope.instanceCounts">
           Impact Count:
-          <span style="color:red;">{{$ctrl.selectedScope.instanceCounts.up}}</span>
+          <span class="attention">{{$ctrl.selectedScope.instanceCounts.up}}</span>
         </h4>
 
         <div>

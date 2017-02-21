@@ -3,19 +3,23 @@
   <div class="row">
     <!--Property Stuff-->
     <div
-      class="col-md-6"
-      ng-if="$ctrl.command.property.isValid()">
+      class="col-md-6">
       <h4>Property Info</h4>
       <div>
-        <b>Type:</b> {{$ctrl.command.getTypeAsString()}}
+        <b>Type:</b>
+        <span>{{$ctrl.command.getTypeAsString()}}<span>
       </div>
 
       <div>
-        <b>Key:</b> {{$ctrl.command.property.key}}
+        <b>Key:</b>
+        <span ng-if="$ctrl.command.property.key">{{$ctrl.command.property.key}}</span>
+        <span ng-if="!$ctrl.command.property.key" class="attention">Please enter property key.</span>
       </div>
 
       <div>
-        <b>Value:</b> {{$ctrl.command.property.value}}
+        <b>Value:</b>
+        <span ng-if="$ctrl.command.property.value">{{$ctrl.command.property.value}}</span>
+        <span ng-if="!$ctrl.command.property.value" class="attention">Please enter property value.</span>
       </div>
     </div>
 
@@ -34,7 +38,7 @@
       </div>
 
       <div>
-        <b>Instances Impacted:</b> <b style="color: red;">{{$ctrl.command.scope.instanceCounts.up}}</b>
+        <b>Instances Impacted:</b> <b class="attention">{{$ctrl.command.scope.instanceCounts.up}}</b>
       </div>
     </div>
 
@@ -45,7 +49,7 @@
     <div
       class="col-md-12"
       ng-if="$ctrl.command.pipeline.stages">
-      <b>{{$ctrl.command.strategy.displayName}}</b> used to create a pipeline with <b style="color: red;">{{$ctrl.command.pipeline.stages.length}}</b> stage(s):
+      <b>{{$ctrl.command.strategy.displayName}}</b> used to create a pipeline with <b class="attention">{{$ctrl.command.pipeline.stages.length}}</b> stage(s):
 
       <ul>
         <li ng-repeat="stage in $ctrl.command.pipeline.stages"><b>{{stage.name}}</b></li>

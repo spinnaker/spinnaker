@@ -54,7 +54,7 @@ class CreateFastPropertyWizardController {
 
 
   public isValid(): boolean {
-    return !!this.command.pipeline;
+    return !!this.command.pipeline && !!this.command.property.isValid();
   }
 
   public cancel(): void {

@@ -71,6 +71,10 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
       vm.stage.scope.appIdList = [vm.stage.scope.appId];
     };
 
+    vm.resetScope = () => {
+      vm.stage.scope = {env: vm.stage.scope.env};
+    };
+
     vm.refreshAppList = (query) => {
       vm.applicationList = query ? applicationList
         .filter((app) => {

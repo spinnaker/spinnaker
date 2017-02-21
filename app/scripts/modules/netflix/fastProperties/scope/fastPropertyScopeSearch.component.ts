@@ -40,6 +40,12 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
     ];
   }
 
+  public $onChanges(changes: any) {
+    if (!changes.env.isFirstChange()) {
+      this.executeQuery();
+    }
+  }
+
   public $onInit() {
     this.accountService.getAllAccountDetailsForProvider('aws')
       .then((accounts: any) => {
@@ -86,7 +92,7 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
   public selectResult(category: string, selected: any) {
     this.selectedResult = selected;
     this.showSearchResults = false;
-    this.scopeOptionsForDisplay = this.fastPropertyScopeSearchCategoryService.buildScopeList(this.categories, category, selected);
+    this.scopeOptionsForDisplay = this.fastPropertyScopeSearchCategoryService.buildScopeList(this.categories, category, selected, this.env);
   }
 
   public displayResults() {
@@ -192,7 +198,7 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
   private createScopesForEachCategoryResult(categories: any[]) {
     return categories.map((category) => {
       category.scopes = category.results.reduce((acc: any[], result: any) => {
-        this.fastPropertyScopeSearchCategoryService.buildScopeList(this.applicationDictionary, category.category, result)
+        this.fastPropertyScopeSearchCategoryService.buildScopeList(this.applicationDictionary, category.category, result, this.env)
           .forEach((scope: any) => acc.push(scope));
         return acc;
       }, []);
@@ -216,7 +222,8 @@ class FastPropertyScopeSearchComponent implements ng.IComponentOptions {
   public controller: any = FastPropertyScopeSearchComponentController;
   public bindings: any = {
     onScopeSelected: '&',
-    applicationName: '='
+    applicationName: '=',
+    env: '@',
   };
 }
 
