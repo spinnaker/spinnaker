@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.services
 
+import org.springframework.stereotype.Component
+
+@Component
 class IdGenerator {
   String nextId() {
     UUID.randomUUID().toString()

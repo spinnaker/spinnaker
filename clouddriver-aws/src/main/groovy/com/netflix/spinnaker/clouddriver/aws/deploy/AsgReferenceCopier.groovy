@@ -17,9 +17,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.*
-import com.google.common.collect.Lists
+import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.ScalingPolicyCopier
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -64,108 +62,6 @@ class AsgReferenceCopier {
       targetAutoScaling.putScheduledUpdateGroupAction(request)
 
       task.updateStatus "AWS_DEPLOY", "Creating scheduled action (${request}) on ${targetRegion}/${targetAsgName} from ${sourceRegion}/${sourceAsgName}..."
-    }
-  }
-
-  void copyScalingPoliciesWithAlarms(Task task, String sourceAsgName, String targetAsgName) {
-    AmazonAutoScaling sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceCredentials, sourceRegion, true)
-    AmazonAutoScaling targetAutoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion, true)
-    List<ScalingPolicy> sourceAsgScalingPolicies = new ScalingPolicyRetriever(sourceAutoScaling).retrieve(new DescribePoliciesRequest(autoScalingGroupName: sourceAsgName))
-    Map<String, String> sourcePolicyArnToTargetPolicyArn = [:]
-    sourceAsgScalingPolicies.each { sourceAsgScalingPolicy ->
-      String newPolicyName = [targetAsgName, 'policy', idGenerator.nextId()].join('-')
-      def policyRequest = new PutScalingPolicyRequest(
-        autoScalingGroupName: targetAsgName,
-        policyName: newPolicyName,
-        policyType: sourceAsgScalingPolicy.policyType,
-        scalingAdjustment: sourceAsgScalingPolicy.scalingAdjustment,
-        adjustmentType: sourceAsgScalingPolicy.adjustmentType,
-        cooldown: sourceAsgScalingPolicy.cooldown,
-        minAdjustmentStep: sourceAsgScalingPolicy.minAdjustmentStep,
-        minAdjustmentMagnitude: sourceAsgScalingPolicy.minAdjustmentMagnitude,
-        metricAggregationType: sourceAsgScalingPolicy.metricAggregationType,
-        stepAdjustments: sourceAsgScalingPolicy.stepAdjustments,
-        estimatedInstanceWarmup: sourceAsgScalingPolicy.estimatedInstanceWarmup,
-      )
-      def result = targetAutoScaling.putScalingPolicy(policyRequest)
-      sourcePolicyArnToTargetPolicyArn[sourceAsgScalingPolicy.policyARN] = result.policyARN
-
-      task.updateStatus "AWS_DEPLOY", "Creating scaling policy (${policyRequest}) on ${targetRegion}/${targetAsgName} from ${sourceRegion}/${sourceAsgName}..."
-    }
-    Collection<String> allSourceAlarmNames = sourceAsgScalingPolicies*.alarms*.alarmName.flatten().unique()
-    if (allSourceAlarmNames) {
-      copyAlarmsForAsg(targetAsgName, allSourceAlarmNames, sourcePolicyArnToTargetPolicyArn)
-    }
-  }
-
-  void copyAlarmsForAsg(String newAutoScalingGroupName, Collection<String> sourceAlarmNames, Map<String, String> sourcePolicyArnToTargetPolicyArn) {
-    AmazonCloudWatch sourceCloudWatch = amazonClientProvider.getCloudWatch(sourceCredentials, sourceRegion, true)
-    AmazonCloudWatch targetCloudWatch = amazonClientProvider.getCloudWatch(targetCredentials, targetRegion, true)
-    List<MetricAlarm> sourceAlarms = new AlarmRetriever(sourceCloudWatch).retrieve(new DescribeAlarmsRequest(alarmNames: sourceAlarmNames))
-    def replacePolicyArnActions = { Collection<String> actions ->
-      sourcePolicyArnToTargetPolicyArn.each { sourcePolicyArn, targetPolicyArn ->
-        if (sourcePolicyArn in actions) {
-          actions = (actions - sourcePolicyArn) + targetPolicyArn
-        }
-      }
-      actions
-    }
-    sourceAlarms.each { alarm ->
-      List<Dimension> newDimensions = Lists.newArrayList(alarm.dimensions)
-      Dimension asgDimension = newDimensions.find { it.name == DIMENSION_NAME_FOR_ASG }
-      if (asgDimension) {
-        newDimensions.remove(asgDimension)
-        newDimensions.add(new Dimension(name: DIMENSION_NAME_FOR_ASG, value: newAutoScalingGroupName))
-      }
-      String newAlarmName = [newAutoScalingGroupName, 'alarm', idGenerator.nextId()].join('-')
-      def request = new PutMetricAlarmRequest(
-        alarmName: newAlarmName,
-        alarmDescription: alarm.alarmDescription,
-        actionsEnabled: alarm.actionsEnabled,
-        oKActions: replacePolicyArnActions(alarm.oKActions),
-        alarmActions: replacePolicyArnActions(alarm.alarmActions),
-        insufficientDataActions: replacePolicyArnActions(alarm.insufficientDataActions),
-        metricName: alarm.metricName,
-        namespace: alarm.namespace,
-        statistic: alarm.statistic,
-        dimensions: newDimensions,
-        period: alarm.period,
-        unit: alarm.unit,
-        evaluationPeriods: alarm.evaluationPeriods,
-        threshold: alarm.threshold,
-        comparisonOperator: alarm.comparisonOperator
-      )
-      targetCloudWatch.putMetricAlarm(request)
-    }
-  }
-
-  @Canonical
-  static class ScalingPolicyRetriever extends AwsResultsRetriever<ScalingPolicy, DescribePoliciesRequest, DescribePoliciesResult> {
-    final AmazonAutoScaling autoScaling
-
-    @Override
-    protected DescribePoliciesResult makeRequest(DescribePoliciesRequest request) {
-      autoScaling.describePolicies(request)
-    }
-
-    @Override
-    protected List<ScalingPolicy> accessResult(DescribePoliciesResult result) {
-      result.scalingPolicies
-    }
-  }
-
-  @Canonical
-  static class AlarmRetriever extends AwsResultsRetriever<MetricAlarm, DescribeAlarmsRequest, DescribeAlarmsResult> {
-    final AmazonCloudWatch cloudWatch
-
-    @Override
-    protected DescribeAlarmsResult makeRequest(DescribeAlarmsRequest request) {
-      cloudWatch.describeAlarms(request)
-    }
-
-    @Override
-    protected List<MetricAlarm> accessResult(DescribeAlarmsResult result) {
-      result.metricAlarms
     }
   }
 

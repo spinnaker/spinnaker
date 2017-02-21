@@ -38,6 +38,8 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateLoadBalancer
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateSecurityGroupStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.MigrateServerGroupStrategy
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
+import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.DefaultScalingPolicyCopier
+import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.ScalingPolicyCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.NullOpUserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
@@ -117,6 +119,12 @@ class AwsConfiguration {
   @ConditionalOnProperty(value = 'udf.enabled', matchIfMissing = true)
   UserDataProvider userDataProvider() {
     new LocalFileUserDataProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ScalingPolicyCopier)
+  DefaultScalingPolicyCopier defaultScalingPolicyCopier() {
+    new DefaultScalingPolicyCopier()
   }
 
   @Bean
@@ -202,8 +210,9 @@ class AwsConfiguration {
   @DependsOn('netflixAmazonCredentials')
   BasicAmazonDeployHandler basicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
                                                     AccountCredentialsRepository accountCredentialsRepository,
-                                                    DeployDefaults deployDefaults) {
-    new BasicAmazonDeployHandler(regionScopedProviderFactory, accountCredentialsRepository, deployDefaults)
+                                                    DeployDefaults deployDefaults,
+                                                    ScalingPolicyCopier scalingPolicyCopier) {
+    new BasicAmazonDeployHandler(regionScopedProviderFactory, accountCredentialsRepository, deployDefaults, scalingPolicyCopier)
   }
 
   @Bean

@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
+import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.ScalingPolicyCopier
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -64,15 +65,18 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   private final RegionScopedProviderFactory regionScopedProviderFactory
   private final AccountCredentialsRepository accountCredentialsRepository
   private final AwsConfiguration.DeployDefaults deployDefaults
+  private final ScalingPolicyCopier scalingPolicyCopier
 
   private List<OperationEvent> events = []
 
   BasicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
                            AccountCredentialsRepository accountCredentialsRepository,
-                           AwsConfiguration.DeployDefaults deployDefaults) {
+                           AwsConfiguration.DeployDefaults deployDefaults,
+                           ScalingPolicyCopier scalingPolicyCopier) {
     this.regionScopedProviderFactory = regionScopedProviderFactory
     this.accountCredentialsRepository = accountCredentialsRepository
     this.deployDefaults = deployDefaults
+    this.scalingPolicyCopier = scalingPolicyCopier
   }
 
   @Override
@@ -271,7 +275,10 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       if (description.copySourceScalingPoliciesAndActions) {
         copyScalingPoliciesAndScheduledActions(
-          task, sourceRegionScopedProvider, description.credentials, description.source.asgName, region, asgName
+          task, sourceRegionScopedProvider,
+          regionScopedProvider.amazonCredentials, description.credentials,
+          description.source.asgName, asgName,
+          regionScopedProvider.region, region
         )
       }
 
@@ -359,16 +366,19 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   @PackageScope
   void copyScalingPoliciesAndScheduledActions(Task task,
                                               RegionScopedProviderFactory.RegionScopedProvider sourceRegionScopedProvider,
+                                              NetflixAmazonCredentials sourceCredentials,
                                               NetflixAmazonCredentials targetCredentials,
                                               String sourceAsgName,
-                                              String targetRegion,
-                                              String targetAsgName) {
+                                              String targetAsgName,
+                                              String sourceRegions,
+                                              String targetRegion) {
     if (!sourceRegionScopedProvider) {
       return
     }
 
     def asgReferenceCopier = sourceRegionScopedProvider.getAsgReferenceCopier(targetCredentials, targetRegion)
-    asgReferenceCopier.copyScalingPoliciesWithAlarms(task, sourceAsgName, targetAsgName)
+    scalingPolicyCopier.copyScalingPolicies(task, sourceAsgName, targetAsgName,
+      sourceCredentials, targetCredentials, sourceRegions, targetRegion)
     asgReferenceCopier.copyScheduledActionsForAsg(task, sourceAsgName, targetAsgName)
   }
 
