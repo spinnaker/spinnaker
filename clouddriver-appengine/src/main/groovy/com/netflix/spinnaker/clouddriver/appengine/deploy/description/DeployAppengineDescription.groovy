@@ -31,7 +31,7 @@ class DeployAppengineDescription extends AbstractAppengineCredentialsDescription
   String repositoryUrl
   AppengineGitCredentialType gitCredentialType
   String branch
-  String appYamlPath
+  List<String> configFilepaths
   Boolean promote
   Boolean stopPreviousVersion
 }

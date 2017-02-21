@@ -29,7 +29,7 @@ class DeployAppengineAtomicOperationConverterSpec extends Specification {
   private static final APPLICATION = "myapp"
   private static final REPO_URL = "https://github.com/spinnaker/clouddriver.git"
   private static final BRANCH = "new-feature"
-  private static final APP_YAML_PATH = "/path/to/app.yaml"
+  private static final CONFIG_FILEPATHS = ["/path/to/app.yaml"]
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()
@@ -52,7 +52,7 @@ class DeployAppengineAtomicOperationConverterSpec extends Specification {
         application: APPLICATION,
         repositoryUrl: REPO_URL,
         branch: BRANCH,
-        appYamlPath: APP_YAML_PATH
+        configFilepaths: CONFIG_FILEPATHS
       ]
 
     when:

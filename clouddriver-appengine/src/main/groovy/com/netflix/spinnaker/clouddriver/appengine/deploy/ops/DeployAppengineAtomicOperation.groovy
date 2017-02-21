@@ -44,8 +44,8 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     this.description = description
   }
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "appYamlPath": "path/to/app.yaml" } } ]' "http://localhost:7002/appengine/ops"
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "appYamlPath": "path/to/app.yaml", "promote": true, "stopPreviousVersion": true } } ]' "http://localhost:7002/appengine/ops"
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["path/to/app.yaml"] } } ]' "http://localhost:7002/appengine/ops"
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["path/to/app.yaml"], "promote": true, "stopPreviousVersion": true } } ]' "http://localhost:7002/appengine/ops"
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -107,7 +107,8 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
                                                                          description.stack,
                                                                          description.freeFormDetails,
                                                                          false)
-    def deployCommand = ["gcloud", "app", "deploy", "$directoryPath/$description.appYamlPath"]
+    def fullyQualifiedConfigFilepaths = description.configFilepaths.collect { "$directoryPath/$it" }
+    def deployCommand = ["gcloud", "app", "deploy", *fullyQualifiedConfigFilepaths]
     deployCommand << "--version=$versionName"
     deployCommand << (description.promote ? "--promote" : "--no-promote")
     deployCommand << (description.stopPreviousVersion ? "--stop-previous-version": "--no-stop-previous-version")

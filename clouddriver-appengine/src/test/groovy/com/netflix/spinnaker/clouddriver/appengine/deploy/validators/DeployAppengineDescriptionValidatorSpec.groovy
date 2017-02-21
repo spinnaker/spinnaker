@@ -34,7 +34,7 @@ class DeployAppengineDescriptionValidatorSpec extends Specification {
   private static final FREE_FORM_DETAILS = "details"
   private static final REPOSITORY_URL = "git@github.com:spinnaker/clouddriver.git"
   private static final BRANCH = "appengine"
-  private static final APP_YAML_PATH = "/path/to/app.yaml"
+  private static final CONFIG_FILEPATHS = ["/path/to/app.yaml"]
   private static final REGION = "us-central"
 
   @Shared
@@ -69,7 +69,7 @@ class DeployAppengineDescriptionValidatorSpec extends Specification {
         freeFormDetails: FREE_FORM_DETAILS,
         repositoryUrl: REPOSITORY_URL,
         branch: BRANCH,
-        appYamlPath: APP_YAML_PATH,
+        configFilepaths: CONFIG_FILEPATHS,
         promote: true,
         stopPreviousVersion: true,
         credentials: credentials,
@@ -90,7 +90,7 @@ class DeployAppengineDescriptionValidatorSpec extends Specification {
         application: APPLICATION_NAME,
         repositoryUrl: REPOSITORY_URL,
         branch: BRANCH,
-        appYamlPath: APP_YAML_PATH,
+        configFilepaths: CONFIG_FILEPATHS,
         credentials: credentials,
         gitCredentialType: AppengineGitCredentialType.NONE)
       def errors = Mock(Errors)
