@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-public class GenerateCommand extends NestableCommand {
+public class GenerateCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "generate";
 
@@ -31,6 +30,6 @@ public class GenerateCommand extends NestableCommand {
   @Override
   protected void executeThis() {
     String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.generateDeployment(currentDeployment, true);
+    Daemon.generateDeployment(currentDeployment, !noValidate);
   }
 }
