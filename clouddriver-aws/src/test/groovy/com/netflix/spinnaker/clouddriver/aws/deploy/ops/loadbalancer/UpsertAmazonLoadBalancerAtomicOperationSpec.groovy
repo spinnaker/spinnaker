@@ -263,6 +263,10 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
       loadBalancerName: "kato-main-frontend",
       securityGroups: ["sg-1234"]
     ))
+    1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
+      loadBalancerName: 'kato-main-frontend',
+      listeners: [ new Listener(protocol: 'HTTP', loadBalancerPort: 80, instanceProtocol: 'HTTP', instancePort: 8501) ]
+    ))
     0 * _
   }
 

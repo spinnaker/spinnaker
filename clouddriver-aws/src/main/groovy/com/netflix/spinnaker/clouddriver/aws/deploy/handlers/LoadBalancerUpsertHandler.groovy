@@ -75,17 +75,32 @@ class LoadBalancerUpsertHandler {
         task.updateStatus BASE_PHASE, "Listener removed from ${loadBalancerName} (${it.loadBalancerPort}:${it.protocol}:${it.instancePort})."
       }
 
+      def createListener = { Listener listener, boolean isRollback ->
+        try {
+          loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, [listener]))
+          task.updateStatus BASE_PHASE, "Listener ${isRollback ? 'rolled back on' : 'added to'} ${loadBalancerName} (${listener.loadBalancerPort}:${listener.protocol}:${listener.instancePort})."
+        } catch (AmazonServiceException e) {
+          def exceptionMessage = "Failed to ${isRollback ? 'roll back' : 'add'} listener to ${loadBalancerName} (${listener.loadBalancerPort}:${listener.protocol}:${listener.instancePort}) - reason: ${e.errorMessage}."
+          task.updateStatus BASE_PHASE, exceptionMessage
+          amazonErrors << exceptionMessage
+          return false
+        }
+        return true
+      }
+
+      boolean rollback = false
       listeners
         .each { Listener listener ->
-          try {
-            loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, [listener]))
-            task.updateStatus BASE_PHASE, "Listener added to ${loadBalancerName} (${listener.loadBalancerPort}:${listener.protocol}:${listener.instancePort})."
-          } catch (AmazonServiceException e) {
-            def exceptionMessage = "Failed to add listener to ${loadBalancerName} (${listener.loadBalancerPort}:${listener.protocol}:${listener.instancePort}) - reason: ${e.errorMessage}."
-            task.updateStatus BASE_PHASE, exceptionMessage
-            amazonErrors << exceptionMessage
+          if (!createListener(listener, false)) {
+            rollback = true
           }
         }
+
+      if (rollback) {
+        listenersToRemove.each { Listener listener ->
+          createListener(listener, true)
+        }
+      }
     }
 
     if (amazonErrors) {
