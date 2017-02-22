@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
@@ -50,9 +51,10 @@ class LifecycleSubscriberConfiguration {
                                                                                          AmazonClientProvider amazonClientProvider,
                                                                                          AccountCredentialsProvider accountCredentialsProvider,
                                                                                          InstanceTerminationConfigurationProperties properties,
-                                                                                         Provider<AwsEurekaSupport> discoverySupport) {
+                                                                                         Provider<AwsEurekaSupport> discoverySupport,
+                                                                                         Registry registry) {
     return new InstanceTerminationLifecycleAgentProvider(
-      objectMapper, amazonClientProvider, accountCredentialsProvider, properties, discoverySupport
+      objectMapper, amazonClientProvider, accountCredentialsProvider, properties, discoverySupport, registry
     );
   }
 }
