@@ -28,22 +28,47 @@ public class SpinnakerEndpoints {
   Services services = new Services();
 
   public SpinnakerEndpoints(Security security) {
-    services.clouddriver = new Service(security).setPort(7002).setArtifact(CLOUDDRIVER);
+    services.clouddriver = new Service(security)
+        .setPort(7002)
+        .setHttpHealth("/health")
+        .setArtifact(CLOUDDRIVER);
     services.deck = (PublicService) new PublicService(security)
         .setPublicAddress(security.getApiAddress())
         .setPort(9000)
         .setArtifact(DECK);
-    services.echo = new Service(security).setPort(8089).setArtifact(ECHO);
-    services.fiat = new Service(security).setPort(7003).setArtifact(FIAT);
-    services.front50 = new Service(security).setPort(8080).setArtifact(FRONT50);
+    services.echo = new Service(security)
+        .setPort(8089)
+        .setHttpHealth("/health")
+        .setArtifact(ECHO);
+    services.fiat = new Service(security)
+        .setPort(7003)
+        .setHttpHealth("/health")
+        .setArtifact(FIAT);
+    services.front50 = new Service(security)
+        .setPort(8080)
+        .setHttpHealth("/health")
+        .setArtifact(FRONT50);
     services.gate = (PublicService) new PublicService(security)
         .setPublicAddress(security.getApiAddress())
         .setPort(8084)
+        .setHttpHealth("/health")
         .setArtifact(GATE);
-    services.igor = new Service(security).setPort(8088).setArtifact(IGOR);
-    services.orca = new Service(security).setPort(8083).setArtifact(ORCA);
-    services.rosco = new Service(security).setPort(8087).setArtifact(ROSCO);
-    services.redis = new Service(security).setPort(6379).setArtifact(REDIS).setProtocol("redis");
+    services.igor = new Service(security)
+        .setPort(8088)
+        .setHttpHealth("/health")
+        .setArtifact(IGOR);
+    services.orca = new Service(security)
+        .setPort(8083)
+        .setHttpHealth("/health")
+        .setArtifact(ORCA);
+    services.rosco = new Service(security)
+        .setPort(8087)
+        .setHttpHealth("/health")
+        .setArtifact(ROSCO);
+    services.redis = new Service(security)
+        .setPort(6379)
+        .setArtifact(REDIS)
+        .setProtocol("redis");
   }
 
   @Data
@@ -68,6 +93,7 @@ public class SpinnakerEndpoints {
     // Host is what's bound to by the service.
     String host = "localhost";
     String protocol = "http";
+    String httpHealth;
 
     @JsonIgnore
     SpinnakerArtifact artifact;

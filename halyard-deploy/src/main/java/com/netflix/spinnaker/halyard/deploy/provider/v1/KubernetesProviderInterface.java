@@ -209,6 +209,23 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       return envVarBuilder.withName(e.getKey()).withValue(e.getValue()).build();
     }).collect(Collectors.toList());
 
+    ProbeBuilder probeBuilder = new ProbeBuilder();
+
+    if (service.getHttpHealth() != null) {
+      probeBuilder = probeBuilder
+          .withNewHttpGet()
+          .withNewPort(port)
+          .withPath(service.getHttpHealth())
+          .endHttpGet();
+    } else {
+      probeBuilder = probeBuilder
+          .withNewTcpSocket()
+          .withNewPort()
+          .withIntVal(port)
+          .endPort()
+          .endTcpSocket();
+    }
+
     ContainerBuilder containerBuilder = new ContainerBuilder();
 
     containerBuilder = containerBuilder
@@ -216,7 +233,8 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         .withImage(image)
         .withPorts(new ContainerPortBuilder().withContainerPort(port).build())
         .withVolumeMounts(volumes.stream().map(Pair::getLeft).collect(Collectors.toList()))
-        .withEnv(envVars);
+        .withEnv(envVars)
+        .withReadinessProbe(probeBuilder.build());
 
     ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder();
 
