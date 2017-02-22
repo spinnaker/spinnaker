@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.deploy;
-
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import java.util.List;
+package com.netflix.spinnaker.clouddriver.deploy
 
 /**
  * A DeployHandler takes a parameterized description object and performs some deployment operation based off of its
@@ -33,10 +30,10 @@ public interface DeployHandler<T> {
    * implementation of {@link DeploymentResult}
    *
    * @param description
-   * @param priorOutputs from prior operations
+   * @param outputs from prior operations
    * @return deployment result object
    */
-  DeploymentResult handle(T description, List priorOutputs);
+  DeploymentResult handle(T description, List priorOutputs)
 
   /**
    * Used to determine if this handler is suitable for processing the supplied description object.
@@ -44,9 +41,5 @@ public interface DeployHandler<T> {
    * @param description
    * @return true/false
    */
-  boolean handles(DeployDescription description);
-
-  default void preDeploy(AtomicOperation operation) {
-    return;
-  }
+  boolean handles(DeployDescription description)
 }
