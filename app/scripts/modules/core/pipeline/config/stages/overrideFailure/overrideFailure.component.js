@@ -33,7 +33,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.overrideFailure',
 
       this.initializeFailureOption = () => {
         var initValue = 'fail';
-        if (this.stage.failPipeline === true && this.stage.continuePipeline === false) {
+        if (this.stage.completeOtherBranchesThenFail === true) {
+          initValue = 'faileventual';
+        } else if (this.stage.failPipeline === true && this.stage.continuePipeline === false) {
           initValue = 'fail';
         } else if (this.stage.failPipeline === false && this.stage.continuePipeline === false) {
           initValue = 'stop';
