@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.listeners
 
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @Slf4j
@@ -45,6 +45,11 @@ class ExecutionPropagationListener implements ExecutionListener {
     }
 
     if (!executionStatus) {
+      executionStatus = TERMINAL
+    }
+
+    def failedStages = execution.stages.findAll { it.status.complete && it.status != SUCCEEDED }
+    if (failedStages.any { it.context.completeOtherBranchesThenFail }) {
       executionStatus = TERMINAL
     }
 
