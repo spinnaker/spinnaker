@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
@@ -30,6 +31,12 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class TitusDeployHandlerSpec extends Specification {
+  NetflixTitusCredentials netflixTitusCredentials = Mock(NetflixTitusCredentials)
+  def accountCredentialsProvider = Mock(AccountCredentialsProvider) {
+    getCredentials("test") >> {
+      return netflixTitusCredentials
+    }
+  }
 
   TitusClient titusClient = Mock(TitusClient)
 
@@ -73,6 +80,8 @@ class TitusDeployHandlerSpec extends Specification {
       addAppGroupToServerGroup: false
     ] as AwsConfiguration.DeployDefaults
 
+    titusDeployHandler.accountCredentialsProvider = accountCredentialsProvider
+
     when:
     DeploymentResult deploymentResult = titusDeployHandler.handle(titusDeployDescription, [])
 
@@ -81,6 +90,7 @@ class TitusDeployHandlerSpec extends Specification {
     deploymentResult != null
     deploymentResult.serverGroupNames && deploymentResult.serverGroupNames.contains('us-east-1:api-test-v000')
     deploymentResult.serverGroupNameByRegion && deploymentResult.serverGroupNameByRegion['us-east-1'] == 'api-test-v000'
+    accountCredentialsProvider.getCredentials(_) >> netflixTitusCredentials
     1 * titusClient.submitJob({
       it.jobName == 'api-test-v000' &&
         it.dockerImageName == 'api.server' &&
