@@ -30,6 +30,8 @@ import com.amazonaws.services.sqs.model.ReceiptHandleIsInvalidException;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.RunnableAgent;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
@@ -48,7 +50,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Provider;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -68,6 +72,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
   AccountCredentialsProvider accountCredentialsProvider;
   InstanceTerminationConfigurationProperties properties;
   Provider<AwsEurekaSupport> discoverySupport;
+  Registry registry;
 
   private final ARN queueARN;
   private final ARN topicARN;
@@ -78,12 +83,14 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
                                            AmazonClientProvider amazonClientProvider,
                                            AccountCredentialsProvider accountCredentialsProvider,
                                            InstanceTerminationConfigurationProperties properties,
-                                           Provider<AwsEurekaSupport> discoverySupport) {
+                                           Provider<AwsEurekaSupport> discoverySupport,
+                                           Registry registry) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.properties = properties;
     this.discoverySupport = discoverySupport;
+    this.registry = registry;
 
     Set<? extends AccountCredentials> accountCredentials = accountCredentialsProvider.getAll();
     this.queueARN = new ARN(accountCredentials, properties.getQueueARN());
@@ -212,6 +219,8 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
     discoverySupport.get().updateDiscoveryStatusForInstances(
       description, task, "handleLifecycleMessage", DiscoveryStatus.Disable, instanceIds
     );
+
+    recordLag(message.time, queueARN.region, message.ec2InstanceId);
   }
 
   private static void deleteMessage(AmazonSQS amazonSQS, String queueUrl, Message message) {
@@ -276,4 +285,17 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
 
     return new Policy("allow-sns-topic-send", Collections.singletonList(statement));
   }
+
+  Id getLagMetricId(String region) {
+    return registry.createId("terminationLifecycle.lag", "region", region);
+  }
+
+  void recordLag(Date start, String region, String instanceId) {
+    if (start != null) {
+      Long lag = registry.clock().wallTime() - start.getTime();
+      log.info("Lifecycle message processed (instance: {}, lagSeconds: {})", instanceId, Duration.ofMillis(lag).getSeconds());
+      registry.gauge(getLagMetricId(region), lag);
+    }
+  }
+
 }

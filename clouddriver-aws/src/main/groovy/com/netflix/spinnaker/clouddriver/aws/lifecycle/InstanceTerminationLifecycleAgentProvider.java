@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentProvider;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
@@ -38,17 +39,20 @@ public class InstanceTerminationLifecycleAgentProvider implements AgentProvider 
   private final AccountCredentialsProvider accountCredentialsProvider;
   private final InstanceTerminationConfigurationProperties properties;
   private final Provider<AwsEurekaSupport> discoverySupport;
+  private final Registry registry;
 
   InstanceTerminationLifecycleAgentProvider(ObjectMapper objectMapper,
                                             AmazonClientProvider amazonClientProvider,
                                             AccountCredentialsProvider accountCredentialsProvider,
                                             InstanceTerminationConfigurationProperties properties,
-                                            Provider<AwsEurekaSupport> discoverySupport) {
+                                            Provider<AwsEurekaSupport> discoverySupport,
+                                            Registry registry) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
     this.properties = properties;
     this.discoverySupport = discoverySupport;
+    this.registry = registry;
   }
 
   @Override
@@ -81,7 +85,8 @@ public class InstanceTerminationLifecycleAgentProvider implements AgentProvider 
           properties.getVisibilityTimeout(),
           properties.getWaitTimeSeconds()
         ),
-        discoverySupport
+        discoverySupport,
+        registry
       ))
       .collect(Collectors.toList());
   }

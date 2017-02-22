@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.clouddriver.aws.lifecycle
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
@@ -34,6 +35,7 @@ class InstanceTerminationLifecycleAgentProviderSpec extends Specification {
   AmazonClientProvider amazonClientProvider = Mock()
   AccountCredentialsProvider accountCredentialsProvider = Mock()
   Provider<AwsEurekaSupport> awsEurekaSupport = Mock()
+  Registry registry = Mock()
 
   InstanceTerminationConfigurationProperties properties = new InstanceTerminationConfigurationProperties(
     'mgmt',
@@ -50,7 +52,8 @@ class InstanceTerminationLifecycleAgentProviderSpec extends Specification {
     amazonClientProvider,
     accountCredentialsProvider,
     properties,
-    awsEurekaSupport
+    awsEurekaSupport,
+    registry
   )
 
   def 'should support AwsProvider'() {
