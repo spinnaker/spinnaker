@@ -223,6 +223,12 @@
         </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Node Selector" ng-if="serverGroup.deployDescription.nodeSelector">
+      <dl class="dl-horizontal dl-flex">
+        <kubernetes-key-value-details map="serverGroup.deployDescription.nodeSelector">
+        </kubernetes-key-value-details>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Events">
       <div ng-if="serverGroup.events && serverGroup.events.length > 0">
         <kubernetes-event ng-repeat="event in serverGroup.events" event="event"/>
