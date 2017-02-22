@@ -94,6 +94,7 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
     newDescription.namespace = description.namespace ?: description.source.namespace
     newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : KubernetesUtil.getLoadBalancers(ancestorServerGroup)
     newDescription.restartPolicy = description.restartPolicy ?: ancestorServerGroup.spec?.template?.spec?.restartPolicy
+    newDescription.nodeSelector = description.nodeSelector ?: ancestorServerGroup.spec?.template?.spec?.nodeSelector
     if (!description.containers) {
       newDescription.containers = ancestorServerGroup.spec?.template?.spec?.containers?.collect { it ->
         KubernetesApiConverter.fromContainer(it)

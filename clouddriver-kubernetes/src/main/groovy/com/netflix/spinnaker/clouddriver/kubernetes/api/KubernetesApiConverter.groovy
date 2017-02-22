@@ -886,6 +886,8 @@ class KubernetesApiConverter {
       podTemplateSpecBuilder = podTemplateSpecBuilder.addNewImagePullSecret(imagePullSecret)
     }
 
+    podTemplateSpecBuilder = podTemplateSpecBuilder.withNodeSelector(description.nodeSelector)
+
     if (description.volumeSources) {
       def volumeSources = description.volumeSources.findResults { volumeSource ->
         toVolumeSource(volumeSource)
