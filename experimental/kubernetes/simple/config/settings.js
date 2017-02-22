@@ -3,11 +3,13 @@
 var feedbackUrl = 'http://localhost';
 var gateHost = 'http://localhost:8084';
 var bakeryDetailUrl = 'http://localhost:8087';
+var authEndpoint = gateHost + '/auth/user';
 
 window.spinnakerSettings = {
   defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'titan'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
+  authEndpoint: authEndpoint,
   bakeryDetailUrl: bakeryDetailUrl,
   pollSchedule: 30000,
   defaultTimeZone: 'America/New_York', // see http://momentjs.com/timezone/docs/#/data-utilities/
