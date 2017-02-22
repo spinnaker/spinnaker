@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.deploy
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import org.springframework.beans.factory.annotation.Autowired
 
 class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
@@ -28,6 +30,7 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
   DeployHandlerRegistry deploymentHandlerRegistry
 
   private final DeployDescription description
+  private final Collection<CreateServerGroupEvent> events = []
 
   DeployAtomicOperation(DeployDescription description) {
     this.description = description
@@ -38,6 +41,11 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
   }
 
   @Override
+  Collection<OperationEvent> getEvents() {
+    return events
+  }
+
+  @Override
   DeploymentResult operate(List priorOutputs) {
     task.updateStatus TASK_PHASE, "Initializing phase."
     task.updateStatus TASK_PHASE, "Looking for ${description.getClass().simpleName} handler..."
@@ -45,6 +53,8 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
     if (!deployHandler) {
       throw new DeployHandlerNotFoundException("Could not find handler for ${description.getClass().simpleName}!")
     }
+
+    deployHandler.preDeploy(this);
     task.updateStatus TASK_PHASE, "Found handler: ${deployHandler.getClass().simpleName}"
 
     task.updateStatus TASK_PHASE, "Invoking Handler."
