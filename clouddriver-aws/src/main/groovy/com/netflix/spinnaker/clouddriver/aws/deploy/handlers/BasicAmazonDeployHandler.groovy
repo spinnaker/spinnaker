@@ -22,7 +22,6 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
@@ -41,9 +40,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
-import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import groovy.transform.PackageScope
 
@@ -64,8 +60,6 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   private final RegionScopedProviderFactory regionScopedProviderFactory
   private final AccountCredentialsRepository accountCredentialsRepository
   private final AwsConfiguration.DeployDefaults deployDefaults
-
-  private List<OperationEvent> events = []
 
   BasicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
                            AccountCredentialsRepository accountCredentialsRepository,
@@ -276,18 +270,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }
 
       createLifecycleHooks(task, regionScopedProvider, account, description, asgName)
-
-      this.events << new CreateServerGroupEvent(
-        AmazonCloudProvider.ID, account.accountId, region, asgName
-      )
     }
 
     return deploymentResult
-  }
-
-  @Override
-  void preDeploy(AtomicOperation operation) {
-    this.events = operation.events
   }
 
   @VisibleForTesting
