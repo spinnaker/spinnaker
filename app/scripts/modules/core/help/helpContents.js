@@ -258,6 +258,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'Immediately halts execution of all running stages and fails the entire execution.',
     'pipeline.config.haltBranchOnFailure': '' +
     'Prevents any stages that depend on this stage from running, but allows other branches of the pipeline to run.',
+    'pipeline.config.haltBranchOnFailureFailPipeline': '' +
+    'Prevents any stages that depend on this stage from running, but allows other branches of the pipeline to run. The pipeline will be marked as failed once complete.',
     'pipeline.config.ignoreFailure': '' +
     'Continues execution of downstream stages, marking this stage as failed/continuing.',
     'pipeline.config.jenkins.markUnstableAsSuccessful.true': 'If Jenkins reports the build status as UNSTABLE, ' +

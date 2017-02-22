@@ -15,12 +15,19 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.overrideFailure',
         if (this.viewState.failureOption === 'fail') {
           this.stage.failPipeline = true;
           this.stage.continuePipeline = false;
+          this.stage.completeOtherBranchesThenFail = false;
         } else if (this.viewState.failureOption === 'stop') {
           this.stage.failPipeline = false;
           this.stage.continuePipeline = false;
+          this.stage.completeOtherBranchesThenFail = false;
         } else if (this.viewState.failureOption === 'ignore') {
           this.stage.failPipeline = false;
           this.stage.continuePipeline = true;
+          this.stage.completeOtherBranchesThenFail = false;
+        } else if (this.viewState.failureOption === 'faileventual') {
+          this.stage.failPipeline = false;
+          this.stage.continuePipeline = false;
+          this.stage.completeOtherBranchesThenFail = true;
         }
       };
 
