@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.AsgLifecycleHookWorker
 import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.DefaultLaunchConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder
+import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.ScalingPolicyCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer

@@ -48,6 +48,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
+import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.ScalingPolicyCopier
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
@@ -85,6 +86,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   List<AmazonBlockDevice> blockDevices
 
+  ScalingPolicyCopier scalingPolicyCopier = Mock(ScalingPolicyCopier)
+
   def setup() {
     amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-12345"))
     this.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
@@ -99,7 +102,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def defaults = new AwsConfiguration.DeployDefaults(iamRole: 'IamRole')
     def credsRepo = new MapBackedAccountCredentialsRepository()
     credsRepo.save('baz', TestCredential.named('baz'))
-    this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults) {
+    this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults, scalingPolicyCopier) {
       @Override LoadBalancerLookupHelper lookupHelper() {
         return new LoadBalancerLookupHelper()
       }
@@ -531,19 +534,22 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   @Unroll
   void "should copy scaling policies and scheduled actions"() {
     given:
+    String sourceRegion = "us-east-1"
     def sourceRegionScopedProvider = Mock(RegionScopedProvider) {
       1 * getAsgReferenceCopier(testCredentials, targetRegion) >> {
         return Mock(AsgReferenceCopier) {
-          1 * copyScalingPoliciesWithAlarms(task, sourceAsgName, targetAsgName)
           1 * copyScheduledActionsForAsg(task, sourceAsgName, targetAsgName)
         }
       }
     }
 
-    expect:
+    when:
     handler.copyScalingPoliciesAndScheduledActions(
-      task, sourceRegionScopedProvider, testCredentials, sourceAsgName, targetRegion, targetAsgName
+      task, sourceRegionScopedProvider, testCredentials, testCredentials, sourceAsgName, targetAsgName, sourceRegion, targetRegion
     )
+
+    then:
+    1 * scalingPolicyCopier.copyScalingPolicies(task, sourceAsgName, targetAsgName, testCredentials, testCredentials, sourceRegion, targetRegion)
 
     where:
     sourceAsgName | targetRegion | targetAsgName
