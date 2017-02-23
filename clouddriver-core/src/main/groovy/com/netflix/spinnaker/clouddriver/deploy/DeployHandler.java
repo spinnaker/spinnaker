@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.deploy;
 
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,7 +47,7 @@ public interface DeployHandler<T> {
    */
   boolean handles(DeployDescription description);
 
-  default void preDeploy(AtomicOperation operation) {
-    return;
+  default List<CreateServerGroupEvent> getDeployEvents() {
+    return Collections.emptyList();
   }
 }

@@ -42,9 +42,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
-import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import groovy.transform.PackageScope
 
@@ -67,7 +65,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   private final AwsConfiguration.DeployDefaults deployDefaults
   private final ScalingPolicyCopier scalingPolicyCopier
 
-  private List<OperationEvent> events = []
+  private List<CreateServerGroupEvent> deployEvents = []
 
   BasicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
                            AccountCredentialsRepository accountCredentialsRepository,
@@ -284,7 +282,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       createLifecycleHooks(task, regionScopedProvider, account, description, asgName)
 
-      this.events << new CreateServerGroupEvent(
+      this.deployEvents << new CreateServerGroupEvent(
         AmazonCloudProvider.ID, account.accountId, region, asgName
       )
     }
@@ -293,8 +291,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   }
 
   @Override
-  void preDeploy(AtomicOperation operation) {
-    this.events = operation.events
+  List<CreateServerGroupEvent> getDeployEvents() {
+    return new ArrayList<>(this.deployEvents)
   }
 
   @VisibleForTesting

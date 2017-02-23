@@ -23,9 +23,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
-import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
@@ -58,7 +56,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
   private final TitusClientProvider titusClientProvider
 
-  private List<OperationEvent> events = []
+  private final List<CreateServerGroupEvent> deployEvents = []
 
   TitusDeployHandler(TitusClientProvider titusClientProvider) {
     this.titusClientProvider = titusClientProvider
@@ -189,7 +187,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
       deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }
 
-      this.events << new CreateServerGroupEvent(
+      this.deployEvents << new CreateServerGroupEvent(
         TitusCloudProvider.ID, getAccountId(account), region, nextServerGroupName
       )
 
@@ -217,7 +215,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
   }
 
   @Override
-  void preDeploy(AtomicOperation operation) {
-    this.events = operation.events
+  List<CreateServerGroupEvent> getDeployEvents() {
+    return new ArrayList<>(this.deployEvents)
   }
 }

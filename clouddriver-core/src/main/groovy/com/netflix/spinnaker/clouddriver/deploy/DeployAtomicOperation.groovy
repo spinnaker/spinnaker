@@ -54,11 +54,12 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
       throw new DeployHandlerNotFoundException("Could not find handler for ${description.getClass().simpleName}!")
     }
 
-    deployHandler.preDeploy(this);
     task.updateStatus TASK_PHASE, "Found handler: ${deployHandler.getClass().simpleName}"
 
     task.updateStatus TASK_PHASE, "Invoking Handler."
     def deploymentResult = deployHandler.handle(description, priorOutputs)
+
+    events.addAll(deployHandler.getDeployEvents())
 
     task.updateStatus TASK_PHASE, "Server Groups: ${deploymentResult.serverGroupNames} created."
 
