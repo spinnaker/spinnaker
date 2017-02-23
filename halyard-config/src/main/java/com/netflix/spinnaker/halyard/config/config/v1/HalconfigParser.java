@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.config.error.v1.ParseConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +30,8 @@ import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 /**
@@ -51,6 +53,9 @@ public class HalconfigParser {
 
   @Autowired
   StrictObjectMapper objectMapper;
+
+  @Autowired
+  HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Autowired
   Yaml yamlParser;
@@ -128,6 +133,14 @@ public class HalconfigParser {
    * Write your halconfig object to the halconfigPath.
    */
   public void saveConfig() {
+    saveConfigTo(Paths.get(halconfigPath));
+  }
+
+  public void backupConfig(String deploymentName) {
+    saveConfigTo(halconfigDirectoryStructure.getBackupConfigPath(deploymentName));
+  }
+
+  private void saveConfigTo(Path path) {
     Halconfig local = (Halconfig) DaemonTaskHandler.getContext();
     if (local == null) {
       throw new HalException(
@@ -139,7 +152,7 @@ public class HalconfigParser {
 
     AtomicFileWriter writer = null;
     try {
-      writer = new AtomicFileWriter(halconfigPath);
+      writer = new AtomicFileWriter(path);
       writer.write(yamlParser.dump(objectMapper.convertValue(local, Map.class)));
       writer.commit();
     } catch (IOException e) {

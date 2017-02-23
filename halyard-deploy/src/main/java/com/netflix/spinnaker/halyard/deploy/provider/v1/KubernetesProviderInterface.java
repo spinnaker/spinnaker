@@ -94,7 +94,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       case REDIS:
         return "gcr.io/kubernetes-spinnaker/redis-cluster:v2";
       default:
-        String version = details.getGenerateResult().getArtifactVersion().get(artifact);
+        String version = details.getGenerateResult().getArtifactVersions().get(artifact);
 
         // TODO(lwander/jtk54) we need a published store of validated spinnaker images
         // KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), version, REGISTRY);

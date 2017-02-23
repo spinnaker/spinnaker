@@ -42,7 +42,7 @@ public class ResourceConfig {
   String halconfigPath(@Value("${halconfig.directory.halconfig:~/.hal}") String path) {
     return normalizePath(Paths.get(path, "config").toString());
   }
-
+  
   /**
    * Version of halyard.
    *

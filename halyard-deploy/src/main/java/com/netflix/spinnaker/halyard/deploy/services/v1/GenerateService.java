@@ -18,6 +18,8 @@ package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
@@ -48,7 +50,7 @@ public class GenerateService {
   private String spinnakerOutputPath;
 
   @Autowired
-  private String halconfigDirectory;
+  private HalconfigParser halconfigParser;
 
   @Autowired
   private DeploymentService deploymentService;
@@ -64,6 +66,9 @@ public class GenerateService {
 
   @Autowired
   private ObjectMapper objectMapper;
+
+  @Autowired
+  private HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Autowired(required = false)
   private List<SpinnakerProfile> spinnakerProfiles = new ArrayList<>();
@@ -101,6 +106,7 @@ public class GenerateService {
    *   2. Generate configuration using the halconfig as the source of truth, while collecting files needed by
    *      the deployment.
    *   3. Copy custom profiles from the specified deployment over to the new deployment.
+   *   4. Store the result of generating the config for future diffing.
    *
    * @param deploymentName is the deployment whose config to generate
    * @return a mapping from components to the profile's required local files.
@@ -146,7 +152,7 @@ public class GenerateService {
     }
 
     // Step 3.
-    Path userProfilePath = Paths.get(halconfigDirectory, deploymentName);
+    Path userProfilePath = halconfigDirectoryStructure.getUserProfilePath(deploymentName);
 
     if (Files.isDirectory(userProfilePath)) {
       DaemonTaskHandler.newStage("Copying user-provided profiles");
@@ -167,16 +173,23 @@ public class GenerateService {
       });
     }
 
-    return new GenerateResult()
-        .setArtifactVersion(artifactVersions)
+    // Step 4.
+    GenerateResult result = new GenerateResult()
+        .setArtifactVersions(artifactVersions)
         .setProfileRequirements(profileRequirements)
         .setEndpoints(endpoints);
+
+    Path generateResultPath = halconfigDirectoryStructure.getGenerateResultPath(deploymentName);
+    atomicWrite(generateResultPath, yamlToString(result));
+    halconfigParser.backupConfig(deploymentName);
+
+    return result;
   }
 
   @Data
   public static class GenerateResult {
     private Map<String, List<String>> profileRequirements = new HashMap<>();
-    private Map<SpinnakerArtifact, String> artifactVersion = new HashMap<>();
+    private Map<SpinnakerArtifact, String> artifactVersions = new HashMap<>();
     SpinnakerEndpoints endpoints;
   }
 }

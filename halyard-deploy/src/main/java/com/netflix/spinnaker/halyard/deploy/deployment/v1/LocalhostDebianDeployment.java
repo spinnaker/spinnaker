@@ -67,7 +67,7 @@ public class LocalhostDebianDeployment extends Deployment {
 
     StringBuilder pinContents = new StringBuilder();
 
-    deploymentDetails.getGenerateResult().getArtifactVersion().forEach((k, v) -> {
+    deploymentDetails.getGenerateResult().getArtifactVersions().forEach((k, v) -> {
       pinContents.append(String.format(pinFormat, k.getName(), v));
     });
 
