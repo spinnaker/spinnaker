@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalan
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import io.fabric8.kubernetes.api.model.ObjectMeta
 import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.api.model.ServicePort
 import io.fabric8.kubernetes.api.model.ServiceSpec
@@ -44,6 +45,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationSpec extends Specification {
   final static String VALID_NAME2 = "eman"
   final static String INVALID_NAME = "bad name ?"
   final static String VALID_IP1 = "127.0.0.1"
+  final static Map VALID_LABELS = ["foo": "bar", "bar": "baz"]
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -217,5 +219,34 @@ class UpsertKubernetesLoadBalancerAtomicOperationSpec extends Specification {
         service.spec.externalIPs[0] = VALID_IP1
       }) >> resultServiceMock
       resultServiceMock.getMetadata() >> [name: '', namespace: '']
+  }
+
+  void "should upsert a new loadbalancer, and copy labels over"() {
+    setup:
+    def description = new KubernetesLoadBalancerDescription(
+        name: VALID_NAME1,
+        externalIps: [VALID_IP1],
+        credentials: namedAccountCredentials,
+        namespace: NAMESPACE
+    )
+    def resultServiceMock = Mock(Service)
+    def existingServiceMock = Mock(Service)
+    def metadataMock = Mock(ObjectMeta)
+
+    existingServiceMock.getMetadata() >> metadataMock
+    metadataMock.getLabels() >> VALID_LABELS
+
+    @Subject def operation = new UpsertKubernetesLoadBalancerAtomicOperation(description)
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * apiMock.getService(NAMESPACE, VALID_NAME1) >> existingServiceMock
+    1 * apiMock.replaceService(NAMESPACE, VALID_NAME1, { service ->
+      service.metadata.name == description.name
+      service.metadata.labels == VALID_LABELS
+    }) >> resultServiceMock
+    resultServiceMock.getMetadata() >> [name: '', namespace: '']
   }
 }

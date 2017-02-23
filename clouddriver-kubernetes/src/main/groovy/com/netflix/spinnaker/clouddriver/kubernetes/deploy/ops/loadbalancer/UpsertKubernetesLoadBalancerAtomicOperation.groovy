@@ -63,6 +63,10 @@ class UpsertKubernetesLoadBalancerAtomicOperation implements AtomicOperation<Map
 
     serviceBuilder = serviceBuilder.withNewMetadata().withName(name)
 
+    def labels = existingService?.metadata?.labels ?: [:]
+
+    serviceBuilder = serviceBuilder.withLabels(labels)
+
     def annotations = description.serviceAnnotations ?: existingService?.metadata?.annotations
 
     serviceBuilder = serviceBuilder.withAnnotations(annotations)
