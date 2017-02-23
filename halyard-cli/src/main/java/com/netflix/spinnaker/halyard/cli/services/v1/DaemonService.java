@@ -125,7 +125,7 @@ public interface DaemonService {
       @Body Account account);
 
   @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/{accountName}/")
-  DaemonTask<Halconfig, Object> deleteAccount(
+  DaemonTask<Halconfig, Void> deleteAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
@@ -143,7 +143,7 @@ public interface DaemonService {
       @Body Security security);
 
   @GET("/v1/config/deployments/{deploymentName}/security/authn/{methodName}/")
-  DaemonTask<Halconfig, AuthnMethod> getAuthnMethod(
+  DaemonTask<Halconfig, Object> getAuthnMethod(
       @Path("deploymentName") String deploymentName,
       @Path("methodName") String methodName,
       @Query("validate") boolean validate);
@@ -203,7 +203,7 @@ public interface DaemonService {
       @Body BaseImage baseImage);
 
   @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/bakery/defaults/baseImage/{baseImageId}/")
-  DaemonTask<Halconfig, Object> deleteBaseImage(
+  DaemonTask<Halconfig, Void> deleteBaseImage(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("baseImageId") String baseImageId,

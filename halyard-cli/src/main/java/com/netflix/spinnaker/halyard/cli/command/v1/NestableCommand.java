@@ -20,6 +20,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.services.v1.ExpectedDaemonFailureException;
 import com.netflix.spinnaker.halyard.cli.services.v1.ResponseUnwrapper;
 import com.netflix.spinnaker.halyard.cli.ui.v1.*;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
@@ -84,16 +85,11 @@ public abstract class NestableCommand {
         System.exit(1);
       }
 
-      try {
-        DaemonResponse d = (DaemonResponse) e.getBodyAs(DaemonResponse.class);
-        if (d.getProblemSet() != null) {
-          ResponseUnwrapper.get(d);
-          System.exit(1);
-        }
-      } catch (RuntimeException re) {
-      }
       AnsiUi.error(e.getMessage());
       AnsiUi.remediation("Try the command again with the --debug flag.");
+      System.exit(1);
+    } catch (ExpectedDaemonFailureException e) {
+      AnsiUi.error("Operation failed. See above errors for details.");
       System.exit(1);
     } catch (Exception e) {
       if (GlobalOptions.getGlobalOptions().isDebug()) {

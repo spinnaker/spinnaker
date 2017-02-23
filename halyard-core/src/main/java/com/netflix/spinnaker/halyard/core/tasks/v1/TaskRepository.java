@@ -2,6 +2,7 @@ package com.netflix.spinnaker.halyard.core.tasks.v1;
 
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -72,11 +73,18 @@ public class TaskRepository {
 
     if (fatalError != null) {
       if (fatalError instanceof HalException) {
-        throw (HalException) fatalError;
+        HalException halException = (HalException) fatalError;
+        ProblemSet problemSet = halException.getProblems();
+        if (task.getResponse() != null) {
+          task.getResponse().getProblemSet().addAll(problemSet);
+        } else {
+          task.setResponse(new DaemonResponse<>(null, problemSet));
+        }
       } else {
-        throw new RuntimeException("Failed running task: " + fatalError.getMessage(), fatalError);
+        throw new RuntimeException("Unknown error encountered while running task: " + fatalError.getMessage(), fatalError);
       }
     }
+
     return task;
   }
 

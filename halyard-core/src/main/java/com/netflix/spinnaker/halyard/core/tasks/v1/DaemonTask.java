@@ -53,6 +53,10 @@ public class DaemonTask<C, T> {
     NOT_STARTED,
     RUNNING,
     SUCCESS,
-    FATAL
+    FATAL;
+
+    public boolean isTerminal() {
+      return this == SUCCESS || this == FATAL;
+    }
   }
 }

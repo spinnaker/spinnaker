@@ -31,17 +31,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class ResponseUnwrapper<T> {
+public class ResponseUnwrapper {
   private static final Long WAIT_MILLIS = 200L;
-
-  public static <T> T get(DaemonResponse<T> response) {
-    formatProblemSet(response.getProblemSet());
-    return response.getResponseBody();
-  }
 
   public static <C, T> T get(DaemonTask<C, T> task) {
     PrintCoordinates coords = new PrintCoordinates();
-    while (task.getState() != DaemonTask.State.SUCCESS) {
+
+    while (!task.getState().isTerminal()) {
       coords = formatStages(task.getStages(), coords);
 
       try {
@@ -56,12 +52,24 @@ public class ResponseUnwrapper<T> {
     AnsiSnippet clear = new AnsiSnippet("").setErase(AnsiErase.ERASE_START_LINE);
     AnsiPrinter.print(clear.toString());
 
-    return get(task.getResponse());
+    DaemonResponse<T> response = task.getResponse();
+    formatProblemSet(response.getProblemSet());
+    if (task.getState() == DaemonTask.State.FATAL) {
+      throw new ExpectedDaemonFailureException();
+    }
+
+    return response.getResponseBody();
   }
 
   private static PrintCoordinates formatStages(List<DaemonStage> stages, PrintCoordinates coords) {
     for (DaemonStage stage : stages.subList(coords.getLastStage(), stages.size())) {
-      coords = formatEvents(stage.getName(), stage.getEvents(), coords);
+      String stageName = stage.getName();
+      AnsiSnippet snippet = new AnsiSnippet("~ " + stageName)
+          .addStyle(AnsiStyle.BOLD)
+          .setErase(AnsiErase.ERASE_START_LINE);
+      AnsiPrinter.print(snippet.toString());
+
+      coords = formatEvents(stageName, stage.getEvents(), coords);
 
       if (stage.getState() == State.INACTIVE) {
         coords.setLastEvent(0);
@@ -86,7 +94,7 @@ public class ResponseUnwrapper<T> {
     return coords;
   }
 
-  private static void formatProblemSet(ProblemSet problemSet) {
+  public static void formatProblemSet(ProblemSet problemSet) {
     if (problemSet == null) {
       return;
     }

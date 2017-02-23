@@ -52,6 +52,10 @@ public class ProblemSet {
     problems.add(problem);
   }
 
+  public void addAll(ProblemSet problemSet) {
+    problems.addAll(problemSet.getProblems());
+  }
+
   public ProblemSet(List<Problem> problems) {
     this.problems = problems;
   }
@@ -76,7 +80,7 @@ public class ProblemSet {
   }
 
   /**
-   * Problemhis is can be used to ignore errors that user deems frivolous.
+   * This is can be used to ignore errors that user deems frivolous.
    *
    * Example: A client's Jenkins instance isn't connecting to Halyard, but they are sure it will connect to Igor, so they
    * can force halyard to only generate an error if the severity exceeds "FAProblemAL" (which is impossible).
