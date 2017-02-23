@@ -20,6 +20,7 @@ import com.amazonaws.auth.policy.Policy;
 import com.amazonaws.auth.policy.Principal;
 import com.amazonaws.auth.policy.Resource;
 import com.amazonaws.auth.policy.Statement;
+import com.amazonaws.auth.policy.Statement.Effect;
 import com.amazonaws.auth.policy.actions.SNSActions;
 import com.amazonaws.auth.policy.actions.SQSActions;
 import com.amazonaws.services.sns.AmazonSNS;
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Provider;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -128,7 +130,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
       .filter(a -> a != null)
       .collect(Collectors.toList());
 
-    this.queueId = ensureQueueExists(amazonSQS, queueARN, topicARN);
+    this.queueId = ensureQueueExists(amazonSQS, queueARN, topicARN, allAccountIds);
     ensureTopicExists(amazonSNS, topicARN, allAccountIds, queueARN);
 
     AtomicInteger messagesProcessed = new AtomicInteger(0);
@@ -266,24 +268,35 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
     return new Policy("allow-remote-account-send", Collections.singletonList(statement));
   }
 
-  private static String ensureQueueExists(AmazonSQS amazonSQS, ARN queueARN, ARN topicARN) {
+  private static String ensureQueueExists(AmazonSQS amazonSQS, ARN queueARN, ARN topicARN, List<String> allAccounts) {
     String queueUrl = amazonSQS.createQueue(queueARN.name).getQueueUrl();
     amazonSQS.setQueueAttributes(
-      queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, topicARN).toJson())
+      queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, topicARN, allAccounts).toJson())
     );
 
     return queueUrl;
   }
 
-  private static Policy buildSQSPolicy(ARN queue, ARN topic) {
-    Statement statement = new Statement(Statement.Effect.Allow).withActions(SQSActions.SendMessage);
-    statement.setPrincipals(Principal.All);
-    statement.setResources(Collections.singletonList(new Resource(queue.arn)));
-    statement.setConditions(Collections.singletonList(
+  /**
+   * This policy allows operators to choose whether or not to have lifecycle hooks to be sent via SNS for fanout, or
+   * be sent directly to an SQS queue from the autoscaling group.
+   */
+  private static Policy buildSQSPolicy(ARN queue, ARN topic, List<String> allAccounts) {
+    Statement snsStatement = new Statement(Effect.Allow).withActions(SQSActions.SendMessage);
+    snsStatement.setPrincipals(Principal.All);
+    snsStatement.setResources(Collections.singletonList(new Resource(queue.arn)));
+    snsStatement.setConditions(Collections.singletonList(
       new Condition().withType("ArnEquals").withConditionKey("aws:SourceArn").withValues(topic.arn)
     ));
 
-    return new Policy("allow-sns-topic-send", Collections.singletonList(statement));
+    Statement sqsStatement = new Statement(Effect.Allow).withActions(SQSActions.SendMessage, SQSActions.GetQueueUrl);
+    sqsStatement.setPrincipals(allAccounts.stream().map(Principal::new).collect(Collectors.toSet()));
+    sqsStatement.setResources(Collections.singletonList(new Resource(queue.arn)));
+    sqsStatement.setConditions(Collections.singletonList(
+      new Condition().withType("ArnLike").withConditionKey("aws:SourceArn").withValues("arn:aws:autoscaling:*:*:autoscalingGroup:*:*")
+    ));
+
+    return new Policy("allow-sns-or-sqs-send", Arrays.asList(snsStatement, sqsStatement));
   }
 
   Id getLagMetricId(String region) {
