@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
@@ -61,27 +62,26 @@ public class LocalhostDebianDeployment extends Deployment {
 
   @Override
   public void deploy() {
+    DaemonTaskHandler.newStage("Generating apt-preferences file");
     String pinFormat = "Package: spinnaker-%s\n"
         + "Pin: version %s\n"
         + "Pin-Priority: 1001\n";
 
-    StringBuilder pinContents = new StringBuilder();
-
+    AtomicFileWriter[] fileWriter = new AtomicFileWriter[1];
     deploymentDetails.getGenerateResult().getArtifactVersions().forEach((k, v) -> {
-      pinContents.append(String.format(pinFormat, k.getName(), v));
-    });
-
-    AtomicFileWriter fileWriter = null;
-
-    try {
-      fileWriter = new AtomicFileWriter("/etc/apt/preferences.d/pin-spin");
-      fileWriter.write(pinContents.toString());
-    } catch (IOException e) {
-      throw new HalException(new ConfigProblemBuilder(Severity.ERROR, "Failed to write debian pin file: " + e).build());
-    } finally {
-      if (fileWriter != null) {
-        fileWriter.close();
+      try {
+        DaemonTaskHandler.log("Pinning " + k.getName() + " version to " + v);
+        fileWriter[0] = new AtomicFileWriter("/etc/apt/preferences.d/pin-spin-" + k.getName());
+        fileWriter[0].write(String.format(pinFormat, k.getName(), v));
+        fileWriter[0].commit();
+      } catch (IOException e) {
+        throw new HalException(new ConfigProblemBuilder(Severity.ERROR, "Failed to write debian pin file: " + e).build());
+      } finally {
+        if (fileWriter[0] != null) {
+          fileWriter[0].close();
+          fileWriter[0] = null;
+        }
       }
-    }
+    });
   }
 }
