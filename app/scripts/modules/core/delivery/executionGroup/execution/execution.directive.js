@@ -1,6 +1,7 @@
 'use strict';
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {CANCEL_MODAL_SERVICE} from 'core/cancelModal/cancelModal.service';
 
 let angular = require('angular');
 
@@ -10,6 +11,7 @@ module.exports = angular
   .module('spinnaker.core.delivery.group.executionGroup.execution.directive', [
     require('../../filter/executionFilter.service.js'),
     require('../../filter/executionFilter.model.js'),
+    CANCEL_MODAL_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     require('core/navigation/urlParser.service.js'),
     require('core/scheduler/scheduler.factory'),
@@ -29,7 +31,8 @@ module.exports = angular
     };
   })
   .controller('ExecutionCtrl', function ($scope, $location, $stateParams, $state, urlParser, schedulerFactory,
-                                         settings, ExecutionFilterModel, executionService, confirmationModalService) {
+                                         settings, ExecutionFilterModel, executionService, cancelModalService,
+                                         confirmationModalService) {
 
     this.pipelinesUrl = [settings.gateUrl, 'pipelines/'].join('/');
 
@@ -115,12 +118,12 @@ module.exports = angular
 
     this.cancelExecution = () => {
       let hasDeployStage = this.execution.stages && this.execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
-      confirmationModalService.confirm({
-        header: 'Really stop execution of ' + this.execution.name + '?',
-        buttonText: 'Stop running ' + this.execution.name,
-        submitJustWithReason: true,
+      cancelModalService.confirm({
+        header: `Really stop execution of ${this.execution.name}?`,
+        buttonText: `Stop running ${this.execution.name}`,
+        forceable: this.execution.executionEngine === 'v2',
         body: hasDeployStage ? '<b>Note:</b> Any deployments that have begun will continue and need to be cleaned up manually.' : null,
-        submitMethod: (reason) => executionService.cancelExecution(this.application, this.execution.id, reason)
+        submitMethod: (reason, force) => executionService.cancelExecution(this.application, this.execution.id, force, reason)
       });
     };
 
