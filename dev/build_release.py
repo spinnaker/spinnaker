@@ -185,6 +185,7 @@ class Builder(object):
       self.__background_processes = []
 
       os.environ['NODE_ENV'] = os.environ.get('NODE_ENV', 'dev')
+      self.__build_number = options.build_number
       self.__options = options
       self.refresher = refresh_source.Refresher(options)
       if options.bintray_repo:
@@ -211,28 +212,69 @@ class Builder(object):
       gradle_root = name if name != 'spinnaker' else self.__project_dir
       return gradle_root
 
-  def start_build_target(self, name, target):
-      """Start a subprocess to build the designated target.
+  def start_subsystem_build(self, name):
+    """Start a subprocess to build and publish the designated component.
 
-      Args:
-        name [string]: The name of the subsystem repository.
-        target [string]: The gradle build target.
+    This function runs a gradle 'candidate' task using the last git tag as the
+    package version and the Bintray configuration passed through arguments. The
+    'candidate' task release builds the source, packages the debian and jar
+    files, and publishes those to the respective Bintray '$org/$repository'.
 
-      Returns:
-        BackgroundProcess
-      """
-      extra_args = []
-      if name == 'deck' and not 'CHROME_BIN' in os.environ:
-        extra_args.append('-PskipTests')
+    The naming of the gradle task is a bit unfortunate because of the
+    terminology used in the Spinnaker product release process. The artifacts
+    produced by this script are not 'release candidate' artifacts, they are
+    pre-validation artifacts. Maybe we can modify the task name at some point.
 
-      # Currently spinnaker is in a separate location
-      gradle_root = self.determine_gradle_root(name)
-      print 'Building {name}...'.format(name=name)
-      return BackgroundProcess.spawn(
-          'Building {name}'.format(name=name),
-          'cd "{gradle_root}"; ./gradlew {target} {extra}'.format(
-              gradle_root=gradle_root, target=target,
-              extra=' '.join(extra_args)))
+    The gradle 'candidate' task throws a 409 if the package we are trying to
+    publish already exists. We'll publish unique package versions using build
+    numbers. These will be transparent to end users since the only meaningful
+    version is the Spinnaker product version.
+
+    We will use -Prelease.useLastTag=true and ensure the last git tag is the
+    version we want to use. This tag has to be of the form 'X.Y.Z-$build' or
+    'vX.Y.Z-$build for gradle to use the tag as the version. This script will
+    assume that the source has been properly tagged to use the latest tag as the
+    package version for each component.
+
+    Args:
+      name [string]: Name of the subsystem repository.
+
+    Returns:
+      BackgroundProcess
+    """
+    jarRepo = self.__options.jar_repo
+    parts = self.__options.bintray_repo.split('/')
+    if len(parts) != 2:
+      raise ValueError(
+          'Expected --bintray_repo to be in the form <owner>/<repo>')
+    org, packageRepo = parts[0], parts[1]
+    bintray_key = os.environ['BINTRAY_KEY']
+    bintray_user = os.environ['BINTRAY_USER']
+
+    extra_args = [
+      '--stacktrace',
+      '-Prelease.useLastTag=true',
+      '-PbintrayPackageBuildNumber={number}'.format(number=self.__build_number),
+      '-PbintrayOrg="{org}"'.format(org=org),
+      '-PbintrayPackageRepo="{repo}"'.format(repo=packageRepo),
+      '-PbintrayJarRepo="{jarRepo}"'.format(jarRepo=jarRepo),
+      '-PbintrayKey="{key}"'.format(key=bintray_key),
+      '-PbintrayUser="{user}"'.format(user=bintray_user)
+    ]
+    if name == 'deck' and not 'CHROME_BIN' in os.environ:
+      extra_args.append('-PskipTests')
+
+    # Currently spinnaker is in a separate location
+    gradle_root = self.determine_gradle_root(name)
+    print 'Building and publishing {name}...'.format(name=name)
+    # Note: 'candidate' is just the gradle task name. It doesn't indicate
+    # 'release candidate' status for the artifacts created through this build.
+    return BackgroundProcess.spawn(
+      'Building and publishing {name}...'.format(name=name),
+      'cd "{gradle_root}"; ./gradlew {extra} candidate'.format(
+        gradle_root=gradle_root, extra=' '.join(extra_args)
+      )
+    )
 
   def publish_to_bintray(self, source, package, version, path, debian_tags=''):
     bintray_key = os.environ['BINTRAY_KEY']
@@ -240,7 +282,7 @@ class Builder(object):
     parts = self.__options.bintray_repo.split('/')
     if len(parts) != 2:
       raise ValueError(
-          'Expected --bintray_repo to be in the form <owner>/<repo')
+          'Expected --bintray_repo to be in the form <owner>/<repo>')
     subject, repo = parts[0], parts[1]
 
     deb_filename = os.path.basename(path)
@@ -302,7 +344,7 @@ class Builder(object):
               print 'Retrying {url}'.format(url=url)
               result = urllib2.urlopen(put_request, data)
               print 'SUCCESS'
-              
+
             elif put_error.code != 400:
               raise
 
@@ -392,53 +434,9 @@ class Builder(object):
         shutil.copy(source, target)
         return NO_PROCESS
 
-  def start_copy_debian_target(self, name):
-      """Copies the debian package for the specified subsystem.
-
-      Args:
-        name [string]: The name of the subsystem repository.
-      """
-      gradle_root = self.determine_gradle_root(name)
-      if os.path.exists(os.path.join(name, '{name}-web'.format(name=name))):
-          submodule = '{name}-web'.format(name=name)
-      elif os.path.exists(os.path.join(name, '{name}-core'.format(name=name))):
-          submodule = '{name}-core'.format(name=name)
-      else:
-          submodule = '.'
-
-      version = determine_package_version(gradle_root, submodule)
-      build_dir = '{submodule}/build/distributions'.format(submodule=submodule)
-
-      deb_dir = os.path.join(gradle_root, build_dir)
-      non_spinnaker_name = '{name}_{version}_all.deb'.format(
-            name=name, version=version)
-
-      if os.path.exists(os.path.join(deb_dir,
-                                     'spinnaker-' + non_spinnaker_name)):
-        deb_file = 'spinnaker-' + non_spinnaker_name
-      else:
-        deb_file = non_spinnaker_name
-
-      if not os.path.exists(os.path.join(deb_dir, deb_file)):
-         error = ('.deb for name={name} version={version} is not in {dir}\n'
-                  .format(name=name, version=version, dir=deb_dir))
-         raise AssertionError(error)
-
-      from_path = os.path.join(gradle_root, build_dir, deb_file)
-      print 'Adding {path}'.format(path=from_path)
-      self.__package_list.append(deb_file)
-      if self.__options.bintray_repo:
-        self.publish_file(from_path, name, version)
-
-      if self.__release_dir:
-        to_path = os.path.join(self.__release_dir, deb_file)
-        return self.start_copy_file(from_path, to_path)
-      else:
-        return NO_PROCESS
-
   def __do_build(self, subsys):
     try:
-      self.start_build_target(subsys, 'buildDeb').check_wait()
+      self.start_subsystem_build(subsys).check_wait()
     except Exception as ex:
       self.__build_failures.append(subsys)
 
@@ -455,15 +453,6 @@ class Builder(object):
       if self.__build_failures:
         raise RuntimeError('Builds failed for {0!r}'.format(
           self.__build_failures))
-
-      # Copy subsystem packages.
-      processes = []
-      for subsys in SUBSYSTEM_LIST:
-          processes.append(self.start_copy_debian_target(subsys))
-
-      print 'Waiting for package copying to finish....'
-      for p in processes:
-        p.check_wait()
 
   @staticmethod
   def __zip_dir(zip_file, source_path, arcname=''):
@@ -529,6 +518,14 @@ class Builder(object):
         '--bintray_repo', default='',
         help='Publish to this bintray repo.\n'
              'This requires BINTRAY_USER and BINTRAY_KEY are set.')
+      parser.add_argument(
+        '--jar_repo', default='',
+        help='Publish produced jars to this repo.\n'
+             'This requires BINTRAY_USER and BINTRAY_KEY are set.')
+      parser.add_argument(
+        '--build_number', default=os.environ.get('BUILD_NUMBER', ''),
+        help='CI system build number. Ideally should be a unique integer'
+        'for each build.')
 
       parser.add_argument(
         '--wipe_package_on_409', default=False, action='store_true',
@@ -553,9 +550,8 @@ class Builder(object):
     cls.init_argument_parser(parser)
     options = parser.parse_args()
 
-    if not (options.release_path or options.bintray_repo):
-      sys.stderr.write(
-           'ERROR: Missing either a --release_path or --bintray_repo')
+    if not (options.bintray_repo):
+      sys.stderr.write('ERROR: Missing a --bintray_repo')
       return -1
 
     builder = cls(options)
