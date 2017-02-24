@@ -1,5 +1,5 @@
 <div modal-page class="flex-fill">
-  <modal-close (dismiss)="$dismiss()"></modal-close>
+  <modal-close dismiss="$dismiss()"></modal-close>
   <div class="modal-header">
     <h3><span ng-if="!command.locked">Edit </span>{{isStrategy === true ? 'Strategy' : 'Pipeline'}} JSON</h3>
   </div>
