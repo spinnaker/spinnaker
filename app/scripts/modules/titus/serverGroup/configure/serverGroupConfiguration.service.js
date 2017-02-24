@@ -48,6 +48,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.configura
         var backingData = command.backingData;
         configureZones(command);
         if (command.credentials) {
+          command.registry = backingData.credentialsKeyedByAccount[command.credentials].registry;
           backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
           if (!backingData.filtered.regions.some(r => r.name === command.region)) {
             command.region = null;
