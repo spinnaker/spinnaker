@@ -91,9 +91,9 @@ chmod 600 $HOME/.spinnaker/spinnaker-local.yml
 # However if you are not comfortable editing yml, you can copy the
 # entire file. The difference is that you may be overriding future
 # changes to default values that you otherwise would not care about.
-cp spinnaker/config/spinnaker.yml $HOME/spinnaker/spinnaker-local.yml
+cp spinnaker/config/spinnaker.yml $HOME/.spinnaker/spinnaker-local.yml
 
-$EDITOR $HOME/.emacs/spinnaker-local.yml
+$EDITOR $HOME/.spinnaker/spinnaker-local.yml
 ----
 
 If you are deployed onto a supported cloud provider (e.g., AWS or Google) and
