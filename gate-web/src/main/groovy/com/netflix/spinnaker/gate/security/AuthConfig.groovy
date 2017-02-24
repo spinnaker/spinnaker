@@ -62,6 +62,8 @@ class AuthConfig {
   void configure(HttpSecurity http) throws Exception {
     // @formatter:off
     http
+      .httpBasic()
+        .and()
       .authorizeRequests()
         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
         .antMatchers(PermissionRevokingLogoutSuccessHandler.LOGGED_OUT_URL).permitAll()
