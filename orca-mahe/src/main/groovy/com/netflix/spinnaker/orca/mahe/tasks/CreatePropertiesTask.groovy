@@ -85,7 +85,7 @@ class CreatePropertiesTask implements Task {
 
   List assemblePersistedPropertyListFromContext(Map<String, Object> context, List propertyList) {
     Map scope = context.scope
-    scope.appId = scope.appIdList.first()
+    scope.appId = scope.appIdList.join(',')
     String email = context.email
     String cmcTicket = context.cmcTicket
 
