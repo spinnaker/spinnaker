@@ -21,9 +21,24 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
         value: 'The name of the branch in the above git repository to be used for this deployment.',
       },
       {
+        key: 'appengine.serverGroup.applicationDirectoryRoot',
+        value: `(Optional) Path to the directory root of the application to be deployed,
+                starting from the root of the git repository. This is the directory from which 
+                <code>gcloud app deploy</code> will be run.`,
+      },
+      {
         key: 'appengine.serverGroup.configFilepaths',
-        value: `Paths to App Engine application configuration files, starting from the git repository root.
-                For example, <b>path/to/app.yaml</b> or <b>path/to/cron.yaml</b>.`,
+        value: `Paths to App Engine application configuration files, starting from the application directory root,
+                specified above. In most cases, this will be <code>app.yaml</code> or <code>cron.yaml</code>,
+                but could <code>path/to/app.yaml</code> or <code>path/to/cron.yaml</code>.`,
+      },
+      {
+        key: 'appengine.serverGroup.configFiles',
+        value: `<p>(Optional) The contents of an App Engine config file (e.g., an <code>app.yaml</code> or 
+                <code>cron.yaml</code> file). These files should not conflict with the config filepaths above: 
+                if you include, for example, the contents of an <code>app.yaml</code>
+                file here, you should <b>not</b> specify the file path to an <code>app.yaml</code> above.<br></p>
+                <p>If this is a pipeline stage, you can use Spinnaker Pipeline Expressions here.</p>`,
       },
       {
         key: 'appengine.serverGroup.matchBranchOnRegex',

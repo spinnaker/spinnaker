@@ -12,6 +12,8 @@ export interface IAppengineServerGroupCommand {
   stack?: string;
   freeFormDetails?: string;
   configFilepaths?: string[];
+  configFiles?: string[];
+  applicationDirectoryRoot: string;
   branch?: string;
   repositoryUrl?: string;
   credentials: string;

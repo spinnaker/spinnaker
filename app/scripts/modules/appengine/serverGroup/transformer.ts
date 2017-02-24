@@ -15,6 +15,8 @@ export class AppengineDeployDescription {
   repositoryUrl: string;
   branch: string;
   configFilepaths: string[];
+  configFiles: string[];
+  applicationDirectoryRoot: string;
   promote?: boolean;
   stopPreviousVersion?: boolean;
   type: string;
@@ -45,6 +47,8 @@ export class AppengineDeployDescription {
     this.fromTrigger = command.fromTrigger;
     this.trigger = command.trigger;
     this.gitCredentialType = command.gitCredentialType;
+    this.configFiles = command.configFiles;
+    this.applicationDirectoryRoot = command.applicationDirectoryRoot;
   }
 }
 
