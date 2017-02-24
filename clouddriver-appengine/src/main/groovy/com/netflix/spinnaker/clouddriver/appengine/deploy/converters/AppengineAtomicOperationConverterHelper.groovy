@@ -28,6 +28,9 @@ class AppengineAtomicOperationConverterHelper {
 
     if (input.accountName) {
       input.credentials = credentialsSupport.getCredentialsObject(input.accountName as String)
+      input.account = input.accountName
+    } else {
+      throw new RuntimeException("Could not find App Engine account.")
     }
 
     def credentials = input.remove("credentials")
