@@ -26,6 +26,7 @@ export class DockerImageAndTagSelectorController implements ng.IComponentControl
   private organizationMap: { [key: string]: string[] };
   private repositoryMap: { [key: string]: string[] };
   private registryMap: { [key: string]: string };
+  private imageLoader: ng.IPromise<any>;
 
   public labelClass: string;
   public fieldClass: string;
@@ -60,7 +61,6 @@ export class DockerImageAndTagSelectorController implements ng.IComponentControl
           });
         }
       }
-
       this.organizations = this.accountMap[this.showRegistry ? this.account : this.registry] || [];
       if (!this.organizations.includes(this.organization)) {
         this.organization = null;
@@ -180,24 +180,27 @@ export class DockerImageAndTagSelectorController implements ng.IComponentControl
       account: this.showRegistry ? this.account : this.registry
     };
 
-    if (!this.viewState.imagesLoading) {
-      this.viewState.imagesLoading = true;
-      this.dockerImageReader.findImages(imageConfig).then((images: IDockerImage[]) => {
-        this.updateRegistryMap(images);
-        this.updateAccountMap(images);
-        this.accounts = this.accounts || Object.keys(this.accountMap);
+    this.viewState.imagesLoading = true;
+    const imageLoader = this.dockerImageReader.findImages(imageConfig).then((images: IDockerImage[]) => {
+      if (this.imageLoader !== imageLoader) {
+        // something else is getting loaded
+        return;
+      }
+      this.updateRegistryMap(images);
+      this.updateAccountMap(images);
+      this.accounts = this.accounts || Object.keys(this.accountMap);
 
-        this.updateOrganizationMap(images);
-        this.organizations.push(...Object.keys(this.organizationMap));
-        this.updateRepositoryMap(images);
-        this.updateOrganizationsList();
+      this.updateOrganizationMap(images);
+      this.organizations.push(...Object.keys(this.organizationMap));
+      this.updateRepositoryMap(images);
+      this.updateOrganizationsList();
 
-        this.viewState.imagesLoaded = true;
-      }).finally(() => {
-        this.viewState.imagesLoading = false;
-        this.viewState.imagesRefreshing = false;
-      });
-    }
+      this.viewState.imagesLoaded = true;
+    }).finally(() => {
+      this.viewState.imagesLoading = false;
+      this.viewState.imagesRefreshing = false;
+    });
+    this.imageLoader = imageLoader;
   }
 
   private uniqMapEntries(map: { [key: string]: string[] }): void {

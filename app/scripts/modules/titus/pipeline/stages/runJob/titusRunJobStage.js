@@ -42,6 +42,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
 
     this.accountChanged = () => {
       this.accountChangedStream.next(null);
+      setRegistry();
       this.updateRegions();
 
     };
@@ -65,6 +66,12 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
     this.onChange = (changes) => {
       stage.registry = changes.registry;
     };
+
+    function setRegistry() {
+      if (stage.credentials) {
+        stage.registry = $scope.backingData.credentialsKeyedByAccount[stage.credentials].registry;
+      }
+    }
 
     function updateImageId() {
       if ($scope.stage.repository && $scope.stage.tag) {
@@ -133,7 +140,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
         stage.credentials = backingData.credentials[0];
       }
 
-      stage.registry = backingData.credentialsKeyedByAccount[stage.credentials].registry;
+      setRegistry();
       return $q.all([]).then(() => {
         vm.updateRegions();
         this.loaded = true;
