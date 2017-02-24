@@ -32,6 +32,7 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
 
   private String primaryAccount;
 
+  // TODO(lwander): How come when I delete account[0] ~/.hal/config/google.primaryAccount still refers to it?
   public String getPrimaryAccount() {
     if (primaryAccount == null && accounts.size() > 0) {
       return accounts.get(0).getName();

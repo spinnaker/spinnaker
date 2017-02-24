@@ -21,8 +21,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
+import lombok.ToString;
 
 @Data
+@ToString
 public class GoogleBaseImage extends BaseImage<GoogleBaseImage.GoogleImageSettings, GoogleBaseImage.GoogleVirtualizationSettings> {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
@@ -33,12 +35,16 @@ public class GoogleBaseImage extends BaseImage<GoogleBaseImage.GoogleImageSettin
   private GoogleVirtualizationSettings virtualizationSettings;
 
   @Data
+  @ToString(callSuper = true)
   public static class GoogleImageSettings extends BaseImage.ImageSettings {
+    // TODO(lwander): Needs to serialize in rosco.yml as isImageFamily, not imageFamily. Also always seems to be false.
     boolean isImageFamily;
   }
 
   @Data
+  @ToString
   public static class GoogleVirtualizationSettings {
+    String sourceImage;
     String sourceImageFamily;
   }
 }

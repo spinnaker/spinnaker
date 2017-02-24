@@ -195,6 +195,7 @@ public class BakeryController {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
     builder.setSeverity(severity);
 
+    // TODO(lwander): Would be good to indicate when an added base image id conflicts with an existing base image id.
     builder.setUpdate(() -> bakeryService.addBaseImage(deploymentName, providerName, baseImage));
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;

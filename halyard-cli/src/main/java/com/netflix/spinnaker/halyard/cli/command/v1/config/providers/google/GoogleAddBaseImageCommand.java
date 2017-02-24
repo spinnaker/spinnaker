@@ -30,6 +30,12 @@ public class GoogleAddBaseImageCommand extends AbstractAddBaseImageCommand {
   }
 
   @Parameter(
+      names = "--source-image",
+      description = GoogleCommandProperties.SOURCE_IMAGE_DESCRIPTION
+  )
+  private String sourceImage;
+
+  @Parameter(
       names = "--source-image-family",
       description = GoogleCommandProperties.SOURCE_IMAGE_FAMILY_DESCRIPTION
   )
@@ -49,6 +55,7 @@ public class GoogleAddBaseImageCommand extends AbstractAddBaseImageCommand {
     baseImage.setBaseImage(imageSettings);
 
     GoogleBaseImage.GoogleVirtualizationSettings virtualizationSettings = new GoogleBaseImage.GoogleVirtualizationSettings();
+    virtualizationSettings.setSourceImage(sourceImage);
     virtualizationSettings.setSourceImageFamily(sourceImageFamily);
     baseImage.setVirtualizationSettings(virtualizationSettings);
 
