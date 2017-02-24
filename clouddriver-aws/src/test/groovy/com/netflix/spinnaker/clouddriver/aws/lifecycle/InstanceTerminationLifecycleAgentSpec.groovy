@@ -101,7 +101,7 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
 
   def 'should create queue if it does not exist'() {
     when:
-    def queueId = InstanceTerminationLifecycleAgent.ensureQueueExists(amazonSQS, queueARN, topicARN)
+    def queueId = InstanceTerminationLifecycleAgent.ensureQueueExists(amazonSQS, queueARN, topicARN, ['1234'])
 
     then:
     queueId == "my-queue-url"
@@ -109,7 +109,7 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
     1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
 
     1 * amazonSQS.setQueueAttributes("my-queue-url", [
-      "Policy": InstanceTerminationLifecycleAgent.buildSQSPolicy(queueARN, topicARN).toJson()
+      "Policy": InstanceTerminationLifecycleAgent.buildSQSPolicy(queueARN, topicARN, ['1234']).toJson()
     ])
     0 * _
   }
