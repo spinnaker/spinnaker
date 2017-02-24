@@ -32,7 +32,14 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
+
+import javax.servlet.http.HttpServletResponse
 
 @RestController
 @Slf4j
@@ -62,7 +69,7 @@ class OperationsController {
   List<PipelinePreprocessor> pipelinePreprocessors
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
-  Map<String, String> orchestrate(@RequestBody Map pipeline) {
+  Map<String, String> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
     parsePipelineTrigger(executionRepository, buildService, pipeline)
     Map trigger = pipeline.trigger
 
@@ -86,6 +93,15 @@ class OperationsController {
 
     def augmentedContext = [trigger: pipeline.trigger]
     def processedPipeline = ContextParameterProcessor.process(pipeline, augmentedContext, false)
+
+    if (pipeline.plan == true) {
+      log.info('not starting pipeline (plan: true): {}', pipeline.id)
+      if (pipeline.errors != null) {
+        response.status = HttpServletResponse.SC_BAD_REQUEST
+      }
+
+      return processedPipeline
+    }
 
     startPipeline(processedPipeline)
   }

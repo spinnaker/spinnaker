@@ -91,5 +91,6 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
     result.keepWaitingPipelines == false
     result.stages*.type == ['bake', 'tagImage']
     result.stages*.requisiteStageRefIds == [[], ['bake']]
+    result.stages.find { it.type == 'bake' }.baseOs == 'trusty'
   }
 }

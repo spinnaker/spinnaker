@@ -71,27 +71,9 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
   def 'should process simple template'() {
     given:
-    def request = [
-      type: 'templatedPipeline',
-      trigger: [
-        type: "jenkins",
-        master: "master",
-        job: "job",
-        buildNumber: 1111
-      ],
-      config: [
-        id: 'myTemplate',
-        pipeline: [
-          application: 'myapp',
-          template: [
-            source: getClass().getResource("/templates/simple-001.yml").toURI()
-          ],
-          variables: [
-            regions: ['us-east-1', 'us-west-2']
-          ]
-        ]
-      ]
-    ]
+    def request = createTemplateRequest('simple-001.yml', [
+      regions: ['us-east-1', 'us-west-2']
+    ])
 
     when:
     def result = subject.process(request)
@@ -112,14 +94,12 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
           type: 'bake',
           name: 'Bake',
           requisiteStageRefIds: [],
-          context: [
-            regions: ['us-east-1', 'us-west-2'],
-            package: 'myapp-package',
-            baseOs: 'trusty',
-            vmType: 'hvm',
-            storeType: 'ebs',
-            baseLabel: 'release'
-          ]
+          regions: ['us-east-1', 'us-west-2'],
+          package: 'myapp-package',
+          baseOs: 'trusty',
+          vmType: 'hvm',
+          storeType: 'ebs',
+          baseLabel: 'release'
         ],
         [
           id: null,
@@ -127,14 +107,54 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
           type: 'tagImage',
           name: 'Tag Image',
           requisiteStageRefIds: ['bake'],
-          context: [
-            tags: [
-              stack: 'test'
-            ]
+          tags: [
+            stack: 'test'
           ]
         ]
       ]
     ]
     assertReflectionEquals(expected, result, ReflectionComparatorMode.IGNORE_DEFAULTS)
+  }
+
+  def 'should render jackson mapping exceptions'() {
+    when:
+    def result = subject.process(createTemplateRequest('invalid-template-001.yml', [:], true))
+
+    then:
+    noExceptionThrown()
+    result.errors != null
+    result.errors.containsKey("failed loading template")
+  }
+
+  def 'should not render unknown handlebars identifiers'() {
+    when:
+    def result = subject.process(createTemplateRequest('invalid-handlebars-001.yml', [:], true))
+
+    then:
+    noExceptionThrown()
+    result.stages[0].regions == '{{unknown_identifier}}'
+  }
+
+  Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], boolean plan = false) {
+    return [
+      type: 'templatedPipeline',
+      trigger: [
+        type: "jenkins",
+        master: "master",
+        job: "job",
+        buildNumber: 1111
+      ],
+      config: [
+        id: 'myTemplate',
+        pipeline: [
+          application: 'myapp',
+          template: [
+            source: getClass().getResource("/templates/${templatePath}").toURI()
+          ],
+          variables: variables
+        ]
+      ],
+      plan: plan
+    ]
   }
 }

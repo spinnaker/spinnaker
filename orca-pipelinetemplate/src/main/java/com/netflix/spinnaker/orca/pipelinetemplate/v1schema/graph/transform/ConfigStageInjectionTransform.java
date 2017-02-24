@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform;
 
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
@@ -23,7 +24,12 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfig
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -97,7 +103,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
     for (String n : stage.getRequisiteStageRefIds()) {
       Status status = state.get(n);
-      if (status == Status.VISITING) throw new IllegalStateException("Cycle detected in graph");
+      if (status == Status.VISITING) throw new IllegalTemplateConfigurationException(String.format("Cycle detected in graph (discovered on stage: %s)", stageId));
       if (status == Status.VISITED) continue;
       dfs(n, result, state, graph, outOrder);
     }
@@ -155,7 +161,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
           return;
         }
 
-        throw new IllegalStateException(String.format("stage did not have any valid injections defined (id: %s)", s.getId()));
+        throw new IllegalTemplateConfigurationException(String.format("stage did not have any valid injections defined (id: %s)", s.getId()));
       });
   }
 
@@ -230,7 +236,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
     StageDefinition target = graph.get(targetId);
     if (target == null) {
-      throw new RuntimeException(String.format("could not inject '%s' stage: unknown target stage id '%s'", stage.getId(), targetId));
+      throw new IllegalTemplateConfigurationException(String.format("could not inject '%s' stage: unknown target stage id '%s'", stage.getId(), targetId));
     }
 
     stage.getRequisiteStageRefIds().add(target.getId());
@@ -261,7 +267,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
       .stream()
       .filter(pts -> pts.getId().equals(targetId))
       .findFirst()
-      .orElseThrow(() -> new RuntimeException(
+      .orElseThrow(() -> new IllegalTemplateConfigurationException(
         String.format("could not inject '%s' stage: unknown target stage id '%s'", stageId, targetId)
       ));
   }
