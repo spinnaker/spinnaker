@@ -101,6 +101,124 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
     new OpenstackCredentials(this)
   }
 
+  static class Builder {
+    String name
+    String environment
+    String accountType
+    String username
+    String password
+    String projectName
+    String domainName
+    String authUrl
+    List<String> requiredGroupMembership
+    OpenstackCredentials credentials
+    List<String> regions
+    Boolean insecure
+    String heatTemplateLocation
+    LbaasConfig lbaasConfig
+    ConsulConfig consulConfig
+    String userDataFile
+
+    Builder() {}
+
+    Builder name(String name) {
+      this.name = name
+      return this
+    }
+
+    Builder environment(String environment) {
+      this.environment = environment
+      return this
+    }
+
+    Builder accountType(String accountType) {
+      this.accountType = accountType
+      return this
+    }
+
+    Builder username(String username) {
+      this.username = username
+      return this
+    }
+
+    Builder password(String password) {
+      this.password = password
+      return this
+    }
+
+    Builder projectName(String projectName) {
+      this.projectName = projectName
+      return this
+    }
+
+    Builder domainName(String domainName) {
+      this.domainName = domainName
+      return this
+    }
+
+    Builder authUrl(String authUrl) {
+      this.authUrl = authUrl
+      return this
+    }
+
+    Builder requiredGroupMembership(List<String> requiredGroupMembership) {
+      this.requiredGroupMembership = requiredGroupMembership
+      return this
+    }
+
+    Builder credentials(OpenstackCredentials credentials) {
+      this.credentials = credentials
+      return this
+    }
+
+    Builder regions(List<String> regions) {
+      this.regions = regions
+      return this
+    }
+
+    Builder insecure(Boolean insecure) {
+      this.insecure = insecure
+      return this
+    }
+
+    Builder heatTemplateLocation(String heatTemplateLocation) {
+      this.heatTemplateLocation = heatTemplateLocation
+      return this
+    }
+
+    Builder lbaasConfig(LbaasConfig lbaasConfig) {
+      this.lbaasConfig = lbaasConfig
+      return this
+    }
+
+    Builder consulConfig(ConsulConfig consulConfig) {
+      this.consulConfig = consulConfig
+      return this
+    }
+
+    Builder userDataFile(String userDataFile) {
+      this.userDataFile = userDataFile
+      return this
+    }
+
+    private OpenstackCredentials build() {
+      return new OpenstackNamedAccountCredentials(name,
+        environment,
+        accountType,
+        username,
+        password,
+        projectName,
+        domainName,
+        authUrl,
+        regions,
+        insecure,
+        heatTemplateLocation,
+        lbaasConfig,
+        consulConfig,
+        userDataFile)
+    }
+  }
+
   @Override
   String getCloudProvider() {
     CLOUD_PROVIDER
