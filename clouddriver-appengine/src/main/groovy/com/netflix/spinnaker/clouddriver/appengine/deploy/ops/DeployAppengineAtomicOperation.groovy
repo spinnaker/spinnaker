@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.appengine.AppengineJobExecutor
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineMutexRepository
 import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DeployAppengineDescription
+import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineOperationException
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
@@ -44,8 +45,9 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     this.description = description
   }
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["path/to/app.yaml"] } } ]' "http://localhost:7002/appengine/ops"
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["path/to/app.yaml"], "promote": true, "stopPreviousVersion": true } } ]' "http://localhost:7002/appengine/ops"
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["app.yaml"] } } ]' "http://localhost:7002/appengine/ops"
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["app.yaml"], "promote": true, "stopPreviousVersion": true } } ]' "http://localhost:7002/appengine/ops"
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "stack", "freeFormDetails": "details", "repositoryUrl": "https://github.com/organization/project.git", "branch": "feature-branch", "credentials": "my-appengine-account", "configFilepaths": ["runtime: python27\napi_version: 1\nthreadsafe: true\nmanual_scaling:\n  instances: 5\ninbound_services:\n - warmup\nhandlers:\n - url: /.*\n   script: main.app"],} } ]' "http://localhost:7002/appengine/ops"
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -63,7 +65,7 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
       def region = description.credentials.region
       result.serverGroupNames = Arrays.asList("$region:$newVersionName".toString())
       result.serverGroupNameByRegion[region] = newVersionName
-      result
+      return result
     })
   }
 
@@ -98,17 +100,20 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     return directoryPath
   }
 
-  String deploy(String directoryPath) {
+  String deploy(String repositoryPath) {
     def project = description.credentials.project
     def accountEmail = description.credentials.serviceAccountEmail
     def region = description.credentials.region
+    def applicationDirectoryRoot = description.applicationDirectoryRoot
     def serverGroupNameResolver = new AppengineServerGroupNameResolver(project, region, description.credentials)
     def versionName = serverGroupNameResolver.resolveNextServerGroupName(description.application,
                                                                          description.stack,
                                                                          description.freeFormDetails,
                                                                          false)
-    def fullyQualifiedConfigFilepaths = description.configFilepaths.collect { "$directoryPath/$it" }
-    def deployCommand = ["gcloud", "app", "deploy", *fullyQualifiedConfigFilepaths]
+    def writtenFullConfigFilePaths = writeConfigFiles(description.configFiles, repositoryPath, applicationDirectoryRoot)
+    def repositoryFullConfigFilePaths =
+      (description.configFilepaths?.collect { Paths.get(repositoryPath, applicationDirectoryRoot ?: '.', it).toString() } ?: []) as List<String>
+    def deployCommand = ["gcloud", "app", "deploy", *(repositoryFullConfigFilePaths + writtenFullConfigFilePaths)]
     deployCommand << "--version=$versionName"
     deployCommand << (description.promote ? "--promote" : "--no-promote")
     deployCommand << (description.stopPreviousVersion ? "--stop-previous-version": "--no-stop-previous-version")
@@ -116,8 +121,42 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     deployCommand << "--account=$accountEmail"
 
     task.updateStatus BASE_PHASE, "Deploying version $versionName..."
-    jobExecutor.runCommand(deployCommand)
+    try {
+      jobExecutor.runCommand(deployCommand)
+    } catch (e) {
+      throw new AppengineOperationException("Failed to deploy to App Engine with command ${deployCommand.join(' ')}: ${e.getMessage()}")
+    } finally {
+      deleteFiles(writtenFullConfigFilePaths)
+    }
+    task.updateStatus BASE_PHASE, "Done deploying version $versionName..."
     return versionName
+  }
+
+  static List<String> writeConfigFiles(List<String> configFiles, String repositoryPath, String applicationDirectoryRoot) {
+    if (!configFiles) {
+      return []
+    } else {
+      return configFiles.collect { configFile ->
+        def name = UUID.randomUUID().toString()
+        def path = Paths.get(repositoryPath, applicationDirectoryRoot ?: ".", "${name}.yaml")
+        try {
+          path.toFile() << configFile
+        } catch(e) {
+          throw new AppengineOperationException("Could not write config file: ${e.getMessage()}")
+        }
+        return path.toString()
+      }
+    }
+  }
+
+  static void deleteFiles(List<String> paths) {
+    paths.each { path ->
+      try {
+        new File(path).delete()
+      } catch(e) {
+        throw new AppengineOperationException("Could not delete config file: ${e.getMessage()}")
+      }
+    }
   }
 
   static String getFullDirectoryPath(String localRepositoryDirectory, String repositoryUrl) {
