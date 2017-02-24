@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Problemhis represents all problems collected when validating the currently loaded/modified halconfig.
+ * ProblemSet represents all problems collected when validating the currently loaded/modified halconfig.
  */
 public class ProblemSet {
   @Getter

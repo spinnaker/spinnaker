@@ -29,6 +29,12 @@ public class GoogleEditBaseImageCommand extends AbstractEditBaseImageCommand<Goo
   }
 
   @Parameter(
+      names = "--source-image",
+      description = GoogleCommandProperties.SOURCE_IMAGE_DESCRIPTION
+  )
+  private String sourceImage;
+
+  @Parameter(
       names = "--source-image-family",
       description = GoogleCommandProperties.SOURCE_IMAGE_FAMILY_DESCRIPTION
   )
@@ -51,6 +57,7 @@ public class GoogleEditBaseImageCommand extends AbstractEditBaseImageCommand<Goo
 
     GoogleBaseImage.GoogleVirtualizationSettings virtualizationSettings = baseImage.getVirtualizationSettings();
     virtualizationSettings = virtualizationSettings != null ? virtualizationSettings : new GoogleBaseImage.GoogleVirtualizationSettings();
+    virtualizationSettings.setSourceImage(isSet(sourceImage) ? sourceImage : virtualizationSettings.getSourceImage());
     virtualizationSettings.setSourceImageFamily(isSet(sourceImageFamily) ? sourceImageFamily : virtualizationSettings.getSourceImageFamily());
     baseImage.setVirtualizationSettings(virtualizationSettings);
 

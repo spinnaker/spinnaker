@@ -44,7 +44,7 @@ abstract class AbstractListAccountsCommand extends AbstractProviderCommand {
     Provider provider = getProvider();
     List<Account> accounts = provider.getAccounts();
     if (accounts.isEmpty()) {
-      AnsiUi.success("No configured for accounts for " + getProviderName() + ".");
+      AnsiUi.success("No configured accounts for " + getProviderName() + ".");
     } else {
       AnsiUi.success("Accounts for " + getProviderName() + ":");
       accounts.forEach(account -> AnsiUi.listItem(account.getName()));

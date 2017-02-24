@@ -17,33 +17,39 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.google;
 
 import com.amazonaws.util.IOUtils;
+import com.google.api.services.compute.Compute;
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import lombok.Data;
+import org.springframework.util.StringUtils;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 
-@Component
+@Data
 public class GoogleAccountValidator extends Validator<GoogleAccount> {
-  @Autowired
-  private String halyardVersion;
+  final private List<GoogleNamedAccountCredentials> credentialsList;
+
+  final private String halyardVersion;
 
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleAccount n) {
+    DaemonTaskHandler.log("Validating " + n.getNodeName() + " with " + GoogleAccountValidator.class.getSimpleName());
+
     String jsonKey = null;
     String jsonPath = n.getJsonPath();
     String project = n.getProject();
     GoogleNamedAccountCredentials credentials = null;
 
     try {
-      if (jsonPath != null && !jsonPath.isEmpty()) {
+      if (!StringUtils.isEmpty(jsonPath)) {
         jsonKey = IOUtils.toString(new FileInputStream(n.getJsonPath()));
 
         if (jsonKey.isEmpty()) {
@@ -56,7 +62,7 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
       p.addProblem(Severity.ERROR, "Error opening specified json path: " + e.getMessage() + ".");
     }
 
-    if (n.getProject() == null || n.getProject().isEmpty()) {
+    if (StringUtils.isEmpty(n.getProject())) {
       p.addProblem(Severity.ERROR, "No google project supplied.");
       return;
     }
@@ -69,16 +75,19 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
           .imageProjects(n.getImageProjects())
           .applicationName("halyard " + halyardVersion)
           .build();
+      credentialsList.add(credentials);
     } catch (Exception e) {
       p.addProblem(Severity.ERROR, "Error instantiating Google credentials: " + e.getMessage() + ".");
       return;
     }
 
     try {
-      credentials.getCompute().projects().get(project);
+      Compute compute = credentials.getCompute();
+
+      compute.projects().get(project).execute();
 
       for (String imageProject : n.getImageProjects()) {
-        credentials.getCompute().projects().get(imageProject);
+        compute.projects().get(imageProject).execute();
       }
     } catch (IOException e) {
       p.addProblem(Severity.ERROR, "Failed to load project \"" + n.getProject() + "\": " + e.getMessage() + ".");
