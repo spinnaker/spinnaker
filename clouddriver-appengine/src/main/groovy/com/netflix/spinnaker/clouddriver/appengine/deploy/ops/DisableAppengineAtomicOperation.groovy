@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.math.RoundingMode
 
 class DisableAppengineAtomicOperation extends AppengineAtomicOperation<Void> {
-  private static final String BASE_PHASE = "DISABLE_SERVER_GROUP";
+  private static final String BASE_PHASE = "DISABLE_SERVER_GROUP"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()

@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
 import com.google.api.services.appengine.v1.Appengine
+import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DestroyAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineServerGroup
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineClusterProvider
@@ -24,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.appengine.security.AppengineCredentials
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -34,8 +37,13 @@ class DestroyAppengineAtomicOperationSpec extends Specification {
   private static final LOAD_BALANCER_NAME = 'default'
   private static final PROJECT = 'my-gcp-project'
 
+  @Shared
+  AppengineSafeRetry safeRetry
+  DefaultRegistry registry = new DefaultRegistry()
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    safeRetry = new AppengineSafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
   }
 
   void "can delete an Appengine server group"() {
@@ -65,6 +73,8 @@ class DestroyAppengineAtomicOperationSpec extends Specification {
 
       @Subject def operation = new DestroyAppengineAtomicOperation(description)
       operation.appengineClusterProvider = appengineClusterProviderMock
+      operation.registry = registry
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])

@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.deploy.ops
 
+import com.netflix.spinnaker.clouddriver.appengine.deploy.AppengineSafeRetry
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.DestroyAppengineDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.exception.AppengineResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.appengine.provider.view.AppengineClusterProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
-class DestroyAppengineAtomicOperation implements AtomicOperation<Void> {
+class DestroyAppengineAtomicOperation extends AppengineAtomicOperation<Void> {
   private static final String BASE_PHASE = "DESTROY_SERVER_GROUP"
 
   private static Task getTask() {
@@ -37,6 +37,9 @@ class DestroyAppengineAtomicOperation implements AtomicOperation<Void> {
 
   @Autowired
   AppengineClusterProvider appengineClusterProvider
+
+  @Autowired
+  AppengineSafeRetry safeRetry
 
   DestroyAppengineAtomicOperation(DestroyAppengineDescription description) {
     this.description = description
@@ -63,8 +66,17 @@ class DestroyAppengineAtomicOperation implements AtomicOperation<Void> {
       throw new AppengineResourceNotFoundException("Unable to locate server group $serverGroupName")
     }
 
-    appengine.apps().services().versions().delete(project, loadBalancerName, serverGroupName).execute()
+    safeRetry.doRetry(
+      { appengine.apps().services().versions().delete(project, loadBalancerName, serverGroupName).execute() },
+      "version",
+      task,
+      [409],
+      [],
+      [action: "Destroy", phase: BASE_PHASE],
+      registry
+    )
 
     task.updateStatus BASE_PHASE, "Successfully destroyed server group $serverGroupName."
+    return null
   }
 }
