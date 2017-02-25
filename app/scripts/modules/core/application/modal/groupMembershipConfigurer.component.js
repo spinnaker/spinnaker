@@ -10,7 +10,10 @@ module.exports = angular.module('spinnaker.deck.core.applicationModal.groupMembe
       requiredGroupMembership: '='
     },
     templateUrl: require('./groupMembershipConfigurer.component.html'),
-    controller: function (settings) {
+    controller: function (settings, authenticationService) {
+
+      this.availableRoles = authenticationService.getAuthenticatedUser().roles;
+
       this.fiatEnabled = settings.feature.fiatEnabled;
       if (!this.fiatEnabled) {
         return;

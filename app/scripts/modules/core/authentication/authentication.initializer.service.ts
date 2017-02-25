@@ -9,6 +9,7 @@ import {AUTHENTICATION_SERVICE, AuthenticationService} from './authentication.se
 
 interface IAuthResponse {
   username: string;
+  roles?: string[];
 }
 
 export class AuthenticationInitializer {
@@ -37,7 +38,11 @@ export class AuthenticationInitializer {
     this.$http.get(this.settings.authEndpoint)
       .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
-          this.authenticationService.setAuthenticatedUser(response.data.username);
+          this.authenticationService.setAuthenticatedUser({
+            name: response.data.username,
+            authenticated: false,
+            roles: response.data.roles
+          });
           this.$uibModalStack.dismissAll();
           this.visibilityWatch.unsubscribe();
         }
@@ -75,7 +80,11 @@ export class AuthenticationInitializer {
     this.$http.get(this.settings.authEndpoint)
       .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
-          this.authenticationService.setAuthenticatedUser(response.data.username);
+          this.authenticationService.setAuthenticatedUser({
+            name: response.data.username,
+            authenticated: false,
+            roles: response.data.roles
+          });
           this.$rootScope.authenticating = false;
         } else {
           this.loginRedirect();
@@ -89,7 +98,11 @@ export class AuthenticationInitializer {
       this.$http.get(this.settings.authEndpoint)
         .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
           if (response.data.username) {
-            this.authenticationService.setAuthenticatedUser(response.data.username);
+            this.authenticationService.setAuthenticatedUser({
+              name: response.data.username,
+              authenticated: false,
+              roles: response.data.roles
+            });
             this.$rootScope.authenticating = false;
           } else {
             this.loginNotification();
