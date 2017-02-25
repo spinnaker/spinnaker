@@ -16,6 +16,8 @@ import {APPENGINE_SERVER_GROUP_TRANSFORMER} from './serverGroup/transformer';
 import {APPENGINE_SERVER_GROUP_WRITER} from './serverGroup/writer/serverGroup.write.service';
 import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 
+import './logo/appengine.logo.less';
+
 let templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
   templates(key);
