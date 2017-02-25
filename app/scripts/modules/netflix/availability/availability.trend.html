@@ -1,0 +1,16 @@
+<div class="availability-trend">
+  <svg ng-attr-width="{{$ctrl.width}}" ng-attr-height="{{$ctrl.height}}">
+    <g>
+      <path ng-attr-d="{{$ctrl.trendLine}}"></path>
+      <g ng-repeat="(i, dot) in $ctrl.dots">
+        <!--uib-popover-template="$ctrl.popoverTemplate"
+        ng-mouseenter="$ctrl.showPopover(i)"
+        ng-mouseleave="$ctrl.hidePopover(i, true)"
+        popover-placement="top"
+        popover-is-open="$ctrl.popoverOpen[i]"
+        popover-trigger="none"-->
+        <circle ng-attr-r="{{dot.r}}" ng-attr-cx="{{dot.cx}}" ng-attr-cy="{{dot.cy}}" class="score-fill-{{dot.score}}"></circle>
+      </g>
+    </g>
+  </svg>
+</div>

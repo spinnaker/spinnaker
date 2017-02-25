@@ -25,7 +25,6 @@
     "int": "protractor protractor.conf.js"
   },
   "dependencies": {
-    "Select2": "git://github.com/select2/select2.git#3.4.8",
     "@angular/common": "^2.4.6",
     "@angular/compiler": "^2.4.6",
     "@angular/core": "^2.4.6",
@@ -34,6 +33,7 @@
     "@angular/platform-browser": "^2.4.6",
     "@angular/platform-browser-dynamic": "^2.4.6",
     "@angular/upgrade": "^2.4.6",
+    "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "1.5.8",
     "angular-cache": "^4.6.0",
     "angular-cron-gen": "0.0.21",
@@ -48,6 +48,8 @@
     "angular-ui-sortable": "^0.13.4",
     "bootstrap": "3.3.5",
     "clipboard": "^1.5.12",
+    "d3-scale": "^1.0.4",
+    "d3-shape": "^1.0.4",
     "diff-match-patch": "^1.0.0",
     "font-awesome": "^4.7.0",
     "jquery": "2.1.4",
@@ -70,6 +72,7 @@
     "@types/angular-mocks": "1.5.8",
     "@types/angular-ui-bootstrap": "^0.13.40",
     "@types/angular-ui-router": "^1.1.35",
+    "@types/d3": "^4.5.0",
     "@types/jasmine": "^2.5.42",
     "@types/jquery": "^2.0.34",
     "@types/lodash": "4.14.41",

@@ -1,0 +1,164 @@
+@import "../../core/presentation/less/imports/commonImports.less";
+
+.availability-nav {
+  .dropdown-toggle {
+    height: 58px;
+  }
+  .availability-graphs {
+    .current {
+      background-color: #e2ebef;
+      width: 250px;
+      float: left;
+      h5 {
+        text-align: center;
+        font-size: 18px;
+        margin-left: 20px;
+      }
+      h6 {
+        font-size: 16px;
+        margin-left: 5px;
+      }
+      .current-score {
+        width: 220px;
+        text-align: center;
+        padding: 10px;
+        margin: 0 15px 20px;
+      }
+      availability-donut > svg {
+        height: 230px;
+        margin-top: -20px;
+      }
+    }
+    .past {
+      width: 420px;
+      float: right;
+      .average {
+        width: 170px;
+        float: left;
+      }
+      .trend {
+        width: 248px;
+        float: right;
+      }
+      h5 {
+        padding-left: 15px;
+        font-size: 16px;
+      }
+      availability-donut > svg {
+        margin-top: -20px;
+        margin-left: 25px;
+      }
+    }
+    .row {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .nines {
+      font-weight: 600;
+    }
+    .glyphicon {
+      top: 1px;
+    }
+
+    availability-trend {
+      svg {
+        path {
+          stroke: @unknown-label-color;
+          stroke-width: 1;
+          fill: none;
+        }
+      }
+    }
+    .availability-trend {
+      display: inline-block;
+      background-color: @lightest_grey;
+      border: 1px solid @mid_light_grey;
+      margin-left: 15px;
+      padding: 5px;
+      margin-top: 7px;
+    }
+  }
+
+  > .dropdown-menu {
+    &::before, &::after {
+      border-left: 9px solid rgba(0, 0, 0, 0);
+      border-right: 9px solid rgba(0, 0, 0, 0);
+      content: "";
+      display: inline-block;
+      right: 35px;
+      position: absolute;
+    }
+    &::before {
+      border-bottom: 9px solid rgba(0, 0, 0, 0.2);
+      top: -8px;
+    }
+    &::after {
+      border-bottom: 8px solid @dark_blue_background;
+      top: -7px;
+    }
+    height: 450px;
+    width: 700px;
+    z-index: 10000;
+    padding: 0;
+    margin-top: 7px !important;
+    .section {
+      height: 399px;
+      .left {
+        background-color: #d7e7ed;
+      }
+    }
+    .sub-section {
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+  .aggregate-score-1 {
+    background-color: @healthy_green_border !important;
+  }
+  .aggregate-score-2 {
+    background-color: @stage-failed_continue !important;
+  }
+  .aggregate-score-3 {
+    background-color: @unhealthy_orange !important;
+  }
+  .aggregate-score-4 {
+    background-color: @unhealthy_red !important;
+  }
+
+  .score-border {
+    fill: @unknown-label-color;
+  }
+
+  .score-fill-0 {
+    fill: @lighter_grey;
+  }
+  .score-fill-1 {
+    fill: @healthy_green_border;
+  }
+  .score-fill-2 {
+    fill: @unhealthy_orange;
+  }
+  .score-fill-4 {
+    fill: @unhealthy_red;
+  }
+
+  .heading {
+    h4 {
+      background-color: @dark_blue_background;
+      margin: 0;
+      padding: 15px 20px;
+      color: #fff;
+    }
+  }
+
+  .section {
+    padding: 0;
+  }
+
+  .section-title {
+    width: 100%;
+    margin-left: 15px;
+    font-weight: 700;
+    float: left;
+  }
+}
