@@ -2,6 +2,7 @@
 
 let angular = require('angular');
 
+import {PIPELINE_GRAPH_COMPONENT} from './graph/pipeline.graph.component';
 import {REQUIRED_FIELD_VALIDATOR} from './validation/requiredField.validator';
 import {TARGET_IMPEDANCE_VALIDATOR} from './validation/targetImpedance.validator';
 import {STAGE_OR_TRIGGER_BEFORE_TYPE_VALIDATOR} from './validation/stageOrTriggerBeforeType.validator';
@@ -12,7 +13,7 @@ require('./pipelineConfig.less');
 
 module.exports = angular.module('spinnaker.core.pipeline.config', [
   require('./actions/actions.module.js'),
-  require('./graph/pipeline.graph.directive.js'),
+  PIPELINE_GRAPH_COMPONENT,
   require('./stages/stage.module.js'),
   require('./stages/baseProviderStage/baseProviderStage.js'),
   require('./triggers/trigger.module.js'),

@@ -98,7 +98,7 @@ function configure(IS_TEST) {
       vendor: [
         'jquery', 'angular', 'angular-ui-bootstrap', 'angular-ui-router', 'source-sans-pro',
         'angular-cache', 'angular-marked', 'angular-messages', 'angular-sanitize', 'bootstrap',
-        'clipboard', 'd3', 'jquery-ui', 'moment-timezone', 'rxjs',
+        'clipboard', 'jquery-ui', 'moment-timezone', 'rxjs',
       ]
     };
 

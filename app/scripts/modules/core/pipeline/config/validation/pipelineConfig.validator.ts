@@ -13,8 +13,8 @@ export interface IStageValidationResults {
 export interface IPipelineValidationResults {
   stages: IStageValidationResults[];
   pipeline: string[];
-  hasWarnings: boolean;
-  preventSave: boolean;
+  hasWarnings?: boolean;
+  preventSave?: boolean;
 }
 
 export interface IValidatorConfig {
