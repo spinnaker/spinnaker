@@ -29,26 +29,32 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
 
     this.application = app;
 
-    function extractLoadBalancer() {
+    let extractLoadBalancer = () => {
       let appLoadBalancer = app.loadBalancers.data.find(function (test) {
         return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId;
       });
 
       if (appLoadBalancer) {
         var detailsLoader = loadBalancerReader.getLoadBalancerDetails('aws', loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
-        return detailsLoader.then(function(details) {
+        return detailsLoader.then((details) => {
           $scope.loadBalancer = appLoadBalancer;
           $scope.state.loading = false;
           var securityGroups = [];
           if (details.length) {
             $scope.loadBalancer.elb = details[0];
             $scope.loadBalancer.account = loadBalancer.accountId;
+            if (details[0].listenerDescriptions) {
+              this.elbProtocol = 'http:';
+              if (details[0].listenerDescriptions.some(l => l.listener.protocol === 'HTTPS')) {
+                this.elbProtocol = 'https:';
+              }
+            }
 
             if ($scope.loadBalancer.elb.availabilityZones) {
               $scope.loadBalancer.elb.availabilityZones.sort();
             }
 
-            $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
+            $scope.loadBalancer.elb.securityGroups.forEach((securityGroupId) => {
               var match = securityGroupReader.getApplicationSecurityGroup(app, loadBalancer.accountId, loadBalancer.region, securityGroupId);
               if (match) {
                 securityGroups.push(match);
@@ -78,7 +84,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       }
 
       return $q.when(null);
-    }
+    };
 
     function autoClose() {
       if ($scope.$$destroyed) {

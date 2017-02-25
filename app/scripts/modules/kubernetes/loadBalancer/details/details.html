@@ -104,7 +104,7 @@
       <dl ng-if="loadBalancer.service.status.loadBalancer.ingress.length">
         <dt>Ingress</dt>
         <dd ng-repeat="ingress in loadBalancer.service.status.loadBalancer.ingress">
-          <a ng-if="ingress.hostname" target="_blank" href="//{{ingress.hostname}}">
+          <a ng-if="ingress.hostname" target="_blank" href="{{ctrl.ingressProtocol}}//{{ingress.hostname}}">
             {{ingress.hostname}}
           </a>
           <copy-to-clipboard

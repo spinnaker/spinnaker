@@ -5,6 +5,7 @@ import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationMod
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 
 let angular = require('angular');
+import _ from 'lodash';
 
 module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.controller', [
   require('angular-ui-router'),
@@ -23,22 +24,26 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
       loading: true
     };
 
-    function extractLoadBalancer() {
+    let extractLoadBalancer = () => {
       return application.loadBalancers.ready()
         .then(() => {
-          $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {
+          $scope.loadBalancer = application.loadBalancers.data.find((test) => {
             return test.name === loadBalancer.name &&
               (test.namespace === loadBalancer.region || test.namespace === loadBalancer.namespace) &&
               test.account === loadBalancer.accountId;
-          })[0];
+          });
 
           if ($scope.loadBalancer) {
+            this.ingressProtocol = 'http:';
+            if (_.get($scope.loadBalancer, 'service.spec.ports', []).some(p => p.port === 443)) {
+              this.ingressProtocol = 'https:';
+            }
             $scope.state.loading = false;
           } else {
             autoClose();
           }
         });
-    }
+    };
 
     this.uiLink = function uiLink() {
       return kubernetesProxyUiService.buildLink($scope.loadBalancer.account, 'service', $scope.loadBalancer.region, $scope.loadBalancer.name);
