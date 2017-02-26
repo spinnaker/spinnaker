@@ -20,7 +20,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
         {type: 'requiredField', fieldName: 'cluster.region'},
         {type: 'requiredField', fieldName: 'cluster.resources.cpu'},
         {type: 'requiredField', fieldName: 'cluster.resources.memory'},
-        {type: 'requiredField', fieldName: 'cluster.resources.disk'}
+        {type: 'requiredField', fieldName: 'cluster.resources.disk'},
+        {type: 'requiredField', fieldName: 'cluster.runtimeLimitSecs'}
       ]
     });
   }).controller('titusRunJobStageCtrl', function ($scope, accountService, $q) {
@@ -128,6 +129,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
         desired: 1
       };
     }
+
+    stage.cluster.runtimeLimitSecs = stage.cluster.runtimeLimitSecs || 60;
 
     stage.deferredInitialization = true;
     $q.all({
