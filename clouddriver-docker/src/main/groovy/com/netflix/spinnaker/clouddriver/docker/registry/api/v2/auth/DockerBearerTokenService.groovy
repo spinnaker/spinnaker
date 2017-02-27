@@ -92,17 +92,10 @@ class DockerBearerTokenService {
    * Parsed according to http://www.ietf.org/rfc/rfc2617.txt
    */
   public AuthenticateDetails parseBearerAuthenticateHeader(String header) {
-    String bearerPrefix = "bearer "
     String realmKey = "realm"
     String serviceKey = "service"
     String scopeKey = "scope"
     AuthenticateDetails result = new AuthenticateDetails()
-
-    if (!bearerPrefix.equalsIgnoreCase(header.substring(0, bearerPrefix.length()))) {
-      throw new DockerRegistryAuthenticationException("Docker registry must support 'Bearer' authentication.")
-    } else {
-      header = header.substring(bearerPrefix.length())
-    }
 
     // Each parameter has the form <token>=(<token>|<quoted-string>).
     while (header.length() > 0) {
@@ -191,22 +184,10 @@ class DockerBearerTokenService {
     return cachedTokens[repository]
   }
 
-  public DockerBearerToken getToken(String repository, List<Header> headers) {
-    String authenticate = null
-
-    headers.forEach { header ->
-      if (header.name.equalsIgnoreCase("www-authenticate")) {
-        authenticate = header.value
-      }
-    }
-
-    if (!authenticate) {
-      return null
-    }
-
+  public DockerBearerToken getToken(String repository, String authenticateHeader) {
     def authenticateDetails
     try {
-      authenticateDetails = parseBearerAuthenticateHeader(authenticate)
+      authenticateDetails = parseBearerAuthenticateHeader(authenticateHeader)
     } catch (Exception e) {
       throw new DockerRegistryAuthenticationException("Failed to parse www-authenticate header: ${e.message}")
     }

@@ -351,9 +351,31 @@ class DockerRegistryClient {
         }
       } catch (RetrofitError error) {
         if (error.response?.status == 401) {
-          dockerToken = tokenService.getToken(target, error.response.headers)
-          token = "Bearer ${dockerToken.bearer_token ?: dockerToken.token}"
-          response = withToken(token)
+          String authenticateHeader = null
+
+          error.response.headers.forEach { header ->
+            if (header.name.equalsIgnoreCase("www-authenticate")) {
+              authenticateHeader = header.value
+            }
+          }
+
+          if (!authenticateHeader) {
+            throw error
+          }
+
+          String bearerPrefix = "bearer "
+          String basicPrefix = "basic "
+          if (bearerPrefix.equalsIgnoreCase(authenticateHeader.substring(0, bearerPrefix.length()))) {
+            // If we got a 401 and the request requires bearer auth, get a new token and try again
+            dockerToken = tokenService.getToken(target, authenticateHeader.substring(bearerPrefix.length()))
+            token = "Bearer ${dockerToken.bearer_token ?: dockerToken.token}"
+            response = withToken(token)
+          } else if (basicPrefix.equalsIgnoreCase(authenticateHeader.substring(0, basicPrefix.length()))) {
+            // If we got a 401 and the request requires basic auth, there's no point in trying again
+            throw error
+          } else {
+            throw new DockerRegistryAuthenticationException("Docker registry must support 'Bearer' or 'Basic' authentication.")
+          }
         } else {
           throw error
         }
