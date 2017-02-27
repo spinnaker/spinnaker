@@ -50,4 +50,8 @@ public class VersionsService {
           new ConfigProblemBuilder(Severity.FATAL, "Could not load \"versions.yml\" from config bucket: " + e.getMessage() + ".").build());
     }
   }
+
+  public String getLatest() {
+    return getVersions().getLatest();
+  }
 }

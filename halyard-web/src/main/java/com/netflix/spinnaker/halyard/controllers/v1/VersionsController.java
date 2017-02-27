@@ -39,4 +39,11 @@ public class VersionsController {
     builder.setBuildResponse(() -> versionsService.getVersions());
     return TaskRepository.submitTask(builder::build);
   }
+
+  @RequestMapping(value = "/latest/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, String> latest() {
+    DaemonResponse.StaticRequestBuilder<String> builder = new DaemonResponse.StaticRequestBuilder<>();
+    builder.setBuildResponse(() -> versionsService.getLatest());
+    return TaskRepository.submitTask(builder::build);
+  }
 }

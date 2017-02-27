@@ -212,6 +212,9 @@ public interface DaemonService {
   @GET("/v1/versions/")
   DaemonTask<Halconfig, Versions> getVersions();
 
+  @GET("/v1/versions/latest/")
+  DaemonTask<Halconfig, String> getLatest();
+
   @PUT("/v1/admin/publishProfile/{artifactName}")
   DaemonTask<Halconfig, Void> publishProfile(
       @Query("bomPath") String bomPath,

@@ -12,35 +12,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1;
+package com.netflix.spinnaker.halyard.cli.command.v1.versions;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.versions.LatestVersionCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters()
-public class VersionsCommand extends NestableCommand {
+public class LatestVersionCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "versions";
+  private String commandName = "latest";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "List the available Spinnaker versions and their changelogs.";
-
-  public VersionsCommand() {
-    registerSubcommand(new LatestVersionCommand());
-  }
+  private String description = "Get the latest released version number of Spinnaker.";
 
   @Override
   protected void executeThis() {
-    Versions versions = Daemon.getVersions();
-
-    AnsiUi.success("The following versions are available: ");
-    versions.getVersions().forEach(v -> AnsiUi.listItem(v.toString()));
+    AnsiUi.raw(Daemon.getLatest());
   }
 }

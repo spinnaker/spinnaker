@@ -149,6 +149,10 @@ public class Daemon {
     return getObjectMapper().convertValue(rawVersions, Versions.class);
   }
 
+  public static String getLatest() {
+    return ResponseUnwrapper.get(getService().getLatest());
+  }
+
   public static void publishProfile(String bomPath, String artifactName, String profilePath) {
     ResponseUnwrapper.get(getService().publishProfile(bomPath, artifactName, profilePath, ""));
   }
