@@ -35,7 +35,7 @@ allprojects {
   apply plugin: 'groovy'
 
   spinnaker {
-    dependenciesVersion = "0.76.0"
+    dependenciesVersion = "0.81.0"
   }
   test {
     testLogging {
