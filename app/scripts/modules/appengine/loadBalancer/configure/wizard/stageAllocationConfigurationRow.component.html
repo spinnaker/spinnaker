@@ -1,0 +1,100 @@
+<div class="form-group">
+  <div class="row">
+    <div class="col-md-7">
+      <appengine-stage-allocation-label allocation-description="$ctrl.allocationDescription">
+      </appengine-stage-allocation-label>
+    </div>
+    <div class="col-md-3">
+      <div class="input-group input-group-sm">
+        <input type="number"
+               ng-model="$ctrl.allocationDescription.allocation"
+               required
+               class="form-control input-sm"
+               min="0"
+               ng-change="$ctrl.onAllocationChange()"
+               max="100"/>
+        <span class="input-group-addon">%</span>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <a class="btn btn-link sm-label" ng-click="$ctrl.removeAllocation()">
+        <span class="glyphicon glyphicon-trash"></span>
+      </a>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="well col-md-11" style="padding-top: 5px; padding-bottom: 10px;">
+    <div class="row">
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Locator
+        </div>
+        <div class="col-md-7">
+          <form>
+            <div class="form-group">
+              <label class="small" style="font-weight: normal">
+                <input type="radio" ng-change="$ctrl.onLocatorTypeChange()" ng-model="$ctrl.allocationDescription.locatorType" value="fromExisting">
+                Existing server group
+              </label>
+              <br>
+              <label class="small" style="font-weight: normal">
+                <input type="radio" ng-change="$ctrl.onLocatorTypeChange()" ng-model="$ctrl.allocationDescription.locatorType" value="targetCoordinate">
+                Coordinates
+              </label>
+              <br>
+              <label class="small" style="font-weight: normal">
+                <input type="radio" ng-change="$ctrl.onLocatorTypeChange()" ng-model="$ctrl.allocationDescription.locatorType" value="text">
+                Text input
+              </label>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group" ng-switch on="$ctrl.allocationDescription.locatorType">
+        <div ng-switch-when="fromExisting">
+          <div class="col-md-3 sm-label-right" style="padding-left: 0px;">
+            Server group
+          </div>
+          <div class="col-md-7">
+            <ui-select ng-model="$ctrl.allocationDescription.serverGroupName"
+                       on-select="$ctrl.onAllocationChange()"
+                       class="form-control input-sm">
+              <ui-select-match placeholder="Select...">
+                {{$select.selected}}
+              </ui-select-match>
+              <ui-select-choices repeat="serverGroup as serverGroup in $ctrl.getServerGroupOptions() | filter: $select.search">
+                <div ng-bind-html="serverGroup | highlight: $select.search"></div>
+              </ui-select-choices>
+            </ui-select>
+          </div>
+        </div>
+        <div ng-switch-when="targetCoordinate">
+          <div class="col-md-3 sm-label-right">
+            Cluster
+          </div>
+          <div class="col-md-7">
+            <cluster-selector class="small" clusters="$ctrl.clusterList" model=$ctrl.allocationDescription.cluster></cluster-selector>
+          </div>
+          <div class="col-md-3 sm-label-right">
+            Target
+          </div>
+          <div class="col-md-7">
+            <target-select model="$ctrl.allocationDescription" options="$ctrl.targets"></target-select>
+          </div>
+        </div>
+        <div ng-switch-when="text">
+          <div class="col-md-3 sm-label-right">
+            Text
+            <help-field key="appengine.loadBalancer.textLocator"></help-field>
+          </div>
+          <div class="col-md-7">
+            <input class="form-control input-sm" type="text" ng-model="$ctrl.allocationDescription.serverGroupName"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

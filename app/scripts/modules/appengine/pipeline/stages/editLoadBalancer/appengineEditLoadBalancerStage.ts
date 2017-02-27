@@ -61,7 +61,7 @@ module(APPENGINE_EDIT_LOAD_BALANCER_STAGE, [
       pipelineConfigProvider.registerStage({
         label: 'Edit Load Balancer',
         description: 'Edits a load balancer',
-        key: 'upsertLoadBalancers',
+        key: 'upsertAppEngineLoadBalancers',
         cloudProvider: 'appengine',
         templateUrl: require('./editLoadBalancerStage.html'),
         executionDetailsUrl: require('./editLoadBalancerExecutionDetails.html'),

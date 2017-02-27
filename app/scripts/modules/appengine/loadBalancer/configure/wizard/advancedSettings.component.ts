@@ -1,15 +1,15 @@
 import {module} from 'angular';
-import {IAppengineLoadBalancer} from 'appengine/domain/index';
+import {AppengineLoadBalancerUpsertDescription} from 'appengine/loadBalancer/transformer';
 
 class AppengineLoadBalancerAdvancedSettingsCtrl implements ng.IComponentController {
   public state = {error: false};
-  public loadBalancer: IAppengineLoadBalancer;
+  public loadBalancer: AppengineLoadBalancerUpsertDescription;
 
   public disableMigrateTraffic(): boolean {
-    if (Object.keys(this.loadBalancer.split.allocations).length !== 1) {
+    if (this.loadBalancer.splitDescription.allocationDescriptions.length !== 1) {
       return true;
     } else {
-      let targetServerGroupName = Object.keys(this.loadBalancer.split.allocations)[0];
+      let targetServerGroupName = this.loadBalancer.splitDescription.allocationDescriptions[0].serverGroupName;
       let targetServerGroup = this.loadBalancer.serverGroups.find(candidate => candidate.name === targetServerGroupName);
 
       if (targetServerGroup) {

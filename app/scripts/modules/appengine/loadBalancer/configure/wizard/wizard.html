@@ -5,7 +5,7 @@
   <v2-modal-wizard heading="{{::ctrl.heading}}" task-monitor="ctrl.taskMonitor" dismiss="$dismiss()" ng-if="!ctrl.state.loading">
     <div ng-if="!ctrl.isNew">
       <v2-wizard-page key="basic-settings" label="Basic Settings" mark-complete-on-view="false">
-        <appengine-load-balancer-basic-settings load-balancer="ctrl.loadBalancer" for-pipeline-config="ctrl.forPipelineConfig"></appengine-load-balancer-basic-settings>
+        <appengine-load-balancer-basic-settings load-balancer="ctrl.loadBalancer" application="ctrl.application" for-pipeline-config="ctrl.forPipelineConfig"></appengine-load-balancer-basic-settings>
       </v2-wizard-page>
       <v2-wizard-page key="advanced-settings" label="Advanced Settings" mark-complete-on-view="false">
         <appengine-load-balancer-advanced-settings load-balancer="ctrl.loadBalancer"></appengine-load-balancer-advanced-settings>

@@ -1,11 +1,13 @@
 import {module} from 'angular';
 import {IStateService} from 'angular-ui-router';
 import {IModalServiceInstance} from 'angular-ui-bootstrap';
-import {reduce} from 'lodash';
+import {cloneDeep} from 'lodash';
 
 import {Application} from 'core/application/application.model';
-import {IAppengineLoadBalancer} from 'appengine/domain/index';
-import {AppengineLoadBalancerTransformer} from 'appengine/loadBalancer/transformer';
+import {
+  AppengineLoadBalancerTransformer,
+  AppengineLoadBalancerUpsertDescription, IAppengineTrafficSplitDescription
+} from 'appengine/loadBalancer/transformer';
 import {LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter} from 'core/loadBalancer/loadBalancer.write.service';
 import {TASK_MONITOR_BUILDER, TaskMonitor, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
 
@@ -13,29 +15,20 @@ import './wizard.less';
 
 class AppengineLoadBalancerWizardController {
   public state = {loading: true};
-  public loadBalancer: IAppengineLoadBalancer;
+  public loadBalancer: AppengineLoadBalancerUpsertDescription;
   public heading: string;
   public submitButtonLabel: string;
   public taskMonitor: TaskMonitor;
 
-  static get $inject() { return [
-    '$scope',
-    '$state',
-    '$uibModalInstance',
-    'application',
-    'loadBalancer',
-    'isNew',
-    'forPipelineConfig',
-    'appengineLoadBalancerTransformer',
-    'taskMonitorBuilder',
-    'loadBalancerWriter',
-    'wizardSubFormValidation']; }
+  static get $inject() { return ['$scope', '$state', '$uibModalInstance', 'application', 'loadBalancer', 'isNew',
+                                 'forPipelineConfig', 'appengineLoadBalancerTransformer', 'taskMonitorBuilder',
+                                 'loadBalancerWriter', 'wizardSubFormValidation']; }
 
   constructor(public $scope: ng.IScope,
               private $state: IStateService,
               private $uibModalInstance: IModalServiceInstance,
               private application: Application,
-              loadBalancer: IAppengineLoadBalancer,
+              loadBalancer: AppengineLoadBalancerUpsertDescription,
               public isNew: boolean,
               private forPipelineConfig: boolean,
               private transformer: AppengineLoadBalancerTransformer,
@@ -50,7 +43,14 @@ class AppengineLoadBalancerWizardController {
       this.heading = `Edit ${[loadBalancer.name, loadBalancer.region, loadBalancer.account || loadBalancer.credentials].join(':')}`;
       this.transformer.convertLoadBalancerForEditing(loadBalancer, application)
         .then((convertedLoadBalancer) => {
-          this.loadBalancer = convertedLoadBalancer;
+          this.loadBalancer = this.transformer.convertLoadBalancerToUpsertDescription(convertedLoadBalancer);
+          if (loadBalancer.split && !this.loadBalancer.splitDescription) {
+            this.loadBalancer.splitDescription = AppengineLoadBalancerUpsertDescription
+              .convertTrafficSplitToTrafficSplitDescription(loadBalancer.split);
+          } else {
+            this.loadBalancer.splitDescription = loadBalancer.splitDescription;
+          }
+          this.loadBalancer.mapAllocationsToPercentages();
           this.setTaskMonitor();
           this.initializeFormValidation();
           this.state.loading = false;
@@ -59,7 +59,10 @@ class AppengineLoadBalancerWizardController {
   }
 
   public submit(): any {
-    let description = this.transformer.convertLoadBalancerToUpsertDescription(this.loadBalancer);
+    let description = cloneDeep(this.loadBalancer);
+    description.mapAllocationsToDecimals();
+    delete description.serverGroups;
+
     if (this.forPipelineConfig) {
       return this.$uibModalInstance.close(description);
     } else {
@@ -93,12 +96,11 @@ class AppengineLoadBalancerWizardController {
         subForm: 'basicSettingsForm',
         validators: [
           {
-            watchString: 'ctrl.loadBalancer.split.allocations',
-            validator: (allocations: {[serverGroup: string]: number}): boolean => {
-              return reduce(allocations, (sum: number, allocation: number) => sum + allocation, 0) === 100;
+            watchString: 'ctrl.loadBalancer.splitDescription',
+            validator: (splitDescription: IAppengineTrafficSplitDescription): boolean => {
+              return splitDescription.allocationDescriptions.reduce((sum, description) => sum + description.allocation, 0) === 100;
             },
             watchDeep: true,
-            collection: true,
           }
         ]
       })
@@ -119,7 +121,7 @@ class AppengineLoadBalancerWizardController {
     this.$uibModalInstance.dismiss();
     let newStateParams = {
       name: this.loadBalancer.name,
-      accountId: this.loadBalancer.account,
+      accountId: this.loadBalancer.credentials,
       region: this.loadBalancer.region,
       provider: 'appengine',
     };

@@ -6,6 +6,7 @@ import {APPENGINE_LOAD_BALANCER_ADVANCED_SETTINGS} from './configure/wizard/adva
 import {APPENGINE_LOAD_BALANCER_BASIC_SETTINGS} from './configure/wizard/basicSettings.component';
 import {APPENGINE_LOAD_BALANCER_TRANSFORMER} from './transformer';
 import {APPENGINE_LOAD_BALANCER_WIZARD_CTRL} from './configure/wizard/wizard.controller';
+import {APPENGINE_STAGE_ALLOCATION_CONFIGURATION_ROW} from './configure/wizard/stageAllocationConfigurationRow.component';
 
 export const APPENGINE_LOAD_BALANCER_MODULE = 'spinnaker.appengine.loadBalancer.module';
 
@@ -16,4 +17,5 @@ module(APPENGINE_LOAD_BALANCER_MODULE, [
   APPENGINE_LOAD_BALANCER_BASIC_SETTINGS,
   APPENGINE_LOAD_BALANCER_TRANSFORMER,
   APPENGINE_LOAD_BALANCER_WIZARD_CTRL,
+  APPENGINE_STAGE_ALLOCATION_CONFIGURATION_ROW,
 ]);

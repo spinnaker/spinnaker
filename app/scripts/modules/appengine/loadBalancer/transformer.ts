@@ -1,29 +1,66 @@
 import {module} from 'angular';
-import {chain, get, has, camelCase, filter, mapValues, cloneDeep} from 'lodash';
+import {chain, get, has, camelCase, filter, cloneDeep, reduce} from 'lodash';
 
 import {InstanceCounts, ILoadBalancer, ServerGroup, Instance} from 'core/domain/index';
-import {IAppengineLoadBalancer, IAppengineTrafficSplit} from 'appengine/domain/index';
+import {IAppengineLoadBalancer, IAppengineTrafficSplit, ShardBy} from 'appengine/domain/index';
 import {ILoadBalancerUpsertDescription} from 'core/loadBalancer/loadBalancer.write.service';
 import {Application} from 'core/application/application.model';
 
-export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpsertDescription {
+export interface IAppengineAllocationDescription {
+  serverGroupName?: string;
+  target?: string;
+  cluster?: string;
+  allocation: number;
+  locatorType: 'fromExisting' | 'targetCoordinate' | 'text';
+}
+
+export interface IAppengineTrafficSplitDescription {
+  shardBy: ShardBy;
+  allocationDescriptions: IAppengineAllocationDescription[];
+}
+
+export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpsertDescription, IAppengineLoadBalancer {
   public credentials: string;
+  public account: string;
   public loadBalancerName: string;
   public name: string;
-  public split: IAppengineTrafficSplit;
+  public splitDescription: IAppengineTrafficSplitDescription;
+  public split?: IAppengineTrafficSplit;
   public migrateTraffic: boolean;
   public region: string;
   public cloudProvider: string;
+  public serverGroups?: any[];
+
+  public static convertTrafficSplitToTrafficSplitDescription(split: IAppengineTrafficSplit): IAppengineTrafficSplitDescription {
+    let allocationDescriptions = reduce(split.allocations, (acc: IAppengineAllocationDescription[], allocation: number, serverGroupName: string) => {
+       return acc.concat({serverGroupName, allocation, locatorType: 'fromExisting'});
+    }, []);
+
+    return {shardBy: split.shardBy, allocationDescriptions};
+  }
 
   constructor(loadBalancer: IAppengineLoadBalancer) {
     this.credentials = loadBalancer.account || loadBalancer.credentials;
+    this.account = this.credentials;
     this.cloudProvider = loadBalancer.cloudProvider;
     this.loadBalancerName = loadBalancer.name;
     this.name = loadBalancer.name;
-    this.split = cloneDeep(loadBalancer.split);
-    this.split.allocations = mapValues(this.split.allocations, (percent: number) => percent / 100);
     this.region = loadBalancer.region;
     this.migrateTraffic = loadBalancer.migrateTraffic || false;
+    this.serverGroups = loadBalancer.serverGroups;
+  }
+
+  public mapAllocationsToDecimals() {
+    this.splitDescription.allocationDescriptions.forEach((description) => {
+      description.allocation = description.allocation / 100;
+    });
+  }
+
+  public mapAllocationsToPercentages() {
+    this.splitDescription.allocationDescriptions.forEach((description) => {
+      // An allocation percent has at most one decimal place.
+       description.allocation = Math.round(description.allocation * 1000) / 10;
+    });
   }
 }
 
@@ -53,9 +90,8 @@ export class AppengineLoadBalancerTransformer {
     return this.$q.resolve(loadBalancer);
   }
 
-  public convertLoadBalancerForEditing(loadBalancer: IAppengineLoadBalancer, application: Application): ng.IPromise<IAppengineLoadBalancer> {
-    loadBalancer.split.allocations = mapValues(loadBalancer.split.allocations, (decimal: number) => decimal * 100);
-
+  public convertLoadBalancerForEditing(loadBalancer: IAppengineLoadBalancer,
+                                       application: Application): ng.IPromise<IAppengineLoadBalancer> {
     return application.getDataSource('loadBalancers').ready().then(() => {
       let upToDateLoadBalancer = application.getDataSource('loadBalancers').data.find((candidate: ILoadBalancer) => {
         return candidate.name === loadBalancer.name &&
