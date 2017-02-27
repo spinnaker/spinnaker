@@ -37,6 +37,7 @@ public class ResponseUnwrapper {
   public static <C, T> T get(DaemonTask<C, T> task) {
     PrintCoordinates coords = new PrintCoordinates();
 
+    task = Daemon.getTask(task.getUuid());
     while (!task.getState().isTerminal()) {
       coords = formatStages(task.getStages(), coords);
 

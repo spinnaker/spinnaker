@@ -58,16 +58,25 @@ public class WriteableProfileRegistry {
     return credential;
   }
 
+  public void writeBom(String version, String contents) {
+    String name = ProfileRegistry.bomPath(version);
+    writeTextObject(name, contents);
+  }
+
   public void writeArtifactConfig(BillOfMaterials bom, SpinnakerArtifact artifact, String profileName, String contents) {
     String version = bom.getServices().getArtifactVersion(artifact);
     String name = ProfileRegistry.profilePath(artifact, version, profileName);
+    writeTextObject(name, contents);
+  }
+
+  private void writeTextObject(String name, String contents) {
     try {
       byte[] bytes = contents.getBytes();
       StorageObject object = new StorageObject()
           .setBucket(spinconfigBucket)
           .setName(name);
 
-      ByteArrayContent content = new ByteArrayContent("text", bytes);
+      ByteArrayContent content = new ByteArrayContent("application/text", bytes);
       storage.objects().insert(spinconfigBucket, object, content).execute();
     } catch (IOException e) {
       log.error("Failed to write new object " + name, e);

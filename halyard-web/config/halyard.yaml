@@ -1,6 +1,0 @@
-server:
-  port: 8064
-
-halconfig:
-  filesystem:
-    path: ~/.hal/config

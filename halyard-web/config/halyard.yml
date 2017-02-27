@@ -1,0 +1,12 @@
+server:
+  port: 8064
+
+halconfig:
+  filesystem:
+    path: ~/.hal/config
+
+spinnaker:
+  config:
+    input:
+      writerEnabled: false
+      bucket: halconfig

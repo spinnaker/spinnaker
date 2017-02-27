@@ -63,4 +63,14 @@ public enum SpinnakerArtifact {
         .map(File::getAbsolutePath)
         .collect(Collectors.toList());
   }
+
+  public static SpinnakerArtifact fromString(String name) {
+    for (SpinnakerArtifact artifact : values()) {
+      if (artifact.getName().equals(name.toLowerCase())) {
+        return artifact;
+      }
+    }
+
+    throw new RuntimeException(name + " is not a valid spinnaker artifact");
+  }
 }

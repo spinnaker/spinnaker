@@ -209,7 +209,18 @@ public interface DaemonService {
       @Path("baseImageId") String baseImageId,
       @Query("validate") boolean validate);
 
-
   @GET("/v1/versions/")
   DaemonTask<Halconfig, Versions> getVersions();
+
+  @PUT("/v1/admin/publishProfile/{artifactName}")
+  DaemonTask<Halconfig, Void> publishProfile(
+      @Query("bomPath") String bomPath,
+      @Path("artifactName") String artifactName,
+      @Query("profilePath") String profilePath,
+      @Body String _ignore);
+
+  @PUT("/v1/admin/publishBom")
+  DaemonTask<Halconfig, Void> publishBom(
+      @Query("bomPath") String bomPath,
+      @Body String _ignore);
 }

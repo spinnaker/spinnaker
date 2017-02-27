@@ -40,6 +40,7 @@ public class HalCommand extends NestableCommand {
   private boolean printBashCompletion;
 
   public HalCommand() {
+    registerSubcommand(new AdminCommand());
     registerSubcommand(new ConfigCommand());
     registerSubcommand(new DeployCommand());
     registerSubcommand(new VersionsCommand());

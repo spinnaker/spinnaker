@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
+import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
@@ -32,7 +32,10 @@ import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import retrofit.RetrofitError;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
@@ -86,10 +89,70 @@ public class ArtifactService {
     return getBillOfMaterials(deploymentName).getServices().getArtifactVersion(artifact);
   }
 
-  public void writeArtifactConfig(SpinnakerArtifact artifact, String profileName, String contents) {
+  public void writeBom(String bomPath) {
     if (writeableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
-          "You need to set the \"spinnaker.config.input.writer\" property to \"true\" to modify base-profiles.").build());
+          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
     }
+
+    BillOfMaterials bom;
+    String bomContents;
+    String version;
+
+    try {
+      bomContents = IOUtils.toString(new FileInputStream(bomPath));
+      bom = strictObjectMapper.convertValue(
+          yaml.load(bomContents),
+          BillOfMaterials.class);
+      version = bom.getVersion();
+    } catch (IOException e) {
+      throw new HalException(new ConfigProblemBuilder(FATAL,
+          "Unable to load Bill of Materials: " + e.getMessage()).build()
+      );
+    }
+
+    if (version == null) {
+      throw new HalException(new ConfigProblemBuilder(FATAL, "No version was supplied in this BOM.").build());
+    }
+
+    writeableProfileRegistry.writeBom(bom.getVersion(), bomContents);
+  }
+
+  public void writeArtifactConfig(String bomPath, String artifactName, String profilePath) {
+    if (writeableProfileRegistry == null) {
+      throw new HalException(new ConfigProblemBuilder(FATAL,
+          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify base-profiles.").build());
+    }
+
+    BillOfMaterials bom;
+    File profileFile = Paths.get(profilePath).toFile();
+    String profileContents;
+    SpinnakerArtifact spinnakerArtifact;
+
+    try {
+      bom = strictObjectMapper.convertValue(
+          yaml.load(IOUtils.toString(new FileInputStream(bomPath))),
+          BillOfMaterials.class);
+    } catch (IOException e) {
+      throw new HalException(new ConfigProblemBuilder(FATAL,
+          "Unable to load Bill of Materials: " + e.getMessage()).build()
+      );
+    }
+
+    try {
+       profileContents = IOUtils.toString(new FileInputStream(profileFile));
+    } catch (IOException e) {
+      throw new HalException(new ConfigProblemBuilder(FATAL,
+          "Unable to load profile : " + e.getMessage()).build()
+      );
+    }
+
+    try {
+      spinnakerArtifact = SpinnakerArtifact.fromString(artifactName);
+    } catch (RuntimeException e) {
+      throw new HalException(new ConfigProblemBuilder(FATAL, e.getMessage()).build());
+    }
+
+    writeableProfileRegistry.writeArtifactConfig(bom, spinnakerArtifact, profileFile.getName(), profileContents);
   }
 }

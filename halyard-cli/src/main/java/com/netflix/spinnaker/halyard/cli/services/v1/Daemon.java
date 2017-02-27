@@ -144,14 +144,23 @@ public class Daemon {
     ResponseUnwrapper.get(getService().setAuthnMethodEnabled(deploymentName, methodName, validate, enabled));
   }
 
-  public static <C, T> DaemonTask<C, T> getTask(String uuid) {
-    return getService().getTask(uuid);
-  }
-
   public static Versions getVersions() {
     Object rawVersions = ResponseUnwrapper.get(getService().getVersions());
     return getObjectMapper().convertValue(rawVersions, Versions.class);
   }
+
+  public static void publishProfile(String bomPath, String artifactName, String profilePath) {
+    ResponseUnwrapper.get(getService().publishProfile(bomPath, artifactName, profilePath, ""));
+  }
+
+  public static void publishBom(String bomPath) {
+    ResponseUnwrapper.get(getService().publishBom(bomPath,""));
+  }
+
+  static <C, T> DaemonTask<C, T> getTask(String uuid) {
+    return getService().getTask(uuid);
+  }
+
 
   private static DaemonService getService() {
     if (service == null) {
