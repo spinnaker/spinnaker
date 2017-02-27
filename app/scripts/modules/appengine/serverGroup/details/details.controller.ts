@@ -16,6 +16,7 @@ import {APPENGINE_SERVER_GROUP_WRITER, AppengineServerGroupWriter} from '../writ
 import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
 import {ITaskMonitorConfig} from 'core/task/monitor/taskMonitor.builder';
 import {AppengineServerGroupCommandBuilder} from '../configure/serverGroupCommandBuilder.service';
+import {AppengineHealth} from 'appengine/common/appengineHealth';
 
 interface IPrivateScope extends IScope {
   $$destroyed: boolean;
@@ -140,7 +141,7 @@ class AppengineServerGroupDetailsController {
       submitMethod: submitMethod,
       askForReason: true,
       platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
-      platformHealthType: 'appengine',
+      platformHealthType: AppengineHealth.PLATFORM,
       body: this.getBodyTemplate(this.serverGroup, this.app),
       onTaskComplete: () => {
         if (this.$state.includes('**.serverGroup', stateParams)) {
@@ -151,7 +152,7 @@ class AppengineServerGroupDetailsController {
     };
 
     if (this.app.attributes.platformHealthOnlyShowOverride && this.app.attributes.platformHealthOnly) {
-      confirmationModalParams.interestingHealthProviderNames = ['appengine'];
+      confirmationModalParams.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
 
     this.confirmationModalService.confirm(confirmationModalParams);
@@ -185,13 +186,15 @@ class AppengineServerGroupDetailsController {
       body: modalBody,
       account: this.serverGroup.account,
       taskMonitorConfig: taskMonitor,
+      platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
+      platformHealthType: AppengineHealth.PLATFORM,
       submitMethod: submitMethod,
       askForReason: true,
       interestingHealthProviderNames: [] as string[],
     };
 
     if (this.app.attributes.platformHealthOnlyShowOverride && this.app.attributes.platformHealthOnly) {
-      confirmationModalParams.interestingHealthProviderNames = ['appengine'];
+      confirmationModalParams.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
 
     this.confirmationModalService.confirm(confirmationModalParams);
@@ -232,13 +235,15 @@ class AppengineServerGroupDetailsController {
       body: modalBody,
       account: this.serverGroup.account,
       taskMonitorConfig: taskMonitor,
+      platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
+      platformHealthType: AppengineHealth.PLATFORM,
       submitMethod: submitMethod,
       askForReason: true,
       interestingHealthProviderNames: [] as string[],
     };
 
     if (this.app.attributes.platformHealthOnlyShowOverride && this.app.attributes.platformHealthOnly) {
-      confirmationModalParams.interestingHealthProviderNames = ['appengine'];
+      confirmationModalParams.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
 
     this.confirmationModalService.confirm(confirmationModalParams);
@@ -270,6 +275,8 @@ class AppengineServerGroupDetailsController {
       provider: 'appengine',
       account: this.serverGroup.account,
       body: modalBody,
+      platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
+      platformHealthType: AppengineHealth.PLATFORM,
       taskMonitorConfig: taskMonitor,
       submitMethod: submitMethod,
       askForReason: true,
@@ -291,6 +298,8 @@ class AppengineServerGroupDetailsController {
       buttonText: 'Start ' + this.serverGroup.name,
       provider: 'appengine',
       account: this.serverGroup.account,
+      platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
+      platformHealthType: AppengineHealth.PLATFORM,
       taskMonitorConfig: taskMonitor,
       submitMethod: submitMethod,
       askForReason: true,

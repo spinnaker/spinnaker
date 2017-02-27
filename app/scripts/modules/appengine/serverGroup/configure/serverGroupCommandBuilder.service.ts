@@ -30,6 +30,7 @@ export interface IAppengineServerGroupCommand {
   fromTrigger?: boolean;
   trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
   gitCredentialType?: GitCredentialType;
+  interestingHealthProviderNames: string[];
 }
 
 interface IViewState {
@@ -80,6 +81,7 @@ export class AppengineServerGroupCommandBuilder {
           credentials,
           region,
           selectedProvider,
+          interestingHealthProviderNames: [],
         } as IAppengineServerGroupCommand;
       });
   }

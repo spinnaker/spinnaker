@@ -3,6 +3,7 @@ import {module} from 'angular';
 import {IAppengineStageScope} from 'appengine/domain/index';
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import {AppengineStageCtrl} from '../appengineStage.controller';
+import {AppengineHealth} from 'appengine/common/appengineHealth';
 
 class AppengineEnableAsgStageCtrl extends AppengineStageCtrl {
   static get $inject() { return ['$scope', 'accountService']; }
@@ -22,7 +23,7 @@ class AppengineEnableAsgStageCtrl extends AppengineStageCtrl {
     if ($scope.stage.isNew &&
         $scope.application.attributes.platformHealthOnlyShowOverride &&
         $scope.application.attributes.platformHealthOnly) {
-      $scope.stage.interestingHealthProviderNames = ['appengine'];
+      $scope.stage.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
   }
 }

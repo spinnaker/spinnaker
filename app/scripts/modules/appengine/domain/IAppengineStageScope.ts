@@ -18,4 +18,5 @@ export interface IAppengineStageScope extends IScope {
   targets: IStageConstant[];
   stage: IAppengineStage;
   application: Application;
+  platformHealth: string;
 }

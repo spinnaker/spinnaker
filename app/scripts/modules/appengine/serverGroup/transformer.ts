@@ -27,6 +27,7 @@ export class AppengineDeployDescription {
   fromTrigger?: boolean;
   trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
   gitCredentialType: GitCredentialType;
+  interestingHealthProviderNames: string[];
 
   constructor(command: IAppengineServerGroupCommand) {
     this.credentials = command.credentials;
@@ -49,6 +50,7 @@ export class AppengineDeployDescription {
     this.gitCredentialType = command.gitCredentialType;
     this.configFiles = command.configFiles;
     this.applicationDirectoryRoot = command.applicationDirectoryRoot;
+    this.interestingHealthProviderNames = command.interestingHealthProviderNames || [];
   }
 }
 

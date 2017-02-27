@@ -3,9 +3,12 @@ import {IPromise} from 'angular';
 import {AccountService} from 'core/account/account.service';
 import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {IAppengineAccount, IAppengineStageScope} from 'appengine/domain/index';
+import {AppengineHealth} from 'appengine/common/appengineHealth';
 
 export class AppengineStageCtrl {
-  constructor(protected $scope: IAppengineStageScope, protected accountService: AccountService) {}
+  constructor(protected $scope: IAppengineStageScope, protected accountService: AccountService) {
+    $scope.platformHealth = AppengineHealth.PLATFORM;
+  }
 
   public setStageRegion(): void {
     let selected = this.$scope.accounts.find((account) => account.name === this.$scope.stage.credentials);

@@ -4,9 +4,10 @@ import {merge, get} from 'lodash';
 import {Application} from 'core/application/application.model';
 import {SERVER_GROUP_WRITER, ServerGroupWriter} from 'core/serverGroup/serverGroupWriter.service';
 import {IAppengineServerGroupCommand, AppengineServerGroupCommandBuilder} from '../serverGroupCommandBuilder.service';
-import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
+import {TASK_MONITOR_BUILDER, TaskMonitorBuilder, TaskMonitor} from 'core/task/monitor/taskMonitor.builder';
 import {APPENGINE_DYNAMIC_BRANCH_LABEL} from './dynamicBranchLabel.component';
 import {APPENGINE_CONFIG_FILE_CONFIGURER} from './configFiles.component';
+import {AppengineHealth} from 'appengine/common/appengineHealth';
 
 import './serverGroupWizard.less';
 
@@ -18,7 +19,7 @@ class AppengineCloneServerGroupCtrl {
   public state = {
     loading: true,
   };
-  public taskMonitor: any;
+  public taskMonitor: TaskMonitor;
 
   static get $inject() { return ['$scope',
                                  '$uibModalInstance',
@@ -53,6 +54,13 @@ class AppengineCloneServerGroupCtrl {
       title: 'Creating your server group',
       modalInstance: this.$uibModalInstance,
     });
+
+    $scope.showPlatformHealthOnlyOverride = this.application.attributes.platformHealthOnlyShowOverride;
+    $scope.platformHealth = AppengineHealth.PLATFORM;
+
+    if (this.application.attributes.platformHealthOnly) {
+      $scope.command.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
+    }
   }
 
   public cancel(): void {

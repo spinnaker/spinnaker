@@ -16,4 +16,14 @@
       <input type="checkbox"
              ng-model="command.stopPreviousVersion"/></div>
   </div>
+  <div class="form-group" ng-if="showPlatformHealthOnlyOverride">
+    <div class="col-md-4 sm-label-right">
+      Task Completion
+    </div>
+    <div class="col-md-7">
+      <platform-health-override command="command"
+                                platform-health-type="platformHealth">
+      </platform-health-override>
+    </div>
+  </div>
 </div>
