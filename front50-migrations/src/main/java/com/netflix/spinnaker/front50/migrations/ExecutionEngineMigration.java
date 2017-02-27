@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.front50.migrations;
 
-import java.util.List;
-import java.util.Map;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import org.slf4j.Logger;
@@ -43,29 +41,11 @@ public class ExecutionEngineMigration implements Migration {
     Observable
       .from(pipelineDAO.all())
       .filter(this::isV1)
-      .filter(this::hasNoDeployStage)
-      .filter(this::hasNoCanaryStage)
       .subscribe(this::migrate, this::onError);
   }
 
   private boolean isV1(Pipeline pipeline) {
     return !"v2".equals(pipeline.get("executionEngine"));
-  }
-
-  private boolean hasNoDeployStage(Pipeline pipeline) {
-    return !Observable
-      .from((List<Map<String, Object>>) pipeline.get("stages"))
-      .exists(stage -> "deploy".equals(stage.get("type")))
-      .toBlocking()
-      .first();
-  }
-
-  private boolean hasNoCanaryStage(Pipeline pipeline) {
-    return !Observable
-      .from((List<Map<String, Object>>) pipeline.get("stages"))
-      .exists(stage -> "canary".equals(stage.get("type")))
-      .toBlocking()
-      .first();
   }
 
   private void migrate(Pipeline pipeline) {
