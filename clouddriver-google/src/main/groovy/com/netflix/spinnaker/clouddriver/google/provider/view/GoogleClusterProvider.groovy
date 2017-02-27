@@ -206,7 +206,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
     loadBalancers = loadBalancers.findAll { loadBalancer ->
       def loadBalancerKey = Keys.getLoadBalancerKey(loadBalancer.region, loadBalancer.account, loadBalancer.name)
-      return cacheData.relationships[LOAD_BALANCERS.ns].contains(loadBalancerKey) ? loadBalancer : null
+      return loadBalancerKeys?.contains(loadBalancerKey) ? loadBalancer : null
     }
     serverGroup.loadBalancers = loadBalancers*.view
 
