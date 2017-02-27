@@ -138,9 +138,9 @@ class Annotator(Refresher):
   # regex for 'version-X.Y.Z' versions
   TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+$')
 
-  def __init__(self, options):
+  def __init__(self, options, path=None):
     self.__next_tag = options.next_tag
-    self.__path = options.path
+    self.__path = path or options.path
     self.__initial_branch = options.initial_branch
     self.__stable_branch = options.stable_branch
     self.__build_number = options.build_number or os.environ.get('BUILD_NUMBER', '')
@@ -148,9 +148,19 @@ class Annotator(Refresher):
     self.__tags_to_delete = []
     self.__filtered_tags = []
     self.__current_version = None
-    self.__partition_tags_on_pattern()
-    self.__determine_current_version()
     super(Annotator, self).__init__(options)
+
+  @property
+  def path(self):
+    return self.__path
+
+  @path.setter
+  def path(self, path):
+    self.__path = path
+
+  @property
+  def build_number(self):
+    return self.__build_number
 
   def __partition_tags_on_pattern(self):
     """Partitions the tags into two lists based on TAG_MATCHER.
@@ -163,30 +173,40 @@ class Annotator(Refresher):
     for out tag pattern (self.__filtered_tags).
     """
     tag_ref_result = run_quick('git -C {path} show-ref --tags'
-                                   .format(path=self.__path),
+                                   .format(path=self.path),
                                echo=False)
     ref_lines = tag_ref_result.stdout.strip().split('\n')
     hash_tags = [CommitTag(s) for s in ref_lines]
     self.__filtered_tags = [ht for ht in hash_tags if self.TAG_MATCHER.match(ht.tag)]
     self.__tags_to_delete = [ht for ht in hash_tags if not self.TAG_MATCHER.match(ht.tag)]
 
+  def parse_git_tree(self):
+    self.__partition_tags_on_pattern()
+    self.__determine_current_version()
+
   def tag_head(self):
     """Tags the current branch's HEAD with the next semver tag.
+
+    Returns:
+      [VersionBump]: The version bump used to tag the git repository, or None
+      if the tagging fails.
     """
     if self.__is_head_current():
       if self.__force_rebuild:
         self.__tag_head_with_build(self.__current_version.tag)
+        return VersionBump(self.__current_version.tag, patch=True)
       else:
         logging.warn("There is already a tag of the form 'version-X.Y.Z' at HEAD. Not forcing rebuild.")
-        return
+        return None
     else:
       version_bump = self.determine_new_tag()
       # This tag is for logical identification for developers. This will be pushed
       # to the upstream git repository if we choose to use this version in a
       # formal Spinnaker product release.
       run_quick('git -C {path} tag {next_tag} HEAD'
-                .format(path=self.__path, next_tag=version_bump.version_str))
+                .format(path=self.path, next_tag=version_bump.version_str))
       self.__tag_head_with_build(version_bump.version_str)
+      return version_bump
 
   def __tag_head_with_build(self, version_bump_tag):
     """Tags the current branch's HEAD with the next semver gradle build tag.
@@ -195,7 +215,7 @@ class Annotator(Refresher):
       version_bump [VersionBump]: Semver to add as a gradle build tag.
     """
     next_tag_with_build = '{0}-{1}'.format(version_bump_tag,
-                                           self.__build_number)
+                                           self.build_number)
     # This tag is for gradle to use as the package version. It incorporates the
     # build number for uniqueness when publishing. This tag is of the form
     # 'X.Y.Z-$build_number' for gradle to use correctly. This is not pushed
@@ -203,7 +223,7 @@ class Annotator(Refresher):
     first_dash_idx = next_tag_with_build.index('-')
     gradle_version = next_tag_with_build[first_dash_idx + 1:]
     run_quick('git -C {path} tag {next_tag} HEAD'
-              .format(path=self.__path, next_tag=gradle_version))
+              .format(path=self.path, next_tag=gradle_version))
 
   def delete_unwanted_tags(self):
     """Locally deletes tags that don't match TAG_MATCHER.
@@ -215,15 +235,15 @@ class Annotator(Refresher):
       # NOTE: The following command prints output to STDOUT, so we don't
       # explicitly log anything.
       run_quick('git -C {path} tag -d {tag}'
-                .format(path=self.__path, tag=bad_hash_tag.tag))
+                .format(path=self.path, tag=bad_hash_tag.tag))
 
   def create_stable_branch(self):
     """Creates a branch from --initial_branch/HEAD named --stable_branch.
     """
     run_quick('git -C {path} checkout {initial_branch}'
-              .format(path=self.__path, initial_branch=self.__initial_branch))
+              .format(path=self.path, initial_branch=self.__initial_branch))
     run_quick('git -C {path} checkout -b {stable_branch}'
-              .format(path=self.__path, stable_branch=self.__stable_branch))
+              .format(path=self.path, stable_branch=self.__stable_branch))
 
   def __is_head_current(self):
     """Checks if the current version is at HEAD.
@@ -232,7 +252,7 @@ class Annotator(Refresher):
       [Boolean]: True if the current version tag is on HEAD, else False.
     """
     head_commit_res = run_quick('git -C {path} rev-parse HEAD'
-                                    .format(path=self.__path),
+                                    .format(path=self.path),
                                 echo=False)
     head_commit = head_commit_res.stdout.strip()
     return self.__current_version.hash == head_commit
@@ -266,13 +286,13 @@ class Annotator(Refresher):
       return self.__next_tag
 
     # 'git log' entries of the form '$hash $commit_title'
-    log_onelines = run_quick('git -C {path} log --pretty=oneline'.format(path=self.__path),
+    log_onelines = run_quick('git -C {path} log --pretty=oneline'.format(path=self.path),
                              echo=False).stdout.strip().split('\n')
     commit_hashes = [line.split(' ')[0].strip() for line in log_onelines]
 
     # Full commit messages, including bodies for finding 'BREAKING CHANGE:'.
     msgs = [
-      run_quick('git -C {path} log -n 1 --pretty=medium {hash}'.format(path=self.__path, hash=h),
+      run_quick('git -C {path} log -n 1 --pretty=medium {hash}'.format(path=self.path, hash=h),
                 echo=False).stdout.strip() for h in commit_hashes
     ]
 
@@ -357,6 +377,7 @@ class Annotator(Refresher):
     options = parser.parse_args()
 
     annotator = cls(options)
+    annotator.parse_git_tree()
     annotator.tag_head()
     annotator.delete_unwanted_tags()
 
