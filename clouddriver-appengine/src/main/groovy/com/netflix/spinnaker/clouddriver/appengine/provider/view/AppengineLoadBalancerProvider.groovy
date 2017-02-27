@@ -35,20 +35,20 @@ class AppengineLoadBalancerProvider implements LoadBalancerProvider<AppengineLoa
 
   final String cloudProvider = AppengineCloudProvider.ID
 
+  // The App Engine provider has never used these three methods.
   @Override
   List<LoadBalancerProvider.Item> list() {
-    // TODO(danielpeach): Implement.
-    throw new UnsupportedOperationException("Appengine Not Yet Ready.")
+    null
   }
 
   @Override
   LoadBalancerProvider.Item get(String name) {
-    throw new UnsupportedOperationException("Appengine Not Yet Ready.")
+    null
   }
 
   @Override
   List<LoadBalancerProvider.Details> byAccountAndRegionAndName(String account, String region, String name) {
-    throw new UnsupportedOperationException("Appengine Not Yet Ready.")
+    null
   }
 
   @Autowired
