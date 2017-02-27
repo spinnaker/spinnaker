@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.elasticsearch.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
@@ -41,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -173,32 +175,34 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
   @Override
   public void bulkIndex(Collection<EntityTags> multipleEntityTags) {
-    Bulk.Builder builder = new Bulk.Builder()
-      .defaultIndex(activeElasticSearchIndex);
+    Lists.partition(new ArrayList<>(multipleEntityTags), 1000).forEach(tags -> {
+      Bulk.Builder builder = new Bulk.Builder()
+        .defaultIndex(activeElasticSearchIndex);
 
-    for (EntityTags entityTags : multipleEntityTags) {
-      builder = builder.addAction(
-        new Index.Builder(objectMapper.convertValue(prepareForWrite(objectMapper, entityTags), Map.class))
-          .index(activeElasticSearchIndex)
-          .type(entityTags.getEntityRef().getEntityType())
-          .id(entityTags.getId())
-          .build()
-      );
-    }
-
-    Bulk bulk = builder.build();
-    try {
-      JestResult jestResult = jestClient.execute(bulk);
-      if (!jestResult.isSucceeded()) {
-        throw new ElasticSearchException(
-          format("Failed to index bulk entity tags, reason: '%s'", jestResult.getErrorMessage())
+      for (EntityTags entityTags : tags) {
+        builder = builder.addAction(
+          new Index.Builder(objectMapper.convertValue(prepareForWrite(objectMapper, entityTags), Map.class))
+            .index(activeElasticSearchIndex)
+            .type(entityTags.getEntityRef().getEntityType())
+            .id(entityTags.getId())
+            .build()
         );
       }
-    } catch (IOException e) {
-      throw new ElasticSearchException(
-        format("Failed to index bulk entity tags, reason: '%s'", e.getMessage())
-      );
-    }
+
+      Bulk bulk = builder.build();
+      try {
+        JestResult jestResult = jestClient.execute(bulk);
+        if (!jestResult.isSucceeded()) {
+          throw new ElasticSearchException(
+            format("Failed to index bulk entity tags, reason: '%s'", jestResult.getErrorMessage())
+          );
+        }
+      } catch (IOException e) {
+        throw new ElasticSearchException(
+          format("Failed to index bulk entity tags, reason: '%s'", e.getMessage())
+        );
+      }
+    });
   }
 
   @Override
@@ -255,7 +259,6 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       .filter(e -> e.getEntityRef() != null)
       .collect(Collectors.toList())
     );
-
     log.info("Indexed {} entity tags", entityTags.size());
   }
 

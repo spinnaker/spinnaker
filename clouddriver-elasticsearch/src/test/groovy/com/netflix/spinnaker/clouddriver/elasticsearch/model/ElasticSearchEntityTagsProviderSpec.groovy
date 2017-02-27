@@ -154,8 +154,9 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     // fetch everything for `cloudprovider`, `cluster`, `idPrefix` and `tags`
     entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, null, ["tag3": "value3"], 2)*.id == [entityTags.id]
 
-    // verify that globbing by tags works
+    // verify that globbing by tags works (with and without a namespace specified)
     entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, "default", ["tag3": "*"], 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, null, ["tag3": "*"], 2)*.id == [entityTags.id]
 
     // namespace 'not_default' does not exist and should negate the matched tags
     entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, "not_default", ["tag3": "*"], 2).isEmpty()
