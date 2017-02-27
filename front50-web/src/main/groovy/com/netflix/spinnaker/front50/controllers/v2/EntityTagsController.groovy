@@ -19,7 +19,6 @@ package com.netflix.spinnaker.front50.controllers.v2
 
 import com.netflix.spinnaker.front50.exception.BadRequestException
 import com.netflix.spinnaker.front50.exception.NotFoundException
-import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.tag.EntityTags
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import groovy.util.logging.Slf4j
@@ -48,13 +47,15 @@ class EntityTagsController {
   @RequestMapping(method = RequestMethod.GET)
   Set<EntityTags> tags(@RequestParam(value = "prefix", required = false) String prefix,
                        @RequestParam(value = "ids", required = false) Collection<String> ids) {
-    if (!prefix && !ids) {
+    if (prefix == null && !ids) {
       throw new BadRequestException("Either 'prefix' or 'ids' parameter is required")
     }
+
     if (ids) {
       return findAllByIds(ids)
     }
-    return taggedEntityDAO?.all(prefix, 100) ?: []
+
+    return taggedEntityDAO?.all()?.findAll { prefix ? it.id.startsWith(prefix) : true }
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.GET)

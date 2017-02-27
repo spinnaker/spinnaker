@@ -109,6 +109,6 @@ public class AzureStorageConfig {
 
   @Bean
   public EntityTagsDAO entityTagsDAO(AzureStorageService storageService) {
-    return new DefaultEntityTagsDAO(storageService, null, -1);
+    return new DefaultEntityTagsDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(5)), 80000, registry);
   }
 }
