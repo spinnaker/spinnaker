@@ -30,8 +30,9 @@ import java.util.Objects;
 public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags> implements EntityTagsDAO {
   public DefaultEntityTagsDAO(StorageService service,
                               Scheduler scheduler,
-                              int refreshIntervalMs) {
-    super(ObjectType.ENTITY_TAGS, service, scheduler, refreshIntervalMs, new NoopRegistry());
+                              int refreshIntervalMs,
+                              Registry registry) {
+    super(ObjectType.ENTITY_TAGS, service, scheduler, refreshIntervalMs, registry);
   }
 
   @Override
@@ -48,17 +49,6 @@ public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags> impl
     Objects.requireNonNull(id);
     super.update(id, tag);
     return findById(id);
-  }
-
-  @Override
-  public Collection<EntityTags> all() {
-    // no support for retrieving _all_ tagged entities
-    return Collections.emptySet();
-  }
-
-  @Override
-  protected void refresh() {
-    // avoid loading all tagged entities into memory
   }
 
   @Override

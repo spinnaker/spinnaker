@@ -112,7 +112,7 @@ public class S3Config {
 
   @Bean
   public ServiceAccountDAO serviceAccountDAO(StorageService storageService, Registry registry) {
-    return new DefaultServiceAccountDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 30000, registry);
+    return new DefaultServiceAccountDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(5)), 30000, registry);
   }
 
   @Bean
@@ -137,11 +137,11 @@ public class S3Config {
 
   @Bean
   public SnapshotDAO snapshotDAO(StorageService storageService, Registry registry) {
-    return new DefaultSnapshotDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), 60000, registry);
+    return new DefaultSnapshotDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(5)), 60000, registry);
   }
 
   @Bean
-  public EntityTagsDAO entityTagsDAO(StorageService storageService) {
-    return new DefaultEntityTagsDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(20)), -1);
+  public EntityTagsDAO entityTagsDAO(StorageService storageService, Registry registry) {
+    return new DefaultEntityTagsDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(25)), 80000, registry);
   }
 }
