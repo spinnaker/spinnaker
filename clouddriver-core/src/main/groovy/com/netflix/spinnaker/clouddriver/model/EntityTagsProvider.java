@@ -31,6 +31,7 @@ public interface EntityTagsProvider {
                                 String idPrefix,
                                 String account,
                                 String region,
+                                String namespace,
                                 Map<String, Object> tags,
                                 int maxResults);
 
