@@ -78,6 +78,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
                                        String idPrefix,
                                        String account,
                                        String region,
+                                       String namespace,
                                        Map<String, Object> tags,
                                        int maxResults) {
     BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
@@ -108,12 +109,20 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     }
 
     if (tags != null) {
-      for (Map.Entry<String, Object> entry: tags.entrySet()) {
+      for (Map.Entry<String, Object> entry : tags.entrySet()) {
         // each key/value pair maps to a distinct nested `tags` object and must be a unique query snippet
         queryBuilder = queryBuilder.must(
-          applyTagsToBuilder(Collections.singletonMap(entry.getKey(), entry.getValue()))
+          applyTagsToBuilder(namespace, Collections.singletonMap(entry.getKey(), entry.getValue()))
         );
       }
+    }
+
+    if ((tags == null || tags.isEmpty()) && namespace != null) {
+      // this supports a search akin to /tags?namespace=my_namespace which should return all entities with _any_ tag in
+      // the given namespace ... ensures that the namespace filter is applied even if no tag criteria provided
+      queryBuilder = queryBuilder.must(
+        applyTagsToBuilder(namespace, Collections.emptyMap())
+      );
     }
 
     return search(entityType, queryBuilder, maxResults);
@@ -131,7 +140,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       for (Map.Entry<String, Object> entry: tags.entrySet()) {
         // each key/value pair maps to a distinct nested `tags` object and must be a unique query snippet
         queryBuilder = queryBuilder.must(
-          applyTagsToBuilder(Collections.singletonMap(entry.getKey(), entry.getValue()))
+          applyTagsToBuilder(null, Collections.singletonMap(entry.getKey(), entry.getValue()))
         );
       }
     }
@@ -240,10 +249,13 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     Collection<EntityTags> entityTags = front50Service.getAllEntityTags();
 
     log.info("Indexing {} entity tags", entityTags.size());
-    entityTags
+    bulkIndex(
+      entityTags
       .stream()
       .filter(e -> e.getEntityRef() != null)
-      .forEach(this::index);
+      .collect(Collectors.toList())
+    );
+
     log.info("Indexed {} entity tags", entityTags.size());
   }
 
@@ -272,7 +284,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     );
   }
 
-  private QueryBuilder applyTagsToBuilder(Map<String, Object> tags) {
+  private QueryBuilder applyTagsToBuilder(String namespace, Map<String, Object> tags) {
     BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
     for (Map.Entry<String, Object> entry : flatten(new HashMap<>(), null, tags).entrySet()) {
@@ -281,6 +293,10 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       if (!entry.getValue().equals("*")) {
         boolQueryBuilder.must(QueryBuilders.matchQuery("tags.value", entry.getValue()));
       }
+    }
+
+    if (namespace != null) {
+      boolQueryBuilder.must(QueryBuilders.termQuery("tags.namespace", namespace));
     }
 
     return QueryBuilders.nestedQuery("tags", boolQueryBuilder);

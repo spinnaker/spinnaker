@@ -132,33 +132,37 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
 
     expect:
     // fetch everything
-    entityTagsProvider.getAll(null, null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+    entityTagsProvider.getAll(null, null, null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
 
     // fetch everything for a single `entityId`
-    entityTagsProvider.getAll(null, null, [entityTags.entityRef.entityId], null, null, null, null, 2)*.id.sort() == [entityTags.id].sort()
+    entityTagsProvider.getAll(null, null, [entityTags.entityRef.entityId], null, null, null, null, null, 2)*.id.sort() == [entityTags.id].sort()
 
     // fetch everything for a multiple `entityId`
     entityTagsProvider.getAll(null, null, [
       entityTags.entityRef.entityId, moreEntityTags.entityRef.entityId
-    ], null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+    ], null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
 
     // fetch everything for `cloudprovider`
-    entityTagsProvider.getAll("aws", null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+    entityTagsProvider.getAll("aws", null, null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
 
     // fetch everything for `cloudprovider` and `cluster`
-    entityTagsProvider.getAll("aws", "cluster", null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
+    entityTagsProvider.getAll("aws", "cluster", null, null, null, null, null, null, 2)*.id.sort() == [entityTags.id, moreEntityTags.id].sort()
 
     // fetch everything for `cloudprovider`, `cluster` and `idPrefix`
-    entityTagsProvider.getAll("aws", "cluster", null, "aws:cluster:clouddriver*", null, null, null, 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", "cluster", null, "aws:cluster:clouddriver*", null, null, null, null, 2)*.id == [entityTags.id]
 
     // fetch everything for `cloudprovider`, `cluster`, `idPrefix` and `tags`
-    entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, ["tag3": "value3"], 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, null, ["tag3": "value3"], 2)*.id == [entityTags.id]
 
     // verify that globbing by tags works
-    entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, ["tag3": "*"], 2)*.id == [entityTags.id]
+    entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, "default", ["tag3": "*"], 2)*.id == [entityTags.id]
+
+    // namespace 'not_default' does not exist and should negate the matched tags
+    entityTagsProvider.getAll("aws", "cluster", null, "aws*", null, null, "not_default", ["tag3": "*"], 2).isEmpty()
 
     // verify that `maxResults` works
-    entityTagsProvider.getAll("aws", "cluster", null, null, null, null, null, 0).isEmpty()
+    entityTagsProvider.getAll("aws", "cluster", null, null, null, null, null, null, 0).isEmpty()
+
   }
 
   @Unroll
@@ -174,11 +178,13 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     ["a": ["b": ["c": ["d"]]], "e": "f"] || ["a.b.c": ["d"], "e": "f"]
   }
 
-  private static EntityTags buildEntityTags(String id, Map<String, String> tags) {
+  private static EntityTags buildEntityTags(String id, Map<String, String> tags, String namespace = "default") {
     def idSplit = id.split(":")
     return new EntityTags(
       id: id,
-      tags: tags.collect { k,v -> new EntityTags.EntityTag(name: k, value: v, valueType: EntityTags.EntityTagValueType.literal)},
+      tags: tags.collect { k, v ->
+        new EntityTags.EntityTag(name: k, value: v, valueType: EntityTags.EntityTagValueType.literal, namespace: namespace)
+      },
       entityRef: new EntityTags.EntityRef(
         entityType: idSplit[1],
         cloudProvider: idSplit[0],

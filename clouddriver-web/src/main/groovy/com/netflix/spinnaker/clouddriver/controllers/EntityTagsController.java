@@ -55,6 +55,7 @@ public class EntityTagsController {
                                      @RequestParam(value = "idPrefix", required = false) String idPrefix,
                                      @RequestParam(value = "account", required = false) String account,
                                      @RequestParam(value = "region", required = false) String region,
+                                     @RequestParam(value = "namespace", required = false) String namespace,
                                      @RequestParam(value = "maxResults", required = false, defaultValue = "100") int maxResults,
                                      @RequestParam Map<String, Object> allParameters) {
 
@@ -69,6 +70,7 @@ public class EntityTagsController {
       idPrefix,
       account,
       region,
+      namespace,
       tags,
       maxResults
       );
