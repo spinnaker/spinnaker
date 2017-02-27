@@ -17,10 +17,22 @@
 package com.netflix.spinnaker.clouddriver.appengine.deploy.description
 
 import com.netflix.spinnaker.clouddriver.appengine.model.AppengineTrafficSplit
+import com.netflix.spinnaker.clouddriver.appengine.model.ShardBy
 
 class UpsertAppengineLoadBalancerDescription extends AbstractAppengineCredentialsDescription {
   String accountName
   String loadBalancerName
   AppengineTrafficSplit split
+  AppengineTrafficSplitDescription splitDescription
   Boolean migrateTraffic
+
+  static class AppengineTrafficSplitDescription {
+    ShardBy shardBy
+    List<AppengineAllocationDescription> allocationDescriptions
+  }
+
+  static class AppengineAllocationDescription {
+    String serverGroupName
+    Double allocation
+  }
 }

@@ -80,6 +80,7 @@ class AppengineLoadBalancer implements LoadBalancer, Serializable {
 }
 
 @AutoClone
+@EqualsAndHashCode(includes = ["allocations", "shardBy"])
 class AppengineTrafficSplit {
   Map<String, Double> allocations
   ShardBy shardBy

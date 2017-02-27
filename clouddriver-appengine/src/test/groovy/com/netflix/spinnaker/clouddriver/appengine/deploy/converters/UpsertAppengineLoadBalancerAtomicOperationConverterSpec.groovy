@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.UpsertAppengineLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.appengine.model.AppengineTrafficSplit
+import com.netflix.spinnaker.clouddriver.appengine.model.ShardBy
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Shared
@@ -28,7 +30,13 @@ class UpsertAppengineLoadBalancerAtomicOperationConverterSpec extends Specificat
   private static final ACCOUNT_NAME = "my-appengine-account"
   private static final LOAD_BALANCER_NAME = "default"
   private static final TRAFFIC_SPLIT = [
-    allocations: ["app-stack-detail-v000": "0.6", "app-stack-detail-v001": "0.4"],
+    allocations: ["app-stack-detail-v000": 0.6, "app-stack-detail-v001": 0.4],
+    shardBy: "IP"
+  ]
+  private static final TRAFFIC_SPLIT_DESCRIPTION = [
+    allocationDescriptions: [
+      [serverGroupName: "app-stack-detail-v000", allocation: 0.6],
+      [serverGroupName: "app-stack-detail-v001", allocation: 0.4]],
     shardBy: "IP"
   ]
   private static final MIGRATE_TRAFFIC = false
@@ -67,5 +75,21 @@ class UpsertAppengineLoadBalancerAtomicOperationConverterSpec extends Specificat
 
     then:
       operation instanceof UpsertAppengineLoadBalancerAtomicOperation
+  }
+
+  void "if input map has splitDescription, converts splitDescription and sets split"() {
+    setup:
+      def input = [
+        credentials: ACCOUNT_NAME,
+        loadBalancerName: LOAD_BALANCER_NAME,
+        splitDescription: TRAFFIC_SPLIT_DESCRIPTION,
+        migrateTraffic: MIGRATE_TRAFFIC
+      ]
+
+    when:
+      def description = converter.convertDescription(input)
+
+    then:
+      description.split == new AppengineTrafficSplit(shardBy: ShardBy.IP, allocations: ["app-stack-detail-v000": 0.6, "app-stack-detail-v001": 0.4])
   }
 }

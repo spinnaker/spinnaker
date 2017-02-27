@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.deploy.converters
 import com.netflix.spinnaker.clouddriver.appengine.AppengineOperation
 import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.appengine.deploy.ops.UpsertAppengineLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.appengine.model.AppengineModelUtil
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -32,6 +33,13 @@ class UpsertAppengineLoadBalancerAtomicOperationConverter extends AbstractAtomic
   }
 
   UpsertAppengineLoadBalancerDescription convertDescription(Map input) {
-    AppengineAtomicOperationConverterHelper.convertDescription(input, this, UpsertAppengineLoadBalancerDescription)
+    UpsertAppengineLoadBalancerDescription description = AppengineAtomicOperationConverterHelper
+      .convertDescription(input, this, UpsertAppengineLoadBalancerDescription) as UpsertAppengineLoadBalancerDescription
+
+    if (description.splitDescription) {
+      description.split = AppengineModelUtil.convertTrafficSplitDescriptionToTrafficSplit(description.splitDescription)
+    }
+
+    return description
   }
 }

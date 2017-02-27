@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.appengine.model
 
 import com.google.api.services.appengine.v1.model.Version
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.appengine.deploy.description.UpsertAppengineLoadBalancerDescription.AppengineTrafficSplitDescription
 
 import java.text.SimpleDateFormat
 
@@ -51,6 +53,17 @@ class AppengineModelUtil {
     }
   }
 
+  static AppengineTrafficSplit convertTrafficSplitDescriptionToTrafficSplit(AppengineTrafficSplitDescription splitDescription) {
+    Map<String, Double> allocations = splitDescription.allocationDescriptions?.collectEntries { description ->
+      [(description.serverGroupName): description.allocation]
+    } ?: [:]
+
+    return new AppengineTrafficSplit(
+      allocations: allocations,
+      shardBy: splitDescription.shardBy
+    )
+  }
+
   static String getHttpUrl(String selfLink) {
     "http://${getUrl(selfLink, ".")}"
   }
@@ -71,7 +84,7 @@ class AppengineModelUtil {
   */
 
   @VisibleForTesting
-  private static String getUrl(String selfLink, String delimiter) {
+  static String getUrl(String selfLink, String delimiter) {
     def parts = selfLink.split("/").reverse()
     def componentNames = []
     parts.eachWithIndex { String entry, int i ->

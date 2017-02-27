@@ -25,8 +25,8 @@ class AppengineModelUtilSpec extends Specification {
       def selfLink = "apps/myapp/services/myservice"
 
     then:
-     "myservice-dot-myapp.appspot.com" == AppengineModelUtil.getUrl(selfLink, "-dot-")
-     "myservice.myapp.appspot.com" == AppengineModelUtil.getUrl(selfLink, ".")
+      AppengineModelUtil.getUrl(selfLink, "-dot-") == "myservice-dot-myapp.appspot.com"
+      AppengineModelUtil.getUrl(selfLink, ".") == "myservice.myapp.appspot.com"
   }
 
   void "url builder properly builds service urls from selfLink for default service"() {
@@ -34,8 +34,8 @@ class AppengineModelUtilSpec extends Specification {
       def selfLink = "apps/myapp/services/default"
 
     then:
-      "myapp.appspot.com" == AppengineModelUtil.getUrl(selfLink, "-dot-")
-      "myapp.appspot.com" == AppengineModelUtil.getUrl(selfLink, ".")
+      AppengineModelUtil.getUrl(selfLink, "-dot-") == "myapp.appspot.com"
+      AppengineModelUtil.getUrl(selfLink, ".") == "myapp.appspot.com"
   }
 
   void "url builder properly builds version urls from selfLink"() {
@@ -43,8 +43,8 @@ class AppengineModelUtilSpec extends Specification {
       def selfLink = "apps/myapp/services/myservice/versions/myversion"
 
     then:
-      "myversion-dot-myservice-dot-myapp.appspot.com" == AppengineModelUtil.getUrl(selfLink, "-dot-")
-      "myversion.myservice.myapp.appspot.com" == AppengineModelUtil.getUrl(selfLink, ".")
+      AppengineModelUtil.getUrl(selfLink, "-dot-") == "myversion-dot-myservice-dot-myapp.appspot.com"
+      AppengineModelUtil.getUrl(selfLink, ".") == "myversion.myservice.myapp.appspot.com"
   }
 
   void "url builder properly builds version urls from selfLink for version in default service"() {
@@ -52,7 +52,7 @@ class AppengineModelUtilSpec extends Specification {
       def selfLink = "apps/myapp/services/default/versions/myversion"
 
     then:
-      "myversion-dot-myapp.appspot.com" == AppengineModelUtil.getUrl(selfLink, "-dot-")
-      "myversion.myapp.appspot.com" == AppengineModelUtil.getUrl(selfLink, ".")
+      AppengineModelUtil.getUrl(selfLink, "-dot-") == "myversion-dot-myapp.appspot.com"
+      AppengineModelUtil.getUrl(selfLink, ".") == "myversion.myapp.appspot.com"
   }
 }
