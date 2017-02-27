@@ -16,11 +16,17 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.google.common.collect.ImmutableList
 import com.netflix.appinfo.InstanceInfo
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.FilterType
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 /**
  * Finds spring beans (@Component, @Resource, @Controller, etc.) on your classpath.
@@ -29,12 +35,26 @@ import org.springframework.context.annotation.FilterType
  */
 @Configuration
 @ComponentScan(basePackages = ['com.netflix.spinnaker.echo'],
-    excludeFilters = @ComponentScan.Filter(value = Configuration,
-        type = FilterType.ANNOTATION))
-class ComponentConfig {
+  excludeFilters = @ComponentScan.Filter(value = Configuration,
+    type = FilterType.ANNOTATION))
+class ComponentConfig extends WebMvcConfigurerAdapter {
 
-    @Bean
-    InstanceInfo.InstanceStatus instanceStatus() {
-        InstanceInfo.InstanceStatus.UNKNOWN
-    }
+  @Autowired
+  private Registry registry;
+
+  @Override
+  void addInterceptors(InterceptorRegistry registry) {
+    List<String> pathVarsToTag = ImmutableList.of("type", "source")
+    List<String> exclude = ImmutableList.of("BasicErrorController")
+    MetricsInterceptor interceptor = new MetricsInterceptor(this.registry,
+                                                            "controller.invocations",
+                                                            pathVarsToTag,
+                                                            exclude)
+    registry.addInterceptor(interceptor)
+  }
+
+  @Bean
+  InstanceInfo.InstanceStatus instanceStatus() {
+    InstanceInfo.InstanceStatus.UNKNOWN
+  }
 }
