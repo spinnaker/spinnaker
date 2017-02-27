@@ -75,7 +75,7 @@
   top: -8px;
 }
 
-.scope-button-container .badge-impact-count.positive {
+.badge-impact-count.positive {
   background: @unhealthy_red;
 }
 
@@ -129,6 +129,24 @@ button.fast-property-scope-button {
   color: @unhealthy_red;
 }
 
+tr.scope-row {
+  cursor: pointer;
+}
+
+td.scope-cell span {
+  margin-right: 5px;
+}
+
+td.scope-cell span:last-of-type {
+  font-weight: bold;
+}
+
+td.scope-cell span:not(:first-of-type):before {
+  content: "\27A1" ;
+  margin-right: 0.5em;
+  margin-left: 0.5em;
+  color: @spinnaker-blue;
+}
 
 .keyboard-key {
   color: @code-yellow;

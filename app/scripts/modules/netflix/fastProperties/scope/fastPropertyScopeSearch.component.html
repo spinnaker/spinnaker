@@ -29,45 +29,10 @@
     ng-if="!$ctrl.querying && category.scopes.length"
     class="scope-category-container">
 
-    <div class="category-heading">{{category.category}}</div>
-
-    <div
-      ng-repeat="scopeOption in category.scopes"
-      ng-if="scopeOption.instanceCounts.up > 0"
-      class="scope-button-container">
-      <category-button-list-component
-        on-select-scope="$ctrl.selectScope(scopeOption)"
-        category-name="category.category"
-        scope-option="scopeOption">
-      </category-button-list-component>
-    </div>
-
-    <div ng-if="(category.scopes | filter: $ctrl.noImpact).length">
-      There are <span class="noticeText">{{(category.scopes | filter: $ctrl.noImpact).length}}</span>
-      <span><b>{{category.category}}</b></span> scopes that have no impact.
-      <button
-        ng-click="$ctrl.toggleNoInpactList(category.category)"
-        class="btn btn-default btn-xs">
-        <span ng-if="$ctrl.showNoImpactListForCategory[category.category]">Hide</span>
-        <span ng-if="!$ctrl.showNoImpactListForCategory[category.category]">Show</span>
-      </button>
-    </div>
-
-    <div
-      ng-if="$ctrl.showNoImpactListForCategory[category.category]"
-      class="scope-category-container">
-
-      <div
-        ng-repeat="scopeOption in category.scopes"
-        ng-if="scopeOption.instanceCounts.up === 0"
-        class="scope-button-container">
-        <category-button-list-component
-          on-select-scope="$ctrl.selectScope(scopeOption)"
-          category-name="category.category"
-          scope-option="scopeOption">
-        </category-button-list-component>
-      </div>
-
-    </div>
+    <category-button-list-component
+      on-select-scope="$ctrl.selectScope(scopeOption)"
+      category-name="category.category"
+      scope-options="category.scopes">
+    </category-button-list-component>
   </div>
 </div>

@@ -16,7 +16,7 @@
         LEFT COLUMN
         Only rendered if the form is creating a new FP
       -->
-      <div class="col-md-8" style="display: flex; flex-direction: column">
+      <div class="col-md-7" style="display: flex; flex-direction: column">
 
         <div class="row">
           <div class="col-md-12">
@@ -33,49 +33,126 @@
       <!--
        RIGHT COLUMN
        -->
-      <div class="col-md-4">
-        <h4 ng-if="$ctrl.selectedScope.instanceCounts">
-          Impact Count:
-          <span class="attention">{{$ctrl.selectedScope.instanceCounts.up}}</span>
-        </h4>
+      <div class="col-md-5">
+        <div class="row" ng-if="$ctrl.selectedScope">
+          <div class="col-md-9">
+            <h4 ng-if="$ctrl.selectedScope.instanceCounts">
+              Impact Count:
+              <span class="attention">{{$ctrl.selectedScope.instanceCounts.up}}</span>
+            </h4>
+          </div>
+          <div class="col-md-3">
+            <a
+              href
+              class="btn btn-link"
+              ng-if="!$ctrl.isEditing"
+              ng-click="$ctrl.toggleEditScope()">
+              <i class="fa fa-edit"></i>
+            </a>
+          </div>
+        </div>
 
         <div>
-          <table class="table table-hover">
+          <table class="table table-hover" style="margin-bottom: 5px" >
             <tbody>
             <tr ng-if="$ctrl.selectedScope.env">
               <td><b>Env</b></td>
-              <td>{{$ctrl.selectedScope.env}}</td>
+              <td> {{$ctrl.selectedScope.env}} </td>
             </tr>
             <tr ng-if="$ctrl.selectedScope.appId">
               <td><b>Apps</b></td>
-              <td>{{$ctrl.selectedScope.appId}}</td>
+              <td>
+                <span ng-if="!$ctrl.isEditing">
+                  {{$ctrl.selectedScope.appId}}
+                </span>
+                <input
+                  class="form-control"
+                  ng-if="$ctrl.isEditing"
+                  type="text" ng-model="$ctrl.selectedScope.appId">
+              </td>
             </tr>
             <tr ng-if="$ctrl.selectedScope.region">
               <td><b>Region</b></td>
-              <td>{{$ctrl.selectedScope.region}}</td>
+              <td>
+                <span ng-if="!$ctrl.isEditing">
+                  {{$ctrl.selectedScope.region}}
+                </span>
+                <input
+                  class="form-control"
+                  ng-if="$ctrl.isEditing"
+                  type="text" ng-model="$ctrl.selectedScope.region">
+              </td>
             </tr>
             <tr ng-if="$ctrl.selectedScope.stack">
               <td><b>Stack</b></td>
-              <td>{{$ctrl.selectedScope.stack}}</td>
+              <td>
+                <span ng-if="!$ctrl.isEditing">
+                  {{$ctrl.selectedScope.stack}}
+                </span>
+                <input
+                  class="form-control"
+                  ng-if="$ctrl.isEditing"
+                  type="text" ng-model="$ctrl.selectedScope.stack">
+              </td>
             </tr>
             <tr ng-if="$ctrl.selectedScope.cluster">
-              <td><b>Cluster</></td>
-              <td>{{$ctrl.selectedScope.cluster}}</td>
+              <td><b>Cluster</b></td>
+              <td>
+                <span ng-if="!$ctrl.isEditing">
+                  {{$ctrl.selectedScope.cluster}}
+                </span>
+                <input
+                  class="form-control"
+                  ng-if="$ctrl.isEditing"
+                  type="text" ng-model="$ctrl.selectedScope.cluster">
+              </td>
+
             </tr>
             <tr ng-if="$ctrl.selectedScope.asg">
               <td><b>ASG</b></td>
-              <td>{{$ctrl.selectedScope.asg}}</td>
+              <td>
+                <span ng-if="!$ctrl.isEditing">
+                  {{$ctrl.selectedScope.asg}}
+                </span>
+                <input
+                  class="form-control"
+                  ng-if="$ctrl.isEditing"
+                  type="text" ng-model="$ctrl.selectedScope.asg">
+              </td>
             </tr>
             <tr ng-if="$ctrl.selectedScope.zone">
               <td><b>Zone</b></td>
-              <td>{{$ctrl.selectedScope.zone}}</td>
+              <td>
+                <span ng-if="!$ctrl.isEditing">
+                  {{$ctrl.selectedScope.zone}}
+                </span>
+                <input
+                  class="form-control"
+                  ng-if="$ctrl.isEditing"
+                  type="text" ng-model="$ctrl.selectedScope.zone">
+              </td>
             </tr>
             <tr ng-if="$ctrl.selectedScope.serverId">
               <td><b>Instance</b></td>
-              <td>{{$ctrl.selectedScope.serverId}}</td>
+              <td>
+                <span ng-if="!$ctrl.isEditing">
+                  {{$ctrl.selectedScope.serverId}}
+                </span>
+                <input
+                  class="form-control"
+                  ng-if="$ctrl.isEditing"
+                  type="text" ng-model="$ctrl.selectedScope.serverId">
+              </td>
             </tr>
             </tbody>
           </table>
+            <button
+              class="btn btn-primary btn-xs"
+              ng-if="$ctrl.isEditing"
+              ng-click="$ctrl.toggleEditScope()"
+              type="button">
+              Save Scope
+            </button>
         </div>
       </div>
     </div>

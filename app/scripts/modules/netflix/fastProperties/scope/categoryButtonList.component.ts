@@ -5,9 +5,20 @@ export class CategoryButtonListComponentController implements ng.IComponentContr
   public scopeOption: any;
   public categoryName: string;
   public onSelectScope: Function;
+  public showNoImpactListForCategory: any = {};
 
   public selectScope(scopeOption: any) {
     this.onSelectScope({scopeOption: scopeOption});
+  }
+
+  public noImpact(categoryScope: any) {
+    return categoryScope.instanceCounts.up < 1;
+  }
+
+  public toggleNoInpactList(categoryName: string) {
+    this.showNoImpactListForCategory[categoryName] = this.showNoImpactListForCategory[categoryName]
+      ? !this.showNoImpactListForCategory[categoryName]
+      : true;
   }
 
 }
@@ -16,7 +27,7 @@ class CategoryButtonListComponent implements ng.IComponentOptions {
   public templateUrl: string = require('./categoryButtonList.component.html');
   public controller: any = CategoryButtonListComponentController;
   public bindings: any = {
-    scopeOption: '=',
+    scopeOptions: '=',
     categoryName: '<',
     onSelectScope: '&'
   };

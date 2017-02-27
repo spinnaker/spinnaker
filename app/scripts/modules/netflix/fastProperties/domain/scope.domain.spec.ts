@@ -29,6 +29,43 @@ describe('Scope Domain Spec', function () {
 
     });
   });
+
+  describe('prep a scope for submission', function () {
+
+    it('has no appId', function () {
+      let scope = new Scope();
+
+      let readyScope = scope.forSubmit('prod');
+      expect(readyScope.appIdList).toEqual([])
+    });
+
+    it('has single appId', function () {
+      let scope = new Scope();
+
+      scope.appId = "deck";
+
+      let readyScope = scope.forSubmit('prod');
+      expect(readyScope.appIdList).toEqual(['deck'])
+    });
+
+    it('has multiple comma delimited appId', function () {
+      let scope = new Scope();
+
+      scope.appId = "deck,demo";
+
+      let readyScope = scope.forSubmit('prod');
+      expect(readyScope.appIdList).toEqual(['deck', 'demo'])
+    });
+
+    it('has multiple comma delimited appId with whitespace', function () {
+      let scope = new Scope();
+
+      scope.appId = "deck , demo";
+
+      let readyScope = scope.forSubmit('prod');
+      expect(readyScope.appIdList).toEqual(['deck', 'demo'])
+    });
+  });
 });
 
 

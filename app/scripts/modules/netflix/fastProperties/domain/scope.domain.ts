@@ -39,6 +39,11 @@ export class Scope {
     return scope;
   }
 
+  public copy() {
+    let scope = new Scope();
+    return Object.assign(scope, this);
+  }
+
   public getBaseOfScope() {
     if (this.serverId) { return this.serverId; }
     if (this.zone) { return this.zone; }
@@ -63,7 +68,7 @@ export class Scope {
   public forSubmit(env: string): Scope {
     let copy: Scope = Object.assign({}, this);
     copy.env = env;
-    copy.appIdList = [this.appId];
+    copy.appIdList = this.appId ? this.appId.split(',').map(appName => appName.trim()) : [];
     delete copy.instanceCounts;
     delete copy.appId;
     return copy;

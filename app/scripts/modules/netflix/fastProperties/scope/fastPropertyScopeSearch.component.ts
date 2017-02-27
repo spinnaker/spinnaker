@@ -177,16 +177,22 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
   }
 
   private addStackCategory(categories: any[]) {
+    let applicationCategory = categories
+      .find((cat: any) => cat.category === 'Applications');
+    let applicationNames = applicationCategory ? applicationCategory.results.map((item: any) => item.application) : [];
+
     let appsClusters = values(this.applicationDictionary).reduce((acc: any[], app: Application): any[] => {
-      app.clusters.forEach((cluster: ICluster) => {
-        cluster.serverGroups.forEach((serverGroup: ServerGroup) => {
-          acc.push({
-            region: serverGroup.region,
-            application: app.name,
-            cluster: serverGroup.cluster
+      if (applicationNames.includes(app.name)) {
+        app.clusters.forEach((cluster: ICluster) => {
+          cluster.serverGroups.forEach((serverGroup: ServerGroup) => {
+            acc.push({
+              region: serverGroup.region,
+              application: app.name,
+              cluster: serverGroup.cluster
+            });
           });
         });
-      });
+      }
       return uniqWith(acc, isEqual);
     }, []);
 

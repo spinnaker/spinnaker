@@ -1,100 +1,67 @@
-  <div
-    class="scope-button-container">
 
-    <button
-      ng-if="$ctrl.categoryName === 'Applications'"
-      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
-      class="fast-property-scope-button">
+  <div>
+    <table
+      class="table table-hover table-condensed">
+      <thead>
+        <tr>
+          <th colspan="2">
+            {{$ctrl.categoryName}}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="scope-row"
+          ng-repeat="scopeOption in $ctrl.scopeOptions"
+          ng-if="scopeOption.instanceCounts.up > 0"
+          ng-click="$ctrl.selectScope(scopeOption)">
+          <td width="10%">
+            <span class="badge badge-impact-count" ng-class="{positive: scopeOption.instanceCounts.up > 0}">{{scopeOption.instanceCounts.up}}</span>
+          </td>
+          <td width="90" class="scope-cell">
+            <span ng-if="scopeOption.appId"><b>{{scopeOption.appId}}</b></span>
+            <span ng-if="scopeOption.region">{{scopeOption.region}}</span>
+            <span ng-if="scopeOption.stack">{{scopeOption.stack}}</span>
+            <span ng-if="scopeOption.cluster">{{scopeOption.cluster}}</span>
+            <span ng-if="scopeOption.asg">{{scopeOption.asg}}</span>
+            <span ng-if="scopeOption.serverId">{{scopeOption.serverId}}</span>
+            <span ng-if="$ctrl.categoryName === 'Global'">All Instances</span>
+          </td>
+        </tr>
 
-      <div>
-        <span ng-if="$ctrl.scopeOption.region">{{$ctrl.scopeOption.region}}</span>
-        <span ng-if="$ctrl.scopeOption.appId"><b>{{$ctrl.scopeOption.appId}}</b></span>
-      </div>
+        <tr ng-if="($ctrl.scopeOption | filter: $ctrl.noImpact).length">
+          <td colspan="2">
+            There are <span class="noticeText">{{($ctrl.scopeOption | filter: $ctrl.noImpact).length}}</span>
+            <span><b>{{category.category}}</b></span> scopes that have no impact.
+            <button
+              ng-click="$ctrl.toggleNoInpactList(category.category)"
+              class="btn btn-default btn-xs">
+              <span ng-if="$ctrl.showNoImpactListForCategory[category.category]">Hide</span>
+              <span ng-if="!$ctrl.showNoImpactListForCategory[category.category]">Show</span>
+            </button>
+          </td>
+        </tr >
 
-      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
-    </button>
-
-    <button
-      ng-if="$ctrl.categoryName === 'Clusters'"
-      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
-      class="fast-property-scope-button">
-
-      <div>
-        <span ng-if="$ctrl.scopeOption.appId">{{$ctrl.scopeOption.appId}}</span>
-        <span ng-if="$ctrl.scopeOption.stack">...</span>
-        <span ng-if="$ctrl.scopeOption.cluster"><b>{{$ctrl.scopeOption.cluster}}</b></span>
-      </div>
-
-      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
-    </button>
-
-    <button
-      ng-if="$ctrl.categoryName === 'Server Groups'"
-      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
-      class="fast-property-scope-button">
-
-      <div>
-        <span ng-if="$ctrl.scopeOption.region">{{$ctrl.scopeOption.region}}</span>
-        <span ng-if="$ctrl.scopeOption.appId">{{$ctrl.scopeOption.appId}}</span>
-        <span ng-if="$ctrl.scopeOption.stack || $ctrl.scopeOption.cluster">...</span>
-        <span ng-if="$ctrl.scopeOption.asg"><b>{{$ctrl.scopeOption.asg}}</b></span>
-      </div>
-
-      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
-    </button>
-
-    <button
-      ng-if="$ctrl.categoryName === 'Stack'"
-      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
-      class="fast-property-scope-button">
-
-      <div>
-        <span ng-if="$ctrl.scopeOption.region">{{$ctrl.scopeOption.region}}</span>
-        <span ng-if="$ctrl.scopeOption.appId">{{$ctrl.scopeOption.appId}}</span>
-        <span ng-if="$ctrl.scopeOption.cluster">...</span>
-        <span ng-if="$ctrl.scopeOption.stack"><b>{{$ctrl.scopeOption.stack}}</b></span>
-      </div>
-
-      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
-    </button>
-
-
-    <button
-      ng-if="$ctrl.categoryName === 'Regions'"
-      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
-      class="fast-property-scope-button">
-
-      <div>
-        <span ng-if="$ctrl.scopeOption.region"><b>{{$ctrl.scopeOption.region}}</b></span>
-      </div>
-      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
-    </button>
-
-    <button
-      ng-if="$ctrl.categoryName === 'Global'"
-      ng-click="$ctrl.selectScope($ctrl.scopeOption)"
-      class="fast-property-scope-button">
-
-      <div>
-        <div class="global-label">All Instances</div>
-      </div>
-      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
-    </button>
-
-    <button
-      class="fast-property-scope-button"
-      ng-if="$ctrl.categoryName === 'Instances'"
-      ng-click="$ctrl.selectScope($ctrl.scopeOption)">
-
-      <div>
-        <span ng-if="$ctrl.scopeOption.region">{{$ctrl.scopeOption.region}}</span>
-        <span ng-if="$ctrl.scopeOption.appId">{{$ctrl.scopeOption.appId}}</span>
-        <span ng-if="$ctrl.scopeOption.stack || $ctrl.scopeOption.cluster || $ctrl.scopeOption.asg">...</span>
-        <span ng-if="$ctrl.scopeOption.serverId"><b>{{$ctrl.scopeOption.serverId}}</b></span>
-      </div>
-
-      <span class="badge badge-impact-count" ng-class="{positive: $ctrl.scopeOption.instanceCounts.up > 0}">{{$ctrl.scopeOption.instanceCounts.up}}</span>
-    </button>
+        <tr
+          class="scope-row"
+          ng-repeat="scopeOption in $ctrl.scopeOptions"
+          ng-click="$ctrl.selectScope(scopeOption)"
+          ng-if="scopeOption.instanceCounts.up === 0 && $ctrl.showNoImpactListForCategory[category.category]" >
+          <td width="10%">
+            <span class="badge badge-impact-count" ng-class="{positive: scopeOption.instanceCounts.up > 0}">{{scopeOption.instanceCounts.up}}</span>
+          </td>
+          <td width="90" class="scope-cell">
+            <span ng-if="scopeOption.appId"><b>{{scopeOption.appId}}</b></span>
+            <span ng-if="scopeOption.region">{{scopeOption.region}}</span>
+            <span ng-if="scopeOption.cluster">{{scopeOption.cluster}}</span>
+            <span ng-if="scopeOption.stack">{{scopeOption.stack}}</span>
+            <span ng-if="scopeOption.asg">{{scopeOption.asg}}</span>
+            <span ng-if="scopeOption.serverId">{{scopeOption.serverId}}</span>
+            <span ng-if="$ctrl.categoryName === 'Global'">All Instances</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
   </div>
 

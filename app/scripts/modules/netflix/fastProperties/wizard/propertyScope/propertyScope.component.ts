@@ -11,8 +11,13 @@ export class FastPropertyScopeComponentController implements ng.IComponentContro
   public command: PropertyCommand;
 
   public selectScope(scopeOption: Scope) {
-    this.selectedScope = scopeOption;
-    this.command.scope = scopeOption;
+    this.selectedScope = scopeOption.copy();
+    this.command.scope = this.selectedScope;
+  }
+
+  public toggleEditScope() {
+    this.isEditing = !this.isEditing;
+
   }
 }
 
