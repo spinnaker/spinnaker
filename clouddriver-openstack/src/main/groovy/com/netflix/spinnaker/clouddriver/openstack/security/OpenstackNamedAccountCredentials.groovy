@@ -201,7 +201,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
       return this
     }
 
-    private OpenstackCredentials build() {
+    public OpenstackCredentials build() {
       return new OpenstackNamedAccountCredentials(name,
         environment,
         accountType,
