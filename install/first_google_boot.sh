@@ -320,14 +320,20 @@ function extract_spinnaker_gcr_credentials() {
 }
 
 function do_experimental_startup() {
-  local monitor_config=$(get_instance_metadata_attribute "monitor_spinnaker")
-  if [[ ! -z $monitor_config && \
-          -f /opt/spinnaker/install/install_monitor_spinnaker.tz ]]; then
-     echo "$STATUS_PREFIX  Install Monitoring with flags '$monitor_config' "
-     tar xzf /opt/spinnaker/install/install_monitor_spinnaker.tz \
-         -C /opt --no-same-owner
-     /opt/monitor_spinnaker/install_monitoring.sh $monitor_config
-     clear_instance_metadata "monitor_spinnaker"
+  local install_monitoring=$(get_instance_metadata_attribute "install_monitoring")
+  if [[ ! -z $install_monitoring ]]; then
+     IFS=' ' read -r -a all_args <<< "$install_monitoring"
+     local which=${all_args[0]}
+     local flags=${all_args[@]: 1:${#all_args}}
+     /opt/spinnaker-monitoring/third_party/$which/install.sh ${flags[@]}
+
+     if [[ ! -f /opt/spinnaker-monitoring/registry ]]; then
+         mv /opt/spinnaker-monitoring/registry.example \
+            /opt/spinnaker-monitoring/registry
+     fi
+
+     service spinnaker-monitoring restart
+     clear_instance_metadata "install_monitoring"
   fi
 }
 
