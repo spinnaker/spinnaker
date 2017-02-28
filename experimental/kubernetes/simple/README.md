@@ -146,7 +146,7 @@ is mostly filled out:
 ```
 
 Add values for `front50.storage_bucket`
-(a unique bucket name that will created by spinnaker if it doesn't exist)
+(a dedicated bucket for Spinnaker that you've already created)
 and set `true` for either `front50.gcs.enabled` or `front50.s3.enabled`
 depending on which storage solution you want to use. If you
 are using GCS, you need a json account file at `~/.gcp/account.json`, and
@@ -157,19 +157,22 @@ Otherwise, you need your AWS credentials to be located at `~/.aws/credentials`.
 
 ```
 $ bash scripts/startup-all.sh  # this takes a little while...
-$ bash scripts/connect.sh deck 9000 # leave this running, open a new terminal, and run
-$ bash scripts/connect.sh gate 8084 # leave this running too...
 ```
 
-Note, deck and gate may not be up immediately, wait until
+Note that deck and gate may not be up immediately. Wait until the following shows that each container is ready before continuing.
 
 ```
 $ kubectl get pods --namespace=spinnaker
 ```
 
-shows that each container is ready before opening the connections above.
+Then initiate port forwarding to your local box. Leave each of the following running *in their own terminal window*.
 
-Now point your browser at [localhost:9000](http://localhost:9000), and you're all set!
+```
+$ bash scripts/connect.sh deck 9000 # leave this running, open a new terminal, and run the next line
+$ bash scripts/connect.sh gate 8084 # leave this running too...
+```
+
+Then point your browser at [localhost:9000](http://localhost:9000), and you're all set!
 
 ## What Just Happened?
 
