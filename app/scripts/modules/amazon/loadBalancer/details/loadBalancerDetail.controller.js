@@ -149,6 +149,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
         loadBalancerName: $scope.loadBalancer.name,
         regions: [$scope.loadBalancer.region],
         credentials: $scope.loadBalancer.account,
+        vpcId: _.get($scope.loadBalancer, 'elb.vpcid', null),
       };
 
       const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, app);
