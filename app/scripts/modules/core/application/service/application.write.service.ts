@@ -69,7 +69,9 @@ export class ApplicationWriter {
     const jobs: IJob[] = [];
     const command = commandTransformer(application);
     command.accounts = application.accounts.join(',');
-    command.cloudProviders = application.cloudProviders ? application.cloudProviders.join(',') : [];
+    if (application.cloudProviders) {
+      command.cloudProviders = application.cloudProviders.join(',');
+    }
     delete command.account;
     application.accounts.forEach(account => {
       jobs.push({
