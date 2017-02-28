@@ -20,6 +20,8 @@ import com.netflix.spinnaker.kayenta.metrics.MapBackedMetricsServiceRepository;
 import com.netflix.spinnaker.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.spinnaker.kayenta.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.kayenta.security.MapBackedAccountCredentialsRepository;
+import com.netflix.spinnaker.kayenta.storage.MapBackedStorageServiceRepository;
+import com.netflix.spinnaker.kayenta.storage.StorageServiceRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
@@ -35,5 +37,11 @@ public class KayentaConfiguration {
   @ConditionalOnMissingBean(MetricsServiceRepository.class)
   MetricsServiceRepository metricsServiceRepository() {
     return new MapBackedMetricsServiceRepository();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(StorageServiceRepository.class)
+  StorageServiceRepository storageServiceRepository() {
+    return new MapBackedStorageServiceRepository();
   }
 }

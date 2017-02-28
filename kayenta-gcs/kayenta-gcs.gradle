@@ -1,5 +1,7 @@
 dependencies {
+  compile project(":kayenta-core")
+  compile project(":kayenta-google")
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
-  spinnaker.group('jackson')
+  spinnaker.group('google')
 }

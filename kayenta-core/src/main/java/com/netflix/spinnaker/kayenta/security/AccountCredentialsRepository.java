@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.kayenta.security;
 
+import java.util.Optional;
 import java.util.Set;
 
 public interface AccountCredentialsRepository {
-  AccountCredentials getOne(String name);
+  Optional<AccountCredentials> getOne(String accountName);
 
-  AccountCredentials getOne(AccountCredentials.Type credentialsType);
+  Optional<AccountCredentials> getOne(AccountCredentials.Type credentialsType);
 
   Set<? extends AccountCredentials> getAll();
 

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kayenta.security.AccountCredentials;
 import lombok.Data;
 import org.springframework.util.StringUtils;
 
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -33,9 +34,17 @@ import java.util.List;
 @Data
 public class GoogleManagedAccount {
 
+  @NotNull
   private String name;
+
+  @NotNull
   private String project;
   private String jsonPath;
+
+  private String bucket;
+  private String bucketLocation;
+  private String rootFolder;
+
   private List<AccountCredentials.Type> supportedTypes;
 
   private InputStream getInputStream() throws FileNotFoundException {

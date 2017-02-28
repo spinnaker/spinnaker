@@ -18,36 +18,35 @@ package com.netflix.spinnaker.kayenta.security;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MapBackedAccountCredentialsRepository implements AccountCredentialsRepository {
 
-  private final Map<String, AccountCredentials> map = new ConcurrentHashMap<>();
+  private final Map<String, AccountCredentials> accountNameToCredentialsMap = new ConcurrentHashMap<>();
 
   @Override
-  public AccountCredentials getOne(String name) {
-    return map.get(name);
+  public Optional<AccountCredentials> getOne(String accountName) {
+    return Optional.ofNullable(accountNameToCredentialsMap.get(accountName));
   }
 
   @Override
-  public AccountCredentials getOne(AccountCredentials.Type credentialsType) {
-    for (AccountCredentials accountCredentials : map.values()) {
-      if (accountCredentials.getSupportedTypes().contains(credentialsType)) {
-        return accountCredentials;
-      }
-    }
-
-    return null;
+  public Optional<AccountCredentials> getOne(AccountCredentials.Type credentialsType) {
+    return accountNameToCredentialsMap
+      .values()
+      .stream()
+      .filter(a -> a.getSupportedTypes().contains(credentialsType))
+      .findFirst();
   }
 
   @Override
   public Set<AccountCredentials> getAll() {
-    return new HashSet<>(map.values());
+    return new HashSet<>(accountNameToCredentialsMap.values());
   }
 
   @Override
   public AccountCredentials save(String name, AccountCredentials credentials) {
-    return map.put(credentials.getName(), credentials);
+    return accountNameToCredentialsMap.put(credentials.getName(), credentials);
   }
 }

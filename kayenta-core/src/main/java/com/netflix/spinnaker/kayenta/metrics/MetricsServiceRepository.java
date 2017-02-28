@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kayenta.metrics;
 
+import java.util.Optional;
+
 public interface MetricsServiceRepository {
-  MetricsService getOne(String accountName);
+  Optional<MetricsService> getOne(String accountName);
 }

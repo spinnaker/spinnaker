@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Builder
 public class StackdriverMetricsService implements MetricsService {
@@ -49,17 +50,19 @@ public class StackdriverMetricsService implements MetricsService {
   }
 
   @Override
-  public Map queryMetrics(String accountName,
-                          String instanceNamePrefix,
-                          String intervalStartTime,
-                          String intervalEndTime) throws IOException {
-    GoogleNamedAccountCredentials creds = (GoogleNamedAccountCredentials)accountCredentialsRepository.getOne(accountName);
-    Monitoring monitoring = creds.getMonitoring();
+  public Optional<Map> queryMetrics(String accountName,
+                                    String instanceNamePrefix,
+                                    String intervalStartTime,
+                                    String intervalEndTime) throws IOException {
+    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
+      .getOne(accountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    Monitoring monitoring = credentials.getMonitoring();
     // Some sample query parameters (mainly leaving all of these here so that I remember the api).
     ListTimeSeriesResponse response = monitoring
       .projects()
       .timeSeries()
-      .list("projects/" + creds.getProject())
+      .list("projects/" + credentials.getProject())
       .setAggregationAlignmentPeriod("3600s")
       .setAggregationCrossSeriesReducer("REDUCE_MEAN")
       .setAggregationGroupByFields(Arrays.asList("metric.label.instance_name"))
@@ -69,6 +72,6 @@ public class StackdriverMetricsService implements MetricsService {
       .setIntervalEndTime(intervalEndTime)
       .execute();
 
-    return response;
+    return Optional.of(response);
   }
 }

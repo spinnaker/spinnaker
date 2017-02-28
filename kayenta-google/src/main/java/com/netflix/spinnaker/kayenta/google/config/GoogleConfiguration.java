@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Configuration
 @EnableConfigurationProperties
@@ -54,7 +55,7 @@ public class GoogleConfiguration {
       String project = googleManagedAccount.getProject();
       List<AccountCredentials.Type> supportedTypes = googleManagedAccount.getSupportedTypes();
 
-      log.info("Registering Google account {} for project {} of type {}.", name, project, AccountCredentials.Type.METRICS_STORE);
+      log.info("Registering Google account {} for project {} with supported types {}.", name, project, supportedTypes);
 
       try {
         String jsonKey = googleManagedAccount.getJsonKey();
@@ -68,10 +69,20 @@ public class GoogleConfiguration {
             .builder()
             .name(name)
             .project(project)
-            .credentials(googleCredentials)
-            .monitoring(googleCredentials.getMonitoring("the-spinnaker-user-agent"));
+            .credentials(googleCredentials);
 
         if (!CollectionUtils.isEmpty(supportedTypes)) {
+          if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
+            googleNamedAccountCredentialsBuilder.monitoring(googleCredentials.getMonitoring());
+          }
+
+          if (supportedTypes.contains(AccountCredentials.Type.OBJECT_STORE)) {
+            googleNamedAccountCredentialsBuilder.bucket(googleManagedAccount.getBucket());
+            googleNamedAccountCredentialsBuilder.bucketLocation(googleManagedAccount.getBucketLocation());
+            googleNamedAccountCredentialsBuilder.rootFolder(googleManagedAccount.getRootFolder());
+            googleNamedAccountCredentialsBuilder.storage(googleCredentials.getStorage());
+          }
+
           googleNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
         }
 

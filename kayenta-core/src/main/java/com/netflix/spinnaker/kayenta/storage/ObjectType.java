@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kayenta.metrics;
+package com.netflix.spinnaker.kayenta.storage;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
+import lombok.Getter;
 
-public interface MetricsService {
-  boolean servicesAccount(String accountName);
-  Optional<Map> queryMetrics(String accountName,
-                             String instanceNamePrefix,
-                             String intervalStartTime,
-                             String intervalEndTime) throws IOException;
+public enum ObjectType {
+  METRICS("metrics", "metrics.json");
+
+  @Getter
+  final String group;
+
+  @Getter
+  final String defaultMetadataFilename;
+
+  ObjectType(String group, String defaultMetadataFilename) {
+    this.group = group;
+    this.defaultMetadataFilename = defaultMetadataFilename;
+  }
 }
