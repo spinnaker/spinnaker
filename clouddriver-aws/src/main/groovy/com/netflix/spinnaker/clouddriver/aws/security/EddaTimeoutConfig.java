@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 public class EddaTimeoutConfig {
   public static final EddaTimeoutConfig DEFAULT = new Builder().build();
   private static final long EDDA_RETRY_BASE_MILLIS = 50L;
@@ -29,13 +35,15 @@ public class EddaTimeoutConfig {
   private final int maxAttempts;
   private final int connectTimeout;
   private final int socketTimeout;
+  private final Set<String> disabledRegions;
 
-  public EddaTimeoutConfig(long retryBase, int backoffMillis, int maxAttempts, int connectTimeout, int socketTimeout) {
+  public EddaTimeoutConfig(long retryBase, int backoffMillis, int maxAttempts, int connectTimeout, int socketTimeout, Collection<String> disabledRegions) {
     this.retryBase = retryBase;
     this.backoffMillis = backoffMillis;
     this.maxAttempts = maxAttempts;
     this.connectTimeout = connectTimeout;
     this.socketTimeout = socketTimeout;
+    this.disabledRegions = disabledRegions == null || disabledRegions.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(new LinkedHashSet<>(disabledRegions));
   }
 
   public long getRetryBase() {
@@ -58,12 +66,17 @@ public class EddaTimeoutConfig {
     return socketTimeout;
   }
 
+  public Set<String> getDisabledRegions() {
+    return disabledRegions;
+  }
+
   public static class Builder {
     private long retryBase;
     private int backoffMillis;
     private int maxAttempts;
     private int connectTimeout;
     private int socketTimeout;
+    private List<String> disabledRegions;
 
     public Builder() {
       this.retryBase = EDDA_RETRY_BASE_MILLIS;
@@ -71,10 +84,11 @@ public class EddaTimeoutConfig {
       this.maxAttempts = EDDA_RETRY_MAX_ATTEMPTS;
       this.connectTimeout = EDDA_CONNECT_TIMEOUT_MILLIS;
       this.socketTimeout = EDDA_SOCKET_TIMEOUT_MILLIS;
+      this.disabledRegions = null;
     }
 
     public EddaTimeoutConfig build() {
-      return new EddaTimeoutConfig(retryBase, backoffMillis, maxAttempts, connectTimeout, socketTimeout);
+      return new EddaTimeoutConfig(retryBase, backoffMillis, maxAttempts, connectTimeout, socketTimeout, disabledRegions);
     }
 
     public long getRetryBase() {
@@ -115,6 +129,14 @@ public class EddaTimeoutConfig {
 
     public void setSocketTimeout(int socketTimeout) {
       this.socketTimeout = socketTimeout;
+    }
+
+    public List<String> getDisabledRegions() {
+      return disabledRegions;
+    }
+
+    public void setDisabledRegions(List<String> disabledRegions) {
+      this.disabledRegions = disabledRegions;
     }
   }
 }

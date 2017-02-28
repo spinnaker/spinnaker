@@ -30,6 +30,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
@@ -49,6 +50,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
   final String region
   final ObjectMapper objectMapper
   final Registry registry
+  final EddaTimeoutConfig eddaTimeoutConfig
 
   final OnDemandMetricsSupport metricsSupport
   final String lastModifiedKey
@@ -61,12 +63,14 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
                                   NetflixAmazonCredentials account,
                                   String region,
                                   ObjectMapper objectMapper,
-                                  Registry registry) {
+                                  Registry registry,
+                                  EddaTimeoutConfig eddaTimeoutConfig) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
     this.registry = registry
+    this.eddaTimeoutConfig = eddaTimeoutConfig
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${AmazonCloudProvider.ID}:${OnDemandAgent.OnDemandType.SecurityGroup}")
     this.lastModifiedKey = Keys.getSecurityGroupKey('LAST_MODIFIED', 'LAST_MODIFIED', region, account.name, null)
   }
@@ -109,7 +113,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
     Long startTime = null
     def securityGroups = metricsSupport.readData {
       def ec2 = amazonClientProvider.getAmazonEC2(account, region, true)
-      if (account.eddaEnabled) {
+      if (account.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region)) {
         startTime = System.currentTimeMillis()
       }
       return getSecurityGroups(ec2)
@@ -130,7 +134,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
     def ec2 = amazonClientProvider.getAmazonEC2(account, region)
     List<SecurityGroup> securityGroups = getSecurityGroups(ec2)
     def evictions = [:]
-    if (account.eddaEnabled) {
+    if (account.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region)) {
       Long startTime = amazonClientProvider.lastModified
       if (startTime) {
         def lastModifiedRecord = providerCache.get(ON_DEMAND.ns, lastModifiedKey)

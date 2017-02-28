@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import spock.lang.Specification
@@ -47,9 +48,10 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
   }
   ProviderCache providerCache = Mock(ProviderCache)
   AmazonObjectMapper mapper = new AmazonObjectMapper()
+  EddaTimeoutConfig eddaTimeoutConfig = new EddaTimeoutConfig.Builder().build()
 
   @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(
-    amazonClientProvider, creds, region, mapper, Spectator.registry())
+    amazonClientProvider, creds, region, mapper, Spectator.registry(), eddaTimeoutConfig)
 
   SecurityGroup securityGroupA = new SecurityGroup(groupId: 'id-a', groupName: 'name-a', description: 'a')
   SecurityGroup securityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b')
@@ -79,7 +81,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
       securityGroups: [securityGroupA, securityGroupB])
     def cred = TestCredential.named("test", [edda: "http://foo", eddaEnabled: true])
     def agent = new AmazonSecurityGroupCachingAgent(
-      amazonClientProvider, cred, region, mapper, Spectator.registry())
+      amazonClientProvider, cred, region, mapper, Spectator.registry(), eddaTimeoutConfig)
     CacheData onDemandResult = new DefaultCacheData(agent.lastModifiedKey, [lastModified: '12346'], [:])
     def existingIds = ['sg1', 'sg2']
     List<CacheData> existingCacheData = []
