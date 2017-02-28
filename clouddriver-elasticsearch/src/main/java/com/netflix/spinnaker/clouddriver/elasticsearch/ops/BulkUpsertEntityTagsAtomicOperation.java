@@ -28,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Function;
@@ -36,7 +38,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 
 public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<BulkUpsertEntityTagsAtomicOperationResult> {
-
+  private static final Logger log = LoggerFactory.getLogger(BulkUpsertEntityTagsAtomicOperation.class);
   private static final String BASE_PHASE = "ENTITY_TAGS";
 
   private final Front50Service front50Service;
@@ -65,7 +67,6 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     Date now = new Date();
 
     Lists.partition(entityTags, 50).forEach(tags -> {
-
       getTask().updateStatus(BASE_PHASE, "Retrieving current entity tags");
       Map<String, EntityTags> existingTags = retrieveExistingTags(tags);
 
@@ -98,7 +99,10 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
           tag.setId(entityRefId.id);
           tag.setIdPattern(entityRefId.idPattern);
         } catch (Exception e) {
-          getTask().updateStatus(BASE_PHASE, format("Failed to add tag ID: %s", tag.getId()));
+          log.error("Failed to build tag id for {}", tag.getId(), e);
+          getTask().updateStatus(
+            BASE_PHASE, format("Failed to build tag id for %s, reason: %s", tag.getId(), e.getMessage())
+          );
           failed.add(tag);
           result.failures.add(new BulkUpsertEntityTagsAtomicOperationResult.UpsertFailureResult(tag, e));
         }
@@ -115,7 +119,10 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
         tag.setLastModified(durableTag.getLastModified());
         tag.setLastModifiedBy(durableTag.getLastModifiedBy());
       } catch (Exception e) {
-        getTask().updateStatus(BASE_PHASE, format("Failed to update %s in ElasticSearch", tag.getId()));
+        log.error("Failed to update {} in ElasticSearch", tag.getId(), e);
+        getTask().updateStatus(
+          BASE_PHASE, format("Failed to update %s in ElasticSearch, reason: %s", tag.getId(), e.getMessage())
+        );
         failed.add(tag);
         result.failures.add(new BulkUpsertEntityTagsAtomicOperationResult.UpsertFailureResult(tag, e));
       }
@@ -128,7 +135,10 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
       try {
         entityTagsProvider.verifyIndex(tag);
       } catch (Exception e) {
-        getTask().updateStatus(BASE_PHASE, format("Failed to update %s in ElasticSearch", tag.getId()));
+        log.error("Failed to verify {} in ElasticSearch", tag.getId(), e);
+        getTask().updateStatus(
+          BASE_PHASE, format("Failed to verify %s in ElasticSearch, reason: %s", tag.getId(), e.getMessage())
+        );
         failed.add(tag);
       }
     });
