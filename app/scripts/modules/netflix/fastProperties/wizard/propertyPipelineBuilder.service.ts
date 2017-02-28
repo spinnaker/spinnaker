@@ -1,15 +1,15 @@
-import { module } from 'angular';
+import { module, IQService, IPromise } from 'angular';
 import {PropertyCommand} from '../domain/propertyCommand.model';
 import {PropertyPipelineStage} from '../domain/propertyPipelineStage';
 import {IStage} from 'core/domain/IStage';
 import {PropertyPipeline} from '../domain/propertyPipeline.domain';
 import {AUTHENTICATION_SERVICE, AuthenticationService, IUser} from 'core/authentication/authentication.service';
 import {PIPELINE_CONFIG_SERVICE, PipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
-import IQService = angular.IQService;
-import IPromise = angular.IPromise;
 import {IPipeline} from 'core/domain/IPipeline';
 
 export class PropertyPipelineBuilderService {
+
+  private fastPropertyPipelineName = '_fp_migrations_';
 
   static get $inject() {
     return [
@@ -52,6 +52,7 @@ export class PropertyPipelineBuilderService {
     pipeline.parallel = true;
     pipeline.stages = stages;
     pipeline.application = applicationName;
+    pipeline.name = this.fastPropertyPipelineName;
     return pipeline;
   }
 
@@ -61,14 +62,12 @@ export class PropertyPipelineBuilderService {
   }
 
   private getPipelineConfigForApplication(appId: string): IPromise<string> {
-    const fastPropertyPipelineName = '_fp_migrations_';
-
-    return this.findPipelineByNameForApplication(fastPropertyPipelineName, appId)
+    return this.findPipelineByNameForApplication(this.fastPropertyPipelineName, appId)
       .then((foundPipeline: IPipeline) => foundPipeline.id)
       .catch(() => {
         let config: IPipeline = <IPipeline>{
           id: null,
-          name: fastPropertyPipelineName,
+          name: this.fastPropertyPipelineName,
           application: appId,
           stages: [],
           isNew: true,
@@ -83,7 +82,7 @@ export class PropertyPipelineBuilderService {
         };
         return this.pipelineConfigService.savePipeline(config)
           .then(() => {
-            return this.findPipelineByNameForApplication(fastPropertyPipelineName, appId);
+            return this.findPipelineByNameForApplication(this.fastPropertyPipelineName, appId);
           })
           .then((foundPipeline: IPipeline) => foundPipeline.id);
       });
