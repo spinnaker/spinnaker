@@ -1,0 +1,49 @@
+<div modal-page class="cancel-modal">
+  <form role="form" class="container-fluid no-padding" ng-submit="ctrl.confirm()">
+    <modal-close dismiss="$dismiss()"></modal-close>
+    <div class="modal-header">
+      <h3>{{params.header}}</h3>
+    </div>
+    <div class="modal-body cancel-modal">
+      <div ng-if="params.body" ng-bind-html="params.body"></div>
+      <div ng-if="state.error">
+        <div class="alert alert-danger">
+          <h4>An exception occurred:</h4>
+          <p>
+            {{errorMessage || 'No details provided.'}}
+          </p>
+        </div>
+      </div>
+      <task-reason command="params"></task-reason>
+      <div class="force-cancel" ng-if="params.forceable">
+        <div class="row">
+          <div class="col-md-3 sm-label-right">
+            <label for="force">Force</label>
+          </div>
+          <div class="col-md-7">
+            <input id="force" type="checkbox" ng-model="params.force">
+          </div>
+        </div>
+        <div class="row" ng-if="params.forceable && params.force">
+          <div class="col-md-push-3 col-md-7">
+            <div class="alert alert-info" role="alert">
+              <strong>Note:</strong> This option will force the pipeline to cancel. It should only be used if the task or pipeline hangs.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default"
+              type="button"
+              ng-click="ctrl.cancel()">{{params.cancelButtonText}}</button>
+      <button class="btn btn-primary"
+              type="submit"
+              ng-disabled="state.submitting || ctrl.formDisabled()"
+              ng-click="ctrl.confirm()">
+        <button-busy-indicator ng-if="state.submitting"></button-busy-indicator>
+        {{params.buttonText}}
+      </button>
+    </div>
+  </form>
+</div>
