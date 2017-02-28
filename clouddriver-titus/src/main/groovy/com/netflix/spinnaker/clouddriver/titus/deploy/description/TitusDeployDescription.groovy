@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.titus.client.model.Efs
 import groovy.transform.Canonical
 
@@ -45,6 +46,8 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   int runtimeLimitSecs
   Boolean useApplicationDefaultSecurityGroup = true
   List<String> interestingHealthProviderNames
+
+  Collection<OperationEvent> events = []
 
   @Canonical
   static class Capacity {

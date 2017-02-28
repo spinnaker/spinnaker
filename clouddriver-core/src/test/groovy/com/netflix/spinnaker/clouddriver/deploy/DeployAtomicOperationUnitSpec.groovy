@@ -38,7 +38,6 @@ class DeployAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * deployHandlerRegistry.findHandler(_) >> testDeployHandler
-    1 * testDeployHandler.getDeployEvents() >> []
     1 * testDeployHandler.handle(_, _) >> { Mock(DeploymentResult) }
   }
 

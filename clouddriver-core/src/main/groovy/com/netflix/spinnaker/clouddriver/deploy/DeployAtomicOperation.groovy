@@ -30,7 +30,7 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
   DeployHandlerRegistry deploymentHandlerRegistry
 
   private final DeployDescription description
-  private final Collection<CreateServerGroupEvent> events = []
+  private final Collection<OperationEvent> events = []
 
   DeployAtomicOperation(DeployDescription description) {
     this.description = description
@@ -59,7 +59,8 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
     task.updateStatus TASK_PHASE, "Invoking Handler."
     def deploymentResult = deployHandler.handle(description, priorOutputs)
 
-    events.addAll(deployHandler.getDeployEvents())
+    def events = description.getEvents() ?: []
+    events.addAll(events)
 
     task.updateStatus TASK_PHASE, "Server Groups: ${deploymentResult.serverGroupNames} created."
 

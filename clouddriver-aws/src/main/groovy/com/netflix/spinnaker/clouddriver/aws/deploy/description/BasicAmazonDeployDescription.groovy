@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
@@ -46,6 +47,8 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Boolean ebsOptimized
   String base64UserData
   Boolean legacyUdf
+
+  Collection<OperationEvent> events = []
 
 
   //Default behaviour (legacy reasons) is to carry forward some settings (even on a deploy vs a cloneServerGroup) from an ancestor ASG

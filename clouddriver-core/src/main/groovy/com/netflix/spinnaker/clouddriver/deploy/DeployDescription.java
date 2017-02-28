@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.deploy
+package com.netflix.spinnaker.clouddriver.deploy;
+
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * This is a marker interface for use by {@link DeployHandler} implementations.
  *
  * @see DeployHandler
- *
  */
 public interface DeployDescription {
-
+  default Collection<OperationEvent> getEvents() {
+    return Collections.emptyList();
+  }
 }
