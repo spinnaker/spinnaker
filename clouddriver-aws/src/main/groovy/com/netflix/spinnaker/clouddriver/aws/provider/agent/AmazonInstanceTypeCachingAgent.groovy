@@ -27,6 +27,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
@@ -48,6 +49,7 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAge
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
+  final EddaTimeoutConfig eddaTimeoutConfig
 
   final long pollIntervalMillis
   final long timeoutMillis
@@ -56,8 +58,8 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAge
     AUTHORITATIVE.forType(INSTANCE_TYPES.ns)
   ] as Set)
 
-  private static long getDefaultIfNonEdda(NetflixAmazonCredentials account, long defaultIfNonEdda) {
-    if (account.eddaEnabled) {
+  private static long getDefaultIfNonEdda(EddaTimeoutConfig eddaTimeoutConfig, String region, NetflixAmazonCredentials account, long defaultIfNonEdda) {
+    if (account.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region)) {
       return -1
     }
     return defaultIfNonEdda
@@ -65,8 +67,9 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAge
 
   AmazonInstanceTypeCachingAgent(AmazonClientProvider amazonClientProvider,
                                  NetflixAmazonCredentials account,
-                                 String region) {
-    this(amazonClientProvider, account, region, getDefaultIfNonEdda(account, DEFAULT_POLL_INTERVAL_MILLIS), getDefaultIfNonEdda(account, DEFAULT_TIMEOUT_MILLIS))
+                                 String region,
+                                 EddaTimeoutConfig eddaTimeoutConfig) {
+    this(amazonClientProvider, account, region, getDefaultIfNonEdda(eddaTimeoutConfig, region, account, DEFAULT_POLL_INTERVAL_MILLIS), getDefaultIfNonEdda(eddaTimeoutConfig, region, account, DEFAULT_TIMEOUT_MILLIS))
   }
 
   AmazonInstanceTypeCachingAgent(AmazonClientProvider amazonClientProvider,

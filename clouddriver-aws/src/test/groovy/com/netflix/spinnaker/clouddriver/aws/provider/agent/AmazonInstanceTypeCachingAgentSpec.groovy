@@ -23,6 +23,7 @@ import com.amazonaws.services.ec2.model.ReservedInstancesOffering
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import spock.lang.Specification
@@ -42,10 +43,12 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     getName() >> account
   }
 
+  EddaTimeoutConfig eddaTimeoutConfig = new EddaTimeoutConfig.Builder().build()
+
   ProviderCache providerCache = Mock(ProviderCache)
 
   @Subject
-  AmazonInstanceTypeCachingAgent agent = new AmazonInstanceTypeCachingAgent(provider, creds, region)
+  AmazonInstanceTypeCachingAgent agent = new AmazonInstanceTypeCachingAgent(provider, creds, region, eddaTimeoutConfig)
 
   void "should add to cache"() {
     when:

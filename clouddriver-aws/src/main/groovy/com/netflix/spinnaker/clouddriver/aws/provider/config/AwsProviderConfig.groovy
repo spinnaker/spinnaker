@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerV2
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservedInstancesCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
@@ -65,7 +66,8 @@ class AwsProviderConfig {
                           ApplicationContext ctx,
                           Registry registry,
                           Scheduler reservationReportScheduler,
-                          Optional<Collection<AgentProvider>> agentProviders) {
+                          Optional<Collection<AgentProvider>> agentProviders,
+                          EddaTimeoutConfig eddaTimeoutConfig) {
     def awsProvider =
       new AwsProvider(accountCredentialsRepository, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
@@ -78,7 +80,8 @@ class AwsProviderConfig {
                            ctx,
                            registry,
                            reservationReportScheduler,
-                           agentProviders.orElse(Collections.emptyList()))
+                           agentProviders.orElse(Collections.emptyList()),
+                           eddaTimeoutConfig)
 
     awsProvider
   }
@@ -113,7 +116,8 @@ class AwsProviderConfig {
                                                  ApplicationContext ctx,
                                                  Registry registry,
                                                  Scheduler reservationReportScheduler,
-                                                 Collection<AgentProvider> agentProviders) {
+                                                 Collection<AgentProvider> agentProviders,
+                                                 EddaTimeoutConfig eddaTimeoutConfig) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider)
     Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
@@ -127,7 +131,7 @@ class AwsProviderConfig {
     allAccounts.sort { it.name }.each { NetflixAmazonCredentials credentials ->
       for (AmazonCredentials.AWSRegion region : credentials.regions) {
         if (!scheduledAccounts.contains(credentials.name)) {
-          newlyAddedAgents << new ClusterCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new ClusterCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry, eddaTimeoutConfig)
           newlyAddedAgents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry, false)
           if (!publicRegions.contains(region.name)) {
@@ -138,7 +142,7 @@ class AwsProviderConfig {
           newlyAddedAgents << new LoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new ReservedInstancesCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
 
-          if (credentials.eddaEnabled) {
+          if (credentials.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region.name)) {
             newlyAddedAgents << new EddaLoadBalancerCachingAgent(eddaApiFactory.createApi(credentials.edda, region.name), credentials, region.name, objectMapper)
           } else {
             newlyAddedAgents << new AmazonLoadBalancerInstanceStateCachingAgent(

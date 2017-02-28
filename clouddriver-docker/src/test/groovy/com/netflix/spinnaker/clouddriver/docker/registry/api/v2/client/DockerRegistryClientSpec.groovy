@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -26,6 +27,7 @@ import java.util.concurrent.TimeUnit
  * with an exception indicating a network or HTTP error, or will fail to load data
  * from dockerhub.
  */
+@Ignore
 class DockerRegistryClientSpec extends Specification {
   private static final REPOSITORY1 = "library/ubuntu"
 

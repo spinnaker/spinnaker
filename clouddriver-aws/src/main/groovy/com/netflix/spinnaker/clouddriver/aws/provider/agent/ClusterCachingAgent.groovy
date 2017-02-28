@@ -45,6 +45,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
@@ -79,6 +80,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   final String region
   final ObjectMapper objectMapper
   final Registry registry
+  final EddaTimeoutConfig eddaTimeoutConfig
 
   final OnDemandMetricsSupport metricsSupport
 
@@ -87,13 +89,15 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
                       NetflixAmazonCredentials account,
                       String region,
                       ObjectMapper objectMapper,
-                      Registry registry) {
+                      Registry registry,
+                      EddaTimeoutConfig eddaTimeoutConfig) {
     this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
+    this.eddaTimeoutConfig = eddaTimeoutConfig
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${amazonCloudProvider.id}:${OnDemandAgent.OnDemandType.ServerGroup}")
   }
 
@@ -392,7 +396,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     def usableOnDemandCacheDatas = []
     providerCache.getAll(ON_DEMAND.ns, asgs.collect { Keys.getServerGroupKey(it.autoScalingGroupName, account.name, region) }).each {
       if (it.attributes.cacheTime < start && it.attributes.processedCount > 0) {
-        if (account.eddaEnabled) {
+        if (account.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region)) {
           def asgFromEdda = asgs.find { asg -> it.id.endsWith(":${asg.autoScalingGroupName}") }
           def asgFromAws = loadAutoScalingGroup(asgFromEdda.autoScalingGroupName, true)
 

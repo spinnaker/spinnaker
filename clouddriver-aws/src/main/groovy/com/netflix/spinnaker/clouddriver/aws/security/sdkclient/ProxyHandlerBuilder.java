@@ -59,7 +59,7 @@ public class ProxyHandlerBuilder {
     requireNonNull(amazonCredentials, "Credentials cannot be null");
     try {
       U delegate = awsSdkClientSupplier.getClient(impl, interfaceKlazz, amazonCredentials.getName(), amazonCredentials.getCredentialsProvider(), region);
-      if (skipEdda || !amazonCredentials.getEddaEnabled()) {
+      if (skipEdda || !amazonCredentials.getEddaEnabled() || eddaTimeoutConfig.getDisabledRegions().contains(region)) {
         return delegate;
       }
       return interfaceKlazz.cast(Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz},

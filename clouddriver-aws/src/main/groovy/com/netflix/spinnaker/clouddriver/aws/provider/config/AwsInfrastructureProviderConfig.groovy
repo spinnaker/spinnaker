@@ -20,11 +20,6 @@ import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonElasticIpCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonInstanceTypeCachingAgent
@@ -32,6 +27,12 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonKeyPairCaching
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonSubnetCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonVpcCachingAgent
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -47,7 +48,8 @@ class AwsInfrastructureProviderConfig {
   AwsInfrastructureProvider awsInfrastructureProvider(AmazonClientProvider amazonClientProvider,
                                                       AccountCredentialsRepository accountCredentialsRepository,
                                                       AmazonObjectMapper amazonObjectMapper,
-                                                      Registry registry) {
+                                                      Registry registry,
+                                                      EddaTimeoutConfig eddaTimeoutConfig) {
     def awsInfrastructureProvider =
       new AwsInfrastructureProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
@@ -55,7 +57,8 @@ class AwsInfrastructureProviderConfig {
                                          amazonClientProvider,
                                          accountCredentialsRepository,
                                          amazonObjectMapper,
-                                         registry)
+                                         registry,
+                                         eddaTimeoutConfig)
 
     awsInfrastructureProvider
   }
@@ -80,7 +83,8 @@ class AwsInfrastructureProviderConfig {
                                                                              AmazonClientProvider amazonClientProvider,
                                                                              AccountCredentialsRepository accountCredentialsRepository,
                                                                              AmazonObjectMapper amazonObjectMapper,
-                                                                             Registry registry) {
+                                                                             Registry registry,
+                                                                             EddaTimeoutConfig eddaTimeoutConfig) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
@@ -90,9 +94,9 @@ class AwsInfrastructureProviderConfig {
           def newlyAddedAgents = []
 
           newlyAddedAgents << new AmazonElasticIpCachingAgent(amazonClientProvider, credentials, region.name)
-          newlyAddedAgents << new AmazonInstanceTypeCachingAgent(amazonClientProvider, credentials, region.name)
+          newlyAddedAgents << new AmazonInstanceTypeCachingAgent(amazonClientProvider, credentials, region.name, eddaTimeoutConfig)
           newlyAddedAgents << new AmazonKeyPairCachingAgent(amazonClientProvider, credentials, region.name)
-          newlyAddedAgents << new AmazonSecurityGroupCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper, registry)
+          newlyAddedAgents << new AmazonSecurityGroupCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper, registry, eddaTimeoutConfig)
           newlyAddedAgents << new AmazonSubnetCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
           newlyAddedAgents << new AmazonVpcCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
 
