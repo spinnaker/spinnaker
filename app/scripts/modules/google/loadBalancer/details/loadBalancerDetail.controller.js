@@ -104,14 +104,33 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
           .then((loadBalancers) => {
             loadBalancers = _.flatten(loadBalancers);
             var representativeLb = loadBalancers[0];
-            representativeLb.dnsnames = loadBalancers.map((lb) => lb.dnsname);
+            representativeLb.dns = loadBalancers.map((loadBalancer) => {
+              var protocol;
+              if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
+                protocol = 'https:';
+              } else {
+                protocol = 'http:';
+              }
+              return {dnsname: loadBalancer.dnsname, protocol: protocol};
+            });
             representativeLb.listenerDescriptions = _.flatten(loadBalancers.map((lb) => lb.listenerDescriptions));
             return [representativeLb];
           });
 
       } else {
         return loadBalancerReader
-          .getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, $scope.loadBalancer.region, $scope.loadBalancer.name);
+          .getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, $scope.loadBalancer.region, $scope.loadBalancer.name)
+          .then((loadBalancerDetails) => {
+            var loadBalancer = loadBalancerDetails[0];
+            var protocol;
+            if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
+              protocol = 'https:';
+            } else {
+              protocol = 'http:';
+            }
+            loadBalancer.dns = {dnsname: loadBalancer.dnsname, protocol: protocol};
+            return loadBalancerDetails;
+          });
       }
     }
 

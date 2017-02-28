@@ -75,10 +75,10 @@
         <div ng-if="!ctrl.isElSeven(loadBalancer) && loadBalancer.elb.dnsname">
           <dt>DNS Name</dt>
           <dd>
-            <a target=_blank href="//{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a>
+            <a target=_blank href="{{loadBalancer.elb.dns.protocol}}//{{loadBalancer.elb.dns.dnsname}}">{{loadBalancer.elb.dns.dnsname}}</a>
             <copy-to-clipboard
                 class="copy-to-clipboard copy-to-clipboard-sm"
-                text="{{loadBalancer.elb.dnsname}}"
+                text="{{loadBalancer.elb.dns.dnsname}}"
                 tool-tip="Copy DNS Name to clipboard">
             </copy-to-clipboard>
           </dd>
@@ -87,11 +87,11 @@
           <dt>DNS Names</dt>
           <dd>
             <ul>
-              <li ng-repeat="dnsname in loadBalancer.elb.dnsnames">
-                <a target=_blank href="//{{dnsname}}">{{dnsname}}</a>
+              <li ng-repeat="dns in loadBalancer.elb.dns">
+                <a target=_blank href="{{dns.protocol}}//{{dns.dnsname}}">{{dns.dnsname}}</a>
                 <copy-to-clipboard
                   class="copy-to-clipboard copy-to-clipboard-sm"
-                  text="{{dnsname}}"
+                  text="{{dns.dnsname}}"
                   tool-tip="Copy DNS Name to clipboard">
                 </copy-to-clipboard>
               </li>
