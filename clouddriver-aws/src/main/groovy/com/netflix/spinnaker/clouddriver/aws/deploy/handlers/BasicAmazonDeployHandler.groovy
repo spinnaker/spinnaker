@@ -282,17 +282,12 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       createLifecycleHooks(task, regionScopedProvider, account, description, asgName)
 
-      this.deployEvents << new CreateServerGroupEvent(
+      description.events << new CreateServerGroupEvent(
         AmazonCloudProvider.ID, account.accountId, region, asgName
       )
     }
 
     return deploymentResult
-  }
-
-  @Override
-  List<CreateServerGroupEvent> getDeployEvents() {
-    return new ArrayList<>(this.deployEvents)
   }
 
   @VisibleForTesting

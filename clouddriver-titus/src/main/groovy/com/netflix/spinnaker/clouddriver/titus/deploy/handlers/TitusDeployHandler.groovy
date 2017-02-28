@@ -56,8 +56,6 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
   private final TitusClientProvider titusClientProvider
 
-  private final List<CreateServerGroupEvent> deployEvents = []
-
   TitusDeployHandler(TitusClientProvider titusClientProvider) {
     this.titusClientProvider = titusClientProvider
   }
@@ -187,7 +185,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
       deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }
 
-      this.deployEvents << new CreateServerGroupEvent(
+      description.events << new CreateServerGroupEvent(
         TitusCloudProvider.ID, getAccountId(account), region, nextServerGroupName
       )
 
@@ -212,10 +210,5 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
   @Override
   boolean handles(DeployDescription description) {
     return description instanceof TitusDeployDescription
-  }
-
-  @Override
-  List<CreateServerGroupEvent> getDeployEvents() {
-    return new ArrayList<>(this.deployEvents)
   }
 }

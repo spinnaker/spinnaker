@@ -46,8 +46,4 @@ public interface DeployHandler<T> {
    * @return true/false
    */
   boolean handles(DeployDescription description);
-
-  default List<CreateServerGroupEvent> getDeployEvents() {
-    return Collections.emptyList();
-  }
 }
