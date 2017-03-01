@@ -81,9 +81,13 @@ class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
       if ((autoScalingGroup.desiredCapacity - validInstanceIds.size()) < autoScalingGroup.minSize) {
         if (description.adjustMinIfNecessary) {
           int newMin = autoScalingGroup.desiredCapacity - validInstanceIds.size()
-          amazonAutoScaling.updateAutoScalingGroup(
-            new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(autoScalingGroup.autoScalingGroupName).withMinSize(newMin)
-          )
+          if (newMin < 0) {
+            task.updateStatus BASE_PHASE, "Cannot adjust min size below 0"
+          } else {
+            amazonAutoScaling.updateAutoScalingGroup(
+              new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(autoScalingGroup.autoScalingGroupName).withMinSize(newMin)
+            )
+          }
         } else {
           task.updateStatus BASE_PHASE, "Cannot decrement ASG below minSize - set adjustMinIfNecessary to resize down minSize before detaching instances"
           throw new IllegalStateException("Invalid ASG capacity for detachInstances (min: $autoScalingGroup.minSize, max: $autoScalingGroup.maxSize, desired: $autoScalingGroup.desiredCapacity)")
