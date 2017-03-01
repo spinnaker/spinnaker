@@ -113,6 +113,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
       accountName: account,
       region: region,
       network: getLocalName(firewall.network),
+      sourceTags: firewall.sourceTags,
       targetTags: firewall.targetTags,
       inboundRules: inboundRules
     )
@@ -170,13 +171,12 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
           rangeRules.add(new IpRangeRule(range: sourceRange, portRanges: portRanges, protocol: ipProtocol))
         }
       } else {
-        // TODO(duftler): Add support for sourceTags.
         rangeRules.add(new IpRangeRule(
           range: new AddressableRange(ip: "", cidr: ""), portRanges: portRanges, protocol: ipProtocol))
       }
     }
 
-    rangeRules.sort()
+    return rangeRules.sort()
   }
 
   private String getLocalName(String fullUrl) {

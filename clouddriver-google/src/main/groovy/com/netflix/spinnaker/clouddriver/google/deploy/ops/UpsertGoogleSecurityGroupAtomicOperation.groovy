@@ -72,6 +72,10 @@ class UpsertGoogleSecurityGroupAtomicOperation extends GoogleAtomicOperation<Voi
 
       task.updateStatus BASE_PHASE, "Updating existing firewall rule $firewallRuleName..."
 
+      if (description.sourceTags == null) {
+        firewall.sourceTags = origFirewall.sourceTags
+      }
+
       if (description.targetTags == null) {
         firewall.targetTags = origFirewall.targetTags
       }

@@ -16,15 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.google.model
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
 
 @Immutable
 @EqualsAndHashCode(includes = ['id', 'network'], cache = true)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 class GoogleSecurityGroupSummary implements SecurityGroupSummary {
   String name
   String id
   String network
+  String sourceTags
   String targetTags
 }
