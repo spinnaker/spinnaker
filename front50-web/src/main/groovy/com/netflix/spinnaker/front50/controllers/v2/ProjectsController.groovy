@@ -130,7 +130,10 @@ public class ProjectsController {
   }
 
   Set<Project> filter(Collection<Project> projects, Map<String, String> attributes) {
-    attributes = attributes.collect { k,v -> [ k.toLowerCase(), v ] }.collectEntries()
+    attributes = attributes.collect {
+      k,v -> [ k.toLowerCase(), v ]
+    }.findAll { k, v -> v }.collectEntries()
+
     Set<Project> items = new HashSet<>()
 
     if (attributes.containsKey("applications")) {
@@ -138,7 +141,7 @@ public class ProjectsController {
       items = projects.findAll { project ->
         project.config.applications?.find { app -> applications.any { app.toLowerCase().contains(it.toLowerCase()) } } ||
           project.config.clusters?.find { cluster ->
-            cluster.applications?.collect { app -> applications.any { app.toLowerCase().contains(it.toLowerCase()) } }
+            cluster.applications?.find { app -> applications.any { app.toLowerCase().contains(it.toLowerCase()) } }
           }
       }
       attributes.remove("applications")
