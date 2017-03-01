@@ -19,7 +19,7 @@
     "build": "webpack --bail",
     "eslint": "eslint -c .eslintrc app/scripts/modules",
     "start": "sh ./start.sh",
-    "start-dev-server": "webpack-dev-server",
+    "start-dev-server": "webpack-dev-server --inline --hot",
     "test": "karma start",
     "tslint": "tslint --project tsconfig.json",
     "int": "protractor protractor.conf.js"

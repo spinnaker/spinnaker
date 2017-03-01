@@ -1,173 +1,46 @@
 <div class="form-horizontal canary-config-view">
-  <h4>Canary Config</h4>
+  <h4>Deployment</h4>
   <stage-config-field label="Name" field-columns="3">
     <input type="text" required ng-model="stage.canary.canaryConfig.name"
            class="form-control input-sm"/>
   </stage-config-field>
   <stage-config-field label="Canary Lifetime" field-columns="3">
-    <input type="text" required ng-model="stage.canary.canaryConfig.lifetimeHours"
+    <input type="text" min="0" required ng-model="stage.canary.canaryConfig.lifetimeHours"
            class="form-control input-sm" style="display: inline-block; width: 33%"/>
-    <span class="form-control-static">hours</span>
-  </stage-config-field>
-  <stage-config-field label="Result Strategy" help-key="pipeline.config.canary.resultStrategy" field-columns="3">
-    <select class="form-control input-sm"
-            ng-model="stage.canary.canaryConfig.combinedCanaryResultStrategy">
-      <option value="LOWEST">lowest</option>
-      <option value="AGGREGATE">average</option>
-    </select>
+    <span class="form-control-static">hour(s)</span>
   </stage-config-field>
   <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-right">
-      <label>Successful Score</label>
-      <help-field key="pipeline.config.canary.successfulScore"></help-field>
-    </div>
-    <div class="col-md-1">
-      <input type="text" required ng-model="stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore"
-             class="form-control input-sm"/>
-    </div>
-    <div class="col-md-2 col-md-offset-1 sm-label-right">
-      <label>Unhealthy Score</label>
-      <help-field key="pipeline.config.canary.unhealthyScore"></help-field>
-    </div>
-    <div class="col-md-1">
-      <input type="text" required ng-model="stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore"
-             class="form-control input-sm"/>
-    </div>
-  </div>
-  <div class="checkbox col-md-offset-1">
-    <label>
-      <input type="checkbox" ng-model="stage.scaleUp.enabled"/>
-      <b>Scale Up Canary</b>
-      <help-field key="pipeline.config.canary.scaleUp"></help-field>
-    </label>
-  </div>
-  <div class="form-group" ng-if="stage.scaleUp.enabled" style="margin-top: 10px;">
-    <div class="col-md-2 col-md-offset-1 sm-label-right">
-      <label>Capacity</label>
-      <help-field key="pipeline.config.canary.scaleUpCapacity"></help-field>
-    </div>
-    <div class="col-md-1">
-      <input type="text" required ng-model="stage.scaleUp.capacity"
-             class="form-control input-sm"/>
-    </div>
-    <div class="col-md-2 col-md-offset-1 sm-label-right">
-      <label>Scale Up Delay</label>
-      <help-field key="pipeline.config.canary.scaleUpDelay"></help-field>
-    </div>
-    <div class="col-md-1">
-      <input type="text" required ng-model="stage.scaleUp.delay"
-             class="form-control input-sm"/>
-    </div>
-    <div class="col-md-1 form-control-static">minutes</div>
-  </div>
-
-  <div class="checkbox col-md-offset-1">
-    <label>
-      <input type="checkbox" ng-model="canaryStageCtrl.terminateUnhealthyCanaryEnabled"
-             ng-model-options="{ getterSetter: true }"/>
-      <b>Terminate Unhealthy Canary</b>
-      <help-field key="pipeline.config.canary.scaleUp"></help-field>
-    </label>
-  </div>
-  <div class="form-group" ng-if="canaryStageCtrl.terminateUnhealthyCanaryEnabled()" style="margin-top: 10px;">
-    <div class="col-md-2 col-md-offset-1 sm-label-right">
-      <label>Terminate After</label>
-    </div>
-    <div class="col-md-2">
-      <input type="text" required ng-model="canaryStageCtrl.terminateUnhealthyCanaryMinutes"
-             ng-model-options="{ getterSetter: true }"
-             class="form-control input-sm" style="display: inline-block; width: 40%"/>
-      <span class="form-control-static"> minutes</span>
+    <div class="col-md-8 col-md-offset-3">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 style="margin-top: 8px;"
+                 ng-model="canaryStageCtrl.terminateUnhealthyCanaryEnabled"
+                 ng-model-options="{ getterSetter: true }"
+                 ng-change="canaryStageCtrl.toggleTerminateUnhealthyCanary()"/>
+          Terminate unhealthy canary after
+          <input type="number"
+                 required
+                 min="1"
+                 ng-model="canaryStageCtrl.terminateUnhealthyCanaryMinutes"
+                 ng-model-options="{ getterSetter: true }"
+                 ng-disabled="!canaryStageCtrl.terminateUnhealthyCanaryEnabled"
+                 class="form-control input-sm"
+                 style="display: inline-block; margin: 0 5px; width: 15%"/>
+          minutes
+          <help-field key="pipeline.config.canary.scaleUp"></help-field>
+        </label>
+      </div>
     </div>
   </div>
-
-  <h5>Analysis Config</h5>
-
-  <div class="horizontal-rule"></div>
-  <stage-config-field label="Name" help-key="pipeline.config.canary.canaryConfigurationName" field-columns="3">
-    <canary-analysis-name-selector
-      model="stage.canary.canaryConfig.canaryAnalysisConfig.name"
-      class-name="form-control input-sm">
-    </canary-analysis-name-selector>
-  </stage-config-field>
-  <stage-config-field label="Warmup Period">
-    <input type="text" required ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins"
-           class="form-control input-sm" style="display: inline-block; width: 20%"/>
-    <span class="form-control-static">
-      minutes before starting analysis <help-field key="pipeline.config.canary.delayBeforeAnalysis"></help-field>
-    </span>
-  </stage-config-field>
-  <stage-config-field label="Notification Hours" help-key="pipeline.config.canary.notificationHours" field-columns="3">
-    <input type="text" ng-model="canaryStageCtrl.notificationHours"
-           class="form-control input-sm" ng-change="canaryStageCtrl.splitNotificationHours()"/>
-  </stage-config-field>
-  <stage-config-field label="Frequency" help-key="pipeline.config.canary.canaryInterval" field-columns="3">
-    <input type="text" required ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins"
-           class="form-control input-sm" style="width: 33%; display: inline-block"/>
-    <span class="form-control-static"> minutes</span>
-  </stage-config-field>
-
-  <div class="checkbox col-md-offset-1">
-    <label>
-      <input type="checkbox" ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset"/>
-      <b>Use Global Atlas Dataset</b>
-      <help-field key="pipeline.config.canary.useGlobalDataset"></help-field>
-    </label>
-  </div>
-
-  <div class="checkbox col-md-offset-1">
-    <label>
-      <input type="checkbox" ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.useLookback"/>
-      <b>Use Look-back</b>
-      <help-field key="pipeline.config.canary.lookback"></help-field>
-    </label>
-  </div>
-  <div class="form-group" ng-if="stage.canary.canaryConfig.canaryAnalysisConfig.useLookback" style="margin-top: 10px;">
-    <div class="col-md-2 col-md-offset-1 sm-label-right">
-      <label>Look-back Duration</label>
-    </div>
-    <div class="col-md-2">
-      <input
-        type="number"
-        required
-        ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins"
-        class="form-control input-sm" style="display: inline-block; width: 40%"/>
-      <span class="form-control-static"> minutes</span>
-    </div>
-    <div
-      class="error-message col-md-6"
-      ng-if="stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins > 0 && stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins < 30">
-      <b>NOTE:</b> To provide enough data points for the Canary Analysis it is recommended to set the look-back time to
-      at least 30 minutes.
-    </div>
-  </div>
-
-
-  <h5>Owner</h5>
-  <div class="horizontal-rule"></div>
-  <stage-config-field label="Email">
-    <input type="email" required ng-model="stage.canary.owner"
-           class="form-control input-sm"/>
-  </stage-config-field>
-
-  <h5>Watchers</h5>
-  <div class="horizontal-rule"></div>
-  <stage-config-field
-    help-key="pipeline.config.canary.watchers"
-    ng-keyup="canaryStageCtrl.updateWatchersList()"
-    ng-paste="canaryStageCtrl.updateWatchersList()"
-    label="Emails">
-    <textarea ng-model="canaryStageCtrl.recipients"
-              class="form-control input-sm"></textarea>
-  </stage-config-field>
-
   <h5>Baseline Version
     <help-field key="pipeline.config.canary.baselineVersion"></help-field>
   </h5>
   <div class="horizontal-rule"></div>
   <stage-config-field label="Provider" ng-if="providers.length > 1 && stage.isNew">
     <provider-selector providers="providers"
-                       component="stage.baseline" field="cloudProvider"
+                       component="stage.baseline"
+                       field="cloudProvider"
                        read-only="!stage.isNew"></provider-selector>
   </stage-config-field>
   <stage-config-field label="Account">
@@ -184,22 +57,23 @@
     <cluster-selector
       ng-if="application.serverGroups.loaded"
       clusters="clusterList"
+      required="true"
       model="stage.baseline.cluster">
     </cluster-selector>
   </stage-config-field>
-  <h5>Canary / Baseline Cluster Pairs
+  <h5>Baseline / Canary Cluster Pairs
     <help-field key="pipeline.config.canary.clusterPairs"></help-field>
   </h5>
   <div class="horizontal-rule"></div>
   <div class="row">
-    <div style="margin: 10px 10px 0px 50px;">
+    <div style="margin: 10px 10px 0 50px;">
       <div class="well well-sm">
         <table class="table">
           <thead>
           <tr>
             <th>Location</th>
-            <th>Canary Cluster</th>
             <th>Baseline Cluster</th>
+            <th>Canary Cluster</th>
             <th>Actions</th>
           </tr>
           </thead>
@@ -210,14 +84,14 @@
               {{canaryStageCtrl.getRegion(clusterPair.baseline)}}
             </td>
             <td>
-              {{canaryStageCtrl.getClusterName(clusterPair.canary)}}
-              <br/>
-              <a href ng-click="canaryStageCtrl.editCluster(clusterPair.canary, $index, 'Canary')">Edit</a>
-            </td>
-            <td>
               {{canaryStageCtrl.getClusterName(clusterPair.baseline)}}
               <br/>
               <a href ng-click="canaryStageCtrl.editCluster(clusterPair.baseline, $index, 'Baseline')">Edit</a>
+            </td>
+            <td>
+              {{canaryStageCtrl.getClusterName(clusterPair.canary)}}
+              <br/>
+              <a href ng-click="canaryStageCtrl.editCluster(clusterPair.canary, $index, 'Canary')">Edit</a>
             </td>
             <td>
               <a href ng-click="canaryStageCtrl.deleteClusterPair($index);">
@@ -236,6 +110,143 @@
           </tr>
           </tfoot>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-horizontal canary-config-view">
+  <h4>Analysis</h4>
+  <stage-config-field label="Configuration"
+                      field-columns="9"
+                      help-key="pipeline.config.canary.canaryConfigurationName">
+    <canary-analysis-name-selector
+      model="stage.canary.canaryConfig.canaryAnalysisConfig.name"
+      class-name="form-control input-sm">
+    </canary-analysis-name-selector>
+  </stage-config-field>
+  <stage-config-field label="Analysis Type"
+                      field-columns="3"
+                      help-key="pipeline.config.canary.lookback">
+    <select class="form-control input-sm"
+            ng-model="canaryStageCtrl.analysisType"
+            ng-change="canaryStageCtrl.updateLookback()">
+      <option value="GROWING">Growing</option>
+      <option value="SLIDING_LOOKBACK">Sliding Lookback</option>
+    </select>
+  </stage-config-field>
+  <stage-config-field ng-if="stage.canary.canaryConfig.canaryAnalysisConfig.useLookback">
+    <div class="form-group">
+      <div class="col-md-9">
+        with a look-back duration of
+        <input type="number"
+               min="1"
+               max="{{stage.canary.canaryConfig.lifetimeHours * 60}}"
+               ng-required="stage.canary.canaryConfig.canaryAnalysisConfig.useLookback"
+               ng-disabled="!stage.canary.canaryConfig.canaryAnalysisConfig.useLookback"
+               ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins"
+               class="form-control input-sm" style="display: inline-block; margin: 0 5px; width: 15%"/>
+        minutes
+      </div>
+    </div>
+    <div class="error-message col-md-12"
+         ng-if="stage.canary.canaryConfig.canaryAnalysisConfig.useLookback && stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins > 0 && stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins < 30">
+      <b>NOTE:</b> To provide enough data points for the Canary Analysis it is recommended to set the look-back
+      time to at least 30 minutes.
+    </div>
+  </stage-config-field>
+  <stage-config-field label="Warmup Period" help-key="pipeline.config.canary.delayBeforeAnalysis">
+    <input type="text"
+           required
+           ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins"
+           class="form-control input-sm"
+           style="display: inline-block; width: 10%"/>
+    <span class="form-control-static">
+      minutes before starting analysis
+    </span>
+  </stage-config-field>
+  <stage-config-field label="Notification Hours" help-key="pipeline.config.canary.notificationHours"
+                      field-columns="3">
+    <input type="text" ng-model="canaryStageCtrl.notificationHours"
+           class="form-control input-sm" ng-change="canaryStageCtrl.splitNotificationHours()"/>
+  </stage-config-field>
+  <stage-config-field label="Report Frequency" help-key="pipeline.config.canary.canaryInterval" field-columns="3">
+    <input type="number"
+           required
+           min="1"
+           max="{{stage.canary.canaryConfig.lifetimeHours * 60}}"
+           ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins"
+           class="form-control input-sm" style="width: 33%; display: inline-block"/>
+    <span class="form-control-static"> minutes</span>
+  </stage-config-field>
+  <stage-config-field label="Report Email" key="pipeline.config.canary.owner">
+    <input type="email" required ng-model="stage.canary.owner"
+           class="form-control input-sm"/>
+  </stage-config-field>
+  <stage-config-field
+    help-key="pipeline.config.canary.watchers"
+    ng-keyup="canaryStageCtrl.updateWatchersList()"
+    ng-paste="canaryStageCtrl.updateWatchersList()"
+    label="Notification Emails">
+    <textarea ng-model="canaryStageCtrl.recipients"
+              class="form-control input-sm"></textarea>
+  </stage-config-field>
+</div>
+<div class="form-horizontal canary-config-view">
+  <h4>Scoring</h4>
+  <stage-config-field label="Result Strategy"
+                      help-key="pipeline.config.canary.resultStrategy"
+                      ng-if="stage.clusterPairs.length > 1"
+                      field-columns="3">
+    <select class="form-control input-sm"
+            ng-model="stage.canary.canaryConfig.combinedCanaryResultStrategy">
+      <option value="LOWEST">lowest</option>
+      <option value="AGGREGATE">average</option>
+    </select>
+  </stage-config-field>
+  <canary-scores unhealthy-score="stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore"
+                 successful-score="stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore"
+                 on-change="canaryStageCtrl.updateScores(successfulScore, unhealthyScore)"></canary-scores>
+</div>
+<div class="form-horizontal canary-config-view">
+  <h4>Advanced</h4>
+  <div class="form-group">
+    <div class="col-md-11 col-md-offset-1">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset"/>
+          <b>Use Global Atlas Dataset</b>
+          <help-field key="pipeline.config.canary.useGlobalDataset"></help-field>
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-11 col-md-offset-1">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 style="margin-top: 8px;"
+                 ng-model="stage.scaleUp.enabled"/>
+          After a
+          <help-field key="pipeline.config.canary.scaleUpDelay" label="delay"></help-field>
+          of
+          <input type="number"
+                 required
+                 min="0"
+                 ng-disabled="!stage.scaleUp.enabled"
+                 ng-model="stage.scaleUp.delay"
+                 class="form-control input-sm" style="display: inline-block; margin: 0 5px; width: 8%"/>
+          minutes, scale up the canary to a
+          <help-field key="pipeline.config.canary.scaleUpCapacity" label="capacity"></help-field>
+          of
+          <input type="number"
+                 required
+                 min="1"
+                 ng-disabled="!stage.scaleUp.enabled"
+                 ng-model="stage.scaleUp.capacity"
+                 class="form-control input-sm" style="display: inline-block; margin: 0 5px; width: 8%"/>
+          instances.
+        </label>
       </div>
     </div>
   </div>

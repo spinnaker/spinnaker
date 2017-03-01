@@ -11,6 +11,7 @@ class HelpFieldCtrl implements ng.IComponentController {
 
   public content: string;
   public expand: boolean;
+  public label: string;
   public contents: IHelpFieldContents;
   public displayPopover: boolean;
   public popoverTemplate: string = require('./helpField.popover.html');
@@ -87,21 +88,35 @@ class HelpFieldComponent implements ng.IComponentOptions {
     content: '@',
     placement: '@',
     expand: '=',
+    label: '@'
   };
   public controller: any = HelpFieldCtrl;
   public template = `
-    <div ng-if="$ctrl.expand && $ctrl.contents.content"
-         class="help-contents small"
-         ng-bind-html="$ctrl.contents.content"></div>
-    <a href class="help-field" ng-if="!$ctrl.expand && $ctrl.contents.content"
-            uib-popover-template="$ctrl.popoverTemplate"
-            ng-mouseenter="$ctrl.showPopover()"
-            ng-mouseleave="$ctrl.hidePopover(true)"
-            popover-placement="{{$ctrl.contents.placement}}"
-            popover-is-open="$ctrl.displayPopover"
-            popover-trigger="none">
-      <span class="small glyphicon glyphicon-question-sign"></span>
-    </a>
+    <div class="text-only" ng-if="$ctrl.label">
+      <a href class="help-field" ng-if="!$ctrl.expand && $ctrl.contents.content"
+              uib-popover-template="$ctrl.popoverTemplate"
+              ng-mouseenter="$ctrl.showPopover()"
+              ng-mouseleave="$ctrl.hidePopover(true)"
+              popover-placement="{{$ctrl.contents.placement}}"
+              popover-is-open="$ctrl.displayPopover"
+              popover-trigger="none"
+              ng-bind-html="$ctrl.label">
+      </a>
+    </div>
+    <div ng-if="!$ctrl.label" style="display: inline-block;">
+      <div ng-if="$ctrl.expand && $ctrl.contents.content"
+           class="help-contents small"
+           ng-bind-html="$ctrl.contents.content"></div>
+      <a href class="help-field" ng-if="!$ctrl.expand && $ctrl.contents.content"
+              uib-popover-template="$ctrl.popoverTemplate"
+              ng-mouseenter="$ctrl.showPopover()"
+              ng-mouseleave="$ctrl.hidePopover(true)"
+              popover-placement="{{$ctrl.contents.placement}}"
+              popover-is-open="$ctrl.displayPopover"
+              popover-trigger="none">
+        <span class="small glyphicon glyphicon-question-sign"></span>
+      </a>
+    </div>
   `;
 }
 
