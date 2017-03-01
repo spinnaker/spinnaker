@@ -78,10 +78,10 @@ class ConfigStageInjectionTransformSpec extends Specification {
     ]
 
     when:
-    ConfigStageInjectionTransform.createDag(stages)
+    def result = ConfigStageInjectionTransform.createGraph(stages)
 
     then:
-    requisiteStageIds(subject, stages) == requisiteStages
+    requisiteStageIds(subject, result) == requisiteStages
 
     where:
     subject || requisiteStages
@@ -90,6 +90,22 @@ class ConfigStageInjectionTransformSpec extends Specification {
     's3'    || ['s1']
     's4'    || ['s2']
     's5'    || ['s3']
+  }
+
+  def 'should detect a cycle in dag creation'() {
+    given:
+    def stages = [
+      new StageDefinition(id: 's2', type: 'deploy', dependsOn: ['s1']),
+      new StageDefinition(id: 's1', type: 'wait', dependsOn: ['s2']),
+      new StageDefinition(id: 's3', type: 'findImageFromTags'),
+      new StageDefinition(id: 's5', type: 'wait', dependsOn: ['s3'])
+    ]
+
+    when:
+    ConfigStageInjectionTransform.createGraph(stages)
+
+    then:
+    thrown(IllegalStateException)
   }
 
   def 'should inject stage into dag'() {
