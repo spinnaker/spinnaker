@@ -83,7 +83,6 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
         getResource = {
           return credentials.apiAdaptor.getReplicationController(namespace, description.serverGroupName)
         }
-        pods = credentials.apiAdaptor.getReplicationControllerPods(namespace, description.serverGroupName)
       } else if (replicaSet) {
         desired = credentials.apiAdaptor.toggleReplicaSetSpecLabels(namespace, description.serverGroupName, services, action)
         getGeneration = { ReplicaSet rs ->
@@ -92,7 +91,6 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
         getResource = {
           return credentials.apiAdaptor.getReplicaSet(namespace, description.serverGroupName)
         }
-        pods = credentials.apiAdaptor.getReplicaSetPods(namespace, description.serverGroupName)
       } else {
         throw new KubernetesOperationException("No replication controller or replica set $description.serverGroupName in $namespace.")
       }
@@ -100,6 +98,14 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
       if (!credentials.apiAdaptor.blockUntilResourceConsistent(desired, getGeneration, getResource)) {
         throw new KubernetesOperationException("Server group failed to reach a consistent state. This is likely a bug with Kubernetes itself.")
       }
+    }
+    
+    if (replicationController) {
+      pods = credentials.apiAdaptor.getReplicationControllerPods(namespace, description.serverGroupName)
+    } else if (replicaSet) {
+      pods = credentials.apiAdaptor.getReplicaSetPods(namespace, description.serverGroupName)
+    } else {
+      throw new KubernetesOperationException("No replication controller or replica set $description.serverGroupName in $namespace.")
     }
 
     if (!pods) {
