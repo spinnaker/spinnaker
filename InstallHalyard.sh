@@ -133,27 +133,27 @@ function add_apt_repositories() {
     gpg=""
     gpg=$(curl -s -f "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG") || true
     if [ -n "$gpg" ]; then
-      echo "$gpg" | sudo apt-key add -
+      echo "$gpg" | apt-key add -
     fi
   fi
-  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | sudo tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
+  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
   # Java 8
   # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
-  sudo add-apt-repository -y ppa:openjdk-r/ppa
-  sudo apt-get update ||:
+  add-apt-repository -y ppa:openjdk-r/ppa
+  apt-get update ||:
 }
 
 function install_java() {
   if [ -z "$DOWNLOAD" ]; then
-    sudo apt-get install -y --force-yes openjdk-8-jdk
+    apt-get install -y --force-yes openjdk-8-jdk
 
     # https://bugs.launchpad.net/ubuntu/+source/ca-certificates-java/+bug/983302
     # It seems a circular dependency was introduced on 2016-04-22 with an openjdk-8 release, where
     # the JRE relies on the ca-certificates-java package, which itself relies on the JRE. D'oh!
     # This causes the /etc/ssl/certs/java/cacerts file to never be generated, causing a startup
     # failure in Clouddriver.
-    sudo dpkg --purge --force-depends ca-certificates-java
-    sudo apt-get install ca-certificates-java
+    dpkg --purge --force-depends ca-certificates-java
+    apt-get install ca-certificates-java
   elif [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]]; then
     echo "you must manually install java 8 and then rerun this script; exiting"
     exit 13
@@ -162,7 +162,7 @@ function install_java() {
 
 function install_halyard() {
   package="spinnaker-halyard"
-  sudo apt-get install -y --force-yes --allow-unauthenticated $package
+  apt-get install -y --force-yes --allow-unauthenticated $package
   local apt_status=$?
   if [ $apt_status -ne 0 ]; then
     if [ -n "$DOWNLOAD" ] && [ "$apt_status" -eq "100" ]; then
@@ -186,7 +186,7 @@ function configure_bash_completion() {
 
   completion_script="/etc/bash_completion.d/hal"
   if [ "$yes" = "y" ] || [ "$yes = "Y" ] || [ "$yes = "yes" ]; then
-    hal --print-bash-completion | sudo tee $completion_script  > /dev/null
+    hal --print-bash-completion | tee $completion_script  > /dev/null
     read -p "Where is your bash RC? [default $HOME/.bashrc]: " bashrc
     
     if [ -z "$bashrc" ]; then
@@ -232,15 +232,22 @@ if [ "$homebase" = "" ]; then
   echo "Setting spinnaker home to $homebase"
 fi
 
-if [ -z "$(sudo getent group spinnaker)" ]; then
-  sudo groupadd spinnaker
+if [ -z "$(getent group spinnaker)" ]; then
+  groupadd spinnaker
 fi
 
-if [ -z "$(sudo getent passwd spinnaker)" ]; then
-  sudo useradd --gid spinnaker -m --home-dir $homebase/spinnaker spinnaker
+if [ -z "$(getent passwd spinnaker)" ]; then
+  useradd --gid spinnaker -m --home-dir $homebase/spinnaker spinnaker
 fi
 
-sudo start halyard
+mkdir -p /opt/spinnaker/config
+chown spinnaker /opt/spinnaker/config
+touch /opt/spinnaker/config/halyard.yml
+chown spinnaker /opt/spinnaker/config/halyard.yml
+
+rm -rf $TEMPDIR
+
+start halyard
 
 if [ -z "$QUIET" ]; then
 cat <<EOF

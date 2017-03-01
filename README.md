@@ -10,7 +10,7 @@ A tool for configuring, installing, and updating Spinnaker.
 
 ```
 $ wget https://raw.githubusercontent.com/spinnaker/halyard/master/InstallHalyard.sh
-$ bash InstallHalyard.sh
+$ sudo ./InstallHalyard.sh
 ```
 
 # Overview
