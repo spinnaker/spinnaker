@@ -95,7 +95,9 @@ public class KubernetesCredentials {
         registry.setNamespaces(allNamespaces);
       }
 
-      LOG.info("Adding secrets for docker registry " + registry.getAccountName() + " in " + affectedNamespaces);
+      if (affectedNamespaces != null && !affectedNamespaces.isEmpty()) {
+        LOG.info("Adding secrets for docker registry " + registry.getAccountName() + " in " + affectedNamespaces);
+      }
 
       DockerRegistryNamedAccountCredentials account = (DockerRegistryNamedAccountCredentials) repository.getOne(registry.getAccountName());
 
