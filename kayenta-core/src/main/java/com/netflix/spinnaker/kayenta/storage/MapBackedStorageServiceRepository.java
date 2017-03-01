@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kayenta.metrics;
+package com.netflix.spinnaker.kayenta.storage;
 
-import java.io.IOException;
-import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
-public interface MetricsService {
-  boolean servicesAccount(String accountName);
-  Optional<Map> queryMetrics(String accountName,
-                             String instanceNamePrefix,
-                             String intervalStartTime,
-                             String intervalEndTime) throws IOException;
+public class MapBackedStorageServiceRepository implements StorageServiceRepository {
+
+  @Autowired(required = false)
+  List<StorageService> storageServices = Collections.emptyList();
+
+  @Override
+  public Optional<StorageService> getOne(String accountName) {
+    return storageServices
+      .stream()
+      .filter(s -> s.servicesAccount(accountName))
+      .findFirst();
+  }
 }

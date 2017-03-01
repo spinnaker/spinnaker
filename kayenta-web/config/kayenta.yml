@@ -2,6 +2,8 @@ server:
   port: 8090
 
 kayenta:
+  gcs:
+    enabled: false
   google:
     enabled: false
 #    accounts:

@@ -18,21 +18,20 @@ package com.netflix.spinnaker.kayenta.metrics;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class MapBackedMetricsServiceRepository implements MetricsServiceRepository {
 
-  @Autowired
-  List<MetricsService> metricsServices;
+  @Autowired(required = false)
+  List<MetricsService> metricsServices = Collections.emptyList();
 
   @Override
-  public MetricsService getOne(String accountName) {
-    for (MetricsService metricsService : metricsServices) {
-      if (metricsService.servicesAccount(accountName)) {
-        return metricsService;
-      }
-    }
-
-    return null;
+  public Optional<MetricsService> getOne(String accountName) {
+    return metricsServices
+      .stream()
+      .filter(m -> m.servicesAccount(accountName))
+      .findFirst();
   }
 }

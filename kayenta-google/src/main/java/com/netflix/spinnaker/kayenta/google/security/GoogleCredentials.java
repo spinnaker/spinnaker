@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kayenta.google.security;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.services.AbstractGoogleClient;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
@@ -25,13 +26,24 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.MonitoringScopes;
+import com.google.api.services.storage.Storage;
+import com.google.api.services.storage.StorageScopes;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 @ToString
+@Slf4j
 public class GoogleCredentials {
+
+  private static String applicationVersion =
+    Optional.ofNullable(GoogleCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
 
   @Getter
   private String project;
@@ -40,20 +52,37 @@ public class GoogleCredentials {
     this.project = project;
   }
 
-  public Monitoring getMonitoring(String applicationName) throws IOException {
+  public Monitoring getMonitoring() throws IOException {
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     HttpTransport httpTransport = buildHttpTransport();
-
-    GoogleCredential credential = getCredential(httpTransport, jsonFactory);
+    GoogleCredential credential = getCredential(httpTransport, jsonFactory, MonitoringScopes.all());
     HttpRequestInitializer reqInit = setHttpTimeout(credential);
+    String applicationName = "Spinnaker/" + applicationVersion;
+
     return new Monitoring.Builder(httpTransport, jsonFactory, credential)
       .setApplicationName(applicationName)
-      .setHttpRequestInitializer(reqInit).build();
+      .setHttpRequestInitializer(reqInit)
+      .build();
   }
 
-  protected GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory jsonFactory) throws IOException {
+  public Storage getStorage() throws IOException {
+    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    HttpTransport httpTransport = buildHttpTransport();
+    GoogleCredential credential = getCredential(httpTransport, jsonFactory, StorageScopes.all());
+    HttpRequestInitializer reqInit = setHttpTimeout(credential);
+    String applicationName = "Spinnaker/" + applicationVersion;
+
+    return new Storage.Builder(httpTransport, jsonFactory, credential)
+      .setApplicationName(applicationName)
+      .setHttpRequestInitializer(reqInit)
+      .build();
+  }
+
+  protected GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory jsonFactory, Collection<String> scopes) throws IOException {
+    log.debug("Loading credentials for project {} using application default credentials, with scopes {}.", project, scopes);
+
     // No JSON key was specified in matching config on key server, so use application default credentials.
-    return GoogleCredential.getApplicationDefault().createScoped(MonitoringScopes.all());
+    return GoogleCredential.getApplicationDefault().createScoped(scopes);
   }
 
   protected HttpTransport buildHttpTransport() {

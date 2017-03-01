@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kayenta.google.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.api.services.monitoring.v3.Monitoring;
+import com.google.api.services.storage.Storage;
 import com.netflix.spinnaker.kayenta.security.AccountCredentials;
 import lombok.Builder;
 import lombok.Data;
@@ -43,6 +44,13 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
   @NotNull
   private String project;
 
+  private String bucket;
+  private String bucketLocation;
+  private String rootFolder;
+
   @JsonIgnore
   Monitoring monitoring;
+
+  @JsonIgnore
+  Storage storage;
 }

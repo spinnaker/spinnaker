@@ -20,7 +20,11 @@ import com.netflix.spinnaker.kayenta.metrics.MetricsService;
 import com.netflix.spinnaker.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.spinnaker.kayenta.security.AccountCredentials;
 import com.netflix.spinnaker.kayenta.security.AccountCredentialsRepository;
+import com.netflix.spinnaker.kayenta.storage.ObjectType;
+import com.netflix.spinnaker.kayenta.storage.StorageService;
+import com.netflix.spinnaker.kayenta.storage.StorageServiceRepository;
 import io.swagger.annotations.ApiParam;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,10 +33,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/fetch")
+@Slf4j
 public class FetchController {
 
   @Autowired
@@ -41,31 +49,49 @@ public class FetchController {
   @Autowired
   MetricsServiceRepository metricsServiceRepository;
 
+  @Autowired
+  StorageServiceRepository storageServiceRepository;
+
   @RequestMapping(method = RequestMethod.GET)
-  public Map queryMetrics(@RequestParam(required = false) String accountName,
+  public Map queryMetrics(@RequestParam(required = false) final String accountName,
                           @ApiParam(defaultValue = "myapp-v010-") @RequestParam String instanceNamePrefix,
                           @ApiParam(defaultValue = "2017-01-24T15:13:00Z") @RequestParam String intervalStartTime,
                           @ApiParam(defaultValue = "2017-01-24T15:27:00Z") @RequestParam String intervalEndTime) throws IOException {
-    AccountCredentials accountCredentials;
+    AccountCredentials credentials;
 
     if (StringUtils.hasLength(accountName)) {
-      accountCredentials = accountCredentialsRepository.getOne(accountName);
+      credentials = accountCredentialsRepository
+        .getOne(accountName)
+        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     } else {
-      accountCredentials = accountCredentialsRepository.getOne(AccountCredentials.Type.METRICS_STORE);
-
-      if (accountCredentials != null) {
-        accountName = accountCredentials.getName();
-      }
+      credentials = accountCredentialsRepository
+        .getOne(AccountCredentials.Type.METRICS_STORE)
+        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account of type " + AccountCredentials.Type.METRICS_STORE + "."));
     }
 
-    if (accountCredentials != null) {
-      MetricsService metricsService = metricsServiceRepository.getOne(accountName);
+    String resolvedAccountName = credentials.getName();
+    Optional<MetricsService> metricsService = metricsServiceRepository.getOne(resolvedAccountName);
+    Map someMetrics = null;
 
-      if (metricsService != null) {
-        return metricsService.queryMetrics(accountName, instanceNamePrefix, intervalStartTime, intervalEndTime);
-      }
+    if (metricsService.isPresent()) {
+      someMetrics = metricsService
+        .get()
+        .queryMetrics(resolvedAccountName, instanceNamePrefix, intervalStartTime, intervalEndTime)
+        .orElse(Collections.singletonMap("no-metrics", "were-returned"));
+    } else {
+      log.debug("No metrics service was configured; skipping placeholder logic to read from metrics store.");
     }
 
-    return null;
+    // TODO(duftler): This is placeholder logic. Just demonstrating that we can write to the bucket.
+    // It is not expected that this would (necessarily) use the same account name as that used for the metrics store.
+    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+
+    if (storageService.isPresent()) {
+      storageService.get().storeObject(resolvedAccountName, ObjectType.METRICS, UUID.randomUUID() + "", someMetrics);
+    } else {
+      log.debug("No storage service was configured; skipping placeholder logic to write to bucket.");
+    }
+
+    return someMetrics;
   }
 }

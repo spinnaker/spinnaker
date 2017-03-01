@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kayenta.metrics;
+package com.netflix.spinnaker.kayenta.storage;
 
-import java.io.IOException;
-import java.util.Map;
 import java.util.Optional;
 
-public interface MetricsService {
-  boolean servicesAccount(String accountName);
-  Optional<Map> queryMetrics(String accountName,
-                             String instanceNamePrefix,
-                             String intervalStartTime,
-                             String intervalEndTime) throws IOException;
+public interface StorageServiceRepository {
+  Optional<StorageService> getOne(String accountName);
 }

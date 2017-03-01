@@ -24,13 +24,16 @@ import com.google.api.services.storage.StorageScopes;
 import com.google.common.collect.Sets;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Set;
 
 @ToString(callSuper = true)
+@Slf4j
 public class GoogleJsonCredentials extends GoogleCredentials {
 
   @Getter
@@ -43,9 +46,8 @@ public class GoogleJsonCredentials extends GoogleCredentials {
   }
 
   @Override
-  protected GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory jsonFactory) throws IOException {
-    Set<String> scopes = Sets.newHashSet(MonitoringScopes.all());
-    scopes.addAll(StorageScopes.all());
+  protected GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory jsonFactory, Collection<String> scopes) throws IOException {
+    log.debug("Loading credentials for project {} from json key, with scopes {}.", getProject(), scopes);
 
     InputStream credentialStream = new ByteArrayInputStream(jsonKey.getBytes("UTF-8"));
 
