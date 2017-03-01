@@ -805,7 +805,7 @@ class GCEUtil {
         executor.timeExecute(
           compute.regionBackendServices().update(project, region, backendServiceName, backendService),
           "compute.regionBackendServices.update",
-          executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.SCOPE_REGION, region)
+          executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
         task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in Internal load balancer backend service ${backendServiceName}."
       }
     }
