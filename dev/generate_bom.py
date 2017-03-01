@@ -30,6 +30,9 @@ VERSION = 'version'
 class BomGenerator(Annotator):
   """Provides facilities for generating the Bill of Materials file for the
   Spinnaker product release.
+
+  This assumes Halyard (https://github.com/spinnaker/halyard) is installed on
+  the machine this script runs on.
   """
 
   COMPONENTS = [
@@ -91,13 +94,35 @@ class BomGenerator(Annotator):
     toplevel_with_build = '{0}-{1}'.format(toplevel_version, self.build_number)
     output_yaml[VERSION] = toplevel_with_build
     bom_file = '{0}.yml'.format(toplevel_with_build)
-    with open(os.path.join(self.__base_dir, bom_file), 'w') as output_file:
+    self.__write_bom(bom_file, output_yaml)
+    self.__publish_bom(bom_file)
+    output_yaml[VERSION] = 'nightly'
+    self.__write_bom('nightly.yml', output_yaml) # Publish a 'nightly' BOM for folks wanting to run bleeding-edge Spinnaker.
+    self.__publish_bom('nightly.yml')
+
+  def __write_bom(self, filename, output_yaml):
+    """Helper function to write the calculated BOM to files.
+
+    Args:
+      filename [string]: Name of the file to write to.
+      output_yaml [dict]: Dictionary containing BOM information.
+    """
+    with open(filename, 'w') as output_file:
       timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
       tracking = '# Generated on host {0} on {1}'.format(socket.gethostname(),
                                                          timestamp)
       output_file.write(tracking + '\n')
       yaml.dump(output_yaml, output_file, default_flow_style=False)
-      print 'Wrote BOM to {0}.'.format(bom_file)
+      print 'Wrote BOM to {0}.'.format(filename)
+
+  def __publish_bom(self, bom_path):
+    """Publishes the BOM using Halyard.
+
+    Assumes that Halyard is installed and correctly configured on the current
+    machine.
+    """
+    run_quick('hal admin publish bom --color false --bom-path {0}'
+              .format(bom_path), echo=False)
 
   def determine_and_tag_versions(self):
     for comp in self.COMPONENTS:
