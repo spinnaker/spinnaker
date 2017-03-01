@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.appengine;
 import com.beust.jcommander.Parameter;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 
@@ -36,6 +37,7 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
 
   @Parameter(
       names = "--json-path",
+      converter = PathExpandingConverter.class,
       description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
   )
   private String jsonPath;
@@ -68,6 +70,7 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
 
   @Parameter(
       names = "--ssh-private-key-file-path",
+      converter = PathExpandingConverter.class,
       description = AppengineCommandProperties.SSH_PRIVATE_KEY_FILE_PATH
   )
   private String sshPrivateKeyFilePath;

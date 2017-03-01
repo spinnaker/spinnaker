@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
 
   @Parameter(
       names = "--json-path",
+      converter = PathExpandingConverter.class,
       description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
   )
   private String jsonPath;

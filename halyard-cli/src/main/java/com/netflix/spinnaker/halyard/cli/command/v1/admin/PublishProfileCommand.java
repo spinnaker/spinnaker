@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.admin;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
@@ -38,6 +39,7 @@ public class PublishProfileCommand extends NestableCommand {
 
   @Parameter(
       names = "--bom-path",
+      converter = PathExpandingConverter.class,
       required = true,
       description = "The path to the BOM owning the artifact to publish."
   )
@@ -45,6 +47,7 @@ public class PublishProfileCommand extends NestableCommand {
 
   @Parameter(
       names = "--profile-path",
+      converter = PathExpandingConverter.class,
       required = true,
       description = "The path to the artifact profile to publish."
   )
