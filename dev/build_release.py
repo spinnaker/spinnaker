@@ -45,6 +45,7 @@ Usage:
 import argparse
 import base64
 import collections
+import glob
 import os
 import multiprocessing
 import multiprocessing.pool
@@ -64,6 +65,7 @@ from spinnaker.run import run_quick
 
 SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50',
                   'echo', 'rosco', 'gate', 'igor', 'fiat', 'deck', 'spinnaker']
+ADDITIONAL_SUBSYSTEMS = ['spinnaker-monitoring']
 
 def ensure_gcs_bucket(name, project=''):
   """Ensure that the desired GCS bucket exists, creating it if needed.
@@ -168,9 +170,17 @@ NO_PROCESS = BackgroundProcess('nop', None)
 def determine_project_root():
   return os.path.abspath(os.path.dirname(__file__) + '/..')
 
-def determine_package_version(gradle_root, submodule):
-  with open(os.path.join(gradle_root, submodule,
-                         'build/debian/control')) as f:
+def determine_modules_with_debians(gradle_root):
+  files = glob.glob(os.path.join(gradle_root, '*', 'build', 'debian', 'control'))
+  dirs = [os.path.dirname(os.path.dirname(os.path.dirname(file))) for file in files]
+  if os.path.exists(os.path.join(gradle_root, 'build', 'debian', 'control')):
+    dirs.append(gradle_root)
+  return dirs
+
+def determine_package_version(gradle_root):
+  root = determine_modules_with_debians(gradle_root)
+
+  with open(os.path.join(root[0], 'build', 'debian', 'control')) as f:
      content = f.read()
   match = re.search('(?m)^Version: (.*)', content)
   return match.group(1)
@@ -251,16 +261,23 @@ class Builder(object):
     bintray_key = os.environ['BINTRAY_KEY']
     bintray_user = os.environ['BINTRAY_USER']
 
-    extra_args = [
-      '--stacktrace',
-      '-Prelease.useLastTag=true',
-      '-PbintrayPackageBuildNumber={number}'.format(number=self.__build_number),
-      '-PbintrayOrg="{org}"'.format(org=org),
-      '-PbintrayPackageRepo="{repo}"'.format(repo=packageRepo),
-      '-PbintrayJarRepo="{jarRepo}"'.format(jarRepo=jarRepo),
-      '-PbintrayKey="{key}"'.format(key=bintray_key),
-      '-PbintrayUser="{user}"'.format(user=bintray_user)
-    ]
+    if self.__options.nebula:
+      target = 'candidate'
+      extra_args = [
+          '--stacktrace',
+          '-Prelease.useLastTag=true',
+          '-PbintrayPackageBuildNumber={number}'.format(
+              number=self.__build_number),
+          '-PbintrayOrg="{org}"'.format(org=org),
+          '-PbintrayPackageRepo="{repo}"'.format(repo=packageRepo),
+          '-PbintrayJarRepo="{jarRepo}"'.format(jarRepo=jarRepo),
+          '-PbintrayKey="{key}"'.format(key=bintray_key),
+          '-PbintrayUser="{user}"'.format(user=bintray_user)
+        ]
+    else:
+      target = 'buildDeb'
+      extra_args = []
+
     if name == 'deck' and not 'CHROME_BIN' in os.environ:
       extra_args.append('-PskipTests')
 
@@ -271,9 +288,8 @@ class Builder(object):
     # 'release candidate' status for the artifacts created through this build.
     return BackgroundProcess.spawn(
       'Building and publishing {name}...'.format(name=name),
-      'cd "{gradle_root}"; ./gradlew {extra} candidate'.format(
-        gradle_root=gradle_root, extra=' '.join(extra_args)
-      )
+      'cd "{gradle_root}"; ./gradlew {extra} {target}'.format(
+          gradle_root=gradle_root, extra=' '.join(extra_args), target=target)
     )
 
   def publish_to_bintray(self, source, package, version, path, debian_tags=''):
@@ -356,6 +372,11 @@ class Builder(object):
                   package=package, pkg_url=pkg_url)
 
               # All the packages are from spinnaker so we'll hardcode it.
+              # Note spinnaker-monitoring is a github repo with two packages.
+              # Neither is "spinnaker-monitoring"; that's only the github repo.
+              gitname = (package.replace('spinnaker-', '')
+                         if not package.startswith('spinnaker-monitoring')
+                         else 'spinnaker-monitoring')
               pkg_data = """{{
                 "name": "{package}",
                 "licenses": ["Apache-2.0"],
@@ -364,8 +385,7 @@ class Builder(object):
                 "github_repo": "spinnaker/{gitname}",
                 "public_download_numbers": false,
                 "public_stats": false
-              }}'""".format(package=package,
-                            gitname=package.replace('spinnaker-', ''))
+              }}'""".format(package=package, gitname=gitname)
 
               pkg_request = urllib2.Request(pkg_url)
               pkg_request.add_header('Authorization', 'Basic ' + encoded_auth)
@@ -385,7 +405,7 @@ class Builder(object):
 
   def publish_install_script(self, source):
     gradle_root = self.determine_gradle_root('spinnaker')
-    version = determine_package_version(gradle_root, '.')
+    version = determine_package_version(gradle_root)
 
     self.publish_to_bintray(source, package='spinnaker', version=version,
                             path='InstallSpinnaker.sh')
@@ -434,6 +454,51 @@ class Builder(object):
         shutil.copy(source, target)
         return NO_PROCESS
 
+  def start_copy_debian_target(self, name):
+      """Copies the debian package for the specified subsystem.
+
+      Args:
+        name [string]: The name of the subsystem repository.
+      """
+      pids = []
+      gradle_root = self.determine_gradle_root(name)
+      version = determine_package_version(gradle_root)
+      for root in determine_modules_with_debians(gradle_root):
+        deb_dir = '{root}/build/distributions'.format(root=root)
+
+        non_spinnaker_name = '{name}_{version}_all.deb'.format(
+              name=name, version=version)
+
+        if os.path.exists(os.path.join(deb_dir,
+                                       'spinnaker-' + non_spinnaker_name)):
+         deb_file = 'spinnaker-' + non_spinnaker_name
+        elif os.path.exists(os.path.join(deb_dir, non_spinnaker_name)):
+          deb_file = non_spinnaker_name
+        else:
+          module_name = os.path.basename(
+            os.path.dirname(os.path.dirname(deb_dir)))
+          deb_file = '{module_name}_{version}_all.deb'.format(
+            module_name=module_name, version=version)
+
+        if not os.path.exists(os.path.join(deb_dir, deb_file)):
+          error = ('.deb for name={name} version={version} is not in {dir}\n'
+                   .format(name=name, version=version, dir=deb_dir))
+          raise AssertionError(error)
+
+        from_path = os.path.join(deb_dir, deb_file)
+        print 'Adding {path}'.format(path=from_path)
+        self.__package_list.append(from_path)
+        basename = os.path.basename(from_path)
+        module_name = basename[0:basename.find('_')]
+        if self.__options.bintray_repo:
+          self.publish_file(from_path, module_name, version)
+
+        if self.__release_dir:
+          to_path = os.path.join(self.__release_dir, deb_file)
+          pids.append(self.start_copy_file(from_path, to_path))
+
+      return pids
+
   def __do_build(self, subsys):
     try:
       self.start_subsystem_build(subsys).check_wait()
@@ -445,14 +510,37 @@ class Builder(object):
       if self.__options.build:
         # Build in parallel using half available cores
         # to keep load in check.
+        all_subsystems = []
+        all_subsystems.extend(SUBSYSTEM_LIST)
+        all_subsystems.extend(ADDITIONAL_SUBSYSTEMS)
+        weighted_processes = self.__options.cpu_ratio * multiprocessing.cpu_count()
         pool = multiprocessing.pool.ThreadPool(
-            processes=min(1,
-                        self.__options.cpu_ratio * multiprocessing.cpu_count()))
-        pool.map(self.__do_build, SUBSYSTEM_LIST)
+            processes=int(max(1, weighted_processes)))
+        pool.map(self.__do_build, all_subsystems)
 
       if self.__build_failures:
-        raise RuntimeError('Builds failed for {0!r}'.format(
-          self.__build_failures))
+        if set(self.__build_failures).intersection(set(SUBSYSTEM_LIST)):
+          raise RuntimeError('Builds failed for {0!r}'.format(
+            self.__build_failures))
+        else:
+          print 'Ignoring errors on optional subsystems {0!r}'.format(
+              self.__build_failures)
+
+      if self.__options.nebula:
+        return
+
+      wait_on = set(all_subsystems).difference(set(self.__build_failures))
+      pool = multiprocessing.pool.ThreadPool(processes=len(wait_on))
+      print 'Copying packages...'
+      pool.map(self.__do_copy, wait_on)
+      return
+
+  def __do_copy(self, subsys):
+    print 'Starting to copy {0}...'.format(subsys)
+    pids = self.start_copy_debian_target(subsys)
+    for p in pids:
+      p.check_wait()
+    print 'Finished copying {0}.'.format(subsys)
 
   @staticmethod
   def __zip_dir(zip_file, source_path, arcname=''):
@@ -535,6 +623,13 @@ class Builder(object):
       parser.add_argument(
         '--nowipe_package_on_409', dest='wipe_package_on_409',
         action='store_false')
+
+      parser.add_argument(
+        '--nebula', default=True, action='store_true',
+        help='Use nebula to build "candidate" target and upload to bintray.')
+      parser.add_argument(
+        '--nonebula', dest='nebula', action='store_false',
+        help='Explicitly "buildDeb" then curl upload them to bintray.')
 
 
   def __verify_bintray(self):

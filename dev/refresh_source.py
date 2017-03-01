@@ -88,7 +88,10 @@ class Refresher(object):
   commands. This class is intended for cross-cutting management.
   """
 
-  __OPTIONAL_REPOSITORIES = [SourceRepository('citest', 'google')]
+  __OPTIONAL_REPOSITORIES = [
+      SourceRepository('citest', 'google'),
+      SourceRepository('spinnaker-monitoring', 'spinnaker')]
+
   __REQUIRED_REPOSITORIES = [
       SourceRepository('spinnaker', 'spinnaker'),
       SourceRepository('clouddriver', 'spinnaker'),

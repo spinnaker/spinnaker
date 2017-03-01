@@ -29,6 +29,7 @@ QUIET=false
 # Install dependencies but not spinnaker itself.
 DEPENDENCIES_ONLY=false
 
+MONITORING_CHOICES=(datadog, prometheus, stackdriver, undef)
 
 # We can only currently support limited releases
 # First guess what sort of operating system
@@ -75,7 +76,7 @@ function print_usage() {
 usage: $0 [--cloud_provider <aws|google|azure|none>]
     [--aws_region <region>] [--google_region <region>] [--azure_region <region>]
     [--quiet] [--dependencies_only]
-    [--google_cloud_logging] [--google_cloud_monitoring]
+    [--google_cloud_logging] [--monitoring]
     [--repository <debian repository url>]
     [--local-install] [--home_dir <path>]
 
@@ -110,10 +111,13 @@ usage: $0 [--cloud_provider <aws|google|azure|none>]
                                 Platform, but you may require additional
                                 authorization. See https://cloud.google.com/logging/docs/agent/authorization#install_private-key_authorization
 
-    --google_cloud_monitoring   Install Google Cloud Monitoring support. This
-                                is independent of installing on Google Cloud
-                                Platform, but you may require additional
-                                authorization. See https://cloud.google.com/monitoring/api/authentication
+    --monitoring (datadog|prometheus|stackdriver|undef)
+                                Install the Spinnaker Monitoring Daemon. This
+                                installs support to /opt/spinnaker-monitoring
+                                and --client_only support for the given system.
+                                This may not be fully configured or require
+                                additional values per system. For more info, see
+                                http://www.spinnaker.io/docs/monitoring-a-spinnaker-deployment
 
     --local-install             For Spinnaker and Java packages, download
                                 packages and install using dpkg instead of
@@ -217,8 +221,14 @@ function process_args() {
       --google_cloud_logging)
         GOOGLE_CLOUD_LOGGING="true"
         ;;
-      --google_cloud_monitoring)
-        GOOGLE_CLOUD_MONITORING="true"
+      --monitoring)
+        MONITORING="$1"
+        shift
+        if [[ ! ${MONITORING_CHOICES[*]} =~ "$MONITORING" ]]
+        then
+            echo "Unknown monitoring choice '$MONITORING'."
+            exit -1
+        fi
         ;;
       --dependencies_only)
         CLOUD_PROVIDER="none"
@@ -450,8 +460,7 @@ function install_platform_dependencies() {
 
   if [[ -z "$google_scopes" ]]; then
     # Not on GCP
-    if [[ "$GOOGLE_CLOUD_LOGGING" == "true" ]] \
-         || [[ "$GOOGLE_CLOUD_MONITORING" == "true" ]]; then
+    if [[ "$GOOGLE_CLOUD_LOGGING" == "true" ]]; then
       if [[ ! -f /etc/google/auth/application_default_credentials.json ]];
       then
         echo "You may need to add Google Project Credentials."
@@ -465,19 +474,6 @@ function install_platform_dependencies() {
     # However, if on google, then certain scopes are required.
     # The add_google_cloud_logging script checks the scope and warns.
     curl -s -L https://raw.githubusercontent.com/spinnaker/spinnaker/master/google/google_cloud_logging/add_google_cloud_logging.sh | sudo bash
-  fi
-
-  if [[ "$GOOGLE_CLOUD_MONITORING" == "true" ]]; then
-    # This can be installed on any platform, so dont scope to google.
-    # However, if on google, then certain scopes are required.
-    curl -s https://repo.stackdriver.com/stack-install.sh | sudo bash
-    if [[ ! -z "$google_scopes" ]] && [[ $scopes != *"monitoring.write"* ]]; then
-      # This is not necessarily bad because we might be using this instance
-      # to create an image (e.g. packer). Only the runtime instances need
-      # this scope.
-      echo "Missing scope 'https://www.googleapis.com/auth/monitoring.write'"
-      echo "Google Cloud Monitoring will not be able to send data upstream."
-    fi
   fi
 }
 
@@ -650,6 +646,16 @@ function install_spinnaker() {
     fi
   fi
 
+  if [[ "$MONITORING" != "" ]] && [[ "$MONITORING" != "none" ]]; then
+     sudo apt-get install -y --force-yes spinnaker-monitoring-daemon
+     sudo apt-get install -y --force-yes spinnaker-monitoring-third-party
+
+    if [[ "$MONITORING" != "undef" ]]; then
+      sudo /opt/spinnaker-monitoring/third_party/$MONITORING/install.sh \
+          --client_only
+      sudo service spinnaker-monitoring restart || true
+    fi
+  fi
 }
 
 set_defaults_from_environ

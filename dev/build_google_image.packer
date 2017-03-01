@@ -10,7 +10,8 @@
     "base_srcdir": null,
     "target_image": "{{env `USER`}}-spinnaker-{{timestamp}}",
     "google_cloud_logging": "true",
-    "google_cloud_monitoring": "true",
+    "google_cloud_monitoring": "deprecated",
+    "monitoring": "undef",
     "enable_cassandra": "false"
  },
 
@@ -35,7 +36,7 @@
     "inline": [
         "flags=\"--cloud_provider google --google_region us-central1 --quiet\"",
         "if [ '{{ user `google_cloud_logging` }}' = 'true' ]; then flags=\"$flags --google_cloud_logging\"; fi",
-        "if [ '{{ user `google_cloud_monitoring` }}' = 'true' ]; then flags=\"$flags --google_cloud_monitoring\"; fi",
+        "if [ '{{ user `monitoring` }}' != '' ]; then flags=\"$flags --monitoring {{ user `monitoring` }}\"; fi",
         "if [ '{{ user `enable_cassandra` }}' = 'true' ]; then flags=\"$flags --install_cassandra\"; fi",
         "chmod +x /tmp/install_spinnaker.sh",
         "/tmp/install_spinnaker.sh --repository {{user `debian_repo`}} $flags",
