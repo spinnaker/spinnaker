@@ -80,7 +80,7 @@ public class WriteableProfileRegistry {
       storage.objects().insert(spinconfigBucket, object, content).execute();
     } catch (IOException e) {
       log.error("Failed to write new object " + name, e);
-      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Failed to write to " + name).build());
+      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Failed to write to " + name + ": " + e.getMessage()).build());
     }
   }
 }
