@@ -34,6 +34,8 @@ import com.netflix.spinnaker.front50.model.serviceaccount.DefaultServiceAccountD
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO;
 import com.netflix.spinnaker.front50.model.snapshot.DefaultSnapshotDAO;
 import com.netflix.spinnaker.front50.model.snapshot.SnapshotDAO;
+import com.netflix.spinnaker.front50.model.tag.DefaultEntityTagsDAO;
+import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,5 +168,10 @@ public class GcsConfig {
   @Bean
   public SnapshotDAO snapshotDAO(GcsStorageService service, Registry registry) {
     return new DefaultSnapshotDAO(service, Schedulers.from(Executors.newFixedThreadPool(20)), SNAPSHOT_REFRESH_MS, registry);
+  }
+
+  @Bean
+  public EntityTagsDAO entityTagsDAO(StorageService storageService, Registry registry) {
+    return new DefaultEntityTagsDAO(storageService, Schedulers.from(Executors.newFixedThreadPool(25)), 80000, registry);
   }
 }
