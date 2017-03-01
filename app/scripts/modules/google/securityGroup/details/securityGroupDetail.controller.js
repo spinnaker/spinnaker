@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
                                                     $uibModal, cloudProviderRegistry) {
 
-    const application = app;
+    const application = this.application = app;
     const securityGroup = resolvedSecurityGroup;
 
     // needed for standalone instances
@@ -42,6 +42,9 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
           fourOhFour();
         } else {
           $scope.securityGroup = details;
+          let applicationSecurityGroup = securityGroupReader
+            .getApplicationSecurityGroup(application, securityGroup.accountId, securityGroup.region, securityGroup.name);
+          $scope.securityGroup = angular.extend(_.cloneDeep(applicationSecurityGroup), $scope.securityGroup);
 
           $scope.securityGroup.sourceRanges = _.uniq(
             _.map($scope.securityGroup.ipRangeRules, (rule) => rule.range.ip + rule.range.cidr)
@@ -103,13 +106,15 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
       $state.go('^', null, {location: 'replace'});
     }
 
-    extractSecurityGroup().then(() => {
-      // If the user navigates away from the view before the initial extractSecurityGroup call completes,
-      // do not bother subscribing to the refresh
-      if (!$scope.$$destroyed && !app.isStandalone) {
-        app.securityGroups.onRefresh($scope, extractSecurityGroup);
-      }
-    });
+    application.securityGroups.ready()
+      .then(() => extractSecurityGroup())
+      .then(() => {
+        // If the user navigates away from the view before the initial extractSecurityGroup call completes,
+        // do not bother subscribing to the refresh
+        if (!$scope.$$destroyed && !app.isStandalone) {
+          app.securityGroups.onRefresh($scope, extractSecurityGroup);
+        }
+      });
 
     this.editInboundRules = function editInboundRules() {
       $uibModal.open({

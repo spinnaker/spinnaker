@@ -7,6 +7,8 @@ import {LOAD_BALANCER_SET_TRANSFORMER} from './loadBalancer/loadBalancer.setTran
 import {GCE_INTERNAL_LOAD_BALANCER_CTRL} from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
 import {GCE_SSL_LOAD_BALANCER_CTRL} from './loadBalancer/configure/ssl/gceCreateSslLoadBalancer.controller';
 import {GCE_LOAD_BALANCER_CHOICE_MODAL} from './loadBalancer/configure/choice/gceLoadBalancerChoice.modal';
+import {ADD_ENTITY_TAG_LINKS_COMPONENT} from 'core/entityTag/addEntityTagLinks.component';
+import {ENTITY_SOURCE_COMPONENT} from 'core/entityTag/entitySource.component';
 
 require('./logo/gce.logo.less');
 
@@ -22,6 +24,8 @@ module.exports = angular.module('spinnaker.gce', [
   GCE_INTERNAL_LOAD_BALANCER_CTRL,
   GCE_LOAD_BALANCER_CHOICE_MODAL,
   GCE_SSL_LOAD_BALANCER_CTRL,
+  ADD_ENTITY_TAG_LINKS_COMPONENT,
+  ENTITY_SOURCE_COMPONENT,
   require('./serverGroup/details/serverGroup.details.gce.module.js'),
   require('./serverGroup/configure/serverGroupCommandBuilder.service.js'),
   require('./serverGroup/configure/wizard/cloneServerGroup.gce.controller.js'),

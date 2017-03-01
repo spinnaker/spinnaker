@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
                                                       loadBalancerWriter, loadBalancerReader,
                                                       $q, loadBalancerTypeToWizardMap) {
 
-    let application = app;
+    let application = this.application = app;
 
     $scope.state = {
       loading: true

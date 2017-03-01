@@ -9,6 +9,7 @@ import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
 import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
+import {CLUSTER_TARGET_BUILDER} from 'core/entityTag/clusterTargetBuilder.service';
 
 require('../configure/serverGroup.configure.gce.module.js');
 
@@ -22,6 +23,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   NETWORK_READ_SERVICE,
   SERVER_GROUP_WRITER,
   RUNNING_TASKS_DETAILS_COMPONENT,
+  CLUSTER_TARGET_BUILDER,
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('./autoscalingPolicy/autoscalingPolicy.directive.js'),
@@ -30,7 +32,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
-                                                     serverGroupWarningMessageService, networkReader) {
+                                                     serverGroupWarningMessageService, networkReader, clusterTargetBuilder) {
 
     this.state = {
       loading: true
@@ -106,6 +108,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           prepareAuthScopes();
           prepareCurrentActions();
           augmentTagsWithHelp();
+          configureEntityTagTargets();
         } else {
           autoClose();
         }
@@ -442,6 +445,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         return this.serverGroup.buildInfo.commit.substring(0, 8);
       }
       return null;
+    };
+
+    let configureEntityTagTargets = () => {
+      this.entityTagTargets = clusterTargetBuilder.buildClusterTargets(this.serverGroup);
     };
   }
 );
