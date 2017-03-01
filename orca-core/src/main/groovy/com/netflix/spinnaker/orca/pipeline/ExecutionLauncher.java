@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -54,6 +53,8 @@ public abstract class ExecutionLauncher<T extends Execution> {
   public T start(String configJson) throws Exception {
     final T execution = parse(configJson);
 
+    checkRunnable(execution);
+
     persistExecution(execution);
 
     try {
@@ -63,6 +64,10 @@ public abstract class ExecutionLauncher<T extends Execution> {
     }
 
     return execution;
+  }
+
+  protected void checkRunnable(T execution) {
+    // no-op by default
   }
 
   public T start(T execution) throws Exception {

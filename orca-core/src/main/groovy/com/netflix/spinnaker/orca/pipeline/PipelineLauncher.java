@@ -33,14 +33,18 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
 
   private final Optional<PipelineStartTracker> startTracker;
 
+  private final Optional<PipelineValidator> pipelineValidator;
+
   @Autowired
   public PipelineLauncher(ObjectMapper objectMapper,
                           String currentInstanceId,
                           ExecutionRepository executionRepository,
                           ExecutionRunner runner,
-                          Optional<PipelineStartTracker> startTracker) {
+                          Optional<PipelineStartTracker> startTracker,
+                          Optional<PipelineValidator> pipelineValidator) {
     super(objectMapper, currentInstanceId, executionRepository, runner);
     this.startTracker = startTracker;
+    this.pipelineValidator = pipelineValidator;
   }
 
   @SuppressWarnings("unchecked")
@@ -84,6 +88,10 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
       .ifPresent(tracker -> {
         tracker.addToStarted(execution.getPipelineConfigId(), execution.getId());
       });
+  }
+
+  @Override protected void checkRunnable(Pipeline execution) {
+    pipelineValidator.ifPresent(it -> it.checkRunnable(execution));
   }
 
   @Override
