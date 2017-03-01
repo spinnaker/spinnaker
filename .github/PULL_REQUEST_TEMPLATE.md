@@ -1,0 +1,14 @@
+We prefer small, well tested pull requests.
+
+Please refer to [Contributing to Spinnaker](http://www.spinnaker.io/docs/contributing-to-spinnaker).
+
+When filling out a pull request, please consider the following:
+
+* Follow the commit message conventions [found here](http://www.spinnaker.io/v1.0/docs/how-to-submit-a-patch).
+* Provide a descriptive summary for your changes.
+* If it fixes a bug or resolves a feature request, be sure to link to that issue.
+* Add inline code comments to changes that might not be obvious.
+* Squash your commits as you keep adding changes.
+* Add a comment to @spinnaker/reviewers for review if your issue has been outstanding for more than 3 days.
+
+Note that we are unlikely to accept pull requests that add features without prior discussion. The best way to propose a feature is to open an issue first and discuss your ideas there before implementing them.
