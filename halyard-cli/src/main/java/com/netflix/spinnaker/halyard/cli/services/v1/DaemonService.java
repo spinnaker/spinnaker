@@ -210,6 +210,48 @@ public interface DaemonService {
       @Path("baseImageId") String baseImageId,
       @Query("validate") boolean validate);
 
+  @GET("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/")
+  DaemonTask<Halconfig, Object> getWebhook(
+      @Path("deploymentName") String deploymentName,
+      @Path("webhookName") String webhookName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/enabled/")
+  DaemonTask<Halconfig, Void> setWebhookEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Path("webhookName") String webhookName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
+
+  @POST("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/masters/")
+  DaemonTask<Halconfig, Void> addMaster(
+      @Path("deploymentName") String deploymentName,
+      @Path("webhookName") String webhookName,
+      @Query("validate") boolean validate,
+      @Body Master master);
+
+  @GET("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/masters/{masterName}/")
+  DaemonTask<Halconfig, Object> getMaster(
+      @Path("deploymentName") String deploymentName,
+      @Path("webhookName") String webhookName,
+      @Path("masterName") String masterName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/masters/{masterName}/")
+  DaemonTask<Halconfig, Void> setMaster(
+      @Path("deploymentName") String deploymentName,
+      @Path("webhookName") String webhookName,
+      @Path("masterName") String masterName,
+      @Query("validate") boolean validate,
+      @Body Master master);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/masters/{masterName}/")
+  DaemonTask<Halconfig, Void> deleteMaster(
+      @Path("deploymentName") String deploymentName,
+      @Path("webhookName") String webhookName,
+      @Path("masterName") String masterName,
+      @Query("validate") boolean validate);
+
   @GET("/v1/versions/")
   DaemonTask<Halconfig, Versions> getVersions();
 

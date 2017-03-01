@@ -89,6 +89,11 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter setMaster(String name) {
+    matchers.add(Node.namedNodeAcceptor(Master.class, name));
+    return this;
+  }
+
   public NodeFilter setFeatures() {
     matchers.add(Node.thisNodeAcceptor(Features.class));
     return this;

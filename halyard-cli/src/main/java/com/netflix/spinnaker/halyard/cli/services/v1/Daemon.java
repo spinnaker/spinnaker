@@ -111,6 +111,32 @@ public class Daemon {
     ResponseUnwrapper.get(getService().setProviderEnabled(deploymentName, providerName, validate, enable));
   }
 
+  public static Master getMaster(String deploymentName, String webhookName, String masterName, boolean validate) {
+    Object rawMaster = ResponseUnwrapper.get(getService().getMaster(deploymentName, webhookName, masterName, validate));
+    return getObjectMapper().convertValue(rawMaster, Webhooks.translateMasterType(webhookName));
+  }
+
+  public static void addMaster(String deploymentName, String webhookName, boolean validate, Master master) {
+    ResponseUnwrapper.get(getService().addMaster(deploymentName, webhookName, validate, master));
+  }
+
+  public static void setMaster(String deploymentName, String webhookName, String masterName, boolean validate, Master master) {
+    ResponseUnwrapper.get(getService().setMaster(deploymentName, webhookName, masterName, validate, master));
+  }
+
+  public static void deleteMaster(String deploymentName, String webhookName, String masterName, boolean validate) {
+    ResponseUnwrapper.get(getService().deleteMaster(deploymentName, webhookName, masterName, validate));
+  }
+
+  public static Webhook getWebhook(String deploymentName, String webhookName, boolean validate) {
+    Object webhook = ResponseUnwrapper.get(getService().getWebhook(deploymentName, webhookName, validate));
+    return getObjectMapper().convertValue(webhook, Webhooks.translateWebhookType(webhookName));
+  }
+
+  public static void setWebhookEnableDisable(String deploymentName, String webhookName, boolean validate, boolean enable) {
+    ResponseUnwrapper.get(getService().setWebhookEnabled(deploymentName, webhookName, validate, enable));
+  }
+
   public static void generateDeployment(String deploymentName, boolean validate) {
     ResponseUnwrapper.get(getService().generateDeployment(deploymentName, validate, ""));
   }
