@@ -179,6 +179,54 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
   }
 
+  @Unroll
+  void 'should return #hasSucceeded for hasSucceeded when desiredPercentage is #percent and #healthy/#total instances are healthy'() {
+    expect:
+    def instances = []
+    (1..healthy).each {
+      instances << [ health: [ [state: 'Up'] ] ]
+    }
+    def serverGroup = [
+        asg: [
+            desiredCapacity: total
+        ],
+        capacity : [
+            min: min,
+            desired: total,
+            max: max
+        ]
+    ]
+    hasSucceeded == task.hasSucceeded(
+        new PipelineStage(new Pipeline(), "", "", [
+            desiredPercentage: percent
+        ]
+        ), serverGroup, instances, null
+    )
+
+    where:
+    percent | healthy | total | min | max  || hasSucceeded
+
+    // 100 percent
+    100     | 1       | 1     | 1    | 1   || true
+    100     | 0       | 0     | 0    | 0   || true
+    100     | 2       | 2     | 0    | 2   || true
+
+    // zero percent (should always return true)
+    0       | 1       | 2     | 1    | 2   || true
+    0       | 0       | 100   | 1    | 100 || true
+
+    // >= checks
+    89      | 9       | 10    | 10   | 10  || true
+    90      | 9       | 10    | 10   | 10  || true
+    90      | 8       | 10    | 10   | 10  || false
+    91      | 9       | 10    | 10   | 10  || false
+
+    // verify ceiling
+    90      | 10      | 11    | 10   | 11  || true
+    90      | 8       | 9     | 9    | 9   || false
+
+  }
+
   void 'should succeed when ASG desired size is reached, even though snapshotCapacity is larger'() {
     when:
     def serverGroup = [

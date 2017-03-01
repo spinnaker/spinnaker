@@ -95,6 +95,9 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       }
       targetDesiredSize = Math.ceil(percentage * targetDesiredSize / 100D) as Integer
       log.info("${serverGroup.name}: Calculating target desired size based on configured percentage (${percentage}) as ${targetDesiredSize} instances")
+    } else if (stage.context.desiredPercentage != null) {
+      Integer percentage = (Integer) stage.context.desiredPercentage
+      targetDesiredSize = getDesiredInstanceCount(capacity, percentage)
     }
     log.info("${serverGroup.name}: Target desired size is ${targetDesiredSize}")
     targetDesiredSize

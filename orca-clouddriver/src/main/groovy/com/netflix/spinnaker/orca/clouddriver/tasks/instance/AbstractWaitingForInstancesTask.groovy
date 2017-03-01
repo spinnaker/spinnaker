@@ -44,4 +44,19 @@ abstract class AbstractWaitingForInstancesTask extends AbstractInstancesCheckTas
     }
     serverGroups
   }
+
+  // "Desired Percentage" implies that some fraction of the instances in a server group have been enabled
+  // or disabled -- likely during a rolling red/black operation.
+  protected static Integer getDesiredInstanceCount(Map capacity, Integer desiredPercentage) {
+    if (desiredPercentage < 0 || desiredPercentage > 100) {
+      throw new NumberFormatException("desiredPercentage must be an integer between 0 and 100")
+    }
+
+    Integer desired = capacity.desired as Integer
+    Integer min = capacity.min != null ? (Integer) capacity.min : desired
+    Integer max = capacity.max != null ? (Integer) capacity.max : desired
+
+    // See https://docs.google.com/a/google.com/document/d/1rHe6JUkKGt58NaVO_3fHJt456Pw5kiX_sdVn1gwTZxk/edit?usp=sharing
+    return Math.ceil(((desiredPercentage / 100D) - 1D) * max + min)
+  }
 }

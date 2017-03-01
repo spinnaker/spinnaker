@@ -24,14 +24,24 @@ import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
+class WaitForRequiredInstancesDownTask extends AbstractWaitingForInstancesTask {
   @Override
   protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true
     }
 
-    instances.every { instance ->
+    def targetDesiredSize = instances.size()
+
+    // During a rolling red/black we want a percentage of instances to be disabled.
+    if (stage.context.desiredPercentage != null) {
+      Map capacity = (Map) serverGroup.capacity
+      Integer percentage = (Integer) stage.context.desiredPercentage
+      targetDesiredSize = getDesiredInstanceCount(capacity, percentage)
+    }
+
+    // We need at least target instances to be disabled.
+    return targetDesiredSize <= instances.count { instance ->
       return HealthHelper.someAreDownAndNoneAreUp(instance, interestingHealthProviderNames)
     }
   }

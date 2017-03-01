@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DisableServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForAllInstancesDownTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -39,7 +39,7 @@ class DisableServerGroupStage extends TargetServerGroupLinearStageSupport {
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("disableServerGroup", DisableServerGroupTask)
       .withTask("monitorServerGroup", MonitorKatoTask)
-      .withTask("waitForDownInstances", WaitForAllInstancesDownTask)
+      .withTask("waitForDownInstances", WaitForRequiredInstancesDownTask)
       .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
   }
 }
