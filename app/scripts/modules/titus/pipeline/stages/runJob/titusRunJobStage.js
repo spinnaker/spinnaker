@@ -130,7 +130,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
       };
     }
 
-    stage.cluster.runtimeLimitSecs = stage.cluster.runtimeLimitSecs || 60;
+    stage.cluster.runtimeLimitSecs = stage.cluster.runtimeLimitSecs || 3600;
 
     stage.deferredInitialization = true;
     $q.all({
