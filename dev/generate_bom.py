@@ -80,8 +80,12 @@ class BomGenerator(Annotator):
       output_yaml[SERVICES][comp] = version_entry
 
     # Current publicly released version of Spinnaker product.
-    curr_version = run_quick('hal versions latest --color false', echo=False).stdout.strip()
-    print curr_version
+    result = run_quick('hal versions latest --color false', echo=False)
+    if result.returncode != 0:
+      print "'hal versions latest' command failed with: \n{0}\n exiting...".format(result.stdout)
+      exit(result.returncode)
+
+    curr_version = result.stdout.strip()
     major, minor, patch = curr_version.split('.')
     toplevel_version = ''
     if breaking_change == True:
@@ -121,8 +125,11 @@ class BomGenerator(Annotator):
     Assumes that Halyard is installed and correctly configured on the current
     machine.
     """
-    run_quick('hal admin publish bom --color false --bom-path {0}'
-              .format(bom_path), echo=False)
+    result = run_quick('hal admin publish bom --color false --bom-path {0}'
+                       .format(bom_path))
+    if result.returncode != 0:
+      print "'hal admin publish bom' command failed with: \n{0}\n exiting...".format(result.stdout)
+      exit(result.returncode)
 
   def determine_and_tag_versions(self):
     for comp in self.COMPONENTS:
