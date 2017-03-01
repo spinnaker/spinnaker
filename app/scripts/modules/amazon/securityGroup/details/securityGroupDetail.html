@@ -19,12 +19,13 @@
       <span class="glyphicon glyphicon-transfer"></span>
       <h3 select-on-dbl-click>
         {{securityGroup.name || '(not found)'}}
-        <entity-ui-tags render-if-feature="entityTags"
-                        component="securityGroup"
-                        application="ctrl.application"
-                        entity-type="securityGroup"
-                        page-location="details"
-                        on-update="ctrl.application.securityGroups.refresh()"></entity-ui-tags>
+        <render-if-feature feature="entityTags">
+          <entity-ui-tags component="securityGroup"
+                          application="ctrl.application"
+                          entity-type="securityGroup"
+                          page-location="details"
+                          on-update="ctrl.application.securityGroups.refresh()"></entity-ui-tags>
+        </render-if-feature>
       </h3>
     </div>
     <div class="actions">
@@ -36,11 +37,12 @@
           <li><a href ng-click="ctrl.editInboundRules()">Edit Inbound Rules</a></li>
           <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete Security Group</a></li>
           <li><a href ng-click="ctrl.cloneSecurityGroup()">Clone Security Group</a></li>
-          <add-entity-tag-links render-if-feature="entityTags"
-                                component="securityGroup"
-                                application="ctrl.application"
-                                entity-type="securityGroup"
-                                on-update="ctrl.application.securityGroups.refresh()"></add-entity-tag-links>
+          <render-if-feature feature="entityTags">
+            <add-entity-tag-links component="securityGroup"
+                                  application="ctrl.application"
+                                  entity-type="securityGroup"
+                                  on-update="ctrl.application.securityGroups.refresh()"></add-entity-tag-links>
+          </render-if-feature>
         </ul>
       </div>
     </div>
