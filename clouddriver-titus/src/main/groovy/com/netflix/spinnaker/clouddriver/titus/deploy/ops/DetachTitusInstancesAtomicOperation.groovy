@@ -58,14 +58,18 @@ class DetachTitusInstancesAtomicOperation implements AtomicOperation<Void> {
     int newMin = job.instances - validInstanceIds.size()
     if (newMin < job.instancesMin) {
       if (description.adjustMinIfNecessary) {
-        titusClient.resizeJob(
-          new ResizeJobRequest()
-            .withInstancesDesired(job.instancesDesired)
-            .withInstancesMax(job.instancesMax)
-            .withInstancesMin(newMin)
-            .withJobId(job.id)
-            .withUser(description.user)
-        )
+        if (newMin < 0) {
+          task.updateStatus BASE_PHASE, "Cannot adjust min size below 0"
+        } else {
+          titusClient.resizeJob(
+            new ResizeJobRequest()
+              .withInstancesDesired(job.instancesDesired)
+              .withInstancesMax(job.instancesMax)
+              .withInstancesMin(newMin)
+              .withJobId(job.id)
+              .withUser(description.user)
+          )
+        }
       } else {
         task.updateStatus BASE_PHASE, "Cannot decrement ASG below minSize - set adjustMinIfNecessary to resize down minSize before detaching instances"
         throw new IllegalStateException("Invalid ASG capacity for detachInstances (min: $job.instancesMin, max: $job.instancesMax, desired: $job.instancesDesired)")
