@@ -29,6 +29,12 @@ var appengine = {
     editLoadBalancerStageEnabled: {%appengine.enabled%}
   }
 };
+var openstack = {
+  defaults: {
+    account: '{%openstack.default.account%}',
+    region: '{%openstack.default.region%}'
+  }
+}
 var entityTagsEnabled = false;
 var netflixMode = false;
 
@@ -72,14 +78,9 @@ window.spinnakerSettings = {
         iamProfile: '{{application}}InstanceProfile',
       },
     },
-    openstack: {
-      defaults: {
-        account: 'test',
-        region: 'us-west-1'
-      },
-    },
+    openstack: openstack,
     kubernetes: kubernetes,
-    appengine: appengine, 
+    appengine: appengine,
   },
   whatsNew: {
     gistId: '32526cd608db3d811b38',
