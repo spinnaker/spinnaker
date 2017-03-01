@@ -9,6 +9,7 @@ module(TABLEAU_STATES, [
   STATE_CONFIG_PROVIDER,
   require('./summary/summaryTableau.controller'),
   require('./application/appTableau.controller'),
+  require('./tableau.dataSource'),
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
   const appState: INestedState = {
