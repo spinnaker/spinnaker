@@ -49,6 +49,7 @@ class BomGenerator(Annotator):
 
   def __init__(self, options):
     self.__base_dir = options.base_dir
+    self.__bom_file = ''
     self.__component_versions = {}
     super(BomGenerator, self).__init__(options)
 
@@ -97,9 +98,9 @@ class BomGenerator(Annotator):
 
     toplevel_with_build = '{0}-{1}'.format(toplevel_version, self.build_number)
     output_yaml[VERSION] = toplevel_with_build
-    bom_file = '{0}.yml'.format(toplevel_with_build)
-    self.__write_bom(bom_file, output_yaml)
-    self.__publish_bom(bom_file)
+    self.__bom_file = '{0}.yml'.format(toplevel_with_build)
+    self.__write_bom(self.__bom_file, output_yaml)
+    self.__publish_bom(self.__bom_file)
     output_yaml[VERSION] = 'nightly'
     self.__write_bom('nightly.yml', output_yaml) # Publish a 'nightly' BOM for folks wanting to run bleeding-edge Spinnaker.
     self.__publish_bom('nightly.yml')
@@ -131,6 +132,26 @@ class BomGenerator(Annotator):
       print "'hal admin publish bom' command failed with: \n{0}\n exiting...".format(result.stdout)
       exit(result.returncode)
 
+  def __publish_config(self, component, profile_path):
+    """Publishes the yaml configuration consumed by Halyard for the component.
+
+    Args:
+      component [string]: Name of the Spinnaker component.
+      profile_path [string]: Path to component's yaml configuration file.
+    """
+    result = run_quick(
+      'hal admin publish profile {0} --bom-path {1} --profile-path {2}'
+      .format(component, self.__bom_file, profile_path)
+    )
+    if result.returncode != 0:
+      print "'hal admin publish profile' command failed with: \n{0}\n exiting...".format(result.stdout)
+      exit(result.returncode)
+
+  def publish_microservice_configs(self):
+    for comp in self.COMPONENTS:
+      config_path = os.path.join(comp, 'halconfig', '*')
+      self.__publish_config(comp, config_path)
+
   def determine_and_tag_versions(self):
     for comp in self.COMPONENTS:
       self.path = os.path.join(self.__base_dir, comp)
@@ -149,6 +170,7 @@ class BomGenerator(Annotator):
     bom_generator = cls(options)
     bom_generator.determine_and_tag_versions()
     bom_generator.write_bom()
+    bom_generator.publish_microservice_configs()
 
 if __name__ == '__main__':
   sys.exit(BomGenerator.main())
