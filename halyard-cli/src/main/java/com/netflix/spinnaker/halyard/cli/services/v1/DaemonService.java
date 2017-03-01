@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.http.*;
 
@@ -51,7 +52,7 @@ public interface DaemonService {
       @Body String _ignore);
 
   @POST("/v1/config/deployments/{deploymentName}/deploy/")
-  DaemonTask<Halconfig, Void> deployDeployment(
+  DaemonTask<Halconfig, Object> deployDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body String _ignore);

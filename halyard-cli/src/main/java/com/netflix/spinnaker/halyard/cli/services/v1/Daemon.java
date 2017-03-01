@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
@@ -114,8 +115,9 @@ public class Daemon {
     ResponseUnwrapper.get(getService().generateDeployment(deploymentName, validate, ""));
   }
 
-  public static void deployDeployment(String deploymentName, boolean validate) {
-    ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, ""));
+  public static Deployment.DeployResult deployDeployment(String deploymentName, boolean validate) {
+    Object rawDeployResult = ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, ""));
+    return getObjectMapper().convertValue(rawDeployResult, Deployment.DeployResult.class);
   }
 
   public static String deployDeploymentPlan(String deploymentName, boolean validate) {

@@ -48,7 +48,7 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
   private AccountDeploymentDetails<T> deploymentDetails;
 
   @Override
-  public void deploy() {
+  public DeployResult deploy() {
     SpinnakerEndpoints.Services services = getEndpoints().getServices();
     DaemonTaskHandler.newStage("Deploying Spinnaker services and dependencies");
 
@@ -63,5 +63,10 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
     providerInterface.deployService(deploymentDetails, services.getIgor());
     providerInterface.deployService(deploymentDetails, services.getOrca());
     providerInterface.deployService(deploymentDetails, services.getRosco());
+
+    DeployResult deployResult = new DeployResult();
+    deployResult.setScriptDescription("Use the provided script to connect to your Spinnaker installation.");
+    deployResult.setPostInstallScript(""); // TODO(lwander)
+    return deployResult;
   }
 }

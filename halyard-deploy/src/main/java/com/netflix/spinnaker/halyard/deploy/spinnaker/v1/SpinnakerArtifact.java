@@ -32,27 +32,28 @@ import java.util.stream.Collectors;
  * @see SpinnakerProfile
  */
 public enum SpinnakerArtifact {
-  CLOUDDRIVER("clouddriver", new String[]{"spinnaker\\.yml", "clouddriver.*\\.yml"}),
-  DECK("deck", new String[]{"settings\\.js"}),
-  ECHO("echo", new String[]{"spinnaker\\.yml", "echo.*\\.yml"}),
-  FIAT("fiat", new String[]{"spinnaker\\.yml", "fiat.*\\.yml"}),
-  FRONT50("front50", new String[]{"spinnaker\\.yml", "front50.*\\.yml"}),
-  GATE("gate", new String[]{"spinnaker\\.yml", "gate.*\\.yml"}),
-  IGOR("igor", new String[]{"spinnaker\\.yml", "igor.*\\.yml"}),
-  ORCA("orca", new String[]{"spinnaker\\.yml", "orca.*\\.yml"}),
-  ROSCO("rosco", new String[]{"spinnaker\\.yml", "rosco.*\\.yml"}),
+  CLOUDDRIVER("clouddriver", new String[]{"spinnaker\\.yml", "clouddriver.*\\.yml"}, true),
+  DECK("deck", new String[]{"settings\\.js"}, true),
+  ECHO("echo", new String[]{"spinnaker\\.yml", "echo.*\\.yml"}, true),
+  FIAT("fiat", new String[]{"spinnaker\\.yml", "fiat.*\\.yml"}, true),
+  FRONT50("front50", new String[]{"spinnaker\\.yml", "front50.*\\.yml"}, true),
+  GATE("gate", new String[]{"spinnaker\\.yml", "gate.*\\.yml"}, true),
+  IGOR("igor", new String[]{"spinnaker\\.yml", "igor.*\\.yml"}, true),
+  ORCA("orca", new String[]{"spinnaker\\.yml", "orca.*\\.yml"}, true),
+  ROSCO("rosco", new String[]{"spinnaker\\.yml", "rosco.*\\.yml"}, true),
   // Non-spinnaker
-  REDIS("redis", new String[]{});
+  REDIS("redis", new String[]{}, false);
 
-  @Getter
-  final String name;
-  final List<Pattern> profilePatterns;
+  @Getter final String name;
+  @Getter final List<Pattern> profilePatterns;
+  @Getter final boolean spinnakerInternal;
 
-  SpinnakerArtifact(String name, String[] profilePatterns) {
+  SpinnakerArtifact(String name, String[] profilePatterns, boolean spinnakerInternal) {
     this.name = name;
     this.profilePatterns = Arrays.stream(profilePatterns)
         .map(Pattern::compile)
         .collect(Collectors.toList());
+    this.spinnakerInternal = spinnakerInternal;
   }
 
   public List<String> profilePaths(File[] allProfiles) {

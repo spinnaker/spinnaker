@@ -12,11 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.job.v1;
+package com.netflix.spinnaker.halyard.core.job.v1;
 
-import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.State;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Map;
@@ -38,7 +38,7 @@ public abstract class JobExecutor {
   public JobStatus backoffWait(String jobId, long minWaitMillis, long maxWaitMillis) {
     JobStatus result = updateJob(jobId);
     long waitTime = minWaitMillis;
-    while (result == null || result.getState() == State.RUNNING) {
+    while (result == null || result.getState() == JobStatus.State.RUNNING) {
       try {
         Thread.sleep(waitTime);
       } catch (InterruptedException ignored) {

@@ -16,8 +16,14 @@
 
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
+import com.amazonaws.util.StringUtils;
+import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.EndpointFactory;
@@ -28,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -53,6 +60,9 @@ public class DeployService {
   @Autowired
   String spinnakerOutputPath;
 
+  @Autowired
+  HalconfigDirectoryStructure halconfigDirectoryStructure;
+
   public String deploySpinnakerPlan(String deploymentName) {
     // TODO(lwander) https://github.com/spinnaker/halyard/issues/141
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
@@ -68,7 +78,7 @@ public class DeployService {
     return result.toString();
   }
 
-  public void deploySpinnaker(String deploymentName) {
+  public Deployment.DeployResult deploySpinnaker(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     GenerateResult generateResult = generateService.generateConfig(deploymentName);
     Deployment deployment = deploymentFactory.create(deploymentConfiguration, generateResult);
@@ -80,6 +90,26 @@ public class DeployService {
 
     generateService.atomicWrite(path, generateService.yamlToString(deployment.getEndpoints()));
 
-    deployment.deploy();
+    Deployment.DeployResult result = deployment.deploy();
+
+    if (!StringUtils.isNullOrEmpty(result.getPostInstallScript())) {
+      Path installPath = halconfigDirectoryStructure.getInstallScriptPath(deploymentName);
+      AtomicFileWriter writer = null;
+      try {
+        writer = new AtomicFileWriter(installPath);
+        writer.write(result.getPostInstallScript());
+        writer.commit();
+        result.setScriptPath(installPath.toString());
+        installPath.toFile().setExecutable(true);
+      } catch (IOException e) {
+        throw new HalException(new ConfigProblemBuilder(Problem.Severity.FATAL, "Unable to write post-install script: " + e.getMessage()).build());
+      } finally {
+        if (writer != null) {
+          writer.close();
+        }
+      }
+    }
+
+    return result;
   }
 }

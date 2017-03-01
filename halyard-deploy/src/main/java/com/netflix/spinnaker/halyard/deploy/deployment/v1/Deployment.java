@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.ServiceFactory;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -49,5 +51,15 @@ abstract public class Deployment {
    * Deploy a fresh install of Spinnaker. This will fail if Spinnaker is already
    * running.
    */
-  abstract public void deploy();
+  abstract public DeployResult deploy();
+
+  @Data
+  public static class DeployResult {
+    @JsonIgnore
+    String postInstallScript;
+    String scriptDescription;
+    String scriptPath;
+
+    String postInstallMessage;
+  }
 }

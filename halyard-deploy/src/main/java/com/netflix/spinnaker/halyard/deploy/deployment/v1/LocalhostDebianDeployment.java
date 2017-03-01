@@ -16,17 +16,16 @@
 
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
-import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LocalhostDebianDeployment extends Deployment {
   final DeploymentDetails deploymentDetails;
@@ -61,27 +60,53 @@ public class LocalhostDebianDeployment extends Deployment {
   }
 
   @Override
-  public void deploy() {
-    DaemonTaskHandler.newStage("Generating apt-preferences file");
-    String pinFormat = "Package: spinnaker-%s\n"
-        + "Pin: version %s\n"
-        + "Pin-Priority: 1001\n";
+  public DeployResult deploy() {
+    DaemonTaskHandler.newStage("Generating install file for Spinnaker debians");
 
-    AtomicFileWriter[] fileWriter = new AtomicFileWriter[1];
-    deploymentDetails.getGenerateResult().getArtifactVersions().forEach((k, v) -> {
-      try {
-        DaemonTaskHandler.log("Pinning " + k.getName() + " version to " + v);
-        fileWriter[0] = new AtomicFileWriter("/etc/apt/preferences.d/pin-spin-" + k.getName());
-        fileWriter[0].write(String.format(pinFormat, k.getName(), v));
-        fileWriter[0].commit();
-      } catch (IOException e) {
-        throw new HalException(new ConfigProblemBuilder(Severity.ERROR, "Failed to write debian pin file: " + e).build());
-      } finally {
-        if (fileWriter[0] != null) {
-          fileWriter[0].close();
-          fileWriter[0] = null;
-        }
+    String pinFiles = "";
+    String artifacts = "";
+
+    DaemonTaskHandler.log("Collecting desired Spinnaker artifact versions");
+    for (SpinnakerArtifact artifact : SpinnakerArtifact.values()) {
+      if (!artifact.isSpinnakerInternal()) {
+        continue;
       }
-    });
+
+      JarResource pinFile = new JarResource("/debian/pin.sh");
+      Map<String, String> bindings = new HashMap<>();
+      String artifactName = artifact.getName();
+
+      bindings.put("artifact", artifactName);
+      bindings.put("version", deploymentDetails.getGenerateResult().getArtifactVersions().get(artifact));
+      pinFiles += pinFile.setBindings(bindings).toString();
+
+      artifacts += "\"" + artifactName + "\" ";
+    }
+
+    DaemonTaskHandler.log("Writing upstart and apt-preferences entries");
+
+    JarResource etcInitResource = new JarResource("/debian/init.sh");
+    Map<String, String> bindings = new HashMap<>();
+    bindings.put("spinnaker-artifacts", artifacts);
+    String etcInit = etcInitResource.setBindings(bindings).toString();
+
+    DaemonTaskHandler.log("Writing installation file");
+    JarResource installScript = new JarResource("/debian/install.sh");
+    bindings = new HashMap<>();
+    bindings.put("pin-files", pinFiles);
+    bindings.put("spinnaker-artifacts", artifacts);
+    bindings.put("install-redis", "true");
+    bindings.put("install-spinnaker", "true");
+    bindings.put("etc-init", etcInit);
+    bindings.put("packer-version", "0.12.2"); // TODO(lwander) get this from the BOM dependencies
+
+    DeployResult result = new DeployResult();
+    result.setPostInstallScript(installScript.setBindings(bindings).toString());
+    result.setScriptDescription("Run this script on any machine you want to install Spinnaker on.");
+    result.setPostInstallMessage("Halyard has generated an install script for you to run as "
+        + "root on the machine the Halyard daemon is on. Halyard will not run this install script itself "
+        + "since it does not have the necessary permissions to do so.");
+
+    return result;
   }
 }

@@ -12,12 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.job.v1;
+package com.netflix.spinnaker.halyard.core.job.v1;
 
-import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.Result;
-import com.netflix.spinnaker.halyard.deploy.job.v1.JobStatus.State;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -158,20 +157,20 @@ public class JobExecutorLocal extends JobExecutor {
       jobStatus.setStdErr(new String(stdErrStream.toByteArray()));
 
       if (resultHandler.hasResult()) {
-        jobStatus.setState(State.COMPLETED);
+        jobStatus.setState(JobStatus.State.COMPLETED);
 
         int exitValue = resultHandler.getExitValue();
         log.info(jobId + " has terminated with exit code " + exitValue);
 
         if (exitValue == 0) {
-          jobStatus.setResult(Result.SUCCESS);
+          jobStatus.setResult(JobStatus.Result.SUCCESS);
         } else {
-          jobStatus.setResult(Result.FAILURE);
+          jobStatus.setResult(JobStatus.Result.FAILURE);
         }
 
         jobIdToHandlerMap.remove(jobId);
       } else {
-        jobStatus.setState(State.RUNNING);
+        jobStatus.setState(JobStatus.State.RUNNING);
       }
 
       return jobStatus;

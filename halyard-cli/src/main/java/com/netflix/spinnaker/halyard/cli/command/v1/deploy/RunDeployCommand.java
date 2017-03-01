@@ -17,11 +17,15 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.deploy;
 
+import com.amazonaws.util.StringUtils;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.ui.v1.*;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import lombok.AccessLevel;
 import lombok.Getter;
+import org.fusesource.jansi.Ansi;
 
 @Parameters()
 public class RunDeployCommand extends NestableCommand {
@@ -35,6 +39,20 @@ public class RunDeployCommand extends NestableCommand {
   protected void executeThis() {
     String deploymentName = Daemon.getCurrentDeployment();
 
-    Daemon.deployDeployment(deploymentName, false);
+    Deployment.DeployResult result = Daemon.deployDeployment(deploymentName, false);
+    AnsiUi.success("Installation completed.\n");
+    AnsiStoryBuilder storyBuilder = new AnsiStoryBuilder();
+    AnsiParagraphBuilder paragraphBuilder = storyBuilder.addParagraph();
+    paragraphBuilder.addSnippet(result.getPostInstallMessage());
+    String scriptPath = result.getScriptPath();
+    if (!StringUtils.isNullOrEmpty(scriptPath)) {
+      storyBuilder.addNewline();
+      paragraphBuilder = storyBuilder.addParagraph();
+      paragraphBuilder.addSnippet("Run the following command: ");
+      paragraphBuilder = storyBuilder.addParagraph();
+      paragraphBuilder.addSnippet("sudo " + scriptPath).addStyle(AnsiStyle.BOLD);
+    }
+
+    AnsiPrinter.print(storyBuilder.toString());
   }
 }

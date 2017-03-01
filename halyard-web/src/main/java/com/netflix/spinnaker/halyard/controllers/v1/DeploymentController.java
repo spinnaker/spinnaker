@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.services.v1.DeployService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,16 +96,13 @@ public class DeploymentController {
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Void> deploy(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Deployment.DeployResult> deploy(@PathVariable String deploymentName,
     @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
     @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+    StaticRequestBuilder<Deployment.DeployResult> builder = new StaticRequestBuilder<>();
     builder.setSeverity(severity);
 
-    builder.setBuildResponse(() -> {
-      deployService.deploySpinnaker(deploymentName);
-      return null;
-    });
+    builder.setBuildResponse(() -> deployService.deploySpinnaker(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));

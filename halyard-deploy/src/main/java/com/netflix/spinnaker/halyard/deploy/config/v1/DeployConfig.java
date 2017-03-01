@@ -16,14 +16,10 @@
 
 package com.netflix.spinnaker.halyard.deploy.config.v1;
 
-import com.netflix.spinnaker.halyard.deploy.job.v1.JobExecutor;
-import com.netflix.spinnaker.halyard.deploy.job.v1.JobExecutorLocal;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
+import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Component
 public class DeployConfig {

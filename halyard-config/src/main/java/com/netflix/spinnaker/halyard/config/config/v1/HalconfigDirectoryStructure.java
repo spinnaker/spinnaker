@@ -36,6 +36,12 @@ public class HalconfigDirectoryStructure {
     return ensureRelativeHalDirectory(deploymentName, "profiles");
   }
 
+  public Path getInstallScriptPath(String deploymentName) {
+    Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
+    ensureDirectory(halconfigPath);
+    return new File(halconfigPath.toFile(), "install.sh").toPath();
+  }
+
   public Path getHistoryPath(String deploymentName) {
     return ensureRelativeHalDirectory(deploymentName, "history");
   }
