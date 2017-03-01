@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationLauncher
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineValidator
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -201,6 +202,13 @@ class OperationsController {
     return [message: e.message, status: HttpStatus.BAD_REQUEST]
   }
 
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(PipelineValidator.PipelineValidationFailed)
+  Map disabledPipelineHandler(PipelineValidator.PipelineValidationFailed e) {
+    return [message: e.message, status: HttpStatus.BAD_REQUEST]
+  }
+
+  @Deprecated
   static class DisabledPipelineException extends RuntimeException {
     DisabledPipelineException(String msg) {
       super(msg)
