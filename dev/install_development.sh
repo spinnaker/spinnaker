@@ -70,3 +70,6 @@ fi
 
 # Install google command-line tool (for convenience)
 # in the bootstrap_dev.sh because it typically is not installed as root.
+
+# Install Halyard (https://github.com/spinnaker/halyard)
+curl -o - https://raw.githubusercontent.com/spinnaker/halyard/master/InstallHalyard.sh | sudo bash
