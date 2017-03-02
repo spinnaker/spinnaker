@@ -90,7 +90,8 @@ class Refresher(object):
 
   __OPTIONAL_REPOSITORIES = [
       SourceRepository('citest', 'google'),
-      SourceRepository('spinnaker-monitoring', 'spinnaker')]
+      SourceRepository('spinnaker-monitoring', 'spinnaker'),
+      SourceRepository('halyard', 'spinnaker')]
 
   __REQUIRED_REPOSITORIES = [
       SourceRepository('spinnaker', 'spinnaker'),
