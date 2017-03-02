@@ -43,7 +43,7 @@ import org.springframework.validation.Errors
 import java.util.regex.Pattern
 
 class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
-  private static final Pattern ALB_ARN_PATTERN = Pattern.compile(/^arn:aws:elasticloadbalancing:[^:]+:[^:]+:loadbalancer\/app\/([^\/]+)\/.+$/)
+  private static final Pattern ALB_ARN_PATTERN = Pattern.compile(/^arn:aws(?:-cn)?:elasticloadbalancing:[^:]+:[^:]+:loadbalancer\/app\/([^\/]+)\/.+$/)
   private static final String BASE_PHASE = "COPY_LAST_ASG"
 
   private static Task getTask() {

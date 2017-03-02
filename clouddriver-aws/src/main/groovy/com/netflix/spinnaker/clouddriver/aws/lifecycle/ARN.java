@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 
 class ARN {
 
-  static final Pattern PATTERN = Pattern.compile("arn:aws:.*:(.*):(\\d+):(.*)");
+  static final Pattern PATTERN = Pattern.compile("arn:aws(?:-cn)?:.*:(.*):(\\d+):(.*)");
 
   String arn;
   String region;

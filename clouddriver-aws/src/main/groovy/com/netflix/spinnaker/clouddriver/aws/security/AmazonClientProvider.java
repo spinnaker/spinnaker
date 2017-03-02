@@ -16,8 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.handlers.RequestHandler2;
+import com.amazonaws.regions.AwsRegionProvider;
+import com.amazonaws.regions.DefaultAwsRegionProviderChain;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
@@ -65,7 +70,23 @@ import java.util.List;
  */
 public class AmazonClientProvider {
 
-  public static final String DEFAULT_REGION = null;
+  public static final String DEFAULT_REGION;
+
+  static {
+    final AwsRegionProvider defaultRegionProvider = new DefaultAwsRegionProviderChain();
+    String region;
+    try {
+      region = defaultRegionProvider.getRegion();
+    } catch (AmazonClientException _e) {
+      region = null;
+    }
+    if (region == null) {
+      final Region currentRegion = Regions.getCurrentRegion();
+      DEFAULT_REGION = currentRegion == null ? null : currentRegion.getName();
+    } else {
+      DEFAULT_REGION = region;
+    }
+  }
 
   private final AwsSdkClientSupplier awsSdkClientSupplier;
   private final ProxyHandlerBuilder proxyHandlerBuilder;

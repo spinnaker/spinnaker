@@ -45,7 +45,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IN
 
 @Slf4j
 class AmazonLoadBalancerV2InstanceStateCachingAgent implements CachingAgent, HealthProvidingCachingAgent {
-  private static final Pattern ALB_ARN_PATTERN = Pattern.compile(/^arn:aws:elasticloadbalancing:[^:]+:[^:]+:loadbalancer\/app\/([^\/]+)\/.+$/)
+  private static final Pattern ALB_ARN_PATTERN = Pattern.compile(/^arn:aws(?:-cn)?:elasticloadbalancing:[^:]+:[^:]+:loadbalancer\/app\/([^\/]+)\/.+$/)
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region

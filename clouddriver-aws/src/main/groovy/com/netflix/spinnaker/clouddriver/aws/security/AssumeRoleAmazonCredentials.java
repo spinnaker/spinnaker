@@ -32,9 +32,13 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     static final String DEFAULT_SESSION_NAME = "Spinnaker";
 
     static AWSCredentialsProvider createSTSCredentialsProvider(AWSCredentialsProvider credentialsProvider, String accountId, String assumeRole, String sessionName) {
+        String assumeRoleValue = Objects.requireNonNull(assumeRole, "assumeRole");
+        if (!assumeRoleValue.startsWith("arn:")) {
+          assumeRoleValue = String.format("arn:aws:iam::%s:%s", Objects.requireNonNull(accountId, "accountId"), assumeRoleValue);
+        }
         return credentialsProvider == null ? null : new NetflixSTSAssumeRoleSessionCredentialsProvider(
           credentialsProvider,
-          String.format("arn:aws:iam::%s:%s", Objects.requireNonNull(accountId, "accountId"), Objects.requireNonNull(assumeRole, "assumeRole")),
+          assumeRoleValue,
           Objects.requireNonNull(sessionName, "sessionName"),
           accountId
         );
