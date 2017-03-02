@@ -45,6 +45,12 @@ class RoscoGoogleConfiguration {
 
   @Bean
   @ConfigurationProperties('google.gce.bakeryDefaults')
+  GCEBakeryDefaults deprecatedGCEBakeryDefaults() {
+    new GCEBakeryDefaults()
+  }
+
+  @Bean
+  @ConfigurationProperties('google.bakeryDefaults')
   GCEBakeryDefaults gceBakeryDefaults() {
     new GCEBakeryDefaults()
   }

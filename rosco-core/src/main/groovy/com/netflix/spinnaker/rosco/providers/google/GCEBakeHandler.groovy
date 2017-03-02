@@ -30,24 +30,44 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created:"
 
+  private static singletonBakeryDefaults = null
+
   ImageNameFactory imageNameFactory = new ImageNameFactory()
+
 
   @Autowired
   RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults
 
   @Autowired
+  @Deprecated // Deprecated for consistency with other providers. See `gceBakeryDefaults`.
+  RoscoGoogleConfiguration.GCEBakeryDefaults deprecatedGCEBakeryDefaults
+
+  @Autowired
   RoscoGoogleConfiguration.GoogleConfigurationProperties googleConfigurationProperties
 
+  public GCEBakeHandler() {
+    singletonBakeryDefaults = null
+  }
+
   @Override
-  def getBakeryDefaults() {
-    return gceBakeryDefaults
+  RoscoGoogleConfiguration.GCEBakeryDefaults getBakeryDefaults() {
+    if (singletonBakeryDefaults == null) {
+      singletonBakeryDefaults = new RoscoGoogleConfiguration.GCEBakeryDefaults()
+      singletonBakeryDefaults.baseImages = (gceBakeryDefaults?.baseImages ?: []) + (deprecatedGCEBakeryDefaults?.baseImages ?: [])
+      singletonBakeryDefaults.network = gceBakeryDefaults?.network ?: deprecatedGCEBakeryDefaults?.network
+      singletonBakeryDefaults.subnetwork = gceBakeryDefaults?.subnetwork ?: deprecatedGCEBakeryDefaults?.subnetwork
+      singletonBakeryDefaults.templateFile = gceBakeryDefaults?.templateFile ?: deprecatedGCEBakeryDefaults?.templateFile
+      singletonBakeryDefaults.zone = gceBakeryDefaults?.zone ?: deprecatedGCEBakeryDefaults?.zone
+      singletonBakeryDefaults.useInternalIp = gceBakeryDefaults?.useInternalIp != null ? gceBakeryDefaults?.useInternalIp : deprecatedGCEBakeryDefaults?.useInternalIp
+    }
+    return singletonBakeryDefaults
   }
 
   @Override
   BakeOptions getBakeOptions() {
     new BakeOptions(
       cloudProvider: BakeRequest.CloudProviderType.gce,
-      baseImages: gceBakeryDefaults?.baseImages?.collect { it.baseImage }
+      baseImages: bakeryDefaults?.baseImages?.collect { it.baseImage }
     )
   }
 
@@ -58,7 +78,7 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
-    def virtualizationSettings = gceBakeryDefaults?.baseImages.find {
+    def virtualizationSettings = bakeryDefaults?.baseImages?.find {
       it.baseImage.id == bakeRequest.base_os
     }?.virtualizationSettings
 
@@ -80,8 +100,8 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
     def parameterMap = [
       gce_project_id  : managedGoogleAccount.project,
-      gce_zone        : gceBakeryDefaults.zone,
-      gce_network     : gceBakeryDefaults.network,
+      gce_zone        : bakeryDefaults?.zone,
+      gce_network     : bakeryDefaults?.network,
       gce_target_image: imageName
     ]
 
@@ -97,12 +117,12 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       parameterMap.gce_account_file = managedGoogleAccount.jsonPath
     }
 
-    if (gceBakeryDefaults.subnetwork) {
-      parameterMap.gce_subnetwork = gceBakeryDefaults.subnetwork
+    if (bakeryDefaults?.subnetwork) {
+      parameterMap.gce_subnetwork = bakeryDefaults.subnetwork
     }
 
-    if (gceBakeryDefaults.useInternalIp != null) {
-      parameterMap.gce_use_internal_ip = gceBakeryDefaults.useInternalIp
+    if (bakeryDefaults?.useInternalIp != null) {
+      parameterMap.gce_use_internal_ip = bakeryDefaults?.useInternalIp
     }
 
     if (bakeRequest.build_info_url) {
@@ -118,7 +138,7 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   @Override
   String getTemplateFileName(BakeOptions.BaseImage baseImage) {
-    return baseImage.templateFile ?: gceBakeryDefaults.templateFile
+    return baseImage.templateFile ?: bakeryDefaults?.templateFile
   }
 
   @Override
