@@ -27,18 +27,19 @@ class InstanceServiceSpec extends Specification {
     def service = new InstanceService(
         clouddriverService: Mock(ClouddriverService) {
           1 * getInstanceDetails(_, _, _) >> { return [privateIpAddress: "10.0.0.1", map: [:]] }
+          1 * getAccount(_) >> { return [awsAccount: "prod"] }
         },
         providerLookupService: Stub(ProviderLookupService) {
           providerForAccount(_) >> "test"
         },
         insightConfiguration: new InsightConfiguration(
-            instance: [new InsightConfiguration.Link(url: '${account}-${region}-${instanceId}-{DNE}-${privateIpAddress}')]
+            instance: [new InsightConfiguration.Link(url: '${account}-${awsAccount}-${region}-${instanceId}-{DNE}-${privateIpAddress}')]
         )
     )
 
     expect:
     service.getForAccountAndRegion("account", "region", "instanceId").insightActions*.url == [
-        "account-region-instanceId-{DNE}-10.0.0.1"
+        "account-prod-region-instanceId-{DNE}-10.0.0.1"
     ]
   }
 
