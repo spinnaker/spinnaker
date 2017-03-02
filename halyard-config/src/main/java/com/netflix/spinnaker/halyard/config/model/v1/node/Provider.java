@@ -59,7 +59,8 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
     AZURE("azure"),
     DOCKERREGISTRY("dockerRegistry"),
     GOOGLE("google"),
-    KUBERNETES("kubernetes");
+    KUBERNETES("kubernetes"),
+    OPENSTACK("openstack");
 
     @Getter
     String id;

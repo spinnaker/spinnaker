@@ -104,3 +104,40 @@ Here are examples:
 
 Finally, register these subcommands with your provider's command as shown in
 step 3.
+
+## 5. Update settings.js
+ 
+In order to have your settings be picked up in settings.js, you must make two changes.
+
+First, [set up hal](https://github.com/spinnaker/halyard/blob/master/halyard-deploy/src/main/java/com/netflix/spinnaker/halyard/deploy/spinnaker/v1/profile/DeckProfile.java)
+to inject parameters into settings.js. 
+```javascript
+bindings.put("kubernetes.default.account", kubernetesProvider.getPrimaryAccount());
+bindings.put("kubernetes.default.namespace", "default");
+bindings.put("kubernetes.default.proxy", "localhost:8001");
+
+```
+
+
+Then, update the [`settings.js`](https://github.com/spinnaker/deck/blob/master/halconfig/settings.js) 
+that halyard grabs so that it can support injection of the variables you've defined for your provider.
+The key defined above is replaced with the value given.
+ 
+```javascript
+var kubernetes = {
+  defaults: {
+    account: '{%kubernetes.default.account%}',
+    namespace: '{%kubernetes.default.namespace%}',
+    proxy: '{%kubernetes.default.proxy%}'
+  }
+};
+```
+
+Also make sure to set `providers.yourProvider` in the [same file](https://github.com/spinnaker/deck/blob/master/halconfig/settings.js)
+to equal the variable for your provider.
+```javascript
+providers: {
+    ...
+    kubernetes: kubernetes, 
+  },
+```

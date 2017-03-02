@@ -21,9 +21,14 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackProvider;
+import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.resource.v1.StringResource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -31,6 +36,10 @@ import java.util.Map;
 
 @Component
 public class DeckProfile extends SpinnakerProfile {
+
+  @Autowired
+  AccountService accountService;
+
   @Override
   public String commentPrefix() {
     return "// ";
@@ -79,6 +88,14 @@ public class DeckProfile extends SpinnakerProfile {
     AppengineProvider appengineProvider = deploymentConfiguration.getProviders().getAppengine();
     bindings.put("appengine.default.account", appengineProvider.getPrimaryAccount());
     bindings.put("appengine.enabled", Boolean.toString(appengineProvider.getPrimaryAccount() != null));
+
+    // Configure Openstack
+    OpenstackProvider openstackProvider = deploymentConfiguration.getProviders().getOpenstack();
+    bindings.put("openstack.default.account", openstackProvider.getPrimaryAccount());
+    OpenstackAccount openstackAccount = (OpenstackAccount) accountService.getProviderAccount(deploymentConfiguration.getName(), "openstack", openstackProvider.getPrimaryAccount());
+    //Regions in openstack are a comma separated list. Use the first as primary.
+    String firstRegion = StringUtils.substringBefore(openstackAccount.getRegions(), ",");
+    bindings.put("openstack.default.region", firstRegion);
 
     config.setConfigContents(configTemplate.setBindings(bindings).toString());
     return config;

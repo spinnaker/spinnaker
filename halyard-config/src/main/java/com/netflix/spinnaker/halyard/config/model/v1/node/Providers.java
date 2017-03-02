@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvid
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -39,6 +40,7 @@ public class Providers extends Node implements Cloneable {
   DockerRegistryProvider dockerRegistry = new DockerRegistryProvider();
   GoogleProvider google = new GoogleProvider();
   KubernetesProvider kubernetes = new KubernetesProvider();
+  OpenstackProvider openstack = new OpenstackProvider();
 
   @Override
   public String getNodeName() {
