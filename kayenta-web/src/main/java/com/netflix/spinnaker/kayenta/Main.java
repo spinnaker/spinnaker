@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kayenta.config.KayentaConfiguration;
 import com.netflix.spinnaker.kayenta.config.WebConfiguration;
 import com.netflix.spinnaker.kayenta.gcs.config.GcsConfiguration;
 import com.netflix.spinnaker.kayenta.google.config.GoogleConfiguration;
+import com.netflix.spinnaker.kayenta.persistence.config.JedisConfig;
 import com.netflix.spinnaker.kayenta.stackdriver.config.StackdriverConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -36,6 +37,7 @@ import java.util.HashMap;
 @Import({
   GcsConfiguration.class,
   GoogleConfiguration.class,
+  JedisConfig.class,
   KayentaConfiguration.class,
   StackdriverConfiguration.class,
   WebConfiguration.class
