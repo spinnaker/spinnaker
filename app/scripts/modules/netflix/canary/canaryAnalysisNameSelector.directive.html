@@ -1,10 +1,10 @@
-<div>
+<div class="{{ctrl.containerClass}}">
   <ui-select
       required
       ng-if="ctrl.nameList.length > 0"
       name="ctrl.name"
       ng-model="ctrl.model"
-      class="{{ctrl.className}}"
+      class="{{ctrl.className}} visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
       style="width:245px" >
 
     <ui-select-match >
@@ -25,4 +25,7 @@
          ng-model="ctrl.model"
          class="{{ctrl.className}}" />
 
+  <a class="btn btn-link"
+     href="http://canary.prod.netflix.net/ui/queryLists"
+     target="_blank">ACA Configurations &nbsp;<i class="fa fa-external-link"></i></a>
 </div>

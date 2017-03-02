@@ -175,8 +175,8 @@ module.exports = angular
   .run(function (cacheInitializer) {
     cacheInitializer.initialize();
   })
-  .config(function ($logProvider) {
-    $logProvider.debugEnabled(true);
+  .config(function ($logProvider, settings) {
+    $logProvider.debugEnabled(settings.debugEnabled);
   })
   .config(function($uibTooltipProvider) {
     $uibTooltipProvider.options({

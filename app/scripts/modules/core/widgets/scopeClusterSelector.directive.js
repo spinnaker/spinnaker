@@ -12,6 +12,7 @@ module.exports = angular
       bindToController: {
         model: '=',
         clusters: '=',
+        required: '=?',
         toggled: '&?',
       },
       controllerAs: 'vm',
@@ -19,6 +20,7 @@ module.exports = angular
         var vm = this;
 
         vm.toggled = vm.toggled || angular.noop;
+        vm.required = vm.required || false;
 
         let selectedNotInClusterList = () => {
           return !(angular.isArray(vm.clusters) && vm.clusters.length && vm.clusters.some((cluster) => cluster === vm.model));

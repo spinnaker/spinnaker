@@ -280,16 +280,17 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
 
     'pipeline.config.canary.notificationHours': '<p>Hours at which to send a notification (comma separated)</p>',
 
-    'pipeline.config.canary.canaryInterval': '<p>The frequency in minutes at which a canary score is generated.</p>',
+    'pipeline.config.canary.canaryInterval': '<p>The frequency at which a canary score is generated.  The recommended interval is at least 30 minutes.</p>',
 
-    'pipeline.config.canary.successfulScore': '<p>Minimum score the canary must achieve to be considered successful.</p>',
-    'pipeline.config.canary.unhealthyScore': '<p>Lowest score the canary can attain before it is aborted and disabled as a failure.</p>',
-    'pipeline.config.canary.scaleUpCapacity': '<p>Desired capacity after canary and control clusters are scaled up</p>',
-    'pipeline.config.canary.scaleUpDelay': '<p>Minutes to delay before initiating canary scale up</p>',
+    'pipeline.config.canary.successfulScore': '<p>The minimum score the canary must achieve to be considered successful.</p>',
+    'pipeline.config.canary.unhealthyScore': '<p>The lowest score the canary can attain before it is aborted and disabled as a failure.</p>',
+    'pipeline.config.canary.scaleUpCapacity': '<p>The number of instances to which to scale the canary and control clusters.</p>',
+    'pipeline.config.canary.scaleUpDelay': '<p>The number of minutes to wait before scaling up the canary.</p>',
     'pipeline.config.canary.baselineVersion': '<p>The Canary stage will inspect the specified cluster to determine which version to deploy as the baseline in each cluster pair.</p>',
-    'pipeline.config.canary.lookback': '<p>By default ACA will look at the entire duration of the canary for its analysis. Setting a look-back duration limits the number of minutes that the canary will use for it\'s analysis report.<br> <b>Useful for long running canaries that span multiple days.</b></p>',
+    'pipeline.config.canary.lookback': '<p>With an analysis type of <strong>Growing</strong>, ACA will look at the entire duration of the canary for its analysis.</p><p>When choosing <strong>Sliding Lookback</strong>, the canary will use the most recent number of specified minutes for its analysis report (<b>useful for long running canaries that span multiple days</b>).</p>',
     'pipeline.config.canary.continueOnUnhealthy': '<p>Continue the pipeline if the ACA comes back as <b>UNHEALTHY</b></p>',
-    'pipeline.config.canary.watchers': '<p>Comma separated list of emails to receive notifications of canary events.</p>',
+    'pipeline.config.canary.owner': '<p>The recipient email to which the canary report(s) will be sent.</p>',
+    'pipeline.config.canary.watchers': '<p>Comma separated list of additional emails to receive canary reports.  Owners are automatically subscribed to notification emails.</p>',
     'pipeline.config.canary.useGlobalDataset': '<p>Uses the global atlas dataset instead of the region specific dataset for ACA</p>',
 
     'pipeline.config.cron.expression': '<strong>Format (Year is optional)</strong><p><samp>Seconds  Minutes  Hour  DayOfMonth  Month  DayOfWeek  (Year)</samp></p>' +

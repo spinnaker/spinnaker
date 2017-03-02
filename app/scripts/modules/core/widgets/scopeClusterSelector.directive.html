@@ -6,7 +6,7 @@
         ng-model="vm.model"
         ng-change="vm.clusterChanged()"
         ng-if="!vm.freeFormClusterField"
-        >
+        ng-required="vm.required">
 
       <option
           ng-repeat="cluster in vm.clusters"
@@ -21,8 +21,8 @@
         type="text"
         class="form-control input-sm"
         ng-if="vm.freeFormClusterField"
+        ng-required="vm.required"
         ng-model="vm.model" />
-
   </div>
 
   <div class="pull-right">

@@ -5,11 +5,13 @@ let angular = require('angular');
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+import {CANARY_SCORE_CONFIG_COMPONENT} from './canaryScore.component';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', [
   LIST_EXTRACTOR_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
+  CANARY_SCORE_CONFIG_COMPONENT,
   require('core/pipeline/config/pipelineConfigProvider'),
   require('core/config/settings.js'),
 ])
@@ -33,6 +35,84 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
             stageTypes: ['bake', 'findAmi', 'findImage', 'findImageFromTags'],
             message: 'You must have a Bake or Find AMI stage before a canary stage.'
           },
+          {type: 'requiredField', fieldName: 'canary.canaryConfig.lifetimeHours', fieldLabel: 'Canary Lifetime'},
+          {type: 'requiredField', fieldName: 'baseline.account', fieldLabel: 'Account'},
+          {type: 'requiredField', fieldName: 'baseline.cluster', fieldLabel: 'Cluster'},
+          {type: 'requiredField', fieldName: 'clusterPairs', fieldLabel: 'Cluster Pairs'},
+          {type: 'requiredField', fieldName: 'canary.canaryConfig.canaryAnalysisConfig.name', fieldLabel: 'Configuration'},
+          {type: 'custom', fieldLabel: 'Lookback Duration', validate: (_pipeline, stage) => {
+            const cac = stage.canary.canaryConfig.canaryAnalysisConfig,
+              useLookback = cac.useLookback,
+              lookbackMins = cac.lookbackMins;
+            let result = null;
+            if (useLookback && !lookbackMins) {
+              result = 'When an analysis type of <strong>Sliding Lookback</strong> is selected, the lookback duration must be positive.';
+            }
+
+            return result;
+          }},
+          {type: 'custom', fieldLabel: 'Report Frequency', validate: (_pipeline, stage) => {
+            const reportFrequency = stage.canary.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins;
+            let result = null;
+            if (!(reportFrequency > 0)) {
+              result = 'The <strong>Report Frequency</strong> is required and must be positive.';
+            }
+
+            return result;
+          }},
+          {type: 'custom', fieldLabel: 'Warmup Period', validate: (_pipeline, stage) => {
+            const warmup = stage.canary.canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins;
+            let result = null;
+            if (warmup && (isNaN(warmup) || (parseInt(warmup) < 0))) {
+              result = 'When a <strong>Warmup Period</strong> is specified, it must be non-negative.';
+            }
+
+            return result;
+          }},
+          {
+            type: 'custom', fieldLabel: 'Successful Score', validate: (_pipeline, stage) => {
+            const successfulScore = stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore;
+            let result = null;
+            if (!(successfulScore > 1)) {
+              result = 'The <strong>Successful Score</strong> is required, must be positive, and must be greater than the unhealthy score.';
+            }
+
+            return result;
+          }},
+          {
+            type: 'custom', fieldLabel: 'Unhealthy Score', validate: (_pipeline, stage) => {
+            const unhealthyScore = stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore;
+            let result = null;
+            if (!(unhealthyScore > 1)) {
+              result = 'The <strong>Unhealthy Score</strong> is required, must be positive, and must be less than the successful score.';
+            }
+
+            return result;
+          }},
+          {
+            type: 'custom', validate: (_pipeline, stage) => {
+            let result = null;
+            if (stage.scaleUp.enabled) {
+              const delay = stage.scaleUp.delay;
+              if (!(delay > 0)) {
+                result = 'When a canary scale-up is enabled, the delay value is required and must be non-negative.';
+              }
+            }
+
+            return result;
+          }},
+          {
+            type: 'custom', validate: (_pipeline, stage) => {
+            let result = null;
+            if (stage.scaleUp.enabled) {
+              const capacity = stage.scaleUp.capacity;
+              if (!(capacity > 0)) {
+                result = 'When a canary scale-up is enabled, the capacity value must be positive.';
+              }
+            }
+
+            return result;
+          }}
         ],
       });
     }
@@ -42,27 +122,58 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
                                            authenticationService, cloudProviderRegistry,
                                            serverGroupCommandBuilder, titusServerGroupTransformer, awsServerGroupTransformer, accountService, appListExtractorService) {
 
-    var user = authenticationService.getAuthenticatedUser();
+    const user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;
-    $scope.stage.baseline = $scope.stage.baseline || {};
-    $scope.stage.scaleUp = $scope.stage.scaleUp || {};
-    $scope.stage.canary = $scope.stage.canary || {};
-    $scope.stage.canary.owner = $scope.stage.canary.owner || (user.authenticated ? user.name : null);
-    $scope.stage.canary.watchers = $scope.stage.canary.watchers || [];
-    $scope.stage.canary.canaryConfig = $scope.stage.canary.canaryConfig || { name: [$scope.pipeline.name, 'Canary'].join(' - ') };
-    $scope.stage.canary.canaryConfig.canaryAnalysisConfig = $scope.stage.canary.canaryConfig.canaryAnalysisConfig || {};
-    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours || [];
-    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback || false;
-    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins || 0;
-    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset || false;
-    $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary || [
-      {action: 'DISABLE'},
-      {action: 'TERMINATE', delayBeforeActionInMins: 60}
-    ];
+    stage.baseline = stage.baseline || {};
+    stage.scaleUp = stage.scaleUp || {enabled: false};
+
+    stage.canary = stage.canary || {};
+    stage.canary.owner = stage.canary.owner || (user.authenticated ? user.name : null);
+    stage.canary.watchers = stage.canary.watchers || [];
+
+    const cc = stage.canary.canaryConfig;
+    if (cc) {
+      if (cc.actionsForUnhealthyCanary && cc.actionsForUnhealthyCanary.some(action => action.action === 'TERMINATE')) {
+        this.terminateUnhealthyCanaryEnabled = true;
+      }
+
+      if (cc.canaryAnalysisConfig.useLookback) {
+        this.analysisType = 'SLIDING_LOOKBACK';
+      } else {
+        this.analysisType = 'GROWING';
+      }
+    }
 
     let overriddenCloudProvider = 'aws';
-
     if ($scope.stage.isNew) {
+
+      // apply defaults
+      this.terminateUnhealthyCanaryEnabled = true;
+      this.analysisType = 'GROWING';
+      stage.canary.canaryConfig = {
+        name: [$scope.pipeline.name, 'Canary'].join(' - '),
+        lifetimeHours: 3,
+        canaryHealthCheckHandler: {
+          minimumCanaryResultScore: 75
+        },
+        canarySuccessCriteria: {
+          canaryResultScore: 95
+        },
+        actionsForUnhealthyCanary: [
+          {action: 'DISABLE'},
+          {action: 'TERMINATE', delayBeforeActionInMins: 60}
+        ],
+        canaryAnalysisConfig: {
+          combinedCanaryResultStrategy: 'AGGREGATE',
+          notificationHours: [1, 2, 3],
+          canaryAnalysisIntervalMins: 30,
+          useLookback: false,
+          lookbackMins: 0,
+          useGlobalDataset: false,
+          beginCanaryAnalysisAfterMins: 0
+        }
+      };
+
       accountService.listProviders($scope.application).then(function (providers) {
         if (providers.length === 1) {
           overriddenCloudProvider = providers[0];
@@ -80,7 +191,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
         : $scope.stage.canary.watchers
       : '';
 
-
     this.updateWatchersList = () => {
       if (this.recipients.includes('${')) { //check if SpEL; we don't want to convert to array
         $scope.stage.canary.watchers = this.recipients;
@@ -92,28 +202,25 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       }
     };
 
-    this.terminateUnhealthyCanaryEnabled = function (isEnabled) {
-      if (isEnabled === true) {
+    this.toggleTerminateUnhealthyCanary = function () {
+      if (this.terminateUnhealthyCanaryEnabled) {
         $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = [
           {action: 'DISABLE'},
           {action: 'TERMINATE', delayBeforeActionInMins: 60}
         ];
-      } else if (isEnabled === false) {
+      } else {
         $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = [
           {action: 'DISABLE'}
         ];
       }
 
-      return _.find($scope.stage.canary.canaryConfig.actionsForUnhealthyCanary, function (action) {
-        return action.action === 'TERMINATE';
-      }) !== undefined;
+      return $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary
+          .some((action) => action.action === 'TERMINATE');
     };
 
-
     this.terminateUnhealthyCanaryMinutes = function (delayBeforeActionInMins) {
-      var terminateAction = _.find($scope.stage.canary.canaryConfig.actionsForUnhealthyCanary, function (action) {
-        return action.action === 'TERMINATE';
-      });
+      const terminateAction =
+        $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary.find((action) => action.action === 'TERMINATE');
 
       if (delayBeforeActionInMins) {
         terminateAction.delayBeforeActionInMins = delayBeforeActionInMins;
@@ -134,13 +241,16 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
     this.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
 
     this.splitNotificationHours = () => {
-      var hoursField = this.notificationHours || '';
-      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = _.map(hoursField.split(','), function(str) {
-        if (!parseInt(str.trim()).isNaN) {
-          return parseInt(str.trim());
-        }
-        return 0;
-      });
+      const hoursField = this.notificationHours || '';
+      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours =
+        hoursField.split(',').map((item) => {
+          const parsed = parseInt(item.trim());
+          if (!isNaN(parsed)) {
+            return parsed;
+          } else {
+            return 0;
+          }
+        });
     };
 
     this.getRegion = function(cluster) {
@@ -155,6 +265,13 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
         }
       }
       return 'n/a';
+    };
+
+    this.updateLookback = function() {
+      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback = (this.analysisType === 'SLIDING_LOOKBACK');
+      if (this.analysisType !== 'SLIDING_LOOKBACK') {
+        $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins = 0;
+      }
     };
 
     let clusterFilter = (cluster) => {
@@ -291,5 +408,10 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
 
     this.deleteClusterPair = function(index) {
       $scope.stage.clusterPairs.splice(index, 1);
+    };
+
+    this.updateScores = (successfulScore, unhealthyScore) => {
+      $scope.stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore = successfulScore;
+      $scope.stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore = unhealthyScore;
     };
   });
