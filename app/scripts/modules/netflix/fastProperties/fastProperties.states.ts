@@ -63,7 +63,7 @@ module(FAST_PROPERTY_STATES, [
     views: {
       'detail@../propInsights': {
         templateUrl: require('./view/fastPropertyDetails.html'),
-        controller: 'GlobalFastPropertiesDetailsController',
+        controller: 'FastPropertiesDetailsController',
         controllerAs: 'details'
       }
     },
@@ -129,7 +129,7 @@ module(FAST_PROPERTY_STATES, [
     views: {
       'detail@../data': {
         templateUrl: require('./view/fastPropertyDetails.html'),
-        controller: 'GlobalFastPropertiesDetailsController',
+        controller: 'FastPropertiesDetailsController',
         controllerAs: 'details'
       }
     },

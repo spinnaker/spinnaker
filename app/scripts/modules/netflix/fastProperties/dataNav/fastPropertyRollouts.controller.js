@@ -3,12 +3,12 @@
 import './fpRollout.less';
 
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
-
+import { FAST_PROPERTY_READ_SERVICE } from '../fastProperty.read.service';
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.rollouts.controller', [
-    require('./../fastProperty.read.service.js'),
+    FAST_PROPERTY_READ_SERVICE,
     require('./../fastProperty.write.service.js'),
     require('core/delivery/executionGroup/executionGroup.directive'),
     APPLICATION_READ_SERVICE

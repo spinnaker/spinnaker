@@ -2,6 +2,7 @@ import {flatMap, uniqBy, mergeWith, flatten} from 'lodash';
 import { module } from 'angular';
 
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
+import { FAST_PROPERTY_READ_SERVICE } from '../fastProperty.read.service';
 import { Application } from 'core/application/application.model';
 import {Scope} from '../domain/scope.domain';
 import {IImpactCounts} from '../domain/impactCounts.interface';
@@ -297,7 +298,7 @@ export const FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE = 'spinnaker.netflix.fa
 
 module(FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, [
   APPLICATION_READ_SERVICE,
-  require('../fastProperty.read.service')
+  FAST_PROPERTY_READ_SERVICE
 ])
   .service('fastPropertyScopeSearchCategoryService', FastPropertyScopeCategoryService);
 

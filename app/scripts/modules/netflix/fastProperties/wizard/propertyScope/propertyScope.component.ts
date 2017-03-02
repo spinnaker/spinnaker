@@ -1,5 +1,6 @@
 import { module } from 'angular';
 import { FAST_PROPERTY_SCOPE_SEARCH_COMPONENT } from '../../scope/fastPropertyScopeSearch.component';
+import { FAST_PROPERTY_READ_SERVICE } from '../../fastProperty.read.service';
 import {PropertyCommand} from '../../domain/propertyCommand.model';
 import {Scope} from '../../domain/scope.domain';
 
@@ -33,7 +34,7 @@ export const FAST_PROPERTY_SCOPE_COMPONENT = 'spinnaker.netflix.fastProperty.sco
 
 module(FAST_PROPERTY_SCOPE_COMPONENT, [
   require('core/search/searchResult/searchResult.directive'),
-  require('../../fastProperty.read.service'),
+  FAST_PROPERTY_READ_SERVICE,
   FAST_PROPERTY_SCOPE_SEARCH_COMPONENT
 ])
   .component('fastPropertyScope', new FastPropertyScopeComponent());

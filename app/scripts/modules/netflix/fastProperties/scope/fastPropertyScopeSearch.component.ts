@@ -3,7 +3,7 @@ import './fastPropetyScopeSearch.less';
 import { CATEGORY_BUTTON_LIST_COMPONENT } from './categoryButtonList.component';
 
 import {debounce, uniqWith, isEqual} from 'lodash';
-import { module } from 'angular';
+import { module, IComponentController, IQService} from 'angular';
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import { FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FastPropertyScopeCategoryService } from './fastPropertyScopeSearchCategory.service';
 import {Scope} from '../domain/scope.domain';
@@ -11,8 +11,9 @@ import values = require('lodash/values');
 import {Application} from 'core/application/application.model';
 import {ICluster} from 'core/domain/ICluster';
 import {ServerGroup} from 'core/domain/serverGroup';
+import {FAST_PROPERTY_READ_SERVICE} from '../fastProperty.read.service';
 
-export class FastPropertyScopeSearchComponentController implements ng.IComponentController {
+export class FastPropertyScopeSearchComponentController implements IComponentController {
 
   public query: string;
   public querying = false;
@@ -73,7 +74,7 @@ export class FastPropertyScopeSearchComponentController implements ng.IComponent
       });
   }
 
-  constructor(private $q: ng.IQService,
+  constructor(private $q: IQService,
               infrastructureSearchService: any,
               private accountService: AccountService,
               private fastPropertyScopeSearchCategoryService: FastPropertyScopeCategoryService) {
@@ -237,7 +238,7 @@ export const FAST_PROPERTY_SCOPE_SEARCH_COMPONENT = 'spinnaker.netflix.fastprope
 
 module(FAST_PROPERTY_SCOPE_SEARCH_COMPONENT, [
   require('core/search/infrastructure/infrastructureSearch.service'),
-  require('../fastProperty.read.service'),
+  FAST_PROPERTY_READ_SERVICE,
   ACCOUNT_SERVICE,
   FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE,
   CATEGORY_BUTTON_LIST_COMPONENT,

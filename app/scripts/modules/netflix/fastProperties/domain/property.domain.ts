@@ -1,6 +1,8 @@
 import {IPlatformProperty} from './platformProperty.model';
+import {Scope} from './scope.domain';
 
 export class Property {
+  [key: string]: any;
   public propertyId: string;
   public env = 'prod';
   public sourceOfUpdate = 'spinnaker';
@@ -11,6 +13,9 @@ export class Property {
   public value: string;
   public email: string;
   public cmcTicket: string;
+
+  public appId: string;
+  public scope: Scope;
 
   static build(platformProperty: IPlatformProperty): Property {
     let property = new Property();

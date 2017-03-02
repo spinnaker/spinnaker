@@ -4,11 +4,12 @@ import _ from 'lodash';
 let angular = require('angular');
 
 import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
+import {FAST_PROPERTY_READ_SERVICE} from 'netflix/fastProperties/fastProperty.read.service';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage', [
   AUTHENTICATION_SERVICE,
   require('core/config/settings.js'),
-  require('netflix/fastProperties/fastProperty.read.service.js')
+  FAST_PROPERTY_READ_SERVICE
 ])
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature && settings.feature.netflixMode) {
