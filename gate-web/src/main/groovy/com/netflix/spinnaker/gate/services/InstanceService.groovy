@@ -40,7 +40,8 @@ class InstanceService {
 
   Map getForAccountAndRegion(String account, String region, String instanceId) {
     HystrixFactory.newMapCommand(GROUP, "getInstancesForAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
-      def instanceDetails = clouddriverService.getInstanceDetails(account, region, instanceId)
+      def accountDetails = clouddriverService.getAccount(account)
+      def instanceDetails = clouddriverService.getInstanceDetails(account, region, instanceId) << accountDetails
       def instanceContext = instanceDetails.collectEntries {
         return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
       } as Map<String, String>
