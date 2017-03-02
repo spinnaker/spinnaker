@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.runJobStage
     pipelineConfigProvider.registerStage({
       provides: 'runJob',
       useBaseProvider: true,
-      cloudProvider: 'aws',
+      cloudProvider: 'titus',
       providesFor: ['aws', 'titus'],
       templateUrl: require('./runJobStage.html'),
       executionDetailsUrl: require('./runJobExecutionDetails.html'),

@@ -26,7 +26,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.baseProviderStage
 
     accountService.listProviders($scope.application).then(function (providers) {
       $scope.viewState.loading = false;
-      var availableProviders = _.intersection(providers, _.map(stageProviders, 'cloudProvider'));
+      const availableProviders = [];
+      stageProviders.forEach(sp => {
+        if (sp.cloudProvider && providers.includes(sp.cloudProvider)) {
+          // default to the specified cloud provider if the app supports it
+          availableProviders.push(sp.cloudProvider);
+        } else if (sp.providesFor) {
+          availableProviders.push(...sp.providesFor.filter(p => providers.includes(p)));
+        }
+      });
       if (dockerBakeEnabled) {
         availableProviders.push('docker');
       }
@@ -41,7 +49,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.baseProviderStage
     });
 
     function loadProvider() {
-      var stageProvider = _.find(stageProviders, { cloudProvider: stage.cloudProviderType });
+      const stageProvider = (stageProviders || [])
+        .find(s => s.cloudProvider === stage.cloudProviderType || (s.providesFor || []).includes(stage.cloudProviderType));
       if (stageProvider) {
         $scope.stage.type = stageProvider.key || $scope.stage.type;
         $scope.providerStageDetailsUrl = stageProvider.templateUrl;

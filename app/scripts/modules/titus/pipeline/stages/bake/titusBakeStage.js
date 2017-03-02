@@ -11,7 +11,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.titusBakeSt
       provides: 'bake',
       useBaseProvider: true,
       cloudProvider: 'titus',
-      providesFor: ['titus'],
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       validators: []
