@@ -30,7 +30,7 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created:"
 
-  private static singletonBakeryDefaults = null
+  private static resolvedBakeryDefaults = null
 
   ImageNameFactory imageNameFactory = new ImageNameFactory()
 
@@ -46,21 +46,21 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   RoscoGoogleConfiguration.GoogleConfigurationProperties googleConfigurationProperties
 
   public GCEBakeHandler() {
-    singletonBakeryDefaults = null
+    resolvedBakeryDefaults = null
   }
 
   @Override
   RoscoGoogleConfiguration.GCEBakeryDefaults getBakeryDefaults() {
-    if (singletonBakeryDefaults == null) {
-      singletonBakeryDefaults = new RoscoGoogleConfiguration.GCEBakeryDefaults()
-      singletonBakeryDefaults.baseImages = (gceBakeryDefaults?.baseImages ?: []) + (deprecatedGCEBakeryDefaults?.baseImages ?: [])
-      singletonBakeryDefaults.network = gceBakeryDefaults?.network ?: deprecatedGCEBakeryDefaults?.network
-      singletonBakeryDefaults.subnetwork = gceBakeryDefaults?.subnetwork ?: deprecatedGCEBakeryDefaults?.subnetwork
-      singletonBakeryDefaults.templateFile = gceBakeryDefaults?.templateFile ?: deprecatedGCEBakeryDefaults?.templateFile
-      singletonBakeryDefaults.zone = gceBakeryDefaults?.zone ?: deprecatedGCEBakeryDefaults?.zone
-      singletonBakeryDefaults.useInternalIp = gceBakeryDefaults?.useInternalIp != null ? gceBakeryDefaults?.useInternalIp : deprecatedGCEBakeryDefaults?.useInternalIp
+    if (!resolvedBakeryDefaults) {
+      resolvedBakeryDefaults = new RoscoGoogleConfiguration.GCEBakeryDefaults()
+      resolvedBakeryDefaults.baseImages = (gceBakeryDefaults?.baseImages ?: []) + (deprecatedGCEBakeryDefaults?.baseImages ?: [])
+      resolvedBakeryDefaults.network = gceBakeryDefaults?.network ?: deprecatedGCEBakeryDefaults?.network
+      resolvedBakeryDefaults.subnetwork = gceBakeryDefaults?.subnetwork ?: deprecatedGCEBakeryDefaults?.subnetwork
+      resolvedBakeryDefaults.templateFile = gceBakeryDefaults?.templateFile ?: deprecatedGCEBakeryDefaults?.templateFile
+      resolvedBakeryDefaults.zone = gceBakeryDefaults?.zone ?: deprecatedGCEBakeryDefaults?.zone
+      resolvedBakeryDefaults.useInternalIp = gceBakeryDefaults?.useInternalIp != null ? gceBakeryDefaults?.useInternalIp : deprecatedGCEBakeryDefaults?.useInternalIp
     }
-    return singletonBakeryDefaults
+    return resolvedBakeryDefaults
   }
 
   @Override
