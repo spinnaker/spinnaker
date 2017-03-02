@@ -140,7 +140,7 @@ class BomGenerator(Annotator):
       profile_path [string]: Path to component's yaml configuration file.
     """
     result = run_quick(
-      'hal admin publish profile {0} --bom-path {1} --profile-path {2}'
+      'hal admin publish profile {0} --color false --bom-path {1} --profile-path {2}'
       .format(component, self.__bom_file, profile_path)
     )
     if result.returncode != 0:
