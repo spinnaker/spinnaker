@@ -23,5 +23,5 @@ import org.springframework.stereotype.Component
 @Slf4j
 @Component
 @Deprecated
-class WaitForAllInstancesDownTask extends WaitForAllInstancesNotUpTask {}
+class WaitForAllInstancesDownTask extends WaitForRequiredInstancesDownTask {}
 
