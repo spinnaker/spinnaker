@@ -1,6 +1,6 @@
 'use strict';
 
-import {RENDER_IF_FEATURE} from './renderIfFeature.directive';
+import {RENDER_IF_FEATURE} from './renderIfFeature.component';
 
 let angular = require('angular');
 
