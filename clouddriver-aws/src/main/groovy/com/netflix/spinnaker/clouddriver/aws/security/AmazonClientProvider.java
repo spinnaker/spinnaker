@@ -16,13 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.handlers.RequestHandler2;
-import com.amazonaws.regions.AwsRegionProvider;
-import com.amazonaws.regions.DefaultAwsRegionProviderChain;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.services.autoscaling.AmazonAutoScaling;
@@ -55,6 +50,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AmazonClientInvo
 import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AwsSdkClientSupplier;
 import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.ProxyHandlerBuilder;
 import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.RateLimiterSupplier;
+import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.SpinnakerAwsRegionProvider;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder;
 import org.apache.http.client.HttpClient;
@@ -70,23 +66,15 @@ import java.util.List;
  */
 public class AmazonClientProvider {
 
-  public static final String DEFAULT_REGION;
-
-  static {
-    final AwsRegionProvider defaultRegionProvider = new DefaultAwsRegionProviderChain();
-    String region;
-    try {
-      region = defaultRegionProvider.getRegion();
-    } catch (AmazonClientException _e) {
-      region = null;
-    }
-    if (region == null) {
-      final Region currentRegion = Regions.getCurrentRegion();
-      DEFAULT_REGION = currentRegion == null ? null : currentRegion.getName();
-    } else {
-      DEFAULT_REGION = region;
-    }
-  }
+  /**
+   * This constant (as null) indicates that whatever the current region from the
+   * AWS SDKs perspective should be used.
+   *
+   * The region to use will be resolved dynamically by {@link SpinnakerAwsRegionProvider}
+   * which supports all the standard SDK means of explicitly specifying the current region,
+   * (environment variable, instance profile, instance metadata).
+   */
+  public static final String DEFAULT_REGION = null;
 
   private final AwsSdkClientSupplier awsSdkClientSupplier;
   private final ProxyHandlerBuilder proxyHandlerBuilder;

@@ -65,8 +65,7 @@ class AmazonHealthIndicator implements HealthIndicator {
       } as Set<NetflixAmazonCredentials>
       for (NetflixAmazonCredentials credentials in amazonCredentials) {
         try {
-          def region = AmazonClientProvider.DEFAULT_REGION ?: credentials.getRegions().get(0).name
-          def ec2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
+          def ec2 = amazonClientProvider.getAmazonEC2(credentials, AmazonClientProvider.DEFAULT_REGION, true)
           if (!ec2) {
             throw new AmazonClientException("Could not create Amazon client for ${credentials.name}")
           }
