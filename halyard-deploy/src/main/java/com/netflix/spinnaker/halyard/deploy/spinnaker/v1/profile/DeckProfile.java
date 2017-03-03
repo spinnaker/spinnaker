@@ -92,10 +92,12 @@ public class DeckProfile extends SpinnakerProfile {
     // Configure Openstack
     OpenstackProvider openstackProvider = deploymentConfiguration.getProviders().getOpenstack();
     bindings.put("openstack.default.account", openstackProvider.getPrimaryAccount());
-    OpenstackAccount openstackAccount = (OpenstackAccount) accountService.getProviderAccount(deploymentConfiguration.getName(), "openstack", openstackProvider.getPrimaryAccount());
-    //Regions in openstack are a comma separated list. Use the first as primary.
-    String firstRegion = StringUtils.substringBefore(openstackAccount.getRegions(), ",");
-    bindings.put("openstack.default.region", firstRegion);
+    if (openstackProvider.getPrimaryAccount() != null) {
+      OpenstackAccount openstackAccount = (OpenstackAccount) accountService.getProviderAccount(deploymentConfiguration.getName(), "openstack", openstackProvider.getPrimaryAccount());
+      //Regions in openstack are a comma separated list. Use the first as primary.
+      String firstRegion = StringUtils.substringBefore(openstackAccount.getRegions(), ",");
+      bindings.put("openstack.default.region", firstRegion);
+    }
 
     config.setConfigContents(configTemplate.setBindings(bindings).toString());
     return config;
