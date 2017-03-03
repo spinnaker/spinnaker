@@ -27,12 +27,6 @@ class EnabledPipelineValidatorSpec extends Specification {
   def front50Service = Stub(Front50Service)
   @Subject def validator = new EnabledPipelineValidator(front50Service)
 
-  def pipeline = Pipeline
-    .builder()
-    .withApplication("whatever")
-    .withPipelineConfigId("1337")
-    .build()
-
   def "allows one-off pipeline to run"() {
     given:
     front50Service.getPipelines(pipeline.application) >> []
@@ -42,6 +36,13 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     notThrown(PipelineValidationFailed)
+
+    where:
+    pipeline = Pipeline
+      .builder()
+      .withApplication("whatever")
+      .withPipelineConfigId("1337")
+      .build()
   }
 
   def "allows enabled pipeline to run"() {
@@ -55,6 +56,13 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     notThrown(PipelineValidationFailed)
+
+    where:
+    pipeline = Pipeline
+      .builder()
+      .withApplication("whatever")
+      .withPipelineConfigId("1337")
+      .build()
   }
 
   def "prevents disabled pipeline from running"() {
@@ -68,13 +76,17 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
+
+    where:
+    pipeline = Pipeline
+      .builder()
+      .withApplication("whatever")
+      .withPipelineConfigId("1337")
+      .build()
   }
 
   def "allows enabled strategy to run"() {
     given:
-    pipeline.trigger.parameters = [strategy: true]
-
-    and:
     front50Service.getStrategies(pipeline.application) >> [
       [id: pipeline.pipelineConfigId, application: pipeline.application, name: "whatever", disabled: false]
     ]
@@ -84,13 +96,18 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     notThrown(PipelineValidationFailed)
+
+    where:
+    pipeline = Pipeline
+      .builder()
+      .withApplication("whatever")
+      .withPipelineConfigId("1337")
+      .withTrigger(type: "pipeline", parameters: [strategy: true])
+      .build()
   }
 
   def "prevents disabled strategy from running"() {
     given:
-    pipeline.trigger.parameters = [strategy: true]
-
-    and:
     front50Service.getStrategies(pipeline.application) >> [
       [id: pipeline.pipelineConfigId, application: pipeline.application, name: "whatever", disabled: true]
     ]
@@ -100,6 +117,34 @@ class EnabledPipelineValidatorSpec extends Specification {
 
     then:
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
+
+    where:
+    pipeline = Pipeline
+      .builder()
+      .withApplication("whatever")
+      .withPipelineConfigId("1337")
+      .withTrigger(type: "pipeline", parameters: [strategy: true])
+      .build()
   }
 
+  def "doesn't choke on non-boolean strategy value"() {
+    given:
+    front50Service.getPipelines(pipeline.application) >> [
+      [id: pipeline.pipelineConfigId, application: pipeline.application, name: "whatever", disabled: false]
+    ]
+
+    when:
+    validator.checkRunnable(pipeline)
+
+    then:
+    notThrown(PipelineValidationFailed)
+
+    where:
+    pipeline = Pipeline
+      .builder()
+      .withApplication("whatever")
+      .withPipelineConfigId("1337")
+      .withTrigger(type: "manual", parameters: [strategy: "kthxbye"])
+      .build()
+  }
 }

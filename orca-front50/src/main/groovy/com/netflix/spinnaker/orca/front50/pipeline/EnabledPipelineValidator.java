@@ -50,7 +50,10 @@ public class EnabledPipelineValidator implements PipelineValidator {
   }
 
   private boolean isStrategy(Pipeline pipeline) {
-    return (boolean)((Map<String, Object>)pipeline.getTrigger().getOrDefault("parameters", emptyMap())).getOrDefault("strategy", false);
+    Map<String, Object> trigger = pipeline.getTrigger();
+    Object strategy = ((Map<String, Object>) trigger.getOrDefault("parameters", emptyMap()))
+      .getOrDefault("strategy", false);
+    return "pipeline".equals(trigger.get("type")) && Boolean.TRUE.equals(strategy);
   }
 
   static class PipelineIsDisabled extends PipelineValidationFailed {
