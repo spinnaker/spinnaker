@@ -17,21 +17,23 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1;
 
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.GcsStorageService;
 import com.netflix.spinnaker.front50.model.StorageService;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoogleAccount;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderType.GOOGLE;
 
 @Component
 public class PersistentStorageValidator extends Validator<PersistentStorage> {
@@ -50,15 +52,34 @@ public class PersistentStorageValidator extends Validator<PersistentStorage> {
     }
 
     String deploymentName = n.parentOfType(DeploymentConfiguration.class).getName();
-    GoogleAccount googleAccount;
-    // TODO(lwander) This will need an AWS validation path as well once it's supported: https://github.com/spinnaker/halyard/issues/116
+    StorageService storageService = null;
     try {
-      googleAccount = (GoogleAccount) accountService.getProviderAccount(deploymentName, GOOGLE.getId(), accountName);
+      Account account = accountService.getAnyProviderAccount(deploymentName, accountName);
+
+      if (account instanceof CommonGoogleAccount) {
+        storageService = buildStorageService(ps, n, (CommonGoogleAccount) account);
+      } else if (account instanceof AwsAccount) {
+        storageService = buildStorageService(ps, n, (AwsAccount) account) ;
+      }
     } catch (HalException e) {
       ps.extend(e);
       return;
     }
 
+    if (storageService == null) {
+      throw new HalException(new ConfigProblemBuilder(Severity.FATAL,
+          "You must supply either a GCE, or Appengine account to your persistent storage service").build()
+      );
+    }
+
+    try {
+      storageService.ensureBucketExists();
+    } catch (Exception e) {
+      ps.addProblem(Severity.ERROR, "Failed to ensure the required bucket \"" + n.getBucket() + "\" exists: " + e.getMessage());
+    }
+  }
+
+  private StorageService buildStorageService(ConfigProblemSetBuilder ps, PersistentStorage n, CommonGoogleAccount googleAccount) {
     String jsonPath = googleAccount.getJsonPath();
     StorageService storageService = new GcsStorageService(
         n.getBucket(),
@@ -69,10 +90,10 @@ public class PersistentStorageValidator extends Validator<PersistentStorage> {
         "halyard",
         registry);
 
-    try {
-      storageService.ensureBucketExists();
-    } catch (Exception e) {
-      ps.addProblem(Severity.ERROR, "Failed to ensure the required bucket \"" + n.getBucket() + "\" exists: " + e.getMessage());
-    }
+    return storageService;
+  }
+
+  private StorageService buildStorageService(ConfigProblemSetBuilder ps, PersistentStorage n, AwsAccount awsAccount) {
+    return null;
   }
 }
