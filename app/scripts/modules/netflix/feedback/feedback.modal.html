@@ -5,7 +5,7 @@
       <h3>Talk to Us</h3>
     </div>
     <div class="modal-body">
-      <div ng-if="state !== states.SUBMITTED">
+      <div ng-if="ctrl.state !== ctrl.states.SUBMITTED">
         <p>
           Having a problem or looking for something that's not in Spinnaker? Let us know.
         </p>
@@ -15,31 +15,31 @@
         <div class="form-group">
           <label>Title</label>
           <input type="text" class="form-control"
-                 ng-model="feedback.title"
+                 ng-model="ctrl.feedback.title"
                  placeholder="How can we help you?"
                  required/>
         </div>
         <div class="form-group">
           <label>Description</label>
-          <textarea ng-model="feedback.description"
+          <textarea ng-model="ctrl.feedback.description"
                     class="form-control"
                     rows="4"
                     placeholder="Please be detailed and mention any steps required to reproduce the issue. Or just tell us what feature you want!"
                     required
             ></textarea>
         </div>
-        <div class="form-group" ng-if="!userIsAuthenticated">
+        <div class="form-group" ng-if="!ctrl.userIsAuthenticated">
           <label>Contact Info</label>
           <input type="text"
                  class="form-control"
-                 ng-model="feedback.contact" placeholder="Name or email address"
+                 ng-model="ctrl.feedback.contact" placeholder="Name or email address"
                  required/>
         </div>
         <div class="form-group" ng-if="!form.$valid">
           <p class="warning-text text-right"><strong><span class="glyphicon glyphicon-asterisk"></span> All fields are required.</strong></p>
         </div>
 
-        <div class="alert alert-danger" ng-if="state === states.ERROR">
+        <div class="alert alert-danger" ng-if="ctrl.state === ctrl.states.ERROR">
           <h3>Something went horribly wrong.</h3>
           <p>
             Really sorry - you can try to submit this again, or send us an email at:
@@ -49,20 +49,20 @@
         </div>
       </div>
 
-      <div ng-if="state === states.SUBMITTED">
+      <div ng-if="ctrl.state === ctrl.states.SUBMITTED">
         <h3>Thanks for your feedback!</h3>
         <p>
-          You can follow the progress of your issue <span ng-if="issueId">({{issueId}})</span> <a target=_blank href="{{issueUrl}}">here</a> .
+          You can follow the progress of your issue <span ng-if="ctrl.issueId">({{issueId}})</span> <a target=_blank href="{{ctrl.issueUrl}}">here</a> .
         </p>
       </div>
     </div>
 
     <div class="modal-footer">
       <button class="btn btn-default" ng-click="ctrl.cancel()">{{state === states.EDITING ? 'Cancel' : 'Close'}}</button>
-      <submit-button ng-if="state !== states.SUBMITTED"
+      <submit-button ng-if="ctrl.state !== ctrl.states.SUBMITTED"
                      label="'Submit issue'"
                      is-disabled="!form.$valid"
-                     submitting="state === states.SUBMITTING"
+                     submitting="ctrl.state === ctrl.states.SUBMITTING"
                      on-click="ctrl.submit()"></submit-button>
     </div>
 
