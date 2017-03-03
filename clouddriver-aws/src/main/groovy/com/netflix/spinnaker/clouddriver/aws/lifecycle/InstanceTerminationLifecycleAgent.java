@@ -52,9 +52,10 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Provider;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -124,13 +125,10 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
     AmazonSQS amazonSQS = amazonClientProvider.getAmazonSQS(queueARN.account, queueARN.region);
     AmazonSNS amazonSNS = amazonClientProvider.getAmazonSNS(topicARN.account, topicARN.region);
 
-    List<String> allAccountIds = accountCredentialsProvider.getAll()
-      .stream()
-      .map(AccountCredentials::getAccountId)
-      .filter(a -> a != null)
-      .collect(Collectors.toList());
+    Set<? extends AccountCredentials> accountCredentials = accountCredentialsProvider.getAll();
+    List<String> allAccountIds = getAllAccountIds(accountCredentials);
 
-    this.queueId = ensureQueueExists(amazonSQS, queueARN, topicARN, allAccountIds);
+    this.queueId = ensureQueueExists(amazonSQS, queueARN, topicARN, allAccountIds, getSourceRoleArns(accountCredentials));
     ensureTopicExists(amazonSNS, topicARN, allAccountIds, queueARN);
 
     AtomicInteger messagesProcessed = new AtomicInteger(0);
@@ -222,7 +220,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
       description, task, "handleLifecycleMessage", DiscoveryStatus.Disable, instanceIds
     );
 
-    recordLag(message.time, queueARN.region, message.ec2InstanceId);
+    recordLag(message.time, queueARN.region, message.accountId, message.autoScalingGroupName, message.ec2InstanceId);
   }
 
   private static void deleteMessage(AmazonSQS amazonSQS, String queueUrl, Message message) {
@@ -268,10 +266,10 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
     return new Policy("allow-remote-account-send", Collections.singletonList(statement));
   }
 
-  private static String ensureQueueExists(AmazonSQS amazonSQS, ARN queueARN, ARN topicARN, List<String> allAccounts) {
+  private static String ensureQueueExists(AmazonSQS amazonSQS, ARN queueARN, ARN topicARN, List<String> allAccounts, Set<String> terminatingRoleArns) {
     String queueUrl = amazonSQS.createQueue(queueARN.name).getQueueUrl();
     amazonSQS.setQueueAttributes(
-      queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, topicARN, allAccounts).toJson())
+      queueUrl, Collections.singletonMap("Policy", buildSQSPolicy(queueARN, topicARN, allAccounts, terminatingRoleArns).toJson())
     );
 
     return queueUrl;
@@ -281,7 +279,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
    * This policy allows operators to choose whether or not to have lifecycle hooks to be sent via SNS for fanout, or
    * be sent directly to an SQS queue from the autoscaling group.
    */
-  private static Policy buildSQSPolicy(ARN queue, ARN topic, List<String> allAccounts) {
+  private static Policy buildSQSPolicy(ARN queue, ARN topic, List<String> allAccounts, Set<String> terminatingRoleArns) {
     Statement snsStatement = new Statement(Effect.Allow).withActions(SQSActions.SendMessage);
     snsStatement.setPrincipals(Principal.All);
     snsStatement.setResources(Collections.singletonList(new Resource(queue.arn)));
@@ -289,26 +287,61 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
       new Condition().withType("ArnEquals").withConditionKey("aws:SourceArn").withValues(topic.arn)
     ));
 
-    Statement sqsStatement = new Statement(Effect.Allow).withActions(SQSActions.SendMessage, SQSActions.GetQueueUrl);
-    sqsStatement.setPrincipals(allAccounts.stream().map(Principal::new).collect(Collectors.toSet()));
-    sqsStatement.setResources(Collections.singletonList(new Resource(queue.arn)));
-    sqsStatement.setConditions(Collections.singletonList(
-      new Condition().withType("ArnLike").withConditionKey("aws:SourceArn").withValues("arn:aws:autoscaling:*:*:autoscalingGroup:*:*")
-    ));
+    Set<Principal> allAccountPrincipals = allAccounts.stream().map(Principal::new).collect(Collectors.toSet());
 
-    return new Policy("allow-sns-or-sqs-send", Arrays.asList(snsStatement, sqsStatement));
+    List<Statement> statements = new ArrayList<>(Collections.singletonList(snsStatement));
+    for (String arnMatcher : terminatingRoleArns) {
+      Statement lifecycleStatement = new Statement(Effect.Allow).withActions(SQSActions.SendMessage, SQSActions.GetQueueUrl);
+      lifecycleStatement.setPrincipals(allAccountPrincipals);
+      lifecycleStatement.setResources(Collections.singletonList(new Resource(queue.arn)));
+      lifecycleStatement.setConditions(Collections.singletonList(
+        new Condition().withType("ArnLike").withConditionKey("aws:SourceArn").withValues(arnMatcher)
+      ));
+      statements.add(lifecycleStatement);
+    }
+
+    return new Policy("allow-sns-or-sqs-send", statements);
   }
 
   Id getLagMetricId(String region) {
     return registry.createId("terminationLifecycle.lag", "region", region);
   }
 
-  void recordLag(Date start, String region, String instanceId) {
+  void recordLag(Date start, String region, String account, String serverGroup, String instanceId) {
     if (start != null) {
       Long lag = registry.clock().wallTime() - start.getTime();
-      log.info("Lifecycle message processed (instance: {}, lagSeconds: {})", instanceId, Duration.ofMillis(lag).getSeconds());
+      log.info("Lifecycle message processed (account: {}, serverGroup: {}, instance: {}, lagSeconds: {})", account, serverGroup, instanceId, Duration.ofMillis(lag).getSeconds());
       registry.gauge(getLagMetricId(region), lag);
     }
   }
 
+  private static List<String> getAllAccountIds(Set<? extends AccountCredentials> accountCredentials) {
+    return accountCredentials
+      .stream()
+      .map(AccountCredentials::getAccountId)
+      .filter(a -> a != null)
+      .collect(Collectors.toList());
+  }
+
+  private static <T extends AccountCredentials> Set<String> getSourceRoleArns(Set<T> allCredentials) {
+    Set<String> sourceRoleArns = new HashSet<>();
+    for (T credentials : allCredentials) {
+      if (credentials instanceof NetflixAmazonCredentials) {
+        NetflixAmazonCredentials c = (NetflixAmazonCredentials) credentials;
+        if (c.getLifecycleHooks() != null) {
+          sourceRoleArns.addAll(c.getLifecycleHooks()
+            .stream()
+            .filter(h -> "autoscaling:EC2_INSTANCE_TERMINATING".equals(h.getLifecycleTransition()))
+            .map(h -> convertRoleArnToIamConditionalMatcher(h.getRoleARN()))
+            .collect(Collectors.toSet()));
+        }
+      }
+    }
+    return sourceRoleArns;
+  }
+
+  private static String convertRoleArnToIamConditionalMatcher(String roleArn) {
+    String[] roleName = roleArn.split(":");
+    return "arn:aws:iam::*:" + roleName[roleName.length-1];
+  }
 }
