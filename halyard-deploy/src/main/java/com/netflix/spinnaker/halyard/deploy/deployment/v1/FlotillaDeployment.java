@@ -48,7 +48,7 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
   private AccountDeploymentDetails<T> deploymentDetails;
 
   @Override
-  public DeployResult deploy() {
+  public DeployResult deploy(String spinnakerOutputPath) {
     SpinnakerEndpoints.Services services = getEndpoints().getServices();
     DaemonTaskHandler.newStage("Deploying Spinnaker services and dependencies");
 

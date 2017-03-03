@@ -90,7 +90,7 @@ public class DeployService {
 
     generateService.atomicWrite(path, generateService.yamlToString(deployment.getEndpoints()));
 
-    Deployment.DeployResult result = deployment.deploy();
+    Deployment.DeployResult result = deployment.deploy(spinnakerOutputPath);
 
     if (!StringUtils.isNullOrEmpty(result.getPostInstallScript())) {
       Path installPath = halconfigDirectoryStructure.getInstallScriptPath(deploymentName);

@@ -8,7 +8,6 @@ set -o pipefail
 INSTALL_REDIS="{%install-redis%}"
 INSTALL_SPINNAKER="{%install-spinnaker%}"
 SPINNAKER_ARTIFACTS=({%spinnaker-artifacts%})
-PACKER_VERSION="{%packer-version%}"
 CONFIG_DIR="{%config-dir%}"
 
 REPOSITORY_URL="https://dl.bintray.com/spinnaker-team/spinnakerbuild"
@@ -127,17 +126,6 @@ function install_apache2() {
   service apache2 start
 }
 
-function install_packer() {
-  TEMPDIR=$(mktemp -d installspinnaker.XXXX)
-
-  mkdir $TEMPDIR/packer && pushd $TEMPDIR/packer
-  curl -s -L -O https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip
-  unzip -u -o -q packer_${PACKER_VERSION}_linux_amd64.zip -d /usr/bin
-  popd
-
-  rm -rf $TEMPDIR
-}
-
 echo "Updating apt package lists..."
 
 if [ -n "$INSTALL_REDIS" ]; then
@@ -171,9 +159,5 @@ if [ -n "$INSTALL_SPINNAKER" ]; then
 
   if contains "${SPINNAKER_ARTIFACTS[@]}" "deck"; then
     install_apache2
-  fi
-
-  if contains "${SPINNAKER_ARTIFACTS[@]}" "rosco"; then
-    install_packer
   fi
 fi

@@ -51,7 +51,7 @@ abstract public class Deployment {
    * Deploy a fresh install of Spinnaker. This will fail if Spinnaker is already
    * running.
    */
-  abstract public DeployResult deploy();
+  abstract public DeployResult deploy(String spinnakerOutputPath);
 
   @Data
   public static class DeployResult {

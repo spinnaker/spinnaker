@@ -60,7 +60,7 @@ public class LocalhostDebianDeployment extends Deployment {
   }
 
   @Override
-  public DeployResult deploy() {
+  public DeployResult deploy(String spinnakerOutputPath) {
     DaemonTaskHandler.newStage("Generating install file for Spinnaker debians");
 
     String pinFiles = "";
@@ -87,7 +87,7 @@ public class LocalhostDebianDeployment extends Deployment {
 
     JarResource etcInitResource = new JarResource("/debian/init.sh");
     Map<String, String> bindings = new HashMap<>();
-    bindings.put("spinnaker-artifacts", artifacts);
+    bindings.put("spinnaker-artifacts", artifacts.replace("deck", "apache2"));
     String etcInit = etcInitResource.setBindings(bindings).toString();
 
     DaemonTaskHandler.log("Writing installation file");
@@ -98,7 +98,7 @@ public class LocalhostDebianDeployment extends Deployment {
     bindings.put("install-redis", "true");
     bindings.put("install-spinnaker", "true");
     bindings.put("etc-init", etcInit);
-    bindings.put("packer-version", "0.12.2"); // TODO(lwander) get this from the BOM dependencies
+    bindings.put("config-dir", spinnakerOutputPath);
 
     DeployResult result = new DeployResult();
     result.setPostInstallScript(installScript.setBindings(bindings).toString());
