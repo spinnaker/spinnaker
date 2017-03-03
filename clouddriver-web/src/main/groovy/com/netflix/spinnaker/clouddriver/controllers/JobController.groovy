@@ -54,7 +54,7 @@ class JobController {
 
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")  @ApiOperation(value = "Collect a file from a job", notes = "Collects the file result of a job.")
-  @RequestMapping(value = "/{account}/{location}/{id}/{fileName}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{location}/{id}/{fileName:.+}", method = RequestMethod.GET)
   Map<String, Object> getFileContents(
                        @ApiParam(value = "Application name", required = true) @PathVariable String application,
                        @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
