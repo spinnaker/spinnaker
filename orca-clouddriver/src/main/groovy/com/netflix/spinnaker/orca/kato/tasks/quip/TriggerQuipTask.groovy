@@ -44,7 +44,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
   long instanceVersionSleep = DEFAULT_INSTANCE_VERSION_SLEEP
 
   long backoffPeriod = 10000
-  long timeout = 120000 // 2min
+  long timeout = 600000 // 10min
 
   @Override
   TaskResult execute(Stage stage) {
