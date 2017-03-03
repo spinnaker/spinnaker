@@ -60,7 +60,7 @@ class KubernetesCredentialsSpec extends Specification {
     repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
 
     when:
-    def result = new KubernetesCredentials(adaptorMock, NAMESPACES1, REGISTRIES1, repositoryMock)
+    def result = new KubernetesCredentials(adaptorMock, NAMESPACES1, [], REGISTRIES1, repositoryMock)
 
     then:
     result.getNamespaces() == NAMESPACES1
@@ -77,10 +77,27 @@ class KubernetesCredentialsSpec extends Specification {
     repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
 
     when:
-    def result = new KubernetesCredentials(adaptorMock, null, REGISTRIES2, repositoryMock)
+    def result = new KubernetesCredentials(adaptorMock, null, [], REGISTRIES2, repositoryMock)
 
     then:
     result.getNamespaces() == NAMESPACES2
+    result.dockerRegistries.get(0).namespaces == NAMESPACES2
+  }
+
+  void "should omit kubernetes namespaces"() {
+    setup:
+    KubernetesApiAdaptor adaptorMock = Mock(KubernetesApiAdaptor)
+    adaptorMock.getNamespacesByName() >> NAMESPACES2
+
+    AccountCredentialsRepository repositoryMock = Mock(AccountCredentialsRepository)
+    DockerRegistryNamedAccountCredentials registryAccountMock = mockCredentials(ACCOUNT1)
+    repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
+
+    when:
+    def result = new KubernetesCredentials(adaptorMock, null, NAMESPACES2, REGISTRIES2, repositoryMock)
+
+    then:
+    result.getNamespaces() == []
     result.dockerRegistries.get(0).namespaces == NAMESPACES2
   }
 
@@ -94,7 +111,7 @@ class KubernetesCredentialsSpec extends Specification {
     repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
 
     when:
-    def result = new KubernetesCredentials(adaptorMock, null, REGISTRIES1, repositoryMock)
+    def result = new KubernetesCredentials(adaptorMock, null, [], REGISTRIES1, repositoryMock)
 
     then:
     result.getNamespaces() == NAMESPACES2

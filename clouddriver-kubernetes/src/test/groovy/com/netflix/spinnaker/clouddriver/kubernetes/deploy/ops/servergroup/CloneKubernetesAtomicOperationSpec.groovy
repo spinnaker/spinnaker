@@ -108,7 +108,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
     dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     dockerRegistries = [dockerRegistry]
-    credentials = new KubernetesCredentials(apiMock, [], [], accountCredentialsRepositoryMock)
+    credentials = new KubernetesCredentials(apiMock, [], [], [], accountCredentialsRepositoryMock)
     namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
         .name("name")
         .dockerRegistries(dockerRegistries)

@@ -97,7 +97,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
 
     def dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     def dockerRegistries = [dockerRegistry]
-    def credentials = new KubernetesCredentials(apiMock, NAMESPACES, DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
+    def credentials = new KubernetesCredentials(apiMock, NAMESPACES, [], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
     def namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
         .name(VALID_ACCOUNT)
         .dockerRegistries(dockerRegistries)

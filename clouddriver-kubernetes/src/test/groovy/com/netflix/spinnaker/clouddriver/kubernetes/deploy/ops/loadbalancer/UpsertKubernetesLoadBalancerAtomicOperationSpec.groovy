@@ -65,7 +65,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationSpec extends Specification {
     dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     dockerRegistries = [dockerRegistry]
     accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
-    credentials = new KubernetesCredentials(apiMock, NAMESPACES, [], accountCredentialsRepositoryMock)
+    credentials = new KubernetesCredentials(apiMock, NAMESPACES, [], [], accountCredentialsRepositoryMock)
     namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
         .name("accountName")
         .credentials(credentials)

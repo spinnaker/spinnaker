@@ -34,6 +34,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   final String kubeconfigFile
   final Boolean serviceAccount
   List<String> namespaces
+  List<String> omitNamespaces
   final int cacheThreads
   KubernetesCredentials credentials
   final List<String> requiredGroupMembership
@@ -51,6 +52,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
                                            String kubeconfigFile,
                                            Boolean serviceAccount,
                                            List<String> namespaces,
+                                           List<String> omitNamespaces,
                                            int cacheThreads,
                                            List<LinkedDockerRegistryConfiguration> dockerRegistries,
                                            List<String> requiredGroupMembership,
@@ -65,6 +67,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.kubeconfigFile = kubeconfigFile
     this.serviceAccount = serviceAccount
     this.namespaces = namespaces
+    this.omitNamespaces = omitNamespaces
     this.cacheThreads = cacheThreads
     this.requiredGroupMembership = requiredGroupMembership
     this.dockerRegistries = dockerRegistries
@@ -87,6 +90,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     String kubeconfigFile
     Boolean serviceAccount
     List<String> namespaces
+    List<String> omitNamespaces
     int cacheThreads
     KubernetesCredentials credentials
     List<String> requiredGroupMembership
@@ -153,6 +157,11 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
       return this
     }
 
+    Builder omitNamespaces(List<String> omitNamespaces) {
+      this.omitNamespaces = omitNamespaces
+      return this
+    }
+
     Builder cacheThreads(int cacheThreads) {
       this.cacheThreads = cacheThreads
       return this
@@ -181,6 +190,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
       return new KubernetesCredentials(
           new KubernetesApiAdaptor(name, config),
           namespaces,
+          omitNamespaces,
           dockerRegistries,
           accountCredentialsRepository,
       )
@@ -193,6 +203,10 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
       if (!dockerRegistries || dockerRegistries.size() == 0) {
         throw new IllegalArgumentException("Docker registries for Kubernetes account " + name + " missing.")
       }
+      if (omitNamespaces && namespaces) {
+        throw new IllegalArgumentException("At most one of 'namespaces' and 'omitNamespaces' can be specified")
+      }
+
       kubeconfigFile = kubeconfigFile != null && kubeconfigFile.length() > 0 ?
           kubeconfigFile :
           System.getProperty("user.home") + "/.kube/config"
@@ -211,6 +225,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
           kubeconfigFile,
           serviceAccount,
           namespaces,
+          omitNamespaces,
           cacheThreads,
           dockerRegistries,
           requiredGroupMembership,

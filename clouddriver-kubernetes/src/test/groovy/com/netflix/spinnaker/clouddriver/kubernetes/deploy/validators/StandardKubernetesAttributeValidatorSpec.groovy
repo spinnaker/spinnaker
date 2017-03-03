@@ -61,7 +61,7 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
 
     def dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     def dockerRegistries = [dockerRegistry]
-    credentials = new KubernetesCredentials(apiMock, NAMESPACES, DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
+    credentials = new KubernetesCredentials(apiMock, NAMESPACES, [], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
     def namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
         .name(ACCOUNT_NAME)
         .dockerRegistries(dockerRegistries)

@@ -30,10 +30,12 @@ import org.slf4j.LoggerFactory;
 import javax.validation.ConstraintViolationException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class KubernetesCredentials {
   private final KubernetesApiAdaptor apiAdaptor;
   private final List<String> namespaces;
+  private final List<String> omitNamespaces;
   private final List<LinkedDockerRegistryConfiguration> dockerRegistries;
   private final HashMap<String, Set<String>> imagePullSecrets;
   private final Logger LOG;
@@ -45,10 +47,12 @@ public class KubernetesCredentials {
   // strictly a credential.
   public KubernetesCredentials(KubernetesApiAdaptor apiAdaptor,
                                List<String> namespaces,
+                               List<String> omitNamespaces,
                                List<LinkedDockerRegistryConfiguration> dockerRegistries,
                                AccountCredentialsRepository accountCredentialsRepository) {
     this.apiAdaptor = apiAdaptor;
     this.namespaces = namespaces != null ? namespaces : new ArrayList<>();
+    this.omitNamespaces = omitNamespaces != null ? omitNamespaces : new ArrayList<>();
     this.oldNamespaces = this.namespaces;
     this.dynamicRegistries = new HashSet<>();
     this.dockerRegistries = dockerRegistries != null ? dockerRegistries : new ArrayList<>();
@@ -71,9 +75,11 @@ public class KubernetesCredentials {
       return namespaces;
     } else {
       List<String> addedNamespaces = apiAdaptor.getNamespacesByName();
+      addedNamespaces.removeAll(omitNamespaces);
+
       List<String> resultNamespaces = new ArrayList<>(addedNamespaces);
 
-      // otherwise, find the namespaces that were added, and add docker secrets to them. No need to track deleted
+      // Find the namespaces that were added, and add docker secrets to them. No need to track deleted
       // namespaces since they delete their secrets automatically.
       addedNamespaces.removeAll(oldNamespaces);
       reconfigureRegistries(addedNamespaces, resultNamespaces);

@@ -31,6 +31,7 @@ class KubernetesConfigurationProperties {
     String kubeconfigFile
     Boolean serviceAccount
     List<String> namespaces
+    List<String> omitNamespaces
     int cacheThreads
     List<LinkedDockerRegistryConfiguration> dockerRegistries
     List<String> requiredGroupMembership
