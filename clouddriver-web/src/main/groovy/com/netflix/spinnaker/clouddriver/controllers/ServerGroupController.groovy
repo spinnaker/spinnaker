@@ -143,6 +143,7 @@ class ServerGroupController {
     Set<String> securityGroups
     ServerGroup.InstanceCounts instanceCounts
     Map<String, Object> tags
+    Map providerMetadata
 
     ServerGroupViewModel(ServerGroup serverGroup, Cluster cluster) {
       this.cluster = cluster.name
@@ -171,6 +172,9 @@ class ServerGroupController {
       }
       if (serverGroup.hasProperty("vpcId")) {
         vpcId = serverGroup.vpcId
+      }
+      if (serverGroup.hasProperty("providerMetadata")) {
+        providerMetadata = serverGroup.providerMetadata
       }
     }
   }

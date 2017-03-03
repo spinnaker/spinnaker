@@ -184,6 +184,14 @@ class GoogleServerGroup {
       )
     }
 
+    // Cloud provider-specific metadata that is available from the server group list endpoint.
+    Map getProviderMetadata() {
+      [
+        tags: GoogleServerGroup.this.launchConfig?.instanceTemplate?.properties?.tags?.items,
+        networkName: GoogleServerGroup.this.networkName
+      ]
+    }
+
     static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
       instances.findAll { Instance it -> it.getHealthState() == healthState }
     }
