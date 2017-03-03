@@ -181,13 +181,15 @@ function install_halyard() {
 }
 
 function configure_bash_completion() {
+  local yes
   echo ""
   read -p "Would you like to configure halyard to use bash auto-completion? [Y/N]: " yes
 
   completion_script="/etc/bash_completion.d/hal"
   if [ "$yes" = "y" ] || [ "$yes = "Y" ] || [ "$yes = "yes" ]; then
+    local bashrc
     hal --print-bash-completion | tee $completion_script  > /dev/null
-    read -p "Where is your bash RC? [default $HOME/.bashrc]: " bashrc
+    read -p "Where is your bash RC? [default=$HOME/.bashrc]: " bashrc
     
     if [ -z "$bashrc" ]; then
       bashrc="$HOME/.bashrc"
@@ -197,8 +199,41 @@ function configure_bash_completion() {
       echo "# configure hal auto-complete " >> $bashrc
       echo ". /etc/bash_completion.d/hal" >> $bashrc
     fi
+
+    echo "Bash auto-completion configured."
+    echo "$(tput bold)To use the auto-completion, either restart your shell, or run$(tput sgr0)"
+    echo "$(tput bold). $bashrc$(tput sgr0)"
   fi
   
+}
+
+function configure_halyard_defaults() {
+  local halconfig
+  echo ""
+  read -p "Where would you like to store your halconfig? [default=$HOME/.hal]: " halconfig
+
+  if [ -z "$halconfig" ]; then
+    halconfig="$HOME/.hal"
+  fi
+
+  mkdir -p $halconfig
+  chown spinnaker $halconfig
+
+  mkdir -p /opt/spinnaker/config
+  chown spinnaker /opt/spinnaker/config
+
+  cat > /opt/spinnaker/config/halyard.yml <<EOL
+spinnaker:
+  config:
+    output:
+      directory: ~/.spinnaker
+
+halyard:
+  halconfig:
+    directory: $halconfig
+EOL
+
+  chown spinnaker /opt/spinnaker/config/halyard.yml
 }
 
 process_args "$@"
@@ -223,8 +258,6 @@ fi
 echo "$(tput bold)Installing Halyard...$(tput sgr0)"
 install_halyard
 
-configure_bash_completion
-
 ## Remove
 
 if [ "$homebase" = "" ]; then
@@ -240,10 +273,8 @@ if [ -z "$(getent passwd spinnaker)" ]; then
   useradd --gid spinnaker -m --home-dir $homebase/spinnaker spinnaker
 fi
 
-mkdir -p /opt/spinnaker/config
-chown spinnaker /opt/spinnaker/config
-touch /opt/spinnaker/config/halyard.yml
-chown spinnaker /opt/spinnaker/config/halyard.yml
+configure_halyard_defaults
+configure_bash_completion
 
 rm -rf $TEMPDIR
 

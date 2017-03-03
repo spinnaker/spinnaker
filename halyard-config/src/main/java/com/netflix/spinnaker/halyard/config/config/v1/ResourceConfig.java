@@ -34,12 +34,12 @@ public class ResourceConfig {
    * @return The path with home (~) expanded.
    */
   @Bean
-  String halconfigDirectory(@Value("${halconfig.directory.halconfig:~/.hal}") String path) {
+  String halconfigDirectory(@Value("${halyard.halconfig.directory:~/.hal}") String path) {
     return normalizePath(path);
   }
 
   @Bean
-  String halconfigPath(@Value("${halconfig.directory.halconfig:~/.hal}") String path) {
+  String halconfigPath(@Value("${halyard.halconfig.directory:~/.hal}") String path) {
     return normalizePath(Paths.get(path, "config").toString());
   }
   
