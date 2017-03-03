@@ -3,8 +3,8 @@ dependencies {
     compile spinnaker.dependency('eurekaClient')
     compile spinnaker.dependency('guava')
     compile spinnaker.dependency('slf4jApi')
-    compile 'redis.clients:jedis:2.6.2'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.5.3'
+    compile "redis.clients:jedis:${spinnaker.version('jedis')}"
+    compile "com.fasterxml.jackson.core:jackson-databind:${spinnaker.version('jackson')}"
     testCompile project(':cats:cats-test')
     testCompile spinnaker.dependency('korkJedisTest')
 }
