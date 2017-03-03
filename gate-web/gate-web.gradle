@@ -19,7 +19,6 @@ repositories {
 }
 
 dependencies {
-  compile project(":gate-manual")
   compile project(":gate-core")
 
   spinnaker.group('retrofitDefault')
