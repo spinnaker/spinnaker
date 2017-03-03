@@ -19,11 +19,8 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoogleAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import lombok.Data;
@@ -43,17 +40,20 @@ public class Front50Profile extends SpringProfile {
   @Override
   public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
     PersistentStorage storage = deploymentConfiguration.getPersistentStorage();
-    Account account = accountService.getProviderAccount(deploymentConfiguration.getName(), "google", storage.getAccountName());
+    Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), storage.getAccountName());
     Front50Credentials credentials = new Front50Credentials();
 
-    if (account != null) {
-      credentials.getSpinnaker().setGcs(new Front50Credentials.Spinnaker.GCS(storage, (GoogleAccount) account));
+    if (account == null) {
+      throw new RuntimeException("Validation failure: Account name expected in PersistentStorage configuration.");
+    }
+
+    if (account instanceof CommonGoogleAccount) {
+      credentials.getSpinnaker().setGcs(new Front50Credentials.Spinnaker.GCS(storage, (CommonGoogleAccount) account));
       config.setRequiredFiles(dependentFiles(account));
       config.extendConfig(config.getPrimaryConfigFile(), yamlToString(credentials));
       return config;
     } else {
-      throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL, "No valid account configured for persistent storage.").build());
+      throw new RuntimeException("Validation failure: GCE or Appengine account name expected in PersistentStorage configuration.");
     }
   }
 
@@ -83,7 +83,7 @@ public class Front50Profile extends SpringProfile {
 
         GCS() { }
 
-        GCS(PersistentStorage storage, GoogleAccount account) {
+        GCS(PersistentStorage storage, CommonGoogleAccount account) {
           this.enabled = true;
           this.bucket = storage.getBucket();
           this.rootFolder = storage.getRootFolder();

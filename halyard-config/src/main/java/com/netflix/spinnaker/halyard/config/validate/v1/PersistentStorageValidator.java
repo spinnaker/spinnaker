@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1;
 
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.GcsStorageService;
 import com.netflix.spinnaker.front50.model.StorageService;
