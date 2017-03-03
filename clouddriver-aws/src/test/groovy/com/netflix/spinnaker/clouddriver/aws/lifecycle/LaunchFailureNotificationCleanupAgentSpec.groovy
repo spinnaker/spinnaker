@@ -20,6 +20,7 @@ import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.Activity
 import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesResult
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.model.EntityTags
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -35,11 +36,16 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
 
   def serverGroupTagger = Mock(ServerGroupTagger)
   def amazonAutoScaling = Mock(AmazonAutoScaling)
+  def accountCredentialsProvider = Stub(AccountCredentialsProvider) {
+    getCredentials(_) >> { String name ->
+      TestCredential.named(name)
+    }
+  }
 
   void "should delete launch failure notification tag if server group has no launch failures"() {
     given:
     def agent = new LaunchFailureNotificationCleanupAgent(
-      Mock(AmazonClientProvider), Mock(AccountCredentialsProvider), serverGroupTagger
+      Mock(AmazonClientProvider), accountCredentialsProvider, serverGroupTagger
     ) {
       @Override
       protected boolean hasLaunchFailures(AmazonAutoScaling amazonAutoScaling, EntityTags entityTags) {
@@ -56,12 +62,14 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
       return [
         new EntityTags(id: "1", entityRef: new EntityTags.EntityRef(
           accountId: "account1",
+          account: "test",
           region: "us-west-2",
           entityId: "test-v001",
           attributes: ["hasLaunchFailures": true])
         ),
         new EntityTags(id: "2", entityRef: new EntityTags.EntityRef(
           accountId: "account1",
+          account: "test",
           region: "us-west-2",
           entityId: "test-v002",
           attributes: ["hasLaunchFailures": false])
@@ -74,9 +82,9 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
   @Unroll
   void "should check scaling activities to determine if server group has launch failures"() {
     given:
-    def entityTags = new EntityTags(entityRef: new EntityTags.EntityRef(entityId: "test-v002"))
+    def entityTags = new EntityTags(entityRef: new EntityTags.EntityRef(account: "test", entityId: "test-v002"))
     def agent = new LaunchFailureNotificationCleanupAgent(
-      Mock(AmazonClientProvider), Mock(AccountCredentialsProvider), Mock(ServerGroupTagger)
+      Mock(AmazonClientProvider), accountCredentialsProvider, Mock(ServerGroupTagger)
     )
 
     when:
@@ -99,9 +107,9 @@ class LaunchFailureNotificationCleanupAgentSpec extends Specification {
   @Unroll
   void "should have no launch failures if server group does not exist"() {
     given:
-    def entityTags = new EntityTags(entityRef: new EntityTags.EntityRef(entityId: "test-v002"))
+    def entityTags = new EntityTags(entityRef: new EntityTags.EntityRef(account: "test", entityId: "test-v002"))
     def agent = new LaunchFailureNotificationCleanupAgent(
-      Mock(AmazonClientProvider), Mock(AccountCredentialsProvider), Mock(ServerGroupTagger)
+      Mock(AmazonClientProvider), accountCredentialsProvider, Mock(ServerGroupTagger)
     )
 
     and:

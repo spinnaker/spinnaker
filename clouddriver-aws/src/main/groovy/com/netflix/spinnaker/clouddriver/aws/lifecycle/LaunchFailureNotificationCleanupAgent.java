@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, CustomScheduledAgent {
@@ -91,9 +92,18 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
 
     taggedEntities.forEach(entityTags -> {
       EntityTags.EntityRef entityRef = entityTags.getEntityRef();
+      Optional<NetflixAmazonCredentials> credentials = Optional.ofNullable(
+          accountCredentialsProvider.getCredentials(entityRef.getAccount()))
+          .filter((c) -> c instanceof NetflixAmazonCredentials)
+          .map(NetflixAmazonCredentials.class::cast);
+
+      if (!credentials.isPresent()) {
+        log.warn("No account configuration for {}. Unable to determine if '{}' has launch failures", entityRef.getAccount(), entityTags.getId());
+        return;
+      }
 
       AmazonAutoScaling amazonAutoScaling = amazonClientProvider.getAutoScaling(
-        (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(entityRef.getAccount()),
+        credentials.get(),
         entityRef.getRegion()
       );
 
