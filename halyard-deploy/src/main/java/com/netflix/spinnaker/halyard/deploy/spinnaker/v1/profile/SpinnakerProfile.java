@@ -77,7 +77,7 @@ abstract public class SpinnakerProfile {
     ProfileConfig result = generateFullConfig(getBaseConfig(deploymentConfiguration),
         deploymentConfiguration,
         endpoints);
-    result.setConfigContents(EDIT_WARNING + result.getConfigContents());
+    result.extendConfig(result.getPrimaryConfigFile(), EDIT_WARNING + result.getConfigContents());
     return result;
   }
 
@@ -105,7 +105,8 @@ abstract public class SpinnakerProfile {
       String componentObjectName = ProfileRegistry.profilePath(getArtifact(), componentVersion, getProfileFileName());
 
       return new ProfileConfig()
-          .setConfigContents(IOUtils.toString(profileRegistry.getObjectContents(componentObjectName)))
+          .setPrimaryConfigFile(getProfileFileName())
+          .extendConfig(getProfileFileName(), IOUtils.toString(profileRegistry.getObjectContents(componentObjectName)))
           .setVersion(componentVersion);
     } catch (RetrofitError | IOException e) {
       throw new HalException(

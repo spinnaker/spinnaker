@@ -19,16 +19,24 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ProfileConfig {
-  private String configContents;
   private String version;
+  private String primaryConfigFile;
   private List<String> requiredFiles = new ArrayList<>();
+  private Map<String, String> configContents = new HashMap<>();
 
-  public ProfileConfig appendConfig(String config) {
-    configContents += "\n" + config;
+  public String getPrimaryConfigContents() {
+    return configContents.getOrDefault(primaryConfigFile, "");
+  }
+
+  public ProfileConfig extendConfig(String path, String config) {
+    config = configContents.getOrDefault(path, "") + "\n" + config;
+    configContents.put(path, config);
     return this;
   }
 }

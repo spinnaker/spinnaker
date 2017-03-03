@@ -138,14 +138,17 @@ public class GenerateService {
     FileSystem defaultFileSystem = FileSystems.getDefault();
     Path path;
     for (SpinnakerProfile profile : spinnakerProfiles) {
-      path = defaultFileSystem.getPath(spinnakerOutputPath, profile.getProfileFileName());
       String artifactName = profile.getArtifact().getName();
-      String outputFileName = path.getFileName().toFile().getName();
 
       ProfileConfig config = profile.getFullConfig(deploymentName, endpoints);
-      log.info("Writing " + artifactName + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
-      DaemonTaskHandler.log("Writing profile " + outputFileName);
-      atomicWrite(path, config.getConfigContents());
+      for (Map.Entry<String, String> e : config.getConfigContents().entrySet()) {
+        String outputFileName = e.getKey();
+        path = defaultFileSystem.getPath(spinnakerOutputPath, outputFileName);
+        log.info("Writing " + artifactName + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
+        DaemonTaskHandler.log("Writing profile " + outputFileName);
+
+        atomicWrite(path, e.getValue());
+      }
 
       profileRequirements.put(artifactName, config.getRequiredFiles());
       artifactVersions.put(profile.getArtifact(), config.getVersion());

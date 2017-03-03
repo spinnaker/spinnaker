@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  */
 public enum SpinnakerArtifact {
   CLOUDDRIVER("clouddriver", new String[]{"spinnaker\\.yml", "clouddriver.*\\.yml"}, true),
-  DECK("deck", new String[]{"settings\\.js"}, true),
+  DECK("deck", new String[]{"settings\\.js", "apache2/*"}, true),
   ECHO("echo", new String[]{"spinnaker\\.yml", "echo.*\\.yml"}, true),
   FIAT("fiat", new String[]{"spinnaker\\.yml", "fiat.*\\.yml"}, true),
   FRONT50("front50", new String[]{"spinnaker\\.yml", "front50.*\\.yml"}, true),

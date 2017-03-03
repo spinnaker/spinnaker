@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.Kubern
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackProvider;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
+import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.StringResource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
@@ -57,11 +58,21 @@ public class DeckProfile extends SpinnakerProfile {
 
   @Override
   public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
-    StringResource configTemplate = new StringResource(config.getConfigContents());
+    StringResource configTemplate = new StringResource(config.getPrimaryConfigContents());
+
+    // Configure apache2
+    JarResource spinnakerConfTemplate = new JarResource("/apache2/spinnaker.conf");
+    JarResource portsConfTemplate = new JarResource("/apache2/ports.conf");
+    Map<String, String> bindings = new HashMap<>();
+    bindings.put("deck-host", endpoints.getServices().getDeck().getHost());
+    bindings.put("deck-port", endpoints.getServices().getDeck().getPort() + "");
+
+    config.extendConfig("apache2/spinnaker.conf", spinnakerConfTemplate.setBindings(bindings).toString());
+    config.extendConfig("apache2/ports.conf", portsConfTemplate.setBindings(bindings).toString());
 
     Features features = deploymentConfiguration.getFeatures();
 
-    Map<String, String> bindings = new HashMap<>();
+    bindings = new HashMap<>();
     // Configure global settings
     bindings.put("gate.baseUrl", endpoints.getServices().getGate().getPublicEndpoint());
     bindings.put("timezone", deploymentConfiguration.getTimezone());
@@ -99,7 +110,7 @@ public class DeckProfile extends SpinnakerProfile {
       bindings.put("openstack.default.region", firstRegion);
     }
 
-    config.setConfigContents(configTemplate.setBindings(bindings).toString());
+    config.extendConfig(config.getPrimaryConfigFile(), configTemplate.setBindings(bindings).toString());
     return config;
   }
 }

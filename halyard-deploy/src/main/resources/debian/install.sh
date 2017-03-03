@@ -9,6 +9,7 @@ INSTALL_REDIS="{%install-redis%}"
 INSTALL_SPINNAKER="{%install-spinnaker%}"
 SPINNAKER_ARTIFACTS=({%spinnaker-artifacts%})
 PACKER_VERSION="{%packer-version%}"
+CONFIG_DIR="{%config-dir%}"
 
 REPOSITORY_URL="https://dl.bintray.com/spinnaker-team/spinnakerbuild"
 
@@ -109,12 +110,21 @@ function install_apache2() {
     if [[ $apt_status -eq 0 ]]; then
       echo "apt sources contain apache2; installing using apt-get"
       apt-get -q -y --force-yes install apache2
-      return
+    else
+      echo "Unknown error ($apt_status) occurred while attempting to install Apache2."
+      echo "Cannot continue installation; exiting."
+      exit 1
     fi
-    echo "Unknown error ($apt_status) occurred while attempting to install Apache2."
-    echo "Cannot continue installation; exiting."
-    exit 1
   fi
+
+  service apache2 stop
+  mkdir -p /etc/apache2/sites-available
+  mv ${CONFIG_DIR}/apache2/spinnaker.conf /etc/apache2/sites-available
+  mv ${CONFIG_DIR}/apache2/ports.conf /etc/apache2/sites-available
+  mv ${CONFIG_DIR}/settings.js /opt/deck/html/settings.js
+
+  a2ensite spinnaker
+  service apache2 start
 }
 
 function install_packer() {
@@ -155,6 +165,10 @@ if [ -n "$INSTALL_SPINNAKER" ]; then
 
   {%etc-init%}
 
+  for package in ${SPINNAKER_ARTIFACTS[@]}; do
+    apt-get install -y --force-yes --allow-unauthenticated spinnaker-${package}
+  done
+
   if contains "${SPINNAKER_ARTIFACTS[@]}" "deck"; then
     install_apache2
   fi
@@ -162,8 +176,4 @@ if [ -n "$INSTALL_SPINNAKER" ]; then
   if contains "${SPINNAKER_ARTIFACTS[@]}" "rosco"; then
     install_packer
   fi
-
-  for package in ${SPINNAKER_ARTIFACTS[@]}; do
-    apt-get install -y --force-yes --allow-unauthenticated spinnaker-${package}
-  done
 fi
