@@ -34,7 +34,7 @@ public class ConfigCommand extends NestableCommand {
   private String commandName = "config";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure, validate, and view your halconfig";
+  private String description = "Configure, validate, and view your halconfig.";
 
   ConfigCommand() {
     registerSubcommand(new DeploymentEnvironmentCommand());

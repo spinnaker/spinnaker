@@ -30,7 +30,7 @@ public class DeployCommand extends NestableCommand {
 
   @Getter(AccessLevel.PUBLIC)
   private String description = "Manage the deployment of Spinnaker. This includes where it's deployed,"
-      + " what the infrastructure footprint looks, what the currently running deployment looks like, etc...";
+      + " what the infrastructure footprint looks like, what the currently running deployment looks like, etc...";
 
   public DeployCommand() {
     registerSubcommand(new RunDeployCommand());
