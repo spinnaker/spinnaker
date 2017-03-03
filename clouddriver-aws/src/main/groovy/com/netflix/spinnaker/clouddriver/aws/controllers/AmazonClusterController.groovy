@@ -36,7 +36,7 @@ class AmazonClusterController {
   @Autowired
   AmazonClientProvider amazonClientProvider
 
-  final static int MAX_SCALING_ACTIVITIES = 30
+  final static int MAX_SCALING_ACTIVITIES = 500
 
   @RequestMapping(value = "/scalingActivities", method = RequestMethod.GET)
   ResponseEntity getScalingActivities(@PathVariable String account, @PathVariable String serverGroupName, @RequestParam(value = "region", required = true) String region) {
@@ -50,7 +50,7 @@ class AmazonClusterController {
     List<Activity> scalingActivities = []
     while (scalingActivities.size() < MAX_SCALING_ACTIVITIES) {
       scalingActivities.addAll response.activities
-      if (response.nextToken) {
+      if (response.nextToken && scalingActivities.size() < MAX_SCALING_ACTIVITIES) {
         response = autoScaling.describeScalingActivities(request.withNextToken(response.nextToken))
       } else {
         break
