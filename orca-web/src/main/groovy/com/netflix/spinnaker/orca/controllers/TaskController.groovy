@@ -300,10 +300,10 @@ class TaskController {
   }
 
   @RequestMapping(value = "/executions/activeByInstance", method = RequestMethod.GET)
-  Map<String, Integer> activeExecutionsByInstance() {
+  Map<String, ActiveExecutionTracker.OrcaInstance> activeExecutionsByInstance() {
     activeExecutionTracker
       .activeExecutionsByInstance()
-      .sort { a, b -> b.value <=> a.value }
+      .sort { a, b -> b.value.executions.size() <=> a.value.executions.size() }
   }
 
   private List<Pipeline> filterPipelinesByHistoryCutoff(List<Pipeline> pipelines) {
