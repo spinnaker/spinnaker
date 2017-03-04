@@ -16,17 +16,20 @@
 
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
+import retrofit.RetrofitError;
 
 import java.io.IOException;
+
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
 @Component
 public class VersionsService {
@@ -37,17 +40,45 @@ public class VersionsService {
   Yaml yamlParser;
 
   @Autowired
-  ObjectMapper objectMapper;
+  StrictObjectMapper strictObjectMapper;
+
 
   public Versions getVersions() {
     try {
-      return objectMapper.convertValue(
+      return strictObjectMapper.convertValue(
           yamlParser.load(profileRegistry.getObjectContents("versions.yml")),
           Versions.class
       );
     } catch (IOException e) {
       throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL, "Could not load \"versions.yml\" from config bucket: " + e.getMessage() + ".").build());
+          new ConfigProblemBuilder(FATAL, "Could not load \"versions.yml\" from config bucket: " + e.getMessage() + ".").build());
+    }
+  }
+
+  public BillOfMaterials getBillOfMaterials(String version) {
+    if (version == null || version.isEmpty()) {
+      throw new HalException(
+          new ConfigProblemBuilder(FATAL,
+              "No version specified to load.")
+              .build()
+      );
+    }
+
+    try {
+      String bomName = ProfileRegistry.bomPath(version);
+
+      BillOfMaterials bom = strictObjectMapper.convertValue(
+          yamlParser.load(profileRegistry.getObjectContents(bomName)),
+          BillOfMaterials.class
+      );
+
+      return bom;
+    } catch (RetrofitError | IOException e) {
+      throw new HalException(
+          new ConfigProblemBuilder(FATAL,
+              "Unable to retrieve the Spinnaker bill of materials: " + e.getMessage())
+              .build()
+      );
     }
   }
 

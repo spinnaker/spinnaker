@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.http.*;
 
@@ -257,6 +258,9 @@ public interface DaemonService {
 
   @GET("/v1/versions/latest/")
   DaemonTask<Halconfig, String> getLatest();
+
+  @GET("/v1/versions/bom/{version}")
+  DaemonTask<Halconfig, BillOfMaterials> getBillOfMaterials(@Path("version") String version);
 
   @PUT("/v1/admin/publishProfile/{artifactName}")
   DaemonTask<Halconfig, Void> publishProfile(

@@ -21,8 +21,10 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import com.netflix.spinnaker.halyard.deploy.services.v1.VersionsService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,6 +46,13 @@ public class VersionsController {
   DaemonTask<Halconfig, String> latest() {
     DaemonResponse.StaticRequestBuilder<String> builder = new DaemonResponse.StaticRequestBuilder<>();
     builder.setBuildResponse(() -> versionsService.getLatest());
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/bom/{version:.+}", method = RequestMethod.GET)
+  DaemonTask<Halconfig, BillOfMaterials> bom(@PathVariable String version) {
+    DaemonResponse.StaticRequestBuilder<BillOfMaterials> builder = new DaemonResponse.StaticRequestBuilder<>();
+    builder.setBuildResponse(() -> versionsService.getBillOfMaterials(version));
     return TaskRepository.submitTask(builder::build);
   }
 }

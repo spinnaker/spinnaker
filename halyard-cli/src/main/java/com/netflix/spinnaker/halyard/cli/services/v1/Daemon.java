@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
@@ -179,6 +180,11 @@ public class Daemon {
 
   public static String getLatest() {
     return ResponseUnwrapper.get(getService().getLatest());
+  }
+
+  public static BillOfMaterials getBillOfMaterials(String version) {
+    Object rawBillOfMaterials = ResponseUnwrapper.get(getService().getBillOfMaterials(version));
+    return getObjectMapper().convertValue(rawBillOfMaterials, BillOfMaterials.class);
   }
 
   public static void publishProfile(String bomPath, String artifactName, String profilePath) {

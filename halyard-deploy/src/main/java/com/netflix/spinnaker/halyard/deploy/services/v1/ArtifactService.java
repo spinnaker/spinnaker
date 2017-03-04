@@ -18,7 +18,6 @@ package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper;
-import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
@@ -30,7 +29,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.Writea
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
-import retrofit.RetrofitError;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,9 +39,6 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FAT
 
 @Component
 public class ArtifactService {
-  @Autowired
-  ProfileRegistry profileRegistry;
-
   @Autowired(required = false)
   WriteableProfileRegistry writeableProfileRegistry;
 
@@ -56,33 +51,13 @@ public class ArtifactService {
   @Autowired
   DeploymentService deploymentService;
 
+  @Autowired
+  VersionsService versionsService;
+
   public BillOfMaterials getBillOfMaterials(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     String version = deploymentConfiguration.getVersion();
-    if (version == null || version.isEmpty()) {
-      throw new IllegalConfigException(
-          new ConfigProblemBuilder(FATAL,
-              "In order to load a Spinnaker Component's profile, you must specify a version of Spinnaker in your halconfig.")
-              .build()
-      );
-    }
-
-    try {
-      String bomName = ProfileRegistry.bomPath(version);
-
-      BillOfMaterials bom = strictObjectMapper.convertValue(
-          yaml.load(profileRegistry.getObjectContents(bomName)),
-          BillOfMaterials.class
-      );
-
-      return bom;
-    } catch (RetrofitError | IOException e) {
-      throw new HalException(
-          new ConfigProblemBuilder(FATAL,
-              "Unable to retrieve the Spinnaker bill of materials: " + e.getMessage())
-              .build()
-      );
-    }
+    return versionsService.getBillOfMaterials(version);
   }
 
   public String getArtifactVersion(String deploymentName, SpinnakerArtifact artifact) {

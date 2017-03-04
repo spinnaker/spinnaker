@@ -16,11 +16,43 @@
 
 package com.netflix.spinnaker.halyard.cli.ui.v1;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
+
 import java.util.List;
+import java.util.Map;
 
 public class AnsiFormatUtils {
+  private static Yaml yamlParser = null;
+  private static ObjectMapper objectMapper = null;
+
+  private static Yaml getYamlParser() {
+    if (yamlParser == null) {
+      DumperOptions options = new DumperOptions();
+      options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+      options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
+
+      yamlParser = new Yaml(options);
+    }
+
+    return yamlParser;
+  }
+
+  private  static ObjectMapper getObjectMapper() {
+    if (objectMapper == null) {
+      objectMapper = new ObjectMapper();
+    }
+
+    return objectMapper;
+  }
+
+  public static String formatYaml(Object yaml) {
+    return getYamlParser().dump(getObjectMapper().convertValue(yaml, Map.class));
+  }
+
   public static String format(Account account) {
     AnsiStoryBuilder resultBuilder = new AnsiStoryBuilder();
     AnsiParagraphBuilder paragraph = resultBuilder.addParagraph();
