@@ -337,11 +337,9 @@ export class PipelineGraphController implements ng.IComponentController {
     this.updateGraph();
     if (this.shouldValidate) {
       this.$scope.$watch('$ctrl.pipeline', debounce(() => this.pipelineConfigValidator.validatePipeline(this.pipeline), 300), true);
-    } else {
-      this.$scope.$watch('$ctrl.pipeline', () => this.updateGraph(), true);
     }
     this.$scope.$watch('$ctrl.viewState', () => { this.updateGraph(); }, true);
-    this.$scope.$watch('$ctrl.execution', () => this.updateGraph(), true);
+    this.$scope.$watch('$ctrl.execution.graphStatusHash', () => this.updateGraph());
     this.$(this.$window).bind('resize.pipelineGraph-' + graphId, handleWindowResize);
 
     this.$scope.$on('$destroy', () => {

@@ -310,12 +310,14 @@ describe('Service: executionService', function () {
       let original = {
         id:1,
         stringVal: 'ac',
-        stageSummaries: originalStages.slice()
+        stageSummaries: originalStages.slice(),
+        graphStatusHash: 'COMPLETED:RUNNING:RUNNING:NOT_STARTED',
       };
       let updated = {
         id:1,
         stringVal: 'ab',
-        stageSummaries: updatedStages.slice()
+        stageSummaries: updatedStages.slice(),
+        graphStatusHash: 'COMPLETED:RUNNING:RUNNING:NOT_STARTED',
       };
       let execs = [updated];
       application.executions.data = [original];

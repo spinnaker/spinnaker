@@ -10,10 +10,11 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   require('../../config/settings.js'),
   require('../filter/executionFilter.model.js'),
   require('./executions.transformer.service.js'),
+  require('core/pipeline/config/pipelineConfigProvider.js'),
   API_SERVICE
 ])
   .factory('executionService', function($http, API, $timeout, $q, $log, ExecutionFilterModel, $state,
-                                        settings, appendTransform, executionsTransformer) {
+                                        settings, appendTransform, executionsTransformer, pipelineConfig) {
 
     const activeStatuses = ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED'];
     const runningLimit = 30;
@@ -290,8 +291,19 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
             }
           }
         }
-        current.stringVal = updated.stringVal;
       });
+      current.stringVal = updated.stringVal;
+      current.graphStatusHash = calculateGraphStatusHash(current);
+    }
+
+    function calculateGraphStatusHash(execution) {
+      return (execution.stageSummaries || []).map(stage => {
+        const stageConfig = pipelineConfig.getStageConfig(stage);
+        if (stageConfig && stageConfig.extraLabelLines) {
+          return [stageConfig.extraLabelLines(stage), stage.status].join('-');
+        }
+        return stage.status;
+      }).join(':');
     }
 
     function updateExecution(application, updatedExecution) {
