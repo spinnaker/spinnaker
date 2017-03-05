@@ -57,7 +57,7 @@ class TitusConfiguration {
       if (!account.bastionHost && titusCredentialsConfig.defaultBastionHostTemplate) {
         account.bastionHost = titusCredentialsConfig.defaultBastionHostTemplate.replaceAll(Pattern.quote('{{environment}}'), account.environment)
       }
-      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost, account.registry, account.awsAccount, titusCredentialsConfig.awsVpc, account.discoveryEnabled, account.discovery)
+      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost, account.registry, account.awsAccount, account.awsVpc ?: titusCredentialsConfig.awsVpc, account.discoveryEnabled, account.discovery)
       accounts.add(credentials)
       repository.save(account.name, credentials)
     }
@@ -93,6 +93,7 @@ class TitusConfiguration {
       String awsAccount
       String registry
       List<Region> regions
+      String awsVpc
     }
 
     static class Region {
