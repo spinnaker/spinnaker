@@ -10,6 +10,7 @@ import {HELP_FIELD_COMPONENT} from 'core/help/helpField.component';
 import {STATE_CONFIG_PROVIDER} from 'core/navigation/state.provider';
 import {APPLICATIONS_STATE_PROVIDER} from 'core/application/applications.state.provider';
 import {INFRASTRUCTURE_STATES} from 'core/search/infrastructure/infrastructure.states';
+import {VERSION_CHECK_SERVICE} from 'core/config/versionCheck.service';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -58,7 +59,7 @@ module.exports = angular
     require('./cloudProvider/cloudProviderLabel.directive.js'),
     require('./cloudProvider/serviceDelegate.service.js'),
     require('./cluster/cluster.module.js'),
-    require('./config/versionCheck.service.js'),
+    VERSION_CHECK_SERVICE,
     require('./config/settings.js'),
 
     require('./delivery/delivery.module.js'),
