@@ -94,11 +94,13 @@ function configure(IS_TEST) {
   if (!IS_TEST) {
     config.entry = {
       settings: './settings.js',
-      app: './app/scripts/app.js',
+      app: './app/scripts/app.ts',
       vendor: [
         'jquery', 'angular', 'angular-ui-bootstrap', 'angular-ui-router', 'source-sans-pro',
         'angular-cache', 'angular-marked', 'angular-messages', 'angular-sanitize', 'bootstrap',
-        'clipboard', 'd3', 'jquery-ui', 'moment-timezone', 'rxjs',
+        'clipboard', 'd3', 'jquery-ui', 'moment-timezone', 'rxjs', 'reflect-metadata', 'zone.js',
+        '@angular/platform-browser', '@angular/platform-browser-dynamic', '@angular/core',
+        '@angular/common', '@angular/upgrade/static', 'zone.js/dist/wtf'
       ]
     };
 
