@@ -221,17 +221,21 @@ export class PipelineGraphController implements ng.IComponentController {
     this.$scope.nodes.forEach((column: IPipelineNode[]) => {
       column.forEach((node) => {
         node.children.forEach((child) => {
-          const link: IPipelineLink = {
-            parent: node,
-            child: child,
-            line: this.curvedLink({ source: node, target: child })
-          };
-          this.setLinkClass(link);
-          node.childLinks.push(link);
-          child.parentLinks.push(link);
+          this.linkNodes(child, node);
         });
       });
     });
+  }
+
+  private linkNodes(child: IPipelineNode, parent: IPipelineNode): void {
+    const link: IPipelineLink = {
+      parent: parent,
+      child: child,
+      line: this.curvedLink({ source: parent, target: child })
+    };
+    this.setLinkClass(link);
+    parent.childLinks.push(link);
+    child.parentLinks.push(link);
   }
 
   private applyAllNodes(): void {
@@ -239,7 +243,6 @@ export class PipelineGraphController implements ng.IComponentController {
       highlighted = find(flattened, 'isHighlighted'),
       active = find(flattened, 'isActive'),
       base = filter(flattened, {isActive: false, isHighlighted: false});
-
     this.$scope.allNodes = base;
     if (highlighted) {
       base.push(highlighted);
@@ -263,14 +266,41 @@ export class PipelineGraphController implements ng.IComponentController {
     this.$scope.graphHeight = Math.max(sum(this.$scope.rowHeights) + this.$scope.graphVerticalPadding, this.$scope.minExecutionGraphHeight);
   }
 
-  private updateGraph(): void {
-    this.applyPhasesAndLink(null);
-    this.applyPhaseWidth();
-    this.applyNodeHeights();
-    this.establishRowHeights();
-    this.setNodePositions();
-    this.createLinks();
+  private updateGraph(statesOnly = false): void {
+    if (!statesOnly) {
+      this.applyPhasesAndLink(null);
+      this.applyPhaseWidth();
+      this.applyNodeHeights();
+      this.establishRowHeights();
+      this.setNodePositions();
+      this.createLinks();
+    } else {
+      this.$scope.nodes.forEach((column: IPipelineNode[]) => {
+        column.forEach(node => this.resetLinks(node));
+      });
+    }
     this.applyAllNodes();
+  }
+
+  private resetLinks(node: IPipelineNode): void {
+    if (this.execution) { // executions view
+      node.isActive = this.viewState.activeStageId === node.index && this.viewState.executionId === this.execution.id;
+    } else { // pipeline config view
+      if (node.section === 'triggers') {
+        node.isActive = this.viewState.section === node.section;
+      } else {
+        node.isActive = this.viewState.stageIndex === node.index && this.viewState.section === 'stage'
+      }
+    }
+    node.isHighlighted = false;
+    node.parentLinks.forEach(link => {
+      link.isHighlighted = false;
+      this.setLinkClass(link);
+    });
+    node.childLinks.forEach(link => {
+      link.isHighlighted = false;
+      this.setLinkClass(link);
+    });
   }
 
   public $onInit(): void {
@@ -338,7 +368,7 @@ export class PipelineGraphController implements ng.IComponentController {
     if (this.shouldValidate) {
       this.$scope.$watch('$ctrl.pipeline', debounce(() => this.pipelineConfigValidator.validatePipeline(this.pipeline), 300), true);
     }
-    this.$scope.$watch('$ctrl.viewState', () => { this.updateGraph(); }, true);
+    this.$scope.$watch('$ctrl.viewState', () => { this.updateGraph(true); }, true);
     this.$scope.$watch('$ctrl.execution.graphStatusHash', () => this.updateGraph());
     this.$(this.$window).bind('resize.pipelineGraph-' + graphId, handleWindowResize);
 
