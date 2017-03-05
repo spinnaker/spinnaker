@@ -41,6 +41,7 @@
     "transpiled"
   ],
   "include": [
-    "app/scripts/modules/**/*.ts"
+    "app/scripts/modules/**/*.ts",
+    "node_modules/zone.js/dist/zone.js.d.ts"
   ]
 }

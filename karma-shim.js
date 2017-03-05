@@ -8,8 +8,7 @@ require('angular');
 require('angular-mocks');
 
 // polyfills
-require('core-js/es6');
-// require('core-js/es7/reflect'); //TODO: This blows up the test runner in the current non ng1/ng2 hybrid world.
+require('core-js/client/shim');
 
 // not sure, but angular 2 says these are required
 // there's definitely some overlap with the polyfills
@@ -37,5 +36,4 @@ testContext.keys().forEach(testContext);
 
 const testing = require('@angular/core/testing');
 const browser = require('@angular/platform-browser-dynamic/testing');
-
 testing.TestBed.initTestEnvironment(browser.BrowserDynamicTestingModule, browser.platformBrowserDynamicTesting());

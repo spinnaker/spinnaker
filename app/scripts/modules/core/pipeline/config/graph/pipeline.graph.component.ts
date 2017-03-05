@@ -289,7 +289,7 @@ export class PipelineGraphController implements ng.IComponentController {
       if (node.section === 'triggers') {
         node.isActive = this.viewState.section === node.section;
       } else {
-        node.isActive = this.viewState.stageIndex === node.index && this.viewState.section === 'stage'
+        node.isActive = this.viewState.stageIndex === node.index && this.viewState.section === 'stage';
       }
     }
     node.isHighlighted = false;
