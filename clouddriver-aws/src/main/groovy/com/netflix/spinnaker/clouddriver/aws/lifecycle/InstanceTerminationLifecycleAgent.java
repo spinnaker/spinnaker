@@ -112,7 +112,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
 
   @Override
   public long getPollIntervalMillis() {
-    return TimeUnit.SECONDS.toMillis(30);
+    return TimeUnit.SECONDS.toMillis(properties.getPollIntervalSeconds());
   }
 
   @Override

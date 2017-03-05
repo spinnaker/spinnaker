@@ -73,6 +73,7 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
       topicARN.arn,
       -1,
       -1,
+      -1,
       -1
     ),
     awsEurekaSupportProvider,

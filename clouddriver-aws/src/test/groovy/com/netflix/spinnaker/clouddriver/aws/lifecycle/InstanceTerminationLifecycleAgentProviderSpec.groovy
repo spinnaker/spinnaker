@@ -43,6 +43,7 @@ class InstanceTerminationLifecycleAgentProviderSpec extends Specification {
     'arn:aws:sqs:{{region}}:{{accountId}}:topicName',
     -1,
     -1,
+    -1,
     -1
   )
 

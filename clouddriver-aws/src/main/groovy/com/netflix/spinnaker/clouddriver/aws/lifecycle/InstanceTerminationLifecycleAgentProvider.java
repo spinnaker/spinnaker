@@ -83,7 +83,8 @@ public class InstanceTerminationLifecycleAgentProvider implements AgentProvider 
             .replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
           properties.getMaxMessagesPerCycle(),
           properties.getVisibilityTimeout(),
-          properties.getWaitTimeSeconds()
+          properties.getWaitTimeSeconds(),
+          properties.getPollIntervalSeconds()
         ),
         discoverySupport,
         registry
