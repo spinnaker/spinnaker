@@ -39,7 +39,7 @@ public class RunDeployCommand extends NestableCommand {
   protected void executeThis() {
     String deploymentName = Daemon.getCurrentDeployment();
 
-    Deployment.DeployResult result = Daemon.deployDeployment(deploymentName, false);
+    Deployment.DeployResult result = Daemon.deployDeployment(deploymentName, true);
     AnsiUi.success("Installation completed.\n");
     AnsiStoryBuilder storyBuilder = new AnsiStoryBuilder();
     AnsiParagraphBuilder paragraphBuilder = storyBuilder.addParagraph();
