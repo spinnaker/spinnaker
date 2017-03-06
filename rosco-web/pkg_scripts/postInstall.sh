@@ -13,7 +13,7 @@ fi
 
 install_packer() {
   PACKER_VERSION="0.12.1"
-  local packer_version=$(packer --version)
+  local packer_version=$(/usr/bin/packer --version)
   local packer_status=$?
   if [ $packer_status -ne 0 ] || [ "$packer_version" != "$PACKER_VERSION" ]; then
     TEMPDIR=$(mktemp -d installrosco.XXXX)
