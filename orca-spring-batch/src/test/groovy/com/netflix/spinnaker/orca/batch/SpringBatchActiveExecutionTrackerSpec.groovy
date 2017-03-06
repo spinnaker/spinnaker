@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch
 
 import org.springframework.batch.core.launch.JobOperator
 import org.springframework.batch.core.launch.NoSuchJobException
+import org.springframework.batch.support.PropertiesConverter
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import spock.lang.Specification
@@ -36,19 +37,23 @@ class SpringBatchActiveExecutionTrackerSpec extends Specification {
     [getResource: { -> redis }] as Pool
   )
 
-  def "adds a count for the current instance"() {
+  def "adds details for executions running on the current instance"() {
     given:
     jobOperator.jobNames >> jobs.keySet()
     jobs.each { name, ids ->
       jobOperator.getRunningExecutions(name) >> ids
+      ids.each { id ->
+        jobOperator.getParameters(id) >> PropertiesConverter.propertiesToString([orchestration: id.toString(), application: "app"] as Properties)
+      }
     }
 
     when:
-    tracker.countRunningExecutions()
+    tracker.recordRunningExecutions()
 
     then:
     1 * redis.sadd(KEY_INSTANCES, currentInstance)
-    1 * redis.setex(keyFor(currentInstance), TTL_SECONDS, "$expectedCount")
+    1 * redis.setex(tokenKeyFor(currentInstance), TTL_SECONDS, "$expectedCount")
+    1 * redis.sadd(executionsKeyFor(currentInstance), *_)
 
     where:
     jobs = [job1: [1L, 2L], job2: [3L]]
@@ -60,17 +65,20 @@ class SpringBatchActiveExecutionTrackerSpec extends Specification {
     jobOperator.jobNames >> (validJobs.keySet() + invalidJobName).sort()
     validJobs.each { name, ids ->
       jobOperator.getRunningExecutions(name) >> ids
+      ids.each { id ->
+        jobOperator.getParameters(id) >> PropertiesConverter.propertiesToString([orchestration: id.toString(), application: "app"] as Properties)
+      }
     }
     jobOperator.getRunningExecutions(invalidJobName) >> { String name ->
       throw new NoSuchJobException(name)
     }
 
     when:
-    tracker.countRunningExecutions()
+    tracker.recordRunningExecutions()
 
     then:
     1 * redis.sadd(KEY_INSTANCES, currentInstance)
-    1 * redis.setex(keyFor(currentInstance), TTL_SECONDS, "$expectedCount")
+    1 * redis.setex(tokenKeyFor(currentInstance), TTL_SECONDS, "$expectedCount")
 
     where:
     validJobs = [job1: [1L, 2L], job3: [3L]]
@@ -79,17 +87,17 @@ class SpringBatchActiveExecutionTrackerSpec extends Specification {
   }
 
   @Unroll
-  def "if #condition a count of zero is recorded"() {
+  def "if #condition an empty set of executions is recorded"() {
     given:
     jobOperator.jobNames >> jobs
     jobOperator.getRunningExecutions(_) >> []
 
     when:
-    tracker.countRunningExecutions()
+    tracker.recordRunningExecutions()
 
     then:
     1 * redis.sadd(KEY_INSTANCES, currentInstance)
-    1 * redis.setex(keyFor(currentInstance), TTL_SECONDS, "0")
+    1 * redis.setex(tokenKeyFor(currentInstance), TTL_SECONDS, "0")
 
     where:
     jobs             | condition
@@ -97,20 +105,29 @@ class SpringBatchActiveExecutionTrackerSpec extends Specification {
     ["job1", "job2"] | "no jobs are running"
   }
 
-  def "retrieving count expires instances from the set"() {
+  def "retrieving details expires instances from the set"() {
     given:
     redis.smembers(KEY_INSTANCES) >> ["active1", "active2", "inactive"]
-    redis.get(keyFor("active1")) >> "5"
-    redis.get(keyFor("active2")) >> "3"
-    redis.get(keyFor("inactive")) >> null // key expired and hasn't been updated
+    redis.get(tokenKeyFor("active1")) >> "5"
+    redis.get(tokenKeyFor("active2")) >> "3"
+    redis.get(tokenKeyFor("inactive")) >> null // key expired and hasn't been updated
+    redis.scard(executionsKeyFor("active1")) >> 5
+    redis.scard(executionsKeyFor("active2")) >> 3
+    redis.scard(executionsKeyFor("inactive")) >> 0
+    redis.smembers(executionsKeyFor("active1")) >> ["spintest:pipeline:1", "spintest:pipeline:2", "spintest:pipeline:3", "spintest:pipeline:4", "spintest:pipeline:5"]
+    redis.smembers(executionsKeyFor("active2")) >> ["spintest:pipeline:6", "spintest:pipeline:7", "spintest:pipeline:8"]
+    redis.smembers(executionsKeyFor("inactive")) >> []
 
     when:
     def result = tracker.activeExecutionsByInstance()
 
     then:
-    result["active1"] == 5
-    result["active2"] == 3
-    result["inactive"] == 0
+    result["active1"].count == 5
+    !result["active1"].overdue
+    result["active2"].count == 3
+    !result["active2"].overdue
+    result["inactive"].count == 0
+    result["inactive"].overdue
 
     and:
     1 * redis.srem(KEY_INSTANCES, "inactive")

@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.orca.batch;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.netflix.spinnaker.orca.ActiveExecutionTracker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -30,22 +32,24 @@ import redis.clients.jedis.Jedis;
 import redis.clients.util.Pool;
 import rx.Observable;
 import static java.lang.String.format;
-import static java.util.Collections.singletonMap;
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.Collections.*;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.stream.Collectors.toCollection;
+import static org.springframework.batch.support.PropertiesConverter.stringToProperties;
 
 /**
  * Tracks active executions running on _this_ Orca instance and can return a
- * map with a count of active executions running on all instances.
+ * map with details of active executions running on all instances.
  * <p>
  * Orca instances are assumed to have become inactive if they do not update
- * their count at least every {@link #TTL_SECONDS}.
+ * their executions at least every {@link #TTL_SECONDS}.
  */
 @Component
 @Slf4j
 public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker {
 
   /**
-   * Frequency the tracker updates its count of executions running on _this_
+   * Frequency the tracker updates details of executions running on _this_
    * instance.
    */
   private static final long FREQUENCY_MS = 60_000; // 1 minute
@@ -56,16 +60,21 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
   static final String KEY_INSTANCES = "active_instances";
 
   /**
-   * Redis key template for the count of active executions for a given Orca
-   * instance.
+   * Redis key template for the expiring token set by each Orca instance to
+   * indicate they are active.
    */
-  static final String KEY_PER_INSTANCE = "active_executions:%s";
+  static final String KEY_INSTANCE_TOKEN = "active_executions:%s";
+
+  /**
+   * Redis key template for the set of execution details for each Orca instance.
+   */
+  static final String KEY_INSTANCE_EXECUTIONS = "active_executions:%s:executions";
 
   /**
    * Duration after which an Orca instance is assumed to be inactive if it has
-   * not updated its active execution count.
+   * not updated its active executions.
    */
-  static final int TTL_SECONDS = (int) MINUTES.toSeconds(30);
+  static final int TTL_SECONDS = (int) MILLISECONDS.toSeconds(FREQUENCY_MS * 5);
 
   private final JobOperator jobOperator;
   private final String currentInstance;
@@ -81,9 +90,9 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
   }
 
   /**
-   * @return map of instance ids to count of active executions.
+   * @return map of instance ids to details of active executions.
    */
-  @Override public Map<String, Integer> activeExecutionsByInstance() {
+  @Override public Map<String, OrcaInstance> activeExecutionsByInstance() {
     return Observable
       .from(activeInstances())
       .map(instance ->
@@ -95,16 +104,17 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
   }
 
   /**
-   * Records the count of active executions running on _this_ instance.
+   * Records the details of active executions running on _this_ instance.
    */
   @Scheduled(fixedDelay = FREQUENCY_MS)
-  public void countRunningExecutions() {
+  public void recordRunningExecutions() {
     log.debug("Checking for running executions");
     Observable
       .from(jobOperator.getJobNames())
-      .map(this::runningExecutionCount)
-      .reduce(0, (a, b) -> a + b)
-      .subscribe(this::recordCount);
+      .map(this::runningExecutions)
+      .reduce(Sets::union)
+      .onErrorResumeNext(Observable.just(emptySet()))
+      .subscribe(this::recordExecutions);
   }
 
   /**
@@ -117,55 +127,101 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
   }
 
   /**
-   * Counts executions running on `instance` and removes `instance` from the
-   * {@link #KEY_INSTANCES} set if its count has expired.
+   * Retrieves executions running on `instance` and removes `instance` from the
+   * {@link #KEY_INSTANCES} set if its token has expired and it had no
+   * executions still running.
    *
    * @param instance an Orca instance id.
-   * @return count of executions running on `instance`.
+   * @return details of executions running on `instance`.
    */
-  private int activeExecutionsFor(String instance) {
+  private OrcaInstance activeExecutionsFor(String instance) {
     try (Jedis jedis = jedisPool.getResource()) {
-      String count = jedis.get(keyFor(instance));
-      if (count == null) {
-        jedis.srem(KEY_INSTANCES, instance);
-        return 0;
+      String keepAlive = jedis.get(tokenKeyFor(instance));
+      long executions = jedis.scard(executionsKeyFor(instance));
+      if (keepAlive == null) {
+        if (executions == 0) {
+          jedis.srem(KEY_INSTANCES, instance);
+          jedis.del(executionsKeyFor(instance));
+          return new OrcaInstance(true, emptySortedSet());
+        } else {
+          return new OrcaInstance(true, readExecutions(jedis, instance));
+        }
+      } else if (executions > 0) {
+        return new OrcaInstance(false, readExecutions(jedis, instance));
       } else {
-        return Integer.parseInt(count);
+        return new OrcaInstance(false, emptySortedSet());
       }
     }
   }
 
+  private SortedSet<ExecutionRecord> readExecutions(Jedis jedis, String instance) {
+    return jedis
+      .smembers(executionsKeyFor(instance))
+      .stream()
+      .map(ExecutionRecord::valueOf)
+      .collect(toCollection(TreeSet::new));
+  }
+
   /**
-   * @param count number of executions currently running on _this_ instance.
+   * @param executions the executions currently running on _this_ instance.
    */
-  private void recordCount(int count) {
-    log.info("Currently running {} executions", count);
+  private void recordExecutions(Set<ExecutionRecord> executions) {
+    log.info("Currently running {} executions", executions.size());
     try (Jedis jedis = jedisPool.getResource()) {
       jedis.sadd(KEY_INSTANCES, currentInstance);
-      jedis.setex(keyFor(currentInstance), TTL_SECONDS, String.valueOf(count));
+      jedis.setex(tokenKeyFor(currentInstance), TTL_SECONDS, String.valueOf(executions.size()));
+      jedis.del(executionsKeyFor(currentInstance));
+      if (!executions.isEmpty()) {
+        jedis.sadd(executionsKeyFor(currentInstance), toStrings(executions));
+      }
     }
+  }
+
+  private String[] toStrings(Collection<ExecutionRecord> executions) {
+    return executions
+      .stream()
+      .map(ExecutionRecord::toString)
+      .collect(Collectors.toList())
+      .toArray(new String[executions.size()]);
   }
 
   /**
    * @param name a Spring Batch job name.
-   * @return number of currently running `JobExecution` instances.
+   * @return details of currently running pipelines and tasks.
    */
-  private int runningExecutionCount(String name) {
+  private Set<ExecutionRecord> runningExecutions(String name) {
     try {
-      return jobOperator.getRunningExecutions(name).size();
-    } catch (NoSuchJobException e) {
+      Set<ExecutionRecord> result = new HashSet<>();
+      Set<Long> executions = jobOperator.getRunningExecutions(name);
+      for (Long id : executions) {
+        String paramString = jobOperator.getParameters(id);
+        Properties params = stringToProperties(paramString);
+        String application = params.getProperty("application");
+        String pipelineId = params.getProperty("pipeline");
+        if (pipelineId != null) {
+          result.add(new ExecutionRecord(application, "pipeline", pipelineId));
+        } else {
+          result.add(new ExecutionRecord(application, "task", params.getProperty("orchestration")));
+        }
+      }
+      return result;
+    } catch (NoSuchJobException | NoSuchJobExecutionException e) {
       // this should be an impossible condition as the job name was given to us
       // by the JobOperator in the first place
-      return 0;
+      return emptySet();
     }
   }
 
   /**
-   * @param instance an Orca instnace id.
-   * @return Redis key to store active execution count for `instance`.
+   * @param instance an Orca instance id.
+   * @return Redis key to store an expiring token for `instance`.
    */
-  static String keyFor(String instance) {
-    return format(KEY_PER_INSTANCE, instance);
+  static String tokenKeyFor(String instance) {
+    return format(KEY_INSTANCE_TOKEN, instance);
+  }
+
+  static String executionsKeyFor(String instance) {
+    return format(KEY_INSTANCE_EXECUTIONS, instance);
   }
 
   /**

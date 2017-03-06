@@ -17,7 +17,53 @@
 package com.netflix.spinnaker.orca;
 
 import java.util.Map;
+import java.util.SortedSet;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Value;
+import org.apache.commons.lang.builder.CompareToBuilder;
+import static java.lang.String.format;
 
 public interface ActiveExecutionTracker {
-  Map<String, Integer> activeExecutionsByInstance();
+  Map<String, OrcaInstance> activeExecutionsByInstance();
+
+  @Value class OrcaInstance {
+    boolean overdue;
+    public int getCount() { return executions.size();}
+    SortedSet<ExecutionRecord> executions;
+  }
+
+  @Value class ExecutionRecord implements Comparable<ExecutionRecord> {
+    String application;
+    @JsonIgnore String type;
+    @JsonIgnore String id;
+
+    public String getURL() {
+      if (type.equals("task")) {
+        return format("/tasks/%s", id);
+      } else {
+        return format("/pipelines/%s", id);
+      }
+    }
+
+    @Override
+    public String toString() {
+      return format("%s:%s:%s", application, type, id);
+    }
+
+    public static ExecutionRecord valueOf(String s) {
+      String[] split = s.split(":");
+      if (split.length != 3) {
+        throw new IllegalArgumentException();
+      }
+      return new ExecutionRecord(split[0], split[1], split[2]);
+    }
+
+    @Override public int compareTo(ExecutionRecord o) {
+      return new CompareToBuilder()
+        .append(application, o.application)
+        .append(type, o.type)
+        .append(id, o.id)
+        .toComparison();
+    }
+  }
 }
