@@ -36,6 +36,6 @@
           <account-select-field component="securityGroup" field="credentials" accounts="accounts" provider="'gce'" on-change="ctrl.accountUpdated()"></account-select-field>
         </div>
       </div>
-      <gce-network-select-field label-columns="4" field-columns="8" component="securityGroup" field="network" account="securityGroup.credentials" networks="securityGroup.backingData.networks"></gce-network-select-field>
+      <gce-network-select-field label-columns="4" field-columns="8" component="securityGroup" field="network" account="securityGroup.credentials" networks="securityGroup.backingData.networks" on-change="ctrl.registerHelpTextService()"></gce-network-select-field>
     </div>
   </div>

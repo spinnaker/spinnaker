@@ -20,6 +20,8 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
                                                    application, securityGroup, securityGroupWriter, $controller) {
 
     $scope.pages = {
+      targets: require('./createSecurityGroupTargets.html'),
+      sourceFilters: require('./createSecurityGroupSourceFilters.html'),
       ingress: require('./createSecurityGroupIngress.html'),
     };
 
@@ -34,6 +36,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
       $uibModalInstance: $uibModalInstance,
       application: application,
       securityGroup: securityGroup,
+      mode: 'edit',
     }));
 
     $scope.isNew = false;
@@ -67,6 +70,8 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
       })
       .flatten()
       .value();
+
+    securityGroup.sourceTags = securityGroup.sourceTags || [];
 
     this.getSecurityGroupRefreshTime = function() {
       return infrastructureCaches.get('securityGroups').getStats().ageMax;

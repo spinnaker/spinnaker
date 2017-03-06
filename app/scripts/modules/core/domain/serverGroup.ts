@@ -40,4 +40,5 @@ export interface ServerGroup {
   tags?: any;
   type: string;
   vpcName?: string;
+  providerMetadata?: any;
 }

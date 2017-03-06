@@ -16,6 +16,8 @@ module.exports = angular
 
     $scope.pages = {
       location: require('../configure/createSecurityGroupProperties.html'),
+      targets: require('../configure/createSecurityGroupTargets.html'),
+      sourceFilters: require('../configure/createSecurityGroupSourceFilters.html'),
       ingress: require('../configure/createSecurityGroupIngress.html'),
     };
 
@@ -24,6 +26,7 @@ module.exports = angular
       $uibModalInstance: $uibModalInstance,
       application: application,
       securityGroup: securityGroup,
+      mode: 'clone',
     }));
 
     accountService.listAccounts('gce').then(function(accounts) {
@@ -56,7 +59,7 @@ module.exports = angular
 
     securityGroup.backingData = {};
 
-    delete securityGroup.targetTags;
+    securityGroup.sourceTags = securityGroup.sourceTags || [];
 
     vm.upsert = function () {
       vm.mixinUpsert('Clone');

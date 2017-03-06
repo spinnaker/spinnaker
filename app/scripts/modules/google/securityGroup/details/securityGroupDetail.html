@@ -55,8 +55,6 @@
         <dd>{{securityGroup.region}}</dd>
         <dt>Network</dt>
         <dd>{{securityGroup.network}}</dd>
-        <dt>Target Tags</dt>
-        <dd>{{securityGroup.targetTagsDescription}}</dd>
         <dt>Description</dt>
         <dd>{{securityGroup.description}}</dd>
       </dl>
@@ -85,6 +83,20 @@
           {{ipIngressRule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
         </dd>
       </dl>
+    </collapsible-section>
+    <collapsible-section heading="Target Tags ({{securityGroup.targetTags.length || 0}})">
+      <ul ng-if="securityGroup.targetTags.length">
+        <li ng-repeat="tag in securityGroup.targetTags">{{tag}}
+          <help-field content="{{ctrl.getTagHelpText(tag, 'target')}}"></help-field></li>
+      </ul>
+      <div ng-if="!securityGroup.targetTags.length">None</div>
+    </collapsible-section>
+    <collapsible-section heading="Source Tags ({{securityGroup.sourceTags.length || 0}})">
+      <ul ng-if="securityGroup.sourceTags.length">
+        <li ng-repeat="tag in securityGroup.sourceTags">{{tag}}
+          <help-field content="{{ctrl.getTagHelpText(tag, 'source')}}"></help-field></li>
+      </ul>
+      <div ng-if="!securityGroup.sourceTags.length">None</div>
     </collapsible-section>
     <collapsible-section heading="Logs">
       <ul>

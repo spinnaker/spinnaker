@@ -15,6 +15,8 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
 
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),
+      targets: require('./createSecurityGroupTargets.html'),
+      sourceFilters: require('./createSecurityGroupSourceFilters.html'),
       ingress: require('./createSecurityGroupIngress.html'),
     };
 
@@ -23,6 +25,7 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
     securityGroup.backingData = {};
     securityGroup.network = 'default';
     securityGroup.sourceRanges = [];
+    securityGroup.sourceTags = [];
     securityGroup.ipIngress = [];
 
     angular.extend(this, $controller('gceConfigSecurityGroupMixin', {
@@ -30,6 +33,7 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
       $uibModalInstance: $uibModalInstance,
       application: application,
       securityGroup: securityGroup,
+      mode: 'create',
     }));
 
 

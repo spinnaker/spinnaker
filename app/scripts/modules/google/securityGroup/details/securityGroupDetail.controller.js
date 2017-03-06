@@ -8,6 +8,7 @@ import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
+import {GCE_SECURITY_GROUP_HELP_TEXT_SERVICE} from '../securityGroupHelpText.service';
 
 module.exports = angular.module('spinnaker.securityGroup.gce.details.controller', [
   require('angular-ui-router'),
@@ -18,10 +19,11 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
   require('../clone/cloneSecurityGroup.controller.js'),
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
+  GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,
 ])
   .controller('gceSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $uibModal, cloudProviderRegistry) {
+                                                    $uibModal, cloudProviderRegistry, gceSecurityGroupHelpTextService) {
 
     const application = this.application = app;
     const securityGroup = resolvedSecurityGroup;
@@ -46,9 +48,20 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
             .getApplicationSecurityGroup(application, securityGroup.accountId, securityGroup.region, securityGroup.name);
           $scope.securityGroup = angular.extend(_.cloneDeep(applicationSecurityGroup), $scope.securityGroup);
 
-          $scope.securityGroup.sourceRanges = _.uniq(
-            _.map($scope.securityGroup.ipRangeRules, (rule) => rule.range.ip + rule.range.cidr)
-          );
+          // These come back from the global security group endpoint as '[tag-a, tag-b]'
+          if (typeof $scope.securityGroup.targetTags === 'string') {
+            let targetTags = $scope.securityGroup.targetTags;
+            $scope.securityGroup.targetTags = targetTags.substring(1, targetTags.length - 1).split(', ');
+          }
+          if (typeof $scope.securityGroup.sourceTags === 'string') {
+            let sourceTags = $scope.securityGroup.sourceTags;
+            $scope.securityGroup.sourceTags = sourceTags.substring(1, sourceTags.length - 1).split(', ');
+          }
+
+          $scope.securityGroup.sourceRanges = _.chain($scope.securityGroup.ipRangeRules)
+            .map((rule) => {
+              return rule.range.ip && rule.range.cidr ? rule.range.ip + rule.range.cidr : null;
+            }).compact().uniq().value();
 
           let ipIngress = _.map($scope.securityGroup.ipRangeRules, function(ipRangeRule) {
             return {
@@ -84,14 +97,12 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
             return ipIngressRule.portRanges.length > 1 ? ipIngressRule.portRanges.length : 1;
           });
 
-          if ($scope.securityGroup.targetTags) {
-            $scope.securityGroup.targetTagsDescription = $scope.securityGroup.targetTags.join(', ');
-          }
-
           accountService.getAccountDetails(securityGroup.accountId).then(function(accountDetails) {
             $scope.securityGroup.logsLink =
               'https://console.developers.google.com/project/' + accountDetails.project + '/logs?service=gce_firewall_rule&minLogLevel=0&filters=text:' + securityGroup.name;
           });
+
+          gceSecurityGroupHelpTextService.register(application, $scope.securityGroup.accountName, $scope.securityGroup.network);
         }
       },
         fourOhFour
@@ -115,6 +126,10 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
           app.securityGroups.onRefresh($scope, extractSecurityGroup);
         }
       });
+
+    this.getTagHelpText = function(tag, tagType) {
+      return gceSecurityGroupHelpTextService.getHelpTextForTag(tag, tagType);
+    };
 
     this.editInboundRules = function editInboundRules() {
       $uibModal.open({

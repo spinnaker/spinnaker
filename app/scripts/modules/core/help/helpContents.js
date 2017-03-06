@@ -135,6 +135,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       incoming traffic is directed through a named port (for Spinnaker, the named port is <b>http</b>).
       The mapping from named port to port number is specified per server group
       and can be configured within the server group creation dialogue under <b>Port Name Mapping</b>.`,
+    'gce.securityGroup.sourceCIDRs': 'Traffic is only allowed from sources that match one of these CIDR ranges, or one of the source tags above.',
+    'gce.securityGroup.sourceTags': 'Traffic is only allowed from sources that match one of these tags, or one of the source CIDR ranges below.',
+    'gce.securityGroup.targetTags': 'Traffic is only allowed if the target instance has one of these tags.',
     'gce.serverGroup.resizeWithAutoscalingPolicy': `
       Setting the desired instance count for a server group with an autoscaler is not supported by Spinnaker;
       if the desired instance count differs from the instance count that the autoscaler wants to maintain for its configured metrics,
