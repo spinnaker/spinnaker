@@ -72,7 +72,7 @@ function add_spinnaker_apt_repository() {
       echo "$gpg" | apt-key add -
     fi
   fi
-  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
+  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-hal.list > /dev/null
 }
 
 function add_java_apt_repository() {
@@ -160,4 +160,8 @@ if [ -n "$INSTALL_SPINNAKER" ]; then
   if contains "${SPINNAKER_ARTIFACTS[@]}" "deck"; then
     install_apache2
   fi
+
+  mkdir -p /opt/spinnaker/config/
+  chown spinnaker /opt/spinnaker/config/
+  mv ${CONFIG_DIR}/*.yml /opt/spinnaker/config/
 fi

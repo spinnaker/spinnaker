@@ -77,7 +77,7 @@ abstract public class SpinnakerProfile {
     ProfileConfig result = generateFullConfig(getBaseConfig(deploymentConfiguration),
         deploymentConfiguration,
         endpoints);
-    result.extendConfig(result.getPrimaryConfigFile(), EDIT_WARNING + result.getPrimaryConfigContents());
+    result.setConfig(result.getPrimaryConfigFile(), EDIT_WARNING + result.getPrimaryConfigContents());
     return result;
   }
 

@@ -34,6 +34,11 @@ public class ProfileConfig {
     return configContents.getOrDefault(primaryConfigFile, "");
   }
 
+  public ProfileConfig setConfig(String path, String config) {
+    configContents.put(path, config);
+    return this;
+  }
+
   public ProfileConfig extendConfig(String path, String config) {
     config = configContents.getOrDefault(path, "") + "\n" + config;
     configContents.put(path, config);
