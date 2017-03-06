@@ -21,10 +21,10 @@ import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
@@ -193,6 +193,15 @@ public class Daemon {
 
   public static void publishBom(String bomPath) {
     ResponseUnwrapper.get(getService().publishBom(bomPath,""));
+  }
+
+  public static String getVersion(String deploymentName, boolean validate) {
+    return ResponseUnwrapper.get(getService().getVersion(deploymentName, validate));
+  }
+
+  public static void setVersion(String deploymentName, boolean validate, String versionName) {
+    Versions.Version version = new Versions.Version().setVersion(versionName);
+    ResponseUnwrapper.get(getService().setVersion(deploymentName, validate, version));
   }
 
   static <C, T> DaemonTask<C, T> getTask(String uuid) {

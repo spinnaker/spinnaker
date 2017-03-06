@@ -18,12 +18,10 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
-import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import retrofit.http.*;
 
 import java.util.List;
@@ -143,6 +141,17 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body Security security);
+
+  @GET("/v1/config/deployments/{deploymentName}/version/")
+  DaemonTask<Halconfig, String> getVersion(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/version/")
+  DaemonTask<Halconfig, Void> setVersion(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body Versions.Version version);
 
   @GET("/v1/config/deployments/{deploymentName}/security/authn/{methodName}/")
   DaemonTask<Halconfig, Object> getAuthnMethod(

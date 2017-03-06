@@ -59,6 +59,16 @@ public class DeploymentService {
     }
   }
 
+  public void setVersion(String deploymentName, String version) {
+    DeploymentConfiguration deploymentConfiguration = getDeploymentConfiguration(deploymentName);
+    deploymentConfiguration.setVersion(version);
+  }
+
+  public String getVersion(String deploymentName) {
+    DeploymentConfiguration deploymentConfiguration = getDeploymentConfiguration(deploymentName);
+    return deploymentConfiguration.getVersion();
+  }
+
   public List<DeploymentConfiguration> getAllDeploymentConfigurations() {
     NodeFilter filter = new NodeFilter().withAnyDeployment();
 

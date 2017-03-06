@@ -16,21 +16,27 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
+import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.services.v1.DeployService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/v1/config/deployments")
@@ -43,6 +49,9 @@ public class DeploymentController {
 
   @Autowired
   DeployService deployService;
+
+  @Autowired
+  HalconfigParser halconfigParser;
 
   @RequestMapping(value = "/{deploymentName:.+}", method = RequestMethod.GET)
   DaemonResponse<DeploymentConfiguration> deploymentConfiguration(@PathVariable String deploymentName,
@@ -119,6 +128,44 @@ public class DeploymentController {
     builder.setSeverity(severity);
 
     builder.setBuildResponse(() -> deployService.deploySpinnakerPlan(deploymentName));
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
+    }
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/{deploymentName:.+}/version/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setVersion(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody Versions.Version version) {
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setUpdate(() -> deploymentService.setVersion(deploymentName, version.getVersion()));
+    builder.setSeverity(severity);
+
+    Supplier<ProblemSet> doValidate = ProblemSet::new;
+    if (validate) {
+      doValidate = () -> deploymentService.validateDeployment(deploymentName);
+    }
+
+    builder.setValidate(doValidate);
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/{deploymentName:.+}/version/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, String> getVersion(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    StaticRequestBuilder<String> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
+
+    builder.setBuildResponse(() -> deploymentService.getVersion(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));

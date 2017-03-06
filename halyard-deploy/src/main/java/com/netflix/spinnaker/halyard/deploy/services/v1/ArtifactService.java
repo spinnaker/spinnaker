@@ -21,11 +21,11 @@ import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
+import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.core.registry.v1.WriteableProfileRegistry;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.WriteableProfileRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
@@ -61,7 +61,7 @@ public class ArtifactService {
   }
 
   public String getArtifactVersion(String deploymentName, SpinnakerArtifact artifact) {
-    return getBillOfMaterials(deploymentName).getServices().getArtifactVersion(artifact);
+    return getBillOfMaterials(deploymentName).getServices().getArtifactVersion(artifact.getName());
   }
 
   public void writeBom(String bomPath) {
@@ -102,7 +102,6 @@ public class ArtifactService {
     BillOfMaterials bom;
     File profileFile = Paths.get(profilePath).toFile();
     String profileContents;
-    SpinnakerArtifact spinnakerArtifact;
 
     try {
       bom = strictObjectMapper.convertValue(
@@ -122,12 +121,6 @@ public class ArtifactService {
       );
     }
 
-    try {
-      spinnakerArtifact = SpinnakerArtifact.fromString(artifactName);
-    } catch (RuntimeException e) {
-      throw new HalException(new ConfigProblemBuilder(FATAL, e.getMessage()).build());
-    }
-
-    writeableProfileRegistry.writeArtifactConfig(bom, spinnakerArtifact, profileFile.getName(), profileContents);
+    writeableProfileRegistry.writeArtifactConfig(bom, artifactName, profileFile.getName(), profileContents);
   }
 }

@@ -18,8 +18,13 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions.Version;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A DeploymentConfiguration is an installation of Spinnaker, described in your Halconfig.
@@ -86,5 +91,10 @@ public class DeploymentConfiguration extends Node {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
+  }
+
+  protected List<String> versionOptions(ConfigProblemSetBuilder psBuilder) {
+    VersionsService service = psBuilder.getContext().getBean(VersionsService.class);
+    return service.getVersions().getVersions().stream().map(Version::getVersion).collect(Collectors.toList());
   }
 }

@@ -3,6 +3,7 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
   compile spinnaker.dependency('clouddriverAws')
+  compile spinnaker.dependency('googleStorage')
 
   compile "com.beust:jcommander:1.48"
 }

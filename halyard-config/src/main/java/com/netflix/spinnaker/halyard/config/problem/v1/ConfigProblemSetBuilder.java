@@ -23,7 +23,9 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.Setter;
+import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +34,15 @@ import java.util.stream.Collectors;
 public class ConfigProblemSetBuilder {
   private List<ConfigProblemBuilder> builders = new ArrayList<>();
 
+  @Getter
+  private final ApplicationContext context;
+
   @Setter(AccessLevel.PUBLIC)
   private Node node;
+
+  public ConfigProblemSetBuilder(ApplicationContext context) {
+    this.context = context;
+  }
 
   public ConfigProblemBuilder addProblem(Severity severity, String message) {
     return addProblem(severity, message, null);
@@ -45,7 +54,7 @@ public class ConfigProblemSetBuilder {
       problemBuilder.setNode(node);
 
       if (field != null && !field.isEmpty()) {
-        problemBuilder.setOptions(node.fieldOptions(new ConfigProblemSetBuilder(), field));
+        problemBuilder.setOptions(node.fieldOptions(new ConfigProblemSetBuilder(context), field));
       }
     }
 

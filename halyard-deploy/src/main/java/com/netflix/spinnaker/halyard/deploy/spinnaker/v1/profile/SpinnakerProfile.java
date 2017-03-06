@@ -28,7 +28,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
+import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.yaml.snakeyaml.Yaml;
 import retrofit.RetrofitError;
@@ -102,7 +102,7 @@ abstract public class SpinnakerProfile {
   private ProfileConfig getBaseConfig(DeploymentConfiguration deploymentConfiguration) {
     try {
       String componentVersion = artifactService.getArtifactVersion(deploymentConfiguration.getName(), getArtifact());
-      String componentObjectName = ProfileRegistry.profilePath(getArtifact(), componentVersion, getProfileFileName());
+      String componentObjectName = ProfileRegistry.profilePath(getArtifact().getName(), componentVersion, getProfileFileName());
 
       return new ProfileConfig()
           .setPrimaryConfigFile(getProfileFileName())

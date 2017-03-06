@@ -12,16 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry;
+package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -42,7 +42,7 @@ public class ProfileRegistry {
 
   @Bean
   public Storage googleStorage() {
-    HttpTransport httpTransport = null;
+    HttpTransport httpTransport;
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     String applicationName = "Spinnaker/Halyard";
 
@@ -56,8 +56,8 @@ public class ProfileRegistry {
     }
   }
 
-  public static String profilePath(SpinnakerArtifact artifact, String version, String profileFileName) {
-    return String.join("/", artifact.getName(), version, profileFileName);
+  public static String profilePath(String artifactName, String version, String profileFileName) {
+    return String.join("/", artifactName, version, profileFileName);
   }
 
   public static String bomPath(String version) {

@@ -12,9 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
+package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import lombok.Data;
 
@@ -39,13 +40,13 @@ public class BillOfMaterials {
     Artifact orca;
     Artifact rosco;
 
-    public String getArtifactVersion(SpinnakerArtifact artifact) {
+    public String getArtifactVersion(String artifactName) {
       Optional<Field> field = Arrays.stream(Artifacts.class.getDeclaredFields())
-          .filter(f -> f.getName().equals(artifact.name))
+          .filter(f -> f.getName().equals(artifactName))
           .findFirst();
 
       if (!field.isPresent()) {
-        throw new RuntimeException("No supported spinnaker artifact named " + artifact.name);
+        throw new RuntimeException("No supported spinnaker artifact named " + artifactName);
       }
 
       try {
@@ -53,7 +54,7 @@ public class BillOfMaterials {
       } catch (IllegalAccessException e) {
         throw new RuntimeException(e);
       } catch (NullPointerException e) {
-        throw new RuntimeException("Spinnaker artifact " + artifact.name + " is not listed in the BOM");
+        throw new RuntimeException("Spinnaker artifact " + artifactName + " is not listed in the BOM");
       }
     }
 

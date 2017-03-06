@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -39,10 +40,13 @@ public class ValidateService {
   @Autowired
   ValidatorCollection validatorCollection;
 
+  @Autowired
+  private ApplicationContext applicationContext;
+
   ProblemSet validateMatchingFilter(NodeFilter filter) {
     DaemonTaskHandler.newStage("Running validation");
     Halconfig halconfig = parser.getHalconfig();
-    ConfigProblemSetBuilder psBuilder = new ConfigProblemSetBuilder();
+    ConfigProblemSetBuilder psBuilder = new ConfigProblemSetBuilder(applicationContext);
     recursiveValidate(psBuilder, halconfig, filter);
 
     return psBuilder.build();

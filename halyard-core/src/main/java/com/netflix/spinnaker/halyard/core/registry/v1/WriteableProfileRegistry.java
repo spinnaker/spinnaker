@@ -1,4 +1,21 @@
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry;
+/*
+ * Copyright 2017 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -9,11 +26,9 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.StorageObject;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,9 +78,9 @@ public class WriteableProfileRegistry {
     writeTextObject(name, contents);
   }
 
-  public void writeArtifactConfig(BillOfMaterials bom, SpinnakerArtifact artifact, String profileName, String contents) {
-    String version = bom.getServices().getArtifactVersion(artifact);
-    String name = ProfileRegistry.profilePath(artifact, version, profileName);
+  public void writeArtifactConfig(BillOfMaterials bom, String artifactName, String profileName, String contents) {
+    String version = bom.getServices().getArtifactVersion(artifactName);
+    String name = ProfileRegistry.profilePath(artifactName, version, profileName);
     writeTextObject(name, contents);
   }
 
@@ -80,7 +95,7 @@ public class WriteableProfileRegistry {
       storage.objects().insert(spinconfigBucket, object, content).execute();
     } catch (IOException e) {
       log.error("Failed to write new object " + name, e);
-      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Failed to write to " + name + ": " + e.getMessage()).build());
+      throw new HalException(new ProblemBuilder(Severity.FATAL, "Failed to write to " + name + ": " + e.getMessage()).build());
     }
   }
 }

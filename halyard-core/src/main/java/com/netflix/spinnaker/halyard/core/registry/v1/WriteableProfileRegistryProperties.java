@@ -12,15 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry;
+package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
-public class StoredObjectMetadata {
-  String id;
-  String selfLink;
-  String generation;
+@ConfigurationProperties("spinnaker.config.input.gcs")
+public class WriteableProfileRegistryProperties {
+  private String jsonPath = "";
+  private String project = "spinnaker-marketplace";
 }

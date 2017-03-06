@@ -42,8 +42,9 @@ public class ConfigCommand extends NestableCommand {
     registerSubcommand(new GenerateCommand());
     registerSubcommand(new PersistentStorageCommand());
     registerSubcommand(new ProviderCommand());
-    registerSubcommand(new WebhookCommand());
     registerSubcommand(new SecurityCommand());
+    registerSubcommand(new VersionCommand());
+    registerSubcommand(new WebhookCommand());
   }
 
   @Override

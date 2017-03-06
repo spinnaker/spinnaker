@@ -12,16 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.services.v1;
+package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.BillOfMaterials;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.Versions;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.registry.ProfileRegistry;
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
@@ -76,7 +77,7 @@ public class VersionsService {
     } catch (RetrofitError | IOException e) {
       throw new HalException(
           new ConfigProblemBuilder(FATAL,
-              "Unable to retrieve the Spinnaker bill of materials: " + e.getMessage())
+              "Unable to retrieve the Spinnaker bill of materials for version \"" + version + "\": " + e.getMessage())
               .build()
       );
     }
