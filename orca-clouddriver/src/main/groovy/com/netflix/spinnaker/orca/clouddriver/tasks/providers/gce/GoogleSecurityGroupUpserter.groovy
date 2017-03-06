@@ -67,7 +67,7 @@ class GoogleSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
 
       // What is currently cached?
       Set<String> existingSourceRanges = existingSecurityGroup.inboundRules.findResults { inboundRule ->
-        inboundRule.range ? inboundRule.range.ip + inboundRule.range.cidr : null
+        inboundRule.range?.ip ? inboundRule.range.ip + inboundRule.range.cidr : null
       }.unique() as Set
 
       boolean rangesMatch = existingSourceRanges == targetSecurityGroupSourceRanges
