@@ -28,7 +28,7 @@ public interface ActiveExecutionTracker {
 
   @Value class OrcaInstance {
     boolean overdue;
-    public int getCount() { return executions.size();}
+    int count;
     SortedSet<ExecutionRecord> executions;
   }
 

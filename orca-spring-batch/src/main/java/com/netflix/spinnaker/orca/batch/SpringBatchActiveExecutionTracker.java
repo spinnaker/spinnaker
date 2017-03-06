@@ -33,6 +33,7 @@ import redis.clients.util.Pool;
 import rx.Observable;
 import static java.lang.String.format;
 import static java.util.Collections.*;
+import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toCollection;
 import static org.springframework.batch.support.PropertiesConverter.stringToProperties;
@@ -42,7 +43,7 @@ import static org.springframework.batch.support.PropertiesConverter.stringToProp
  * map with details of active executions running on all instances.
  * <p>
  * Orca instances are assumed to have become inactive if they do not update
- * their executions at least every {@link #TTL_SECONDS}.
+ * their executions at least every {@link #COUNT_TTL_SECONDS}.
  */
 @Component
 @Slf4j
@@ -74,7 +75,13 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
    * Duration after which an Orca instance is assumed to be inactive if it has
    * not updated its active executions.
    */
-  static final int TTL_SECONDS = (int) MILLISECONDS.toSeconds(FREQUENCY_MS * 5);
+  static final int COUNT_TTL_SECONDS = (int) MILLISECONDS.toSeconds(FREQUENCY_MS * 5);
+
+  /**
+   * Duration after which any zombie executions from an inactive instance are
+   * removed.
+   */
+  static final int EXECUTIONS_TTL_SECONDS = (int) DAYS.toSeconds(7);
 
   private final JobOperator jobOperator;
   private final String currentInstance;
@@ -136,20 +143,28 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
    */
   private OrcaInstance activeExecutionsFor(String instance) {
     try (Jedis jedis = jedisPool.getResource()) {
-      String keepAlive = jedis.get(tokenKeyFor(instance));
+      Optional<Integer> count = Optional
+        .ofNullable(jedis.get(tokenKeyFor(instance)))
+        .map(Integer::decode);
       long executions = jedis.scard(executionsKeyFor(instance));
-      if (keepAlive == null) {
+      if (count.isPresent()) {
+        if (executions > 0) {
+          // active instance running executions
+          return new OrcaInstance(false, (int) executions, readExecutions(jedis, instance));
+        } else {
+          // either idle or legacy instance that's only recording count
+          return new OrcaInstance(false, count.get(), emptySortedSet());
+        }
+      } else {
         if (executions == 0) {
           jedis.srem(KEY_INSTANCES, instance);
           jedis.del(executionsKeyFor(instance));
-          return new OrcaInstance(true, emptySortedSet());
+          // terminated instance that had drained all work
+          return new OrcaInstance(true, 0, emptySortedSet());
         } else {
-          return new OrcaInstance(true, readExecutions(jedis, instance));
+          // instance that terminated while still running work
+          return new OrcaInstance(true, (int) executions, readExecutions(jedis, instance));
         }
-      } else if (executions > 0) {
-        return new OrcaInstance(false, readExecutions(jedis, instance));
-      } else {
-        return new OrcaInstance(false, emptySortedSet());
       }
     }
   }
@@ -169,10 +184,11 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
     log.info("Currently running {} executions", executions.size());
     try (Jedis jedis = jedisPool.getResource()) {
       jedis.sadd(KEY_INSTANCES, currentInstance);
-      jedis.setex(tokenKeyFor(currentInstance), TTL_SECONDS, String.valueOf(executions.size()));
+      jedis.setex(tokenKeyFor(currentInstance), COUNT_TTL_SECONDS, String.valueOf(executions.size()));
       jedis.del(executionsKeyFor(currentInstance));
       if (!executions.isEmpty()) {
         jedis.sadd(executionsKeyFor(currentInstance), toStrings(executions));
+        jedis.expire(executionsKeyFor(currentInstance), EXECUTIONS_TTL_SECONDS);
       }
     }
   }

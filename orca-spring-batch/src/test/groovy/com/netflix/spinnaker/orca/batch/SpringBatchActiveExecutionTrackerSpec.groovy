@@ -52,8 +52,9 @@ class SpringBatchActiveExecutionTrackerSpec extends Specification {
 
     then:
     1 * redis.sadd(KEY_INSTANCES, currentInstance)
-    1 * redis.setex(tokenKeyFor(currentInstance), TTL_SECONDS, "$expectedCount")
+    1 * redis.setex(tokenKeyFor(currentInstance), COUNT_TTL_SECONDS, "$expectedCount")
     1 * redis.sadd(executionsKeyFor(currentInstance), *_)
+    1 * redis.expire(executionsKeyFor(currentInstance), EXECUTIONS_TTL_SECONDS)
 
     where:
     jobs = [job1: [1L, 2L], job2: [3L]]
@@ -78,7 +79,7 @@ class SpringBatchActiveExecutionTrackerSpec extends Specification {
 
     then:
     1 * redis.sadd(KEY_INSTANCES, currentInstance)
-    1 * redis.setex(tokenKeyFor(currentInstance), TTL_SECONDS, "$expectedCount")
+    1 * redis.setex(tokenKeyFor(currentInstance), COUNT_TTL_SECONDS, "$expectedCount")
 
     where:
     validJobs = [job1: [1L, 2L], job3: [3L]]
@@ -97,7 +98,7 @@ class SpringBatchActiveExecutionTrackerSpec extends Specification {
 
     then:
     1 * redis.sadd(KEY_INSTANCES, currentInstance)
-    1 * redis.setex(tokenKeyFor(currentInstance), TTL_SECONDS, "0")
+    1 * redis.setex(tokenKeyFor(currentInstance), COUNT_TTL_SECONDS, "0")
 
     where:
     jobs             | condition
@@ -107,29 +108,50 @@ class SpringBatchActiveExecutionTrackerSpec extends Specification {
 
   def "retrieving details expires instances from the set"() {
     given:
-    redis.smembers(KEY_INSTANCES) >> ["active1", "active2", "inactive"]
-    redis.get(tokenKeyFor("active1")) >> "5"
-    redis.get(tokenKeyFor("active2")) >> "3"
+    redis.smembers(KEY_INSTANCES) >> ["active1", "active2", "inactive", "zombie"]
+    redis.get(tokenKeyFor("active1")) >> "2"
+    redis.get(tokenKeyFor("active2")) >> "1"
     redis.get(tokenKeyFor("inactive")) >> null // key expired and hasn't been updated
-    redis.scard(executionsKeyFor("active1")) >> 5
-    redis.scard(executionsKeyFor("active2")) >> 3
+    redis.get(tokenKeyFor("zombie")) >> null // key expired and hasn't been updated
+    redis.scard(executionsKeyFor("active1")) >> 2
+    redis.scard(executionsKeyFor("active2")) >> 1
     redis.scard(executionsKeyFor("inactive")) >> 0
-    redis.smembers(executionsKeyFor("active1")) >> ["spintest:pipeline:1", "spintest:pipeline:2", "spintest:pipeline:3", "spintest:pipeline:4", "spintest:pipeline:5"]
-    redis.smembers(executionsKeyFor("active2")) >> ["spintest:pipeline:6", "spintest:pipeline:7", "spintest:pipeline:8"]
+    redis.scard(executionsKeyFor("zombie")) >> 1
+    redis.smembers(executionsKeyFor("active1")) >> ["spintest:pipeline:1", "spintest:pipeline:2"]
+    redis.smembers(executionsKeyFor("active2")) >> ["spintest:pipeline:3"]
     redis.smembers(executionsKeyFor("inactive")) >> []
+    redis.smembers(executionsKeyFor("zombie")) >> ["spintest:pipeline:4"]
 
     when:
     def result = tracker.activeExecutionsByInstance()
 
     then:
-    result["active1"].count == 5
+    result["active1"].count == 2
     !result["active1"].overdue
-    result["active2"].count == 3
+    result["active2"].count == 1
     !result["active2"].overdue
     result["inactive"].count == 0
     result["inactive"].overdue
+    result["zombie"].count == 1
+    result["zombie"].overdue
 
     and:
     1 * redis.srem(KEY_INSTANCES, "inactive")
+    0 * redis.srem(KEY_INSTANCES, _)
+  }
+
+  def "can pull the count from an older instance that doesn't record details"() {
+    given:
+    redis.smembers(KEY_INSTANCES) >> ["legacy"]
+    redis.get(tokenKeyFor("legacy")) >> "1"
+    redis.scard(executionsKeyFor("legacy")) >> 0
+    redis.smembers(executionsKeyFor("legacy")) >> null
+
+    when:
+    def result = tracker.activeExecutionsByInstance()
+
+    then:
+    result["legacy"].count == 1
+    result["legacy"].executions.empty
   }
 }
