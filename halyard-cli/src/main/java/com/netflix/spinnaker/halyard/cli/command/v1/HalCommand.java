@@ -22,6 +22,7 @@ import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * This is the base command, where we will register all the subcommands.
@@ -39,6 +40,12 @@ public class HalCommand extends NestableCommand {
   )
   private boolean printBashCompletion;
 
+  @Parameter(
+      names = {"--version", "-v"},
+      description = "Version of Halyard."
+  )
+  private boolean version;
+
   public HalCommand() {
     registerSubcommand(new AdminCommand());
     registerSubcommand(new ConfigCommand());
@@ -46,39 +53,51 @@ public class HalCommand extends NestableCommand {
     registerSubcommand(new VersionsCommand());
   }
 
+  private String getVersion() {
+    return Optional
+        .ofNullable(HalCommand.class.getPackage().getImplementationVersion()).orElse("Unknown");
+  }
+
   @Override
   public String getDescription() {
     return "A tool for configuring, installing, and updating Spinnaker.\n\n"
+        + "  Version: " + getVersion() + "\n\n"
         + "If this is your first time using Halyard to install Spinnaker we recommend that you skim "
         + "the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any "
         + "point you get stuck using 'hal', every command can be suffixed with '--help' for usage "
         + "information. Once you are ready, these are the steps you need to follow to get an "
         + "initial configuration of Spinnaker up and running:\n\n"
         + "1. Enable the cloud provider(s) you want to deploy to:\n"
-        + "  $ hal config provider $PROVIDER enable\n"
+        + "  $ hal config provider $PROVIDER enable\n\n"
         + "2. Create Spinnaker accounts for the provider(s) you want to use:\n"
-        + "  $ hal config provider $PROVIDER account add my-account-name --help\n"
+        + "  $ hal config provider $PROVIDER account add my-account-name --help\n\n"
         + "3. Set a storage source for Spinnaker metadata:\n"
-        + "  $ hal config storage edit --help\n"
+        + "  $ hal config storage edit --help\n\n"
         + "4. (Optional) Set feature flags:\n"
-        + "  $ hal config features edit --help\n"
+        + "  $ hal config features edit --help\n\n"
         + "5. (Optional) Configure Spinnaker's image bakery for your provider(s):\n"
-        + "  $ hal config provider $PROVIDER bakery --help\n"
+        + "  $ hal config provider $PROVIDER bakery --help\n\n"
         + "6. (Optional) Configure Spinnaker's security settings (authn, authz & ssl):\n"
-        + "  $ hal config security edit --help\n"
+        + "  $ hal config security edit --help\n\n"
         + "7. (Optional) Configure Spinnaker's deployment profile:\n"
-        + "  $ hal config deploy edit --help\n"
+        + "  $ hal config deploy edit --help\n\n"
         + "8. (Optional) Generate all of Spinnaker's configuration:\n"
-        + "  $ hal config generate\n"
+        + "  $ hal config generate\n\n"
         + "9. Deploy Spinnaker:\n"
         + "  $ hal deploy run\n";
   }
 
   @Override
   protected void executeThis() {
+    if (version) {
+      System.out.println(getVersion());
+    }
+
     if (printBashCompletion) {
       System.out.println(commandCompletor());
-    } else {
+    }
+
+    if (!version && !printBashCompletion) {
       showHelp();
     }
   }
