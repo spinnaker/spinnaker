@@ -2,6 +2,7 @@ import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applica
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {TABLEAU_STATES} from './tableau/tableau.states';
 import {ISOLATED_TESTING_TARGET_STAGE_MODULE} from './pipeline/stage/isolatedTestingTarget/isolatedTestingTargetStage.module';
+import {FEEDBACK_MODULE} from './feedback/feedback.module';
 
 
 let angular = require('angular');
@@ -18,7 +19,7 @@ module.exports = angular
     require('./blesk/blesk.module.js'),
     require('./fastProperties/fastProperties.module.js'),
     require('./alert/alertHandler.js'),
-    require('./feedback/feedback.module.js'),
+    FEEDBACK_MODULE,
     require('./instance/aws/netflixAwsInstanceDetails.controller.js'),
     require('./instance/titus/netflixTitusInstanceDetails.controller.js'),
     require('./pipeline/stage/canary/canaryStage.module.js'),
