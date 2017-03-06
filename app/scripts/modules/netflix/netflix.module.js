@@ -3,7 +3,7 @@ import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry
 import {TABLEAU_STATES} from './tableau/tableau.states';
 import {ISOLATED_TESTING_TARGET_STAGE_MODULE} from './pipeline/stage/isolatedTestingTarget/isolatedTestingTargetStage.module';
 import {FEEDBACK_MODULE} from './feedback/feedback.module';
-
+import {AVAILABILITY_DIRECTIVE} from './availability/availability.directive';
 
 let angular = require('angular');
 
@@ -15,6 +15,7 @@ templates.keys().forEach(function(key) {
 
 module.exports = angular
   .module('spinnaker.netflix', [
+    AVAILABILITY_DIRECTIVE,
     require('./whatsNew/whatsNew.directive.js'),
     require('./blesk/blesk.module.js'),
     require('./fastProperties/fastProperties.module.js'),
