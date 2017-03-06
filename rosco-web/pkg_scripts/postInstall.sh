@@ -19,7 +19,6 @@ install_packer() {
     TEMPDIR=$(mktemp -d installrosco.XXXX)
     cd $TEMPDIR
     wget https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip
-    apt-get install unzip -y
     unzip -o "packer_${PACKER_VERSION}_linux_amd64.zip" -d /usr/bin
     cd ..
     rm -rf $TEMPDIR
