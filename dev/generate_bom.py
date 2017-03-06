@@ -99,13 +99,13 @@ class BomGenerator(Annotator):
     toplevel_with_build = '{0}-{1}'.format(toplevel_version, self.build_number)
     output_yaml[VERSION] = toplevel_with_build
     self.__bom_file = '{0}.yml'.format(toplevel_with_build)
-    self.__write_bom(self.__bom_file, output_yaml)
-    self.__publish_bom(self.__bom_file)
+    self.write_bom_file(self.__bom_file, output_yaml)
+    self.publish_bom(self.__bom_file)
     output_yaml[VERSION] = 'nightly'
-    self.__write_bom('nightly.yml', output_yaml) # Publish a 'nightly' BOM for folks wanting to run bleeding-edge Spinnaker.
-    self.__publish_bom('nightly.yml')
+    self.write_bom_file('nightly.yml', output_yaml) # Publish a 'nightly' BOM for folks wanting to run bleeding-edge Spinnaker.
+    self.publish_bom('nightly.yml')
 
-  def __write_bom(self, filename, output_yaml):
+  def write_bom_file(self, filename, output_yaml):
     """Helper function to write the calculated BOM to files.
 
     Args:
@@ -120,7 +120,7 @@ class BomGenerator(Annotator):
       yaml.dump(output_yaml, output_file, default_flow_style=False)
       print 'Wrote BOM to {0}.'.format(filename)
 
-  def __publish_bom(self, bom_path):
+  def publish_bom(self, bom_path):
     """Publishes the BOM using Halyard.
 
     Assumes that Halyard is installed and correctly configured on the current
