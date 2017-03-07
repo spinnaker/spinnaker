@@ -83,8 +83,8 @@ class FeedbackModalController implements ng.IComponentController {
     this.$http.post(this.settings.feedbackUrl, this.buildRequestBody())
       .then((result: any) => {
         this.state = this.states.SUBMITTED;
-        this.issueUrl = result.url;
-        this.issueId = result.id;
+        this.issueUrl = result.data.url;
+        this.issueId = result.data.id;
       },
       () => {
         this.state = this.states.ERROR;
