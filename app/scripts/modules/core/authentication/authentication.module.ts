@@ -1,5 +1,3 @@
-'use strict';
-
 import {AUTHENTICATION_INTERCEPTOR_SERVICE} from './authentication.interceptor.service';
 import {AUTHENTICATION_INITIALIZER_SERVICE, AuthenticationInitializer} from './authentication.initializer.service';
 import {REDIRECT_SERVICE} from './redirect.service';

@@ -30,6 +30,7 @@ require('zone.js/dist/fake-async-test');
 require('rxjs/Rx');
 
 require('./settings.js');
+require('./app/scripts/app.module');
 
 const testContext = require.context('./app/scripts/', true, /\.spec\.(js|ts)$/);
 testContext.keys().forEach(testContext);

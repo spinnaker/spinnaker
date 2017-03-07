@@ -7,10 +7,8 @@
 import 'ts-helpers';
 import * as angular from 'angular';
 import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
-// import {UpgradeModule} from '@angular/upgrade/static';
 
-// import {DOWNGRADED_MODULE_NAMES, DOWNGRADED_COMPONENT_MODULE_NAMES, SpinnakerModule} from './app.module';
-import {SpinnakerModule} from './app.module';
+import {DOWNGRADED_MODULE_NAMES, DOWNGRADED_COMPONENT_MODULE_NAMES, SpinnakerModule} from './app.module';
 import {APPENGINE_MODULE} from './modules/appengine/appengine.module';
 import {AUTHENTICATION_SERVICE} from './modules/core/authentication/authentication.service';
 
@@ -26,9 +24,9 @@ module.exports = angular.module('netflix.spinnaker', [
   require('./modules/openstack/openstack.module.js'),
   require('./modules/docker/docker.module.js'),
   APPENGINE_MODULE,
-  AUTHENTICATION_SERVICE
-  // ...DOWNGRADED_MODULE_NAMES,
-  // ...DOWNGRADED_COMPONENT_MODULE_NAMES
+  AUTHENTICATION_SERVICE,
+  ...DOWNGRADED_MODULE_NAMES,
+  ...DOWNGRADED_COMPONENT_MODULE_NAMES
 ]);
 
 const events: any = {
@@ -63,8 +61,5 @@ const twilightZone = Zone.current.fork({
 });
 
 twilightZone.run(() => {
-  platformBrowserDynamic().bootstrapModule(SpinnakerModule)/*.then(platformRef => {
-    const upgrade = platformRef.injector.get(UpgradeModule) as UpgradeModule;
-    upgrade.bootstrap(document.body, ['netflix.spinnaker']);
-  })*/;
+  platformBrowserDynamic().bootstrapModule(SpinnakerModule);
 });

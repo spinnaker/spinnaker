@@ -1,6 +1,6 @@
 <div modal-page class="entity-tag-editor-modal">
   <task-monitor monitor="$ctrl.taskMonitor"></task-monitor>
-  <modal-close dismiss="$ctrl.cancel()"></modal-close>
+  <modal-close (dismiss)="$ctrl.cancel()"></modal-close>
   <div class="modal-header">
     <h3>{{$ctrl.isNew ? 'Create' : 'Update'}} {{$ctrl.tag.value.type}}</h3>
   </div>

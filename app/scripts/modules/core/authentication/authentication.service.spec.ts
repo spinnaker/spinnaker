@@ -2,7 +2,7 @@ import {destroyPlatform} from '@angular/core';
 
 import {AuthenticationService, IUser} from './authentication.service';
 
-describe('authenticationService', function() {
+describe('authenticationService', function () {
 
   beforeEach(() => destroyPlatform());
   afterEach(() => destroyPlatform());
@@ -12,23 +12,19 @@ describe('authenticationService', function() {
     authenticationService = new AuthenticationService();
   });
 
-  describe('setAuthenticatedUser', function() {
-    it('sets name, authenticated flag', function() {
+  describe('setAuthenticatedUser', function () {
+    it('sets name, authenticated flag', function () {
       let user: IUser = authenticationService.getAuthenticatedUser();
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
-      authenticationService.setAuthenticatedUser({
-        name: 'kato@example.com',
-        authenticated: false,
-        roles: ['roleA', 'RoleB']
-      });
+
+      authenticationService.setAuthenticatedUser({name: 'kato@example.com', authenticated: false});
       user = authenticationService.getAuthenticatedUser();
       expect(user.name).toBe('kato@example.com');
       expect(user.authenticated).toBe(true);
-      expect(user.roles).toEqual(['roleA', 'RoleB']);
     });
 
-    it('disregards falsy values', function() {
+    it('disregards falsy values', function () {
       const user: IUser = authenticationService.getAuthenticatedUser();
 
       expect(user.name).toBe('[anonymous]');
@@ -38,10 +34,7 @@ describe('authenticationService', function() {
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
 
-      authenticationService.setAuthenticatedUser({
-        name: '',
-        authenticated: false
-      });
+      authenticationService.setAuthenticatedUser({name: '', authenticated: false});
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
     });
@@ -52,10 +45,7 @@ describe('authenticationService', function() {
       let firedEvents = 0;
       authenticationService.onAuthentication(() => firedEvents++);
       authenticationService.onAuthentication(() => firedEvents++);
-      authenticationService.setAuthenticatedUser({
-        name: 'foo@bar.com',
-        authenticated: false
-      });
+      authenticationService.setAuthenticatedUser({name: 'foo@bar.com', authenticated: false});
       expect(authenticationService.getAuthenticatedUser().name).toBe('foo@bar.com');
       expect(firedEvents).toBe(2);
     });

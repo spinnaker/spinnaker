@@ -4,8 +4,6 @@ import {IDeckRootScope} from 'core/domain/deckRootScope';
 import {RedirectService} from './redirect.service';
 import {AuthenticationService} from './authentication.service';
 import {AUTHENTICATION} from './authentication.module';
-// import {TEST_UPGRADE_MODULE} from 'core/authentication/TestUpgradeModule';
-// import {TestBed} from '@angular/core/testing';
 
 declare let window: any;
 describe('authenticationProvider: application startup', function () {
@@ -14,7 +12,6 @@ describe('authenticationProvider: application startup', function () {
     window.spinnakerSettings.authEnabled = true;
   });
 
-  // beforeEach(mock.module(AUTHENTICATION, TEST_UPGRADE_MODULE));
   beforeEach(mock.module(AUTHENTICATION));
 
   let authenticationService: AuthenticationService,
@@ -24,12 +21,6 @@ describe('authenticationProvider: application startup', function () {
     redirectService: RedirectService,
     $location: ng.ILocationService,
     $rootScope: IDeckRootScope;
-
-  // beforeEach(() => {
-  //   TestBed.configureTestingModule({
-  //     providers: [AuthenticationService]
-  //   });
-  // });
 
   beforeEach(
     mock.inject(
@@ -77,13 +68,10 @@ describe('authenticationProvider: application startup', function () {
       $http.flush();
 
       const callback = encodeURIComponent($location.absUrl());
-
       expect($rootScope.authenticating).toBe(true);
       expect(authenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
       expect(authenticationService.getAuthenticatedUser().authenticated).toBe(false);
       expect(redirectUrl).toBe(`${settings.gateUrl}/auth/redirect?to=${callback}`);
-
     });
   });
-
 });
