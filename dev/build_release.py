@@ -63,7 +63,7 @@ from spinnaker.run import check_run_quick
 from spinnaker.run import run_quick
 
 
-SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50',
+SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50', 'halyard',
                   'echo', 'rosco', 'gate', 'igor', 'fiat', 'deck', 'spinnaker']
 ADDITIONAL_SUBSYSTEMS = ['spinnaker-monitoring']
 
