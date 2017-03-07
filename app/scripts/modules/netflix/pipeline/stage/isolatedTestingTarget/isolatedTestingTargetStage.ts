@@ -52,13 +52,27 @@ class IsolatedTestingTargetStageCtrl {
     $scope.stage.username = user.name.includes('@') ? user.name.substring(0, user.name.lastIndexOf('@')) : user.name;
   }
 
+  private getVipOverrides(cluster: ICluster): IVipOverride {
+    const clusterId = this.getClusterId(cluster);
+    const vips = this.stage.vipOverrides[clusterId];
+    if (!vips) {
+      this.stage.vipOverrides[clusterId] = {
+        oldVip: undefined,
+        oldSecureVip: undefined,
+        newVip: undefined,
+        newSecureVip: undefined
+      };
+    }
+    return this.stage.vipOverrides[clusterId];
+  }
+
   public getClusterOldVIPs(cluster: any): string {
-    const vips = this.stage.vipOverrides[this.getClusterId(cluster)];
+    const vips = this.getVipOverrides(cluster);
     return vips ? [vips.oldVip, vips.oldSecureVip].filter(n => n).join(', ') : '';
   };
 
   public getClusterNewVIPs(cluster: any): string {
-    const vips = this.stage.vipOverrides[this.getClusterId(cluster)];
+    const vips = this.getVipOverrides(cluster);
     return vips ? [vips.newVip, vips.newSecureVip].filter(n => n).join(', ') : '';
   };
 
@@ -95,19 +109,24 @@ class IsolatedTestingTargetStageCtrl {
     // If the ASG we are cloning has a VIP, generate the new VIP
     if (command.source && command.source.asgName && command.source.region && command.source.account) {
       this.serverGroupReader.getServerGroup(command.application, command.source.account, command.source.region, command.source.asgName).then((asgDetails: ServerGroup) => {
+        const newOverride: IVipOverride = {
+          oldVip: undefined,
+          newVip: undefined,
+          oldSecureVip: undefined,
+          newSecureVip: undefined
+        };
         if (asgDetails) {
           const discoveryHealth = filter(flatten(map(asgDetails.instances, 'health')), { type: 'Discovery' });
 
-          let oldVip: string, oldSecureVip: string;
           each(discoveryHealth, (health: any) => {
-            oldVip = oldVip || health.vipAddress;
-            oldSecureVip = oldSecureVip || health.secureVipAddress;
+            newOverride.oldVip = newOverride.oldVip || health.vipAddress;
+            newOverride.oldSecureVip = newOverride.oldSecureVip || health.secureVipAddress;
           });
 
-          const newVip = this.generateNewVip(oldVip, command.freeFormDetails);
-          const newSecureVip = this.generateNewVip(oldSecureVip, command.freeFormDetails);
-          this.stage.vipOverrides[this.getClusterId(cluster)] = { oldVip, oldSecureVip, newVip, newSecureVip };
+          newOverride.newVip = this.generateNewVip(newOverride.oldVip, command.freeFormDetails);
+          newOverride.newSecureVip = this.generateNewVip(newOverride.oldSecureVip, command.freeFormDetails);
         }
+        this.stage.vipOverrides[this.getClusterId(cluster)] = newOverride;
       });
     }
   }
@@ -155,16 +174,16 @@ class IsolatedTestingTargetStageCtrl {
   }
 
   public editVip(cluster: any, vipType: 'oldVip' | 'newVip'): void {
-    const clusterVip = this.stage.vipOverrides[this.getClusterId(cluster)];
+    const clusterVips = this.getVipOverrides(cluster);
     this.$uibModal.open({
       templateUrl: require('./editVip.modal.html'),
       controller: 'EditVipModalCtrl as vm',
       size: 'md',
       resolve: {
-        vip: () => clusterVip[vipType]
+        vip: () => clusterVips[vipType] || ''
       }
     }).result.then(newVip => {
-      clusterVip[vipType] = newVip;
+      clusterVips[vipType] = newVip;
     });
   }
 
