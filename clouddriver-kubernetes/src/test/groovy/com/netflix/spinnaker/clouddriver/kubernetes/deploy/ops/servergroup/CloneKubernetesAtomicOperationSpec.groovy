@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup
 
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
@@ -66,6 +67,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   def credentials
   def namedAccountCredentials
   def accountCredentialsRepositoryMock
+  def spectatorRegistry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -100,6 +102,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       namespace: NAMESPACE1
     )
 
+    spectatorRegistry = new DefaultRegistry()
     replicationController = new ReplicationController()
     replicationControllerSpec = new ReplicationControllerSpec()
     podTemplateSpec= new PodTemplateSpec()
@@ -112,6 +115,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
         .name("name")
         .dockerRegistries(dockerRegistries)
+        .spectatorRegistry(spectatorRegistry)
         .credentials(credentials)
         .build()
 

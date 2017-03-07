@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup
 
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
@@ -53,6 +54,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   private static final PORT = 80
   private static final PERIOD_SECONDS = 20
 
+  def spectatorRegistry
   def apiMock
   def credentials
   def namedAccountCredentials
@@ -84,6 +86,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   }
 
   def setup() {
+    spectatorRegistry = new DefaultRegistry()
     apiMock = Mock(KubernetesApiAdaptor)
     replicationControllerOperationsMock = Mock(ReplicationControllerOperationsImpl)
     replicationControllerListMock = Mock(ReplicationControllerList)
@@ -120,11 +123,12 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
 
     dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     dockerRegistries = [dockerRegistry]
-    credentials = new KubernetesCredentials(apiMock, [NAMESPACE], [], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
+    credentials = new KubernetesCredentials(apiMock, [NAMESPACE], [], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock,)
     namedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
         .name("name")
         .dockerRegistries(dockerRegistries)
         .credentials(credentials)
+        .spectatorRegistry(spectatorRegistry)
         .build()
     clusterName = KubernetesUtil.combineAppStackDetail(APPLICATION, STACK, DETAILS)
     replicationControllerName = String.format("%s-v%s", clusterName, SEQUENCE)

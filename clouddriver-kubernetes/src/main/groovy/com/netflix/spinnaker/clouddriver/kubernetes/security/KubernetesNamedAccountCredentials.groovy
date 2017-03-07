@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.security
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
@@ -39,6 +40,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   KubernetesCredentials credentials
   final List<String> requiredGroupMembership
   final List<LinkedDockerRegistryConfiguration> dockerRegistries
+  final Registry spectatorRegistry
   private final AccountCredentialsRepository accountCredentialsRepository
 
   public KubernetesNamedAccountCredentials(String name,
@@ -72,11 +74,15 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.requiredGroupMembership = requiredGroupMembership
     this.dockerRegistries = dockerRegistries
     this.accountCredentialsRepository = accountCredentialsRepository
+    this.spectatorRegistry = spectatorRegistry
     this.credentials = credentials
   }
 
   public List<String> getNamespaces() {
     return credentials.getNamespaces()
+  }
+  public Registry getSpectatorRegistry() {
+    return spectatorRegistry;
   }
 
   static class Builder {
@@ -95,6 +101,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     KubernetesCredentials credentials
     List<String> requiredGroupMembership
     List<LinkedDockerRegistryConfiguration> dockerRegistries
+    Registry spectatorRegistry
     AccountCredentialsRepository accountCredentialsRepository
 
     Builder name(String name) {
@@ -172,6 +179,11 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
       return this
     }
 
+    Builder spectatorRegistry(Registry spectatorRegistry) {
+      this.spectatorRegistry = spectatorRegistry
+      return this
+    }
+
     Builder accountCredentialsRepository(AccountCredentialsRepository accountCredentialsRepository) {
       this.accountCredentialsRepository = accountCredentialsRepository
       return this
@@ -188,11 +200,11 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
       }
 
       return new KubernetesCredentials(
-          new KubernetesApiAdaptor(name, config),
+          new KubernetesApiAdaptor(name, config, spectatorRegistry),
           namespaces,
           omitNamespaces,
           dockerRegistries,
-          accountCredentialsRepository,
+          accountCredentialsRepository
       )
     }
 

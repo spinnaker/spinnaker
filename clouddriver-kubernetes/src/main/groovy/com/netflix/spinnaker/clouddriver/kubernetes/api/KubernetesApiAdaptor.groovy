@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.api
 
+import com.netflix.spectator.api.Clock
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesOperationException
 import groovy.util.logging.Slf4j
@@ -42,14 +45,20 @@ class KubernetesApiAdaptor {
   static final long RETRY_INITIAL_WAIT_MILLIS = 100
   static final String DEPLOYMENT_ANNOTATION = "deployment.kubernetes.io"
   final KubernetesClient client
+  final Registry spectatorRegistry
+  final Clock spectatorClock
 
-  KubernetesApiAdaptor(String account, io.fabric8.kubernetes.client.Config config) {
+  public spectatorRegistry() { return spectatorRegistry }
+
+  KubernetesApiAdaptor(String account, io.fabric8.kubernetes.client.Config config, Registry spectatorRegistry) {
     if (!config) {
       throw new IllegalArgumentException("Config may not be null.")
     }
     this.config = config
     this.account = account
     this.client = new DefaultKubernetesClient(this.config)
+    this.spectatorRegistry = spectatorRegistry
+    this.spectatorClock = spectatorRegistry.clock()
   }
 
   KubernetesOperationException formatException(String operation, String namespace, KubernetesClientException e) {
@@ -88,6 +97,7 @@ class KubernetesApiAdaptor {
   private <T> T exceptionWrapper(String operationMessage, String namespace, Closure<T> doOperation) {
     T result = null
     Exception failure
+
     try {
       result = doOperation()
     } catch (KubernetesClientException e) {
@@ -99,6 +109,7 @@ class KubernetesApiAdaptor {
     } catch (Exception e) {
       failure = e
     } finally {
+
       if (failure) {
         throw failure
       } else {

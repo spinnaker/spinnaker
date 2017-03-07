@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergroup
 
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
@@ -76,6 +77,7 @@ class CloneKubernetesAtomicOperationValidatorSpec extends Specification {
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
 
+    def spectatorRegistry = new DefaultRegistry()
     def apiMock = Mock(KubernetesApiAdaptor)
     def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
@@ -96,6 +98,7 @@ class CloneKubernetesAtomicOperationValidatorSpec extends Specification {
         .name(VALID_ACCOUNT)
         .dockerRegistries(dockerRegistries)
         .credentials(credentials)
+        .spectatorRegistry(spectatorRegistry)
         .build()
     credentialsRepo.save(VALID_ACCOUNT, namedAccountCredentials)
     validator.accountCredentialsProvider = credentialsProvider
