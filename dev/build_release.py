@@ -196,9 +196,10 @@ class Builder(object):
 
       os.environ['NODE_ENV'] = os.environ.get('NODE_ENV', 'dev')
       self.__build_number = options.build_number
+      self.__google_service_account = options.google_service_account
       self.__options = options
       self.refresher = refresh_source.Refresher(options)
-      if options.bintray_repo:
+      if options.bintray_repo and options.build:
         self.__verify_bintray()
 
 
@@ -222,7 +223,7 @@ class Builder(object):
       gradle_root = name if name != 'spinnaker' else self.__project_dir
       return gradle_root
 
-  def start_subsystem_build(self, name):
+  def start_deb_build(self, name):
     """Start a subprocess to build and publish the designated component.
 
     This function runs a gradle 'candidate' task using the last git tag as the
@@ -287,10 +288,40 @@ class Builder(object):
     # Note: 'candidate' is just the gradle task name. It doesn't indicate
     # 'release candidate' status for the artifacts created through this build.
     return BackgroundProcess.spawn(
-      'Building and publishing {name}...'.format(name=name),
+      'Building and publishing Debian for {name}...'.format(name=name),
       'cd "{gradle_root}"; ./gradlew {extra} {target}'.format(
           gradle_root=gradle_root, extra=' '.join(extra_args), target=target)
     )
+
+  def start_container_build(self, name):
+    """Start a subprocess to build a container image of the subsystem.
+
+    Uses either Google Container Builder or Docker with configuration files
+    produced during BOM generation to build the container images. The
+    configuration files are assumed to be in the parent directory of the
+    subsystem's Gradle root.
+
+    Args:
+      name [string]: Name of the subsystem repository.
+
+    Returns:
+      BackgroundProcess
+    """
+    gradle_root = self.determine_gradle_root(name)
+    if self.__options.container_builder == 'gcb':
+      return BackgroundProcess.spawn(
+        'Building and publishing container image for {name} with Google Container Builder...'.format(name=name),
+        'cd "{gradle_root}"; gcloud container builds submit --account={account} --config="../{name}-gcb.yml" .'
+        .format(gradle_root=gradle_root, name=name, account=self.__google_service_account)
+      )
+    elif self.__options.container_builder == 'docker':
+      return BackgroundProcess.spawn(
+        'Building and publishing container image for {name} with Docker...'.format(name=name),
+        'cd "{gradle_root}"; docker build -f Dockerfile -t $(cat ../{name}-docker.yml) .; docker push $(cat ../{name}-docker.yml)'
+        .format(gradle_root=gradle_root, name=name)
+      )
+    else:
+      print 'Neither Google Container Builder nor Docker specified for building container image. Container image for {name} not built.'.format(name=name)
 
   def publish_to_bintray(self, source, package, version, path, debian_tags=''):
     bintray_key = os.environ['BINTRAY_KEY']
@@ -501,16 +532,43 @@ class Builder(object):
 
   def __do_build(self, subsys):
     try:
-      self.start_subsystem_build(subsys).check_wait()
+      self.start_deb_build(subsys).check_wait()
     except Exception as ex:
       self.__build_failures.append(subsys)
 
+  def __do_container_build(self, subsys):
+    try:
+      self.start_container_build(subsys).check_wait()
+    except Exception as ex:
+      print ex
+      self.__build_failures.append(subsys)
+
+  def build_container_images(self):
+    """Build the Spinnaker packages as container images.
+    """
+    subsystems = [comp for comp in SUBSYSTEM_LIST if comp != 'spinnaker']
+
+    if self.__options.build_container_images:
+      weighted_processes = self.__options.cpu_ratio * multiprocessing.cpu_count()
+      pool = multiprocessing.pool.ThreadPool(
+        processes=int(max(1, weighted_processes)))
+      pool.map(self.__do_container_build, subsystems)
+
+    if self.__build_failures:
+      if set(self.__build_failures).intersection(set(subsystems)):
+        raise RuntimeError('Builds failed for {0!r}'.format(
+          self.__build_failures))
+      else:
+        print 'Ignoring errors on optional subsystems {0!r}'.format(
+          self.__build_failures)
+    return
+
   def build_packages(self):
       """Build all the Spinnaker packages."""
+      all_subsystems = []
       if self.__options.build:
         # Build in parallel using half available cores
         # to keep load in check.
-        all_subsystems = []
         all_subsystems.extend(SUBSYSTEM_LIST)
         all_subsystems.extend(ADDITIONAL_SUBSYSTEMS)
         weighted_processes = self.__options.cpu_ratio * multiprocessing.cpu_count()
@@ -631,6 +689,14 @@ class Builder(object):
         '--nonebula', dest='nebula', action='store_false',
         help='Explicitly "buildDeb" then curl upload them to bintray.')
 
+      parser.add_argument(
+        '--build_container_images', default=False, action='store_true',
+        help='Build container images of the Spinnaker microservices.')
+      parser.add_argument('--container_builder', default='gcb',
+                          help="Type of builder to use. Currently, the supported options are {'gcb', 'docker'}.")
+      parser.add_argument('--google_service_account', default='',
+                          help='Google service account to invoke container builder with.')
+
 
   def __verify_bintray(self):
     if not os.environ.get('BINTRAY_KEY', None):
@@ -645,7 +711,7 @@ class Builder(object):
     cls.init_argument_parser(parser)
     options = parser.parse_args()
 
-    if not (options.bintray_repo):
+    if options.build and not (options.bintray_repo):
       sys.stderr.write('ERROR: Missing a --bintray_repo')
       return -1
 
@@ -654,8 +720,9 @@ class Builder(object):
         builder.refresher.pull_all_from_origin()
 
     builder.build_packages()
+    builder.build_container_images()
 
-    if options.bintray_repo:
+    if options.build and options.bintray_repo:
       fd, temp_path = tempfile.mkstemp()
       with open(os.path.join(determine_project_root(), 'InstallSpinnaker.sh'),
                 'r') as f:
