@@ -58,14 +58,14 @@ abstract class AbstractEurekaSupport {
     def random = new Random()
     def applicationName = null
     try {
-      applicationName = retry(task, eurekaSupportConfigurationProperties.retryMax) { retryCount ->
+      applicationName = retry(task, phaseName, eurekaSupportConfigurationProperties.retryMax) { retryCount ->
         def instanceId = instanceIds[random.nextInt(instanceIds.size())]
-        task.updateStatus phaseName, "Looking up discovery application name for instance $instanceId"
+        task.updateStatus phaseName, "Looking up discovery application name for instance $instanceId (attempt: $retryCount)"
 
         def instanceDetails = eureka.getInstanceInfo(instanceId)
         def appName = instanceDetails?.instance?.app
         if (!appName) {
-          throw new RetryableException("Looking up instance application name in Discovery failed for instance ${instanceId}")
+          throw new RetryableException("Looking up instance application name in Discovery failed for instance ${instanceId} (attempt: $retryCount)")
         }
         return appName
       }
@@ -98,13 +98,13 @@ abstract class AbstractEurekaSupport {
             def account = description.credentialAccount
             def region = description.region
             def asgName = description.asgName
-            AbstractEurekaSupport.log.error("Unable to verify cached discovery status (account: ${account}, region: ${region}, asgName: ${asgName}", e)
+            AbstractEurekaSupport.log.error("[$phaseName] - Unable to verify cached discovery status (account: ${account}, region: ${region}, asgName: ${asgName}", e)
           }
         }
       }
 
       try {
-        retry(task, eurekaSupportConfigurationProperties.retryMax) { retryCount ->
+        retry(task, phaseName, eurekaSupportConfigurationProperties.retryMax) { retryCount ->
           task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery (attempt: ${retryCount})."
 
           Response resp
@@ -140,11 +140,11 @@ abstract class AbstractEurekaSupport {
     if (shouldFail) {
       task.updateStatus phaseName, "Failed marking instances '${discoveryStatus.value}' in discovery for instances ${errors.keySet()}"
       task.fail()
-      AbstractEurekaSupport.log.info("Failed marking discovery $discoveryStatus.value for instances ${errors}")
+      AbstractEurekaSupport.log.info("[$phaseName] - Failed marking discovery $discoveryStatus.value for instances ${errors}")
     }
   }
 
-  def retry(Task task, int maxRetries, Closure c) {
+  def retry(Task task, String phaseName, int maxRetries, Closure c) {
     def retryCount = 0
     while (true) {
       try {
@@ -157,12 +157,16 @@ abstract class AbstractEurekaSupport {
           throw ex
         }
 
+        AbstractEurekaSupport.log.debug("[$phaseName] - Caught retryable exception", ex)
+
         retryCount++
         sleep(getDiscoveryRetryMs());
       } catch (RetrofitError re) {
         if (retryCount >= (maxRetries - 1)) {
           throw re
         }
+
+        AbstractEurekaSupport.log.debug("[$phaseName] - Failed calling external service", re)
 
         if (re.kind == RetrofitError.Kind.NETWORK || re.response.status == 404 || re.response.status == 406) {
           retryCount++
@@ -176,6 +180,7 @@ abstract class AbstractEurekaSupport {
         }
       } catch (AmazonServiceException ase) {
         if (ase.statusCode == 503) {
+          AbstractEurekaSupport.log.debug("[$phaseName] - Failed calling AmazonService", ase)
           retryCount++
           sleep(getDiscoveryRetryMs())
         } else {
