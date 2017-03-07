@@ -94,9 +94,10 @@ class KubernetesApiAdaptor {
   /*
    * Atomically create a new client, and pass it to the given doOperation closure to operate against the kubernetes API
    */
-  private <T> T exceptionWrapper(String operationMessage, String namespace, Closure<T> doOperation) {
+  private <T> T exceptionWrapper(String methodName, String operationMessage, String namespace, Closure<T> doOperation) {
     T result = null
     Exception failure
+    long startTime = spectatorClock.monotonicTime()
 
     try {
       result = doOperation()
@@ -110,6 +111,18 @@ class KubernetesApiAdaptor {
       failure = e
     } finally {
 
+      def tags = ["method": methodName,
+                  "account": account,
+                  "namespace" : namespace ? namespace : "none",
+                  "success": failure ? "false": "true"]
+      if (failure) {
+        tags["reason"] = failure.class.simpleName
+      }
+
+      spectatorRegistry.timer(
+              spectatorRegistry.createId("kubernetes.api", tags))
+              .record(spectatorClock.monotonicTime() - startTime, TimeUnit.NANOSECONDS)
+
       if (failure) {
         throw failure
       } else {
@@ -119,13 +132,13 @@ class KubernetesApiAdaptor {
   }
 
   List<Event> getEvents(String namespace, HasMetadata object) {
-    exceptionWrapper("Get Events", namespace) {
+    exceptionWrapper("events.list", "Get Events", namespace) {
       client.events().inNamespace(namespace).withField("involvedObject.uid", object.metadata.uid).list().items
     }
   }
 
   Map<String, List<Event>> getEvents(String namespace, String type) {
-    exceptionWrapper("Get Events", namespace) {
+    exceptionWrapper("events.list", "Get Events", namespace) {
       def events = client.events().inNamespace(namespace).withField("involvedObject.kind", type).list().items
       def eventMap = [:].withDefault { _ -> [] }
       events.each { Event event ->
@@ -136,145 +149,145 @@ class KubernetesApiAdaptor {
   }
 
   Ingress createIngress(String namespace, Ingress ingress) {
-    exceptionWrapper("Create Ingress ${ingress?.metadata?.name}", namespace) {
+    exceptionWrapper("ingresses.create", "Create Ingress ${ingress?.metadata?.name}", namespace) {
       client.extensions().ingresses().inNamespace(namespace).create(ingress)
     }
   }
 
   Ingress replaceIngress(String namespace, String name, Ingress ingress) {
-    exceptionWrapper("Replace Ingress ${name}", namespace) {
+    exceptionWrapper("ingresses.replace", "Replace Ingress ${name}", namespace) {
       client.extensions().ingresses().inNamespace(namespace).withName(name).replace(ingress)
     }
   }
 
   Ingress getIngress(String namespace, String name) {
-    exceptionWrapper("Get Ingress $name", namespace) {
+    exceptionWrapper("ingresses.get", "Get Ingress $name", namespace) {
       client.extensions().ingresses().inNamespace(namespace).withName(name).get()
     }
   }
 
   boolean deleteIngress(String namespace, String name) {
-    exceptionWrapper("Delete Ingress $name", namespace) {
+    exceptionWrapper("ingresses.delete", "Delete Ingress $name", namespace) {
       client.extensions().ingresses().inNamespace(namespace).withName(name).delete()
     }
   }
 
   List<Ingress> getIngresses(String namespace) {
-    exceptionWrapper("Get Ingresses", namespace) {
+    exceptionWrapper("ingresses.list", "Get Ingresses", namespace) {
       client.extensions().ingresses().inNamespace(namespace).list().items
     }
   }
 
   List<ReplicaSet> getReplicaSets(String namespace) {
-    exceptionWrapper("Get Replica Sets", namespace) {
+    exceptionWrapper("replicaSets.list", "Get Replica Sets", namespace) {
       client.extensions().replicaSets().inNamespace(namespace).list().items
     }
   }
 
   List<ReplicaSet> getReplicaSets(String namespace, Map<String, String> labels) {
-    exceptionWrapper("Get Replica Sets", namespace) {
+    exceptionWrapper("replicaSets.list", "Get Replica Sets", namespace) {
       client.extensions().replicaSets().inNamespace(namespace).withLabels(labels).list().items
     }
   }
 
   boolean hardDestroyReplicaSet(String namespace, String name) {
-    exceptionWrapper("Hard Destroy Replica Set $name", namespace) {
+    exceptionWrapper("replicaSets.delete", "Hard Destroy Replica Set $name", namespace) {
       client.extensions().replicaSets().inNamespace(namespace).withName(name).delete()
     }
   }
 
   List<Pod> getReplicaSetPods(String namespace, String replicaSetName) {
-    exceptionWrapper("Get Replica Set Pods for $replicaSetName", namespace) {
+    exceptionWrapper("pods.list", "Get Replica Set Pods for $replicaSetName", namespace) {
       client.pods().inNamespace(namespace).withLabel(KubernetesUtil.SERVER_GROUP_LABEL, replicaSetName).list().items
     }
   }
 
   ReplicaSet getReplicaSet(String namespace, String serverGroupName) {
-    exceptionWrapper("Get Replica Set $serverGroupName", namespace) {
+    exceptionWrapper("replicaSets.get", "Get Replica Set $serverGroupName", namespace) {
       client.extensions().replicaSets().inNamespace(namespace).withName(serverGroupName).get()
     }
   }
 
   ReplicaSet resizeReplicaSet(String namespace, String name, int size) {
-    exceptionWrapper("Resize Replica Set $name to $size", namespace) {
+    exceptionWrapper("replicaSets.scale", "Resize Replica Set $name to $size", namespace) {
       client.extensions().replicaSets().inNamespace(namespace).withName(name).scale(size)
     }
   }
 
   ReplicaSet createReplicaSet(String namespace, ReplicaSet replicaSet) {
-    exceptionWrapper("Create Replica Set ${replicaSet?.metadata?.name}", namespace) {
+    exceptionWrapper("replicaSets.create", "Create Replica Set ${replicaSet?.metadata?.name}", namespace) {
       client.extensions().replicaSets().inNamespace(namespace).create(replicaSet)
     }
   }
 
   List<Pod> getJobPods(String namespace, String jobName) {
-    exceptionWrapper("Get JobStatus Pods for $jobName", namespace) {
+    exceptionWrapper("pods.list", "Get JobStatus Pods for $jobName", namespace) {
       client.pods().inNamespace(namespace).withLabel(KubernetesUtil.JOB_LABEL, jobName).list().items
     }
   }
 
   Pod getPod(String namespace, String name) {
-    exceptionWrapper("Get Pod $name", namespace) {
+    exceptionWrapper("pods.get", "Get Pod $name", namespace) {
       client.pods().inNamespace(namespace).withName(name).get()
     }
   }
 
   List<Pod> getPods(String namespace, Map<String, String> labels) {
-    exceptionWrapper("Get Pods matching $labels", namespace) {
+    exceptionWrapper("pods.list", "Get Pods matching $labels", namespace) {
       client.pods().inNamespace(namespace).withLabels(labels).list().items
     }
   }
 
   boolean deletePod(String namespace, String name) {
-    exceptionWrapper("Delete Pod $name", namespace) {
+    exceptionWrapper("pods.delete", "Delete Pod $name", namespace) {
       client.pods().inNamespace(namespace).withName(name).delete()
     }
   }
 
   List<Pod> getPods(String namespace) {
-    exceptionWrapper("Get Pods", namespace) {
+    exceptionWrapper("pods.list", "Get Pods", namespace) {
       client.pods().inNamespace(namespace).list().items
     }
   }
 
   List<ReplicationController> getReplicationControllers(String namespace) {
-    exceptionWrapper("Get Replication Controllers", namespace) {
+    exceptionWrapper("replicationControllers.list", "Get Replication Controllers", namespace) {
       client.replicationControllers().inNamespace(namespace).list().items
     }
   }
 
   List<Pod> getReplicationControllerPods(String namespace, String replicationControllerName) {
-    exceptionWrapper("Get Replication Controller Pods for $replicationControllerName", namespace) {
+    exceptionWrapper("pods.list", "Get Replication Controller Pods for $replicationControllerName", namespace) {
       client.pods().inNamespace(namespace).withLabel(KubernetesUtil.SERVER_GROUP_LABEL, replicationControllerName).list().items
     }
   }
 
   ReplicationController getReplicationController(String namespace, String serverGroupName) {
-    exceptionWrapper("Get Replication Controller $serverGroupName", namespace) {
+    exceptionWrapper("replicationControllers.get", "Get Replication Controller $serverGroupName", namespace) {
       client.replicationControllers().inNamespace(namespace).withName(serverGroupName).get()
     }
   }
 
   ReplicationController createReplicationController(String namespace, ReplicationController replicationController) {
-    exceptionWrapper("Create Replication Controller ${replicationController?.metadata?.name}", namespace) {
+    exceptionWrapper("replicationControllers.create", "Create Replication Controller ${replicationController?.metadata?.name}", namespace) {
       client.replicationControllers().inNamespace(namespace).create(replicationController)
     }
   }
 
   ReplicationController resizeReplicationController(String namespace, String name, int size) {
-    exceptionWrapper("Resize Replication Controller $name to $size", namespace) {
+    exceptionWrapper("replicationControllers.scale", "Resize Replication Controller $name to $size", namespace) {
       client.replicationControllers().inNamespace(namespace).withName(name).scale(size)
     }
   }
 
   boolean hardDestroyReplicationController(String namespace, String name) {
-    exceptionWrapper("Hard Destroy Replication Controller $name", namespace) {
+    exceptionWrapper("replicationControllers.delete", "Hard Destroy Replication Controller $name", namespace) {
       client.replicationControllers().inNamespace(namespace).withName(name).delete()
     }
   }
 
   void togglePodLabels(String namespace, String name, List<String> keys, String value) {
-    exceptionWrapper("Toggle Pod Labels to $value for $name", namespace) {
+    exceptionWrapper("pods.edit", "Toggle Pod Labels to $value for $name", namespace) {
       def edit = client.pods().inNamespace(namespace).withName(name).edit().editMetadata()
 
       keys.each {
@@ -287,7 +300,7 @@ class KubernetesApiAdaptor {
   }
 
   ReplicationController toggleReplicationControllerSpecLabels(String namespace, String name, List<String> keys, String value) {
-    exceptionWrapper("Toggle Replication Controller Labels to $value for $name", namespace) {
+    exceptionWrapper("replicationControllers.edit", "Toggle Replication Controller Labels to $value for $name", namespace) {
       def edit = client.replicationControllers().inNamespace(namespace).withName(name).cascading(false).edit().editSpec().editTemplate().editMetadata()
 
       keys.each {
@@ -300,7 +313,7 @@ class KubernetesApiAdaptor {
   }
 
   ReplicaSet toggleReplicaSetSpecLabels(String namespace, String name, List<String> keys, String value) {
-    exceptionWrapper("Toggle Replica Set Labels to $value for $name", namespace) {
+    exceptionWrapper("replicaSets.edit", "Toggle Replica Set Labels to $value for $name", namespace) {
       def edit = client.extensions().replicaSets().inNamespace(namespace).withName(name).cascading(false).edit().editSpec().editTemplate().editMetadata()
 
       keys.each {
@@ -313,67 +326,67 @@ class KubernetesApiAdaptor {
   }
 
   Service getService(String namespace, String service) {
-    exceptionWrapper("Get Service $service", namespace) {
+    exceptionWrapper("services.get", "Get Service $service", namespace) {
       client.services().inNamespace(namespace).withName(service).get()
     }
   }
 
   Service createService(String namespace, Service service) {
-    exceptionWrapper("Create Service $service", namespace) {
+    exceptionWrapper("services.create", "Create Service $service", namespace) {
       client.services().inNamespace(namespace).create(service)
     }
   }
 
   boolean deleteService(String namespace, String name) {
-    exceptionWrapper("Delete Service $name", namespace) {
+    exceptionWrapper("services.delete","Delete Service $name", namespace) {
       client.services().inNamespace(namespace).withName(name).delete()
     }
   }
 
   List<Service> getServices(String namespace) {
-    exceptionWrapper("Get Services", namespace) {
+    exceptionWrapper("services.list", "Get Services", namespace) {
       client.services().inNamespace(namespace).list().items
     }
   }
 
   Service replaceService(String namespace, String name, Service service) {
-    exceptionWrapper("Replace Service $name", namespace) {
+    exceptionWrapper("services.replace", "Replace Service $name", namespace) {
       client.services().inNamespace(namespace).withName(name).replace(service)
     }
   }
 
   Secret getSecret(String namespace, String secret) {
-    exceptionWrapper("Get Secret $secret", namespace) {
+    exceptionWrapper("secrets.get", "Get Secret $secret", namespace) {
       client.secrets().inNamespace(namespace).withName(secret).get()
     }
   }
 
   Boolean deleteSecret(String namespace, String secret) {
-    exceptionWrapper("Delete Secret $secret", namespace) {
+    exceptionWrapper("secrets.delete", "Delete Secret $secret", namespace) {
       client.secrets().inNamespace(namespace).withName(secret).delete()
     }
   }
 
   Secret createSecret(String namespace, Secret secret) {
-    exceptionWrapper("Create Secret $secret", namespace) {
+    exceptionWrapper("secretes.create", "Create Secret $secret", namespace) {
       client.secrets().inNamespace(namespace).create(secret)
     }
   }
 
   Namespace getNamespace(String namespace) {
-    exceptionWrapper("Get Namespace $namespace", null) {
+    exceptionWrapper("namespaces.get", "Get Namespace $namespace", null) {
       client.namespaces().withName(namespace).get()
     }
   }
 
   List<Namespace> getNamespaces() {
-    exceptionWrapper("Get Namespaces", null) {
+    exceptionWrapper("namespaces.list", "Get Namespaces", null) {
       client.namespaces().list().items
     }
   }
 
   List<String> getNamespacesByName() {
-    exceptionWrapper("Get Namespaces", null) {
+    exceptionWrapper("namespaces.list", "Get Namespaces", null) {
       client.namespaces().list().items.collect {
         it.metadata.name
       }
@@ -381,49 +394,49 @@ class KubernetesApiAdaptor {
   }
 
   Namespace createNamespace(Namespace namespace) {
-    exceptionWrapper("Create Namespace $namespace", null) {
+    exceptionWrapper("namespaces.create", "Create Namespace $namespace", null) {
       client.namespaces().create(namespace)
     }
   }
 
   Pod createPod(String namespace, Pod pod) {
-    exceptionWrapper("Create Pod ${pod?.metadata?.name}", namespace) {
+    exceptionWrapper("pods.create", "Create Pod ${pod?.metadata?.name}", namespace) {
       client.pods().inNamespace(namespace).create(pod)
     }
   }
 
   List<Job> getJobs(String namespace) {
-    exceptionWrapper("Get Jobs", namespace) {
+    exceptionWrapper("jobs.list", "Get Jobs", namespace) {
       client.extensions().jobs().inNamespace(namespace).list().items
     }
   }
 
   Job getJob(String namespace, String name) {
-    exceptionWrapper("Get JobStatus $name", namespace) {
+    exceptionWrapper("jobs.get", "Get JobStatus $name", namespace) {
       client.extensions().jobs().inNamespace(namespace).withName(name).get()
     }
   }
 
   boolean hardDestroyPod(String namespace, String name) {
-    exceptionWrapper("Hard Destroy Pod $name", namespace) {
+    exceptionWrapper("pods.delete", "Hard Destroy Pod $name", namespace) {
       client.pods().inNamespace(namespace).withName(name).delete()
     }
   }
 
   HorizontalPodAutoscaler createAutoscaler(String namespace, HorizontalPodAutoscaler autoscaler) {
-    exceptionWrapper("Create Autoscaler ${autoscaler?.metadata?.name}", namespace) {
+    exceptionWrapper("horizontalPodAutoscalers.create", "Create Autoscaler ${autoscaler?.metadata?.name}", namespace) {
       client.extensions().horizontalPodAutoscalers().inNamespace(namespace).create(autoscaler)
     }
   }
 
   HorizontalPodAutoscaler getAutoscaler(String namespace, String name) {
-    exceptionWrapper("Get Autoscaler $name", namespace) {
+    exceptionWrapper("horizontalPodAutoscalers.get", "Get Autoscaler $name", namespace) {
       client.extensions().horizontalPodAutoscalers().inNamespace(namespace).withName(name).get()
     }
   }
 
   Map<String, HorizontalPodAutoscaler> getAutoscalers(String namespace, String kind) {
-    exceptionWrapper("Get Autoscalers", namespace) {
+    exceptionWrapper("horizontalPodAutoscalers.list", "Get Autoscalers", namespace) {
       def items = client.extensions().horizontalPodAutoscalers().inNamespace(namespace).list().items ?: []
       items.collectEntries { def autoscaler ->
         autoscaler.spec.scaleRef.kind == kind ? [(autoscaler.metadata.name): autoscaler] : [:]
@@ -432,37 +445,37 @@ class KubernetesApiAdaptor {
   }
 
   boolean deleteAutoscaler(String namespace, String name) {
-    exceptionWrapper("Destroy Autoscaler $name", namespace) {
+    exceptionWrapper("horizontalPodAutoscalers.delete", "Destroy Autoscaler $name", namespace) {
       client.extensions().horizontalPodAutoscalers().inNamespace(namespace).withName(name).delete()
     }
   }
 
   Deployment getDeployment(String namespace, String name) {
-    exceptionWrapper("Get Deployment $name", namespace) {
+    exceptionWrapper("deployments.get", "Get Deployment $name", namespace) {
       client.extensions().deployments().inNamespace(namespace).withName(name).get()
     }
   }
 
   List<Deployment> getDeployments(String namespace) {
-    exceptionWrapper("Get Deployments", namespace) {
+    exceptionWrapper("deployments.list", "Get Deployments", namespace) {
       client.extensions().deployments().inNamespace(namespace).list().items
     }
   }
 
   Deployment createDeployment(String namespace, Deployment deployment) {
-    exceptionWrapper("Create Deployment $deployment.metadata.name", namespace) {
+    exceptionWrapper("deployments.create", "Create Deployment $deployment.metadata.name", namespace) {
       client.extensions().deployments().inNamespace(namespace).create(deployment)
     }
   }
 
   DoneableDeployment editDeployment(String namespace, String name) {
-    exceptionWrapper("Edit deployment $name", namespace) {
+    exceptionWrapper("deployments.edit", "Edit deployment $name", namespace) {
       client.extensions().deployments().inNamespace(namespace).withName(name).edit()
     }
   }
 
   boolean deleteDeployment(String namespace, String name) {
-    exceptionWrapper("Delete Deployment $name", namespace) {
+    exceptionWrapper("deployments.delete", "Delete Deployment $name", namespace) {
       client.extensions().deployments().inNamespace(namespace).withName(name).delete()
     }
   }
