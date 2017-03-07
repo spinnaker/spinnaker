@@ -26,6 +26,7 @@ class InstanceTerminationConfigurationProperties {
 
   int visibilityTimeout = 30
   int waitTimeSeconds = 5
+  int sqsMessageRetentionPeriodSeconds = 120
 
   InstanceTerminationConfigurationProperties() {
     // default constructor
@@ -35,11 +36,13 @@ class InstanceTerminationConfigurationProperties {
                                              String queueARN,
                                              String topicARN,
                                              int visibilityTimeout,
-                                             int waitTimeSeconds) {
+                                             int waitTimeSeconds,
+                                             int sqsMessageRetentionPeriodSeconds) {
     this.accountName = accountName
     this.queueARN = queueARN
     this.topicARN = topicARN
     this.visibilityTimeout = visibilityTimeout
     this.waitTimeSeconds = waitTimeSeconds
+    this.sqsMessageRetentionPeriodSeconds = sqsMessageRetentionPeriodSeconds
   }
 }

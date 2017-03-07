@@ -72,6 +72,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
       queueARN.arn,
       topicARN.arn,
       -1,
+      -1,
       -1
     ),
     awsEurekaSupportProvider,
@@ -100,7 +101,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
 
   def 'should create queue if it does not exist'() {
     when:
-    def queueId = InstanceTerminationLifecycleWorker.ensureQueueExists(amazonSQS, queueARN, topicARN, ['1234'], [] as Set<String>)
+    def queueId = InstanceTerminationLifecycleWorker.ensureQueueExists(amazonSQS, queueARN, topicARN, [] as Set<String>, 1)
 
     then:
     queueId == "my-queue-url"
@@ -108,7 +109,8 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
     1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
 
     1 * amazonSQS.setQueueAttributes("my-queue-url", [
-      "Policy": InstanceTerminationLifecycleWorker.buildSQSPolicy(queueARN, topicARN, ['1234'], [] as Set<String>).toJson()
+      "Policy": InstanceTerminationLifecycleWorker.buildSQSPolicy(queueARN, topicARN, [] as Set<String>).toJson(),
+      "MessageRetentionPeriod": "1"
     ])
     0 * _
   }
@@ -177,11 +179,10 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
 
   def 'should build sqs policy supporting both sns and direct notifications'() {
     given:
-    def allAccountIds = ['100', '200']
-    Set<String> terminatingRoleArns = ['arn:aws:iam::*:role/terminatingRole']
+    Set<String> terminatingRoleArns = ['arn:aws:iam::100:role/terminatingRole', 'arn:aws:iam::200:role/terminatingRole']
 
     when:
-    def result = subject.buildSQSPolicy(queueARN, topicARN, allAccountIds, terminatingRoleArns)
+    def result = subject.buildSQSPolicy(queueARN, topicARN, terminatingRoleArns)
 
     then:
     result.statements.size() == 2
@@ -198,12 +199,12 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
 
     // direct sqs
     result.statements[1].with {
-      it.principals*.id == ['100', '200']
+      it.principals*.id == [
+        'arn:aws:iam::100:role/terminatingRole',
+        'arn:aws:iam::200:role/terminatingRole'
+      ]
       it.actions*.actionName == ['SendMessage, GetQueueUrl']
       it.resources*.id == ['arn:aws:sqs:us-west-2:100:queueName']
-      it.conditions*.type == ['ArnLike']
-      it.conditions*.conditionKey == ['aws:SourceArn']
-      it.conditions*.values == [['arn:aws:iam::*:role/terminatingRole']]
     }
   }
 }

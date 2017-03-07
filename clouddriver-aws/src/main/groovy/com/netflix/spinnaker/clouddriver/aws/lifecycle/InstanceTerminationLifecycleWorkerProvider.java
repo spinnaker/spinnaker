@@ -86,7 +86,8 @@ public class InstanceTerminationLifecycleWorkerProvider {
             .replaceAll(REGION_TEMPLATE_PATTERN, region.getName())
             .replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
           properties.getVisibilityTimeout(),
-          properties.getWaitTimeSeconds()
+          properties.getWaitTimeSeconds(),
+          properties.getSqsMessageRetentionPeriodSeconds()
         ),
         discoverySupport,
         registry
