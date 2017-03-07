@@ -65,7 +65,7 @@ from spinnaker.run import run_quick
 
 SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50',
                   'echo', 'rosco', 'gate', 'igor', 'fiat', 'deck', 'spinnaker']
-ADDITIONAL_SUBSYSTEMS = ['spinnaker-monitoring']
+ADDITIONAL_SUBSYSTEMS = ['spinnaker-monitoring', 'halyard']
 
 def ensure_gcs_bucket(name, project=''):
   """Ensure that the desired GCS bucket exists, creating it if needed.
