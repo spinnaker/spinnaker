@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.security
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
@@ -23,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -34,6 +36,8 @@ import org.springframework.context.annotation.Scope
 @Configuration
 class KubernetesCredentialsInitializer implements CredentialsInitializerSynchronizable {
   private static final DEFAULT_CACHE_THREADS = 1
+
+  @Autowired Registry spectatorRegistry
 
   @Bean
   List<? extends KubernetesNamedAccountCredentials> kubernetesNamedAccountCredentials(
@@ -85,6 +89,7 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
           .cacheThreads(managedAccount.cacheThreads ?: DEFAULT_CACHE_THREADS)
           .dockerRegistries(managedAccount.dockerRegistries)
           .requiredGroupMembership(managedAccount.requiredGroupMembership)
+          .spectatorRegistry(spectatorRegistry)
           .build()
 
         accountCredentialsRepository.save(managedAccount.name, kubernetesAccount)
