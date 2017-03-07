@@ -6,6 +6,7 @@ export interface IAvailabilityDataTimeSeries {
   is_outage: number[];
   availability: number[];
   datetime: string[];
+  incs: string[][];
 }
 
 export interface IAvailabilityWindow {

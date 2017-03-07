@@ -74,6 +74,10 @@ module.exports = angular
                     <li>none</li>
                   </ul>
                   <a href="https://confluence.netflix.com/display/PDCLOUD/Validation+for+Persisted+Properties" target="_blank">Full Documentation</a>`
+      },
+      {
+        key: 'availability.context',
+        contents: 'The availability trends for the Netflix service represented as percentage of excepted stream starts acheived and the number of \'nines\' of that availability. <a href="http://go/availabilitycontextdoc" target="_blank">Click here</a> for more details.'
       }
     ];
     if (settings.feature && settings.feature.netflixMode) {

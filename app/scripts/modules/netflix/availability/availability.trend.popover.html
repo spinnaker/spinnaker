@@ -1,3 +1,11 @@
 <div ng-mouseenter="$ctrl.popoverHovered(i)"
-     ng-mouseleave="$ctrl.hidePopover(i)"
-     ng-bind-html="$ctrl.popoverContent[i]"></div>
+     ng-mouseleave="$ctrl.hidePopover(i)" class="availability-trend-popover">
+  <h5>{{dot.popoverContent.datetime}}</h5>
+  <strong>Availability:</strong> {{dot.popoverContent.availability}}%<br />
+  <strong>Incident{{dot.popoverContent.incidents.length !== 1 ? 's' : ''}}:</strong>
+  <span ng-repeat="(i, inc) in dot.popoverContent.incidents">
+    <a href="http://go/jira/browse/{{inc}}" target="_blank">{{inc}}</a>
+    <span ng-if="i < dot.popoverContent.incidents.length - 1">, </span>
+  </span>
+  <span ng-if="dot.popoverContent.incidents.length === 0">Unknown</span>
+</div>
