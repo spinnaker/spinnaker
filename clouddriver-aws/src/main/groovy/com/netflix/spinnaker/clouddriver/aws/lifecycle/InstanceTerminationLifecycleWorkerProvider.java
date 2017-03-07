@@ -17,22 +17,30 @@ package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.cats.agent.Agent;
-import com.netflix.spinnaker.cats.agent.AgentProvider;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
-import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Provider;
-import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-public class InstanceTerminationLifecycleAgentProvider implements AgentProvider {
+@Component
+@ConditionalOnProperty("aws.lifecycleSubscribers.instanceTermination.enabled")
+public class InstanceTerminationLifecycleWorkerProvider {
   private final static String REGION_TEMPLATE_PATTERN = Pattern.quote("{{region}}");
   private final static String ACCOUNT_ID_TEMPLATE_PATTERN = Pattern.quote("{{accountId}}");
+
+  private static final Logger log = LoggerFactory.getLogger(InstanceTerminationLifecycleWorkerProvider.class);
 
   private final ObjectMapper objectMapper;
   private final AmazonClientProvider amazonClientProvider;
@@ -41,12 +49,13 @@ public class InstanceTerminationLifecycleAgentProvider implements AgentProvider 
   private final Provider<AwsEurekaSupport> discoverySupport;
   private final Registry registry;
 
-  InstanceTerminationLifecycleAgentProvider(ObjectMapper objectMapper,
-                                            AmazonClientProvider amazonClientProvider,
-                                            AccountCredentialsProvider accountCredentialsProvider,
-                                            InstanceTerminationConfigurationProperties properties,
-                                            Provider<AwsEurekaSupport> discoverySupport,
-                                            Registry registry) {
+  @Autowired
+  InstanceTerminationLifecycleWorkerProvider(ObjectMapper objectMapper,
+                                             AmazonClientProvider amazonClientProvider,
+                                             AccountCredentialsProvider accountCredentialsProvider,
+                                             InstanceTerminationConfigurationProperties properties,
+                                             Provider<AwsEurekaSupport> discoverySupport,
+                                             Registry registry) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
@@ -55,20 +64,15 @@ public class InstanceTerminationLifecycleAgentProvider implements AgentProvider 
     this.registry = registry;
   }
 
-  @Override
-  public boolean supports(String providerName) {
-    return providerName.equalsIgnoreCase(AwsProvider.PROVIDER_NAME);
-  }
-
-  @Override
-  public Collection<Agent> agents() {
+  @PostConstruct
+  public void start() {
     NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(
       properties.getAccountName()
     );
+    ExecutorService executorService = Executors.newFixedThreadPool(credentials.getRegions().size());
 
-    // an agent for each region in the specified account
-    return credentials.getRegions().stream()
-      .map(region -> new InstanceTerminationLifecycleAgent(
+    credentials.getRegions().forEach(region -> {
+      InstanceTerminationLifecycleWorker worker = new InstanceTerminationLifecycleWorker(
         objectMapper,
         amazonClientProvider,
         accountCredentialsProvider,
@@ -81,14 +85,17 @@ public class InstanceTerminationLifecycleAgentProvider implements AgentProvider 
           properties.getTopicARN()
             .replaceAll(REGION_TEMPLATE_PATTERN, region.getName())
             .replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
-          properties.getMaxMessagesPerCycle(),
           properties.getVisibilityTimeout(),
-          properties.getWaitTimeSeconds(),
-          properties.getPollIntervalSeconds()
+          properties.getWaitTimeSeconds()
         ),
         discoverySupport,
         registry
-      ))
-      .collect(Collectors.toList());
+      );
+      try {
+        executorService.submit(worker);
+      } catch (RejectedExecutionException e) {
+        log.error("Could not start " + worker.getWorkerName(), e);
+      }
+    });
   }
 }

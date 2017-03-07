@@ -36,7 +36,7 @@ import spock.lang.Subject
 
 import javax.inject.Provider
 
-class InstanceTerminationLifecycleAgentSpec extends Specification {
+class InstanceTerminationLifecycleWorkerSpec extends Specification {
 
   NetflixAmazonCredentials mgmtCredentials = Mock() {
     getAccountId() >> { return "100" }
@@ -63,7 +63,7 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
   def objectMapper = new ObjectMapper()
 
   @Subject
-  def subject = new InstanceTerminationLifecycleAgent(
+  def subject = new InstanceTerminationLifecycleWorker(
     objectMapper,
     Mock(AmazonClientProvider),
     accountCredentialsProvider,
@@ -71,8 +71,6 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
       'mgmt',
       queueARN.arn,
       topicARN.arn,
-      -1,
-      -1,
       -1,
       -1
     ),
@@ -102,7 +100,7 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
 
   def 'should create queue if it does not exist'() {
     when:
-    def queueId = InstanceTerminationLifecycleAgent.ensureQueueExists(amazonSQS, queueARN, topicARN, ['1234'], [] as Set<String>)
+    def queueId = InstanceTerminationLifecycleWorker.ensureQueueExists(amazonSQS, queueARN, topicARN, ['1234'], [] as Set<String>)
 
     then:
     queueId == "my-queue-url"
@@ -110,7 +108,7 @@ class InstanceTerminationLifecycleAgentSpec extends Specification {
     1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
 
     1 * amazonSQS.setQueueAttributes("my-queue-url", [
-      "Policy": InstanceTerminationLifecycleAgent.buildSQSPolicy(queueARN, topicARN, ['1234'], [] as Set<String>).toJson()
+      "Policy": InstanceTerminationLifecycleWorker.buildSQSPolicy(queueARN, topicARN, ['1234'], [] as Set<String>).toJson()
     ])
     0 * _
   }

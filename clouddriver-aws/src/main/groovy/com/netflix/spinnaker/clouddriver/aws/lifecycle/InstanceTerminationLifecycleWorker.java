@@ -33,13 +33,10 @@ import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.cats.agent.RunnableAgent;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
-import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -59,13 +56,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomScheduledAgent {
+public class InstanceTerminationLifecycleWorker implements Runnable {
 
-  private static final Logger log = LoggerFactory.getLogger(InstanceTerminationLifecycleAgent.class);
+  private static final Logger log = LoggerFactory.getLogger(InstanceTerminationLifecycleWorker.class);
 
   private static final int AWS_MAX_NUMBER_OF_MESSAGES = 10;
   private static final String SUPPORTED_LIFECYCLE_TRANSITION = "autoscaling:EC2_INSTANCE_TERMINATING";
@@ -82,12 +78,12 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
 
   private String queueId = null;
 
-  public InstanceTerminationLifecycleAgent(ObjectMapper objectMapper,
-                                           AmazonClientProvider amazonClientProvider,
-                                           AccountCredentialsProvider accountCredentialsProvider,
-                                           InstanceTerminationConfigurationProperties properties,
-                                           Provider<AwsEurekaSupport> discoverySupport,
-                                           Registry registry) {
+  public InstanceTerminationLifecycleWorker(ObjectMapper objectMapper,
+                                            AmazonClientProvider amazonClientProvider,
+                                            AccountCredentialsProvider accountCredentialsProvider,
+                                            InstanceTerminationConfigurationProperties properties,
+                                            Provider<AwsEurekaSupport> discoverySupport,
+                                            Registry registry) {
     this.objectMapper = objectMapper;
     this.amazonClientProvider = amazonClientProvider;
     this.accountCredentialsProvider = accountCredentialsProvider;
@@ -100,28 +96,24 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
     this.topicARN = new ARN(accountCredentials, properties.getTopicARN());
   }
 
-  @Override
-  public String getAgentType() {
-    return queueARN.account.getName() + "/" + queueARN.region + "/" + InstanceTerminationLifecycleAgent.class.getSimpleName();
-  }
-
-  @Override
-  public String getProviderName() {
-    return AwsProvider.PROVIDER_NAME;
-  }
-
-  @Override
-  public long getPollIntervalMillis() {
-    return TimeUnit.SECONDS.toMillis(properties.getPollIntervalSeconds());
-  }
-
-  @Override
-  public long getTimeoutMillis() {
-    return -1;
+  public String getWorkerName() {
+    return queueARN.account.getName() + "/" + queueARN.region + "/" + InstanceTerminationLifecycleWorker.class.getSimpleName();
   }
 
   @Override
   public void run() {
+    log.info("Starting " + getWorkerName());
+
+    while (true) {
+      try {
+        listenForMessages();
+      } catch (Throwable e) {
+        log.error("Unexpected error running " + getWorkerName() + ", restarting", e);
+      }
+    }
+  }
+
+  private void listenForMessages() {
     AmazonSQS amazonSQS = amazonClientProvider.getAmazonSQS(queueARN.account, queueARN.region);
     AmazonSNS amazonSNS = amazonClientProvider.getAmazonSNS(topicARN.account, topicARN.region);
 
@@ -131,9 +123,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
     this.queueId = ensureQueueExists(amazonSQS, queueARN, topicARN, allAccountIds, getSourceRoleArns(accountCredentials));
     ensureTopicExists(amazonSNS, topicARN, allAccountIds, queueARN);
 
-    AtomicInteger messagesProcessed = new AtomicInteger(0);
-    AtomicInteger messagesSkipped = new AtomicInteger(0);
-    while (messagesProcessed.get() < properties.getMaxMessagesPerCycle()) {
+    while (true) {
       ReceiveMessageResult receiveMessageResult = amazonSQS.receiveMessage(
         new ReceiveMessageRequest(queueId)
           .withMaxNumberOfMessages(AWS_MAX_NUMBER_OF_MESSAGES)
@@ -143,9 +133,11 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
 
       if (receiveMessageResult.getMessages().isEmpty()) {
         // No messages
-        break;
+        continue;
       }
 
+      AtomicInteger messagesProcessed = new AtomicInteger(0);
+      AtomicInteger messagesSkipped = new AtomicInteger(0);
       receiveMessageResult.getMessages().forEach(message -> {
         LifecycleMessage lifecycleMessage = unmarshalLifecycleMessage(message.getBody());
 
@@ -160,7 +152,7 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
           Task originalTask = TaskRepository.threadLocalTask.get();
           try {
             TaskRepository.threadLocalTask.set(
-              Optional.ofNullable(originalTask).orElse(new DefaultTask(InstanceTerminationLifecycleAgent.class.getSimpleName()))
+              Optional.ofNullable(originalTask).orElse(new DefaultTask(InstanceTerminationLifecycleWorker.class.getSimpleName()))
             );
             handleMessage(lifecycleMessage, TaskRepository.threadLocalTask.get());
           } finally {
@@ -173,9 +165,8 @@ public class InstanceTerminationLifecycleAgent implements RunnableAgent, CustomS
         deleteMessage(amazonSQS, queueId, message);
         messagesProcessed.incrementAndGet();
       });
+      log.info("Processed {} messages, {} skipped (queueARN: {})", messagesProcessed.get(), messagesSkipped.get(), queueARN.arn);
     }
-
-    log.info("Processed {} messages, {} skipped (queueARN: {})", messagesProcessed.get(), messagesSkipped.get(), queueARN.arn);
   }
 
   private LifecycleMessage unmarshalLifecycleMessage(String messageBody) {

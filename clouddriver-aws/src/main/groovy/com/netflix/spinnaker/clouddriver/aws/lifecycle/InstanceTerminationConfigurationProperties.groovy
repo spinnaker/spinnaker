@@ -24,10 +24,8 @@ class InstanceTerminationConfigurationProperties {
   String queueARN
   String topicARN
 
-  int maxMessagesPerCycle = 1000
   int visibilityTimeout = 30
   int waitTimeSeconds = 5
-  int pollIntervalSeconds = 30
 
   InstanceTerminationConfigurationProperties() {
     // default constructor
@@ -36,16 +34,12 @@ class InstanceTerminationConfigurationProperties {
   InstanceTerminationConfigurationProperties(String accountName,
                                              String queueARN,
                                              String topicARN,
-                                             int maxMessagesPerCycle,
                                              int visibilityTimeout,
-                                             int waitTimeSeconds,
-                                             int pollIntervalSeconds) {
+                                             int waitTimeSeconds) {
     this.accountName = accountName
     this.queueARN = queueARN
     this.topicARN = topicARN
-    this.maxMessagesPerCycle = maxMessagesPerCycle
     this.visibilityTimeout = visibilityTimeout
     this.waitTimeSeconds = waitTimeSeconds
-    this.pollIntervalSeconds = pollIntervalSeconds
   }
 }
