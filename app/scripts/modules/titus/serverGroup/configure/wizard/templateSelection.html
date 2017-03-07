@@ -1,5 +1,5 @@
 <div modal-page ng-controller="titusDeployInitializerCtrl as deployInitializerCtrl">
-  <modal-close dismiss="$dismiss()"></modal-close>
+  <modal-close (dismiss)="$dismiss()"></modal-close>
   <div ng-if="state.loaded">
     <div class="modal-header">
       <h3>Template Selection</h3>

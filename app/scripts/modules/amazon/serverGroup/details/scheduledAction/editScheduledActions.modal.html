@@ -1,7 +1,7 @@
 <div modal-page>
   <task-monitor monitor="taskMonitor"></task-monitor>
   <form role="form" name="form">
-    <modal-close dismiss="$dismiss()"></modal-close>
+    <modal-close (dismiss)="$dismiss()"></modal-close>
     <div class="modal-header">
       <h3>Edit Scheduled Actions for {{serverGroup.name}}</h3>
     </div>

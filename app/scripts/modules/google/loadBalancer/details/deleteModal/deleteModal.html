@@ -1,7 +1,7 @@
 <div modal-page class="confirmation-modal">
   <task-monitor monitor="ctrl.taskMonitor"></task-monitor>
   <form role="form" ng-if="!ctrl.submitting">
-    <modal-close dismiss="$dismiss()"></modal-close>
+    <modal-close (dismiss)="$dismiss()"></modal-close>
     <div class="modal-header">
       <h3>Really delete {{ctrl.loadBalancer.name}}?</h3>
     </div>

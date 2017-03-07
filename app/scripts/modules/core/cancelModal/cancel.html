@@ -1,6 +1,6 @@
 <div modal-page class="cancel-modal">
   <form role="form" class="container-fluid no-padding" ng-submit="ctrl.confirm()">
-    <modal-close dismiss="$dismiss()"></modal-close>
+    <modal-close (dismiss)="$dismiss()"></modal-close>
     <div class="modal-header">
       <h3>{{params.header}}</h3>
     </div>
