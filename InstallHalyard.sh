@@ -136,7 +136,7 @@ function add_apt_repositories() {
       echo "$gpg" | apt-key add -
     fi
   fi
-  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
+  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
   # Java 8
   # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
   add-apt-repository -y ppa:openjdk-r/ppa

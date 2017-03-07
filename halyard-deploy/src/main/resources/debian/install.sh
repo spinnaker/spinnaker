@@ -72,7 +72,7 @@ function add_spinnaker_apt_repository() {
       echo "$gpg" | apt-key add -
     fi
   fi
-  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-hal.list > /dev/null
+  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
 }
 
 function add_java_apt_repository() {
