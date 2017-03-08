@@ -196,7 +196,8 @@ public class GcsStorageService implements StorageService {
         throw new IllegalStateException(e);
     }
 
-    this.bucketName = bucketName;
+    // "google.com:" is deprecated but may be in certain old projects.
+    this.bucketName = bucketName.replace("google.com:", "");
     this.bucketLocation = bucketLocation;
     this.basePath = basePath;
     this.projectName = projectName;
