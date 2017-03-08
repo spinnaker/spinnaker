@@ -19,6 +19,7 @@ test/google/node_modules/
 # Build Files
 .awcache/
 .gradle/
+.happypack/
 build/
 dist/
 transpiled/
