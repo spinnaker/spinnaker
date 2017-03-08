@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.Condit
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.JsonHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.ModuleHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.UnknownIdentifierHelper;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.WithMapKeyHelper;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +56,7 @@ public class HandlebarsRenderer implements Renderer {
       .registerHelperMissing(new UnknownIdentifierHelper())
       .registerHelper("json", new JsonHelper(pipelineTemplateObjectMapper))
       .registerHelper("module", new ModuleHelper(this, pipelineTemplateObjectMapper))
+      .registerHelper("withMapKey", new WithMapKeyHelper())
     ;
     ConditionHelper.register(handlebars);
   }
