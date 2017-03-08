@@ -16,13 +16,31 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Webhooks;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class IgorProfile extends SpringProfile {
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.IGOR;
+  }
+
+  @Override
+  public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+    Providers providers = deploymentConfiguration.getProviders();
+    if (providers.getDockerRegistry().isEnabled()) {
+      config.extendConfig(config.getPrimaryConfigFile(), "dockerRegistry.enabled: true");
+    }
+
+    Webhooks webhooks = deploymentConfiguration.getWebhooks();
+    List<String> files = dependentFiles(webhooks);
+    return config.extendConfig(config.getPrimaryConfigFile(), yamlToString(webhooks)).setRequiredFiles(files);
   }
 }
