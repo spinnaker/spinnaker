@@ -31,6 +31,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.model.HealthState
@@ -59,7 +60,7 @@ import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SER
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
-class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
+class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, OnDemandAgent {
 
   private static final Logger log = LoggerFactory.getLogger(TitusClusterCachingAgent)
 
@@ -78,6 +79,8 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
   private final Registry registry
   private final OnDemandMetricsSupport metricsSupport
   private final Provider<AwsLookupUtil> awsLookupUtil
+  private final long pollIntervalMillis;
+  private final long timeoutMillis;
 
   TitusClusterCachingAgent(TitusCloudProvider titusCloudProvider,
                            TitusClientProvider titusClientProvider,
@@ -85,7 +88,9 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
                            String region,
                            ObjectMapper objectMapper,
                            Registry registry,
-                           Provider<AwsLookupUtil> awsLookupUtil
+                           Provider<AwsLookupUtil> awsLookupUtil,
+                           pollIntervalMillis,
+                           timeoutMillis
   ) {
     this.titusCloudProvider = titusCloudProvider
     this.account = account
@@ -95,6 +100,8 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
     this.registry = registry
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${titusCloudProvider.id}:${OnDemandAgent.OnDemandType.ServerGroup}")
     this.awsLookupUtil = awsLookupUtil
+    this.pollIntervalMillis = pollIntervalMillis;
+    this.timeoutMillis = timeoutMillis;
   }
 
   @Override
@@ -441,6 +448,16 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
       healthState = HealthState.Unknown
     }
     [type: 'Titus', healthClass: 'platform', state: healthState.toString()]
+  }
+
+  @Override
+  public long getPollIntervalMillis() {
+    return pollIntervalMillis;
+  }
+
+  @Override
+  public long getTimeoutMillis() {
+    return timeoutMillis;
   }
 
 }
