@@ -106,4 +106,11 @@ public class DeploymentService {
 
     return validateService.validateMatchingFilter(filter);
   }
+
+  public ProblemSet validateDeploymentShallow(String deploymentName) {
+    NodeFilter filter = new NodeFilter()
+        .setDeployment(deploymentName);
+
+    return validateService.validateMatchingFilter(filter);
+  }
 }

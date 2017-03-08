@@ -7,7 +7,7 @@
 set -e
 set -o pipefail
 
-REPOSITORY_URL="https://dl.bintray.com/spinnaker/debians"
+REPOSITORY_URL="https://dl.bintray.com/spinnaker-team/spinnakerbuild"
 
 # We can only currently support limited releases
 # First guess what sort of operating system
@@ -183,10 +183,10 @@ function install_halyard() {
 function configure_bash_completion() {
   local yes
   echo ""
-  read -p "Would you like to configure halyard to use bash auto-completion? [Y/N]: " yes
+  read -p "Would you like to configure halyard to use bash auto-completion? [default=Y]: " yes
 
   completion_script="/etc/bash_completion.d/hal"
-  if [ "$yes" = "y" ] || [ "$yes = "Y" ] || [ "$yes = "yes" ]; then
+  if [ "$yes" = "y" ] || [ "$yes = "Y" ] || [ "$yes = "yes" ] || [ "$yes" = "" ]; then
     local bashrc
     hal --print-bash-completion | tee $completion_script  > /dev/null
     read -p "Where is your bash RC? [default=$HOME/.bashrc]: " bashrc

@@ -149,7 +149,7 @@ public class DeploymentController {
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> deploymentService.validateDeployment(deploymentName);
+      doValidate = () -> deploymentService.validateDeploymentShallow(deploymentName);
     }
 
     builder.setValidate(doValidate);
@@ -169,7 +169,7 @@ public class DeploymentController {
     builder.setBuildResponse(() -> deploymentService.getVersion(deploymentName));
 
     if (validate) {
-      builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
+      builder.setValidateResponse(() -> deploymentService.validateDeploymentShallow(deploymentName));
     }
 
     return TaskRepository.submitTask(builder::build);

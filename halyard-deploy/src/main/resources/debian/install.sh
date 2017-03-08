@@ -157,11 +157,11 @@ if [ -n "$INSTALL_SPINNAKER" ]; then
     apt-get install -y --force-yes --allow-unauthenticated spinnaker-${package}
   done
 
-  if contains "${SPINNAKER_ARTIFACTS[@]}" "deck"; then
+  if contains "deck" "${SPINNAKER_ARTIFACTS[@]}"; then
     install_apache2
   fi
 
   mkdir -p /opt/spinnaker/config/
   chown spinnaker /opt/spinnaker/config/
-  mv ${CONFIG_DIR}/*.yml /opt/spinnaker/config/
+  cp ${CONFIG_DIR}/*.yml /opt/spinnaker/config/
 fi
