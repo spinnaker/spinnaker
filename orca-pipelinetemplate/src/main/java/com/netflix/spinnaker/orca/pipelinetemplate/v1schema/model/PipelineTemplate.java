@@ -145,6 +145,9 @@ public class PipelineTemplate {
   }
 
   public Configuration getConfiguration() {
+    if (configuration == null) {
+      configuration = new Configuration();
+    }
     return configuration;
   }
 

@@ -20,11 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.EscapingStrategy;
 import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Template;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.ConditionHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.JsonHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.ModuleHelper;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.UnknownIdentifierHelper;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,7 @@ public class HandlebarsRenderer implements Renderer {
 
     handlebars = new Handlebars()
       .with(EscapingStrategy.NOOP)
+      .registerHelperMissing(new UnknownIdentifierHelper())
       .registerHelper("json", new JsonHelper(pipelineTemplateObjectMapper))
       .registerHelper("module", new ModuleHelper(this, pipelineTemplateObjectMapper))
     ;
@@ -73,6 +76,8 @@ public class HandlebarsRenderer implements Renderer {
       return tmpl.apply(context);
     } catch (IOException e) {
       throw new TemplateRenderException("could not apply context to template", e);
+    } catch (HandlebarsException e) {
+      throw new TemplateRenderException(e.getMessage(), e.getCause());
     }
   }
 
@@ -93,7 +98,7 @@ public class HandlebarsRenderer implements Renderer {
       }
     } else if (rendered.equals("true") || rendered.equals("false")) {
       return Boolean.parseBoolean(rendered);
-    } else if (!rendered.startsWith("{") && !rendered.startsWith("[")) {
+    } else if (rendered.startsWith("{{") || (!rendered.startsWith("{") && !rendered.startsWith("["))) {
       return rendered;
     }
 

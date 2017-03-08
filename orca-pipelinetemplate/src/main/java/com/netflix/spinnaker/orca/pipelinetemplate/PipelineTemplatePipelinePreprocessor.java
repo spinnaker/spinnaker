@@ -19,6 +19,9 @@ package com.netflix.spinnaker.orca.pipelinetemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor;
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException;
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.generator.ExecutionGenerator;
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.TemplateMerge;
@@ -62,6 +65,18 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
   @Override
   public Map<String, Object> process(Map<String, Object> pipeline) {
+    try {
+      return processInternal(pipeline);
+    } catch (TemplateLoaderException e) {
+      return ErrorResponse.builder().addError("failed loading template", e.getMessage()).toMap();
+    } catch (TemplateRenderException e) {
+      return ErrorResponse.builder().addError("failed rendering handlebars template", e.getMessage()).toMap();
+    } catch (IllegalTemplateConfigurationException e) {
+      return ErrorResponse.builder().addError("malformed template configuration", e.getMessage()).toMap();
+    }
+  }
+
+  private Map<String, Object> processInternal(Map<String, Object> pipeline) {
     TemplatedPipelineRequest request = pipelineTemplateObjectMapper.convertValue(pipeline, TemplatedPipelineRequest.class);
     if (!request.isTemplatedPipelineRequest()) {
       return pipeline;
@@ -81,16 +96,27 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
     ExecutionGenerator executionGenerator = new V1SchemaExecutionGenerator();
 
-    return executionGenerator.generate(template, templateConfiguration);
+    Map<String, Object> generatedPipeline = executionGenerator.generate(template, templateConfiguration);
+
+    validateGeneratedPipeline(generatedPipeline);
+
+    return generatedPipeline;
+  }
+
+  private static void validateGeneratedPipeline(Map<String, Object> generatedPipeline) {
+    if (generatedPipeline.get("application") == null) {
+      throw new IllegalTemplateConfigurationException("Configuration is missing 'application' value");
+    }
   }
 
   private static class TemplatedPipelineRequest {
     String type;
     Map<String, Object> trigger;
     TemplateConfiguration config;
+    Boolean plan;
 
     public boolean isTemplatedPipelineRequest() {
-      return type != null && type.equals("templatedPipeline");
+      return "templatedPipeline".equals(type);
     }
 
     public String getType() {
@@ -115,6 +141,33 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
     public void setTrigger(Map<String, Object> trigger) {
       this.trigger = trigger;
+    }
+
+    public Boolean getPlan() {
+      return plan;
+    }
+
+    public void setPlan(Boolean plan) {
+      this.plan = plan;
+    }
+  }
+
+  private static class ErrorResponse {
+    Map<String, String> errors = new HashMap<>();
+
+    static ErrorResponse builder() {
+      return new ErrorResponse();
+    }
+
+    ErrorResponse addError(String message, String cause) {
+      errors.put(message, cause);
+      return this;
+    }
+
+    Map<String, Object> toMap() {
+      Map<String, Object> m = new HashMap<>();
+      m.put("errors", errors);
+      return m;
     }
   }
 }

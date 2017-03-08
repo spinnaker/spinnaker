@@ -23,6 +23,8 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.apache.log4j.MDC
 import org.springframework.mock.env.MockEnvironment
 
+import javax.servlet.http.HttpServletResponse
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 import com.netflix.spinnaker.orca.igor.BuildService
@@ -89,7 +91,7 @@ class OperationsControllerSpec extends Specification {
     buildService.getBuild(buildNumber, master, job) >> buildInfo
 
     when:
-    controller.orchestrate(requestedPipeline)
+    controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
 
     then:
     with(startedPipeline) {
@@ -123,7 +125,7 @@ class OperationsControllerSpec extends Specification {
     }
 
     when:
-    controller.orchestrate(requestedPipeline)
+    controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
 
     then:
     0 * executionRepository._
@@ -149,7 +151,7 @@ class OperationsControllerSpec extends Specification {
     parentPipeline.id = "12345"
 
     when:
-    controller.orchestrate(requestedPipeline)
+    controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
 
     then:
     1 * executionRepository.retrievePipeline("12345") >> parentPipeline
@@ -183,7 +185,7 @@ class OperationsControllerSpec extends Specification {
       MDC.put(AuthenticatedRequest.SPINNAKER_USER, queryUser)
     }
     when:
-    controller.orchestrate(requestedPipeline)
+    controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
 
     then:
     with(startedPipeline) {
@@ -227,7 +229,7 @@ class OperationsControllerSpec extends Specification {
     buildService.getPropertyFile(buildNumber, propertyFile, master, job) >> propertyFileContent
 
     when:
-    controller.orchestrate(requestedPipeline)
+    controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
 
     then:
     with(startedPipeline) {
@@ -274,7 +276,7 @@ class OperationsControllerSpec extends Specification {
     ]
 
     when:
-    controller.orchestrate(requestedPipeline)
+    controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
 
     then:
     startedPipeline.id == 'val1'
@@ -302,7 +304,7 @@ class OperationsControllerSpec extends Specification {
     ]
 
     when:
-    controller.orchestrate(requestedPipeline)
+    controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
 
     then:
     startedPipeline.id == 'value1'
@@ -345,7 +347,7 @@ class OperationsControllerSpec extends Specification {
     ]
 
     when:
-    controller.orchestrate(requestedPipeline)
+    controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
 
     then:
     startedPipeline.id == 'value1'
@@ -377,7 +379,7 @@ class OperationsControllerSpec extends Specification {
     ]
 
     when:
-    controller.orchestrate(requestedPipeline)
+    controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
 
     then:
     startedPipeline.pipelineConfigId == ''
@@ -395,7 +397,7 @@ class OperationsControllerSpec extends Specification {
     buildService.getBuild(buildNumber, master, job) >> buildInfo
 
     when:
-    controller.orchestrate(requestedPipeline)
+    controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))
 
     then:
     with(startedPipeline) {
@@ -451,7 +453,7 @@ class OperationsControllerSpec extends Specification {
     ]
 
     when:
-    controller.orchestrate(pipelineConfig)
+    controller.orchestrate(pipelineConfig, Mock(HttpServletResponse))
 
     then:
     1 * pipelineStarter.start(_) >> { String json ->
@@ -471,5 +473,36 @@ class OperationsControllerSpec extends Specification {
     false      || true
     null       || true
     true       || false
+  }
+
+  def "should not start pipeline when truthy plan pipeline attribute is present"() {
+    given:
+    def pipelineConfig = [
+      plan: true
+    ]
+
+    when:
+    controller.orchestrate(pipelineConfig, Mock(HttpServletResponse))
+
+    then:
+    0 * pipelineStarter.start(_)
+  }
+
+  def "should return 400 status code when planned pipeline config contains errors"() {
+    given:
+    def pipelineConfig = [
+      plan: true,
+      errors: [
+        'things broke': 'because of the way it is'
+      ]
+    ]
+    def response = Mock(HttpServletResponse)
+
+    when:
+    controller.orchestrate(pipelineConfig, response)
+
+    then:
+    0 * pipelineStarter.start(_)
+    1 * response.setStatus(HttpServletResponse.SC_BAD_REQUEST)
   }
 }

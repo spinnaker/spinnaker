@@ -59,5 +59,6 @@ class HandlebarsRendererSpec extends Specification {
 '''                       || List           | ['us-east-1', 'us-west-2']
     '{{json objectVar}}'  || Map            | [key1: 'value1', key2: 'value2']
     '{{json trigger}}'    || Map            | [job: 'job', buildNumber: 1234]
+    '{{unknownVar}}'      || String         | '{{unknownVar}}'
   }
 }

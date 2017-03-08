@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.pipelinetemplate.exceptions;
+package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper;
 
-public class IllegalTemplateConfigurationException extends IllegalStateException {
+import com.github.jknack.handlebars.Helper;
+import com.github.jknack.handlebars.Options;
 
-  public IllegalTemplateConfigurationException(String message) {
-    super(message);
+import java.io.IOException;
+
+public class UnknownIdentifierHelper implements Helper<Object> {
+  @Override
+  public Object apply(Object context, Options options) throws IOException {
+    return options.fn.text();
   }
 }

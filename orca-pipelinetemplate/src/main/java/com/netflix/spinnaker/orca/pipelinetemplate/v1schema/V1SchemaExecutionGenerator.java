@@ -62,8 +62,8 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
         stage.put("refId", s.getId());
         stage.put("type", s.getType());
         stage.put("name", s.getName());
-        stage.put("context", s.getConfig());
         stage.put("requisiteStageRefIds", getStageRequisiteIds(s, template.getStages()));
+        stage.putAll(s.getConfig());
         return stage;
       })
       .collect(Collectors.toList()));

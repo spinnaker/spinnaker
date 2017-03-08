@@ -138,7 +138,7 @@ public class StageDefinition implements Identifiable, Conditional {
   }
 
   public String getName() {
-    return name;
+    return Optional.ofNullable(name).orElse(id);
   }
 
   public void setName(String name) {
