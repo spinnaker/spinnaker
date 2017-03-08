@@ -6,12 +6,14 @@ let angular = require('angular');
 
 import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+import {EDIT_PIPELINE_JSON_MODAL_CONTROLLER, EditPipelineJsonModalCtrl} from './actions/json/editPipelineJsonModal.controller';
 import {PIPELINE_CONFIG_VALIDATOR} from './validation/pipelineConfig.validator';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigurer', [
   OVERRIDE_REGISTRY,
   PIPELINE_CONFIG_SERVICE,
   PIPELINE_CONFIG_VALIDATOR,
+  EDIT_PIPELINE_JSON_MODAL_CONTROLLER
 ])
   .directive('pipelineConfigurer', function() {
     return {
@@ -155,8 +157,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     this.editPipelineJson = function() {
       $uibModal.open({
         templateUrl: require('./actions/json/editPipelineJsonModal.html'),
-        controller: 'EditPipelineJsonModalCtrl',
-        controllerAs: 'editPipelineJsonModalCtrl',
+        controller: EditPipelineJsonModalCtrl,
+        controllerAs: '$ctrl',
         size: 'lg modal-fullscreen',
         resolve: {
           pipeline: () => $scope.pipeline,
