@@ -9,6 +9,7 @@ export interface IPipeline {
   isNew?: boolean;
   keepWaitingPipelines: boolean;
   lastModifiedBy?: string;
+  locked?: boolean;
   limitConcurrent: boolean;
   name: string;
   parallel: boolean;
