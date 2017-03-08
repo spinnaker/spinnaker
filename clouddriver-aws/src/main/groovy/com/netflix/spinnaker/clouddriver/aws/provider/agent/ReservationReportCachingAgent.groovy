@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesRequest
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.amazonaws.services.ec2.model.DescribeInstancesResult
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonGenerator
@@ -41,12 +40,12 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport.OverallReservationDetail
+import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
-import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import groovy.util.logging.Slf4j
 import org.springframework.context.ApplicationContext
@@ -198,7 +197,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     }
 
     amazonReservationReport.reservations = reservations.values().sort {
-      a, b -> a.availabilityZone <=> b.availabilityZone ?: a.instanceType <=> b.instanceType ?: a.os <=> b.os
+      a, b -> a.region <=> b.region ?: a.availabilityZone <=> b.availabilityZone ?: a.instanceType <=> b.instanceType ?: a.os <=> b.os
     }
     log.info("Caching ${reservations.size()} items in ${agentType} took ${System.currentTimeMillis() - startTime}ms")
 
@@ -227,9 +226,13 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   Observable extractReservations(ConcurrentHashMap<String, OverallReservationDetail> reservations,
                                  ConcurrentHashMap<String, Collection<String>> errorsByRegion,
                                  NetflixAmazonCredentials credentials) {
-    def getReservation = { String availabilityZone, String operatingSystemType, String instanceType ->
-      def key = [availabilityZone, operatingSystemType, instanceType].join(":")
+    def getReservation = { String region, String availabilityZone, String operatingSystemType, String instanceType ->
+      String key = availabilityZone == null ?
+        [region, operatingSystemType, instanceType].join(':') :
+        [availabilityZone, operatingSystemType, instanceType].join(':')
+
       def newOverallReservationDetail = new OverallReservationDetail(
+        region: region,
         availabilityZone: availabilityZone,
         os: AmazonReservationReport.OperatingSystemType.valueOf(operatingSystemType as String).name,
         instanceType: instanceType
@@ -265,7 +268,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
               ["Heavy Utilization", "Partial Upfront", "All Upfront", "No Upfront"].contains(it.offeringType)
           }.each {
             def osType = operatingSystemType(it.productDescription)
-            def reservation = getReservation(it.availabilityZone, osType.name, it.instanceType)
+            def reservation = getReservation(it.region, it.availabilityZone, osType.name, it.instanceType)
             reservation.totalReserved.addAndGet(it.instanceCount)
 
             if (osType.isVpc || vpcOnlyAccounts.contains(credentials.name)) {
@@ -287,7 +290,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
                 }
 
                 def osTypeName = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX").name
-                def reservation = getReservation(it.placement.availabilityZone, osTypeName, it.instanceType)
+                def reservation = getReservation(it.placement.availabilityZone[0..-2], it.placement.availabilityZone, osTypeName, it.instanceType)
                 reservation.totalUsed.incrementAndGet()
 
                 if (it.vpcId) {
@@ -390,6 +393,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     String offeringType
     String productDescription
     String availabilityZone
+    String region
     String instanceType
     int instanceCount
   }

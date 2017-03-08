@@ -56,6 +56,8 @@ class AmazonReservationReport implements ReservationReport {
   static class OverallReservationDetail {
     String availabilityZone
     String instanceType
+    // Support for region-scoped RIs
+    String region
     OperatingSystemType os
     AtomicInteger totalReserved = new AtomicInteger(0)
     AtomicInteger totalUsed = new AtomicInteger(0)
@@ -69,12 +71,12 @@ class AmazonReservationReport implements ReservationReport {
 
     @JsonProperty
     String region() {
-      return availabilityZone[0..-2]
+      return availabilityZone == null ? region : availabilityZone[0..-2]
     }
 
     @JsonProperty
     String availabilityZoneId() {
-      return availabilityZone[-1..-1]
+      return availabilityZone == null ? '*' : availabilityZone[-1..-1]
     }
 
     AccountReservationDetail getAccount(String accountName) {
