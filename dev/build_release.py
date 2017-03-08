@@ -311,8 +311,9 @@ class Builder(object):
     if self.__options.container_builder == 'gcb':
       return BackgroundProcess.spawn(
         'Building and publishing container image for {name} with Google Container Builder...'.format(name=name),
-        'cd "{gradle_root}"; gcloud container builds submit --account={account} --config="../{name}-gcb.yml" .'
-        .format(gradle_root=gradle_root, name=name, account=self.__google_service_account)
+        'cd "{gradle_root}"; gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
+        .format(gradle_root=gradle_root, name=name, account=self.__google_service_account,
+                project=self.__options.google_project)
       )
     elif self.__options.container_builder == 'docker':
       return BackgroundProcess.spawn(
