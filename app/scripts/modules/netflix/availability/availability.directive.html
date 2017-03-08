@@ -5,12 +5,12 @@
 
   <div class="dropdown-menu availability-graphs" uib-dropdown-menu>
     <div class="heading">
-      <h4>Availability Status <help-field content="The availability trends for the Netflix service represented as 'nines' and availability percentage."></help-field></h4>
+      <h4>Netflix Service Availability Status <help-field key="availability.context"></help-field></h4>
     </div>
     <div class="row">
       <div class="section current">
         <h5>Recent</h5>
-        <h6>Current</h6>
+        <h6>Reason</h6>
         <div class="current-score aggregate-score-{{aggregate.score}}"><span ng-bind-html="aggregate.reason"></span></div>
         <h6>Yesterday <help-field content="The availability of the Netflix service from {{yesterday.date_range[0] | date:'short'}} to {{yesterday.date_range[1] | date:'short'}} has a target of {{yesterday.target_nines}} nines."></help-field></h6>
         <div class="section-title">Average</div>

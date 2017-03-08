@@ -1,28 +1,34 @@
 import { module } from 'angular';
 import { Line, line } from 'd3-shape';
 import { scaleLinear, scaleLog } from 'd3-scale';
+import { get } from 'lodash';
 
 import { IAvailabilityWindow } from './availability.read.service';
 
 import './availability.less';
+
+interface PopoverContent {
+  datetime: string;
+  incidents: string[];
+  availability: number;
+}
 
 interface Dot {
   r: number;
   cx: string;
   cy: string;
   score: number;
+  popoverContent: PopoverContent;
 }
 
 export class AvailabilityTrendController implements ng.IComponentController {
   public availabilityWindow: IAvailabilityWindow;
-  public datetime: string[];
   public height: number;
   public width: number;
   public trendLine: string;
   public dots: Dot[] = [];
   public popoverOpen: boolean[] = [];
   public popoverTemplate: string = require('./availability.trend.popover.html');
-  public popoverContents: string[] = [];
 
   private margin = 5;
   private popoverClose: ng.IPromise<void>[] = [];
@@ -51,11 +57,18 @@ export class AvailabilityTrendController implements ng.IComponentController {
 
     this.availabilityWindow.ts.is_outage.forEach((isOutage, index) => {
       if (isOutage) {
+        const popoverContent: PopoverContent = {
+          datetime: get(this.availabilityWindow, ['ts', 'datetime', index],  'Unknown'),
+          availability: get(this.availabilityWindow, ['ts', 'availability', index], 0),
+          incidents: get(this.availabilityWindow, ['ts', 'incs', index], <string[]>[])
+        };
+
         dots.push({
           r: 3,
           cx: xScale(index),
           cy: yScale(this.availabilityWindow.ts.availability[index]),
-          score: this.getScore(this.availabilityWindow.ts.availability[index])
+          score: this.getScore(this.availabilityWindow.ts.availability[index]),
+          popoverContent: popoverContent
         });
       }
     });
@@ -102,7 +115,7 @@ export class AvailabilityTrendController implements ng.IComponentController {
         () => {
           this.popoverOpen[index] = false;
         },
-        300);
+        500);
     } else {
       this.popoverOpen[index] = false;
     }
