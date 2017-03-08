@@ -310,6 +310,9 @@ class Refresher(object):
       repository_dir = get_repository_dir(name)
       if not os.path.exists(repository_dir):
           self.pull_from_origin(repository)
+          if not os.path.exists(repository_dir):
+            return
+        
       branch = self.get_local_branch_name(name)
       if branch != 'master':
           sys.stderr.write('Skipping {name} because it is in branch={branch}.\n'
