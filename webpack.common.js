@@ -1,11 +1,15 @@
+const webpack = require('webpack');
+const HappyPack = require('happypack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {CheckerPlugin} = require('awesome-typescript-loader');
-const webpack = require('webpack');
+
 const path = require('path');
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 const fs = require('fs');
-
 function configure(IS_TEST) {
+
+  const POOL_SIZE = IS_TEST ? 3 : 6;
+  const happyThreadPool = HappyPack.ThreadPool({size: POOL_SIZE});
 
   const config = {
     plugins: [],
@@ -33,17 +37,7 @@ function configure(IS_TEST) {
         {test: /\.json$/, loader: 'json-loader'},
         {test: /\.ts$/, use: 'awesome-typescript-loader', exclude: /node_modules/},
         {test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/, use: 'file-loader'},
-        {
-          test: /\.js$/,
-          exclude: /node_modules(?!\/clipboard)/,
-          use: [
-            'ng-annotate-loader',
-            'angular-loader',
-            'babel-loader',
-            'envify-loader',
-            'eslint-loader'
-          ]
-        },
+        {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: /node_modules(?!\/clipboard)/},
         {
           test: require.resolve('jquery'),
           use: [
@@ -53,11 +47,7 @@ function configure(IS_TEST) {
         },
         {
           test: /\.less$/,
-          use: [
-            'style-loader',
-            'css-loader',
-            'less-loader'
-          ]
+          use: IS_TEST ? ['style-loader', 'css-loader', 'less-loader'] : ['happypack/loader?id=less']
         },
         {
           test: /\.css$/,
@@ -68,10 +58,7 @@ function configure(IS_TEST) {
         },
         {
           test: /\.html$/,
-          use: [
-            'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname)) + '/',
-            'html-loader'
-          ]
+          use: ['happypack/loader?id=html']
         }
       ],
     },
@@ -91,6 +78,31 @@ function configure(IS_TEST) {
     }
   }
 
+  config.plugins = [
+    new HappyPack({
+      id: 'html',
+      loaders: [
+        'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname)) + '/',
+        'html-loader'
+      ],
+      threadPool: happyThreadPool
+    }),
+    new HappyPack({
+      id: 'js',
+      loaders: [
+        'ng-annotate-loader',
+        'angular-loader',
+        'babel-loader',
+        'envify-loader',
+        'eslint-loader'
+      ],
+      threadPool: happyThreadPool,
+      cacheContext: {
+        env: process.env
+      }
+    })
+  ];
+
   if (!IS_TEST) {
     config.entry = {
       settings: './settings.js',
@@ -104,7 +116,16 @@ function configure(IS_TEST) {
       ]
     };
 
-    config.plugins = [
+    config.plugins.push(...[
+      new HappyPack({
+        id: 'less',
+        loaders: [
+          'style-loader',
+          'css-loader',
+          'less-loader'
+        ],
+        threadPool: happyThreadPool
+      }),
       new webpack.ContextReplacementPlugin(/angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/, __dirname),
       new webpack.optimize.CommonsChunkPlugin({name: 'vendor', filename: 'vendor.bundle.js'}),
       new webpack.optimize.CommonsChunkPlugin('init'),
@@ -123,13 +144,13 @@ function configure(IS_TEST) {
           return chunks.indexOf(a.names[0]) - chunks.indexOf(b.names[0]);
         }
       })
-    ];
+    ]);
   }
 
   // this is temporary and will be deprecated in WP3.  moving forward,
   // loaders will individually need to accept this as an option.
   config.plugins.push(new webpack.LoaderOptionsPlugin({debug: !IS_TEST}));
-  config.plugins.push(new CheckerPlugin());
+  // config.plugins.push(new CheckerPlugin());
 
   return config;
 }
