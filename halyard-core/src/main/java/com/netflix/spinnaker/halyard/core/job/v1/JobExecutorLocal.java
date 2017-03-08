@@ -17,6 +17,13 @@
 
 package com.netflix.spinnaker.halyard.core.job.v1;
 
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.exec.*;
+import rx.Scheduler;
+import rx.functions.Action0;
+import rx.schedulers.Schedulers;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,18 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecuteResultHandler;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteWatchdog;
-import org.apache.commons.exec.Executor;
-import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.commons.exec.Watchdog;
-import rx.Scheduler;
-import rx.functions.Action0;
-import rx.schedulers.Schedulers;
 
 @Slf4j
 public class JobExecutorLocal extends JobExecutor {
@@ -45,7 +40,7 @@ public class JobExecutorLocal extends JobExecutor {
   private Map<String, ExecutionHandler> jobIdToHandlerMap = new ConcurrentHashMap<>();
 
   @Override
-  public String startJob(JobRequest jobRequest, Map<String, String> env, InputStream stdIn) {
+  public String startJob(JobRequest jobRequest, Map<String, String> env, InputStream stdIn, ByteArrayOutputStream stdOut, ByteArrayOutputStream stdErr) {
     List<String> tokenizedCommand = jobRequest.getTokenizedCommand();
     if (tokenizedCommand == null || tokenizedCommand.isEmpty()) {
       throw new IllegalArgumentException("JobRequest must include a tokenized command to run");
@@ -63,8 +58,6 @@ public class JobExecutorLocal extends JobExecutor {
         new Action0() {
           @Override
           public void call() {
-            ByteArrayOutputStream stdOut = new ByteArrayOutputStream();
-            ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
             PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(stdOut, stdErr, stdIn);
             CommandLine commandLine;
 

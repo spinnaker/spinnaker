@@ -18,12 +18,13 @@
 package com.netflix.spinnaker.halyard.core.job.v1;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Map;
 
 //TODO(lwander) unify with original job executor: https://github.com/spinnaker/rosco/blob/bf718907888a7d95a0da6e21ec0e00c0709c4e19/rosco-core/src/main/groovy/com/netflix/spinnaker/rosco/jobs/JobExecutor.groovy
 public abstract class JobExecutor {
-  abstract public String startJob(JobRequest jobRequest, Map<String, String> env, InputStream stdIn);
+  abstract public String startJob(JobRequest jobRequest, Map<String, String> env, InputStream stdIn, ByteArrayOutputStream stdOut, ByteArrayOutputStream stdErr);
 
   abstract public boolean jobExists(String jobId);
 
@@ -32,7 +33,17 @@ public abstract class JobExecutor {
   abstract public void cancelJob(String jobId);
 
   public String startJob(JobRequest jobRequest) {
-    return startJob(jobRequest, System.getenv(), new ByteArrayInputStream("".getBytes()));
+    InputStream stdIn = new ByteArrayInputStream("".getBytes());
+    ByteArrayOutputStream stdOut = new ByteArrayOutputStream();
+    ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
+    return startJob(jobRequest, System.getenv(), stdIn, stdOut, stdErr);
+  }
+
+  public String startJobFromStandardStreams(JobRequest jobRequest) {
+    InputStream stdIn = System.in;
+    ByteArrayOutputStream stdOut = new TeeByteArrayOutputStream(System.out);
+    ByteArrayOutputStream stdErr = new TeeByteArrayOutputStream(System.err);
+    return startJob(jobRequest, System.getenv(), stdIn, stdOut, stdErr);
   }
 
   public JobStatus backoffWait(String jobId, long minWaitMillis, long maxWaitMillis) {

@@ -16,14 +16,16 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
+import ch.qos.logback.classic.Level;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.LogLevelConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.ExpectedDaemonFailureException;
-import com.netflix.spinnaker.halyard.cli.services.v1.ResponseUnwrapper;
 import com.netflix.spinnaker.halyard.cli.ui.v1.*;
-import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
+import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -47,12 +49,23 @@ public abstract class NestableCommand {
     GlobalOptions.getGlobalOptions().setDebug(debug);
   }
 
+  @Parameter(
+      names = {"-l", "--log"},
+      converter = LogLevelConverter.class,
+      description = "Set the log level of the CLI."
+  )
+  public void setLog(Level log) {
+    GlobalOptions.getGlobalOptions().setLog(log);
+  }
+
   @Parameter(names = { "-c", "--color" }, description = "Enable terminal color output.", arity = 1)
   public void setColor(boolean color) {
     GlobalOptions.getGlobalOptions().setColor(color);
   }
 
   private String fullCommandName = "";
+
+  private static JobExecutor jobExecutor;
 
   /**
    * This recursively walks the chain of subcommands, until it finds the last in the chain, and runs executeThis.
@@ -299,5 +312,13 @@ public abstract class NestableCommand {
 
   public String getMainParameter() {
     throw new RuntimeException("This command has no main-command.");
+  }
+
+  protected static JobExecutor getJobExecutor() {
+    if (jobExecutor == null) {
+      jobExecutor = new JobExecutorLocal();
+    }
+
+    return jobExecutor;
   }
 }

@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import lombok.Data;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the collection of general, top-level flags to be interpreted by halyard.
@@ -31,7 +34,15 @@ public class GlobalOptions {
 
   private boolean help = false;
 
+  private Level log;
+
   private static GlobalOptions globalOptions = null;
+
+  public void setLog(Level log) {
+    this.log = log;
+
+    ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(log);
+  }
 
   public static boolean isGlobalOption(String name) {
     int i = 0;
@@ -56,5 +67,7 @@ public class GlobalOptions {
     return globalOptions;
   }
 
-  private GlobalOptions() { }
+  private GlobalOptions() {
+    setLog(Level.OFF);
+  }
 }

@@ -21,7 +21,7 @@ import com.beust.jcommander.ParameterException;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.cli.command.v1.HalCommand;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import retrofit.RetrofitError;
+
 
 public class Main {
   public static void main(String[] args) {
@@ -33,6 +33,9 @@ public class Main {
 
     try {
       jc.parse(args);
+    } catch (IllegalArgumentException e) {
+      AnsiUi.error("Illegal argument: " + e.getMessage());
+      System.exit(1);
     } catch (ParameterException e) {
       System.out.println(e.getMessage());
       System.exit(1);

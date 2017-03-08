@@ -22,10 +22,16 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.ui.v1.*;
+import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
+import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
+import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import lombok.AccessLevel;
 import lombok.Getter;
-import org.fusesource.jansi.Ansi;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Parameters()
 public class RunDeployCommand extends NestableCommand {
@@ -40,19 +46,26 @@ public class RunDeployCommand extends NestableCommand {
     String deploymentName = Daemon.getCurrentDeployment();
 
     Deployment.DeployResult result = Daemon.deployDeployment(deploymentName, true);
-    AnsiUi.success("Installation completed.\n");
     AnsiStoryBuilder storyBuilder = new AnsiStoryBuilder();
     AnsiParagraphBuilder paragraphBuilder = storyBuilder.addParagraph();
     paragraphBuilder.addSnippet(result.getPostInstallMessage());
     String scriptPath = result.getScriptPath();
     if (!StringUtils.isNullOrEmpty(scriptPath)) {
-      storyBuilder.addNewline();
-      paragraphBuilder = storyBuilder.addParagraph();
-      paragraphBuilder.addSnippet("Run the following command: ");
-      paragraphBuilder = storyBuilder.addParagraph();
-      paragraphBuilder.addSnippet("sudo " + scriptPath).addStyle(AnsiStyle.BOLD);
+      List<String> command = new ArrayList<>();
+      command.add(scriptPath);
+      JobRequest request = new JobRequest().setTokenizedCommand(command);
+      JobExecutor executor = getJobExecutor();
+      String jobId = executor.startJobFromStandardStreams(request);
+
+      JobStatus status = executor.backoffWait(jobId, 10, TimeUnit.MINUTES.toMillis(10));
+
+      if (status.getResult() != JobStatus.Result.SUCCESS) {
+        AnsiUi.error("Failed to install Spinnaker. See above output for details.");
+        return;
+      }
     }
 
+    AnsiUi.success("Installation completed.\n");
     AnsiPrinter.print(storyBuilder.toString());
   }
 }
