@@ -110,7 +110,7 @@ public class DeckProfile extends SpinnakerProfile {
       bindings.put("openstack.default.region", firstRegion);
     }
 
-    config.extendConfig(config.getPrimaryConfigFile(), configTemplate.setBindings(bindings).toString());
+    config.setConfig(config.getPrimaryConfigFile(), configTemplate.setBindings(bindings).toString());
     return config;
   }
 }

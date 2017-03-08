@@ -119,7 +119,7 @@ function install_apache2() {
   service apache2 stop
   mkdir -p /etc/apache2/sites-available
   mv ${CONFIG_DIR}/apache2/spinnaker.conf /etc/apache2/sites-available
-  mv ${CONFIG_DIR}/apache2/ports.conf /etc/apache2/sites-available
+  mv ${CONFIG_DIR}/apache2/ports.conf /etc/apache2
   mv ${CONFIG_DIR}/settings.js /opt/deck/html/settings.js
 
   a2ensite spinnaker
@@ -165,3 +165,6 @@ if [ -n "$INSTALL_SPINNAKER" ]; then
   chown spinnaker /opt/spinnaker/config/
   cp ${CONFIG_DIR}/*.yml /opt/spinnaker/config/
 fi
+
+# so this script can be used for updates
+service spinnaker restart
