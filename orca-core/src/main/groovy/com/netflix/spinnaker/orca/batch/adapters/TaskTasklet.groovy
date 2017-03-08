@@ -276,6 +276,10 @@ class TaskTasklet implements Tasklet {
       id = id.withTag("sourceApplication", stage.execution.application)
     }
 
+    if (stage.context?.cloudProvider) {
+      id = id.withTag("cloudProvider", stage.context['cloudProvider'].toString())
+    }
+
     registry.counter(id).increment()
 
     def taskLogger = LoggerFactory.getLogger(task.class)
