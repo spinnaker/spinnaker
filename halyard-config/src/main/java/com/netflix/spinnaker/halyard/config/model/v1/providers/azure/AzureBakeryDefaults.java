@@ -16,25 +16,13 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.azure;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class AzureAccount extends Account {
-  private String clientId;
-  private String appKey;
-  private String tenantId;
-  private String subscriptionId;
-  private String objectId;
-  private String defaultResourceGroup;
-  private String defaultKeyVault;
-  private String packerResourceGroup;
-  private String packerStorageAccount;
-
+public class AzureBakeryDefaults extends BakeryDefaults<AzureBaseImage> {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);

@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.azure;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
-public class AzureProvider extends Provider<AzureAccount> {
+public class AzureProvider extends HasImageProvider<AzureAccount, AzureBakeryDefaults> {
   @Override
   public ProviderType providerType() {
     return ProviderType.AZURE;
@@ -29,5 +29,10 @@ public class AzureProvider extends Provider<AzureAccount> {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
+  }
+
+  @Override
+  public AzureBakeryDefaults emptyBakeryDefaults() {
+    return new AzureBakeryDefaults();
   }
 }

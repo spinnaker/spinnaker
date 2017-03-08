@@ -17,20 +17,21 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.azure;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractBakeryCommand;
 
 /**
- * Describe a specific azure account
+ * Interact with the azure provider's bakery
  */
 @Parameters()
-public class AzureCommand extends AbstractNamedProviderCommand {
+public class AzureBakeryCommand extends AbstractBakeryCommand {
   protected String getProviderName() {
     return "azure";
   }
 
-  public AzureCommand() {
+  public AzureBakeryCommand() {
     super();
-    registerSubcommand(new AzureAccountCommand());
-    registerSubcommand(new AzureBakeryCommand());
+    registerSubcommand(new AzureEditBakeryDefaultsCommand());
+    registerSubcommand(new AzureBaseImageCommand());
   }
 }
+

@@ -77,18 +77,29 @@ class AzureAddAccountCommand extends AbstractAddAccountCommand {
   )
   private String defaultKeyVault;
 
+  @Parameter(
+      names = "--packer-resource-group",
+      description = AzureCommandProperties.PACKER_RESOURCE_GROUP_DESCRIPTION
+  )
+  private String packerResourceGroup;
+
+  @Parameter(
+      names = "--packer-storage-account",
+      description = AzureCommandProperties.PACKER_STORAGE_ACCOUNT_DESCRIPTION
+  )
+  private String packerStorageAccount;
+
   @Override
   protected Account buildAccount(String accountName) {
-    AzureAccount account = (AzureAccount) new AzureAccount().setName(accountName);
-
-    account.setClientId(clientId)
+    return ((AzureAccount) new AzureAccount().setName(accountName))
+        .setClientId(clientId)
         .setAppKey(appKey)
         .setTenantId(tenantId)
         .setSubscriptionId(subscriptionId)
         .setObjectId(objectId)
         .setDefaultResourceGroup(defaultResourceGroup)
-        .setDefaultKeyVault(defaultKeyVault);
-
-    return account;
+        .setDefaultKeyVault(defaultKeyVault)
+        .setPackerResourceGroup(packerResourceGroup)
+        .setPackerStorageAccount(packerStorageAccount);
   }
 }

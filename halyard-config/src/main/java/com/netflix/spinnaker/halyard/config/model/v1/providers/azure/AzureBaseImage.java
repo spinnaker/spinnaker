@@ -16,27 +16,29 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.azure;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class AzureAccount extends Account {
-  private String clientId;
-  private String appKey;
-  private String tenantId;
-  private String subscriptionId;
-  private String objectId;
-  private String defaultResourceGroup;
-  private String defaultKeyVault;
-  private String packerResourceGroup;
-  private String packerStorageAccount;
-
+public class AzureBaseImage extends BaseImage<AzureBaseImage.AzureOperatingSystemSettings, AzureBaseImage.AzureVirtualizationSettings> {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
+
+  private AzureOperatingSystemSettings baseImage;
+  private AzureVirtualizationSettings virtualizationSettings;
+
+  @Data
+  public static class AzureOperatingSystemSettings extends BaseImage.ImageSettings {
+    String publisher;
+    String offer;
+    String sku;
+    String version;
+  }
+
+  @Data
+  public static class AzureVirtualizationSettings {}
 }

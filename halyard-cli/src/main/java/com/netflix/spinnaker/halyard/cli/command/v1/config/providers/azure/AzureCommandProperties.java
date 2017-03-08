@@ -30,4 +30,16 @@ class AzureCommandProperties {
   static final String DEFAULT_RESOURCE_GROUP_DESCRIPTION = "The default resource group to contain any non-application specific resources.";
 
   static final String DEFAULT_KEY_VAULT_DESCRIPTION = "The name of a KeyVault that contains the default user name and password used to create VMs";
+
+  static final String PACKER_RESOURCE_GROUP_DESCRIPTION = "The resource group to use if baking images with Packer.";
+
+  static final String PACKER_STORAGE_ACCOUNT_DESCRIPTION = "The storage account to use if baking images with Packer.";
+
+  static final String IMAGE_PUBLISHER_DESCRIPTION = "The Publisher name for your base image. See https://aka.ms/azspinimage to get a list of images.";
+
+  static final String IMAGE_OFFER_DESCRIPTION = "The offer for your base image. See https://aka.ms/azspinimage to get a list of images.";
+
+  static final String IMAGE_SKU_DESCRIPTION = "The SKU for your base image. See https://aka.ms/azspinimage to get a list of images.";
+
+  static final String IMAGE_VERSION_DESCRIPTION = "The version of your base image. This defaults to 'latest' if not specified.";
 }

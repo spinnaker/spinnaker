@@ -69,6 +69,18 @@ public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAcc
   )
   private String defaultKeyVault;
 
+  @Parameter(
+      names = "--packer-resource-group",
+      description = AzureCommandProperties.PACKER_RESOURCE_GROUP_DESCRIPTION
+  )
+  private String packerResourceGroup;
+
+  @Parameter(
+      names = "--packer-storage-account",
+      description = AzureCommandProperties.PACKER_STORAGE_ACCOUNT_DESCRIPTION
+  )
+  private String packerStorageAccount;
+
   @Override
   protected Account editAccount(AzureAccount account) {
     account.setClientId(isSet(clientId) ? clientId : account.getClientId());
@@ -78,7 +90,9 @@ public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAcc
     account.setObjectId(isSet(objectId) ? objectId : account.getObjectId());
     account.setDefaultResourceGroup(isSet(defaultResourceGroup) ? defaultResourceGroup : account.getDefaultResourceGroup());
     account.setDefaultKeyVault(isSet(defaultKeyVault) ? defaultKeyVault : account.getDefaultKeyVault());
-
+    account.setPackerResourceGroup(isSet(packerResourceGroup) ? packerResourceGroup : account.getPackerResourceGroup());
+    account.setPackerStorageAccount(isSet(packerStorageAccount) ? packerStorageAccount : account.getPackerStorageAccount());
+    
     return account;
   }
 }

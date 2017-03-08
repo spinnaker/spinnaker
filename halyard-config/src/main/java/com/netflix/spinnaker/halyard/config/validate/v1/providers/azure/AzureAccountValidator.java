@@ -16,18 +16,24 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.azure;
 
-import com.microsoft.azure.credentials.ApplicationTokenCredentials;
+import com.microsoft.azure.CloudException;
 import com.microsoft.azure.management.resources.ResourcesOperations;
-import com.netflix.spinnaker.clouddriver.azure.client.AzureBaseClient;
 import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient;
+import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
-import org.springframework.stereotype.Component;
+import lombok.Data;
 
-@Component
+import java.util.List;
+
+@Data
 public class AzureAccountValidator extends Validator<AzureAccount> {
+  final private List<AzureCredentials> credentialsList;
+
+  final private String halyardVersion;
+
   @Override
   public void validate(ConfigProblemSetBuilder p, AzureAccount n) {
     String clientId = n.getClientId();
@@ -36,12 +42,26 @@ public class AzureAccountValidator extends Validator<AzureAccount> {
     String subscriptionId = n.getSubscriptionId();
     String defaultResourceGroup = n.getDefaultResourceGroup();
     String defaultKeyVault = n.getDefaultKeyVault();
+    String packerResourceGroup = n.getPackerResourceGroup();
+    String packerStorageAccount = n.getPackerStorageAccount();
 
-    ApplicationTokenCredentials credentials = AzureBaseClient.getTokenCredentials(clientId, tenantId, appKey);
+    AzureCredentials credentials = new AzureCredentials(
+            tenantId,
+            clientId,
+            appKey,
+            subscriptionId,
+            defaultKeyVault,
+            defaultResourceGroup,
+            "SpinnakerHalyard " + halyardVersion);
+
+    AzureResourceManagerClient rmClient = credentials.getResourceManagerClient();
     try {
-      credentials.getToken();
+      rmClient.healthCheck();
+      credentialsList.add(credentials);
     } catch (Exception e) {
-      String errorMessage = e.getMessage();
+      // the healthCheck() call always wraps exceptions with a generic "Unable to ping azure." exception, so use the cause instead
+      Throwable cause = e.getCause();
+      String errorMessage = CloudException.class.isInstance(cause) ? CloudException.class.cast(cause).getBody().getMessage() : cause.getMessage();
       if (errorMessage.contains("AADSTS90002")) {
         p.addProblem(Severity.ERROR, "Tenant Id '" + tenantId + "' is invalid.", "tenantId")
           .setRemediation("Follow instructions here https://aka.ms/azspinconfig to retrieve the tenantId for your subscription.");
@@ -52,13 +72,13 @@ public class AzureAccountValidator extends Validator<AzureAccount> {
         p.addProblem(Severity.ERROR, "AppKey is invalid.", "appKey.")
           .setRemediation("Follow instructions here https://aka.ms/azspinconfig to specify an appKey when creating a service principal.");
       } else {
-        p.addProblem(Severity.ERROR, "Error instantiating Azure credentials: " + e.getMessage() + ".")
-          .setRemediation("Follow instructions here https://aka.ms/azspinconfig to setup a service principal.");
+        p.addProblem(Severity.ERROR, "Error instantiating Azure credentials: " + errorMessage)
+          .setRemediation("Follow instructions here https://aka.ms/azspinconfig to setup azure credentials.");
       }
       return;
     }
 
-    ResourcesOperations resourceOperations = new AzureResourceManagerClient(subscriptionId, credentials).getResourceOperations();
+    ResourcesOperations resourceOperations = rmClient.getResourceOperations();
     try {
       resourceOperations.get(
         defaultResourceGroup,
@@ -72,7 +92,24 @@ public class AzureAccountValidator extends Validator<AzureAccount> {
         "' does not exist in the Resource Group '" + defaultResourceGroup +
         "' for the Subscription '" + subscriptionId + "'.")
         .setRemediation("Follow instructions here https://aka.ms/azspinconfig to setup a default Resource Group and KeyVault.");
-      return;
+    }
+
+    if ((packerResourceGroup != null && !packerResourceGroup.isEmpty()) || 
+        (packerStorageAccount != null && !packerStorageAccount.isEmpty())) {
+      try {
+        resourceOperations.get(
+          packerResourceGroup,
+          "",
+          "",
+          "Microsoft.Storage/storageAccounts",
+          packerStorageAccount,
+          "2016-01-01").getBody();
+      } catch (Exception e) {
+        p.addProblem(Severity.ERROR, "The Packer storage account '" + packerStorageAccount +
+          "' does not exist in the Resource Group '" + packerResourceGroup +
+          "' for the Subscription '" + subscriptionId + "'.")
+          .setRemediation("If you want to use Packer to bake images, create a storage account in the specified resource group. Otherwise, leave the packerStorageAccount and packerResourceGroup blank.");
+      }
     }
   }
 }
