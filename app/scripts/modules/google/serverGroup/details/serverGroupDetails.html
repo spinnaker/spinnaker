@@ -218,6 +218,17 @@
         </dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Labels">
+      <div ng-if="!ctrl.serverGroup.instanceTemplateLabels">No labels associated with this server group</div>
+      <dl ng-if="ctrl.serverGroup.instanceTemplateLabels">
+        <dt ng-repeat-start="(key, value) in ctrl.serverGroup.instanceTemplateLabels">
+          {{key}}
+        </dt>
+        <dd ng-repeat-end>
+          {{value}}
+        </dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Availability Policies">
       <div ng-if="!ctrl.serverGroup.availabilityPolicies">No availability policies associated with this server group</div>
       <div ng-if="ctrl.serverGroup.availabilityPolicies">

@@ -109,6 +109,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           prepareCurrentActions();
           augmentTagsWithHelp();
           configureEntityTagTargets();
+          processLabels();
         } else {
           autoClose();
         }
@@ -243,6 +244,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         });
 
         this.serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap = helpMap;
+      }
+    };
+
+    let processLabels = () => {
+      if (!_.size(this.serverGroup.instanceTemplateLabels)) {
+        delete this.serverGroup.instanceTemplateLabels;
       }
     };
 

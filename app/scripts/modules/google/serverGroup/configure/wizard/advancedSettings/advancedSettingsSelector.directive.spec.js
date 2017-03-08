@@ -19,7 +19,7 @@ describe('Directive: GCE Group Advanced Settings Selector', function() {
      'inferSelectedSecurityGroupFromTag'].forEach((prop) => spyOn(gceTagManager, prop));
     this.gceTagManager = gceTagManager;
     this.scope = $rootScope.$new();
-    this.scope.command = {instanceMetadata: [], tags: [], authScopes: []};
+    this.scope.command = {instanceMetadata: [], tags: [], labels: [], authScopes: []};
     this.elem = angular.element('<gce-server-group-advanced-settings-selector command="command"></gce-server-group-advanced-settings-selector>');
     this.element = $compile(this.elem)(this.scope);
     this.scope.$digest();

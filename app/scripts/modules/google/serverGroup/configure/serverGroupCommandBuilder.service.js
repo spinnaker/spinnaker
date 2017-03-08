@@ -199,6 +199,12 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       }
     }
 
+    function populateLabels(instanceTemplateLabels, command) {
+      if (instanceTemplateLabels) {
+        Object.assign(command.labels, instanceTemplateLabels);
+      }
+    }
+
     function populateAuthScopes(serviceAccounts, command) {
       if (serviceAccounts && serviceAccounts.length) {
         command.serviceAccountEmail = serviceAccounts[0].email;
@@ -255,6 +261,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         localSSDCount: 1,
         instanceMetadata: {},
         tags: [],
+        labels: {},
         preemptible: false,
         automaticRestart: true,
         onHostMaintenance: 'MIGRATE',
@@ -326,6 +333,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         associatePublicIpAddress: determineAssociatePublicIPAddress(serverGroup),
         instanceMetadata: {},
         tags: [],
+        labels: {},
         availabilityZones: [],
         enableTraffic: true,
         cloudProvider: 'gce',
@@ -373,6 +381,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           populateAvailabilityPolicies(serverGroup.launchConfig.instanceTemplate.properties.scheduling, command);
           populateCustomMetadata(serverGroup.launchConfig.instanceTemplate.properties.metadata.items, command);
           populateTags(serverGroup.launchConfig.instanceTemplate.properties.tags, command);
+          populateLabels(serverGroup.instanceTemplateLabels, command);
           populateAuthScopes(serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts, command);
 
           return populateDisksFromExisting(serverGroup.launchConfig.instanceTemplate.properties.disks, command).then(function() {

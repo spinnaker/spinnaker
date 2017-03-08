@@ -172,7 +172,18 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="SSH">
+    <collapsible-section heading="Labels">
+      <div ng-if="!instance.labels">No labels associated with this instance</div>
+      <dl ng-if="instance.labels">
+        <dt ng-repeat-start="(key, value) in instance.labels">
+          {{key}}
+        </dt>
+        <dd ng-repeat-end>
+          {{value}}
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="SSH" ng-if="!instance.notFound">
       <dl>
         <dt ng-if="instance.sshLink">SSH into this instance</dt>
         <dd ng-if="instance.sshLink">
