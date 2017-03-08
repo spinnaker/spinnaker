@@ -17,12 +17,18 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.Clouddriver;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
+import retrofit.RetrofitError;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,18 +46,40 @@ public class LocalhostDebianDeployment extends Deployment {
   }
 
   @Override
-  public Object getService(EndpointType type) {
-    String endpoint;
-    switch (type) {
-      case CLOUDDRIVER:
-        Service clouddriver = getEndpoints().getServices().getClouddriver();
-        endpoint = clouddriver.getAddress() + ":" + clouddriver.getPort();
-        break;
-      default:
-        throw new IllegalArgumentException("Service for " + type + " not found");
+  public RunningServiceDetails getServiceDetails(EndpointType endpointType) {
+    RunningServiceDetails details = new RunningServiceDetails();
+
+    Service service = endpointType.getService(getEndpoints());
+
+    if (service instanceof SpinnakerEndpoints.PublicService) {
+      details.setPublicService((SpinnakerEndpoints.PublicService) service);
+    } else {
+      details.setService(service);
     }
 
-    return serviceFactory.createService(endpoint, type);
+    String endpoint = service.getBaseUrl();
+    Object serviceInterface = serviceFactory.createService(endpoint, endpointType);
+    boolean healthy = false;
+
+    try {
+      switch (endpointType) {
+        case CLOUDDRIVER:
+          Clouddriver clouddriver = (Clouddriver) serviceInterface;
+          healthy = clouddriver.health().getStatus().equals("UP");
+          break;
+        default:
+          throw new HalException(
+            new ProblemBuilder(Problem.Severity.FATAL, "Service " + endpointType.getName() + " cannot be inspected.").build()
+          );
+      }
+    } catch (RetrofitError e) {
+      // Do nothing, service isn't healthy
+    }
+
+    details.setHealthy(healthy ? 1 : 0);
+    details.setVersion(deploymentDetails.getGenerateResult().getArtifactVersion(endpointType.getArtifact()));
+
+    return details;
   }
 
   @Override

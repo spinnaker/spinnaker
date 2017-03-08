@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint;
 
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RestAdapter;
@@ -28,6 +31,9 @@ public class ServiceFactory {
 
   public Object createService(String endpoint, EndpointType endpointType) {
     Class clazz = endpointType.getServiceClass();
+    if (clazz == null) {
+      throw new HalException(new ProblemBuilder(Problem.Severity.FATAL, "No endpoint is available for service " + endpointType.getName()).build());
+    }
     return new RestAdapter.Builder()
         .setClient(okClient)
         .setEndpoint(endpoint)

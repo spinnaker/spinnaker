@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
@@ -180,6 +181,11 @@ public class Daemon {
 
   public static String getLatest() {
     return ResponseUnwrapper.get(getService().getLatest());
+  }
+
+  public static RunningServiceDetails getServiceDetails(String deploymentName, String serviceName, boolean validate) {
+    Object rawDetails = ResponseUnwrapper.get(getService().getServiceDetails(deploymentName, serviceName, validate));
+    return getObjectMapper().convertValue(rawDetails, RunningServiceDetails.class);
   }
 
   public static BillOfMaterials getBillOfMaterials(String version) {

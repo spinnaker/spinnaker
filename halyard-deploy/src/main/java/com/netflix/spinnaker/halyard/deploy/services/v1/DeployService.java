@@ -17,24 +17,26 @@
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.amazonaws.util.StringUtils;
-import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.deploy.config.v1.ConfigParser;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.EndpointFactory;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
-import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -61,7 +63,13 @@ public class DeployService {
   String spinnakerOutputPath;
 
   @Autowired
+  HalconfigParser halconfigParser;
+
+  @Autowired
   HalconfigDirectoryStructure halconfigDirectoryStructure;
+
+  @Autowired
+  ConfigParser configParser;
 
   public String deploySpinnakerPlan(String deploymentName) {
     // TODO(lwander) https://github.com/spinnaker/halyard/issues/141
@@ -71,9 +79,9 @@ public class DeployService {
 
     StringBuilder result = new StringBuilder();
     result.append("## ENDPOINTS\n\n");
-    result.append(generateService.yamlToString(endpoints));
+    result.append(configParser.yamlToString(endpoints));
     result.append("\n## VERSIONS\n\n");
-    result.append(generateService.yamlToString(billOfMaterials));
+    result.append(configParser.yamlToString(billOfMaterials));
 
     return result.toString();
   }
@@ -81,6 +89,10 @@ public class DeployService {
   public Deployment.DeployResult deploySpinnaker(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     GenerateResult generateResult = generateService.generateConfig(deploymentName);
+    Path generateResultPath = halconfigDirectoryStructure.getGenerateResultPath(deploymentName);
+    configParser.atomicWrite(generateResultPath, configParser.yamlToString(generateResult));
+    halconfigParser.backupConfig(deploymentName);
+
     Deployment deployment = deploymentFactory.create(deploymentConfiguration, generateResult);
 
     FileSystem defaultFileSystem = FileSystems.getDefault();
@@ -88,28 +100,38 @@ public class DeployService {
 
     log.info("Writing spinnaker endpoints to " + path);
 
-    generateService.atomicWrite(path, generateService.yamlToString(deployment.getEndpoints()));
+    configParser.atomicWrite(path, configParser.yamlToString(deployment.getEndpoints()));
 
     Deployment.DeployResult result = deployment.deploy(spinnakerOutputPath);
 
     if (!StringUtils.isNullOrEmpty(result.getPostInstallScript())) {
       Path installPath = halconfigDirectoryStructure.getInstallScriptPath(deploymentName);
-      AtomicFileWriter writer = null;
-      try {
-        writer = new AtomicFileWriter(installPath);
-        writer.write(result.getPostInstallScript());
-        writer.commit();
-        result.setScriptPath(installPath.toString());
-        installPath.toFile().setExecutable(true);
-      } catch (IOException e) {
-        throw new HalException(new ConfigProblemBuilder(Problem.Severity.FATAL, "Unable to write post-install script: " + e.getMessage()).build());
-      } finally {
-        if (writer != null) {
-          writer.close();
-        }
-      }
+      configParser.atomicWrite(installPath, result.getPostInstallScript());
+      result.setScriptPath(installPath.toString());
+      installPath.toFile().setExecutable(true);
     }
 
     return result;
+  }
+
+  public RunningServiceDetails getRunningServiceDetails(String deploymentName, String serviceName) {
+    Path generateResultPath = halconfigDirectoryStructure.getGenerateResultPath(deploymentName);
+    if (!generateResultPath.toFile().exists()) {
+      throw new HalException(
+          new ProblemBuilder(Problem.Severity.FATAL, "Spinnaker has not yet been deployed, so there are no services to observe.").build()
+      );
+    }
+
+    try {
+      halconfigParser.switchToBackupConfig(deploymentName);
+
+      GenerateResult generateResult = configParser.read(generateResultPath, GenerateResult.class);
+      DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+      Deployment deployment = deploymentFactory.create(deploymentConfiguration, generateResult);
+
+      return deployment.getServiceDetails(EndpointType.fromString(serviceName));
+    } finally {
+      halconfigParser.switchToPrimaryConfig();
+    }
   }
 }

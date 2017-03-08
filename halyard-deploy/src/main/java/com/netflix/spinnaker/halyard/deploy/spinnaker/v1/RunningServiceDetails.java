@@ -21,9 +21,7 @@ import lombok.Data;
 
 @Data
 public class RunningServiceDetails {
-  int running;
   int healthy;
-  int enabled;
   String version;
   String artifactId;
   String internalEndpoint;
@@ -34,8 +32,8 @@ public class RunningServiceDetails {
     return this;
   }
 
-  public RunningServiceDetails setService(SpinnakerEndpoints.PublicService service) {
+  public RunningServiceDetails setPublicService(SpinnakerEndpoints.PublicService service) {
     this.externalEndpoint = service.getPublicEndpoint();
-    return setService((SpinnakerEndpoints.Service) service);
+    return setService(service);
   }
 }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import retrofit.http.*;
 
 import java.util.List;
@@ -152,6 +153,12 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body Versions.Version version);
+
+  @GET("/v1/config/deployments/{deploymentName}/details/{serviceName}/")
+  DaemonTask<Halconfig, RunningServiceDetails> getServiceDetails(
+      @Path("deploymentName") String deploymentName,
+      @Path("serviceName") String serviceName,
+      @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deploymentName}/security/authn/{methodName}/")
   DaemonTask<Halconfig, Object> getAuthnMethod(

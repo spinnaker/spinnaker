@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
@@ -26,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.deploy.config.v1.ConfigParser;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.EndpointFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
@@ -36,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,40 +60,13 @@ public class GenerateService {
   private String halconfigPath;
 
   @Autowired
-  private Yaml yamlParser;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @Autowired
   private HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Autowired(required = false)
   private List<SpinnakerProfile> spinnakerProfiles = new ArrayList<>();
 
-  void atomicWrite(Path path, String contents) {
-    AtomicFileWriter writer = null;
-    try {
-      writer = new AtomicFileWriter(path);
-      writer.write(contents);
-      writer.commit();
-    } catch (IOException ioe) {
-      ioe.printStackTrace();
-      throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL,
-              "Failed to write config for profile " + path.toFile().getName() + ": " + ioe
-                  .getMessage()).build()
-      );
-    } finally {
-      if (writer != null) {
-        writer.close();
-      }
-    }
-  }
-
-  String yamlToString(Object yaml) {
-    return yamlParser.dump(objectMapper.convertValue(yaml, Map.class));
-  }
+  @Autowired
+  private ConfigParser configParser;
 
   /**
    * Generate config for a given deployment.
@@ -106,7 +77,6 @@ public class GenerateService {
    *   2. Generate configuration using the halconfig as the source of truth, while collecting files needed by
    *      the deployment.
    *   3. Copy custom profiles from the specified deployment over to the new deployment.
-   *   4. Store the result of generating the config for future diffing.
    *
    * @param deploymentName is the deployment whose config to generate
    * @return a mapping from components to the profile's required local files.
@@ -147,7 +117,7 @@ public class GenerateService {
         log.info("Writing " + artifactName + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
         DaemonTaskHandler.log("Writing profile " + outputFileName);
 
-        atomicWrite(path, e.getValue());
+        configParser.atomicWrite(path, e.getValue());
       }
 
       profileRequirements.put(artifactName, config.getRequiredFiles());
@@ -182,10 +152,6 @@ public class GenerateService {
         .setProfileRequirements(profileRequirements)
         .setEndpoints(endpoints);
 
-    Path generateResultPath = halconfigDirectoryStructure.getGenerateResultPath(deploymentName);
-    atomicWrite(generateResultPath, yamlToString(result));
-    halconfigParser.backupConfig(deploymentName);
-
     return result;
   }
 
@@ -194,5 +160,9 @@ public class GenerateService {
     private Map<String, List<String>> profileRequirements = new HashMap<>();
     private Map<SpinnakerArtifact, String> artifactVersions = new HashMap<>();
     SpinnakerEndpoints endpoints;
+
+    public String getArtifactVersion(SpinnakerArtifact artifact) {
+      return artifactVersions.get(artifact);
+    }
   }
 }

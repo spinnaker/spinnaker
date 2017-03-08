@@ -35,11 +35,6 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
   }
 
   @Override
-  public Object getService(EndpointType type) {
-    return providerInterface.connectTo(deploymentDetails, type);
-  }
-
-  @Override
   public SpinnakerEndpoints getEndpoints() {
     return deploymentDetails.getEndpoints();
   }

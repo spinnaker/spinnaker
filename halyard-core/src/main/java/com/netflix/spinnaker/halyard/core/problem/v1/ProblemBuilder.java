@@ -44,6 +44,10 @@ public class ProblemBuilder {
   }
 
   public Problem build() {
+    if (location == null) {
+      location = "Global";
+    }
+
     return new Problem(message, remediation, options, severity, location);
   }
 }

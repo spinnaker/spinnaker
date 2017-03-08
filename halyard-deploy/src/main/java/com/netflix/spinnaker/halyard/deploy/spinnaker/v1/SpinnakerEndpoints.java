@@ -18,57 +18,86 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import static com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact.*;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Optional;
+
+import static com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType.*;
 
 @Data
 public class SpinnakerEndpoints {
   Services services = new Services();
 
+  // For serialization
+  public SpinnakerEndpoints() {}
+
   public SpinnakerEndpoints(Security security) {
     services.clouddriver = new Service(security)
         .setPort(7002)
         .setHttpHealth("/health")
-        .setArtifact(CLOUDDRIVER);
+        .setEndpointType(CLOUDDRIVER);
     services.deck = (PublicService) new PublicService(security)
         .setPublicAddress(security.getApiAddress())
         .setPort(9000)
-        .setArtifact(DECK);
+        .setEndpointType(DECK);
     services.echo = new Service(security)
         .setPort(8089)
         .setHttpHealth("/health")
-        .setArtifact(ECHO);
+        .setEndpointType(ECHO);
     services.fiat = new Service(security)
         .setPort(7003)
         .setHttpHealth("/health")
-        .setArtifact(FIAT);
+        .setEndpointType(FIAT);
     services.front50 = new Service(security)
         .setPort(8080)
         .setHttpHealth("/health")
-        .setArtifact(FRONT50);
+        .setEndpointType(FRONT50);
     services.gate = (PublicService) new PublicService(security)
         .setPublicAddress(security.getApiAddress())
         .setPort(8084)
         .setHttpHealth("/health")
-        .setArtifact(GATE);
+        .setEndpointType(GATE);
     services.igor = new Service(security)
         .setPort(8088)
         .setHttpHealth("/health")
-        .setArtifact(IGOR);
+        .setEndpointType(IGOR);
     services.orca = new Service(security)
         .setPort(8083)
         .setHttpHealth("/health")
-        .setArtifact(ORCA);
+        .setEndpointType(ORCA);
     services.rosco = new Service(security)
         .setPort(8087)
         .setHttpHealth("/health")
-        .setArtifact(ROSCO);
+        .setEndpointType(ROSCO);
     services.redis = new Service(security)
         .setPort(6379)
-        .setArtifact(REDIS)
+        .setEndpointType(REDIS)
         .setProtocol("redis");
+  }
+
+  public Service getService(String name) {
+    Optional<Field> optionalField = Arrays.stream(this.getClass().getDeclaredFields()).filter(f -> f.getName().equals(name)).findFirst();
+
+    Field serviceField = optionalField.orElseThrow(() -> {
+      return new HalException(
+        new ProblemBuilder(Problem.Severity.FATAL, "Service " + name + " is not a registered Spinnaker service.").build());
+    });
+
+    try {
+      serviceField.setAccessible(true);
+      return (Service) serviceField.get(this);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Failed to read field " + name, e);
+    } finally {
+      serviceField.setAccessible(false);
+    }
   }
 
   @Data
@@ -86,7 +115,7 @@ public class SpinnakerEndpoints {
   }
 
   @Data
-  public class Service {
+  public static class Service {
     int port;
     // Address is how the service is looked up.
     String address = "localhost";
@@ -96,11 +125,19 @@ public class SpinnakerEndpoints {
     String httpHealth;
 
     @JsonIgnore
-    SpinnakerArtifact artifact;
+    EndpointType endpointType ;
+
+    @JsonIgnore
+    public SpinnakerArtifact getArtifact() {
+      return endpointType.getArtifact();
+    }
 
     public String getBaseUrl() {
       return protocol + "://" + address + ":" + port;
     }
+
+    // For serialization
+    public Service() {}
 
     Service(Security security) {
       if (security.getSsl().isEnabled()) {
@@ -115,12 +152,15 @@ public class SpinnakerEndpoints {
    */
   @Data
   @EqualsAndHashCode(callSuper = true)
-  public class PublicService extends Service {
+  public static class PublicService extends Service {
     String publicAddress;
 
     public String getPublicEndpoint() {
       return protocol + "://" + publicAddress + ":" + port;
     }
+
+    // For serialization
+    public PublicService() {}
 
     PublicService(Security security) {
       super(security);

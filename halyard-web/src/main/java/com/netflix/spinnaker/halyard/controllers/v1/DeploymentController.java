@@ -31,6 +31,7 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.services.v1.DeployService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -166,6 +167,23 @@ public class DeploymentController {
     builder.setSeverity(severity);
 
     builder.setBuildResponse(() -> deploymentService.getVersion(deploymentName));
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
+    }
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/{deploymentName:.+}/details/{serviceName:.+}/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, RunningServiceDetails> getServiceDetails(@PathVariable String deploymentName,
+      @PathVariable String serviceName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    StaticRequestBuilder<RunningServiceDetails> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
+
+    builder.setBuildResponse(() -> deployService.getRunningServiceDetails(deploymentName, serviceName));
 
     if (validate) {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));

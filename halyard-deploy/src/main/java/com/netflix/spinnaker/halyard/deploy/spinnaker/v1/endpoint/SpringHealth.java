@@ -12,25 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint;
 
-import com.squareup.okhttp.Response;
-import retrofit.http.Body;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.Path;
+import lombok.Data;
 
-import java.util.Map;
-
-public interface Clouddriver {
-  @POST("/ops/{provider}")
-  Response providerOp(@Path("provider") String provider, @Body String payload);
-
-  @GET("/resolvedEnv")
-  Map<String, String> resolvedEnv();
-
-  @GET("/health")
-  SpringHealth health();
+@Data
+public class SpringHealth {
+  String status;
 }

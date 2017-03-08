@@ -60,6 +60,9 @@ public class HalconfigParser {
   @Autowired
   Yaml yamlParser;
 
+  private boolean useBackup = false;
+  private String backupHalconfigPath;
+
   /**
    * Parse Halyard's config.
    *
@@ -77,7 +80,8 @@ public class HalconfigParser {
   }
 
   private InputStream getHalconfigStream() throws FileNotFoundException {
-    return new FileInputStream(new File(halconfigPath));
+    String path = useBackup ? backupHalconfigPath : halconfigPath;
+    return new FileInputStream(new File(path));
   }
 
   /**
@@ -138,6 +142,17 @@ public class HalconfigParser {
 
   public void backupConfig(String deploymentName) {
     saveConfigTo(halconfigDirectoryStructure.getBackupConfigPath(deploymentName));
+  }
+
+  public void switchToBackupConfig(String deploymentName) {
+    DaemonTaskHandler.setContext(null);
+    backupHalconfigPath = halconfigDirectoryStructure.getBackupConfigPath(deploymentName).toString();
+    useBackup = true;
+  }
+
+  public void switchToPrimaryConfig() {
+    DaemonTaskHandler.setContext(null);
+    useBackup = false;
   }
 
   private void saveConfigTo(Path path) {
