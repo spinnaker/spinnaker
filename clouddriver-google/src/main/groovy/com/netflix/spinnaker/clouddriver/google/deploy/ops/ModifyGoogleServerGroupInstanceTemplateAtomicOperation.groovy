@@ -205,6 +205,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
         instanceTemplateProperties.setTags(tags)
       }
 
+      // Override the instance template's labels if labels was specified.
+      if (overriddenProperties.labels) {
+        instanceTemplateProperties.setLabels(description.labels)
+      }
+
       // Override the instance template's service account if serviceAccountEmail or authScopes was specified.
       // Note that we want to explicitly allow for either the service account or auth scopes to be empty, but non-null.
       if (overriddenProperties.serviceAccountEmail != null || overriddenProperties.authScopes != null) {

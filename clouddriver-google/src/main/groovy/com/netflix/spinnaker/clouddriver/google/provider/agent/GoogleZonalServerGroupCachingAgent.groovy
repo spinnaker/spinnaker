@@ -500,6 +500,7 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       serverGroup.with {
         networkName = Utils.getNetworkNameFromInstanceTemplate(instanceTemplate)
         instanceTemplateTags = instanceTemplate?.properties?.tags?.items
+        instanceTemplateLabels = instanceTemplate?.properties?.labels
         launchConfig.with {
           launchConfigurationName = instanceTemplate?.name
           instanceType = instanceTemplate?.properties?.machineType

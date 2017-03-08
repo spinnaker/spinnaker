@@ -131,6 +131,7 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
                                 networkInterfaces: [networkInterface],
                                 metadata: metadata,
                                 tags: tags,
+                                labels: description.labels,
                                 scheduling: scheduling,
                                 serviceAccounts: serviceAccount)
 

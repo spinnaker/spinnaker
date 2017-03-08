@@ -114,6 +114,7 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
             serviceAccounts: instance.serviceAccounts,
             selfLink: instance.selfLink,
             tags: instance.tags,
+            labels: instance.labels,
             consulNode: consulNode,
             instanceHealth: new GoogleInstanceHealth(
                 status: GoogleInstanceHealth.Status.valueOf(instance.getStatus())

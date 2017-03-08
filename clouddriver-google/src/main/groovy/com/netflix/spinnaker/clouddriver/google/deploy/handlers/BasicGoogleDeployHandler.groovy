@@ -124,6 +124,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def region = description.region ?: credentials.regionFromZone(zone)
     def location = isRegional ? region : zone
     def instanceMetadata = description.instanceMetadata
+    def labels = description.labels
 
     def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials, safeRetry, this)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
@@ -308,6 +309,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                     networkInterfaces: [networkInterface],
                                                     metadata: metadata,
                                                     tags: tags,
+                                                    labels: labels,
                                                     scheduling: scheduling,
                                                     serviceAccounts: serviceAccount)
 

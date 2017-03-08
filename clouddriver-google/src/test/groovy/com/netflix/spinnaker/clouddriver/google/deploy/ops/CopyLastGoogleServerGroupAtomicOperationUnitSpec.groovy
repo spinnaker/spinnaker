@@ -58,6 +58,9 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String HTTP_SERVER_TAG = "http-server"
   private static final String HTTPS_SERVER_TAG = "https-server"
   private static final List<String> TAGS = ["orig-tag-1", "orig-tag-2", HTTP_SERVER_TAG, HTTPS_SERVER_TAG]
+  private static final Map<String, String> LABELS =
+          ["orig-label-key-1": "orig-label-value-1",
+           "orig-label-key-2": "orig-label-value-2"]
   private static final String SERVICE_ACCOUNT_EMAIL = "default"
   private static final List<String> AUTH_SCOPES = ["compute", "logging.write"]
   private static final List<String> DECORATED_AUTH_SCOPES =
@@ -124,6 +127,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                 networkInterfaces: [networkInterface],
                                                 metadata: instanceMetadata,
                                                 tags: tags,
+                                                labels: LABELS,
                                                 scheduling: scheduling,
                                                 serviceAccounts: serviceAccount)
     instanceTemplate = new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
@@ -155,6 +159,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          zone: ZONE,
                                                          instanceMetadata: ["differentKey": "differentValue"],
                                                          tags: ["new-tag-1", "new-tag-2"],
+                                                         labels: ["new-label-key-1": "new-label-value-1"],
                                                          preemptible: true,
                                                          automaticRestart: false,
                                                          onHostMaintenance: BaseGoogleInstanceDescription.OnHostMaintenance.TERMINATE,
@@ -222,6 +227,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.zone = ZONE
       newDescription.instanceMetadata = INSTANCE_METADATA
       newDescription.tags = TAGS
+      newDescription.labels = LABELS
       newDescription.preemptible = false
       newDescription.automaticRestart = true
       newDescription.onHostMaintenance = BaseGoogleInstanceDescription.OnHostMaintenance.MIGRATE

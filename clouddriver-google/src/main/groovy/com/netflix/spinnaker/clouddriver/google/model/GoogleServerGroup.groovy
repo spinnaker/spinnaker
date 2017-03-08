@@ -48,6 +48,7 @@ class GoogleServerGroup {
   Boolean discovery = false
   String networkName
   Set<String> instanceTemplateTags = []
+  Map<String, String> instanceTemplateLabels = [:]
   String selfLink
   InstanceGroupManagerActionsSummary currentActions
 
@@ -92,6 +93,7 @@ class GoogleServerGroup {
     Boolean disabled = GoogleServerGroup.this.disabled
     String networkName = GoogleServerGroup.this.networkName
     Set<String> instanceTemplateTags = GoogleServerGroup.this.instanceTemplateTags
+    Map<String, String> instanceTemplateLabels = GoogleServerGroup.this.instanceTemplateLabels
     String selfLink = GoogleServerGroup.this.selfLink
     Boolean discovery = GoogleServerGroup.this.discovery
     InstanceGroupManagerActionsSummary currentActions = GoogleServerGroup.this.currentActions

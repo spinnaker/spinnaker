@@ -53,6 +53,7 @@ class GoogleInstance {
   List<ServiceAccount> serviceAccounts
   String selfLink
   Tags tags
+  Map<String, String> labels
 
   // Non-serialized values built up by providers
   @JsonIgnore
@@ -90,6 +91,7 @@ class GoogleInstance {
     String selfLink = GoogleInstance.this.selfLink
     String serverGroup = GoogleInstance.this.serverGroup
     Tags tags = GoogleInstance.this.tags
+    Map<String, String> labels = GoogleInstance.this.labels
     ConsulNode consulNode = GoogleInstance.this.consulNode
 
     List<Map<String, String>> getSecurityGroups() {

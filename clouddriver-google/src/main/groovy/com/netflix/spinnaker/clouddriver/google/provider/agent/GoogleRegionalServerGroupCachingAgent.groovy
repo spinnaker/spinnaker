@@ -472,6 +472,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       serverGroup.with {
         networkName = Utils.getNetworkNameFromInstanceTemplate(instanceTemplate)
         instanceTemplateTags = instanceTemplate?.properties?.tags?.items
+        instanceTemplateLabels = instanceTemplate?.properties?.labels
         launchConfig.with {
           launchConfigurationName = instanceTemplate?.name
           instanceType = instanceTemplate?.properties?.machineType

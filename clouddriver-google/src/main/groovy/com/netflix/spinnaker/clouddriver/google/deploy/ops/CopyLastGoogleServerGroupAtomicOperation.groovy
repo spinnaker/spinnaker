@@ -163,6 +163,12 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
         newDescription.tags = description.tags != null ? description.tags : tags.items
       }
 
+      def labels = ancestorInstanceProperties.labels
+
+      if (labels != null) {
+        newDescription.labels = description.labels != null ? description.labels : labels
+      }
+
       def scheduling = ancestorInstanceProperties.scheduling
 
       if (scheduling) {

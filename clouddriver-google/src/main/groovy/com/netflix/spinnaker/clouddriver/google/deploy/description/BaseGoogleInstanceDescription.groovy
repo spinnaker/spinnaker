@@ -30,6 +30,7 @@ class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription
   List<GoogleDisk> disks
   Map<String, String> instanceMetadata
   List<String> tags
+  Map<String, String> labels
   String network
   String subnet
   // This will be treated as true if it is null to preserve backwards-compatibility with existing pipelines.
