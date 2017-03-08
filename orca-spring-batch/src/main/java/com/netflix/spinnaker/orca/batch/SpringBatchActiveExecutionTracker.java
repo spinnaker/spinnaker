@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.batch;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import com.netflix.spinnaker.orca.ActiveExecutionTracker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.launch.JobOperator;
@@ -118,9 +117,9 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
     log.debug("Checking for running executions");
     Observable
       .from(jobOperator.getJobNames())
-      .map(this::runningExecutions)
-      .reduce(Sets::union)
-      .onErrorResumeNext(Observable.just(emptySet()))
+      .flatMapIterable(this::runningExecutions)
+      .toList()
+      .onErrorResumeNext(Observable.just(emptyList()))
       .subscribe(this::recordExecutions);
   }
 
@@ -180,7 +179,7 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
   /**
    * @param executions the executions currently running on _this_ instance.
    */
-  private void recordExecutions(Set<ExecutionRecord> executions) {
+  private void recordExecutions(Collection<ExecutionRecord> executions) {
     log.info("Currently running {} executions", executions.size());
     try (Jedis jedis = jedisPool.getResource()) {
       jedis.sadd(KEY_INSTANCES, currentInstance);
