@@ -24,6 +24,7 @@ public class Rate {
   private static final String RESET_HEADER = "X-RateLimit-Reset";
 
   Integer capacity;
+  Integer rateSeconds;
   Integer remaining;
   Long reset;
   Boolean throttled;

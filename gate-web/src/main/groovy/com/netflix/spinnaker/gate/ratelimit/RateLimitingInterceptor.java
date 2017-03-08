@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
+import com.netflix.spectator.api.Counter;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +37,12 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
   RateLimiter rateLimiter;
   boolean learning;
 
-  public RateLimitingInterceptor(RateLimiter rateLimiter, boolean learning) {
+  private Counter throttlingCounter;
+
+  public RateLimitingInterceptor(RateLimiter rateLimiter, Registry registry, boolean learning) {
     this.rateLimiter = rateLimiter;
     this.learning = learning;
+    throttlingCounter = registry.counter("rateLimit.throttling");
   }
 
   @Override
@@ -53,6 +58,7 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
     if (learning) {
       if (rate.isThrottled()) {
+        throttlingCounter.increment();
         log.warn("Rate limiting principal (principal: {}, learning: true)", principal);
       }
       return true;
@@ -61,7 +67,8 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
     rate.assignHttpHeaders(response);
 
     if (rate.isThrottled()) {
-      log.warn("Rate limiting principal (principal: {})", principal);
+      throttlingCounter.increment();
+      log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {})", principal, rate.rateSeconds, rate.capacity);
       response.sendError(429, "Rate capacity exceeded");
       return false;
     }

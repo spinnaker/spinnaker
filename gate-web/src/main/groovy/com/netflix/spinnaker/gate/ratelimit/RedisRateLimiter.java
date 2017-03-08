@@ -65,6 +65,7 @@ public class RedisRateLimiter implements RateLimiter {
       log.error("failed getting rate limit, disabling for request", e);
       Rate rate = new Rate();
       rate.throttled = false;
+      rate.rateSeconds = this.rate;
       rate.capacity = 0;
       rate.remaining = 0;
       rate.reset = new Date().getTime();
@@ -149,6 +150,7 @@ public class RedisRateLimiter implements RateLimiter {
     Rate toRate() {
       Rate rate = new Rate();
       rate.capacity = capacity;
+      rate.rateSeconds = this.rate;
       rate.remaining = Math.max(remaining, 0);
       rate.reset = reset.getTime();
       rate.throttled = remaining < 0;
