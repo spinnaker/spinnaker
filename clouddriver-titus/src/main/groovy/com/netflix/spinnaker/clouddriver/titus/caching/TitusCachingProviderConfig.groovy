@@ -24,9 +24,10 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
+import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusClusterCachingAgent
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
-import com.netflix.spinnaker.clouddriver.titus.caching.agents.TitusClusterCachingAgent
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
@@ -35,6 +36,12 @@ import javax.inject.Provider
 
 @Configuration
 class TitusCachingProviderConfig {
+
+  @Value('${titus.pollIntervalMillis:15000}') // 15 seconds
+  Long pollIntervalMillis
+
+  @Value('${titus.timeoutMillis:900000}') // 15 minutes
+  Long timeOutMilis
 
   @Bean
   @DependsOn('netflixTitusCredentials')
@@ -51,7 +58,7 @@ class TitusCachingProviderConfig {
     } as Collection<NetflixTitusCredentials>
     allAccounts.each { NetflixTitusCredentials account ->
       account.regions.each { region ->
-        agents << new TitusClusterCachingAgent(titusCloudProvider, titusClientProvider, account, region.name, objectMapper, registry, awsLookupUtilProvider)
+        agents << new TitusClusterCachingAgent(titusCloudProvider, titusClientProvider, account, region.name, objectMapper, registry, awsLookupUtilProvider, pollIntervalMillis, timeOutMilis)
       }
     }
     new TitusCachingProvider(agents)
