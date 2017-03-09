@@ -1,10 +1,11 @@
 'use strict';
 
 const angular = require('angular');
+import {IGOR_SERVICE} from 'core/ci/igor.service';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.triggers.jenkins.options.directive', [
-    require('core/ci/jenkins/igor.service.js')
+    IGOR_SERVICE
   ])
   .directive('jenkinsTriggerOptions', function () {
     return {

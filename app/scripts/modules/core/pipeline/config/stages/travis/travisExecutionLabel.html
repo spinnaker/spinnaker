@@ -1,0 +1,18 @@
+<span class="stage-label">
+  <span>{{stage.name}}</span>
+  <div ng-if="stage.masterStage.context.buildInfo.number">Build #{{stage.masterStage.context.buildInfo.number}}</div>
+  <div ng-repeat="result in stage.masterStage.context.buildInfo.testResults">
+    (
+    <span class="tests-pass-count">
+    {{result.totalCount - result.failCount - result.skipCount}}</span>
+    /
+    <span class="tests-fail-count">
+      {{result.failCount}}
+    </span>
+    <span ng-if="result.skipCount">/</span>
+    <span class="tests-skip-count" ng-if="result.skipCount">
+      {{result.skipCount}}
+    </span>
+    )
+  </div>
+</span>

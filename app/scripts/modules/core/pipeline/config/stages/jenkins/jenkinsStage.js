@@ -1,10 +1,11 @@
 'use strict';
 
+import {IGOR_SERVICE, BuildServiceType} from 'core/ci/igor.service';
 let angular = require('angular');
 
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
-  require('core/ci/jenkins/igor.service.js'),
+  IGOR_SERVICE,
   require('../../pipelineConfigProvider.js'),
 ])
   .config(function(pipelineConfigProvider) {
@@ -53,7 +54,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
     this.waitForCompletionChanged = () => stage.waitForCompletion = $scope.viewState.waitForCompletion;
 
     function initializeMasters() {
-      igorService.listMasters().then(function (masters) {
+      igorService.listMasters(BuildServiceType.Jenkins).then(function (masters) {
         $scope.masters = masters;
         $scope.viewState.mastersLoaded = true;
         $scope.viewState.mastersRefreshing = false;

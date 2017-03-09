@@ -4,7 +4,7 @@ import {intersection} from 'lodash';
 import {Application} from 'core/application/application.model';
 import {AccountService, ACCOUNT_SERVICE} from 'core/account/account.service';
 import {IAppengineAccount, IAppengineGitTrigger, IAppengineJenkinsTrigger, GitCredentialType, IAppengineServerGroup} from 'appengine/domain/index';
-import {IStage, IPipeline, IGitTrigger, IJenkinsTrigger} from 'core/domain/index';
+import {IStage, IPipeline, IGitTrigger, IBuildTrigger} from 'core/domain/index';
 import {AppengineDeployDescription} from '../transformer';
 import {AppengineProviderSettings} from '../../appengine.settings';
 
@@ -45,12 +45,12 @@ export class AppengineServerGroupCommandBuilder {
 
   private static getTriggerOptions(pipeline: IPipeline): Array<IAppengineGitTrigger | IAppengineJenkinsTrigger> {
     return (pipeline.triggers || [])
-      .filter(trigger => trigger.type === 'git' || trigger.type === 'jenkins')
-      .map((trigger: IGitTrigger | IJenkinsTrigger) => {
+      .filter(trigger => trigger.type === 'git' || trigger.type === 'jenkins' || trigger.type === 'travis')
+      .map((trigger: IGitTrigger | IBuildTrigger) => {
         if (trigger.type === 'git') {
           return {source: trigger.source, project: trigger.project, slug: trigger.slug, branch: trigger.branch, type: 'git'};
         } else {
-          return {master: trigger.master, job: trigger.job, type: 'jenkins'};
+          return {master: trigger.master, job: trigger.job, type: trigger.type};
         }
       });
   }
