@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.config.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Role
+import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.gate.security.SpinnakerUser
