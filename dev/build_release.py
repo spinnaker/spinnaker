@@ -179,6 +179,8 @@ def determine_modules_with_debians(gradle_root):
 
 def determine_package_version(gradle_root):
   root = determine_modules_with_debians(gradle_root)
+  if not root:
+    return None
 
   with open(os.path.join(root[0], 'build', 'debian', 'control')) as f:
      content = f.read()
@@ -495,6 +497,9 @@ class Builder(object):
       pids = []
       gradle_root = self.determine_gradle_root(name)
       version = determine_package_version(gradle_root)
+      if version is None:
+        return []
+        
       for root in determine_modules_with_debians(gradle_root):
         deb_dir = '{root}/build/distributions'.format(root=root)
 
@@ -567,11 +572,12 @@ class Builder(object):
   def build_packages(self):
       """Build all the Spinnaker packages."""
       all_subsystems = []
+      all_subsystems.extend(SUBSYSTEM_LIST)
+      all_subsystems.extend(ADDITIONAL_SUBSYSTEMS)
+
       if self.__options.build:
         # Build in parallel using half available cores
         # to keep load in check.
-        all_subsystems.extend(SUBSYSTEM_LIST)
-        all_subsystems.extend(ADDITIONAL_SUBSYSTEMS)
         weighted_processes = self.__options.cpu_ratio * multiprocessing.cpu_count()
         pool = multiprocessing.pool.ThreadPool(
             processes=int(max(1, weighted_processes)))
@@ -597,6 +603,7 @@ class Builder(object):
   def __do_copy(self, subsys):
     print 'Starting to copy {0}...'.format(subsys)
     pids = self.start_copy_debian_target(subsys)
+
     for p in pids:
       p.check_wait()
     print 'Finished copying {0}.'.format(subsys)
