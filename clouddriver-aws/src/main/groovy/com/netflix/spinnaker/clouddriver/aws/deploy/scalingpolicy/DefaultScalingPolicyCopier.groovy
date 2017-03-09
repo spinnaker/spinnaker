@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
 
-  static final DIMENSION_NAME_FOR_ASG = 'AutoScalingGroupName'
+  public static final DIMENSION_NAME_FOR_ASG = 'AutoScalingGroupName'
 
   @Autowired
   AmazonClientProvider amazonClientProvider
