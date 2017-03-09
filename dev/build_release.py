@@ -23,9 +23,8 @@ The gradle script does not yet coordinate a complete build, so
 this script fills that gap for the time being. It triggers all
 the subsystem builds and then publishes the resulting artifacts.
 
-Publishing is typically to bintray. It is currently possible to publish
-to a filesystem or storage bucket but this option will be removed soon
-since the installation from these sources is no longer supported.
+Publishing is typically to bintray for debian packages and a docker repository
+for containers.
 
 Usage:
   export BINTRAY_USER=
@@ -50,12 +49,10 @@ import os
 import multiprocessing
 import multiprocessing.pool
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
 import urllib2
-import zipfile
 from urllib2 import HTTPError
 
 import refresh_source
@@ -66,77 +63,6 @@ from spinnaker.run import run_quick
 SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50',
                   'echo', 'rosco', 'gate', 'igor', 'fiat', 'deck', 'spinnaker']
 ADDITIONAL_SUBSYSTEMS = ['spinnaker-monitoring', 'halyard']
-
-def ensure_gcs_bucket(name, project=''):
-  """Ensure that the desired GCS bucket exists, creating it if needed.
-
-  Args:
-    name [string]: The bucket name.
-    project [string]: Optional Google Project id that will own the bucket.
-      If none is provided, then the bucket will be associated with the default
-      bucket configured to gcloud.
-
-  Raises:
-    RuntimeError if the bucket could not be created.
-  """
-  bucket = 'gs://'+ name
-  if not project:
-      config_result = run_quick('gcloud config list', echo=False)
-      error = None
-      if config_result.returncode:
-        error = 'Could not run gcloud: {error}'.format(
-            error=config_result.stdout)
-      else:
-        match = re.search('(?m)^project = (.*)', config_result.stdout)
-        if not match:
-          error = ('gcloud is not configured with a default project.\n'
-                   'run gcloud config or provide a --google_project.\n')
-      if error:
-        raise SystemError(error)
-
-      project = match.group(1)
-
-  list_result = run_quick('gsutil list -p ' +  project, echo=False)
-  if list_result.returncode:
-    error = ('Could not create Google Cloud Storage bucket'
-             '"{name}" in project "{project}":\n{error}'
-             .format(name=name, project=project, error=list_result.stdout))
-    raise RuntimeError(error)
-
-  if re.search('(?m)^{bucket}/\n'.format(bucket=bucket), list_result.stdout):
-    sys.stderr.write(
-        'WARNING: "{bucket}" already exists. Overwriting.\n'.format(
-        bucket=bucket))
-  else:
-    print 'Creating GCS bucket "{bucket}" in project "{project}".'.format(
-        bucket=bucket, project=project)
-    check_run_quick('gsutil mb -p {project} {bucket}'
-                    .format(project=project, bucket=bucket),
-                    echo=True)
-
-
-def ensure_s3_bucket(name, region=""):
-  """Ensure that the desired S3 bucket exists, creating it if needed.
-
-  Args:
-    name [string]: The bucket name.
-    region [string]: The S3 region for the bucket. If empty use aws default.
-
-  Raises:
-    RuntimeError if the bucket could not be created.
-  """
-  bucket = 's3://' + name
-  list_result = run_quick('aws s3 ls ' + bucket, echo=False)
-  if not list_result.returncode:
-    sys.stderr.write(
-        'WARNING: "{bucket}" already exists. Overwriting.\n'.format(
-        bucket=bucket))
-  else:
-    print 'Creating S3 bucket "{bucket}"'.format(bucket=bucket)
-    command = 'aws s3 mb ' + bucket
-    if region:
-      command += ' --region ' + region
-    check_run_quick(command, echo=False)
 
 
 class BackgroundProcess(
@@ -198,26 +124,17 @@ class Builder(object):
 
       os.environ['NODE_ENV'] = os.environ.get('NODE_ENV', 'dev')
       self.__build_number = options.build_number
-      self.__google_service_account = options.google_service_account
+      self.__gcb_service_account = options.gcb_service_account
       self.__options = options
+      if (self.__options.container_builder
+          and self.__options.container_builder not in ['gcb', 'docker']):
+        raise ValueError('Invalid container_builder. Must be empty, "gcb" or "docker"')
+
       self.refresher = refresh_source.Refresher(options)
       if options.bintray_repo and options.build:
         self.__verify_bintray()
 
-
-      # NOTE(ewiseblatt):
-      # This is the GCE directory.
-      # Ultimately we'll want to go to the root directory and install
-      # standard stuff and gce stuff.
       self.__project_dir = determine_project_root()
-      self.__release_dir = options.release_path
-
-      if self.__release_dir.startswith('gs://'):
-          ensure_gcs_bucket(name=self.__release_dir[5:].split('/')[0],
-                            project=options.google_project)
-      elif self.__release_dir.startswith('s3://'):
-          ensure_s3_bucket(name=self.__release_dir[5:].split('/')[0],
-                           region=options.aws_region)
 
   def determine_gradle_root(self, name):
       gradle_root = (name if name != 'spinnaker'
@@ -312,19 +229,26 @@ class Builder(object):
     gradle_root = self.determine_gradle_root(name)
     if self.__options.container_builder == 'gcb':
       return BackgroundProcess.spawn(
-        'Building and publishing container image for {name} with Google Container Builder...'.format(name=name),
-        'cd "{gradle_root}"; gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
-        .format(gradle_root=gradle_root, name=name, account=self.__google_service_account,
-                project=self.__options.google_project)
+          'Build/publishing container image for {name} with'
+          ' Google Container Builder...'.format(name=name),
+          'cd "{gradle_root}"'
+          '; gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
+        .format(gradle_root=gradle_root, name=name, account=self.__gcb_service_account,
+                project=self.__options.gcb_project)
       )
     elif self.__options.container_builder == 'docker':
       return BackgroundProcess.spawn(
-        'Building and publishing container image for {name} with Docker...'.format(name=name),
-        'cd "{gradle_root}"; docker build -f Dockerfile -t $(cat ../{name}-docker.yml) .; docker push $(cat ../{name}-docker.yml)'
-        .format(gradle_root=gradle_root, name=name)
+          'Build/publishing container image for {name} with Docker...'.format(
+              name=name),
+          'cd "{gradle_root}"'
+          ' ; docker build -f Dockerfile -t $(cat ../{name}-docker.yml) .'
+          ' ; docker push $(cat ../{name}-docker.yml)'
+          .format(gradle_root=gradle_root, name=name)
       )
     else:
-      print 'Neither Google Container Builder nor Docker specified for building container image. Container image for {name} not built.'.format(name=name)
+      raise NotImplemented(
+          'container_builder="{0}"'.format(self.__options.container_builder))
+
 
   def publish_to_bintray(self, source, package, version, path, debian_tags=''):
     bintray_key = os.environ['BINTRAY_KEY']
@@ -458,36 +382,6 @@ class Builder(object):
     self.publish_to_bintray(source, package=package, version=version,
                             path=path, debian_tags=debian_tags)
 
-
-  def start_copy_file(self, source, target):
-      """Start a subprocess to copy the source file.
-
-      Args:
-        source [string]: The path to the source to copy must be local.
-        target [string]: The target path can also be a storage service URI.
-
-      Returns:
-        BackgroundProcess
-      """
-      if target.startswith('s3://'):
-        return BackgroundProcess.spawn(
-            'Copying {source}'.format,
-            'aws s3 cp "{source}" "{target}"'
-            .format(source=source, target=target))
-      elif target.startswith('gs://'):
-        return BackgroundProcess.spawn(
-            'Copying {source}'.format,
-            'gsutil -q -m cp "{source}" "{target}"'
-            .format(source=source, target=target))
-      else:
-        try:
-          os.makedirs(os.path.dirname(target))
-        except OSError:
-          pass
-
-        shutil.copy(source, target)
-        return NO_PROCESS
-
   def start_copy_debian_target(self, name):
       """Copies the debian package for the specified subsystem.
 
@@ -530,10 +424,6 @@ class Builder(object):
         if self.__options.bintray_repo:
           self.publish_file(from_path, module_name, version)
 
-        if self.__release_dir:
-          to_path = os.path.join(self.__release_dir, deb_file)
-          pids.append(self.start_copy_file(from_path, to_path))
-
       return pids
 
   def __do_build(self, subsys):
@@ -554,7 +444,7 @@ class Builder(object):
     """
     subsystems = [comp for comp in SUBSYSTEM_LIST if comp != 'spinnaker']
 
-    if self.__options.build_container_images:
+    if self.__options.container_builder:
       weighted_processes = self.__options.cpu_ratio * multiprocessing.cpu_count()
       pool = multiprocessing.pool.ThreadPool(
         processes=int(max(1, weighted_processes)))
@@ -608,35 +498,6 @@ class Builder(object):
       p.check_wait()
     print 'Finished copying {0}.'.format(subsys)
 
-  @staticmethod
-  def __zip_dir(zip_file, source_path, arcname=''):
-    """Zip the contents of a directory.
-
-    Args:
-      zip_file: [ZipFile] The zip file to write into.
-      source_path: [string] The directory to add.
-      arcname: [string] Optional name for the source to appear as in the zip.
-    """
-    if arcname:
-      # Effectively replace os.path.basename(parent_path) with arcname.
-      arcbase = arcname + '/'
-      parent_path = source_path
-    else:
-      # Will start relative paths from os.path.basename(source_path).
-      arcbase = ''
-      parent_path = os.path.dirname(source_path)
-
-    # Copy the tree at source_path adding relative paths into the zip.
-    rel_offset = len(parent_path) + 1
-    entries = os.walk(source_path)
-    for root, dirs, files in entries:
-      for dirname in dirs:
-        abs_path = os.path.join(root, dirname)
-        zip_file.write(abs_path, arcbase + abs_path[rel_offset:])
-      for filename in files:
-        abs_path = os.path.join(root, filename)
-        zip_file.write(abs_path, arcbase + abs_path[rel_offset:])
-
   @classmethod
   def init_argument_parser(cls, parser):
       refresh_source.Refresher.init_argument_parser(parser)
@@ -658,52 +519,46 @@ class Builder(object):
                              ' The release name is assumed to be the basename.'
                              ' The path can be a directory, GCS URI or S3 URI.')
       parser.add_argument(
-        '--google_project', default='',
-        help='If release repository is a GCS bucket then this is the project'
-        ' owning the bucket. The default is the project configured as the'
-        ' default for gcloud.')
+          '--gcb_project', default='',
+          help='The google project id to publish containers to'
+               'if the container builder is gcp.')
 
       parser.add_argument(
-        '--aws_region', default='',
-        help='If release repository is a S3 bucket then this is the AWS'
-        ' region to add the bucket to if the bucket did not already exist.')
+          '--bintray_repo', default='',
+          help='Publish to this bintray repo.\n'
+               'This requires BINTRAY_USER and BINTRAY_KEY are set.')
+      parser.add_argument(
+          '--jar_repo', default='',
+          help='Publish produced jars to this repo.\n'
+               'This requires BINTRAY_USER and BINTRAY_KEY are set.')
+      parser.add_argument(
+          '--build_number', default=os.environ.get('BUILD_NUMBER', ''),
+          help='CI system build number. Ideally should be a unique integer'
+               'for each build.')
 
       parser.add_argument(
-        '--bintray_repo', default='',
-        help='Publish to this bintray repo.\n'
-             'This requires BINTRAY_USER and BINTRAY_KEY are set.')
+          '--wipe_package_on_409', default=False, action='store_true',
+          help='Work around BinTray conflict errors by deleting the entire package'
+               ' and retrying. Removes all prior versions so only intended for dev'
+               ' repos.\n')
       parser.add_argument(
-        '--jar_repo', default='',
-        help='Publish produced jars to this repo.\n'
-             'This requires BINTRAY_USER and BINTRAY_KEY are set.')
-      parser.add_argument(
-        '--build_number', default=os.environ.get('BUILD_NUMBER', ''),
-        help='CI system build number. Ideally should be a unique integer'
-        'for each build.')
+          '--nowipe_package_on_409', dest='wipe_package_on_409',
+          action='store_false')
 
       parser.add_argument(
-        '--wipe_package_on_409', default=False, action='store_true',
-        help='Work around BinTray conflict errors by deleting the entire package'
-             ' and retrying. Removes all prior versions so only intended for dev'
-             ' repos.\n')
+          '--nebula', default=True, action='store_true',
+          help='Use nebula to build "candidate" target and upload to bintray.')
       parser.add_argument(
-        '--nowipe_package_on_409', dest='wipe_package_on_409',
-        action='store_false')
+          '--nonebula', dest='nebula', action='store_false',
+          help='Explicitly "buildDeb" then curl upload them to bintray.')
 
       parser.add_argument(
-        '--nebula', default=True, action='store_true',
-        help='Use nebula to build "candidate" target and upload to bintray.')
+          '--container_builder', default=None,
+          help='If specified then build container images using the specified'
+               ' builder. Supported builders are {"gcb", "docker"}.')
       parser.add_argument(
-        '--nonebula', dest='nebula', action='store_false',
-        help='Explicitly "buildDeb" then curl upload them to bintray.')
-
-      parser.add_argument(
-        '--build_container_images', default=False, action='store_true',
-        help='Build container images of the Spinnaker microservices.')
-      parser.add_argument('--container_builder', default='gcb',
-                          help="Type of builder to use. Currently, the supported options are {'gcb', 'docker'}.")
-      parser.add_argument('--google_service_account', default='',
-                          help='Google service account to invoke container builder with.')
+          '--gcb_service_account', default='',
+          help='Google service account to invoke the gcp container builder with.')
 
 
   def __verify_bintray(self):
@@ -753,10 +608,6 @@ class Builder(object):
       print '\nFINISHED writing release to {rep}'.format(
         rep=options.bintray_repo)
 
-
-    if options.release_path:
-      print '\nFINISHED writing release to {dir}'.format(
-        dir=builder.__release_dir)
 
 if __name__ == '__main__':
   sys.exit(Builder.main())

@@ -231,6 +231,9 @@ class BomGenerator(Annotator):
     cls.init_argument_parser(parser)
     cls.init_extra_argument_parser(parser)
     options = parser.parse_args()
+    if options.container_builder not in ['gcb', 'docker']:
+      raise ValueError(
+          'Invalid container_builder="{0}"'.format(options.container_builder))
 
     bom_generator = cls(options)
     bom_generator.determine_and_tag_versions()
@@ -238,6 +241,10 @@ class BomGenerator(Annotator):
       bom_generator.write_container_builder_gcr_config()
     elif options.container_builder == 'docker':
       bom_generator.write_docker_version_files()
+    else:
+      raise NotImplementedError('container_builder="{0}"'.format(
+          options.container_builder))
+
     bom_generator.write_bom()
     bom_generator.publish_microservice_configs()
 
