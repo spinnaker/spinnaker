@@ -112,7 +112,8 @@ function configure(IS_TEST) {
         'angular-cache', 'angular-marked', 'angular-messages', 'angular-sanitize', 'bootstrap',
         'clipboard', 'd3', 'jquery-ui', 'moment-timezone', 'rxjs', 'reflect-metadata', 'zone.js',
         '@angular/platform-browser', '@angular/platform-browser-dynamic', '@angular/core',
-        '@angular/common', '@angular/upgrade/static', 'zone.js/dist/wtf'
+        '@angular/common', '@angular/forms', '@angular/http', '@angular/upgrade/static',
+        'zone.js/dist/wtf'
       ]
     };
 
@@ -126,7 +127,6 @@ function configure(IS_TEST) {
         ],
         threadPool: happyThreadPool
       }),
-      new webpack.ContextReplacementPlugin(/angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/, __dirname),
       new webpack.optimize.CommonsChunkPlugin({name: 'vendor', filename: 'vendor.bundle.js'}),
       new webpack.optimize.CommonsChunkPlugin('init'),
       new HtmlWebpackPlugin({
@@ -150,8 +150,7 @@ function configure(IS_TEST) {
   // this is temporary and will be deprecated in WP3.  moving forward,
   // loaders will individually need to accept this as an option.
   config.plugins.push(new webpack.LoaderOptionsPlugin({debug: !IS_TEST}));
-  // config.plugins.push(new CheckerPlugin());
-
+  
   return config;
 }
 
