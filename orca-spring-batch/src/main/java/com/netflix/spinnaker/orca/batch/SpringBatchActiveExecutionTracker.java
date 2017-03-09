@@ -100,13 +100,24 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
    */
   @Override public Map<String, OrcaInstance> activeExecutionsByInstance() {
     return Observable
-      .from(activeInstances())
+      .from(knownInstances())
       .map(instance ->
         singletonMap(instance, activeExecutionsFor(instance))
       )
       .reduce(this::reduce)
       .toBlocking()
       .single();
+  }
+
+  /**
+   * @param instance an instance id.
+   * @return `true` if the instance has reported executions in the
+   * last {@link #COUNT_TTL_SECONDS}, `false` otherwise.
+   */
+  @Override public boolean isActiveInstance(String instance) {
+    try (Jedis jedis = jedisPool.getResource()) {
+      return jedis.exists(tokenKeyFor(instance));
+    }
   }
 
   /**
@@ -126,7 +137,7 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
   /**
    * @return list of known Orca instances.
    */
-  private Set<String> activeInstances() {
+  private Set<String> knownInstances() {
     try (Jedis jedis = jedisPool.getResource()) {
       return jedis.smembers(KEY_INSTANCES);
     }

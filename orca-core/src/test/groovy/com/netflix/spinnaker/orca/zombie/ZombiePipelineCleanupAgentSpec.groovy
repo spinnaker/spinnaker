@@ -16,58 +16,41 @@
 
 package com.netflix.spinnaker.orca.zombie
 
-import java.time.Clock
-import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
-import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.ActiveExecutionTracker
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import org.springframework.context.ApplicationContext
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
-import static com.netflix.spinnaker.orca.zombie.ZombiePipelineCleanupAgent.TOLERANCE
 import static java.time.Instant.now
-import static java.util.concurrent.TimeUnit.HOURS
-import static java.util.concurrent.TimeUnit.SECONDS
 import static rx.Observable.just
 
 class ZombiePipelineCleanupAgentSpec extends Specification {
 
   def executionRepository = Mock(ExecutionRepository)
-  def clock = Clock.fixed(now(), ZoneId.systemDefault())
-
-  def task = new RandomTask()
-  def applicationContext = Stub(ApplicationContext) {
-    getBean(RandomTask) >> task
-  }
+  def activeExecutionTracker = Stub(ActiveExecutionTracker)
 
   @Subject zombieSlayer = new ZombiePipelineCleanupAgent(
+    activeExecutionTracker,
     executionRepository,
-    applicationContext,
     Lock.NEVER_LOCKED,
-    "localhost",
-    clock
-    ,
+    "localhost"
   )
 
+  @Shared instanceId = "i-01fa8ad4bcc4cb225"
+
   @SuppressWarnings("ChangeToOperator")
-  @Shared long startTime = now().minus(1, ChronoUnit.HOURS).toEpochMilli()
+  @Shared startTime = now().minus(1, ChronoUnit.HOURS).toEpochMilli()
 
   def "does not kill a pipeline that's complete"() {
     given:
-    pipeline.stages.first().tasks << new DefaultTask(
-      implementingClass: RandomTask,
-      startTime: overdue(),
-      status: SUCCEEDED
-    )
     executionRepository.retrievePipelines() >> just(pipeline)
+
+    and:
+    activeExecutionTracker.isActiveInstance(instanceId) >> false
 
     when:
     zombieSlayer.slayZombies()
@@ -76,24 +59,15 @@ class ZombiePipelineCleanupAgentSpec extends Specification {
     0 * executionRepository.updateStatus(pipeline.id, _)
 
     where:
-    pipeline = Pipeline
-      .builder()
-      .withId(1)
-      .withExecutionEngine("v2")
-      .withStage("whatever")
-      .withStatus(SUCCEEDED)
-      .withStartTime(startTime)
-      .build()
+    pipeline = pipelineWithStatus(SUCCEEDED)
   }
 
-  def "kills a pipeline with a zombie task"() {
+  def "kills a pipeline running on a zombie instance"() {
     given:
-    pipeline.stages.first().tasks << new DefaultTask(
-      implementingClass: RandomTask,
-      startTime: overdue(),
-      status: RUNNING
-    )
     executionRepository.retrievePipelines() >> just(pipeline)
+
+    and:
+    activeExecutionTracker.isActiveInstance(instanceId) >> false
 
     when:
     zombieSlayer.slayZombies()
@@ -102,53 +76,15 @@ class ZombiePipelineCleanupAgentSpec extends Specification {
     1 * executionRepository.updateStatus(pipeline.id, CANCELED)
 
     where:
-    pipeline = Pipeline
-      .builder()
-      .withId(1)
-      .withExecutionEngine("v2")
-      .withStage("whatever")
-      .withStatus(RUNNING)
-    .withStartTime(startTime)
-      .build()
+    pipeline = pipelineWithStatus(RUNNING)
   }
 
-  def "does not kill a pipeline that isn't overdue"() {
+  def "does not kill a pipeline that is running on an active instance"() {
     given:
-    pipeline.stages.first().tasks << new DefaultTask(
-      implementingClass: RandomTask,
-      startTime: notOverdue(),
-      status: RUNNING
-    )
-    executionRepository.retrievePipelines() >> just(pipeline)
-
-    when:
-    zombieSlayer.slayZombies()
-
-    then:
-    0 * executionRepository.updateStatus(pipeline.id, _)
-
-    where:
-    pipeline = Pipeline
-      .builder()
-      .withId(1)
-      .withExecutionEngine("v2")
-      .withStage("whatever")
-      .withStatus(RUNNING)
-      .withStartTime(startTime)
-      .build()
-  }
-
-  def "does not kill a pipeline that is paused"() {
-    given:
-    pipeline.stages.first().tasks << new DefaultTask(
-      implementingClass: RandomTask,
-      startTime: overdue(),
-      status: PAUSED
-    )
     executionRepository.retrievePipelines() >> just(pipeline)
 
     and:
-    pipeline.paused = new Execution.PausedDetails(pauseTime: overdue())
+    activeExecutionTracker.isActiveInstance(instanceId) >> true
 
     when:
     zombieSlayer.slayZombies()
@@ -157,54 +93,15 @@ class ZombiePipelineCleanupAgentSpec extends Specification {
     0 * executionRepository.updateStatus(pipeline.id, _)
 
     where:
-    pipeline = Pipeline
-      .builder()
-      .withId(1)
-      .withExecutionEngine("v2")
-      .withStage("whatever")
-      .withStatus(PAUSED)
-      .withStartTime(startTime)
-      .build()
-  }
-
-  @SuppressWarnings("ChangeToOperator")
-  def "does not kill a pipeline that is overdue but was previously paused for a while"() {
-    given:
-    pipeline.stages.first().tasks << new DefaultTask(
-      implementingClass: RandomTask,
-      startTime: overdue(),
-      status: RUNNING
-    )
-    executionRepository.retrievePipelines() >> just(pipeline)
-
-    and:
-    pipeline.paused = new Execution.PausedDetails(pauseTime: overdue(), resumeTime: clock.instant().minus(2, ChronoUnit.MINUTES).toEpochMilli())
-
-    when:
-    zombieSlayer.slayZombies()
-
-    then:
-    0 * executionRepository.updateStatus(pipeline.id, _)
-
-    where:
-    pipeline = Pipeline
-      .builder()
-      .withId(1)
-      .withExecutionEngine("v2")
-      .withStage("whatever")
-      .withStatus(RUNNING)
-      .withStartTime(startTime)
-      .build()
+    pipeline = pipelineWithStatus(RUNNING)
   }
 
   def "does not kill a pipeline if the force flag is not set"() {
     given:
-    pipeline.stages.first().tasks << new DefaultTask(
-      implementingClass: RandomTask,
-      startTime: notOverdue(),
-      status: RUNNING
-    )
     executionRepository.retrievePipelines() >> just(pipeline)
+
+    and:
+    activeExecutionTracker.isActiveInstance(instanceId) >> true
 
     when:
     zombieSlayer.slayIfZombie(pipeline, false)
@@ -213,24 +110,15 @@ class ZombiePipelineCleanupAgentSpec extends Specification {
     0 * executionRepository.updateStatus(pipeline.id, CANCELED)
 
     where:
-    pipeline = Pipeline
-      .builder()
-      .withId(1)
-      .withExecutionEngine("v2")
-      .withStage("whatever")
-      .withStatus(RUNNING)
-      .withStartTime(startTime)
-      .build()
+    pipeline = pipelineWithStatus(RUNNING)
   }
 
   def "does kill a pipeline if the force flag is set"() {
     given:
-    pipeline.stages.first().tasks << new DefaultTask(
-      implementingClass: RandomTask,
-      startTime: notOverdue(),
-      status: RUNNING
-    )
     executionRepository.retrievePipelines() >> just(pipeline)
+
+    and:
+    activeExecutionTracker.isActiveInstance(instanceId) >> true
 
     when:
     zombieSlayer.slayIfZombie(pipeline, true)
@@ -239,44 +127,18 @@ class ZombiePipelineCleanupAgentSpec extends Specification {
     1 * executionRepository.updateStatus(pipeline.id, CANCELED)
 
     where:
-    pipeline = Pipeline
+    pipeline = pipelineWithStatus(RUNNING)
+  }
+
+  private Pipeline pipelineWithStatus(ExecutionStatus status) {
+    Pipeline
       .builder()
       .withId(1)
-      .withExecutionEngine("v2")
-      .withStage("whatever")
-      .withStatus(RUNNING)
+      .withApplication("Spinnaker")
+      .withName("Test")
+      .withExecutingInstance(instanceId)
       .withStartTime(startTime)
+      .withStatus(status)
       .build()
   }
-
-  @SuppressWarnings("ChangeToOperator")
-  private long overdue() {
-    clock
-      .instant()
-      .minusMillis(task.timeout)
-      .minus(TOLERANCE)
-      .minusSeconds(1)
-      .toEpochMilli()
-  }
-
-  @SuppressWarnings("ChangeToOperator")
-  private long notOverdue() {
-    clock
-      .instant()
-      .minusMillis(task.timeout)
-      .minus(TOLERANCE)
-      .plusSeconds(1)
-      .toEpochMilli()
-  }
-
-  static class RandomTask implements RetryableTask {
-    @Override
-    TaskResult execute(Stage stage) {
-      new DefaultTaskResult(RUNNING)
-    }
-
-    final long backoffPeriod = SECONDS.toMillis(10)
-    final long timeout = HOURS.toMillis(1)
-  }
-
 }

@@ -25,6 +25,7 @@ import static java.lang.String.format;
 
 public interface ActiveExecutionTracker {
   Map<String, OrcaInstance> activeExecutionsByInstance();
+  boolean isActiveInstance(String instance);
 
   @Value class OrcaInstance {
     boolean overdue;

@@ -303,7 +303,9 @@ class TaskController {
   Map<String, ActiveExecutionTracker.OrcaInstance> activeExecutionsByInstance() {
     activeExecutionTracker
       .activeExecutionsByInstance()
-      .sort { a, b -> b.value.executions.size() <=> a.value.executions.size() }
+      .sort { a, b ->
+        b.value.overdue <=> a.value.overdue || b.value.count <=> a.value.count
+      }
   }
 
   private List<Pipeline> filterPipelinesByHistoryCutoff(List<Pipeline> pipelines) {
