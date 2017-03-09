@@ -20,23 +20,23 @@ package com.netflix.spinnaker.halyard.cli.command.v1.deploy;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters()
-public class PlanDeployCommand extends NestableCommand {
+public class DiffDeployCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "plan";
+  private String commandName = "diff";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "This is effectively a dry-run of your Spinnaker deployment, displaying what changes"
-      + " will be made, and how your deployment will look.";
+  private String description = "This shows what changes you have made since Spinnaker was last deployed.";
 
   @Override
   protected void executeThis() {
     String deploymentName = Daemon.getCurrentDeployment();
 
-    AnsiUi.raw(Daemon.deployDeploymentPlan(deploymentName, false));
+    AnsiUi.raw(AnsiFormatUtils.format(Daemon.configDiff(deploymentName, false)));
   }
 }

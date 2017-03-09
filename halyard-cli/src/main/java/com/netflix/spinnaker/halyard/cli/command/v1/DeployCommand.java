@@ -18,9 +18,8 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.deploy.DetailsDeployCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.deploy.PlanDeployCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.deploy.DiffDeployCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.deploy.RunDeployCommand;
-import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -35,7 +34,7 @@ public class DeployCommand extends NestableCommand {
 
   public DeployCommand() {
     registerSubcommand(new RunDeployCommand());
-    registerSubcommand(new PlanDeployCommand());
+    registerSubcommand(new DiffDeployCommand());
     registerSubcommand(new DetailsDeployCommand());
   }
 

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder
+import junit.framework.Test
 import spock.lang.Specification
 
 class NodeSpec extends Specification {
@@ -28,9 +29,9 @@ class NodeSpec extends Specification {
       return field1Options
     }
 
-    ChildTestNode node1 = new ChildTestNode()
-    ChildTestNode node2 = new ChildTestNode()
-    ChildTestNode node3 = new ChildTestNode()
+    ChildTestNode node1 = new ChildTestNode("n1")
+    ChildTestNode node2 = new ChildTestNode("n2")
+    ChildTestNode node3 = new ChildTestNode("n3")
 
     @LocalFile String file1 = "/a/b/c/"
     @LocalFile String file2 = "/d/e/f/"
@@ -57,11 +58,13 @@ class NodeSpec extends Specification {
 
     }
 
-    List<Node> childNodes = new ArrayList<>();
+    String name
+    List<Node> childNodes = new ArrayList<>()
+    String field = "A"
 
     @Override
     String getNodeName() {
-      return "childtest"
+      return name
     }
 
     @Override
@@ -69,6 +72,13 @@ class NodeSpec extends Specification {
       return NodeIteratorFactory.makeListIterator(childNodes)
     }
 
+    ChildTestNode(String name) {
+      this.name = name
+    }
+
+    ChildTestNode() {
+      this.name = "childtestnode"
+    }
   }
 
   void "node reports matching field options"() {
@@ -149,5 +159,98 @@ class NodeSpec extends Specification {
 
     then:
     files.size() == 0
+  }
+
+  void "node diff correctly reports no differences"() {
+    setup:
+    def n1 = new TestNode()
+    def n2 = new TestNode()
+
+    when:
+    def diff1 = n1.diff(n2)
+    def diff2 = n2.diff(n1)
+
+    then:
+    diff1 == null
+    diff2 == null
+  }
+
+  void "node diff correctly reports file difference"() {
+    setup:
+    def n1 = new TestNode()
+    def n2 = new TestNode()
+    n1.file1 = "1"
+    n2.file1 = "2"
+
+    when:
+    def diff1 = n1.diff(n2)
+
+    then:
+    diff1 != null
+    diff1.changeType == NodeDiff.ChangeType.EDITED
+    diff1.fieldDiffs.size() == 1
+    diff1.fieldDiffs[0].fieldName == "file1"
+    ((String) diff1.fieldDiffs[0].newValue) == n1.file1
+    ((String) diff1.fieldDiffs[0].oldValue) == n2.file1
+    diff1.nodeDiffs.size() == 0
+  }
+
+  void "node diff correctly reports child node edit"() {
+    setup:
+    def n1 = new TestNode()
+    def n2 = new TestNode()
+    n1.node3.field = "A"
+    n2.node3.field = "B"
+
+    when:
+    def diff1 = n1.diff(n2)
+
+    then:
+    diff1 != null
+    diff1.changeType == NodeDiff.ChangeType.EDITED
+    diff1.fieldDiffs.size() == 0
+    diff1.nodeDiffs.size() == 1
+    diff1.nodeDiffs[0].location == n1.node3.name
+    diff1.nodeDiffs[0].changeType == NodeDiff.ChangeType.EDITED
+    diff1.nodeDiffs[0].fieldDiffs.size() == 1
+    diff1.nodeDiffs[0].fieldDiffs[0].fieldName == "field"
+  }
+
+  void "node diff correctly child node addition"() {
+    setup:
+    def n1 = new ChildTestNode()
+    def n2 = new ChildTestNode()
+    n1.childNodes.add(new ChildTestNode("C"))
+
+    when:
+    def diff1 = n1.diff(n2)
+
+    then:
+    diff1 != null
+    diff1.changeType == NodeDiff.ChangeType.EDITED
+    diff1.fieldDiffs.size() == 0
+    diff1.nodeDiffs.size() == 1
+    diff1.nodeDiffs[0].location == "C"
+    diff1.nodeDiffs[0].changeType == NodeDiff.ChangeType.ADDED
+    diff1.nodeDiffs[0].fieldDiffs.size() == 0
+  }
+
+  void "node diff correctly child node removal"() {
+    setup:
+    def n1 = new ChildTestNode()
+    def n2 = new ChildTestNode()
+    n1.childNodes.add(new ChildTestNode("C"))
+
+    when:
+    def diff1 = n2.diff(n1)
+
+    then:
+    diff1 != null
+    diff1.changeType == NodeDiff.ChangeType.EDITED
+    diff1.fieldDiffs.size() == 0
+    diff1.nodeDiffs.size() == 1
+    diff1.nodeDiffs[0].location == "C"
+    diff1.nodeDiffs[0].changeType == NodeDiff.ChangeType.REMOVED
+    diff1.nodeDiffs[0].fieldDiffs.size() == 0
   }
 }

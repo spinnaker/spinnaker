@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.cli.ui.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -95,5 +96,56 @@ public class AnsiFormatUtils {
     }
 
     return resultBuilder.toString();
+  }
+
+  public static String format(NodeDiff diff) {
+    AnsiStoryBuilder resultBuilder = new AnsiStoryBuilder();
+    format(diff, resultBuilder);
+    return resultBuilder.toString();
+  }
+
+  static void format(NodeDiff diff, AnsiStoryBuilder resultBuilder) {
+
+    AnsiSnippet snippet = null;
+    AnsiParagraphBuilder paragraph = null;
+    boolean printLocation = true;
+    switch (diff.getChangeType()) {
+      case EDITED:
+        if (!diff.getFieldDiffs().isEmpty()) {
+          snippet = new AnsiSnippet("~ EDITED\n").setForegroundColor(AnsiForegroundColor.MAGENTA);
+        } else {
+          printLocation = false;
+        }
+        break;
+      case REMOVED:
+        snippet = new AnsiSnippet("- REMOVED\n").setForegroundColor(AnsiForegroundColor.RED);
+        break;
+      case ADDED:
+        snippet = new AnsiSnippet("+ ADDED\n").setForegroundColor(AnsiForegroundColor.GREEN);
+        break;
+      default:
+        throw new RuntimeException("Unknown changetype " + diff.getChangeType());
+    }
+
+    if (printLocation) {
+      paragraph = resultBuilder.addParagraph();
+      paragraph.addSnippet(snippet.addStyle(AnsiStyle.BOLD).toString());
+      paragraph.addSnippet(diff.getLocation()).addStyle(AnsiStyle.BOLD);
+    }
+
+    for (NodeDiff.FieldDiff fieldDiff : diff.getFieldDiffs()) {
+      paragraph = resultBuilder.addParagraph();
+      paragraph.addSnippet(" - ");
+      paragraph.addSnippet(fieldDiff.getFieldName()).addStyle(AnsiStyle.UNDERLINE);
+      paragraph.addSnippet(" " + fieldDiff.getOldValue() + " -> " + fieldDiff.getNewValue());
+    }
+
+    if (printLocation) {
+      resultBuilder.addNewline();
+    }
+
+    for (NodeDiff nodeDiff : diff.getNodeDiffs()) {
+      format(nodeDiff, resultBuilder);
+    }
   }
 }

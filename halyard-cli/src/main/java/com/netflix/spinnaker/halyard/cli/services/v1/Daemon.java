@@ -148,8 +148,9 @@ public class Daemon {
     return getObjectMapper().convertValue(rawDeployResult, Deployment.DeployResult.class);
   }
 
-  public static String deployDeploymentPlan(String deploymentName, boolean validate) {
-    return ResponseUnwrapper.get(getService().deployDeploymentPlan(deploymentName, validate));
+  public static NodeDiff configDiff(String deploymentName, boolean validate) {
+    Object rawDiff = ResponseUnwrapper.get(getService().configDiff(deploymentName, validate));
+    return getObjectMapper().convertValue(rawDiff, NodeDiff.class);
   }
 
   public static Security getSecurity(String deploymentName, boolean validate) {

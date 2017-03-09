@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
@@ -121,14 +122,14 @@ public class DeploymentController {
     return TaskRepository.submitTask(builder::build);
   }
 
-  @RequestMapping(value = "/{deploymentName:.+}/deployPlan/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, String> deployPlan(@PathVariable String deploymentName,
+  @RequestMapping(value = "/{deploymentName:.+}/configDiff/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, NodeDiff> configDiff(@PathVariable String deploymentName,
     @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
     @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<String> builder = new StaticRequestBuilder<>();
+    StaticRequestBuilder<NodeDiff> builder = new StaticRequestBuilder<>();
     builder.setSeverity(severity);
 
-    builder.setBuildResponse(() -> deployService.deploySpinnakerPlan(deploymentName));
+    builder.setBuildResponse(() -> deployService.configDiff(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));

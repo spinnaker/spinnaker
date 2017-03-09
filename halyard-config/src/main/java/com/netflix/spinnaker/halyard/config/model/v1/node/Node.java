@@ -24,11 +24,13 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.ADDED;
+import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.EDITED;
+import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.REMOVED;
 
 /**
  * The "Node" class represents a YAML node in our config hierarchy that can be validated.
@@ -46,8 +48,13 @@ abstract public class Node implements Validatable {
 
   @JsonIgnore
   public String getNameToRoot() {
+    return getNameToClass(Halconfig.class);
+  }
+
+  @JsonIgnore
+  public String getNameToClass(Class<?> clazz) {
     String name = getNodeName();
-    if (parent == null) {
+    if (parent == null || clazz.isAssignableFrom(parent.getClass())) {
       return name;
     } else {
       return parent.getNameToRoot() + "." + name;
@@ -205,5 +212,118 @@ abstract public class Node implements Validatable {
 
   public String debugName() {
     return "[" + getClass().getSimpleName() + ":" + getNodeName() + "]";
+  }
+
+
+  private Map<String, Object> serializedNonNodeFields() {
+    List<Field> fields = Arrays.stream(this.getClass().getDeclaredFields()).filter(f -> {
+      return (!(Node.class.isAssignableFrom(f.getType()) ||
+          List.class.isAssignableFrom(f.getType()) ||
+          Map.class.isAssignableFrom(f.getType()) ||
+          f.getAnnotation(JsonIgnore.class) != null));
+      }).collect(Collectors.toList());
+
+    Map<String, Object> res = new HashMap<>();
+    for (Field field : fields) {
+      field.setAccessible(true);
+      try {
+        res.put(field.getName(), field.get(this));
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException("Failed to read field " + field.getName() + " in node " + getNodeName());
+      }
+      field.setAccessible(false);
+    }
+
+    return res;
+  }
+
+  private Map<String, Node> serializedNodeFields() {
+    Map<String, Node> res = new HashMap<>();
+
+    NodeIterator iterator = this.getChildren();
+    Node next = iterator.getNext();
+
+    while (next != null) {
+      res.put(next.getNodeName(), next);
+      next = iterator.getNext();
+    }
+
+    return res;
+  }
+
+  public NodeDiff diff(Node other) {
+    String tt = this.getClass().getSimpleName();
+    String to = other.getClass().getSimpleName();
+    if (!tt.equals(to)) {
+      throw new RuntimeException("Invalid comparision between unequal node types (" + tt + " != " + to + ")");
+    }
+
+    String nnt = this.getNodeName();
+    String nno = other.getNodeName();
+    if (!nnt.equals(nno)) {
+      throw new RuntimeException("Invalid comparision between different nodes (" + nnt + " != " + nno + ")");
+    }
+
+    NodeDiff result = new NodeDiff().setChangeType(EDITED).setNode(this);
+
+    Map<String, Object> fts = this.serializedNonNodeFields();
+    Map<String, Object> fos = other.serializedNonNodeFields();
+
+    for (Map.Entry<String, Object> entry : fts.entrySet()) {
+      String fnt = entry.getKey();
+      Object ot = entry.getValue();
+      Object oo = fos.get(fnt);
+
+      if (ot == null && oo == null) {
+        continue;
+      }
+
+      if (ot != null && oo != null && ot.equals(oo)) {
+        continue;
+      }
+
+      NodeDiff.FieldDiff fc = new NodeDiff.FieldDiff()
+          .setFieldName(fnt)
+          .setNewValue(ot)
+          .setOldValue(oo);
+
+      result.addFieldDiff(fc);
+    }
+
+
+    Map<String, Node> nts = this.serializedNodeFields();
+    Map<String, Node> nos = other.serializedNodeFields();
+
+    for (Map.Entry<String, Node> entry : nts.entrySet()) {
+      nnt = entry.getKey();
+      Node nt = entry.getValue();
+      Node no = nos.get(nnt);
+
+      if (no == null) {
+        result.addNodeDiff(new NodeDiff().setChangeType(ADDED).setNode(nt));
+        continue;
+      }
+
+      NodeDiff diff = nt.diff(no);
+
+      if (diff != null) {
+        result.addNodeDiff(diff);
+      }
+    }
+
+    for (Map.Entry<String, Node> entry : nos.entrySet()) {
+      nno = entry.getKey();
+      Node no = entry.getValue();
+      Node nt = nts.get(nno);
+
+      if (nt == null) {
+        result.addNodeDiff(new NodeDiff().setChangeType(REMOVED).setNode(no));
+      }
+    }
+
+    if (result.getFieldDiffs().isEmpty() && result.getNodeDiffs().isEmpty()) {
+      return null;
+    }
+    return result;
   }
 }

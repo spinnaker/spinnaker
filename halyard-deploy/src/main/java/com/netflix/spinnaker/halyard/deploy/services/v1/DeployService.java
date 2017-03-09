@@ -20,6 +20,7 @@ import com.amazonaws.util.StringUtils;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
@@ -71,19 +72,16 @@ public class DeployService {
   @Autowired
   ConfigParser configParser;
 
-  public String deploySpinnakerPlan(String deploymentName) {
-    // TODO(lwander) https://github.com/spinnaker/halyard/issues/141
-    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    SpinnakerEndpoints endpoints = endpointFactory.create(deploymentConfiguration);
-    BillOfMaterials billOfMaterials = artifactService.getBillOfMaterials(deploymentName);
+  public NodeDiff configDiff(String deploymentName) {
+    try {
+      DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+      halconfigParser.switchToBackupConfig(deploymentName);
+      DeploymentConfiguration oldDeploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
 
-    StringBuilder result = new StringBuilder();
-    result.append("## ENDPOINTS\n\n");
-    result.append(configParser.yamlToString(endpoints));
-    result.append("\n## VERSIONS\n\n");
-    result.append(configParser.yamlToString(billOfMaterials));
-
-    return result.toString();
+      return deploymentConfiguration.diff(oldDeploymentConfiguration);
+    } finally {
+      halconfigParser.switchToPrimaryConfig();
+    }
   }
 
   public Deployment.DeployResult deploySpinnaker(String deploymentName) {
@@ -115,6 +113,19 @@ public class DeployService {
   }
 
   public RunningServiceDetails getRunningServiceDetails(String deploymentName, String serviceName) {
+    try {
+      halconfigParser.switchToBackupConfig(deploymentName);
+
+      DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+      Deployment deployment = deploymentFactory.create(deploymentConfiguration, getPriorGenerateResult(deploymentName));
+
+      return deployment.getServiceDetails(EndpointType.fromString(serviceName));
+    } finally {
+      halconfigParser.switchToPrimaryConfig();
+    }
+  }
+
+  private GenerateResult getPriorGenerateResult(String deploymentName) {
     Path generateResultPath = halconfigDirectoryStructure.getGenerateResultPath(deploymentName);
     if (!generateResultPath.toFile().exists()) {
       throw new HalException(
@@ -122,16 +133,10 @@ public class DeployService {
       );
     }
 
-    try {
-      halconfigParser.switchToBackupConfig(deploymentName);
+    return configParser.read(generateResultPath, GenerateResult.class);
+  }
 
-      GenerateResult generateResult = configParser.read(generateResultPath, GenerateResult.class);
-      DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-      Deployment deployment = deploymentFactory.create(deploymentConfiguration, generateResult);
-
-      return deployment.getServiceDetails(EndpointType.fromString(serviceName));
-    } finally {
-      halconfigParser.switchToPrimaryConfig();
-    }
+  private boolean deploymentExists(String deploymentName) {
+    return halconfigDirectoryStructure.getBackupConfigPath(deploymentName).toFile().exists();
   }
 }
