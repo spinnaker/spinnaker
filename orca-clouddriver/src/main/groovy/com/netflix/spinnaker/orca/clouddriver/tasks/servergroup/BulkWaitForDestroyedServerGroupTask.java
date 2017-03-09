@@ -1,0 +1,133 @@
+/*
+ * Copyright 2017 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.frigga.Names;
+import com.netflix.spinnaker.orca.DefaultTaskResult;
+import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.RetryableTask;
+import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Component
+public class BulkWaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+  private static final Logger LOGGER = LoggerFactory.getLogger(BulkWaitForDestroyedServerGroupTask.class);
+
+  @Autowired
+  private OortService oortService;
+
+  @Autowired
+  private ObjectMapper objectMapper;
+
+  @Override
+  public TaskResult execute(Stage stage) {
+    String region = (String) stage.getContext().get("region");
+    Map<String, List<String>> regionToServerGroups = (Map<String, List<String>>) stage.getContext().get("deploy.server.groups");
+    List<String> serverGroupNames = regionToServerGroups.get(region);
+    Names names = Names.parseName(serverGroupNames.get(0));
+    try {
+      Response response = oortService.getCluster(
+        names.getApp(),
+        getCredentials(stage),
+        names.getCluster(),
+        getCloudProvider(stage)
+      );
+
+      if (response.getStatus() != 200) {
+        return new DefaultTaskResult(ExecutionStatus.RUNNING);
+      }
+
+      Map cluster = objectMapper.readValue(response.getBody().in(), Map.class);
+      Map<String, Object> output = new HashMap<>();
+      output.put("remainingInstances", Collections.emptyList());
+      if (cluster == null || cluster.get("serverGroups") == null) {
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, output);
+      }
+
+      List<Map<String, Object>> serverGroups = getServerGroups(region, cluster, serverGroupNames);
+      if (serverGroups.isEmpty()) {
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, output);
+      }
+
+      List<Map<String, Object>> instances = getInstances(serverGroups);
+      LOGGER.info("{} not destroyed, found instances {}", serverGroupNames, instances);
+      output.put("remainingInstances", instances);
+      return new DefaultTaskResult(ExecutionStatus.RUNNING, output);
+    } catch (RetrofitError e) {
+      return handleRetrofitError(stage, e);
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Failed to fetch cluster details", e);
+    }
+  }
+
+  private TaskResult handleRetrofitError(Stage stage, RetrofitError e) {
+    switch (e.getResponse().getStatus()) {
+      case 404:
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED);
+      case 500:
+        Map<String, Object> error = new HashMap<>();
+        error.put("lastRetrofitException", new RetrofitExceptionHandler().handle(stage.getName(), e));
+        LOGGER.error("Unexpected retrofit error {}", error.get("lastRetrofitException"), e);
+        return new DefaultTaskResult(ExecutionStatus.RUNNING, error);
+      default:
+        throw e;
+    }
+  }
+
+  private List<Map<String, Object>> getServerGroups(String region, Map cluster, List<String> serverGroupNames) {
+    return ((List<Map<String, Object>>) cluster.get("serverGroups"))
+      .stream()
+      .filter(sg  -> serverGroupNames.contains(sg.get("name")) && sg.get("region").equals(region))
+      .collect(Collectors.toList());
+  }
+
+  private List<Map<String, Object>> getInstances(List<Map<String, Object>> serverGroups) {
+    List<Map<String, Object>> instances = new ArrayList<>();
+    serverGroups.forEach(serverGroup -> {
+      if (serverGroup.get("instances") != null) {
+        instances.addAll((List<Map<String, Object>>) serverGroup.get("instances"));
+      }
+    });
+
+    return instances;
+  }
+
+
+  @Override
+  public long getBackoffPeriod() {
+    return 5000;
+  }
+
+  @Override
+  public long getTimeout() {
+    return 10000;
+  }
+}
