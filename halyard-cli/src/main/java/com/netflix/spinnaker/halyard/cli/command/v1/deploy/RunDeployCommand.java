@@ -57,7 +57,7 @@ public class RunDeployCommand extends NestableCommand {
       JobExecutor executor = getJobExecutor();
       String jobId = executor.startJobFromStandardStreams(request);
 
-      JobStatus status = executor.backoffWait(jobId, 10, TimeUnit.MINUTES.toMillis(10));
+      JobStatus status = executor.backoffWait(jobId, 10, TimeUnit.SECONDS.toMillis(5));
 
       if (status.getResult() != JobStatus.Result.SUCCESS) {
         AnsiUi.error("Failed to install Spinnaker. See above output for details.");
@@ -66,6 +66,5 @@ public class RunDeployCommand extends NestableCommand {
     }
 
     AnsiUi.success("Installation completed.\n");
-    AnsiPrinter.print(storyBuilder.toString());
   }
 }
