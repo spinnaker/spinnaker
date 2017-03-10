@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /*
  * Copyright 2016 Netflix, Inc.
@@ -82,6 +83,32 @@ class CreatePropertiesTaskSpec extends Specification {
         appId == scope.appIdList.first()
       }
     }
+  }
+
+  @Unroll("appIdList to appId:  #appIdList -> #expectedAppId")
+  def "assemblePersistedPropertyListFromContext with one application in scope list"() {
+    given:
+    def pipeline = new Pipeline(application: 'foo')
+    def scope = createScope()
+    def property = createProperty()
+    scope.appIdList = appIdList
+
+    def stage = createPropertiesStage(pipeline, scope, property, [])
+
+    when:
+    List properties = task.assemblePersistedPropertyListFromContext(stage.context, stage.context.persistedProperties)
+
+    then:
+    properties.size() == 1
+    properties[0].property.appId == expectedAppId
+
+    where:
+
+    appIdList                | expectedAppId
+    []                       | ""
+    ["deck"]                 | "deck"
+    ["deck", "mahe"]         | "deck,mahe"
+    ["deck", "mahe", "orca"] | "deck,mahe,orca"
   }
 
   def "assemble the changed property list if list is null for a new property"() {
