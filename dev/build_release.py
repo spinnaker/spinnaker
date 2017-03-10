@@ -117,17 +117,16 @@ def determine_package_version(gradle_root):
 class Builder(object):
   """Knows how to coordinate a Spinnaker release."""
 
-  def __init__(self, options):
+  def __init__(self, options, build_number=None, container_builder=None):
       self.__package_list = []
       self.__build_failures = []
       self.__background_processes = []
 
       os.environ['NODE_ENV'] = os.environ.get('NODE_ENV', 'dev')
-      self.__build_number = options.build_number
+      self.__build_number = build_number or os.environ.get('BUILD_NUMBER')
       self.__gcb_service_account = options.gcb_service_account
       self.__options = options
-      if (self.__options.container_builder
-          and self.__options.container_builder not in ['gcb', 'docker']):
+      if (container_builder and container_builder not in ['gcb', 'docker']):
         raise ValueError('Invalid container_builder. Must be empty, "gcb" or "docker"')
 
       self.refresher = refresh_source.Refresher(options)
@@ -203,7 +202,7 @@ class Builder(object):
 
     # Currently spinnaker is in a separate location
     gradle_root = self.determine_gradle_root(name)
-    print 'Building and publishing {name}...'.format(name=name)
+    print 'Building and publishing Debian for {name}...'.format(name=name)
     # Note: 'candidate' is just the gradle task name. It doesn't indicate
     # 'release candidate' status for the artifacts created through this build.
     return BackgroundProcess.spawn(
@@ -393,7 +392,7 @@ class Builder(object):
       version = determine_package_version(gradle_root)
       if version is None:
         return []
-        
+
       for root in determine_modules_with_debians(gradle_root):
         deb_dir = '{root}/build/distributions'.format(root=root)
 
@@ -531,10 +530,6 @@ class Builder(object):
           '--jar_repo', default='',
           help='Publish produced jars to this repo.\n'
                'This requires BINTRAY_USER and BINTRAY_KEY are set.')
-      parser.add_argument(
-          '--build_number', default=os.environ.get('BUILD_NUMBER', ''),
-          help='CI system build number. Ideally should be a unique integer'
-               'for each build.')
 
       parser.add_argument(
           '--wipe_package_on_409', default=False, action='store_true',
@@ -551,11 +546,6 @@ class Builder(object):
       parser.add_argument(
           '--nonebula', dest='nebula', action='store_false',
           help='Explicitly "buildDeb" then curl upload them to bintray.')
-
-      parser.add_argument(
-          '--container_builder', default=None,
-          help='If specified then build container images using the specified'
-               ' builder. Supported builders are {"gcb", "docker"}.')
       parser.add_argument(
           '--gcb_service_account', default='',
           help='Google service account to invoke the gcp container builder with.')
@@ -569,16 +559,12 @@ class Builder(object):
 
 
   @classmethod
-  def main(cls):
-    parser = argparse.ArgumentParser()
-    cls.init_argument_parser(parser)
-    options = parser.parse_args()
-
+  def do_build(cls, options, build_number, container_builder):
     if options.build and not (options.bintray_repo):
       sys.stderr.write('ERROR: Missing a --bintray_repo')
       return -1
 
-    builder = cls(options)
+    builder = cls(options, build_number=build_number, container_builder=container_builder)
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
 
@@ -607,7 +593,3 @@ class Builder(object):
 
       print '\nFINISHED writing release to {rep}'.format(
         rep=options.bintray_repo)
-
-
-if __name__ == '__main__':
-  sys.exit(Builder.main())

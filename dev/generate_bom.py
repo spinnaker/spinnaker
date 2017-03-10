@@ -70,6 +70,7 @@ class BomGenerator(Annotator):
     self.__changelog_start_hashes = {} # Hashes to start from when generating changelogs.
     self.__toplevel_version = ''
     self.__changelog_output = options.changelog_output
+    self.__alias = options.bom_alias
     super(BomGenerator, self).__init__(options)
 
   @classmethod
@@ -83,6 +84,8 @@ class BomGenerator(Annotator):
                         help="Docker registry to push the container images to.")
     parser.add_argument('--changelog_output', default='',
                         help="Output file to write the changelog to.")
+    parser.add_argument('--bom_alias', default='',
+                        help="Alias to rename the 'real' BOM as. This also sets the Spinnaker version as the alias.")
     super(BomGenerator, cls).init_argument_parser(parser)
 
   def write_container_builder_gcr_config(self):
@@ -202,10 +205,16 @@ class BomGenerator(Annotator):
     output_yaml[VERSION] = toplevel_with_build
     self.__bom_file = '{0}.yml'.format(toplevel_with_build)
     self.write_bom_file(self.__bom_file, output_yaml)
+    if self.__alias:
+      output_yaml[VERSION] = self.__alias
+      self.write_bom_file(self.__alias + '.yml', output_yaml)
+
+  def publish_boms(self):
+    """Pushes the generated BOMs to a public GCS bucket for Halyard to use.
+    """
     self.publish_bom(self.__bom_file)
-    output_yaml[VERSION] = 'nightly'
-    self.write_bom_file('nightly.yml', output_yaml) # Publish a 'nightly' BOM for folks wanting to run bleeding-edge Spinnaker.
-    self.publish_bom('nightly.yml')
+    if self.__alias:
+      self.publish_bom(self.__alias + '.yml')
 
   def write_bom_file(self, filename, output_yaml):
     """Helper function to write the calculated BOM to files.
