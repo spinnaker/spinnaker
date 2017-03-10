@@ -1,18 +1,15 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.openstack;
 
-import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,29 +50,25 @@ public class OpenstackAcountValidator extends Validator<OpenstackAccount> {
     }
 
     boolean userDataProvided = userDataFile != null && !userDataFile.isEmpty();
-    try {
-      if (userDataProvided) {
-        String resolvedUserData = IOUtils.toString(new FileInputStream(userDataFile));
-        if (resolvedUserData.isEmpty()) {
-          psBuilder.addProblem(Problem.Severity.WARNING, "The supplied user data file is empty.")
-              .setRemediation("Please provide a non empty file, or remove the user data file.");
-        }
-
-        List<String> validTokens = Arrays.asList("account", "accounttype", "env", "region", "group", "autogrp", "cluster", "stack", "detail", "launchconfig");
-        List<String> tokens = Arrays.asList(StringUtils.substringsBetween(resolvedUserData, "%%", "%%"));
-        List<String> invalidTokens = tokens.stream()
-            .filter(t -> !validTokens.contains(t))
-            .collect(Collectors.toList());
-        if (invalidTokens.size() != 0) {
-          psBuilder.addProblem(Problem.Severity.WARNING, "The supplied user data file contains tokens that won't be replaced. " +
-              "Tokens \"" + StringUtils.join(invalidTokens, ", ") + "\" are not supported.")
-              .setRemediation("Please use only the supported tokens \"" + StringUtils.join(validTokens, ", ") + "\".");
-        }
+    if (userDataProvided) {
+      String resolvedUserData = ValidatingFileReader.contents(psBuilder, userDataFile);
+      if (resolvedUserData == null) {
+        return;
+      } else if (resolvedUserData.isEmpty()) {
+        psBuilder.addProblem(Problem.Severity.WARNING, "The supplied user data file is empty.")
+            .setRemediation("Please provide a non empty file, or remove the user data file.");
       }
-    }catch (FileNotFoundException e) {
-      psBuilder.addProblem(Problem.Severity.ERROR, "Cannot find provided user data file: " + e.getMessage() + ".");
-    }catch (IOException e) {
-      psBuilder.addProblem(Problem.Severity.ERROR, "Error reading provided user data file: " + e.getMessage() + ".");
+
+      List<String> validTokens = Arrays.asList("account", "accounttype", "env", "region", "group", "autogrp", "cluster", "stack", "detail", "launchconfig");
+      List<String> tokens = Arrays.asList(StringUtils.substringsBetween(resolvedUserData, "%%", "%%"));
+      List<String> invalidTokens = tokens.stream()
+          .filter(t -> !validTokens.contains(t))
+          .collect(Collectors.toList());
+      if (invalidTokens.size() != 0) {
+        psBuilder.addProblem(Problem.Severity.WARNING, "The supplied user data file contains tokens that won't be replaced. " +
+            "Tokens \"" + StringUtils.join(invalidTokens, ", ") + "\" are not supported.")
+            .setRemediation("Please use only the supported tokens \"" + StringUtils.join(validTokens, ", ") + "\".");
+      }
     }
 
     OpenstackConfigurationProperties.LbaasConfig lbaasConfig = new OpenstackConfigurationProperties.LbaasConfig();
@@ -97,7 +90,7 @@ public class OpenstackAcountValidator extends Validator<OpenstackAccount> {
           .userDataFile(userDataFile)
           .build();
       //TODO(emjburns) verify that these credentials can connect w/o error to the openstack instance
-    }catch (Exception e) {
+    } catch (Exception e) {
       psBuilder.addProblem(Problem.Severity.ERROR, "Failed to instantiate openstack credentials for account \"" + account.getName() + "\".");
     }
   }

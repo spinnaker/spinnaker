@@ -16,21 +16,17 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.appengine;
 
-import com.amazonaws.util.IOUtils;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 @Component
 public class AppengineAccountValidator extends Validator<AppengineAccount> {
@@ -63,40 +59,32 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
         p.addProblem(Severity.ERROR, "SSH private key filepath supplied without SSH private key passphrase.");
       }
     } else if (hasSshPrivateKeyPassphrase && hasSshPrivateKeyFilePath) {
-      try {
-        String sshPrivateKey = IOUtils.toString(new FileInputStream(account.getSshPrivateKeyFilePath()));
-        if (sshPrivateKey.isEmpty()) {
-          p.addProblem(Severity.WARNING, "The supplied SSH private key file is empty.");
-        } else {
-          try {
-            // Assumes that the public key is sitting next to the private key with the extension ".pub".
-            KeyPair keyPair = KeyPair.load(new JSch(), account.getSshPrivateKeyFilePath());
-            boolean decrypted = keyPair.decrypt(account.getSshPrivateKeyPassphrase());
-            if (!decrypted) {
-              p.addProblem(Severity.ERROR, "Could not unlock SSH public/private keypair with supplied passphrase.");
-            }
-          } catch (JSchException e) {
-            p.addProblem(Severity.ERROR, "Could not unlock SSH public/private keypair: " + e.getMessage() + ".");
+      String sshPrivateKey = ValidatingFileReader.contents(p, account.getSshPrivateKeyFilePath());
+      if (sshPrivateKey == null) {
+        return;
+      } else if (sshPrivateKey.isEmpty()) {
+        p.addProblem(Severity.WARNING, "The supplied SSH private key file is empty.");
+      } else {
+        try {
+          // Assumes that the public key is sitting next to the private key with the extension ".pub".
+          KeyPair keyPair = KeyPair.load(new JSch(), account.getSshPrivateKeyFilePath());
+          boolean decrypted = keyPair.decrypt(account.getSshPrivateKeyPassphrase());
+          if (!decrypted) {
+            p.addProblem(Severity.ERROR, "Could not unlock SSH public/private keypair with supplied passphrase.");
           }
+        } catch (JSchException e) {
+          p.addProblem(Severity.ERROR, "Could not unlock SSH public/private keypair: " + e.getMessage() + ".");
         }
-      } catch (FileNotFoundException e) {
-        p.addProblem(Severity.ERROR, "SSH private key not found: " + e.getMessage() + ".");
-      } catch (IOException e) {
-        p.addProblem(Severity.ERROR, "Error opening specified path to SSH private key: " + e.getMessage() + ".");
       }
     }
 
-    try {
-      if (jsonPath != null && !jsonPath.isEmpty()) {
-        jsonKey = IOUtils.toString(new FileInputStream(account.getJsonPath()));
-        if (jsonKey.isEmpty()) {
-          p.addProblem(Severity.WARNING, "The supplied credentials file is empty.");
-        }
+    if (jsonPath != null && !jsonPath.isEmpty()) {
+      jsonKey = ValidatingFileReader.contents(p, account.getJsonPath());
+      if (jsonKey == null) {
+        return;
+      } if (jsonKey.isEmpty()) {
+        p.addProblem(Severity.WARNING, "The supplied credentials file is empty.");
       }
-    } catch (FileNotFoundException e) {
-      p.addProblem(Severity.ERROR, "Json path not found: " + e.getMessage() + ".");
-    } catch (IOException e) {
-      p.addProblem(Severity.ERROR, "Error opening specified json path: " + e.getMessage() + ".");
     }
 
     if (account.getProject() == null || account.getProject().isEmpty()) {

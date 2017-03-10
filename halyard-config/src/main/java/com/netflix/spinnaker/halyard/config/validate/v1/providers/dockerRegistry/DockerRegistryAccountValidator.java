@@ -16,19 +16,15 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistry;
 
-import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryCatalog;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.stereotype.Component;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 @Component
 public class DockerRegistryAccountValidator extends Validator<DockerRegistryAccount> {
@@ -47,22 +43,19 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
       return;
     }
 
-    try {
-      if (passwordProvided) {
-        resolvedPassword = password;
-      } else if (passwordFileProvided) {
-        resolvedPassword = IOUtils.toString(new FileInputStream(passwordFile));
-
-        if (resolvedPassword.isEmpty()) {
-          p.addProblem(Severity.WARNING, "The supplied password file is empty.");
-        }
-      } else {
-        resolvedPassword = "";
+    if (passwordProvided) {
+      resolvedPassword = password;
+    } else if (passwordFileProvided) {
+      resolvedPassword = ValidatingFileReader.contents(p, passwordFile);
+      if (resolvedPassword == null) {
+        return;
       }
-    } catch (FileNotFoundException e) {
-      p.addProblem(Severity.ERROR, "Cannot find provided password file: " + e.getMessage() + ".");
-    } catch (IOException e) {
-      p.addProblem(Severity.ERROR, "Error reading provided password file: " + e.getMessage() + ".");
+
+      if (resolvedPassword.isEmpty()) {
+        p.addProblem(Severity.WARNING, "The supplied password file is empty.");
+      }
+    } else {
+      resolvedPassword = "";
     }
 
     if (resolvedPassword != null && !resolvedPassword.isEmpty()) {

@@ -21,10 +21,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -74,6 +75,10 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
 
     // TODO(lwander) find a good resource / list of resources for generating kubeconfig files to link to here.
     try {
+      if (ValidatingFileReader.contents(psBuilder, kubeconfigFile) == null) {
+        return;
+      }
+
       File kubeconfigFileOpen = new File(kubeconfigFile);
       kubeconfig = KubeConfigUtils.parseConfig(kubeconfigFileOpen);
     } catch (IOException e) {
