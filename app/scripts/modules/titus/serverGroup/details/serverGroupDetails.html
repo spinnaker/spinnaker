@@ -135,6 +135,18 @@
         </li>
       </ul>
     </collapsible-section>
+    <collapsible-section heading="Resources" expanded="true">
+      <dl class="dl-horizontal dl-flex">
+        <dt>CPU(s)</dt>
+        <dd>{{serverGroup.resources.cpu}}</dd>
+        <dt>Memory</dt>
+        <dd>{{serverGroup.resources.memory}} MB</dd>
+        <dt>Disk</dt>
+        <dd>{{serverGroup.resources.disk}} MB</dd>
+        <dt>Network</dt>
+        <dd>{{serverGroup.resources.networkMbps}} Mbps</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Environment">
       <div ng-if="!serverGroup.env">No environment parameters associated with this
         server group</div>
@@ -146,8 +158,8 @@
     <collapsible-section heading="Labels">
       <div ng-if="!serverGroup.labels">No labels associated with this
         server group</div>
-      <dl ng-if="serverGroup.labels">
-        <dt ng-repeat-start="(key, val) in serverGroup.labels">{{key}}</dt>
+      <dl ng-if="labels">
+        <dt ng-repeat-start="(key, val) in labels">{{key}}</dt>
         <dd ng-repeat-end>{{val}}</dd>
       </dl>
     </collapsible-section>
