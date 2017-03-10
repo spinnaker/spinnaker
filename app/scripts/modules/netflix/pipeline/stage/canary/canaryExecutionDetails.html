@@ -155,7 +155,7 @@
         <div class="row">
           <div class="col-md-4 sm-label-right compact">Config Name</div>
           <div class="col-md-6">
-            <a href="http://canary.prod.netflix.net/ui/canaryTasks/{{baseline.account}}/{{canaryConfig.canaryAnalysisConfig.name}}" target="_blank">
+            <a href="http://canary.prod.netflix.net/ui/canaryTasks/{{canaryDeployments[0].baselineCluster.accountName}}/{{canaryConfig.canaryAnalysisConfig.name}}" target="_blank">
               {{canaryConfig.canaryAnalysisConfig.name}}
             </a>
           </div>
