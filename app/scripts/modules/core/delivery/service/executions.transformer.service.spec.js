@@ -307,5 +307,17 @@ describe('executionTransformerService', function() {
       this.transformer.transformExecution({}, execution);
       expect(execution.buildInfo.number).toBe(6);
     });
+
+    it('prefers buildInfoUrl to jenkins details', function () {
+      deployStage = { type: 'deploy', context: {
+        deploymentDetails: [
+          { jenkins: { number: 3, host: 'http://jenkinshost/', name: 'jobName' },
+            buildInfoUrl: "http://custom/url" }
+        ]
+      }};
+      let execution = { stages: [ deployStage ] };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.buildInfo).toEqual({ number: 3, url: 'http://custom/url'});
+    });
   });
 });
