@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.tomcat.x509.BlacklistingSSLImplementation
 import com.netflix.spinnaker.tomcat.x509.SslExtensionConfigurationProperties
 import groovy.util.logging.Slf4j
@@ -45,7 +46,8 @@ class TomcatConfiguration {
    */
   @Bean
   @ConditionalOnExpression('${server.ssl.enabled:false}')
-  EmbeddedServletContainerCustomizer containerCustomizer(TomcatConfigurationProperties tomcatConfigurationProperties,
+  EmbeddedServletContainerCustomizer containerCustomizer(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
+                                                         TomcatConfigurationProperties tomcatConfigurationProperties,
                                                          SslExtensionConfigurationProperties sslExtensionConfigurationProperties) throws Exception {
     return { ConfigurableEmbeddedServletContainer container ->
       TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container
@@ -56,6 +58,8 @@ class TomcatConfiguration {
           def handler = connector.getProtocolHandler()
           if (handler instanceof AbstractHttp11JsseProtocol) {
             if (handler.isSSLEnabled()) {
+              handler.setProperty("sslEnabledProtocols", okHttpClientConfigurationProperties.tlsVersions.join(","))
+              handler.setCiphers(okHttpClientConfigurationProperties.cipherSuites.join(","))
               handler.setSslImplementationName(BlacklistingSSLImplementation.name)
               handler.setCrlFile(sslExtensionConfigurationProperties.getCrlFile())
             }
@@ -84,8 +88,10 @@ class TomcatConfiguration {
           } catch (ReadOnlyPropertyException ignored) {}
         }
         ssl.clientAuth = Ssl.ClientAuth.NEED
+        ssl.setCiphers(okHttpClientConfigurationProperties.cipherSuites as String[])
 
         Http11NioProtocol handler = apiConnector.getProtocolHandler() as Http11NioProtocol
+        handler.setProperty("sslEnabledProtocols", okHttpClientConfigurationProperties.tlsVersions.join(","))
         handler.setSslImplementationName(BlacklistingSSLImplementation.name)
         handler.setCrlFile(sslExtensionConfigurationProperties.getCrlFile())
 
