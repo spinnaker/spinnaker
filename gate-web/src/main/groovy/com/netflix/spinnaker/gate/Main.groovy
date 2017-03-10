@@ -38,6 +38,10 @@ import org.springframework.scheduling.annotation.EnableAsync
 @ComponentScan(["com.netflix.spinnaker.gate", "com.netflix.spinnaker.config"])
 @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
 class Main extends SpringBootServletInitializer {
+  static {
+    System.setProperty("jdk.tls.rejectClientInitiatedRenegotiation", System.getProperty("jdk.tls.rejectClientInitiatedRenegotiation", "true"))
+  }
+
   static final Map<String, String> DEFAULT_PROPS = [
           'netflix.environment': 'test',
           'netflix.account': '${netflix.environment}',
