@@ -67,6 +67,9 @@ class BomGenerator(Annotator):
     self.__docker_registry = options.docker_registry
     self.__bom_file = ''
     self.__component_versions = {}
+    self.__changelog_start_hashes = {} # Hashes to start from when generating changelogs.
+    self.__toplevel_version = ''
+    self.__changelog_output = options.changelog_output
     super(BomGenerator, self).__init__(options)
 
   @classmethod
@@ -78,6 +81,8 @@ class BomGenerator(Annotator):
                         help="Type of builder to use. Currently, the supported options are {'gcb', 'docker'}.")
     parser.add_argument('--docker_registry', default='',
                         help="Docker registry to push the container images to.")
+    parser.add_argument('--changelog_output', default='',
+                        help="Output file to write the changelog to.")
     super(BomGenerator, cls).init_argument_parser(parser)
 
   def write_container_builder_gcr_config(self):
@@ -125,6 +130,38 @@ class BomGenerator(Annotator):
       with open(config_file, 'w') as cfg:
         cfg.write(docker_tag)
 
+  def generate_changelog(self):
+    """Generate a release changelog and write it to a file.
+
+    The changelog contains a section per microservice that describes the
+    changes made since the last Spinnaker release. It also contains the
+    version information as well.
+    """
+    changelog = ['Spinnaker {0}\n'.format(self.__toplevel_version)]
+    for comp, hash in self.__changelog_start_hashes.iteritems():
+      version_bump = self.__component_versions[comp]
+      next_tag_with_build = '{0}-{1}'.format(version_bump.version_str,
+                                             self.build_number)
+      first_dash_idx = next_tag_with_build.index('-')
+      version = next_tag_with_build[first_dash_idx + 1:]
+
+      # Generate the changelog for the component.
+      print 'Generating changelog for {comp}...'.format(comp=comp)
+      result = run_quick('cd {comp}; clog -f {hash} --setversion {version}; cd ..'
+                         .format(comp=comp, hash=hash, version=version))
+      if result.returncode != 0:
+        print "Changelog generation failed for {0} with \n{1}\n exiting...".format(comp, result.stdout)
+        exit(result.returncode)
+      # Capitalize
+      comp_cap = comp[0].upper() + comp[1:]
+      changelog.append('# {0}\n{1}'.format(comp_cap, result.stdout))
+    print 'Writing changelog...'
+    # Write the changelog with the toplevel version without the build number.
+    # This is ok since the changelog is only published if the toplevel version is released.
+    changelog_file = self.__changelog_output or '{0}-changelog.md'.format(self.__toplevel_version)
+    with open(changelog_file, 'w') as clog:
+      clog.write('\n'.join(changelog))
+
   def write_bom(self):
     output_yaml = {SERVICES: {}}
 
@@ -153,15 +190,15 @@ class BomGenerator(Annotator):
 
     curr_version = result.stdout.strip()
     major, minor, patch = curr_version.split('.')
-    toplevel_version = ''
+    self.__toplevel_version = ''
     if breaking_change == True:
-      toplevel_version = str(int(major) + 1) + '.0.0'
+      self.__toplevel_version = str(int(major) + 1) + '.0.0'
     elif feature == True:
-      toplevel_version =  major + '.' + str(int(minor) + 1) + '.0'
+      self.__toplevel_version =  major + '.' + str(int(minor) + 1) + '.0'
     else:
-      toplevel_version =  major + '.' + minor + '.' + str(int(patch) + 1)
+      self.__toplevel_version =  major + '.' + minor + '.' + str(int(patch) + 1)
 
-    toplevel_with_build = '{0}-{1}'.format(toplevel_version, self.build_number)
+    toplevel_with_build = '{0}-{1}'.format(self.__toplevel_version, self.build_number)
     output_yaml[VERSION] = toplevel_with_build
     self.__bom_file = '{0}.yml'.format(toplevel_with_build)
     self.write_bom_file(self.__bom_file, output_yaml)
@@ -221,6 +258,7 @@ class BomGenerator(Annotator):
     for comp in self.COMPONENTS:
       self.path = os.path.join(self.__base_dir, comp)
       self.parse_git_tree()
+      self.__changelog_start_hashes[comp] = self.current_version.hash
       version_bump = self.tag_head()
       self.__component_versions[comp] = version_bump
       self.delete_unwanted_tags()
@@ -247,6 +285,7 @@ class BomGenerator(Annotator):
 
     bom_generator.write_bom()
     bom_generator.publish_microservice_configs()
+    bom_generator.generate_changelog()
 
 if __name__ == '__main__':
   sys.exit(BomGenerator.main())
