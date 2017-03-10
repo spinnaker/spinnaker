@@ -44,6 +44,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   String account
   Long createdTime
   Integer replicas = 0
+  Boolean hostNetwork = false
   Set<String> zones
   Set<KubernetesInstance> instances
   Set<String> loadBalancers = [] as Set

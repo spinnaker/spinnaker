@@ -77,6 +77,9 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
       podBuilder = podBuilder.addNewImagePullSecret(imagePullSecret)
     }
 
+    if (description.hostNetwork) {
+        podBuilder = podBuilder.withHostNetwork(description.hostNetwork)
+    }
     description.container.name = description.container.name ?: "job"
     def container = KubernetesApiConverter.toContainer(description.container)
 

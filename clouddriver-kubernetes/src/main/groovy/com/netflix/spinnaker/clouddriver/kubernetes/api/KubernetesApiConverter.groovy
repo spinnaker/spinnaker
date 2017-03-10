@@ -610,6 +610,8 @@ class KubernetesApiConverter {
       fromVolume(it)
     } ?: []
 
+    deployDescription.hostNetwork = replicaSet?.spec?.template?.spec?.hostNetwork
+
     deployDescription.containers = replicaSet?.spec?.template?.spec?.containers?.collect {
       fromContainer(it)
     } ?: []
@@ -895,6 +897,8 @@ class KubernetesApiConverter {
 
       podTemplateSpecBuilder = podTemplateSpecBuilder.withVolumes(volumeSources)
     }
+
+    podTemplateSpecBuilder = podTemplateSpecBuilder.withHostNetwork(description.hostNetwork)
 
     def containers = description.containers.collect { container ->
       toContainer(container)

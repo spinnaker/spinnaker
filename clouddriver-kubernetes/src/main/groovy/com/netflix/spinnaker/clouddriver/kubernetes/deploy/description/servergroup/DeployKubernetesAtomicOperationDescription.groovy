@@ -32,6 +32,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   String namespace
   String restartPolicy
   Integer targetSize
+  Boolean hostNetwork
   List<String> loadBalancers
   List<String> securityGroups
   List<KubernetesContainerDescription> containers
