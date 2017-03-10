@@ -34,6 +34,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
+  private static final BASE_PHASE = "test-phase"
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
   private static final SSL_LOAD_BALANCER_NAME = "default"
@@ -228,7 +229,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
       def targetSslProxiesDeleteOp = new Operation(
         name: TARGET_SSL_PROXY_DELETE_OP_NAME,
         status: PENDING)
-      GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, SSL_LOAD_BALANCER_NAME, safeRetry) >> targetSslProxiesDeleteOp
+      GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, SSL_LOAD_BALANCER_NAME, BASE_PHASE, safeRetry) >> targetSslProxiesDeleteOp
 
       def globalOperations = Mock(Compute.GlobalOperations)
       def targetSslProxiesOperationGet = Mock(Compute.GlobalOperations.Get)

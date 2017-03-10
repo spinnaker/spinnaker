@@ -309,7 +309,7 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     // Delete extraneous listeners.
     description.listenersToDelete?.each { String forwardingRuleName ->
       task.updateStatus BASE_PHASE, "Deleting listener ${forwardingRuleName}..."
-      GCEUtil.deleteGlobalListener(compute, project, forwardingRuleName, safeRetry, this)
+      GCEUtil.deleteGlobalListener(compute, project, forwardingRuleName, BASE_PHASE, safeRetry, this)
     }
 
     task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName."

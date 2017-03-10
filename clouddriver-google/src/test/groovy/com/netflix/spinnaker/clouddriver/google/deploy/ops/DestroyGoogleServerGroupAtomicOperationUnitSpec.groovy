@@ -564,7 +564,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       destroy.safeRetry = safeRetry
       destroy.destroy(
           destroy.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
-          "Http load balancer backends"
+          "Http load balancer backends", [action: 'test']
       )
 
     then:
@@ -598,7 +598,7 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     when:
       destroy.destroy(
         destroy.destroyHttpLoadBalancerBackends(computeMock, PROJECT_NAME, serverGroup, googleLoadBalancerProviderMock),
-        "Http load balancer backends"
+        "Http load balancer backends",  [action: 'test']
       )
 
     then:

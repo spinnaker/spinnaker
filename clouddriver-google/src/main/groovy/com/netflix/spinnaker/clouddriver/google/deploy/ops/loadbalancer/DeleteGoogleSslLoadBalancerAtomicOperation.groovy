@@ -68,7 +68,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
 
     List<ForwardingRule> projectForwardingRules = timeExecute(
         compute.globalForwardingRules().list(project),
-        "compute.globalForwardingRules",
+        "compute.globalForwardingRules.list",
         TAG_SCOPE, SCOPE_GLOBAL).getItems()
 
     ForwardingRule forwardingRule = projectForwardingRules.find { it.name == forwardingRuleName }
@@ -81,7 +81,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
     // Target HTTP(S) proxy.
     task.updateStatus BASE_PHASE, "Retrieving target proxy $targetProxyName..."
 
-    TargetSslProxy retrievedTargetProxy = GCEUtil.getTargetProxyFromRule(compute, project, forwardingRule, safeRetry, this) as TargetSslProxy
+    TargetSslProxy retrievedTargetProxy = GCEUtil.getTargetProxyFromRule(compute, project, forwardingRule, BASE_PHASE, safeRetry, this) as TargetSslProxy
 
     if (!retrievedTargetProxy) {
       GCEUtil.updateStatusAndThrowNotFoundException("Target proxy $targetProxyName not found for $project", task,
@@ -91,7 +91,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
 
     List<String> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
-      def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule, safeRetry, this)
+      def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule, BASE_PHASE, safeRetry, this)
       if (GCEUtil.getLocalName(proxy?.service) == backendServiceName) {
         listenersToDelete << rule.getName()
       }
@@ -130,7 +130,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
       task,
       [400, 403, 412],
       [],
-      [action: "get", phase: BASE_PHASE, opeation: "compute.healthChecks.get"],
+      [action: "get", phase: BASE_PHASE, operation: "compute.healthChecks.get", (TAG_SCOPE): SCOPE_GLOBAL],
       getRegistry()
     ) as HealthCheck
     if (!retrievedHealthCheck) {
@@ -144,7 +144,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
 
     listenersToDelete.each { String ruleName ->
       task.updateStatus BASE_PHASE, "Deleting listener $ruleName..."
-      Operation operation = GCEUtil.deleteGlobalListener(compute, project, ruleName, safeRetry, this)
+      Operation operation = GCEUtil.deleteGlobalListener(compute, project, ruleName, BASE_PHASE, safeRetry, this)
       googleOperationPoller.waitForGlobalOperation(compute, project, operation.getName(),
         timeoutSeconds, task, "listener " + ruleName, BASE_PHASE)
     }
@@ -157,7 +157,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
       "Backend service $backendServiceName",
       project,
       task,
-      BASE_PHASE,
+      [action: 'delete', operation: 'compute.backendServices.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
       safeRetry,
       this
     )
@@ -173,7 +173,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
         "Health check $healthCheckName",
         project,
         task,
-        BASE_PHASE,
+        [action: 'delete', operation: 'compute.healthChecks.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
         safeRetry,
         this
       )

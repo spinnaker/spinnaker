@@ -193,7 +193,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
       "Region backend service $backendServiceName",
       project,
       task,
-      BASE_PHASE,
+      [action: 'delete', operation: 'compute.regionBackendServices.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
       safeRetry,
       this
     )
@@ -234,7 +234,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
       "Health check $healthCheckName",
       project,
       task,
-      BASE_PHASE,
+      [action: 'delete', operation: 'compute.' + healthCheckType + '.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
       safeRetry,
       this
     )

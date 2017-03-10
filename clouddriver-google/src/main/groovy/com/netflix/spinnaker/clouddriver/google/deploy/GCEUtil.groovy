@@ -1198,7 +1198,7 @@ class GCEUtil {
     return loadBalancerNames
   }
 
-  def static getTargetProxyFromRule(Compute compute, String project, ForwardingRule forwardingRule, SafeRetry safeRetry, GoogleExecutorTraits executor) {
+  def static getTargetProxyFromRule(Compute compute, String project, ForwardingRule forwardingRule, String phase, SafeRetry safeRetry, GoogleExecutorTraits executor) {
     String target = forwardingRule.getTarget()
     GoogleTargetProxyType targetProxyType = Utils.getTargetProxyType(target)
     String targetProxyName = getLocalName(target)
@@ -1209,7 +1209,7 @@ class GCEUtil {
       case GoogleTargetProxyType.HTTP:
         proxyGet = { executor.timeExecute(
           compute.targetHttpProxies().get(project, targetProxyName),
-          "compute.targetHttpProxies",
+          "compute.targetHttpProxies.get",
           executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
         }
         operationName = "compute.targetHttpProxies.get"
@@ -1241,7 +1241,7 @@ class GCEUtil {
       null,
       [400, 403, 412],
       [],
-      [action: "get", operation: operationName],
+      [action: "get", phase: phase, operation: operationName, (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
       executor.registry
     )
     return retrievedTargetProxy
@@ -1256,6 +1256,7 @@ class GCEUtil {
   static Operation deleteGlobalListener(Compute compute,
                                         String project,
                                         String forwardingRuleName,
+                                        String phase,
                                         SafeRetry safeRetry,
                                         GoogleExecutorTraits executor) {
     ForwardingRule ruleToDelete = safeRetry.doRetry(
@@ -1268,7 +1269,7 @@ class GCEUtil {
       null,
       [400, 412],
       [404],
-      [action: "get", operation: "compute.globalForwardingRules.get", (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
+      [action: "get", phase: phase, operation: "compute.globalForwardingRules.get", (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
       executor.registry
     ) as ForwardingRule
     if (ruleToDelete) {
@@ -1320,7 +1321,7 @@ class GCEUtil {
         null,
         [400, 412],
         [404],
-        [action: "delete", operation: operation_name],
+        [action: "delete", phase: phase, operation: operation_name, (executor.TAG_SCOPE): executor.SCOPE_GLOBAL],
         executor.registry
       ) as Operation
       return result
@@ -1331,10 +1332,10 @@ class GCEUtil {
                                     String component,
                                     String project,
                                     Task task,
-                                    String phase,
+                                    Map tags,
                                     SafeRetry safeRetry,
                                     GoogleExecutorTraits executor) {
-    task.updateStatus phase, "Deleting $component for $project..."
+    task.updateStatus tags['phase'], "Deleting $component for $project..."
     Operation deleteOp
     try {
       deleteOp = safeRetry.doRetry(
@@ -1343,7 +1344,7 @@ class GCEUtil {
         task,
         [400, 412],
         [404],
-        [action: "delete", phase: phase, operation: "DeleteIfNotInUse"],
+        tags,
         executor.registry
       ) as Operation
     } catch (GoogleJsonResponseException e) {

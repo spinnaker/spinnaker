@@ -35,6 +35,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification {
+  private static final BASE_PHASE = "test-phase"
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
   private static final HTTP_LOAD_BALANCER_NAME = "default"
@@ -482,7 +483,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
      @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
-     GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, HTTP_LOAD_BALANCER_NAME, safeRetry, operation) >> targetHttpProxiesDeleteOp
+     GCEUtil.deleteGlobalListener(computeMock, PROJECT_NAME, HTTP_LOAD_BALANCER_NAME, BASE_PHASE, safeRetry, operation) >> targetHttpProxiesDeleteOp
      operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),

@@ -172,7 +172,7 @@ class DeleteGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void
           "Http health check $healthCheckName",
           project,
           task,
-          BASE_PHASE,
+          [action: 'delete', operation: 'compute.httpsHealthChecks.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
           safeRetry,
           this
         )
