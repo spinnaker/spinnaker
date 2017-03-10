@@ -267,7 +267,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     OperationPoller.retryWithBackoff(o -> {
         // verify that the indexed document can be retrieved (accounts for index lag)
         Map<String, Object> entityTagsCriteria = new HashMap<>();
-        entityTags.getTags().forEach(entityTag -> {
+        entityTags.getTags().stream().filter(entityTag -> entityTag != null && entityTag.getValueType() != null).forEach(entityTag -> {
           switch(entityTag.getValueType()) {
             case object:
               entityTagsCriteria.put(entityTag.getName(), "*");
