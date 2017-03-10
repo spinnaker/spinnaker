@@ -304,7 +304,11 @@ class TaskController {
     activeExecutionTracker
       .activeExecutionsByInstance()
       .sort { a, b ->
-        b.value.overdue <=> a.value.overdue || b.value.count <=> a.value.count
+        def result = b.value.overdue <=> a.value.overdue
+        if (result != 0) {
+          return result
+        }
+        b.value.count <=> a.value.count
       }
   }
 
