@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.V1_EXECUTION_ENGINE
 
 class TargetServerGroupLinearStageSupportSpec extends Specification {
 
@@ -100,7 +101,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
   @Unroll
   def "#target should inject stages correctly before and after each location stage"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "test", [target: target, regions: ["us-east-1", "us-west-1"]])
+    def stage = new PipelineStage(new Pipeline(executionEngine: V1_EXECUTION_ENGINE), "test", [target: target, regions: ["us-east-1", "us-west-1"]])
     def arbitraryStageBuilder = new ResizeServerGroupStage()
     supportStage.preInjectables = [new TargetServerGroupLinearStageSupport.Injectable(
       name: "testPreInjectable",

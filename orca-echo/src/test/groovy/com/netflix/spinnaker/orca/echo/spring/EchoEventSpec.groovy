@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.orca.echo.spring
 
 import com.netflix.spinnaker.config.SpringBatchConfiguration
-import com.netflix.spinnaker.orca.batch.ExecutionListenerProvider
-import com.netflix.spinnaker.orca.batch.StageBuilderProvider
-import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.ExecutionListenerProvider
+import com.netflix.spinnaker.orca.batch.StageBuilderProvider
+import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
 import com.netflix.spinnaker.orca.batch.stages.LinearStageDefinitionBuilder
 import com.netflix.spinnaker.orca.batch.stages.SpringBatchStageBuilderProvider
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
@@ -44,8 +44,8 @@ import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.V1_EXECUTION_ENGINE
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
-
 /**
  * Most of what the listener does can be tested at a unit level, this is just to
  * ensure that we're making the right assumptions about the statuses we'll get
@@ -90,9 +90,10 @@ class EchoEventSpec extends Specification {
 
   def setupSpec() {
     def config = [
-      application: "app",
-      name       : "my-pipeline",
-      stages     : [[type: "stage1"], [type: "stage2"]]
+      application    : "app",
+      name           : "my-pipeline",
+      stages         : [[type: "stage1"], [type: "stage2"]],
+      executionEngine: V1_EXECUTION_ENGINE
     ]
     json = new OrcaObjectMapper().writeValueAsString(config)
   }
