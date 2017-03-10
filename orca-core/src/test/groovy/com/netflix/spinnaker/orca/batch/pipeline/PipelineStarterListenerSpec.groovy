@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.V1_EXECUTION_ENGINE
 
 class PipelineStarterListenerSpec extends Specification {
 
@@ -60,7 +61,7 @@ class PipelineStarterListenerSpec extends Specification {
     startTracker.getAllStartedExecutions() >> [completedId]
     startTracker.getQueuedPipelines(_) >> [nextId]
     executionRepository.retrievePipeline(_) >> { String id ->
-      new Pipeline(id: id, pipelineConfigId: pipelineConfigId, canceled: true, status: CANCELED)
+      new Pipeline(id: id, pipelineConfigId: pipelineConfigId, canceled: true, status: CANCELED, executionEngine: V1_EXECUTION_ENGINE)
     }
 
     when:

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.V2_EXECUTION_ENGINE;
 
 /**
  * Reacts to pipelines finishing and schedules the next job waiting
@@ -78,7 +79,7 @@ public class PipelineStarterListener implements ExecutionListener {
           if (Objects.equals(id, nextPipelineId)) {
             Pipeline queuedExecution = executionRepository.retrievePipeline(id);
             log.info("starting pipeline {} due to {} ending", nextPipelineId, execution.getId());
-            if (Objects.equals(queuedExecution.getExecutionEngine(), "v2")) {
+            if (Objects.equals(queuedExecution.getExecutionEngine(), V2_EXECUTION_ENGINE)) {
               try {
                 getPipelineLauncher().start(queuedExecution);
               } catch (Exception e) {

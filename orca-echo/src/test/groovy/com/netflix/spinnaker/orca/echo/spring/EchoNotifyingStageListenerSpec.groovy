@@ -9,6 +9,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.V1_EXECUTION_ENGINE
 
 class EchoNotifyingStageListenerSpec extends Specification {
 
@@ -19,7 +20,7 @@ class EchoNotifyingStageListenerSpec extends Specification {
   def echoListener = new EchoNotifyingStageListener(echoService)
 
   @Shared
-  def pipelineStage = new PipelineStage(new Pipeline(), "test", "test", [:])
+  def pipelineStage = new PipelineStage(new Pipeline(executionEngine: V1_EXECUTION_ENGINE), "test", "test", [:])
 
   @Shared
   def orchestrationStage = new OrchestrationStage(new Orchestration(), "test")

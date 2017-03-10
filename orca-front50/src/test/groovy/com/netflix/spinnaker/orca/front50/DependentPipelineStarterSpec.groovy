@@ -24,6 +24,7 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.V1_EXECUTION_ENGINE
 
 class DependentPipelineStarterSpec extends Specification {
 
@@ -36,9 +37,11 @@ class DependentPipelineStarterSpec extends Specification {
     setup:
     Map triggeredPipelineConfig = [name: "triggered", id: "triggered"]
     Execution parentPipeline = new Pipeline(
-        name: "parent",
-        authentication: new Execution.AuthenticationDetails(user: "parentUser",
-                                                            allowedAccounts: ["acct1,acct2"]))
+      name: "parent",
+      authentication: new Execution.AuthenticationDetails(user: "parentUser",
+        allowedAccounts: ["acct1,acct2"]),
+      executionEngine: V1_EXECUTION_ENGINE
+    )
     PipelineStarter pipelineStarter = Spy(PipelineStarter)
     Map mdc = [(AuthenticatedRequest.SPINNAKER_USER)    : "myMDCUser",
                (AuthenticatedRequest.SPINNAKER_ACCOUNTS): "acct3,acct4"]
@@ -68,9 +71,11 @@ class DependentPipelineStarterSpec extends Specification {
     setup:
     Map triggeredPipelineConfig = [name: "triggered", id: "triggered"]
     Execution parentPipeline = new Pipeline(
-        name: "parent",
-        authentication: new Execution.AuthenticationDetails(user: "parentUser",
-                                                            allowedAccounts: ["acct1,acct2"]))
+      name: "parent",
+      authentication: new Execution.AuthenticationDetails(user: "parentUser",
+        allowedAccounts: ["acct1,acct2"]),
+      executionEngine: V1_EXECUTION_ENGINE
+    )
     PipelineStarter pipelineStarter = Spy(PipelineStarter)
     dependentPipelineStarter = new DependentPipelineStarter(objectMapper: mapper,
                                                             pipelineStarter: pipelineStarter)

@@ -21,14 +21,13 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.transform.CompileStatic
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 
 @CompileStatic
 abstract class Execution<T extends Execution<T>> implements Serializable {
   public static final String V1_EXECUTION_ENGINE = "v1"
   public static final String V2_EXECUTION_ENGINE = "v2"
-  public static final String DEFAULT_EXECUTION_ENGINE = V1_EXECUTION_ENGINE
+  public static final String DEFAULT_EXECUTION_ENGINE = V2_EXECUTION_ENGINE
 
   String id
   String application
