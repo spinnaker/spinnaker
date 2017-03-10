@@ -84,37 +84,65 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
     task.updateStatus BASE_PHASE, "Checking for autoscaler..."
 
     if (serverGroup.autoscalingPolicy) {
-      destroy(destroyAutoscaler(compute, serverGroupName, project, region, zone, isRegional), "autoscaler")
+      def tags = [action: "delete", phase: BASE_PHASE]
+      if (isRegional) {
+        tags[TAG_SCOPE] = SCOPE_REGIONAL
+        tags[TAG_REGION] = region
+        tags['operation'] = 'compute.regionAutoscalers.delete'
+      } else {
+        tags[TAG_SCOPE] = SCOPE_ZONAL
+        tags[TAG_ZONE] = zone
+        tags['operation'] = 'compute.autoscalers.delete'
+      }
+      destroy(destroyAutoscaler(compute, serverGroupName, project, region, zone, isRegional),
+      "autoscaler", tags)
       task.updateStatus BASE_PHASE, "Deleted autoscaler"
     }
 
     task.updateStatus BASE_PHASE, "Checking for associated HTTP(S) load balancer backend services..."
 
-    destroy(destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Http load balancer backends")
+    destroy(destroyHttpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Http load balancer backends",
+            [action: 'destroy', operation: 'destroyHttpLoadBalancerBackends', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL])
 
     task.updateStatus BASE_PHASE, "Checking for associated Internal load balancer backend services..."
 
-    destroy(destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Internal load balancer backends")
+    destroy(destroyInternalLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Internal load balancer backends",
+            [action: 'destroy', operation: 'destroyInternalLoadBalancerBackends', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL])
 
     task.updateStatus BASE_PHASE, "Checking for associated Ssl load balancer backend services..."
 
-    destroy(destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Ssl load balancer backends")
-
-    destroy(destroyInstanceGroup(compute, serverGroupName, project, region, zone, isRegional), "instance group")
+    destroy(destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Ssl load balancer backends",
+            [action: 'destroy', operation: 'destroySslLoadBalancerBackends', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL])
+    if (true) {
+      // We're putting a nested scope here to define a local tags.
+      // The "if true" is because groovy wants to make this a closure to the
+      // previous function call.
+      def tags = [action: "delete", phase: BASE_PHASE]
+      if (isRegional) {
+        tags[TAG_SCOPE] = SCOPE_REGIONAL
+        tags[TAG_REGION] = region
+        tags['operation'] = 'compute.regionInstanceGroupManagers.delete'
+      } else {
+        tags[TAG_SCOPE] = SCOPE_ZONAL
+        tags[TAG_ZONE] = zone
+        tags['operation'] = 'compute.instanceGroupManagers.delete'
+      }
+      destroy(destroyInstanceGroup(compute, serverGroupName, project, region, zone, isRegional), "instance group", tags)
+    }
 
     task.updateStatus BASE_PHASE, "Deleted instance group."
 
-    destroy(destroyInstanceTemplate(compute, instanceTemplateName, project), "instance template")
+    destroy(destroyInstanceTemplate(compute, instanceTemplateName, project), "instance template",
+            [action: 'delete', operation: 'compute.instanceTemplates.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL])
+
 
     task.updateStatus BASE_PHASE, "Deleted instance template."
-
     task.updateStatus BASE_PHASE, "Done destroying server group $serverGroupName in $region."
     null
   }
 
-  void destroy(Closure operation, String resource) {
-    safeRetry.doRetry(operation, resource, task, RETRY_ERROR_CODES, SUCCESSFUL_ERROR_CODES,
-                      [action: "destroy", phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL], registry)
+  void destroy(Closure operation, String resource, Map tags) {
+    safeRetry.doRetry(operation, resource, task, RETRY_ERROR_CODES, SUCCESSFUL_ERROR_CODES, tags, registry)
   }
 
   Closure destroyInstanceTemplate(Compute compute, String instanceTemplateName, String project) {

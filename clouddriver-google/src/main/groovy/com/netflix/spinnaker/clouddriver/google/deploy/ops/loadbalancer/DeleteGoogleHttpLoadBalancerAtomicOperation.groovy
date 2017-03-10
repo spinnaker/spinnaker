@@ -100,7 +100,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
     // Target HTTP(S) proxy.
     task.updateStatus BASE_PHASE, "Retrieving target proxy $targetProxyName..."
 
-    def retrievedTargetProxy = GCEUtil.getTargetProxyFromRule(compute, project, forwardingRule, safeRetry, this)
+    def retrievedTargetProxy = GCEUtil.getTargetProxyFromRule(compute, project, forwardingRule, BASE_PHASE, safeRetry, this)
 
     if (!retrievedTargetProxy) {
       GCEUtil.updateStatusAndThrowNotFoundException("Target proxy $targetProxyName not found for $project", task,
@@ -110,7 +110,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
 
     List<String> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
-      def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule, safeRetry, this)
+      def proxy = GCEUtil.getTargetProxyFromRule(compute, project, rule, BASE_PHASE, safeRetry, this)
       if (GCEUtil.getLocalName(proxy?.urlMap) == urlMapName) {
         listenersToDelete << rule.getName()
       }
@@ -164,7 +164,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
 
     listenersToDelete.each { String ruleName ->
       task.updateStatus BASE_PHASE, "Deleting listener $ruleName..."
-      Operation operation = GCEUtil.deleteGlobalListener(compute, project, ruleName, safeRetry, this)
+      Operation operation = GCEUtil.deleteGlobalListener(compute, project, ruleName, BASE_PHASE, safeRetry, this)
       googleOperationPoller.waitForGlobalOperation(compute, project, operation.getName(),
         timeoutSeconds, task, "listener " + ruleName, BASE_PHASE)
     }
@@ -199,7 +199,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
         "Backend service $backendServiceName",
         project,
         task,
-        BASE_PHASE,
+        [action: 'delete', operation: 'compute.backendServices.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
         safeRetry,
         this
       )
@@ -230,7 +230,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalanc
           "Http health check $healthCheckName",
           project,
           task,
-          BASE_PHASE,
+          [action: 'delete', operation: 'compute.httpHealthChecks.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
           safeRetry,
           this
         )
