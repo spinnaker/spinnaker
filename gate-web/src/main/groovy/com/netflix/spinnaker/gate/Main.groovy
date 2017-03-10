@@ -40,6 +40,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 class Main extends SpringBootServletInitializer {
   static {
     System.setProperty("jdk.tls.rejectClientInitiatedRenegotiation", System.getProperty("jdk.tls.rejectClientInitiatedRenegotiation", "true"))
+    System.setProperty("jdk.tls.ephemeralDHKeySize", "2048")
   }
 
   static final Map<String, String> DEFAULT_PROPS = [
