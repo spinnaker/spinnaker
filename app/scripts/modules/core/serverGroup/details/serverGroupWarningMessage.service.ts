@@ -32,12 +32,12 @@ export class ServerGroupWarningMessageService {
       return;
     }
 
-    const remainingActiveServerGroups: ServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup)
-      .filter(s => !s.isDisabled && s.instanceCounts.up > 0);
+    const otherServerGroupsInCluster: ServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup);
+    const remainingActiveServerGroups: ServerGroup[] =
+      otherServerGroupsInCluster.filter(s => !s.isDisabled && s.instanceCounts.up > 0);
+    const hasOtherInstances = otherServerGroupsInCluster.some(s => s.instances.length > 0);
 
-    const hasOtherInstances = this.getOtherServerGroupsInCluster(application, serverGroup).some(s => s.instances.length > 0);
-
-    if (hasOtherInstances) {
+    if (hasOtherInstances || remainingActiveServerGroups.length === 0 || otherServerGroupsInCluster.length === 0) {
       const totalActiveInstances = remainingActiveServerGroups.reduce((acc: number, s: ServerGroup) => {
         return s.instanceCounts.up + acc;
       }, serverGroup.instanceCounts.up);

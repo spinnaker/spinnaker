@@ -150,6 +150,35 @@ describe('serverGroupWarningMessageService', () => {
       expect(params.account).toBeUndefined();
     });
 
+    it('adds warning if it\'s the last active ASG', () => {
+      serverGroup = {
+        account: 'test',
+        cloudProvider: 'aws',
+        cluster: 'foo',
+        instanceCounts: { up: 1, down: 0, succeeded: 0, failed: 0, unknown: 0, outOfService: 0 },
+        instances: [{id: 'a', launchTime: 1, zone: 'b', health: null}],
+        name: 'foo-v000',
+        region: 'us-east-1',
+        type: 'a'
+      };
+
+      app.clusters = [
+        {
+          name: 'foo',
+          account: 'test',
+          cloudProvider: '',
+          category: '',
+          serverGroups: [serverGroup]
+        }
+      ];
+      const params: IConfirmationModalParams = {account: 'prod'};
+      service.addDisableWarningMessage(app, serverGroup, params);
+      expect(params.body).toBeDefined();
+      expect(params.body.includes('<li>')).toBe(false);
+      expect(params.textToVerify).toBe('0');
+      expect(params.account).toBeUndefined();
+    });
+
     it('adds remaining server groups to the body if they have up instances, removes account from params', () => {
       serverGroup = {
         account: 'test',
