@@ -59,6 +59,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         angular.extend(details, summary);
 
         $scope.serverGroup = details;
+        var labels = $scope.serverGroup.labels;
+        delete labels['name'];
+        delete labels['source'];
+        delete labels['spinnakerAccount'];
+        delete labels['NETFLIX_APP_METADATA'];
+        delete labels['NETFLIX_APP_METADATA_SIG'];
+        $scope.labels = labels;
 
         if (!_.isEmpty($scope.serverGroup)) {
           if (details.securityGroups) {
