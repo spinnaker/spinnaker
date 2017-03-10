@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config;
+package com.netflix.spinnaker.fiat.shared;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.fiat.shared.FiatAuthenticationFilter;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -48,7 +46,6 @@ import retrofit.converter.JacksonConverter;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
 @EnableConfigurationProperties(FiatClientConfigurationProperties.class)
-@ConditionalOnExpression("${services.fiat.autoConfig:true}")
 @ComponentScan("com.netflix.spinnaker.fiat.shared")
 public class FiatAuthenticationConfig {
 
@@ -91,7 +88,7 @@ public class FiatAuthenticationConfig {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
       // TODO(ttomsu): Make management endpoints non-sensitive?
-      log.debug("Fiat service is disabled. Setting Spring Security to allow all traffic.");
+      log.info("Fiat service is disabled. Setting Spring Security to allow all traffic.");
       http.authorizeRequests().anyRequest().permitAll().and().csrf().disable();
     }
   }

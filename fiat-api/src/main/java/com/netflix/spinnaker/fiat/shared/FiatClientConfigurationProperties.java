@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config;
+package com.netflix.spinnaker.fiat.shared;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -25,8 +25,6 @@ import org.springframework.stereotype.Component;
 public class FiatClientConfigurationProperties {
 
   private boolean enabled;
-
-  private boolean autoConfig;
 
   private String baseUrl;
 }
