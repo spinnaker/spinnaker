@@ -6,6 +6,9 @@ halconfig:
     path: ~/.hal/config
 
 spinnaker:
+  artifacts:
+    debian: https://dl.bintray.com/spinnaker-team/spinnakerbuild
+    docker: gcr.io/spinnaker-marketplace
   config:
     input:
       writerEnabled: false

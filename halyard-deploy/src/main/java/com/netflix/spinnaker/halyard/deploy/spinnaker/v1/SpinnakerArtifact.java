@@ -61,6 +61,7 @@ public enum SpinnakerArtifact {
         .filter(f -> profilePatterns
             .stream()
             .filter(p -> p.matcher(f.getName()).find()).count() > 0)
+        .filter(File::isFile)
         .map(File::getAbsolutePath)
         .collect(Collectors.toList());
   }

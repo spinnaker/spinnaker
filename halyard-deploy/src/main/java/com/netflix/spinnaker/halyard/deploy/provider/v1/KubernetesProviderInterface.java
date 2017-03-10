@@ -69,7 +69,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   @Value("${deploy.kubernetes.pollTimeout:10}")
   private int TIMEOUT_MINUTES;
 
-  @Value("${deploy.kubernetes.registry:gcr.io/kubernetes-spinnaker}")
+  @Value("${spinnaker.artifacts.docker:gcr.io/spinnaker-marketplace}")
   private String REGISTRY;
 
   @Value("${deploy.kubernetes.config.dir:/opt/spinnaker/config}")
@@ -97,9 +97,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       default:
         String version = details.getGenerateResult().getArtifactVersions().get(artifact);
 
-        // TODO(lwander/jtk54) we need a published store of validated spinnaker images
-        // KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), version, REGISTRY);
-        KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), "latest", "quay.io/spinnaker");
+        KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), version, REGISTRY);
         return KubernetesUtil.getImageId(image);
     }
   }

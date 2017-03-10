@@ -35,9 +35,11 @@ import java.util.Map;
 
 public class LocalhostDebianDeployment extends Deployment {
   final DeploymentDetails deploymentDetails;
+  final String repository;
 
-  public LocalhostDebianDeployment(DeploymentDetails deploymentDetails) {
+  public LocalhostDebianDeployment(DeploymentDetails deploymentDetails, String repository) {
     this.deploymentDetails = deploymentDetails;
+    this.repository = repository;
   }
 
   @Override
@@ -127,6 +129,7 @@ public class LocalhostDebianDeployment extends Deployment {
     bindings.put("install-spinnaker", "true");
     bindings.put("etc-init", etcInit);
     bindings.put("config-dir", spinnakerOutputPath);
+    bindings.put("debian-repo", repository);
 
     DeployResult result = new DeployResult();
     result.setPostInstallScript(installScript.setBindings(bindings).toString());

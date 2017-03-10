@@ -31,6 +31,7 @@ import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterf
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.ServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import retrofit.client.OkClient;
 
@@ -44,6 +45,9 @@ public class DeploymentFactory {
   @Autowired
   KubernetesProviderInterface kubernetesProviderInterface;
 
+  @Value("${spinnaker.artifacts.debian:https://dl.bintray.com/spinnaker-team/spinnakerbuild}")
+  private String DEBIAN_REPOSITORY;
+
   @Autowired
   ServiceFactory serviceFactory;
 
@@ -56,7 +60,7 @@ public class DeploymentFactory {
 
     switch (type) {
       case LocalhostDebian:
-        return new LocalhostDebianDeployment(deploymentDetails).setServiceFactory(serviceFactory);
+        return new LocalhostDebianDeployment(deploymentDetails, DEBIAN_REPOSITORY).setServiceFactory(serviceFactory);
       case Flotilla:
         return createFlotillaDeployment(deploymentConfiguration, deploymentDetails);
       default:

@@ -10,7 +10,7 @@ INSTALL_SPINNAKER="{%install-spinnaker%}"
 SPINNAKER_ARTIFACTS=({%spinnaker-artifacts%})
 CONFIG_DIR="{%config-dir%}"
 
-REPOSITORY_URL="https://dl.bintray.com/spinnaker-team/spinnakerbuild"
+REPOSITORY_URL="{%debian-repo%}"
 
 ## check that the user is root
 if [[ `/usr/bin/id -u` -ne 0 ]]; then
