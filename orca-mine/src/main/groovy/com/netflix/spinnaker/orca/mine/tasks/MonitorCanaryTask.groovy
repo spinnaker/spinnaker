@@ -65,9 +65,9 @@ class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements Retrya
 
     if (outputs.canary.health?.health == 'UNHEALTHY' && !context.disableRequested) {
       log.info("Canary $stage.id unhealthy, disabling")
-      def operations = DeployedClustersUtil.toKatoAsgOperations('disableAsgDescription', stage.context)
+      def operations = DeployedClustersUtil.toKatoAsgOperations('disableServerGroup', stage.context)
       log.info "Disabling canary $stage.id with ${operations}"
-      katoService.requestOperations(operations).toBlocking().first()
+      katoService.requestOperations(getCloudProvider(operations, stage), operations).toBlocking().first()
       outputs.disableRequested = true
     } else {
       outputs.disableRequested = false
@@ -78,9 +78,9 @@ class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements Retrya
       int capacity = scaleUp.capacity as Integer
       if (System.currentTimeMillis() - outputs.canary.launchedDate > TimeUnit.MINUTES.toMillis(scaleUp.delay as Long)) {
         def resizeCapacity = [min: capacity, max: capacity, desired: capacity]
-        def resizeOps = DeployedClustersUtil.toKatoAsgOperations('resizeAsgDescription', stage.context).collect { it.resizeAsgDescription.capacity = resizeCapacity; it  }
+        def resizeOps = DeployedClustersUtil.toKatoAsgOperations('resizeServerGroup', stage.context).collect { it.resizeServerGroup.capacity = resizeCapacity; it  }
         outputs.scaleUp = scaleUp
-        outputs.scaleUp.katoId = katoService.requestOperations(resizeOps).toBlocking().first().id
+        outputs.scaleUp.katoId = katoService.requestOperations(getCloudProvider(resizeOps, stage), resizeOps).toBlocking().first().id
         outputs.scaleUp.complete = true
         log.info("Canary $stage.id scale up requested")
       }
@@ -88,5 +88,9 @@ class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements Retrya
 
     log.info("Canary in progress: ${outputs.canary}")
     return new DefaultTaskResult(ExecutionStatus.RUNNING, outputs)
+  }
+
+  String getCloudProvider(List<Map> operations, Stage stage){
+    return operations && !operations.empty ? operations.first()?.values().first()?.cloudProvider : getCloudProvider(stage) ?: 'aws'
   }
 }
