@@ -54,6 +54,12 @@ class MonitorJenkinsJobTask implements RetryableTask {
   TaskResult execute(Stage stage) {
     String master = stage.context.master
     String job = stage.context.job
+
+    if (!stage.context.buildNumber) {
+      log.error("failed to get build number for job ${job} from master ${master}")
+      return new DefaultTaskResult(ExecutionStatus.TERMINAL)
+    }
+
     def buildNumber = (int) stage.context.buildNumber
     try {
       Map<String, Object> build = buildService.getBuild(buildNumber, master, job)
