@@ -1,5 +1,5 @@
 import { debounce, filter, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, throttle, uniq } from 'lodash';
-import { module } from 'angular';
+import {ISCEService, module} from 'angular';
 
 import { IExecution, IPipeline } from 'core/domain/index';
 import { IPipelineValidationResults, PIPELINE_CONFIG_VALIDATOR, PipelineConfigValidator } from '../validation/pipelineConfig.validator';
@@ -17,10 +17,11 @@ export class PipelineGraphController implements ng.IComponentController {
   private minLabelWidth = 100;
 
   static get $inject() {
-    return ['$scope', '$element', '$', '$window', 'pipelineGraphService', 'pipelineConfigValidator'];
+    return ['$sce', '$scope', '$element', '$', '$window', 'pipelineGraphService', 'pipelineConfigValidator'];
   }
 
-  public constructor(private $scope: any,
+  public constructor(private $sce: ISCEService,
+                     private $scope: any,
                      private $element: JQuery,
                      private $: JQueryStatic,
                      private $window: ng.IWindowService,
@@ -197,7 +198,7 @@ export class PipelineGraphController implements ng.IComponentController {
     this.$scope.nodes.forEach((nodes: IPipelineNode[]) => {
       nodes.forEach((node) => {
         const extraLines = node.extraLabelLines ? '<div>x</div>'.repeat(node.extraLabelLines) : '';
-        placeholderNode.html('<a href>' + node.name + extraLines + '</a>');
+        placeholderNode.html(`<a href>${this.$sce.getTrustedHtml(node.name)}${extraLines}</a>`);
         node.height = placeholderNode.height() + this.$scope.rowPadding;
       });
       this.$scope.graphHeight = Math.max(sumBy(nodes, 'height'), this.$scope.graphHeight);
