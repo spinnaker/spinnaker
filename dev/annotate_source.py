@@ -151,16 +151,20 @@ class Annotator(Refresher):
     super(Annotator, self).__init__(options)
 
   @property
+  def build_number(self):
+    return self.__build_number
+
+  @property
+  def current_version(self):
+    return self.__current_version
+
+  @property
   def path(self):
     return self.__path
 
   @path.setter
   def path(self, path):
     self.__path = path
-
-  @property
-  def build_number(self):
-    return self.__build_number
 
   def __partition_tags_on_pattern(self):
     """Partitions the tags into two lists based on TAG_MATCHER.
