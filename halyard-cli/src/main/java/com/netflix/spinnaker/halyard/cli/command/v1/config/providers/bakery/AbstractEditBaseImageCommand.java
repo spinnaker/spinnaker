@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -79,7 +79,10 @@ public abstract class AbstractEditBaseImageCommand<T extends BaseImage> extends 
     String providerName = getProviderName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    BaseImage baseImage = Daemon.getBaseImage(currentDeployment, providerName, baseImageId, false);
+    BaseImage baseImage = new OperationHandler<BaseImage>()
+        .setFailureMesssage("Failed to get base image " + baseImageId + " in" + providerName + "'s bakery.")
+        .setOperation(Daemon.getBaseImage(currentDeployment, providerName, baseImageId, false))
+        .get();
 
     BaseImage.ImageSettings imageSettings = baseImage.getBaseImage();
     if (imageSettings == null) {
@@ -92,7 +95,10 @@ public abstract class AbstractEditBaseImageCommand<T extends BaseImage> extends 
     imageSettings.setPackageType(isSet(packageType) ? packageType : imageSettings.getPackageType());
     imageSettings.setTemplateFile(isSet(templateFile) ? templateFile : imageSettings.getTemplateFile());
 
-    Daemon.setBaseImage(currentDeployment, providerName, baseImageId, !noValidate, editBaseImage((T) baseImage));
-    AnsiUi.success("Edited " + providerName + " base image \"" + baseImageId + "\"");
+    new OperationHandler<Void>()
+        .setFailureMesssage("Failed to edit base image " + baseImageId + " in" + providerName + "'s bakery.")
+        .setSuccessMessage("Successfully edited base image " + baseImageId + " in" + providerName + "'s bakery.")
+        .setOperation(Daemon.setBaseImage(currentDeployment, providerName, baseImageId, !noValidate, editBaseImage((T) baseImage)))
+        .get();
   }
 }

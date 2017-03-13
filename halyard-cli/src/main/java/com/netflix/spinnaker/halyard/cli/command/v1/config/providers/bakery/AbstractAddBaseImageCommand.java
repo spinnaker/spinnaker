@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -84,9 +84,12 @@ public abstract class AbstractAddBaseImageCommand extends AbstractHasBaseImageCo
     imageSettings.setTemplateFile(templateFile);
 
     String providerName = getProviderName();
+    String currentDeployment = getCurrentDeployment();
 
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.addBaseImage(currentDeployment, providerName, !noValidate, baseImage);
-    AnsiUi.success("Added " + providerName + " base image \"" + baseImageId + "\"");
+    new OperationHandler<Void>()
+        .setSuccessMessage("Successfully added base image " + baseImageId + " to " + providerName + "'s bakery.")
+        .setFailureMesssage("Failed to add base image " + baseImageId + " to " + providerName + "'s bakery.")
+        .setOperation(Daemon.addBaseImage(currentDeployment, providerName, !noValidate, baseImage))
+        .get();
   }
 }

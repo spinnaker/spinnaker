@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -47,9 +47,15 @@ public abstract class AbstractEditAuthnMethodCommand<T extends AuthnMethod> exte
     String currentDeployment = getCurrentDeployment();
     String authnMethodName = getMethod().id;
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    AuthnMethod authnMethod = Daemon.getAuthnMethod(currentDeployment, authnMethodName, false);
+    AuthnMethod authnMethod = new OperationHandler<AuthnMethod>()
+        .setOperation(Daemon.getAuthnMethod(currentDeployment, authnMethodName, false))
+        .setFailureMesssage("Failed to get " + authnMethodName + " method.")
+        .get();
 
-    Daemon.setAuthnMethod(currentDeployment, authnMethodName, !noValidate, editAuthnMethod((T) authnMethod));
-    AnsiUi.success("Edited \"" + authnMethodName + "\" config.");
+    new OperationHandler<Void>()
+        .setOperation(Daemon.setAuthnMethod(currentDeployment, authnMethodName, !noValidate, editAuthnMethod((T) authnMethod)))
+        .setFailureMesssage("Failed to edit " + authnMethodName + " method.")
+        .setSuccessMessage("Successfully edited " + authnMethodName + " method.")
+        .get();
   }
 }

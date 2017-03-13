@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -35,6 +37,11 @@ public class VersionCommand extends AbstractConfigCommand {
 
   @Override
   protected void executeThis() {
-    AnsiUi.raw(Daemon.getVersion(getCurrentDeployment(), !noValidate));
+    String currentDeployment = getCurrentDeployment();
+    new OperationHandler<String>()
+        .setOperation(Daemon.getVersion(currentDeployment, !noValidate))
+        .setFailureMesssage("Failed to load version of Spinnaker.")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .get();
   }
 }

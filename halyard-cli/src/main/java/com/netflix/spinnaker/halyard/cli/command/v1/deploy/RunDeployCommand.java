@@ -20,7 +20,9 @@ package com.netflix.spinnaker.halyard.cli.command.v1.deploy;
 import com.amazonaws.util.StringUtils;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.*;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
@@ -34,7 +36,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Parameters()
-public class RunDeployCommand extends NestableCommand {
+public class RunDeployCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "run";
 
@@ -43,9 +45,11 @@ public class RunDeployCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    String deploymentName = Daemon.getCurrentDeployment();
+    Deployment.DeployResult result = new OperationHandler<Deployment.DeployResult>()
+        .setFailureMesssage("Failed to deploy Spinnaker.")
+        .setOperation(Daemon.deployDeployment(getCurrentDeployment(), !noValidate))
+        .get();
 
-    Deployment.DeployResult result = Daemon.deployDeployment(deploymentName, true);
     AnsiStoryBuilder storyBuilder = new AnsiStoryBuilder();
     AnsiParagraphBuilder paragraphBuilder = storyBuilder.addParagraph();
     paragraphBuilder.addSnippet(result.getPostInstallMessage());

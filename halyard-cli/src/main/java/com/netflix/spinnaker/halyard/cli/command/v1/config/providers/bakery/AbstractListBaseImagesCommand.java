@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery;
 
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractProviderCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
@@ -35,17 +36,15 @@ abstract class AbstractListBaseImagesCommand extends AbstractProviderCommand {
   @Getter
   private String commandName = "list";
 
-  private Provider getProvider() {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    return Daemon.getProvider(currentDeployment, getProviderName(), !noValidate);
-  }
-
   @Override
   protected void executeThis() {
     String providerName = getProviderName();
-    String deploymentName = getCurrentDeployment();
+    String currentDeployment = getCurrentDeployment();
 
-    BakeryDefaults bakeryDefaults = Daemon.getBakeryDefaults(deploymentName, providerName, !noValidate);
+    BakeryDefaults bakeryDefaults = new OperationHandler<BakeryDefaults>()
+        .setFailureMesssage("Failed to get bakery defaults for " + providerName + "'s bakery.")
+        .setOperation(Daemon.getBakeryDefaults(currentDeployment, providerName, !noValidate))
+        .get();
     List<BaseImage> baseImages = bakeryDefaults.getBaseImages();
 
     if (baseImages.isEmpty()) {

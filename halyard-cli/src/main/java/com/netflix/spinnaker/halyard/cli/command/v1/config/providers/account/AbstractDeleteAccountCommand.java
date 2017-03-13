@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,11 +45,15 @@ public abstract class AbstractDeleteAccountCommand extends AbstractHasAccountCom
   @Override
   protected void executeThis() {
     deleteAccount(getAccountName());
-    AnsiUi.success("Deleted " + getAccountName());
   }
 
   private void deleteAccount(String accountName) {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.deleteAccount(currentDeployment, getProviderName(), accountName, !noValidate);
+    String currentDeployment = getCurrentDeployment();
+    String providerName = getProviderName();
+    new OperationHandler<Void>()
+        .setFailureMesssage("Failed to delete account " + accountName + " for provider " + providerName + ".")
+        .setSuccessMessage("Successfully deleted account " + accountName + " for provider " + providerName + ".")
+        .setOperation(Daemon.deleteAccount(currentDeployment, providerName, accountName, !noValidate))
+        .get();
   }
 }

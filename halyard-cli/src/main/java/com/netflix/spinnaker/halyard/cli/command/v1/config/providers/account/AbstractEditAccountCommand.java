@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import lombok.AccessLevel;
@@ -48,9 +49,15 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
     String providerName = getProviderName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Account account = Daemon.getAccount(currentDeployment, providerName, accountName, false);
+    Account account = new OperationHandler<Account>()
+        .setFailureMesssage("Failed to get account " + accountName + " for provider " + providerName + ".")
+        .setOperation(Daemon.getAccount(currentDeployment, providerName, accountName, false))
+        .get();
 
-    Daemon.setAccount(currentDeployment, providerName, accountName, !noValidate, editAccount((T) account));
-    AnsiUi.success("Edited " + providerName + " account \"" + accountName + "\"");
+    new OperationHandler<Void>()
+        .setFailureMesssage("Failed to edit account " + accountName + " for provider " + providerName + ".")
+        .setSuccessMessage("Successfully edited account " + accountName + " for provider " + providerName + ".")
+        .setOperation(Daemon.setAccount(currentDeployment, providerName, accountName, !noValidate, editAccount((T) account)))
+        .get();
   }
 }

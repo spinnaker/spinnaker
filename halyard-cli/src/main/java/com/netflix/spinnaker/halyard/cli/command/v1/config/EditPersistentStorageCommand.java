@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import lombok.AccessLevel;
@@ -67,7 +68,10 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    PersistentStorage persistentStorage = Daemon.getPersistentStorage(currentDeployment, false);
+    PersistentStorage persistentStorage = new OperationHandler<PersistentStorage>()
+        .setOperation(Daemon.getPersistentStorage(currentDeployment, !noValidate))
+        .setFailureMesssage("Failed to load persistent storage.")
+        .get();
 
     persistentStorage.setAccountName(isSet(accountName) ? accountName : persistentStorage.getAccountName());
     persistentStorage.setBucket(isSet(bucket) ? bucket : persistentStorage.getBucket());
@@ -80,8 +84,10 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
       persistentStorage.setBucket(bucketName);
     }
 
-    Daemon.setPersistentStorage(currentDeployment, !noValidate, persistentStorage);
-
-    AnsiUi.success("Successfully updated persistent storage configuration.");
+    new OperationHandler<Void>()
+        .setOperation(Daemon.setPersistentStorage(currentDeployment, !noValidate, persistentStorage))
+        .setFailureMesssage("Failed to edit persistent storage.")
+        .setFailureMesssage("Successfully updated persistent storage.")
+        .get();
   }
 }

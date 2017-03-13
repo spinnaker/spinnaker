@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
@@ -38,6 +39,10 @@ abstract class AbstractGetAccountCommand extends AbstractHasAccountCommand {
 
   private Account getAccount(String accountName) {
     String currentDeployment = getCurrentDeployment();
-    return Daemon.getAccount(currentDeployment, getProviderName(), accountName, !noValidate);
+    String providerName = getProviderName();
+    return new OperationHandler<Account>()
+        .setFailureMesssage("Failed to get account " + accountName + " for provider " + providerName + ".")
+        .setOperation(Daemon.getAccount(currentDeployment, providerName, accountName, false))
+        .get();
   }
 }

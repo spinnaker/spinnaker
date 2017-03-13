@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractProviderCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -48,9 +48,15 @@ public abstract class AbstractEditBakeryDefaultsCommand<T extends BakeryDefaults
     String providerName = getProviderName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    BakeryDefaults defaults = Daemon.getBakeryDefaults(currentDeployment, providerName, false);
+    BakeryDefaults defaults = new OperationHandler<BakeryDefaults>()
+        .setFailureMesssage("Failed to get bakery defaults for " + providerName + "'s bakery.")
+        .setOperation(Daemon.getBakeryDefaults(currentDeployment, providerName, false))
+        .get();
 
-    Daemon.setBakeryDefaults(currentDeployment, providerName, !noValidate, editBakeryDefaults((T) defaults));
-    AnsiUi.success("Edited " + providerName + "'s bakery defaults");
+    new OperationHandler<Void>()
+        .setSuccessMessage("Successfully edited bakery defaults for " + providerName + "'s bakery.")
+        .setFailureMesssage("Failed to edit bakery defaults for " + providerName + "'s bakery.")
+        .setOperation(Daemon.setBakeryDefaults(currentDeployment, providerName, !noValidate, editBakeryDefaults((T) defaults)))
+        .get();
   }
 }

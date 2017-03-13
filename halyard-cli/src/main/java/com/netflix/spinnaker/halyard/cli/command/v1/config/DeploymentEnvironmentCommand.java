@@ -19,6 +19,8 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import lombok.AccessLevel;
@@ -40,9 +42,11 @@ public class DeploymentEnvironmentCommand extends AbstractConfigCommand {
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    DeploymentEnvironment deploymentEnvironment = Daemon.getDeploymentEnvironment(currentDeployment, !noValidate);
-
-    AnsiUi.success("Configured deployment:");
-    AnsiUi.raw(deploymentEnvironment.toString());
+    new OperationHandler<DeploymentEnvironment>()
+        .setFailureMesssage("Failed to get your deployment environment.")
+        .setSuccessMessage("Retrieved configured deployment environment.")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .setOperation(Daemon.getDeploymentEnvironment(currentDeployment, !noValidate))
+        .get();
   }
 }

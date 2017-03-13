@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -40,8 +41,12 @@ public class EditVersionCommand extends AbstractConfigCommand {
 
   @Override
   protected void executeThis() {
-    Daemon.setVersion(getCurrentDeployment(), !noValidate, version);
-    AnsiUi.success("Spinnaker has been configured to update/install version \"" + version + "\". "
-        + "This will be put into effect during the installation or next update of Spinnaker using Halyard.");
+    String currentDeployment = getCurrentDeployment();
+    new OperationHandler<Void>()
+        .setOperation(Daemon.setVersion(currentDeployment, !noValidate, version))
+        .setFailureMesssage("Spinnaker has been configured to update/install version \"" + version + "\". "
+            + "This will be put into effect during the installation or next update of Spinnaker using Halyard.")
+        .setFailureMesssage("Failed to update version.")
+        .get();
   }
 }

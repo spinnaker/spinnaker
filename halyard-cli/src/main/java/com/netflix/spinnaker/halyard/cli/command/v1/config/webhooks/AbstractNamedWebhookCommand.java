@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks;
 
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Webhook;
 
 public abstract class AbstractNamedWebhookCommand extends AbstractWebhookCommand {
@@ -47,12 +47,15 @@ public abstract class AbstractNamedWebhookCommand extends AbstractWebhookCommand
     );
   }
 
-  private Webhook getWebhook() {
-    return Daemon.getWebhook(getCurrentDeployment(), getWebhookName(), !noValidate);
-  }
-
   @Override
   protected void executeThis() {
-    AnsiUi.success(getWebhook().toString());
+    String currentDeployment = getCurrentDeployment();
+    String webhookName = getWebhookName();
+    new OperationHandler<Webhook>()
+        .setOperation(Daemon.getWebhook(currentDeployment, webhookName, !noValidate))
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .setSuccessMessage("Configured " + webhookName + " webhook: ")
+        .setFailureMesssage("Failed to load webhook " + webhookName + ".")
+        .get();
   }
 }

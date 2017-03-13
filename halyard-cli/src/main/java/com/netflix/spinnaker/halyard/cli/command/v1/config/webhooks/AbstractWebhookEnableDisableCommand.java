@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks;
 
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -50,14 +50,15 @@ public abstract class AbstractWebhookEnableDisableCommand extends AbstractWebhoo
     return "Set the " + getWebhookName() + " webhook as " + subjunctivePerfectAction();
   }
 
-  private void setEnable() {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.setWebhookEnableDisable(currentDeployment, getWebhookName(), !noValidate, isEnable());
-  }
-
   @Override
   protected void executeThis() {
-    setEnable();
-    AnsiUi.success("Successfully " + indicativePastPerfectAction() + " " + getWebhookName());
+    String currentDeployment = getCurrentDeployment();
+    String webhookName = getWebhookName();
+    boolean enable = isEnable();
+    new OperationHandler<Void>()
+        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " " + webhookName)
+        .setFailureMesssage("Failed to " + getCommandName() + " " + webhookName)
+        .setOperation(Daemon.setWebhookEnableDisable(currentDeployment, webhookName, !noValidate, enable))
+        .get();
   }
 }

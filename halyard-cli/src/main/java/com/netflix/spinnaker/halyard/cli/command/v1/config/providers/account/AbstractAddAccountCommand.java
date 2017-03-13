@@ -20,12 +20,13 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Parameters()
 public abstract class AbstractAddAccountCommand extends AbstractHasAccountCommand {
@@ -47,8 +48,11 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
     Account account = buildAccount(accountName);
     String providerName = getProviderName();
 
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.addAccount(currentDeployment, providerName, !noValidate, account);
-    AnsiUi.success("Added " + providerName + " account \"" + accountName + "\"");
+    String currentDeployment = getCurrentDeployment();
+    new OperationHandler<Void>()
+        .setFailureMesssage("Failed to add account " + accountName + " for provider " + providerName + ".")
+        .setSuccessMessage("Successfully added account " + accountName + " for provider " + providerName + ".")
+        .setOperation(Daemon.addAccount(currentDeployment, providerName, !noValidate, account))
+        .get();
   }
 }

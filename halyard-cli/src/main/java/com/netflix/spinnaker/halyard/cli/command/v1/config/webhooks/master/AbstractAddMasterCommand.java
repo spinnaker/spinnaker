@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import lombok.AccessLevel;
@@ -48,8 +49,11 @@ public abstract class AbstractAddMasterCommand extends AbstractHasMasterCommand 
     Master master = buildMaster(masterName);
     String webhookName = getWebhookName();
 
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.addMaster(currentDeployment, webhookName, !noValidate, master);
-    AnsiUi.success("Added " + webhookName + " master \"" + masterName + "\"");
+    String currentDeployment = getCurrentDeployment();
+    new OperationHandler<Void>()
+        .setOperation(Daemon.addMaster(currentDeployment, webhookName, !noValidate, master))
+        .setSuccessMessage("Added " + masterName + " webhook for " + webhookName + ".")
+        .setFailureMesssage("Failed to add " + masterName + " webhook for " + webhookName + ".")
+        .get();
   }
 }

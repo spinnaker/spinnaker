@@ -56,7 +56,12 @@ public class ResponseUnwrapper {
     DaemonResponse<T> response = task.getResponse();
     formatProblemSet(response.getProblemSet());
     if (task.getState() == DaemonTask.State.FATAL) {
-      throw new ExpectedDaemonFailureException();
+      Exception fatal = task.getFatalError();
+      if (fatal == null) {
+        throw new RuntimeException("Task failed without reason. This is a bug.");
+      } else {
+        throw new ExpectedDaemonFailureException(fatal);
+      }
     }
 
     return response.getResponseBody();

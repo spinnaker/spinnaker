@@ -21,6 +21,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.DeploymentTypeConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
@@ -54,13 +55,19 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    DeploymentEnvironment deploymentEnvironment = Daemon.getDeploymentEnvironment(currentDeployment, !noValidate);
+    DeploymentEnvironment deploymentEnvironment = new OperationHandler<DeploymentEnvironment>()
+        .setFailureMesssage("Failed to get your deployment environment.")
+        .setOperation(Daemon.getDeploymentEnvironment(currentDeployment, false))
+        .get();
 
     deploymentEnvironment.setAccountName(isSet(accountName) ? accountName : deploymentEnvironment.getAccountName());
     deploymentEnvironment.setType(type != null ? type : deploymentEnvironment.getType());
 
-    Daemon.setDeploymentEnvironment(currentDeployment, !noValidate, deploymentEnvironment);
+    new OperationHandler<Void>()
+        .setFailureMesssage("Failed to update your deployment environment.")
+        .setSuccessMessage("Successfully updated your deployment environment.")
+        .setOperation(Daemon.setDeploymentEnvironment(currentDeployment, !noValidate, deploymentEnvironment))
+        .get();
 
-    AnsiUi.success("Successfully updated your configured deployment.");
   }
 }

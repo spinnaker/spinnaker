@@ -21,10 +21,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.Abstr
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.DeleteMasterCommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.GetMasterCommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.ListMastersCommandBuilder;
-import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
-
-import static com.netflix.spinnaker.halyard.cli.services.v1.Daemon.getCurrentDeployment;
 
 public abstract class AbstractMasterCommand extends AbstractHasMasterCommand {
   @Override
@@ -57,10 +53,5 @@ public abstract class AbstractMasterCommand extends AbstractHasMasterCommand {
   @Override
   protected void executeThis() {
     showHelp();
-  }
-
-  private Master getMaster(String masterName) {
-    String currentDeployment = getCurrentDeployment();
-    return Daemon.getMaster(currentDeployment, getWebhookName(), masterName, !noValidate);
   }
 }

@@ -18,6 +18,8 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import lombok.AccessLevel;
@@ -39,9 +41,11 @@ public class PersistentStorageCommand extends AbstractConfigCommand {
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    PersistentStorage persistentStorage = Daemon.getPersistentStorage(currentDeployment, !noValidate);
-
-    AnsiUi.success("Configure storage options:");
-    AnsiUi.raw(persistentStorage.toString());
+    new OperationHandler<PersistentStorage>()
+        .setOperation(Daemon.getPersistentStorage(currentDeployment, !noValidate))
+        .setFailureMesssage("Failed to load persistent storage.")
+        .setSuccessMessage("Configured persistent storage options: ")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .get();
   }
 }

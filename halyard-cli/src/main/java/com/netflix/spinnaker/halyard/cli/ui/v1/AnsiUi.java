@@ -107,4 +107,18 @@ public class AnsiUi {
 
     AnsiPrinter.println(builder.toString());
   }
+
+  public static void failure(String message) {
+    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
+        .setIndentFirstLine(false)
+        .setIndentWidth(2);
+
+    builder.addSnippet("- ")
+        .setForegroundColor(AnsiForegroundColor.RED)
+        .addStyle(AnsiStyle.BOLD);
+
+    builder.addSnippet(message);
+
+    AnsiPrinter.println(builder.toString());
+  }
 }

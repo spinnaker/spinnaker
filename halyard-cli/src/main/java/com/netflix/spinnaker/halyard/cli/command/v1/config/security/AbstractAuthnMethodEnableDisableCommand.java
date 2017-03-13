@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
 
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -51,16 +51,15 @@ public abstract class AbstractAuthnMethodEnableDisableCommand extends AbstractAu
     return "Set the " + methodName + " method as " + subjunctivePerfectAction();
   }
 
-  private void setEnable() {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    String methodName = getMethod().id;
-    Daemon.setAuthnMethodEnabled(currentDeployment, methodName, !noValidate, isEnable());
-  }
-
   @Override
   protected void executeThis() {
-    setEnable();
+    String currentDeployment = getCurrentDeployment();
     String methodName = getMethod().id;
-    AnsiUi.success("Successfully " + indicativePastPerfectAction() + " " + methodName);
+    boolean enable = isEnable();
+    new OperationHandler<Void>()
+        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " " + methodName)
+        .setFailureMesssage("Failed to " + getCommandName() + " " + methodName)
+        .setOperation(Daemon.setAuthnMethodEnabled(currentDeployment, methodName, !noValidate, enable))
+        .get();
   }
 }

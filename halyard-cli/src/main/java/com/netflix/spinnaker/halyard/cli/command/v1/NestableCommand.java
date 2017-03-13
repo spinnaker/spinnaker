@@ -102,7 +102,7 @@ public abstract class NestableCommand {
       AnsiUi.remediation("Try the command again with the --debug flag.");
       System.exit(1);
     } catch (ExpectedDaemonFailureException e) {
-      AnsiUi.error("Operation failed. See above errors for details.");
+      AnsiUi.failure(e.getMessage());
       System.exit(1);
     } catch (Exception e) {
       if (GlobalOptions.getGlobalOptions().isDebug()) {

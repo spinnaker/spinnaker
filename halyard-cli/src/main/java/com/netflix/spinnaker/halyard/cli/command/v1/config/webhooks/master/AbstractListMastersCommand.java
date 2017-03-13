@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
 
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.AbstractWebhookCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Webhook;
@@ -35,8 +36,12 @@ abstract class AbstractListMastersCommand extends AbstractWebhookCommand {
   private String commandName = "list";
 
   private Webhook getWebhook() {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    return Daemon.getWebhook(currentDeployment, getWebhookName(), !noValidate);
+    String currentDeployment = getCurrentDeployment();
+    String webhookName = getCurrentDeployment();
+    return new OperationHandler<Webhook>()
+        .setOperation(Daemon.getWebhook(currentDeployment, webhookName, !noValidate))
+        .setFailureMesssage("Failed to get " + webhookName + " wehbook.")
+        .get();
   }
 
   @Override

@@ -22,6 +22,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -74,7 +75,10 @@ public class PublishProfileCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    Daemon.publishProfile(bomPath, getArtifactName(), profilePath);
-    AnsiUi.success("Published your profile for " + getArtifactName());
+    new OperationHandler<Void>()
+        .setFailureMesssage("Failed to publish your profile for artifact " + getArtifactName() + ".")
+        .setSuccessMessage("Successfully published your profile for artifact " + getArtifactName() + ".")
+        .setOperation(Daemon.publishProfile(bomPath, getArtifactName(), profilePath))
+        .get();
   }
 }

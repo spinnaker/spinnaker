@@ -20,13 +20,17 @@ package com.netflix.spinnaker.halyard.cli.command.v1.deploy;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters()
-public class DetailsDeployCommand extends NestableCommand {
+public class DetailsDeployCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "details";
 
@@ -42,8 +46,12 @@ public class DetailsDeployCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    String deploymentName = Daemon.getCurrentDeployment();
+    String deploymentName = getCurrentDeployment();
 
-    AnsiUi.raw(Daemon.getServiceDetails(deploymentName, serviceName, false).toString());
+    new OperationHandler<RunningServiceDetails>()
+        .setFailureMesssage("Failed load service details for service " + serviceName + ".")
+        .setOperation(Daemon.getServiceDetails(deploymentName, serviceName, !noValidate))
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .get();
   }
 }

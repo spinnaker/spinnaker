@@ -17,9 +17,10 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
 
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+
+import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.STRING;
 
 public abstract class AbstractNamedProviderCommand extends AbstractProviderCommand {
   @Override
@@ -46,12 +47,15 @@ public abstract class AbstractNamedProviderCommand extends AbstractProviderComma
     );
   }
 
-  private Provider getProvider() {
-    return Daemon.getProvider(getCurrentDeployment(), getProviderName(), !noValidate);
-  }
-
   @Override
   protected void executeThis() {
-    AnsiUi.success(AnsiFormatUtils.format(getProvider()));
+    String currentDeployment = getCurrentDeployment();
+    String providerName = getProviderName();
+    new OperationHandler<Provider>()
+        .setFailureMesssage("Failed to get provider " + providerName + ".")
+        .setSuccessMessage("Successfully got provider " + providerName + ".")
+        .setFormat(STRING)
+        .setOperation(Daemon.getProvider(currentDeployment, providerName, !noValidate))
+        .get();
   }
 }

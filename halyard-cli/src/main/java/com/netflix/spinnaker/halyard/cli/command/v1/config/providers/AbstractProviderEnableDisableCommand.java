@@ -18,11 +18,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
 
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import java.util.HashMap;
-import java.util.Map;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractProviderEnableDisableCommand extends AbstractProviderCommand {
   @Override
@@ -49,13 +50,17 @@ public abstract class AbstractProviderEnableDisableCommand extends AbstractProvi
   }
 
   private void setEnable() {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.setProviderEnableDisable(currentDeployment, getProviderName(), !noValidate, isEnable());
   }
 
   @Override
   protected void executeThis() {
-    setEnable();
-    AnsiUi.success("Successfully " + indicativePastPerfectAction() + " " + getProviderName());
+    String currentDeployment = getCurrentDeployment();
+    String providerName = getProviderName();
+    boolean enable = isEnable();
+    new OperationHandler<Void>()
+        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " " + providerName)
+        .setFailureMesssage("Failed to " + getCommandName() + " " + getProviderName())
+        .setOperation(Daemon.setProviderEnableDisable(currentDeployment, providerName, !noValidate, enable))
+        .get();
   }
 }

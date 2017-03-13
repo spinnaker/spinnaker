@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import lombok.AccessLevel;
@@ -60,14 +61,19 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    Features features = Daemon.getFeatures(currentDeployment, !noValidate);
+    Features features = new OperationHandler<Features>()
+        .setOperation(Daemon.getFeatures(currentDeployment, !noValidate))
+        .setFailureMesssage("Failed to load features.")
+        .get();
 
     features.setChaos(chaos != null ? chaos : features.isChaos());
     features.setFiat(fiat != null ? fiat : features.isFiat());
     features.setJobs(jobs != null ? jobs : features.isJobs());
 
-    Daemon.setFeatures(currentDeployment, !noValidate, features);
-
-    AnsiUi.success("Successfully updated features.");
+    new OperationHandler<Void>()
+        .setOperation(Daemon.setFeatures(currentDeployment, !noValidate, features))
+        .setFailureMesssage("Failed to edit features.")
+        .setFailureMesssage("Successfully updated features.")
+        .get();
   }
 }

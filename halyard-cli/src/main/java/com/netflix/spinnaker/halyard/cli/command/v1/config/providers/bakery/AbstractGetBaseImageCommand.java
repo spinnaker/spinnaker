@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery;
 
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import lombok.Getter;
@@ -32,11 +34,14 @@ abstract class AbstractGetBaseImageCommand extends AbstractHasBaseImageCommand {
 
   @Override
   protected void executeThis() {
-    AnsiUi.success(getBaseImage(getBaseImageId()).toString());
-  }
-
-  private BaseImage getBaseImage(String baseImageName) {
     String currentDeployment = getCurrentDeployment();
-    return Daemon.getBaseImage(currentDeployment, getProviderName(), baseImageName, !noValidate);
+    String providerName = getProviderName();
+    String baseImageId = getBaseImageId();
+    new OperationHandler<BaseImage>()
+        .setFailureMesssage("Failed to get base image " + baseImageId + " in" + providerName + "'s bakery.")
+        .setSuccessMessage("Settings for " + baseImageId + " in" + providerName + "'s bakery:")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .setOperation(Daemon.getBaseImage(currentDeployment, providerName, baseImageId, false))
+        .get();
   }
 }

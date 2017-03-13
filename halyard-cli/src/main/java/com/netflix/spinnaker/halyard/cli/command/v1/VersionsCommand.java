@@ -20,6 +20,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.versions.BomVersionCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.versions.LatestVersionCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import lombok.AccessLevel;
@@ -40,7 +41,10 @@ public class VersionsCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    Versions versions = Daemon.getVersions();
+    Versions versions = new OperationHandler<Versions>()
+        .setOperation(Daemon.getVersions())
+        .setFailureMesssage("Failed to load available Spinnaker versions.")
+        .get();
 
     AnsiUi.success("The following versions are available: ");
     versions.getVersions().forEach(v -> AnsiUi.listItem(v.toString()));

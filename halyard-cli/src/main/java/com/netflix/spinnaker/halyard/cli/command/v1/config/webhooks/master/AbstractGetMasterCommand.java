@@ -18,7 +18,8 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
 
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import lombok.Getter;
 
@@ -32,11 +33,13 @@ abstract class AbstractGetMasterCommand extends AbstractHasMasterCommand {
 
   @Override
   protected void executeThis() {
-    AnsiUi.success(getMaster(getMasterName()).toString());
-  }
-
-  private Master getMaster(String masterName) {
     String currentDeployment = getCurrentDeployment();
-    return Daemon.getMaster(currentDeployment, getWebhookName(), masterName, !noValidate);
+    String masterName = getMasterName();
+    String webhookName = getWebhookName();
+    new OperationHandler<Master>()
+        .setOperation(Daemon.getMaster(currentDeployment, webhookName, masterName, !noValidate))
+        .setFailureMesssage("Failed to get " + masterName + " webhook for " + webhookName + ".")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .get();
   }
 }

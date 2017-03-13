@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 import com.beust.jcommander.Parameter;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,10 @@ abstract public class AbstractConfigCommand extends NestableCommand {
   public boolean noValidate = false;
 
   protected String getCurrentDeployment() {
-    return Daemon.getCurrentDeployment();
+    return new OperationHandler<String>()
+        .setFailureMesssage("Failed to get deployment name.")
+        .setOperation(Daemon.getCurrentDeployment())
+        .get();
   }
 
   protected static boolean isSet(String s) {

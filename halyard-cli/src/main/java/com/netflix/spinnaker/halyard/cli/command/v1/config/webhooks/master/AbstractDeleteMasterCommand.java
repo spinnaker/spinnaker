@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -49,7 +50,12 @@ public abstract class AbstractDeleteMasterCommand extends AbstractHasMasterComma
   }
 
   private void deleteMaster(String masterName) {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.deleteMaster(currentDeployment, getWebhookName(), masterName, !noValidate);
+    String currentDeployment = getCurrentDeployment();
+    String webhookName = getWebhookName();
+    new OperationHandler<Void>()
+        .setOperation(Daemon.deleteMaster(currentDeployment, webhookName, masterName, !noValidate))
+        .setSuccessMessage("Deleted " + masterName + " webhook for " + webhookName + ".")
+        .setFailureMesssage("Failed to delete " + masterName + " webhook for " + webhookName + ".")
+        .get();
   }
 }

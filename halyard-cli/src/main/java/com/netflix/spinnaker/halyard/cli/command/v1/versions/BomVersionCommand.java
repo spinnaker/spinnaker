@@ -21,8 +21,9 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -58,6 +59,10 @@ public class BomVersionCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    AnsiUi.raw(AnsiFormatUtils.formatYaml(Daemon.getBillOfMaterials(getVersion())));
+    new OperationHandler<BillOfMaterials>()
+        .setFormat(AnsiFormatUtils.Format.YAML)
+        .setOperation(Daemon.getBillOfMaterials(getVersion()))
+        .setFailureMesssage("Failed to get Bill of Materials for version " + getVersion())
+        .get();
   }
 }

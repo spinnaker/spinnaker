@@ -18,15 +18,17 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.deploy;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters()
-public class DiffDeployCommand extends NestableCommand {
+public class DiffDeployCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "diff";
 
@@ -35,8 +37,17 @@ public class DiffDeployCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    String deploymentName = Daemon.getCurrentDeployment();
+    String deploymentName = getCurrentDeployment();
 
-    AnsiUi.raw(AnsiFormatUtils.format(Daemon.configDiff(deploymentName, false)));
+    NodeDiff result = new OperationHandler<NodeDiff>()
+        .setFailureMesssage("Failed to generate config diff.")
+        .setOperation(Daemon.configDiff(deploymentName, !noValidate))
+        .get();
+
+    if (result == null) {
+      AnsiUi.raw("No changes have been made to your configuration.");
+    } else {
+      AnsiUi.raw(AnsiFormatUtils.format(result));
+    }
   }
 }

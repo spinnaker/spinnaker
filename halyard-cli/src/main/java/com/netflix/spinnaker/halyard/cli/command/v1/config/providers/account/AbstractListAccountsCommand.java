@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractProviderCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
@@ -35,8 +36,12 @@ abstract class AbstractListAccountsCommand extends AbstractProviderCommand {
   private String commandName = "list";
 
   private Provider getProvider() {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    return Daemon.getProvider(currentDeployment, getProviderName(), !noValidate);
+    String currentDeployment = getCurrentDeployment();
+    String providerName = getProviderName();
+    return new OperationHandler<Provider>()
+        .setFailureMesssage("Failed to get provider " + providerName + ".")
+        .setOperation(Daemon.getProvider(currentDeployment, providerName, !noValidate))
+        .get();
   }
 
   @Override

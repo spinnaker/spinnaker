@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -29,7 +30,11 @@ public class GenerateCommand extends AbstractConfigCommand {
 
   @Override
   protected void executeThis() {
-    String currentDeployment = Daemon.getCurrentDeployment();
-    Daemon.generateDeployment(currentDeployment, !noValidate);
+    String currentDeployment = getCurrentDeployment();
+    new OperationHandler<Void>()
+        .setOperation(Daemon.generateDeployment(currentDeployment, !noValidate))
+        .setFailureMesssage("Failed to generate config.")
+        .setSuccessMessage("Successfully generated config.")
+        .get();
   }
 }

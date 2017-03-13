@@ -25,7 +25,11 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
  * Non-examples include: The CLI encountered an NPE.
  */
 public class ExpectedDaemonFailureException extends RuntimeException {
-  ExpectedDaemonFailureException() {
-    super();
+  ExpectedDaemonFailureException(Throwable cause) {
+    super(cause);
+  }
+
+  ExpectedDaemonFailureException(String msg, Throwable cause) {
+    super(msg, cause);
   }
 }

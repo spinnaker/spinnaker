@@ -19,7 +19,8 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
 
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 
 abstract public class AuthnMethodCommand extends AbstractConfigCommand {
@@ -48,10 +49,13 @@ abstract public class AuthnMethodCommand extends AbstractConfigCommand {
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
+    String authnMethodName = getMethod().id;
 
-    AuthnMethod authnMethod = Daemon.getAuthnMethod(currentDeployment, getMethod().id, !noValidate);
-
-    AnsiUi.success("Configured " + getMethod().id + " settings: ");
-    AnsiUi.raw(authnMethod.toString());
+    new OperationHandler<AuthnMethod>()
+        .setOperation(Daemon.getAuthnMethod(currentDeployment, authnMethodName, false))
+        .setFailureMesssage("Failed to get " + authnMethodName + " method.")
+        .setSuccessMessage("Configured " + authnMethodName + " method: ")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .get();
   }
 }

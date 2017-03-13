@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import lombok.AccessLevel;
@@ -48,9 +49,16 @@ public abstract class AbstractEditMasterCommand<T extends Master> extends Abstra
     String webhookName = getWebhookName();
     String currentDeployment = getCurrentDeployment();
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Master master = Daemon.getMaster(currentDeployment, webhookName, masterName, false);
+    Master master = new OperationHandler<Master>()
+        .setOperation(Daemon.getMaster(currentDeployment, webhookName, masterName, !noValidate))
+        .setFailureMesssage("Failed to get " + masterName + " webhook for " + webhookName + ".")
+        .get();
 
-    Daemon.setMaster(currentDeployment, webhookName, masterName, !noValidate, editMaster((T) master));
-    AnsiUi.success("Edited " + webhookName + " master \"" + masterName + "\"");
+
+    new OperationHandler<Void>()
+        .setOperation(Daemon.setMaster(currentDeployment, webhookName, masterName, !noValidate, editMaster((T) master)))
+        .setSuccessMessage("Edited " + masterName + " webhook for " + webhookName + ".")
+        .setFailureMesssage("Failed to edit " + masterName + " webhook for " + webhookName + ".")
+        .get();
   }
 }

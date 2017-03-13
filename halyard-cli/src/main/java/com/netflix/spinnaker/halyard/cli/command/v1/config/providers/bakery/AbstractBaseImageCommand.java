@@ -53,9 +53,4 @@ public abstract class AbstractBaseImageCommand extends AbstractProviderCommand {
   protected void executeThis() {
     showHelp();
   }
-
-  private BaseImage getBaseImage(String baseImageId) {
-    String currentDeployment = getCurrentDeployment();
-    return Daemon.getBaseImage(currentDeployment, getProviderName(), baseImageId, !noValidate);
-  }
 }

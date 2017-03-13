@@ -30,6 +30,12 @@ public class AnsiFormatUtils {
   private static Yaml yamlParser = null;
   private static ObjectMapper objectMapper = null;
 
+  public enum Format  {
+    YAML,
+    STRING,
+    NONE
+  }
+
   private static Yaml getYamlParser() {
     if (yamlParser == null) {
       DumperOptions options = new DumperOptions();
@@ -52,6 +58,23 @@ public class AnsiFormatUtils {
 
   public static String formatYaml(Object yaml) {
     return getYamlParser().dump(getObjectMapper().convertValue(yaml, Map.class));
+  }
+
+  public static String format(Format format, Object o) {
+    if (o == null) {
+      return "";
+    }
+
+    switch (format) {
+      case NONE:
+        return "";
+      case STRING:
+        return o.toString();
+      case YAML:
+        return formatYaml(o);
+      default:
+        throw new RuntimeException("Unknown format: " + format);
+    }
   }
 
   public static String format(Account account) {
