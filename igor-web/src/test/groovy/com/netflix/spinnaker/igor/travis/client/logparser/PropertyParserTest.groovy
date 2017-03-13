@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.travis.client.logparser
 
+import com.fasterxml.jackson.core.JsonParseException
 import spock.lang.Specification
 
 class PropertyParserTest extends Specification {
@@ -37,5 +38,46 @@ class PropertyParserTest extends Specification {
 
         then:
         properties.size() == 1
+    }
+
+    def "ExtractPropertiesFromLog with JSON"() {
+        String buildLog = "SPINNAKER_CONFIG_JSON={\"key1\":\"value1\"}\r"
+
+        when:
+        Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+
+        then:
+        properties.size() == 1
+    }
+
+    def "ExtractPropertiesFromLog with JSON and 1 property works"() {
+        String buildLog = "SPINNAKER_PROPERTY_MY_PROPERTY=MYVALUE\n" +
+            "SPINNAKER_CONFIG_JSON={\"key1\":\"value1\"}\r"
+
+        when:
+        Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+
+        then:
+        properties.size() == 2
+    }
+
+    def "ExtractPropertiesFromLog with malformed JSON throws exception"() {
+        String buildLog = "SPINNAKER_CONFIG_JSON={\"key1\";\"value1\"}\r"
+
+        when:
+        PropertyParser.extractPropertiesFromLog(buildLog)
+
+        then:
+        thrown(JsonParseException)
+    }
+
+    def "Do not detect json magic string if it is not first non-whitespace substring in the line"() {
+        String buildLog = "some log SPINNAKER_CONFIG_JSON={\"key1\":\"value1\"}\r"
+
+        when:
+        Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+
+        then:
+        properties.size() == 0
     }
 }
