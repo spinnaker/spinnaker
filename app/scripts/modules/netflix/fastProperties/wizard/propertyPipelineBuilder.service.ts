@@ -1,4 +1,5 @@
 import { module, IQService, IPromise } from 'angular';
+import { flatten, last } from 'lodash';
 import {PropertyCommand} from '../domain/propertyCommand.model';
 import {PropertyPipelineStage} from '../domain/propertyPipelineStage';
 import {IStage} from 'core/domain/IStage';
@@ -28,11 +29,11 @@ export class PropertyPipelineBuilderService {
     let user: IUser = this.authenticationService.getAuthenticatedUser();
     command.user = user;
 
-    let propertyStage: PropertyPipelineStage = this.buildPropertyStage(user, command);
+    let propertyStage: PropertyPipelineStage[] = this.buildPropertyStages(user, command);
 
-    let strategyStage: IStage = command.strategy.buildStage(user, command, propertyStage);
+    let strategyStage: IStage = command.strategy.buildStage(user, command, last(propertyStage));
 
-    let stages: IStage[] = [propertyStage, strategyStage].filter((stage) => !!stage);
+    let stages: IStage[] = flatten([propertyStage, strategyStage]).filter((stage) => !!stage);
 
     return this.getPipelineConfigId(command)
       .then((pipelineConfigId: string) => {
@@ -40,8 +41,8 @@ export class PropertyPipelineBuilderService {
       });
   }
 
-  private buildPropertyStage(user: IUser, command: PropertyCommand): PropertyPipelineStage {
-      return new PropertyPipelineStage(user, command);
+  private buildPropertyStages(user: IUser, command: PropertyCommand): PropertyPipelineStage[] {
+    return command.buildPropertyStages(user);
   }
 
   private createPropertyPipeline(stages: IStage[], pipelineConfigId: string, applicationName: string): PropertyPipeline {

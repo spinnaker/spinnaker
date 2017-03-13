@@ -52,7 +52,10 @@
       <b>{{$ctrl.command.strategy.displayName}}</b> used to create a pipeline with <b class="attention">{{$ctrl.command.pipeline.stages.length}}</b> stage(s):
 
       <ul>
-        <li ng-repeat="stage in $ctrl.command.pipeline.stages"><b>{{stage.name}}</b></li>
+        <li ng-repeat="stage in $ctrl.command.pipeline.stages">
+          <b>{{stage.name}}</b>
+          <span ng-if="stage.description">({{stage.description}})</span>
+        </li>
       </ul>
 
     </div>

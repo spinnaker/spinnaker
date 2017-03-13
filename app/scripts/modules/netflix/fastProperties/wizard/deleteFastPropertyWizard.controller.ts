@@ -1,7 +1,7 @@
 import {module} from 'angular';
 
 import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.componet';
-import { FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT } from './propertyScope/propertyScopeReadOnly.componet';
+import { FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT } from './propertyScope/propertyScopeReadOnly.component';
 import { FAST_PROPERTY_REVIEW_COMPONENT } from './propertyReview/propertyReview.componet';
 import { FAST_PROPERTY_STRATEGY_COMPONENT } from './propertyStrategy/propertyStrategy.componet';
 import { PropertyCommandType }from '../domain/propertyCommandType.enum';

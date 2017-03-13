@@ -1,8 +1,8 @@
-import {module} from 'angular';
+import {module, IScope} from 'angular';
 
-import IModalServiceInstance = angular.ui.bootstrap.IModalServiceInstance;
+import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.componet';
-import { FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT } from './propertyScope/propertyScopeReadOnly.componet';
+import { FAST_PROPERTY_SCOPE_UPDATABLE_COMPONENT } from './propertyScope/propertyScopeUpdatable.component';
 import { FAST_PROPERTY_REVIEW_COMPONENT } from './propertyReview/propertyReview.componet';
 import { FAST_PROPERTY_STRATEGY_COMPONENT } from './propertyStrategy/propertyStrategy.componet';
 import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
@@ -36,7 +36,7 @@ class UpdateFastPropertyWizardController {
   };
 
   constructor (
-    public $scope: ng.IScope,
+    public $scope: IScope,
     public $uibModalInstance: IModalServiceInstance,
     public title: string,
     public applicationName: string,
@@ -82,7 +82,7 @@ export const UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER = 'spinnaker.netflix.fastPro
 
 module(UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER, [
   FAST_PROPERTY_DETAILS_COMPONENT,
-  FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT,
+  FAST_PROPERTY_SCOPE_UPDATABLE_COMPONENT,
   FAST_PROPERTY_STRATEGY_COMPONENT,
   FAST_PROPERTY_REVIEW_COMPONENT,
   APPLICATION_READ_SERVICE,

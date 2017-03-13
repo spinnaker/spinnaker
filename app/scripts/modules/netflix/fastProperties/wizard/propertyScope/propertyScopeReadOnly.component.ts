@@ -20,14 +20,12 @@ export class FastPropertyScopeReadOnlyComponentController implements ng.ICompone
     ];
   }
 
-  constructor(
-    fastPropertyScopeSearchCategoryService: any ) {
+  constructor(fastPropertyScopeSearchCategoryService: any ) {
     fastPropertyScopeSearchCategoryService.getImpactForScope(this.command.scope)
       .then((counts: IImpactCounts) => {
         this.command.scope.instanceCounts = counts;
         return this.command.scope;
       });
-
   }
 
   public selectScope(scopeOption: Scope) {

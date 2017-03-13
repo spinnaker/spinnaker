@@ -1,5 +1,6 @@
 import {PropertyCommand} from './propertyCommand.model';
 import {PropertyCommandType} from './propertyCommandType.enum';
+import {Scope} from './scope.domain';
 
 describe('propertyCommand model', function () {
 
@@ -34,4 +35,76 @@ describe('propertyCommand model', function () {
       expect(propCommand.submitButtonLabel()).toBe('Submit');
     });
   });
+
+  describe('check to move to new scope', function () {
+    it('is move to new scope if originalScope and selectedScope are different', function () {
+      let command: PropertyCommand = new PropertyCommand();
+      let origScope = new Scope();
+      origScope.env = 'prod';
+      origScope.appId = 'mahe';
+      let selectedScope = new Scope();
+      selectedScope.env = 'prod';
+      selectedScope.appId = 'newApp';
+
+      command.originalScope = origScope;
+      command.scope = selectedScope;
+
+      expect(command.isMoveToNewScope()).toBe(true);
+    });
+
+    it('is not a move to new scope if originalScope and selectedScope are same but have different instance counts', function () {
+      let command: PropertyCommand = new PropertyCommand();
+      let origScope = new Scope();
+      origScope.env = 'prod';
+      origScope.appId = 'mahe';
+      origScope.instanceCounts = {up: 1};
+      let selectedScope = new Scope();
+      selectedScope.env = 'prod';
+      selectedScope.appId = 'mahe';
+      selectedScope.instanceCounts = {up: 99};
+
+      command.originalScope = origScope;
+      command.scope = selectedScope;
+
+      expect(command.isMoveToNewScope()).toBe(false);
+    });
+
+
+    it('is not a move to a new scope if the originalScope and the selected scope are the same ', function () {
+      let command: PropertyCommand = new PropertyCommand();
+      let scope = new Scope();
+      scope.env = 'prod';
+      scope.appId = 'mahe';
+
+      command.originalScope = scope;
+      command.scope = scope;
+
+      expect(command.isMoveToNewScope()).toBe(false);
+    });
+
+    it('is not a move to a new scope if there is no new selected scope', function () {
+      let command: PropertyCommand = new PropertyCommand();
+      let scope = new Scope();
+      scope.env = 'prod';
+      scope.appId = 'mahe';
+
+      command.originalScope = scope;
+      command.scope = null;
+
+      expect(command.isMoveToNewScope()).toBe(false);
+    });
+
+    it('is not a move to a new scope if there is no new scope', function () {
+      let command: PropertyCommand = new PropertyCommand();
+      let scope = new Scope();
+      scope.env = 'prod';
+      scope.appId = 'mahe';
+
+      command.originalScope = null;
+      command.scope = scope;
+
+      expect(command.isMoveToNewScope()).toBe(false);
+    });
+  });
+
 });

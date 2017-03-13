@@ -1,10 +1,10 @@
-import { module } from 'angular';
+import { module, IComponentController, IComponentOptions} from 'angular';
 import { FAST_PROPERTY_SCOPE_SEARCH_COMPONENT } from '../../scope/fastPropertyScopeSearch.component';
 import { FAST_PROPERTY_READ_SERVICE } from '../../fastProperty.read.service';
 import {PropertyCommand} from '../../domain/propertyCommand.model';
 import {Scope} from '../../domain/scope.domain';
 
-export class FastPropertyScopeComponentController implements ng.IComponentController {
+export class FastPropertyScopeComponentController implements IComponentController {
   public isEditing = false;
   public impactCount: string;
   public impactLoading: boolean;
@@ -22,7 +22,7 @@ export class FastPropertyScopeComponentController implements ng.IComponentContro
   }
 }
 
-class FastPropertyScopeComponent implements ng.IComponentOptions {
+class FastPropertyScopeComponent implements IComponentOptions {
   public templateUrl: string = require('./propertyScope.component.html');
   public controller: any = FastPropertyScopeComponentController;
   public bindings: any = {
