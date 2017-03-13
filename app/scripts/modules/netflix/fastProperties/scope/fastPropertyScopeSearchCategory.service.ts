@@ -101,7 +101,7 @@ export class FastPropertyScopeCategoryService {
   }
 
   public impactCountForRegions(scope: Scope): ng.IPromise<IImpactCounts> {
-    return this.fastPropertyReader.fetchImpactCountForScope({region: scope.region})
+    return this.fastPropertyReader.fetchImpactCountForScope(scope)
       .then((results: any) => {
         return <IImpactCounts>{total: results.count, up: results.count};
       });
@@ -301,4 +301,3 @@ module(FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, [
   FAST_PROPERTY_READ_SERVICE
 ])
   .service('fastPropertyScopeSearchCategoryService', FastPropertyScopeCategoryService);
-
