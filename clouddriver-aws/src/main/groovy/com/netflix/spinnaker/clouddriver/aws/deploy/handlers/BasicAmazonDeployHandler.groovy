@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
@@ -45,9 +46,11 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import groovy.transform.PackageScope
+import groovy.util.logging.Slf4j
 
 import java.util.regex.Pattern
 
+@Slf4j
 class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"
 
@@ -385,7 +388,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
     List<AmazonAsgLifecycleHook> lifecycleHooks = getLifecycleHooks(targetCredentials, description)
     if (lifecycleHooks.size() > 0) {
-      targetRegionScopedProvider.asgLifecycleHookWorker.attach(task, lifecycleHooks, targetAsgName)
+      try {
+        targetRegionScopedProvider.asgLifecycleHookWorker.attach(task, lifecycleHooks, targetAsgName)
+      } catch (AmazonServiceException ase) {
+        task.updateStatus(BASE_PHASE, "Unable to attach lifecycle hooks to ASG ($targetAsgName): ${ase.message}")
+      }
     }
   }
 
