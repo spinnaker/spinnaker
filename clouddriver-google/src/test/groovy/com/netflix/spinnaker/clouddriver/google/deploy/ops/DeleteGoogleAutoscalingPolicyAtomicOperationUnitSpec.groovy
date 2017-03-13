@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.InstanceGroupManagersSetAutoHealingRequest
+import com.google.api.services.compute.model.RegionInstanceGroupManagersSetAutoHealingRequest
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -93,6 +95,66 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     }
 
     where:
-    isRegional << [ true, false ]
+    isRegional << [true, false]
+  }
+
+  @Unroll
+  void "should delete zonal and regional autoHealing policy"() {
+    setup:
+    def registry = new DefaultRegistry()
+    def googleClusterProviderMock = Mock(GoogleClusterProvider)
+    def computeMock = Mock(Compute)
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+    def description = new DeleteGoogleAutoscalingPolicyDescription(
+      serverGroupName: SERVER_GROUP_NAME,
+      region: REGION,
+      accountName: ACCOUNT_NAME,
+      credentials: credentials,
+      deleteAutoHealingPolicy: true
+    )
+    def serverGroup = new GoogleServerGroup(zone: ZONE, regional: isRegional).view
+
+    // zonal setup
+    def zonalRequest = new InstanceGroupManagersSetAutoHealingRequest().setAutoHealingPolicies([])
+    def zonalManagerMock = Mock(Compute.InstanceGroupManagers)
+    def zonalSetAutoHealingPolicyMock = Mock(Compute.InstanceGroupManagers.SetAutoHealingPolicies)
+
+    // regional setup
+    def regionalRequest = new RegionInstanceGroupManagersSetAutoHealingRequest().setAutoHealingPolicies([])
+    def regionalManagerMock = Mock(Compute.RegionInstanceGroupManagers)
+    def regionalSetAutoHealingPolicyMock = Mock(Compute.RegionInstanceGroupManagers.SetAutoHealingPolicies)
+
+    @Subject def operation = new DeleteGoogleAutoscalingPolicyAtomicOperation(description)
+    operation.registry = registry
+    operation.googleClusterProvider = googleClusterProviderMock
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
+
+    if (isRegional) {
+      computeMock.regionInstanceGroupManagers() >> regionalManagerMock
+      regionalManagerMock.setAutoHealingPolicies(PROJECT_NAME, REGION, SERVER_GROUP_NAME, regionalRequest) >> regionalSetAutoHealingPolicyMock
+      registry.timer(
+        registry.createId("google.api",
+          [api: "compute.instanceGroupManagers.setAutoHealingPolicies",
+           scope: "zone", region: REGION,
+           success: "true", statusCode: "0"]
+        )).count() == 1
+    } else {
+      computeMock.instanceGroupManagers() >> zonalManagerMock
+      zonalManagerMock.setAutoHealingPolicies(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, zonalRequest) >> zonalSetAutoHealingPolicyMock
+      registry.timer(
+        registry.createId("google.api",
+          [api: "compute.regionInstanceGroupManagers.setAutoHealingPolicies",
+           scope: "regional", zone: ZONE,
+           success: "true", statusCode: "0"]
+      )).count() == 1
+    }
+
+    where:
+    isRegional << [true, false]
   }
 }

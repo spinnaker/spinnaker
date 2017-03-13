@@ -20,4 +20,5 @@ class DeleteGoogleAutoscalingPolicyDescription extends AbstractGoogleCredentials
   String serverGroupName
   String accountName
   String region
+  boolean deleteAutoHealingPolicy
 }

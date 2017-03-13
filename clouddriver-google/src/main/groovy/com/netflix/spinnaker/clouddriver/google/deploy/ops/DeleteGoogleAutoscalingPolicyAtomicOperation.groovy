@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
+import com.google.api.services.compute.model.InstanceGroupManagersSetAutoHealingRequest
+import com.google.api.services.compute.model.RegionInstanceGroupManagersSetAutoHealingRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
@@ -40,13 +42,16 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
   }
 
   /**
+   * Autoscaling policy:
    * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteScalingPolicy": { "serverGroupName": "autoscale-regional", "credentials": "my-google-account", "region": "us-central1" }} ]' localhost:7002/gce/ops
    * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteScalingPolicy": { "serverGroupName": "autoscale-zonal", "credentials": "my-google-account", "region": "us-central1" }} ]' localhost:7002/gce/ops
+   *
+   * AutoHealing policy:
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteScalingPolicy": { "serverGroupName": "autoscale-zonal", "credentials": "my-google-account", "region": "us-central1", "deleteAutoHealingPolicy": true }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
 
-    task.updateStatus BASE_PHASE, "Initializing deletion of scaling policy for $description.serverGroupName..."
 
     def credentials = description.credentials
     def serverGroupName = description.serverGroupName
@@ -58,19 +63,38 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     def isRegional = serverGroup.regional
     def zone = serverGroup.zone
 
-    if (isRegional) {
-      timeExecute(
-          compute.regionAutoscalers().delete(project, region, serverGroupName),
-          "compute.regionAutoscalers.delete",
+    if (description.deleteAutoHealingPolicy) {
+      task.updateStatus BASE_PHASE, "Initializing deletion of autoHealing policy for $description.serverGroupName..."
+      if (isRegional) {
+        def request = new RegionInstanceGroupManagersSetAutoHealingRequest().setAutoHealingPolicies([])
+        timeExecute(
+          compute.regionInstanceGroupManagers().setAutoHealingPolicies(project, region, serverGroupName, request),
+          "compute.regionInstanceGroupManagers.setAutoHealingPolicies",
           TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
-    } else {
-      timeExecute(
-          compute.autoscalers().delete(project, zone, serverGroupName),
-          "compute.autoscalers.delete",
+      } else {
+        def request = new InstanceGroupManagersSetAutoHealingRequest().setAutoHealingPolicies([])
+        timeExecute(
+          compute.instanceGroupManagers().setAutoHealingPolicies(project, zone, serverGroupName, request),
+          "compute.instanceGroupManagers.setAutoHealingPolicies",
           TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+      }
+      task.updateStatus BASE_PHASE, "Done deleting autoHealing policy for $serverGroupName."
+    } else {
+      task.updateStatus BASE_PHASE, "Initializing deletion of scaling policy for $description.serverGroupName..."
+      if (isRegional) {
+        timeExecute(
+            compute.regionAutoscalers().delete(project, region, serverGroupName),
+            "compute.regionAutoscalers.delete",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+      } else {
+        timeExecute(
+            compute.autoscalers().delete(project, zone, serverGroupName),
+            "compute.autoscalers.delete",
+            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
+      }
+      task.updateStatus BASE_PHASE, "Done deleting scaling policy for $serverGroupName."
     }
 
-    task.updateStatus BASE_PHASE, "Done deleting scaling policy for $serverGroupName..."
-    null
+    return null
   }
 }
