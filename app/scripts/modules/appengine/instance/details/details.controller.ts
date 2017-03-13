@@ -6,6 +6,7 @@ import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirm
 import {INSTANCE_READ_SERVICE, InstanceReader} from 'core/instance/instance.read.service';
 import {INSTANCE_WRITE_SERVICE, InstanceWriter} from 'core/instance/instance.write.service';
 import {IAppengineInstance} from 'appengine/domain/index';
+import {RECENT_HISTORY_SERVICE, RecentHistoryService} from 'core/history/recentHistory.service';
 
 interface InstanceFromStateParams {
   instanceId: string;
@@ -14,6 +15,8 @@ interface InstanceFromStateParams {
 interface InstanceContainer {
   account: string;
   region: string;
+  category: string; // e.g., serverGroup, loadBalancer.
+  name: string; // Parent resource name, not instance name.
   instances: IAppengineInstance[];
 }
 
@@ -26,7 +29,7 @@ class AppengineInstanceDetailsController {
     An App Engine instance is 'Out Of Service' if no load balancers are directing traffic to its server group.`;
 
   static get $inject() {
-    return ['$q', 'app', 'instanceReader', 'instanceWriter', 'confirmationModalService', 'instance'];
+    return ['$q', 'app', 'instanceReader', 'instanceWriter', 'confirmationModalService', 'instance', 'recentHistoryService'];
   }
 
   constructor(private $q: IQService,
@@ -34,7 +37,8 @@ class AppengineInstanceDetailsController {
               private instanceReader: InstanceReader,
               private instanceWriter: InstanceWriter,
               private confirmationModalService: ConfirmationModalService,
-              instance: InstanceFromStateParams) {
+              instance: InstanceFromStateParams,
+              private recentHistoryService: RecentHistoryService) {
     this.app.ready()
       .then(() => this.retrieveInstance(instance))
       .then((instanceDetails) => {
@@ -90,6 +94,15 @@ class AppengineInstanceDetailsController {
     let instanceContainer = dataSources.find(instanceLocatorPredicate);
 
     if (instanceContainer) {
+      let recentHistoryExtraData: {[key: string]: string} = {
+        region: instanceContainer.region,
+        account: instanceContainer.account,
+      };
+      if (instanceContainer.category === 'serverGroup') {
+        recentHistoryExtraData.serverGroup = instanceContainer.name;
+      }
+      this.recentHistoryService.addExtraDataToLatest('instances', recentHistoryExtraData);
+
       return this.instanceReader
         .getInstanceDetails(instanceContainer.account, instanceContainer.region, instance.instanceId)
         .then((instanceDetails: IAppengineInstance) => {
@@ -109,4 +122,5 @@ module(APPENGINE_INSTANCE_DETAILS_CTRL, [
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
+  RECENT_HISTORY_SERVICE,
 ]).controller('appengineInstanceDetailsCtrl', AppengineInstanceDetailsController);
