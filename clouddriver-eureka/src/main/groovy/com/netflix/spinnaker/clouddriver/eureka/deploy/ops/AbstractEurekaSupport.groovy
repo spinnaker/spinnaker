@@ -49,6 +49,19 @@ abstract class AbstractEurekaSupport {
                                          String phaseName,
                                          DiscoveryStatus discoveryStatus,
                                          List<String> instanceIds) {
+    updateDiscoveryStatusForInstances(
+      description, task, phaseName, discoveryStatus, instanceIds, eurekaSupportConfigurationProperties.retryMax, eurekaSupportConfigurationProperties.retryMax
+    )
+  }
+
+
+  void updateDiscoveryStatusForInstances(def description,
+                                         Task task,
+                                         String phaseName,
+                                         DiscoveryStatus discoveryStatus,
+                                         List<String> instanceIds,
+                                         int findApplicationNameRetryMax,
+                                         int updateEurekaRetryMax) {
 
     if (eurekaSupportConfigurationProperties == null) {
       throw new IllegalStateException("eureka configuration not supplied")
@@ -58,7 +71,7 @@ abstract class AbstractEurekaSupport {
     def random = new Random()
     def applicationName = null
     try {
-      applicationName = retry(task, phaseName, eurekaSupportConfigurationProperties.retryMax) { retryCount ->
+      applicationName = retry(task, phaseName, findApplicationNameRetryMax) { retryCount ->
         def instanceId = instanceIds[random.nextInt(instanceIds.size())]
         task.updateStatus phaseName, "Looking up discovery application name for instance $instanceId (attempt: $retryCount)"
 
@@ -73,6 +86,12 @@ abstract class AbstractEurekaSupport {
       if (discoveryStatus == DiscoveryStatus.Enable || verifyInstanceAndAsgExist(description.credentials, description.region, null, description.asgName)) {
         throw e
       }
+    }
+
+    // In rare (delayed evented) cases, calls to update discovery status may happen against instances that no longer exist
+    if (applicationName == null) {
+      task.updateStatus phaseName, "Could not find application name in Discovery or AWS, short-circuiting (asg: ${description.asgName}, region: ${description.region})"
+      return
     }
 
     def errors = [:]
@@ -104,7 +123,7 @@ abstract class AbstractEurekaSupport {
       }
 
       try {
-        retry(task, phaseName, eurekaSupportConfigurationProperties.retryMax) { retryCount ->
+        retry(task, phaseName, updateEurekaRetryMax) { retryCount ->
           task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery (attempt: ${retryCount})."
 
           Response resp

@@ -107,6 +107,56 @@ class DiscoverySupportUnitSpec extends Specification {
     0 * eureka.updateInstanceStatus(*_)
   }
 
+  void "should short-circuit if application name is not in discovery and server group does not exist"() {
+    given:
+    def discoverySupport = new AwsEurekaSupport() {
+      {
+        clusterProviders = []
+      }
+
+      @Override
+      protected long getDiscoveryRetryMs() {
+        return 0
+      }
+
+      @Override
+      boolean verifyInstanceAndAsgExist(def credentials, String region, String instanceId, String asgName) {
+        return false
+      }
+    }
+    discoverySupport.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
+      getAmazonClientProvider() >> {
+        return Stub(AmazonClientProvider)
+      }
+
+      forRegion(_, _) >> {
+        return Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+          getEureka() >> eureka
+        }
+      }
+    }
+    discoverySupport.eurekaSupportConfigurationProperties = new EurekaSupportConfigurationProperties()
+
+    and:
+    def task = Mock(Task)
+    def description = new EnableDisableInstanceDiscoveryDescription(
+      asgName: 'myapp-test-v000',
+      region: 'us-east-1',
+      credentials: TestCredential.named('test', [discovery: 'http://{{region}}.discovery.netflix.net'])
+    )
+    def instances = ["i-123456"]
+
+    when:
+    discoverySupport.updateDiscoveryStatusForInstances(
+      description, task, "phase", AbstractEurekaSupport.DiscoveryStatus.Disable, instances
+    )
+
+    then:
+    discoverySupport.eurekaSupportConfigurationProperties.retryMax * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    0 * eureka.updateInstanceStatus(*_)
+    1 * task.updateStatus(_, "Could not find application name in Discovery or AWS, short-circuiting (asg: myapp-test-v000, region: us-east-1)")
+  }
+
   void "should enable each instance individually in discovery"() {
     given:
     def task = Mock(Task)

@@ -212,7 +212,8 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     description.setInstanceIds(instanceIds);
 
     discoverySupport.get().updateDiscoveryStatusForInstances(
-      description, task, "handleLifecycleMessage", DiscoveryStatus.Disable, instanceIds
+      description, task, "handleLifecycleMessage", DiscoveryStatus.Disable, instanceIds,
+      properties.getEurekaFindApplicationRetryMax(), properties.getEurekaUpdateStatusRetryMax()
     );
 
     recordLag(message.time, queueARN.region, message.accountId, message.autoScalingGroupName, message.ec2InstanceId);

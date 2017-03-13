@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -35,7 +35,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.regex.Pattern;
 
 @Component
-@ConditionalOnProperty("aws.lifecycleSubscribers.instanceTermination.enabled")
+@ConditionalOnExpression("${aws.lifecycleSubscribers.instanceTermination.enabled:false} && ${caching.writeEnabled:true}")
 public class InstanceTerminationLifecycleWorkerProvider {
   private final static String REGION_TEMPLATE_PATTERN = Pattern.quote("{{region}}");
   private final static String ACCOUNT_ID_TEMPLATE_PATTERN = Pattern.quote("{{accountId}}");
@@ -87,7 +87,9 @@ public class InstanceTerminationLifecycleWorkerProvider {
             .replaceAll(ACCOUNT_ID_TEMPLATE_PATTERN, credentials.getAccountId()),
           properties.getVisibilityTimeout(),
           properties.getWaitTimeSeconds(),
-          properties.getSqsMessageRetentionPeriodSeconds()
+          properties.getSqsMessageRetentionPeriodSeconds(),
+          properties.getEurekaFindApplicationRetryMax(),
+          properties.getEurekaUpdateStatusRetryMax()
         ),
         discoverySupport,
         registry

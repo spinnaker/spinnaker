@@ -73,6 +73,8 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
       topicARN.arn,
       -1,
       -1,
+      -1,
+      -1,
       -1
     ),
     awsEurekaSupportProvider,
@@ -140,7 +142,9 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
       _ as Task,
       'handleLifecycleMessage',
       DiscoveryStatus.Disable,
-      ['i-1234']
+      ['i-1234'],
+      -1,
+      -1
     )
   }
 

@@ -27,6 +27,8 @@ class InstanceTerminationConfigurationProperties {
   int visibilityTimeout = 30
   int waitTimeSeconds = 5
   int sqsMessageRetentionPeriodSeconds = 120
+  int eurekaFindApplicationRetryMax = 3
+  int eurekaUpdateStatusRetryMax = 3
 
   InstanceTerminationConfigurationProperties() {
     // default constructor
@@ -37,12 +39,16 @@ class InstanceTerminationConfigurationProperties {
                                              String topicARN,
                                              int visibilityTimeout,
                                              int waitTimeSeconds,
-                                             int sqsMessageRetentionPeriodSeconds) {
+                                             int sqsMessageRetentionPeriodSeconds,
+                                             int eurekaFindApplicationRetryMax,
+                                             int eurekaUpdateStatusRetryMax) {
     this.accountName = accountName
     this.queueARN = queueARN
     this.topicARN = topicARN
     this.visibilityTimeout = visibilityTimeout
     this.waitTimeSeconds = waitTimeSeconds
     this.sqsMessageRetentionPeriodSeconds = sqsMessageRetentionPeriodSeconds
+    this.eurekaFindApplicationRetryMax = eurekaFindApplicationRetryMax
+    this.eurekaUpdateStatusRetryMax = eurekaUpdateStatusRetryMax
   }
 }
