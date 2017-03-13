@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.description
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable
@@ -44,7 +45,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   Set<String> securityGroups
   GoogleAutoscalingPolicy autoscalingPolicy
   GoogleHttpLoadBalancingPolicy loadBalancingPolicy
-  AutoHealingPolicy autoHealingPolicy
+  GoogleAutoHealingPolicy autoHealingPolicy
   // Capacity is optional. If it is specified, capacity.desired takes precedence over targetSize.
   // If autoscalingPolicy is also specified, capacity.min and capacity.max take precedence over
   // autoscalingPolicy.minNumReplicas and autoscalingPolicy.maxNumReplicas.

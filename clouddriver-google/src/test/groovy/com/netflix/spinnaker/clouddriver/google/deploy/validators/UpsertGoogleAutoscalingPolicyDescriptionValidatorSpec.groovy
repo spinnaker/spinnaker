@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CustomMetricUtilization.UtilizationTargetType
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
@@ -49,6 +50,11 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
     cpuUtilization: CPU_UTILIZATION,
     loadBalancingUtilization: LOAD_BALANCING_UTILIZATION,
     customMetricUtilizations: CUSTOM_METRIC_UTILIZATIONS)
+  private static final GOOGLE_AUTOHEALING_POLICY = new GoogleAutoHealingPolicy(
+    healthCheck: "hc",
+    initialDelaySec: 5,
+    maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(percent: 0.5)
+  )
 
   @Shared
   UpsertGoogleAutoscalingPolicyDescriptionValidator validator
@@ -68,6 +74,7 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
       region: REGION,
       serverGroupName: SERVER_GROUP_NAME,
       autoscalingPolicy: GOOGLE_SCALING_POLICY,
+      autoHealingPolicy: GOOGLE_AUTOHEALING_POLICY,
       accountName: ACCOUNT_NAME)
     def errors = Mock(Errors)
 
@@ -76,6 +83,22 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidatorSpec extends Specificatio
 
     then:
     0 * errors._
+  }
+
+  void "fail validation if neither autoscaling or autoHealing policy is set"() {
+    setup:
+    def description = new UpsertGoogleAutoscalingPolicyDescription(
+      region: REGION,
+      serverGroupName: SERVER_GROUP_NAME,
+      accountName: ACCOUNT_NAME)
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy", _)
+      1 * errors.rejectValue("autoHealingPolicy", _)
   }
 
   void "null input fails validation"() {

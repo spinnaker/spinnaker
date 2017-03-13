@@ -522,13 +522,13 @@ class GCEUtil {
     }
   }
 
-  static BasicGoogleDeployDescription.AutoHealingPolicy buildAutoHealingPolicyDescriptionFromAutoHealingPolicy(
+  static GoogleAutoHealingPolicy buildAutoHealingPolicyDescriptionFromAutoHealingPolicy(
     InstanceGroupManagerAutoHealingPolicy autoHealingPolicy) {
     if (!autoHealingPolicy) {
       return null
     }
 
-    return new BasicGoogleDeployDescription.AutoHealingPolicy(
+    return new GoogleAutoHealingPolicy(
       healthCheck: Utils.getLocalName(autoHealingPolicy.healthCheck),
       initialDelaySec: autoHealingPolicy.initialDelaySec,
       maxUnavailable: autoHealingPolicy.maxUnavailable

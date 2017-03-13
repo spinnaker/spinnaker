@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CustomMetricUtilization.UtilizationTargetType
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
@@ -821,7 +822,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateAutoHealingPolicy(new BasicGoogleDeployDescription.AutoHealingPolicy(
+      validator.validateAutoHealingPolicy(new GoogleAutoHealingPolicy(
         healthCheck: "some-hc",
         maxUnavailable: [fixed: fixed, percent: percent]))
 
@@ -846,7 +847,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateAutoHealingPolicy(new BasicGoogleDeployDescription.AutoHealingPolicy(
+      validator.validateAutoHealingPolicy(new GoogleAutoHealingPolicy(
         healthCheck: "some-hc",
         maxUnavailable: []))
 
@@ -854,7 +855,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       1 * errors.rejectValue("autoHealingPolicy.maxUnavailable", "decorator.autoHealingPolicy.maxUnavailable.neitherFixedNorPercent")
 
     when:
-      validator.validateAutoHealingPolicy(new BasicGoogleDeployDescription.AutoHealingPolicy(
+      validator.validateAutoHealingPolicy(new GoogleAutoHealingPolicy(
         healthCheck: "some-hc",
         maxUnavailable: [fixed: -1]))
 
@@ -862,7 +863,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       1 * errors.rejectValue("autoHealingPolicy.maxUnavailable.fixed", "decorator.autoHealingPolicy.maxUnavailable.fixed.negative")
 
     when:
-      validator.validateAutoHealingPolicy(new BasicGoogleDeployDescription.AutoHealingPolicy(
+      validator.validateAutoHealingPolicy(new GoogleAutoHealingPolicy(
         healthCheck: "some-hc",
         maxUnavailable: [percent: -1]))
 

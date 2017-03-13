@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
@@ -218,7 +219,7 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
     newDescription.autoscalingPolicy = description.autoscalingPolicy ?: ancestorAutoscalingPolicyDescription
 
     InstanceGroupManagerAutoHealingPolicy ancestorAutoHealingPolicy = ancestorServerGroup.autoHealingPolicy
-    BasicGoogleDeployDescription.AutoHealingPolicy ancestorAutoHealingPolicyDescription =
+    GoogleAutoHealingPolicy ancestorAutoHealingPolicyDescription =
       GCEUtil.buildAutoHealingPolicyDescriptionFromAutoHealingPolicy(ancestorAutoHealingPolicy)
 
     newDescription.autoHealingPolicy = description.autoHealingPolicy ?: ancestorAutoHealingPolicyDescription

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
@@ -431,11 +431,14 @@ class StandardGceAttributeValidator {
     }
   }
 
-  def validateAutoHealingPolicy(BasicGoogleDeployDescription.AutoHealingPolicy policy) {
+  def validateAutoHealingPolicy(GoogleAutoHealingPolicy policy, boolean rejectEmptyMaxUnavailable = true) {
     policy?.with {
+      if (initialDelaySec != null) {
+        validateNonNegativeLong(initialDelaySec, "autoHealingPolicy.initialDelaySec")
+      }
+
       if (healthCheck != null) {
         validateName(healthCheck, "autoHealingPolicy.healthCheck")
-        validateNonNegativeLong(initialDelaySec, "autoHealingPolicy.initialDelaySec")
 
         maxUnavailable?.with {
           if (fixed != null) {
@@ -443,7 +446,7 @@ class StandardGceAttributeValidator {
           } else if (percent != null) {
             validateInRangeInclusive(percent as int,
                                      0, 100, "autoHealingPolicy.maxUnavailable.percent")
-          } else {
+          } else if (rejectEmptyMaxUnavailable) {
             this.errors.rejectValue("autoHealingPolicy.maxUnavailable",
                                     "${this.context}.autoHealingPolicy.maxUnavailable.neitherFixedNorPercent")
           }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 
 class UpsertGoogleAutoscalingPolicyDescription extends AbstractGoogleCredentialsDescription {
@@ -23,4 +24,5 @@ class UpsertGoogleAutoscalingPolicyDescription extends AbstractGoogleCredentials
   String region
   String accountName
   GoogleAutoscalingPolicy autoscalingPolicy
+  GoogleAutoHealingPolicy autoHealingPolicy
 }

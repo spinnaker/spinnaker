@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
@@ -176,7 +177,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                                  maxNumReplicas: 9
                                                              ),
                                                          autoHealingPolicy:
-                                                             new BasicGoogleDeployDescription.AutoHealingPolicy(
+                                                             new GoogleAutoHealingPolicy(
                                                                  healthCheck: 'different-health-check',
                                                                  initialDelaySec: 900,
                                                                  maxUnavailable: [fixed: 5]
@@ -240,7 +241,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.autoscalingPolicy = new GoogleAutoscalingPolicy(coolDownPeriodSec: 45,
                                                                      minNumReplicas: 2,
                                                                      maxNumReplicas: 5)
-      newDescription.autoHealingPolicy = new BasicGoogleDeployDescription.AutoHealingPolicy(healthCheck: 'some-health-check',
+      newDescription.autoHealingPolicy = new GoogleAutoHealingPolicy(healthCheck: 'some-health-check',
                                                                                             initialDelaySec: 600)
 
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])

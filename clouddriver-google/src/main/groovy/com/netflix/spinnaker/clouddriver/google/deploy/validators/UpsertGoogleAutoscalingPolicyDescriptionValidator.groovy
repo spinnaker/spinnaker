@@ -40,7 +40,13 @@ class UpsertGoogleAutoscalingPolicyDescriptionValidator extends
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateRegion(description.region, description.credentials)
     helper.validateServerGroupName(description.serverGroupName)
-    helper.validateNotEmpty(description.autoscalingPolicy, "autoscalingPolicy")
+
+    if (!(description.autoscalingPolicy || description.autoHealingPolicy)) {
+      helper.validateNotEmpty(description.autoscalingPolicy, "autoHealingPolicy")
+      helper.validateNotEmpty(description.autoscalingPolicy, "autoscalingPolicy")
+    }
+
     helper.validateAutoscalingPolicy(description.autoscalingPolicy)
+    helper.validateAutoHealingPolicy(description.autoHealingPolicy, false)
   }
 }

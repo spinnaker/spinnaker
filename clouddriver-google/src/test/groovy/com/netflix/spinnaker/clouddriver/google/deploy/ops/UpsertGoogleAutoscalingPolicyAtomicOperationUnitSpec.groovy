@@ -21,11 +21,13 @@ import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.AutoscalingPolicyCpuUtilization
 import com.google.api.services.compute.model.AutoscalingPolicyCustomMetricUtilization
 import com.google.api.services.compute.model.AutoscalingPolicyLoadBalancingUtilization
+import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleAutoscalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CustomMetricUtilization.UtilizationTargetType
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
@@ -343,5 +345,62 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     isRegional | location
     false      | ZONE
     true       | REGION
+  }
+
+  void "builds autoHealing policy based on ancestor autoHealing policy and input description; overrides everything"() {
+    given:
+    def ancestorPolicy = new GoogleAutoHealingPolicy(
+      healthCheck: 'ancestor',
+      initialDelaySec: 100,
+      maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(percent: 1)
+    )
+
+    def inputDescription = new GoogleAutoHealingPolicy(
+      healthCheck: 'update',
+      initialDelaySec: 200,
+      maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(fixed: 10)
+    )
+
+    expect:
+    UpsertGoogleAutoscalingPolicyAtomicOperation
+      .copyAndOverrideAncestorAutoHealingPolicy(ancestorPolicy, inputDescription) == inputDescription
+  }
+
+  void "builds autoHealing policy based on ancestor autoHealing policy and input description; overrides nothing"() {
+    given:
+    def ancestorPolicy = new GoogleAutoHealingPolicy(
+      healthCheck: 'ancestor',
+      initialDelaySec: 100,
+      maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(percent: 1)
+    )
+
+    def inputDescription = new GoogleAutoHealingPolicy(
+      healthCheck: null,
+      initialDelaySec: null,
+      maxUnavailable: null
+    )
+
+    expect:
+    UpsertGoogleAutoscalingPolicyAtomicOperation
+      .copyAndOverrideAncestorAutoHealingPolicy(ancestorPolicy, inputDescription) == ancestorPolicy
+  }
+
+  void "if the input description's maxUnavailable is empty object, the resulting policy has no maxUnavailable property"() {
+    given:
+    def ancestorPolicy = new GoogleAutoHealingPolicy(
+      healthCheck: 'ancestor',
+      initialDelaySec: 100,
+      maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(percent: 1)
+    )
+
+    def inputDescription = new GoogleAutoHealingPolicy(
+      healthCheck: null,
+      initialDelaySec: null,
+      maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent()
+    )
+
+    expect:
+    UpsertGoogleAutoscalingPolicyAtomicOperation
+      .copyAndOverrideAncestorAutoHealingPolicy(ancestorPolicy, inputDescription).maxUnavailable == null
   }
 }
