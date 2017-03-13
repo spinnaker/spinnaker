@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import io.fabric8.kubernetes.api.model.NamedContext;
@@ -35,11 +36,14 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.WARNING;
 
 @Component
@@ -118,8 +122,14 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
       try {
         client.namespaces().list();
       } catch (Exception e) {
-        psBuilder.addProblem(ERROR, "Unable to communicate with your Kubernetes cluster: " + e.getMessage() + ".")
-            .setRemediation("Verify that your kubernetes credentials work manually using \"kubectl\".");
+        ConfigProblemBuilder pb = psBuilder.addProblem(ERROR, "Unable to communicate with your Kubernetes cluster: " + e.getMessage() + ".");
+
+        if (e.getMessage().contains("Token may have expired")) {
+          pb.setRemediation("If you downloaded these keys with gcloud, it's possible they are in the wrong format. To fix this, run \n\n"
+              + "gcloud config set container/use_client_certificate true\n\ngcloud container clusters get-credentials $CLUSTERNAME");
+        } else {
+          pb.setRemediation("Unable to authenticate with your Kubernetes cluster. Try using kubectl to verify your credentials.");
+        }
       }
     }
   }
@@ -144,7 +154,15 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
           .stream()
           .map(Account::getName).collect(Collectors.toList());
 
+      Set<String> names = new HashSet<>();
+
       for (DockerRegistryReference registryReference : dockerRegistries) {
+        String registryName = registryReference.getAccountName();
+        if (names.contains(registryName)) {
+          psBuilder.addProblem(FATAL, "Docker registry " + registryName + " has been added twice.");
+        }
+        names.add(registryName);
+
         if (!availableRegistries.contains(registryReference.getAccountName())) {
           psBuilder.addProblem(ERROR, "The chosen registry \"" + registryReference.getAccountName() + "\" has not been configured in your halconfig.", "dockerRegistries")
               .setRemediation("Either add \"" + registryReference.getAccountName() + "\" as a new Docker Registry account, or pick a different one.");
