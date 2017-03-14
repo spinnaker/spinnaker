@@ -135,9 +135,10 @@ class ContextParameterProcessor {
       evaluationContext.registerFunction('toBoolean', ContextUtilities.getDeclaredMethod("toBoolean", String))
 
       // only add methods that are context sensitive at stage evaluation time
-      if(allowUnknownKeys) {
+      if (allowUnknownKeys) {
         evaluationContext.registerFunction('fromUrl', ContextUtilities.getDeclaredMethod("fromUrl", String))
         evaluationContext.registerFunction('jsonFromUrl', ContextUtilities.getDeclaredMethod("jsonFromUrl", String))
+        evaluationContext.registerFunction('propertiesFromUrl', ContextUtilities.getDeclaredMethod("propertiesFromUrl", String))
         evaluationContext.registerFunction('stage', ContextUtilities.getDeclaredMethod("stage", Object, String))
         evaluationContext.registerFunction('judgment', ContextUtilities.getDeclaredMethod("judgment", Object, String))
 
@@ -195,6 +196,18 @@ abstract class ContextUtilities {
 
   static Object readJson(String text) {
     new ObjectMapper().readValue(text, text.startsWith('[') ? List : Map)
+  }
+
+  static Map propertiesFromUrl(String url) {
+    readProperties(fromUrl(url))
+  }
+
+  static Map readProperties(String text) {
+    Map map = [:]
+    Properties properties = new Properties()
+    properties.load(new ByteArrayInputStream(text.bytes))
+    map = map << properties
+    map
   }
 
   static Object jsonFromUrl(String url) {
