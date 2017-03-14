@@ -43,7 +43,6 @@ import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.V2_EXECUTION_ENGINE
-import static java.time.Instant.now
 import static java.time.ZoneOffset.UTC
 
 @RestController
@@ -91,7 +90,8 @@ class TaskController {
       statuses: (statuses.split(",") as Collection)
     )
 
-    def startTimeCutoff = now()
+    def startTimeCutoff = clock
+      .instant()
       .atZone(UTC)
       .minusDays(daysOfExecutionHistory)
       .toInstant()
