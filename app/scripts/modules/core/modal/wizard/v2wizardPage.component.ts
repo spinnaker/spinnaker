@@ -80,7 +80,7 @@ export class WizardPageController implements ng.IComponentController {
 
   public constructor(private $scope: ng.IScope, private v2modalWizardService: any) {}
 
-  $onInit() {
+  public $onInit() {
     this.render = this.render !== false;
     this.markCompleteOnView = this.markCompleteOnView !== false;
 

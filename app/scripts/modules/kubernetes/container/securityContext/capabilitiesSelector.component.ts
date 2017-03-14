@@ -8,8 +8,8 @@ interface ICapabilitiesSelectorField {
 }
 
 class CapabilitiesSelector implements ng.IComponentController {
-  component: any;
-  fields: ICapabilitiesSelectorField[] = [
+  public component: any;
+  public fields: ICapabilitiesSelectorField[] = [
     {
       label: 'Add',
       buttonLabel: 'Add Linux Capability',
@@ -36,11 +36,11 @@ class CapabilitiesSelector implements ng.IComponentController {
 }
 
 class CapabilitiesSelectorComponent implements ng.IComponentOptions {
-  bindings: any = {
+  public bindings: any = {
     component: '=',
   };
-  templateUrl: string = require('./capabilitiesSelector.component.html');
-  controller: any = CapabilitiesSelector;
+  public templateUrl: string = require('./capabilitiesSelector.component.html');
+  public controller: any = CapabilitiesSelector;
 }
 
 export const KUBERNETES_CAPABILITIES_SELECTOR = 'spinnaker.kubernetes.securityContext.capabilitiesSelector.component';

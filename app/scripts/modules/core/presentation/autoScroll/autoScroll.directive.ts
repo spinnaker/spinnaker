@@ -55,24 +55,23 @@ export class AutoScrollController implements ng.IComponentController {
 
 @DirectiveFactory('$timeout')
 class AutoScrollDirective implements ng.IDirective {
-  restrict = 'A';
-  controller: any = AutoScrollController;
-  controllerAs = '$ctrl';
-  bindToController: any = {
+  public restrict = 'A';
+  public controller: any = AutoScrollController;
+  public controllerAs = '$ctrl';
+  public bindToController: any = {
     autoScrollParent: '@?',
     autoScrollEnabled: '@?',
     onScroll: '=?',
     scrollToTop: '=?',
   };
 
-  link($scope: ng.IScope, $element: JQuery, $attrs: AutoScrollAttrs, ctrl: AutoScrollController) {
+  public link($scope: ng.IScope, $element: JQuery, $attrs: AutoScrollAttrs, ctrl: AutoScrollController) {
     ctrl.$scope = $scope;
     ctrl.$element = $element;
     ctrl.$attrs = $attrs;
     ctrl.initialize();
   }
 }
-
 
 export const AUTO_SCROLL_DIRECTIVE = 'spinnaker.core.autoScroll';
 

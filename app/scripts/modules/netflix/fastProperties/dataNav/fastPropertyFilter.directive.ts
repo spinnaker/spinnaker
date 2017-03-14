@@ -5,16 +5,16 @@ import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecora
 @DirectiveFactory()
 class FastPropertyFilterDirective implements ng.IDirective {
 
-  scope: any = {
+  public scope: any = {
     'properties': '=',
     'filters': '=',
     'createFilterTag': '='
   };
-  template = `<input type="search" class="form-control" placeholder="Filters: type '?'">`;
-  restrict = 'E';
-  fields: string[] = ['app', 'env', 'region', 'stack', 'cluster'];
+  public template = `<input type="search" class="form-control" placeholder="Filters: type '?'">`;
+  public restrict = 'E';
+  public fields: string[] = ['app', 'env', 'region', 'stack', 'cluster'];
 
-  link(scope: any, el: any) {
+  public link(scope: any, el: any) {
     let input = el.children('input');
 
     let getScopeAttributeList = (scopeName: string) => {

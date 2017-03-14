@@ -52,7 +52,7 @@ class FeedbackDirective implements ng.IDirective {
   public controller: any = FeedbackController;
   public controllerAs = '$ctrl';
 
-  link($scope: ng.IScope, _$element: JQuery) {
+  public link($scope: ng.IScope, _$element: JQuery) {
     const $ctrl: FeedbackController = $scope['$ctrl'];
     $ctrl.initialize();
   }

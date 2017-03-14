@@ -6,8 +6,8 @@ interface ISeLinuxField {
 }
 
 class SeLinuxOptions implements ng.IComponentController {
-  component: any;
-  fields: ISeLinuxField[] = [
+  public component: any;
+  public fields: ISeLinuxField[] = [
     {
       label: 'User',
       model: 'user',
@@ -28,11 +28,11 @@ class SeLinuxOptions implements ng.IComponentController {
 }
 
 class SeLinuxOptionsComponent implements ng.IComponentOptions {
-  bindings: any = {
+  public bindings: any = {
     component: '=',
   };
-  templateUrl: string = require('./seLinuxOptionsSelector.component.html');
-  controller: any = SeLinuxOptions;
+  public templateUrl: string = require('./seLinuxOptionsSelector.component.html');
+  public controller: any = SeLinuxOptions;
 }
 
 export const KUBERNETES_SE_LINUX_OPTIONS_SELECTOR = 'spinnaker.kubernetes.securityContext.seLinuxOptionsSelector';

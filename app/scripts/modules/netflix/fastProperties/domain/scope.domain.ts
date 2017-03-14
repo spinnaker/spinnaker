@@ -24,7 +24,7 @@ export class Scope {
     unknown: 0
   };
 
-  static build(platformProperty: IPlatformProperty): Scope {
+  public static build(platformProperty: IPlatformProperty): Scope {
     // platform property has all the property details as well as the scope. We only want the scope.
     // Object.assign(new Scope(), platformProperty) brings the whole platform property into scope.
     let scope = new Scope();

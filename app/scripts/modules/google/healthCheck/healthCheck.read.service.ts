@@ -9,7 +9,7 @@ export class GceHealthCheckReader {
 
   constructor (public API: Api, public infrastructureCaches: InfrastructureCacheService) {}
 
-  listHealthChecks (type?: string): ng.IPromise<IGceHealthCheck[]> {
+  public listHealthChecks (type?: string): ng.IPromise<IGceHealthCheck[]> {
     if (type) {
       return this.listHealthChecks()
         .then((healthChecks: IGceHealthCheck[]) => {

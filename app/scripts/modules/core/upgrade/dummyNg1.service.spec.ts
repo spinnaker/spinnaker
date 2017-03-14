@@ -23,7 +23,7 @@ describe('test the angular 1 dummy service', () => {
       ]
     })
     class TestModule {
-      ngDoBootstrap() {}
+      public ngDoBootstrap() {}
     }
 
     // TODO: ANG, once we get a pattern established, downgraded module creation should be extracted to helpers.js

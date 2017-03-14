@@ -49,8 +49,10 @@ SPINNAKER_COMPONENT_DOWNGRADES.forEach((item) => {
   ]
 })
 export class SpinnakerModule {
+
   constructor(private upgrade: UpgradeModule) {}
-  ngDoBootstrap() {
+
+  public ngDoBootstrap() {
     this.upgrade.bootstrap(document.body, ['netflix.spinnaker']);
   }
 }

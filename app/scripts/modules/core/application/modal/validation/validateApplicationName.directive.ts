@@ -44,15 +44,15 @@ class ValidateApplicationNameController implements ng.IComponentController {
 
 @DirectiveFactory('applicationNameValidator')
 class ValidateApplicationNameDirective implements ng.IDirective {
-  restrict = 'A';
-  controller: any = ValidateApplicationNameController;
-  controllerAs = '$ctrl';
-  require = 'ngModel';
-  bindToController: any = {
+  public restrict = 'A';
+  public controller: any = ValidateApplicationNameController;
+  public controllerAs = '$ctrl';
+  public require = 'ngModel';
+  public bindToController: any = {
     cloudProviders: '<',
   };
 
-  link($scope: ng.IScope, _$element: JQuery, $attrs: IValidateNameAttrs, ctrl: ng.INgModelController) {
+  public link($scope: ng.IScope, _$element: JQuery, $attrs: IValidateNameAttrs, ctrl: ng.INgModelController) {
     const $ctrl: ValidateApplicationNameController = $scope['$ctrl'];
     $ctrl.$scope = $scope;
     $ctrl.$attrs = $attrs;

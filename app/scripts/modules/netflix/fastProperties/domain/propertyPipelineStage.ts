@@ -8,19 +8,19 @@ import {IUser} from 'core/authentication/authentication.service';
 import {PropertyCommandType} from './propertyCommandType.enum';
 
 export class PropertyPipelineStage implements IStage {
-  name: string;
-  type: string;
-  refId: string;
-  email: string;
-  cmcTicket: string;
-  delete: boolean;
-  scope: Scope;
-  persistedProperties: Property[] = [];
-  originalProperties: Property[] = [];
-  requisiteStageRefIds: (string | number)[] = [];
-  description: string;
+  public name: string;
+  public type: string;
+  public refId: string;
+  public email: string;
+  public cmcTicket: string;
+  public delete: boolean;
+  public scope: Scope;
+  public persistedProperties: Property[] = [];
+  public originalProperties: Property[] = [];
+  public requisiteStageRefIds: (string | number)[] = [];
+  public description: string;
 
-  static clonePropertyForStage(user: IUser, property: Property): Property {
+  public static clonePropertyForStage(user: IUser, property: Property): Property {
     let propertyCopy: Property = copy(property);
     propertyCopy.updatedBy = user.name;
     propertyCopy.cmcTicket = user.name;
@@ -30,7 +30,7 @@ export class PropertyPipelineStage implements IStage {
     return propertyCopy;
   }
 
-  static addOriginalProperty(stage: PropertyPipelineStage, command: PropertyCommand): IStage {
+  public static addOriginalProperty(stage: PropertyPipelineStage, command: PropertyCommand): IStage {
     if (command.originalProperty) {
       stage.originalProperties.push(command.originalProperty);
     }

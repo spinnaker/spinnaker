@@ -17,7 +17,7 @@
     ],
     "label-position": true,
     "max-line-length": false,
-    "member-access": false,
+    "member-access": true,
     "member-ordering": [
       true,
       "static-before-instance",
@@ -68,6 +68,10 @@
     "triple-equals": [
       true,
       "allow-null-check"
+    ],
+    "typedef": [
+      "call-signature",
+      "property-declaration"
     ],
     "typedef-whitespace": [
       true,

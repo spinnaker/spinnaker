@@ -37,7 +37,7 @@ export class FastPropertyStrategyComponentController implements ng.IComponentCon
       });
   }
 
-  $onInit() {
+  public $onInit() {
     this.$scope.$watchCollection('$ctrl.command.property', () => this.buildPropertyPipeline(this.command));
     this.$scope.$watchCollection('$ctrl.command.scope', () => this.suggestStrategyAndBuildPipeline(this.command));
     this.$scope.$watchCollection('$ctrl.command.strategy', () => this.buildPropertyPipeline(this.command));
