@@ -1,6 +1,6 @@
 'use strict';
 
-import {toInteger} from 'lodash';
+import {isString, toInteger} from 'lodash';
 let angular = require('angular');
 
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
@@ -17,7 +17,22 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
   require('core/config/settings.js'),
 ])
   .config(function (pipelineConfigProvider, settings) {
+
+    function isExpression(value) {
+      return isString(value) && value.includes('${');
+    }
+
+    function isValidValue(value, min = 0) {
+      let result = false;
+      if (isExpression(value) || (!isExpression(value) && (toInteger(value) > min))) {
+        result = true;
+      }
+
+      return result;
+    }
+
     if (settings.feature && settings.feature.netflixMode) {
+
       pipelineConfigProvider.registerStage({
         label: 'Canary',
         description: 'Canary tests new changes against a baseline version',
@@ -46,7 +61,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
               useLookback = cac.useLookback,
               lookbackMins = cac.lookbackMins;
             let result = null;
-            if (useLookback && !lookbackMins) {
+            if (useLookback && !isValidValue(lookbackMins)) {
               result = 'When an analysis type of <strong>Sliding Lookback</strong> is selected, the lookback duration must be positive.';
             }
 
@@ -55,7 +70,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
           {type: 'custom', fieldLabel: 'Report Frequency', validate: (_pipeline, stage) => {
             const reportFrequency = stage.canary.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins;
             let result = null;
-            if (!(reportFrequency > 0)) {
+            if (!isValidValue(reportFrequency, 0)) {
               result = 'The <strong>Report Frequency</strong> is required and must be positive.';
             }
 
@@ -72,9 +87,10 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
           }},
           {
             type: 'custom', fieldLabel: 'Successful Score', validate: (_pipeline, stage) => {
+            const unhealthyScore = stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore;
             const successfulScore = stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore;
             let result = null;
-            if (!(successfulScore > 1)) {
+            if (!isValidValue(successfulScore) || (!isExpression(unhealthyScore) && (toInteger(unhealthyScore) >= toInteger(successfulScore)))) {
               result = 'The <strong>Successful Score</strong> is required, must be positive, and must be greater than the unhealthy score.';
             }
 
@@ -83,8 +99,9 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
           {
             type: 'custom', fieldLabel: 'Unhealthy Score', validate: (_pipeline, stage) => {
             const unhealthyScore = stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore;
+            const successfulScore = stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore;
             let result = null;
-            if (!(unhealthyScore > 1)) {
+            if (!isValidValue(unhealthyScore) || (!isExpression(successfulScore) && (toInteger(unhealthyScore) >= toInteger(successfulScore)))) {
               result = 'The <strong>Unhealthy Score</strong> is required, must be positive, and must be less than the successful score.';
             }
 
@@ -95,7 +112,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
             let result = null;
             if (stage.scaleUp.enabled) {
               const delay = stage.scaleUp.delay;
-              if (!(delay > 0)) {
+              if (!isValidValue(delay, -1)) {
                 result = 'When a canary scale-up is enabled, the delay value is required and must be non-negative.';
               }
             }
@@ -107,7 +124,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
             let result = null;
             if (stage.scaleUp.enabled) {
               const capacity = stage.scaleUp.capacity;
-              if (!(capacity > 0)) {
+              if (!isValidValue(capacity)) {
                 result = 'When a canary scale-up is enabled, the capacity value must be positive.';
               }
             }
@@ -122,6 +139,10 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
                                            namingService, providerSelectionService,
                                            authenticationService, cloudProviderRegistry,
                                            serverGroupCommandBuilder, titusServerGroupTransformer, awsServerGroupTransformer, accountService, appListExtractorService) {
+
+    $scope.isExpression = function(value) {
+      return isString(value) && value.includes('${');
+    };
 
     const user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;
@@ -138,14 +159,19 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
         this.terminateUnhealthyCanaryEnabled = true;
       }
 
-      // ensure string values from canary config are nubmers
+      // ensure string values from canary config are numbers or expressions
       const cac = cc.canaryAnalysisConfig;
-      cc.lifetimeHours = toInteger(cc.lifetimeHours);
-      cac.lookbackMins = toInteger(cac.lookbackMins);
-      cac.canaryAnalysisIntervalMins = toInteger(cac.canaryAnalysisIntervalMins);
+      cc.lifetimeHours =
+        !$scope.isExpression(cc.lifetimeHours) ? toInteger(cc.lifetimeHours) || undefined : cc.lifetimeHours;
+      cac.lookbackMins =
+        !$scope.isExpression(cac.lookbackMins) ? toInteger(cac.lookbackMins) || undefined : cac.lookbackMins;
+      cac.canaryAnalysisIntervalMins =
+        !$scope.isExpression(cac.canaryAnalysisIntervalMins) ? toInteger(cac.canaryAnalysisIntervalMins) || undefined : cac.canaryAnalysisIntervalMins;
       if (stage.scaleUp) {
-        stage.scaleUp.delay = toInteger(stage.scaleUp.delay) || undefined;
-        stage.scaleUp.capacity = toInteger(stage.scaleUp.capacity) || undefined;
+        stage.scaleUp.delay =
+          !$scope.isExpression(stage.scaleUp.delay) ? toInteger(stage.scaleUp.delay) || undefined : stage.scaleUp.delay;
+        stage.scaleUp.capacity =
+          !$scope.isExpression(stage.scaleUp.capacity) ? toInteger(stage.scaleUp.capacity) || undefined : stage.scaleUp.capacity;
       }
 
       if (cc.canaryAnalysisConfig.useLookback) {
