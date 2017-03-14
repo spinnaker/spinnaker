@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class TemplateConfiguration {
+public class TemplateConfiguration implements VersionedSchema {
 
   private String schema;
   private String id;
@@ -151,6 +153,11 @@ public class TemplateConfiguration {
     public void setDescription(String description) {
       this.description = description;
     }
+  }
+
+  @Override
+  public String getSchemaVersion() {
+    return schema;
   }
 
   public String getRuntimeId() {

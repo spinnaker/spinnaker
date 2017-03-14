@@ -123,7 +123,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     then:
     noExceptionThrown()
     result.errors != null
-    result.errors.containsKey("failed loading template")
+    result.errors*.message.contains("failed loading template")
   }
 
   def 'should not render unknown handlebars identifiers'() {
@@ -145,6 +145,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
         buildNumber: 1111
       ],
       config: [
+        schema: '1',
         id: 'myTemplate',
         pipeline: [
           application: 'myapp',

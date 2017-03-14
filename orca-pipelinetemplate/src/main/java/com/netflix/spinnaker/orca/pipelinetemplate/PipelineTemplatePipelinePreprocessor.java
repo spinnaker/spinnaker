@@ -30,6 +30,10 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.GraphMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateConfigurationSchemaValidator;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateSchemaValidator;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -68,11 +72,11 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     try {
       return processInternal(pipeline);
     } catch (TemplateLoaderException e) {
-      return ErrorResponse.builder().addError("failed loading template", e.getMessage()).toMap();
+      return new Errors().addError(Error.builder().withMessage("failed loading template").withCause(e.getMessage())).toResponse();
     } catch (TemplateRenderException e) {
-      return ErrorResponse.builder().addError("failed rendering handlebars template", e.getMessage()).toMap();
+      return new Errors().addError(Error.builder().withMessage("failed rendering handlebars template").withCause(e.getMessage())).toResponse();
     } catch (IllegalTemplateConfigurationException e) {
-      return ErrorResponse.builder().addError("malformed template configuration", e.getMessage()).toMap();
+      return new Errors().addError(Error.builder().withMessage("malformed template configuration").withCause(e.getMessage())).toResponse();
     }
   }
 
@@ -82,38 +86,38 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
       return pipeline;
     }
 
+    Errors validationErrors = new Errors();
+
     TemplateConfiguration templateConfiguration = request.getConfig();
+    new V1TemplateConfigurationSchemaValidator().validate(templateConfiguration, validationErrors);
+    if (validationErrors.hasErrors(request.plan)) {
+      return validationErrors.toResponse();
+    }
 
     List<PipelineTemplate> templates = templateLoader.load(templateConfiguration.getPipeline().getTemplate());
-
     PipelineTemplate template = TemplateMerge.merge(templates);
-    Map<String, Object> trigger = (HashMap<String, Object>) pipeline.get("trigger");
 
+    new V1TemplateSchemaValidator().validate(template, validationErrors);
+    if (validationErrors.hasErrors(request.plan)) {
+      return validationErrors.toResponse();
+    }
+
+    Map<String, Object> trigger = (HashMap<String, Object>) pipeline.get("trigger");
     GraphMutator graphMutator = new GraphMutator(templateConfiguration, renderer, registry, trigger);
     graphMutator.mutate(template);
-
-    // TODO validation
 
     ExecutionGenerator executionGenerator = new V1SchemaExecutionGenerator();
 
     Map<String, Object> generatedPipeline = executionGenerator.generate(template, templateConfiguration);
 
-    validateGeneratedPipeline(generatedPipeline);
-
     return generatedPipeline;
-  }
-
-  private static void validateGeneratedPipeline(Map<String, Object> generatedPipeline) {
-    if (generatedPipeline.get("application") == null) {
-      throw new IllegalTemplateConfigurationException("Configuration is missing 'application' value");
-    }
   }
 
   private static class TemplatedPipelineRequest {
     String type;
     Map<String, Object> trigger;
     TemplateConfiguration config;
-    Boolean plan;
+    Boolean plan = false;
 
     public boolean isTemplatedPipelineRequest() {
       return "templatedPipeline".equals(type);
@@ -149,25 +153,6 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
     public void setPlan(Boolean plan) {
       this.plan = plan;
-    }
-  }
-
-  private static class ErrorResponse {
-    Map<String, String> errors = new HashMap<>();
-
-    static ErrorResponse builder() {
-      return new ErrorResponse();
-    }
-
-    ErrorResponse addError(String message, String cause) {
-      errors.put(message, cause);
-      return this;
-    }
-
-    Map<String, Object> toMap() {
-      Map<String, Object> m = new HashMap<>();
-      m.put("errors", errors);
-      return m;
     }
   }
 }

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.InvalidPipelineTemplateException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -97,10 +98,13 @@ class OperationsController {
     if (pipeline.plan == true) {
       log.info('not starting pipeline (plan: true): {}', pipeline.id)
       if (pipeline.errors != null) {
-        response.status = HttpServletResponse.SC_BAD_REQUEST
+        throw new InvalidPipelineTemplateException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
       }
-
       return processedPipeline
+    }
+
+    if (pipeline.errors != null) {
+      throw new InvalidPipelineTemplateException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
     }
 
     startPipeline(processedPipeline)
@@ -210,6 +214,12 @@ class OperationsController {
     log.info('requested task:{}', json)
     def pipeline = orchestrationLauncher.start(json)
     [ref: "/tasks/${pipeline.id}".toString()]
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(InvalidPipelineTemplateException)
+  Map invalidPipelineTemplateHandler(InvalidPipelineTemplateException e) {
+    return [message: e.message, status:HttpStatus.BAD_REQUEST, errors: e.getErrors()]
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)

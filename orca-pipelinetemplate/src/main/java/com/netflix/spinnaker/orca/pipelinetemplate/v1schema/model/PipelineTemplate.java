@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class PipelineTemplate {
+public class PipelineTemplate implements VersionedSchema {
 
   private String schema;
   private String id;
@@ -110,6 +111,11 @@ public class PipelineTemplate {
     public void setNotifications(List<NamedHashMap> notifications) {
       this.notifications = notifications;
     }
+  }
+
+  @Override
+  public String getSchemaVersion() {
+    return schema;
   }
 
   public String getSchema() {

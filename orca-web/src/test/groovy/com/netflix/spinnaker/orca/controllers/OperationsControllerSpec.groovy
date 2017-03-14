@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.controllers
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.InvalidPipelineTemplateException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.apache.log4j.MDC
 import org.springframework.mock.env.MockEnvironment
@@ -488,7 +489,7 @@ class OperationsControllerSpec extends Specification {
     0 * pipelineStarter.start(_)
   }
 
-  def "should return 400 status code when planned pipeline config contains errors"() {
+  def "should throw validation exception when templated pipeline contains errors"() {
     given:
     def pipelineConfig = [
       plan: true,
@@ -502,7 +503,7 @@ class OperationsControllerSpec extends Specification {
     controller.orchestrate(pipelineConfig, response)
 
     then:
+    thrown(InvalidPipelineTemplateException)
     0 * pipelineStarter.start(_)
-    1 * response.setStatus(HttpServletResponse.SC_BAD_REQUEST)
   }
 }
