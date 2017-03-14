@@ -1,5 +1,6 @@
 'use strict';
 
+import {toInteger} from 'lodash';
 let angular = require('angular');
 
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
@@ -135,6 +136,16 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
     if (cc) {
       if (cc.actionsForUnhealthyCanary && cc.actionsForUnhealthyCanary.some(action => action.action === 'TERMINATE')) {
         this.terminateUnhealthyCanaryEnabled = true;
+      }
+
+      // ensure string values from canary config are nubmers
+      const cac = cc.canaryAnalysisConfig;
+      cc.lifetimeHours = toInteger(cc.lifetimeHours);
+      cac.lookbackMins = toInteger(cac.lookbackMins);
+      cac.canaryAnalysisIntervalMins = toInteger(cac.canaryAnalysisIntervalMins);
+      if (stage.scaleUp) {
+        stage.scaleUp.delay = toInteger(stage.scaleUp.delay) || undefined;
+        stage.scaleUp.capacity = toInteger(stage.scaleUp.capacity) || undefined;
       }
 
       if (cc.canaryAnalysisConfig.useLookback) {
