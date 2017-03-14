@@ -1,3 +1,4 @@
+import {isString} from 'lodash';
 import {module} from 'angular';
 
 require('./canary.less');
@@ -11,10 +12,19 @@ class CanaryScoreConfigComponentCtrl implements ng.IComponentController {
   public successful: number;
   public unhealthy: number;
   public invalid = false;
+  public hasExpressions = false;
+
+  private isExpression(scoreValue: string): boolean {
+    return isString(scoreValue) && scoreValue.includes('${');
+  }
 
   public $onInit() {
-    this.successful = parseInt(this.successfulScore, 10);
-    this.unhealthy = parseInt(this.unhealthyScore, 10);
+    if (this.isExpression(this.unhealthyScore) || this.isExpression(this.successfulScore)) {
+      this.hasExpressions = true;
+    } else {
+      this.successful = parseInt(this.successfulScore, 10);
+      this.unhealthy = parseInt(this.unhealthyScore, 10);
+    }
   }
 
   public onUpdate() {
@@ -37,7 +47,15 @@ class CanaryScoreConfigComponent implements ng.IComponentOptions {
   };
   public controller: any = CanaryScoreConfigComponentCtrl;
   public template = `
-    <div class="canary-score">
+    <div ng-if="$ctrl.hasExpressions" class="form-group">
+      <div class="col-md-2 col-md-offset-1 sm-label-right">
+        <label>Canary Scores</label>
+      </div>
+      <div class="col-md-9 form-control-static">
+        Expressions are currently being used for canary scores.
+      </div>
+    </div>
+    <div class="canary-score" ng-if="!$ctrl.hasExpressions">
       <div class="form-group">
         <div class="col-md-2 col-md-offset-1 sm-label-right">
           <label>Unhealthy Score</label>
@@ -78,7 +96,7 @@ class CanaryScoreConfigComponent implements ng.IComponentOptions {
         </div>
       </div>
     </div>
-`;
+  `;
 }
 
 export const CANARY_SCORE_CONFIG_COMPONENT = 'spinnaker.netflix.canary.score.component';
