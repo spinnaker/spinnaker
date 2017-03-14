@@ -118,7 +118,7 @@ class GitTagMissingException(Exception):
     self.message = message
 
 
-class Annotator(Refresher):
+class Annotator(object):
   """Provides semantic version tagging for Spinnaker repositories.
 
   Each Spinnaker repository has tags that denote releases. These tags follow
@@ -148,7 +148,6 @@ class Annotator(Refresher):
     self.__tags_to_delete = []
     self.__filtered_tags = []
     self.__current_version = None
-    super(Annotator, self).__init__(options)
 
   @property
   def build_number(self):
@@ -359,7 +358,7 @@ class Annotator(Refresher):
   @classmethod
   def init_argument_parser(cls, parser):
     """Initialize command-line arguments."""
-    parser.add_argument('--build_number', default='',
+    parser.add_argument('--build_number', default=os.environ.get('BUILD_NUMBER'),
                         help='The build number to append to the semantic version tag.')
     parser.add_argument('--initial_branch', default='master',
                         help='Initial branch to create the stable release branch from.')
@@ -371,7 +370,6 @@ class Annotator(Refresher):
                         help='Name of the stable release branch to create.')
     parser.add_argument('--force_rebuild', default=False, action='store_true',
                         help='Force a rebuild even if there is a git tag at HEAD.')
-    super(Annotator, cls).init_argument_parser(parser)
 
   @classmethod
   def main(cls):
