@@ -36,6 +36,7 @@ public class TemplateConfiguration {
   public static class PipelineDefinition {
 
     private String application;
+    private String pipelineConfigId;
     private String name;
     private TemplateSource template;
     private Map<String, Object> variables = new HashMap<>();
@@ -46,6 +47,14 @@ public class TemplateConfiguration {
 
     public void setApplication(String application) {
       this.application = application;
+    }
+
+    public String getPipelineConfigId() {
+      return pipelineConfigId;
+    }
+
+    public void setPipelineConfigId(String pipelineConfigId) {
+      this.pipelineConfigId = pipelineConfigId;
     }
 
     public String getName() {

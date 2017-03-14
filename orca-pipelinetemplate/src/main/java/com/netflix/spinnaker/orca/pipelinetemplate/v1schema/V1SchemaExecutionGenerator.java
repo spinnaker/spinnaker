@@ -37,8 +37,10 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
     pipeline.put("id", configuration.getRuntimeId());
     pipeline.put("application", configuration.getPipeline().getApplication());
     pipeline.put("name", Optional.ofNullable(configuration.getPipeline().getName()).orElse("Unnamed Execution"));
-    // TODO Doesn't look like we even use this anywhere in the codebase.
-//    pipeline.put("appConfig", "unsupported");
+
+    if (configuration.getPipeline().getPipelineConfigId() != null) {
+      pipeline.put("pipelineConfigId", configuration.getPipeline().getPipelineConfigId());
+    }
 
     // TODO rz - Ehhhh
     Configuration c = template.getConfiguration();
