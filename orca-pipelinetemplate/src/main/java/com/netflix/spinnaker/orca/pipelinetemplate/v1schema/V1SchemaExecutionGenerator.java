@@ -34,13 +34,10 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
   @Override
   public Map<String, Object> generate(PipelineTemplate template, TemplateConfiguration configuration) {
     Map<String, Object> pipeline = new HashMap<>();
-    pipeline.put("id", configuration.getRuntimeId());
+    pipeline.put("id", Optional.ofNullable(configuration.getPipeline().getPipelineConfigId()).orElse(configuration.getRuntimeId()));
     pipeline.put("application", configuration.getPipeline().getApplication());
     pipeline.put("name", Optional.ofNullable(configuration.getPipeline().getName()).orElse("Unnamed Execution"));
-
-    if (configuration.getPipeline().getPipelineConfigId() != null) {
-      pipeline.put("pipelineConfigId", configuration.getPipeline().getPipelineConfigId());
-    }
+    pipeline.put("executionEngine", configuration.getPipeline().getExecutionEngine());
 
     // TODO rz - Ehhhh
     Configuration c = template.getConfiguration();

@@ -81,6 +81,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     then:
     def expected = [
       id: null,
+      executionEngine: 'v2',
       application: 'myapp',
       name: 'Unnamed Execution',
       keepWaitingPipelines: false,
