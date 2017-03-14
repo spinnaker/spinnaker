@@ -1,0 +1,36 @@
+# halconfig
+
+server:
+  port: ${services.orcaBootstrap.port:8083}
+  address: ${services.orcaBootstrap.host:localhost}
+
+oort:
+  baseUrl: ${services.clouddriverBootstrap.baseUrl:localhost:7002}
+
+front50:
+  baseUrl: ${services.front50Bootstrap.baseUrl:localhost:8080}
+
+mort:
+  baseUrl: ${services.clouddriverBootstrap.baseUrl:localhost:7002}
+
+kato:
+  baseUrl: ${services.clouddriverBootstrap.baseUrl:localhost:7002}
+
+bakery:
+  baseUrl: ${services.bakeryBootstrap.baseUrl:localhost:8087}
+  extractBuildDetails: ${services.bakeryBootstrap.extractBuildDetails:true}
+  allowMissingPackageInstallation: ${services.bakeryBootstrap.allowMissingPackageInstallation:false}
+
+echo:
+  enabled: false
+  baseUrl: ${services.echoBootstrap.baseUrl:localhost:8089}
+
+igor:
+  baseUrl: ${services.igorBootstrap.baseUrl:localhost:8088}
+
+redis:
+  connection: ${services.redisBootstrap.baseUrl:redis://localhost:6379}
+
+tasks:
+  executionWindow:
+    timezone: ${global.spinnaker.timezone:America/Los_Angeles}
