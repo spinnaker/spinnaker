@@ -1,48 +1,48 @@
 export class HttpLoadBalancerTemplate {
-  provider = 'gce';
-  stack = '';
-  detail = '';
-  region = 'global';
-  loadBalancerType = 'HTTP';
-  certificate = '';
-  defaultService: BackendServiceTemplate;
-  hostRules: HostRuleTemplate[] = [];
-  listeners: ListenerTemplate[] = [];
+  public provider = 'gce';
+  public stack = '';
+  public detail = '';
+  public region = 'global';
+  public loadBalancerType = 'HTTP';
+  public certificate = '';
+  public defaultService: BackendServiceTemplate;
+  public hostRules: HostRuleTemplate[] = [];
+  public listeners: ListenerTemplate[] = [];
 
   constructor (public credentials: string | null) {}
 }
 
 export class BackendServiceTemplate {
-  backends: any[] = [];
-  healthCheck: HealthCheckTemplate;
-  sessionAffinity = 'NONE';
-  affinityCookieTtlSec: number | null = null;
+  public backends: any[] = [];
+  public healthCheck: HealthCheckTemplate;
+  public sessionAffinity = 'NONE';
+  public affinityCookieTtlSec: number | null = null;
 }
 
 export class HealthCheckTemplate {
-  requestPath = '/';
-  port = 80;
-  checkIntervalSec = 10;
-  timeoutSec = 5;
-  healthyThreshold = 10;
-  unhealthyThreshold = 2;
+  public requestPath = '/';
+  public port = 80;
+  public checkIntervalSec = 10;
+  public timeoutSec = 5;
+  public healthyThreshold = 10;
+  public unhealthyThreshold = 2;
 }
 
 export class HostRuleTemplate {
-  hostPatterns: string[];
-  pathMatcher: PathMatcherTemplate = new PathMatcherTemplate();
+  public hostPatterns: string[];
+  public pathMatcher: PathMatcherTemplate = new PathMatcherTemplate();
 }
 
 export class PathMatcherTemplate {
-  pathRules: PathRuleTemplate[] = [];
+  public pathRules: PathRuleTemplate[] = [];
 }
 
 export class PathRuleTemplate {
-  paths: string[];
+  public paths: string[];
 }
 
 export class ListenerTemplate {
-  name: string;
-  port: number;
-  certificate: string | null = null;
+  public name: string;
+  public port: number;
+  public certificate: string | null = null;
 }

@@ -1,3 +1,3 @@
 export class AppengineHealth {
-  static PLATFORM = 'App Engine Service';
+  public static PLATFORM = 'App Engine Service';
 }

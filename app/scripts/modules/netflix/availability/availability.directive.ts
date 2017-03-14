@@ -96,7 +96,7 @@ class AvailabilityDirective implements ng.IDirective {
   public templateUrl: string = require('./availability.directive.html');
   public replace = true;
 
-  link($scope: ng.IScope, _$element: JQuery) {
+  public link($scope: ng.IScope, _$element: JQuery) {
     const $ctrl: AvailabilityController = $scope['$ctrl'];
     $ctrl.initialize();
   }

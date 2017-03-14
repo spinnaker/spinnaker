@@ -34,17 +34,17 @@ interface ISslLoadBalancerUpsertDescription extends ILoadBalancerUpsertDescripti
 }
 
 class SslLoadBalancer implements IGceLoadBalancer {
-  stack: string;
-  detail: string;
-  loadBalancerName: string;
-  portRange = '443';
-  ipProtocol = 'TCP';
-  loadBalancerType = 'SSL';
-  credentials: string;
-  account: string;
-  certificate: string;
-  backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
-  cloudProvider: string;
+  public stack: string;
+  public detail: string;
+  public loadBalancerName: string;
+  public portRange = '443';
+  public ipProtocol = 'TCP';
+  public loadBalancerType = 'SSL';
+  public credentials: string;
+  public account: string;
+  public certificate: string;
+  public backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
+  public cloudProvider: string;
   get name(): string { return this.loadBalancerName; }
   constructor (public region = 'global') {}
 }

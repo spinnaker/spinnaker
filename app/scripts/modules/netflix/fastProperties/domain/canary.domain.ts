@@ -63,12 +63,12 @@ class CanarySuccessCriteria {
 }
 
 class CanaryHealthCheckHandler {
-  '@class' = 'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler';
+  public '@class' = 'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler';
   constructor(public minimumCanaryResultScore: string) {}
 }
 
 class CanaryDeployments {
-  '@class' = '.CanaryTaskDeployment';
+  public '@class' = '.CanaryTaskDeployment';
 
   public region: string;
   public accountName: string;

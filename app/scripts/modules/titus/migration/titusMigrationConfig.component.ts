@@ -18,16 +18,20 @@ type MigrationStrategyType = 'rollingPush' | 'pipeline';
 export interface IMigrationStrategyType {}
 
 export class RollingPushStrategy implements IMigrationStrategyType {
+
   static get type(): MigrationStrategyType { return 'rollingPush'; }
-  concurrentRelaunches = 1;
-  waitTime = 0;
+
+  public concurrentRelaunches = 1;
+  public waitTime = 0;
 }
 
 export class PipelineStrategy implements IMigrationStrategyType {
+
   static get type(): MigrationStrategyType { return 'pipeline'; }
-  application: string;
-  pipelineId: string;
-  parameters: IPipelineParam[];
+
+  public application: string;
+  public pipelineId: string;
+  public parameters: IPipelineParam[];
 }
 
 /**

@@ -1,5 +1,3 @@
-
-
 import {PropertyCommand} from './propertyCommand.model';
 import {IStage} from 'core/domain/IStage';
 import {ManualJudgementStage} from './manualJudgementStage';
@@ -26,15 +24,23 @@ export class ManualStrategy implements PropertyStrategy {
   public description = `Manual Strategy will add a Manual Judgement Stage after each Property Stage`;
   public configDetails: any = {};
 
-  buildStage(user: IUser, _command: PropertyCommand, previousStage?: IStage): IStage {
+  public buildStage(user: IUser, _command: PropertyCommand, previousStage?: IStage): IStage {
     return new ManualJudgementStage(user, previousStage);
   }
-  isForcePush() { return false; }
-  isManual() { return true; }
-  isAca() { return false; }
 
-  constructor(public form: string)  { }
+  public isForcePush() {
+    return false;
+  }
 
+  public isManual() {
+    return true;
+  }
+
+  public isAca() {
+    return false;
+  }
+
+  constructor(public form: string) {}
 }
 
 export class AcaStrategy implements PropertyStrategy {
@@ -43,12 +49,21 @@ export class AcaStrategy implements PropertyStrategy {
   public description = `Aca Strategy will add an ACA Task stage after each Property Stage`;
   public configDetails: AcaTaskStageConfigDetails = new AcaTaskStageConfigDetails();
 
-  buildStage(user: IUser, command: PropertyCommand, previousStage?: IStage): IStage {
+  public buildStage(user: IUser, command: PropertyCommand, previousStage?: IStage): IStage {
     return new AcaTaskStage(user, command, this.configDetails, previousStage);
   }
-  isForcePush() { return false; }
-  isManual() { return false; }
-  isAca() { return true; }
+
+  public isForcePush() {
+    return false;
+  }
+
+  public isManual() {
+    return false;
+  }
+
+  public isAca() {
+    return true;
+  }
 
   constructor(public form: string) {}
 }
@@ -59,13 +74,21 @@ export class ForcePushStrategy implements PropertyStrategy {
   public description = `Force Push Strategy will not put any safeguards in place and will push the Property change through.`;
   public configDetails: any = {};
 
-  buildStage(_user: IUser, _command: PropertyCommand, _previousStage?: IStage): IStage {
+  public buildStage(_user: IUser, _command: PropertyCommand, _previousStage?: IStage): IStage {
     return undefined;
   }
 
-  isForcePush() { return true; }
-  isManual() { return false; }
-  isAca() { return false; }
+  public isForcePush() {
+    return true;
+  }
+
+  public isManual() {
+    return false;
+  }
+
+  public isAca() {
+    return false;
+  }
 
   constructor(public form: string) {}
 }

@@ -13,8 +13,8 @@ interface ISecurityContextField {
 }
 
 class SecurityContextSelector implements ng.IComponentController {
-  component: any;
-  fields: ISecurityContextField[] = [
+  public component: any;
+  public fields: ISecurityContextField[] = [
     {
       label: 'Run As User',
       model: 'runAsUser',
@@ -41,11 +41,11 @@ class SecurityContextSelector implements ng.IComponentController {
 }
 
 class SecurityContextSelectorComponent implements ng.IComponentOptions {
-  bindings: any = {
+  public bindings: any = {
     component: '='
   };
-  templateUrl: string = require('./securityContextSelector.component.html');
-  controller: any = SecurityContextSelector;
+  public templateUrl: string = require('./securityContextSelector.component.html');
+  public controller: any = SecurityContextSelector;
 }
 
 export const KUBERNETES_SECURITY_CONTEXT_SELECTOR = 'spinnaker.kubernetes.securityContextSelector.component';

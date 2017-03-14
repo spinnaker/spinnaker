@@ -20,22 +20,22 @@ export class CancelModalCtrl {
     };
   }
 
-  formDisabled = () => this.$scope.state.submitting;
+  public formDisabled = () => this.$scope.state.submitting;
 
-  showError(exception: string): void {
+  public showError(exception: string): void {
     this.$scope.state.error = true;
     this.$scope.state.submitting = false;
     this.$scope.errorMessage = exception;
   }
 
-  confirm(): void {
+  public confirm(): void {
     if (!this.formDisabled()) {
       this.$scope.state.submitting = true;
       this.params.submitMethod(this.params.reason, this.params.force).then(this.$uibModalInstance.close, this.showError);
     }
   };
 
-  cancel = () => this.$uibModalInstance.dismiss();
+  public cancel = () => this.$uibModalInstance.dismiss();
 }
 
 export const CANCEL_MODAL_CONTROLLER = 'spinnaker.core.cancelModal.controller';

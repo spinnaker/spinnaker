@@ -1,10 +1,10 @@
 import {module} from 'angular';
 
 class GceBackendServiceDetailsComponent implements ng.IComponentOptions {
-  bindings: any = {
+  public bindings: any = {
     backendService: '<'
   };
-  template = `
+  public template = `
     <dt>Name</dt>
     <dd>{{$ctrl.backendService.name}}</dd>
     <dt>Health Check</dt>

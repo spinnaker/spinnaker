@@ -1,21 +1,21 @@
 export class AcaTaskStageConfigDetails {
-  watchers = '';
-  lifetimeHours = '1';
-  minimumCanaryResultScore = '10';
-  combinedCanaryResultStrategy = 'LOWEST';
-  canaryResultScore = '80';
+  public watchers = '';
+  public lifetimeHours = '1';
+  public minimumCanaryResultScore = '10';
+  public combinedCanaryResultStrategy = 'LOWEST';
+  public canaryResultScore = '80';
 
-  notificationHours = '1';
-  useLookback = false;
-  lookbackMins = 0;
-  configName = '';
-  beginCanaryAnalysisAfterMins = '0';
-  canaryAnalysisIntervalMins = '15';
+  public notificationHours = '1';
+  public useLookback = false;
+  public lookbackMins = 0;
+  public configName = '';
+  public beginCanaryAnalysisAfterMins = '0';
+  public canaryAnalysisIntervalMins = '15';
 
-  accountName = '';
-  region = '';
-  baseline = '';
-  canary = '';
-  type = '';
+  public accountName = '';
+  public region = '';
+  public baseline = '';
+  public canary = '';
+  public type = '';
 }
 

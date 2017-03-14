@@ -15,7 +15,7 @@ export class AuthenticationInterceptor implements ng.IHttpInterceptor {
   // in essense, we need to do this because "the ng1 implementaiton of interceptors only keeps references to the handler
   // functions themselves and invokes them directly without any context (stateless) which means we lose `this` inside
   // the handlers"
-  request = (config: ng.IRequestConfig): ng.IPromise<ng.IRequestConfig> => {
+  public request = (config: ng.IRequestConfig): ng.IPromise<ng.IRequestConfig> => {
 
     return this.$q((resolve: ng.IQResolveReject<any>) => {
 

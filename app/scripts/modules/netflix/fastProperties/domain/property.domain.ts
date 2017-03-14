@@ -17,7 +17,7 @@ export class Property {
   public appId: string;
   public scope: Scope;
 
-  static build(platformProperty: IPlatformProperty): Property {
+  public static build(platformProperty: IPlatformProperty): Property {
     let property = new Property();
     property.propertyId = platformProperty.propertyId;
     property.env = platformProperty.env;
@@ -32,7 +32,7 @@ export class Property {
     return property;
   }
 
-  static copy(property: Property): Property {
+  public static copy(property: Property): Property {
     return Object.assign(new Property(), property);
   }
 
@@ -40,7 +40,7 @@ export class Property {
     this.env = env;
   }
 
-  isValid() {
+  public isValid() {
     return (this.key && this.value && this.email);
   }
 }

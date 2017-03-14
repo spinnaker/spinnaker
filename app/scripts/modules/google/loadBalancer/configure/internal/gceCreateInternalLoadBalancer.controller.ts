@@ -27,19 +27,19 @@ interface IPrivateScope extends ng.IScope {
 }
 
 class InternalLoadBalancer implements IGceLoadBalancer {
-  name: string;
-  stack: string;
-  detail: string;
-  loadBalancerName: string;
-  ports: any;
-  ipProtocol = 'TCP';
-  loadBalancerType = 'INTERNAL';
-  credentials: string;
-  account: string;
-  network = 'default';
-  subnet: string;
-  cloudProvider = 'gce';
-  backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
+  public name: string;
+  public stack: string;
+  public detail: string;
+  public loadBalancerName: string;
+  public ports: any;
+  public ipProtocol = 'TCP';
+  public loadBalancerType = 'INTERNAL';
+  public credentials: string;
+  public account: string;
+  public network = 'default';
+  public subnet: string;
+  public cloudProvider = 'gce';
+  public backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
 
   constructor (public region: string) {}
 }

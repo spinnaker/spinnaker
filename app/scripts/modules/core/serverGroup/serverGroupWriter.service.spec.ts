@@ -12,7 +12,7 @@ interface IApplicationTask {
 }
 
 class TestApplication extends Application {
-  tasks: IApplicationTask;
+  public tasks: IApplicationTask;
 }
 
 describe('serverGroupWriter', function () {

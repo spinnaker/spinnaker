@@ -5,29 +5,29 @@ import {IAppengineServerGroupCommand} from './configure/serverGroupCommandBuilde
 import {IAppengineGitTrigger, IAppengineJenkinsTrigger, GitCredentialType} from 'appengine/domain/index';
 
 export class AppengineDeployDescription {
-  cloudProvider = 'appengine';
-  provider = 'appengine';
-  credentials: string;
-  account: string;
-  application: string;
-  stack?: string;
-  freeFormDetails?: string;
-  repositoryUrl: string;
-  branch: string;
-  configFilepaths: string[];
-  configFiles: string[];
-  applicationDirectoryRoot: string;
-  promote?: boolean;
-  stopPreviousVersion?: boolean;
-  type: string;
-  region: string;
-  strategy?: string;
-  strategyApplication?: string;
-  strategyPipeline?: string;
-  fromTrigger?: boolean;
-  trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
-  gitCredentialType: GitCredentialType;
-  interestingHealthProviderNames: string[];
+  public cloudProvider = 'appengine';
+  public provider = 'appengine';
+  public credentials: string;
+  public account: string;
+  public application: string;
+  public stack?: string;
+  public freeFormDetails?: string;
+  public repositoryUrl: string;
+  public branch: string;
+  public configFilepaths: string[];
+  public configFiles: string[];
+  public applicationDirectoryRoot: string;
+  public promote?: boolean;
+  public stopPreviousVersion?: boolean;
+  public type: string;
+  public region: string;
+  public strategy?: string;
+  public strategyApplication?: string;
+  public strategyPipeline?: string;
+  public fromTrigger?: boolean;
+  public trigger?: IAppengineGitTrigger | IAppengineJenkinsTrigger;
+  public gitCredentialType: GitCredentialType;
+  public interestingHealthProviderNames: string[];
 
   constructor(command: IAppengineServerGroupCommand) {
     this.credentials = command.credentials;

@@ -3,15 +3,15 @@ import {IStage} from 'core/domain/IStage';
 import {IUser} from 'core/authentication/authentication.service';
 
 export class ManualJudgementStage implements IStage {
-  name: string;
-  type: string;
-  refId: (string | number);
-  requisiteStageRefIds: (string | number)[] = [];
-  notifications: any[] = [];
-  judgmentInputs: any[] = [];
-  failPipeline = true;
-  instructions = 'Is Fast Property good to move forward?';
-  propagateAuthenticationContext = true;
+  public name: string;
+  public type: string;
+  public refId: (string | number);
+  public requisiteStageRefIds: (string | number)[] = [];
+  public notifications: any[] = [];
+  public judgmentInputs: any[] = [];
+  public failPipeline = true;
+  public instructions = 'Is Fast Property good to move forward?';
+  public propagateAuthenticationContext = true;
 
   constructor(user: IUser, previousStage?: IStage) {
     this.refId = previousStage ? `${toInteger(previousStage.refId) + 1}` : '1';

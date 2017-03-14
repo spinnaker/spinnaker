@@ -9,7 +9,7 @@ export class HelpContentsRegistry {
    * @param key the key
    * @returns the configured help value, or null
    */
-  getHelpField(key: string): string {
+  public getHelpField(key: string): string {
     return this.helpFields.get(key) || null;
   }
 
@@ -19,7 +19,7 @@ export class HelpContentsRegistry {
    * @param key the key
    * @param val the value
    */
-  register(key: string, val: string): void {
+  public register(key: string, val: string): void {
     if (!this.overrides.has(key)) {
       this.helpFields.set(key, val);
     }
@@ -32,7 +32,7 @@ export class HelpContentsRegistry {
    * @param key the key
    * @param val the value
    */
-  registerOverride(key: string, val: string): void {
+  public registerOverride(key: string, val: string): void {
     this.register(key, val);
     this.overrides.add(key);
   }
