@@ -338,6 +338,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       );
     };
 
+    this.onHealthCheckRefresh = function() {
+      gceServerGroupConfigurationService.refreshHttpHealthChecks($scope.command);
+    };
+
+    this.setAutoHealingPolicy = function(autoHealingPolicy) {
+      $scope.command.autoHealingPolicy = autoHealingPolicy;
+    };
+
     this.cancel = function () {
       $uibModalInstance.dismiss();
     };

@@ -1,1 +1,16 @@
-<gce-auto-healing-policy-selector command="command"><gce-auto-healing-policy-selector>
+<div class="form-group">
+  <div class="col-md-3 sm-label-right">
+    <b>Enable AutoHealing</b>
+  </div>
+  <div class="col-md-6 checkbox">
+    <label>
+      <input type="checkbox" ng-model="command.enableAutoHealing"/>
+    </label>
+  </div>
+</div>
+<gce-auto-healing-policy-selector ng-if="command.enableAutoHealing"
+                                  on-health-check-refresh="ctrl.onHealthCheckRefresh()"
+                                  set-auto-healing-policy="ctrl.setAutoHealingPolicy(autoHealingPolicy)"
+                                  http-health-checks="command.backingData.filtered.httpHealthChecks"
+                                  enabled="command.enableAutoHealing"
+                                  auto-healing-policy="command.autoHealingPolicy"></gce-auto-healing-policy-selector>
