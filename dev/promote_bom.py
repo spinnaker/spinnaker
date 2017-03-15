@@ -15,8 +15,13 @@
 # limitations under the License.
 
 import argparse
+import os
 import sys
 import yaml
+
+from github import Github
+from github.Gist import Gist
+from github.InputFileContent import InputFileContent
 
 from generate_bom import BomGenerator
 from spinnaker.run import run_quick
@@ -28,6 +33,10 @@ class BomPromoter(BomGenerator):
   def __init__(self, options):
     self.__rc_version = options.rc_version
     self.__bom_dict = {}
+    self.__new_version = ''
+    self.__changelog_file = options.changelog_file
+    self.__github_token = options.github_token
+    self.__github_user = options.github_user
     super(BomPromoter, self).__init__(options)
 
   def __unpack_bom(self):
@@ -48,16 +57,28 @@ class BomPromoter(BomGenerator):
       raise Exception('Malformed Spinnaker release candidate version: {0}.'
                       .format(self.__rc_version))
     # Chop off build number for BOM promotion.
-    new_version = self.__rc_version[:dash_idx]
-    print new_version
-    new_bom_file = '{0}.yml'.format(new_version)
-    self.__bom_dict[VERSION] = new_version
+    self.__new_version = self.__rc_version[:dash_idx]
+    new_bom_file = '{0}.yml'.format(self.__new_version)
+    self.__bom_dict[VERSION] = self.__new_version
     self.write_bom_file(new_bom_file, self.__bom_dict)
     self.publish_bom(new_bom_file)
     # Re-write the 'latest' Spinnaker version.
     # TODO(jacobkiefer): Update 'available versions' with Halyard when that feature is ready.
     self.write_bom_file('latest.yml', self.__bom_dict)
     self.publish_bom('latest.yml')
+
+  def publish_changelog_gist(self):
+    """Publish the changelog as a github gist.
+    """
+    g = Github(self.__github_user, self.__github_token)
+    description = 'Changelog for Spinnaker {0}'.format(self.__new_version)
+    with open(self.__changelog_file, 'r') as clog:
+      raw_content = clog.read()
+      content = InputFileContent(raw_content)
+      filename = os.path.basename(self.__changelog_file)
+      gist = g.get_user().create_gist(True, {filename: content}, description=description)
+      print ('Wrote changelog to Gist at https://gist.github.com/{user}/{id}'
+             .format(user=self.__github_user, id=gist.id))
 
   @classmethod
   def main(cls):
@@ -67,14 +88,18 @@ class BomPromoter(BomGenerator):
 
     bom_promoter = cls(options)
     bom_promoter.promote_bom()
+    bom_promoter.publish_changelog_gist()
 
   @classmethod
   def init_argument_parser(cls, parser):
     """Initialize command-line arguments."""
-    parser.add_argument(
-      '--rc_version', default='', required=True,
-      help='The version of the Spinnaker release candidate we are promoting.'
-      'We derive the promoted version from the release candidate version.')
+    parser.add_argument('--changelog_file', default='', required=True,
+                        help='The changelog to publish during this promotion.')
+    parser.add_argument('--github_token', default='', required=True,
+                        help="The GitHub user token with scope='gists' to write gists.")
+    parser.add_argument('--rc_version', default='', required=True,
+                        help='The version of the Spinnaker release candidate we are promoting.'
+                        'We derive the promoted version from the release candidate version.')
     super(BomPromoter, cls).init_argument_parser(parser)
 
 if __name__ == '__main__':
