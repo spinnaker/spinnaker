@@ -29,12 +29,14 @@ import okhttp3.RequestBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.util.UriUtils;
 import retrofit2.Call;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
@@ -162,7 +164,11 @@ public class RegionScopedTitusClient implements TitusClient {
 
     @Override
     public Job findJobByName(String jobName) {
-        List<Job> jobs = execute("getJobsByLabel", titusRestAdapter.getJobsByLabel("name=" + jobName));
+        String query = "name=" + jobName;
+        try {
+            query = UriUtils.encodeQuery(query, "UTF-8");
+        } catch( UnsupportedEncodingException e ) {}
+        List<Job> jobs = execute("getJobsByLabel", titusRestAdapter.getJobsByLabel(query));
         if (jobs.isEmpty()) {
             return null;
         }
