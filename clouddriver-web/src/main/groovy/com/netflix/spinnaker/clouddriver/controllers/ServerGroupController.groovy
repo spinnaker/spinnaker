@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
@@ -50,6 +51,9 @@ class ServerGroupController {
   @Autowired
   MessageSource messageSource
 
+  @Autowired(required = false)
+  ServerGroupViewModelPostProcessor serverGroupViewModelPostProcessor
+
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   ServerGroup getServerGroup(@PathVariable String application, // needed for @PreAuthorize
@@ -62,7 +66,11 @@ class ServerGroupController {
     if (!matches) {
       throw new ServerGroupNotFoundException([name: name, account: account, region: region])
     }
-    matches.first()
+    ServerGroup serverGroup = matches.first()
+    if (serverGroupViewModelPostProcessor?.supports(serverGroup)) {
+      serverGroupViewModelPostProcessor.process(serverGroup)
+    }
+    serverGroup
   }
 
   List<Map> expandedList(String application, String cloudProvider) {
