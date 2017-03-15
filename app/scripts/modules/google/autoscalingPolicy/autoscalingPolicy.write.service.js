@@ -44,5 +44,40 @@ module.exports = angular
       });
     }
 
-    return { upsertAutoscalingPolicy, deleteAutoscalingPolicy };
+    function upsertAutoHealingPolicy(application, serverGroup, policy, params = {}) {
+      let job = {
+        type: 'upsertScalingPolicy',
+        cloudProvider: serverGroup.type,
+        credentials: serverGroup.account,
+        region: serverGroup.region,
+        serverGroupName: serverGroup.name,
+        autoHealingPolicy: policy,
+      };
+      angular.extend(job, params);
+
+      return taskExecutor.executeTask({
+        application,
+        description: 'Upsert autohealing policy ' + serverGroup.name,
+        job: [job],
+      });
+    }
+
+    function deleteAutoHealingPolicy(application, serverGroup) {
+      return taskExecutor.executeTask({
+        application,
+        description: 'Delete autohealing policy ' + serverGroup.name,
+        job: [
+          {
+            type: 'deleteScalingPolicy',
+            cloudProvider: serverGroup.type,
+            credentials: serverGroup.account,
+            region: serverGroup.region,
+            serverGroupName: serverGroup.name,
+            deleteAutoHealingPolicy: true,
+          }
+        ]
+      });
+    }
+
+    return {upsertAutoscalingPolicy, deleteAutoscalingPolicy, upsertAutoHealingPolicy, deleteAutoHealingPolicy};
   });

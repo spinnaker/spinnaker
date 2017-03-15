@@ -181,23 +181,13 @@
                           policy="policy">
       </gce-autoscaling-policy>
     </collapsible-section>
-    <collapsible-section heading="AutoHealing" ng-if="ctrl.serverGroup.autoHealingPolicyHealthCheck">
-      <p>AutoHealing can be configured via the Developers Console.</p>
-      <dt>
-        Health Check
-        <help-field key="gce.serverGroup.autoHealing"></help-field>
-      </dt>
-      <dd>{{ctrl.serverGroup.autoHealingPolicyHealthCheck}}</dd>
-      <dt>
-        Initial Delay
-        <help-field key="gce.serverGroup.initialDelaySec"></help-field>
-      </dt>
-      <dd>{{ctrl.serverGroup.initialDelaySec}} seconds</dd>
-      <dt ng-if="ctrl.serverGroup.maxUnavailable">
-        Max Unavailable
-        <help-field key="gce.serverGroup.maxUnavailable"></help-field>
-      </dt>
-      <dd ng-if="ctrl.serverGroup.maxUnavailable">{{ctrl.serverGroup.maxUnavailable}}</dd>
+    <collapsible-section heading="AutoHealing">
+      <gce-add-auto-healing-policy-button ng-if="!ctrl.serverGroup.autoHealingPolicyHealthCheck"
+                                          application="ctrl.application"
+                                          server-group="ctrl.serverGroup"></gce-add-auto-healing-policy-button>
+      <gce-auto-healing-policy-details ng-if="ctrl.serverGroup.autoHealingPolicyHealthCheck"
+                                       application="ctrl.application"
+                                       server-group="ctrl.serverGroup"></gce-auto-healing-policy-details>
     </collapsible-section>
     <collapsible-section heading="Custom Metadata">
       <div ng-if="!ctrl.serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">No custom metadata associated with this server group</div>
