@@ -26,12 +26,14 @@ import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReade
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class GoogleAccountValidator extends Validator<GoogleAccount> {
   final private List<GoogleNamedAccountCredentials> credentialsList;
 

@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 public class AwsAccount extends Account {
 
   private String defaultKeyPair;

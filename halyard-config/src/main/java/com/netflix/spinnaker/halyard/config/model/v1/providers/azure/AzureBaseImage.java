@@ -20,7 +20,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class AzureBaseImage extends BaseImage<AzureBaseImage.AzureOperatingSystemSettings, AzureBaseImage.AzureVirtualizationSettings> {
   @Override
@@ -31,6 +33,7 @@ public class AzureBaseImage extends BaseImage<AzureBaseImage.AzureOperatingSyste
   private AzureOperatingSystemSettings baseImage;
   private AzureVirtualizationSettings virtualizationSettings;
 
+  @EqualsAndHashCode(callSuper = true)
   @Data
   public static class AzureOperatingSystemSettings extends BaseImage.ImageSettings {
     String publisher;

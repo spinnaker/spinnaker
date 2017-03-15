@@ -25,11 +25,13 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 public class GoogleBakeryDefaultsValidator extends Validator<GoogleBakeryDefaults> {
   final private List<GoogleNamedAccountCredentials> credentialsList;

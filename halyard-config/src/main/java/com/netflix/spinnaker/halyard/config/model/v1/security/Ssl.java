@@ -20,8 +20,10 @@ package com.netflix.spinnaker.halyard.config.model.v1.security;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 public class Ssl extends Node {
   @Override

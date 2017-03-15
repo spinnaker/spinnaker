@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractProviderCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -53,10 +54,19 @@ public abstract class AbstractEditBakeryDefaultsCommand<T extends BakeryDefaults
         .setOperation(Daemon.getBakeryDefaults(currentDeployment, providerName, false))
         .get();
 
+    int originalHash = defaults.hashCode();
+
+    defaults = editBakeryDefaults((T) defaults);
+
+    if (originalHash == defaults.hashCode()) {
+      AnsiUi.failure("No changes supplied.");
+      return;
+    }
+
     new OperationHandler<Void>()
         .setSuccessMessage("Successfully edited bakery defaults for " + providerName + "'s bakery.")
         .setFailureMesssage("Failed to edit bakery defaults for " + providerName + "'s bakery.")
-        .setOperation(Daemon.setBakeryDefaults(currentDeployment, providerName, !noValidate, editBakeryDefaults((T) defaults)))
+        .setOperation(Daemon.setBakeryDefaults(currentDeployment, providerName, !noValidate, defaults))
         .get();
   }
 }

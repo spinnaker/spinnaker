@@ -19,11 +19,13 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 abstract public class BakeryDefaults<T extends BaseImage> extends Node {
   final private String nodeName = "bakeryDefaults";

@@ -22,6 +22,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -84,6 +85,8 @@ public abstract class AbstractEditBaseImageCommand<T extends BaseImage> extends 
         .setOperation(Daemon.getBaseImage(currentDeployment, providerName, baseImageId, false))
         .get();
 
+    int originalHash = baseImage.hashCode();
+
     BaseImage.ImageSettings imageSettings = baseImage.getBaseImage();
     if (imageSettings == null) {
       throw new RuntimeException("Image settings cannot be deleted during an edit. This is a bug in the " + getProviderName() + " provider's implementation of halyard.");
@@ -95,10 +98,17 @@ public abstract class AbstractEditBaseImageCommand<T extends BaseImage> extends 
     imageSettings.setPackageType(isSet(packageType) ? packageType : imageSettings.getPackageType());
     imageSettings.setTemplateFile(isSet(templateFile) ? templateFile : imageSettings.getTemplateFile());
 
+    baseImage = editBaseImage((T) baseImage);
+
+    if (originalHash == baseImage.hashCode()) {
+      AnsiUi.failure("No changes supplied.");
+      return;
+    }
+
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to edit base image " + baseImageId + " in" + providerName + "'s bakery.")
         .setSuccessMessage("Successfully edited base image " + baseImageId + " in" + providerName + "'s bakery.")
-        .setOperation(Daemon.setBaseImage(currentDeployment, providerName, baseImageId, !noValidate, editBaseImage((T) baseImage)))
+        .setOperation(Daemon.setBaseImage(currentDeployment, providerName, baseImageId, !noValidate, baseImage))
         .get();
   }
 }

@@ -24,11 +24,13 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 abstract public class AuthnMethod extends Node {
   @Override

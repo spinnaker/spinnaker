@@ -69,9 +69,11 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
     String currentDeployment = getCurrentDeployment();
 
     PersistentStorage persistentStorage = new OperationHandler<PersistentStorage>()
-        .setOperation(Daemon.getPersistentStorage(currentDeployment, !noValidate))
+        .setOperation(Daemon.getPersistentStorage(currentDeployment, false))
         .setFailureMesssage("Failed to load persistent storage.")
         .get();
+
+    int originalHash = persistentStorage.hashCode();
 
     persistentStorage.setAccountName(isSet(accountName) ? accountName : persistentStorage.getAccountName());
     persistentStorage.setBucket(isSet(bucket) ? bucket : persistentStorage.getBucket());
@@ -82,6 +84,11 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
       String bucketName = "spin-" + UUID.randomUUID().toString();
       AnsiUi.raw("Generated bucket name: " + bucketName);
       persistentStorage.setBucket(bucketName);
+    }
+
+    if (originalHash == persistentStorage.hashCode()) {
+      AnsiUi.failure("No changes supplied.");
+      return;
     }
 
     new OperationHandler<Void>()

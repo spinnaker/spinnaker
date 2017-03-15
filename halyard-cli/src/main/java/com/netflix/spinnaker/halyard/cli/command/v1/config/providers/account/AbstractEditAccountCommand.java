@@ -54,10 +54,19 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
         .setOperation(Daemon.getAccount(currentDeployment, providerName, accountName, false))
         .get();
 
+    int originaHash = account.hashCode();
+
+    account = editAccount((T) account);
+
+    if (originaHash == account.hashCode()) {
+      AnsiUi.failure("No changes supplied.");
+      return;
+    }
+
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to edit account " + accountName + " for provider " + providerName + ".")
         .setSuccessMessage("Successfully edited account " + accountName + " for provider " + providerName + ".")
-        .setOperation(Daemon.setAccount(currentDeployment, providerName, accountName, !noValidate, editAccount((T) account)))
+        .setOperation(Daemon.setAccount(currentDeployment, providerName, accountName, !noValidate, account))
         .get();
   }
 }

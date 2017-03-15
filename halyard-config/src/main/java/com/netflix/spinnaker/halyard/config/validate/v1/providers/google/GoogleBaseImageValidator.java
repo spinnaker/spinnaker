@@ -32,22 +32,24 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleBase
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 public class GoogleBaseImageValidator extends Validator<GoogleBaseImage> {
   final private static List<String> baseImageProjects = Lists.newArrayList("centos-cloud",
-                                                                           "coreos-cloud",
-                                                                           "debian-cloud",
-                                                                           "opensuse-cloud",
-                                                                           "rhel-cloud",
-                                                                           "suse-cloud",
-                                                                           "ubuntu-os-cloud",
-                                                                           "windows-cloud");
+      "coreos-cloud",
+      "debian-cloud",
+      "opensuse-cloud",
+      "rhel-cloud",
+      "suse-cloud",
+      "ubuntu-os-cloud",
+      "windows-cloud");
   final private List<GoogleNamedAccountCredentials> credentialsList;
 
   final private String halyardVersion;

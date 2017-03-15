@@ -25,7 +25,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 public class GoogleProvider extends HasImageProvider<GoogleAccount, GoogleBakeryDefaults> implements Cloneable {
   @Override
   public ProviderType providerType() {

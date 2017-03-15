@@ -54,9 +54,17 @@ public abstract class AbstractEditMasterCommand<T extends Master> extends Abstra
         .setFailureMesssage("Failed to get " + masterName + " webhook for " + webhookName + ".")
         .get();
 
+    int originalHash = master.hashCode();
+
+    master = editMaster((T) master);
+
+    if (originalHash == master.hashCode()) {
+      AnsiUi.failure("No changes supplied.");
+      return;
+    }
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setMaster(currentDeployment, webhookName, masterName, !noValidate, editMaster((T) master)))
+        .setOperation(Daemon.setMaster(currentDeployment, webhookName, masterName, !noValidate, master))
         .setSuccessMessage("Edited " + masterName + " webhook for " + webhookName + ".")
         .setFailureMesssage("Failed to edit " + masterName + " webhook for " + webhookName + ".")
         .get();

@@ -62,13 +62,20 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
     String currentDeployment = getCurrentDeployment();
 
     Features features = new OperationHandler<Features>()
-        .setOperation(Daemon.getFeatures(currentDeployment, !noValidate))
+        .setOperation(Daemon.getFeatures(currentDeployment, false))
         .setFailureMesssage("Failed to load features.")
         .get();
+
+    int originalHash = features.hashCode();
 
     features.setChaos(chaos != null ? chaos : features.isChaos());
     features.setFiat(fiat != null ? fiat : features.isFiat());
     features.setJobs(jobs != null ? jobs : features.isJobs());
+
+    if (originalHash == features.hashCode()) {
+      AnsiUi.failure("No changes supplied.");
+      return;
+    }
 
     new OperationHandler<Void>()
         .setOperation(Daemon.setFeatures(currentDeployment, !noValidate, features))

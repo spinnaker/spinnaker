@@ -21,10 +21,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @Data
 @ToString
+@EqualsAndHashCode(callSuper = true)
 public class GoogleBaseImage extends BaseImage<GoogleBaseImage.GoogleImageSettings, GoogleBaseImage.GoogleVirtualizationSettings> {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
@@ -34,6 +36,7 @@ public class GoogleBaseImage extends BaseImage<GoogleBaseImage.GoogleImageSettin
   private GoogleImageSettings baseImage;
   private GoogleVirtualizationSettings virtualizationSettings;
 
+  @EqualsAndHashCode(callSuper = true)
   @Data
   @ToString(callSuper = true)
   public static class GoogleImageSettings extends BaseImage.ImageSettings {

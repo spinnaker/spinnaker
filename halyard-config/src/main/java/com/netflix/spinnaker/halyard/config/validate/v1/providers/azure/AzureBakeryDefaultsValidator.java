@@ -23,9 +23,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureBakery
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureBaseImage;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 public class AzureBakeryDefaultsValidator extends Validator<AzureBakeryDefaults> {
   final private List<AzureCredentials> credentialsList;

@@ -24,9 +24,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureBaseIm
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 public class AzureBaseImageValidator extends Validator<AzureBaseImage> {
   final private List<AzureCredentials> credentialsList;

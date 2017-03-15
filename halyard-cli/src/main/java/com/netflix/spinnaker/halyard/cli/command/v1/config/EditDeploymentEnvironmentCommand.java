@@ -60,8 +60,15 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
         .setOperation(Daemon.getDeploymentEnvironment(currentDeployment, false))
         .get();
 
+    int originalHash = deploymentEnvironment.hashCode();
+
     deploymentEnvironment.setAccountName(isSet(accountName) ? accountName : deploymentEnvironment.getAccountName());
     deploymentEnvironment.setType(type != null ? type : deploymentEnvironment.getType());
+
+    if (originalHash == deploymentEnvironment.hashCode()) {
+      AnsiUi.failure("No changes supplied.");
+      return;
+    }
 
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to update your deployment environment.")

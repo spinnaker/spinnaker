@@ -27,6 +27,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class Authn extends Node {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {

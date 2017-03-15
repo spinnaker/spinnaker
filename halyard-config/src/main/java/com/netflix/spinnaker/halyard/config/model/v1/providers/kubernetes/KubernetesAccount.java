@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 public class KubernetesAccount extends Account implements Cloneable {
   String context;
   String cluster;

@@ -25,9 +25,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureAccoun
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
 public class AzureAccountValidator extends Validator<AzureAccount> {
   final private List<AzureCredentials> credentialsList;
