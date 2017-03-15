@@ -96,6 +96,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
       credentials = new AppengineNamedAccountCredentials.Builder()
               .jsonKey(jsonKey)
               .project(project)
+              .region("halyard")
               .applicationName("halyard " + halyardVersion)
               .build();
               
