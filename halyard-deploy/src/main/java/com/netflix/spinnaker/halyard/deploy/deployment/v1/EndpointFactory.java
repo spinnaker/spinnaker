@@ -63,6 +63,7 @@ public class EndpointFactory {
         SpinnakerEndpoints.Services services = endpoints.getServices();
 
         services.getClouddriver().setAddress("spin-clouddriver.spinnaker").setHost("0.0.0.0");
+        services.getClouddriverBootstrap().setAddress("spin-clouddriver-bootstrap.spinnaker").setHost("0.0.0.0");
         services.getDeck().setAddress("spin-deck.spinnaker").setHost("0.0.0.0");
         services.getEcho().setAddress("spin-echo.spinnaker").setHost("0.0.0.0");
         services.getFiat().setAddress("spin-fiat.spinnaker").setHost("0.0.0.0");
@@ -70,8 +71,10 @@ public class EndpointFactory {
         services.getGate().setAddress("spin-gate.spinnaker").setHost("0.0.0.0");
         services.getIgor().setAddress("spin-igor.spinnaker").setHost("0.0.0.0");
         services.getOrca().setAddress("spin-orca.spinnaker").setHost("0.0.0.0");
+        services.getOrcaBootstrap().setAddress("spin-orca-bootstrap.spinnaker").setHost("0.0.0.0");
         services.getRosco().setAddress("spin-rosco.spinnaker").setHost("0.0.0.0");
         services.getRedis().setAddress("spin-redis.spinnaker").setHost("0.0.0.0");
+        services.getRedisBootstrap().setAddress("spin-redis-bootstrap.spinnaker").setHost("0.0.0.0");
 
         return endpoints;
       default:

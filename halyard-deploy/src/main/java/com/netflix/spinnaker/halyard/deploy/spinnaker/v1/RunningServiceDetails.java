@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerPublicService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 
 @Data
@@ -27,12 +29,12 @@ public class RunningServiceDetails {
   String internalEndpoint;
   String externalEndpoint;
 
-  public RunningServiceDetails setService(SpinnakerEndpoints.Service service) {
+  public RunningServiceDetails setService(SpinnakerService service) {
     internalEndpoint = service.getBaseUrl();
     return this;
   }
 
-  public RunningServiceDetails setPublicService(SpinnakerEndpoints.PublicService service) {
+  public RunningServiceDetails setPublicService(SpinnakerPublicService service) {
     this.externalEndpoint = service.getPublicEndpoint();
     return setService(service);
   }

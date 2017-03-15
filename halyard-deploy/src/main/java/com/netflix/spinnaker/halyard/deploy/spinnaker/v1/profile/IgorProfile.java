@@ -40,7 +40,7 @@ public class IgorProfile extends SpringProfile {
     }
 
     Webhooks webhooks = deploymentConfiguration.getWebhooks();
-    List<String> files = dependentFiles(webhooks);
+    List<String> files = processRequiredFiles(webhooks);
     return config.extendConfig(config.getPrimaryConfigFile(), yamlToString(webhooks)).setRequiredFiles(files);
   }
 }

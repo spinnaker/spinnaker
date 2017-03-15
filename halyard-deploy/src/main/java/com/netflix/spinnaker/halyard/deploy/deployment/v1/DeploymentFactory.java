@@ -27,13 +27,12 @@ import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.kubernetes.KubernetesFlotillaDeployment;
-import com.netflix.spinnaker.halyard.deploy.provider.v1.KubernetesProviderInterface;
+import com.netflix.spinnaker.halyard.deploy.provider.v1.kubernetes.KubernetesProviderInterface;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.ServiceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import retrofit.client.OkClient;
 
 import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderType;
 
@@ -49,7 +48,7 @@ public class DeploymentFactory {
   private String DEBIAN_REPOSITORY;
 
   @Autowired
-  ServiceFactory serviceFactory;
+  ServiceInterfaceFactory serviceInterfaceFactory;
 
   public Deployment create(DeploymentConfiguration deploymentConfiguration, GenerateResult generateResult) {
     DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
@@ -60,7 +59,7 @@ public class DeploymentFactory {
 
     switch (type) {
       case LocalhostDebian:
-        return new LocalhostDebianDeployment(deploymentDetails, DEBIAN_REPOSITORY).setServiceFactory(serviceFactory);
+        return new LocalhostDebianDeployment(deploymentDetails, DEBIAN_REPOSITORY).setServiceInterfaceFactory(serviceInterfaceFactory);
       case Flotilla:
         return createFlotillaDeployment(deploymentConfiguration, deploymentDetails);
       default:

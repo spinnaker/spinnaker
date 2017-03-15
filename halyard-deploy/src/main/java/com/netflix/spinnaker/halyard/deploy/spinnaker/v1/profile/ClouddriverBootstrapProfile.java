@@ -17,18 +17,12 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
-import lombok.Data;
+import org.springframework.stereotype.Component;
 
-@Data
-public class ServerConfig {
-  SslConfig ssl = new SslConfig();
-
-  String port;
-  String address;
-
-  ServerConfig(SpinnakerService service) {
-    port = Integer.toString(service.getPort());
-    address = service.getHost();
+@Component
+public class ClouddriverBootstrapProfile extends ClouddriverProfile {
+  @Override
+  protected String getProfileExtension() {
+    return "bootstrap";
   }
 }

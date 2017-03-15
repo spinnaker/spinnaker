@@ -103,7 +103,7 @@ public class GenerateService {
 
     // Step 2.
     DaemonTaskHandler.newStage("Generating all Spinnaker profile files");
-    Map<String, List<String>> profileRequirements = new HashMap<>();
+    Map<String, Set<String>> profileRequirements = new HashMap<>();
     Map<SpinnakerArtifact, String> artifactVersions = new HashMap<>();
     FileSystem defaultFileSystem = FileSystems.getDefault();
     Path path;
@@ -120,7 +120,9 @@ public class GenerateService {
         configParser.atomicWrite(path, e.getValue());
       }
 
-      profileRequirements.put(artifactName, config.getRequiredFiles());
+      Set<String> currentRequirements = profileRequirements.getOrDefault(artifactName, new HashSet<>());
+      currentRequirements.addAll(config.getRequiredFiles());
+      profileRequirements.put(artifactName, currentRequirements);
       artifactVersions.put(profile.getArtifact(), config.getVersion());
     }
 
@@ -157,7 +159,7 @@ public class GenerateService {
 
   @Data
   public static class GenerateResult {
-    private Map<String, List<String>> profileRequirements = new HashMap<>();
+    private Map<String, Set<String>> profileRequirements = new HashMap<>();
     private Map<SpinnakerArtifact, String> artifactVersions = new HashMap<>();
     SpinnakerEndpoints endpoints;
 

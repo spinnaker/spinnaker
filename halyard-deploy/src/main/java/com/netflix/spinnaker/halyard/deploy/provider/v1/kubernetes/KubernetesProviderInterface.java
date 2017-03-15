@@ -12,14 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.provider.v1;
+package com.netflix.spinnaker.halyard.deploy.provider.v1.kubernetes;
 
 import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.LookupService;
@@ -30,9 +32,15 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobStatus.State;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
+import com.netflix.spinnaker.halyard.deploy.provider.v1.OperationFactory.ConfigSource;
+import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerPublicService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.Config;
@@ -46,16 +54,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderType.KUBERNETES;
 
 @Component
 @Slf4j
@@ -78,7 +88,8 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   @Autowired
   LookupService lookupService;
 
-  private static final String CLOUDRIVER_CONFIG_PATH = "/kubernetes/raw/hal-clouddriver.yml";
+  @Autowired
+  KubernetesOperationFactory kubernetesOperationFactory;
 
   // Map from deployment name -> the port & job managing the connection.
   private ConcurrentHashMap<String, Proxy> proxyMap = new ConcurrentHashMap<>();
@@ -87,6 +98,11 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   private static class Proxy {
     String jobId;
     Integer port;
+  }
+
+  @Override
+  public Provider.ProviderType getProviderType() {
+    return KUBERNETES;
   }
 
   @Override
@@ -103,9 +119,9 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   }
 
   @Override
-  public Object connectTo(AccountDeploymentDetails<KubernetesAccount> details, EndpointType endpointType) {
+  public <T> T connectTo(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService<T> service) {
     KubernetesAccount account = details.getAccount();
-    DaemonTaskHandler.newStage("Connecting to the Kubernetes cluster in account \"" + details.getAccount() + "\"");
+    DaemonTaskHandler.newStage("Connecting to the Kubernetes cluster in account \"" + account.getName() + "\"");
     Proxy proxy = proxyMap.getOrDefault(details.getDeploymentName(), new Proxy());
     if (proxy.jobId == null || proxy.jobId.isEmpty()) {
       List<String> command = kubectlAccountCommand(account);
@@ -143,14 +159,39 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       }
     }
 
-    Service service = endpointType.getService(details.getEndpoints());
-
     String endpoint = "http://localhost:" + proxy.getPort() + "/api/v1/proxy/namespaces/"
         + getNamespaceFromAddress(service.getAddress()) + "/services/"
         + getServiceFromAddress(service.getAddress()) + ":" + service.getPort() + "/";
 
     log.info("Connecting to " + service.getAddress() + " on port " + proxy.getPort());
-    return serviceFactory.createService(endpoint, endpointType);
+    return serviceInterfaceFactory.createService(endpoint, service);
+  }
+
+  private List<ConfigSource> configSources(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
+    String namespace = getNamespaceFromAddress(service.getAddress());
+    SpinnakerArtifact artifact = service.getArtifact();
+    List<Pair<VolumeMount, Volume>> volumes = new ArrayList<>();
+    volumes.add(stageDependencies(details, namespace, artifact.getName()));
+    volumes.add(stageProfile(details, namespace, artifact));
+    return volumes.stream().map(this::fromVolumePair).collect(Collectors.toList());
+  }
+
+  @Override
+  public void deployService(AccountDeploymentDetails<KubernetesAccount> details, Orca orca, SpinnakerService service) {
+    String artifactName = service.getArtifact().getName();
+    DaemonTaskHandler.newStage("Deploying " + service.getArtifact().getName());
+    String accountName = details.getAccount().getName();
+    SpinnakerArtifact artifact = service.getArtifact();
+    List<ConfigSource> configSources = configSources(details, service);
+    Map<String, Object> task = kubernetesOperationFactory.createUpsertPipeline(accountName, service);
+    Supplier<String> idSupplier = () -> orca.submitTask(task).get("ref");
+    DaemonTaskHandler.log("Upserting " + artifactName + " load balancer");
+    monitorOrcaTask(idSupplier, orca);
+
+    Map<String, Object> pipeline = kubernetesOperationFactory.createDeployPipeline(accountName, service, componentArtifact(details, artifact), configSources);
+    idSupplier = () -> orca.orchestrate(pipeline).get("ref");
+    DaemonTaskHandler.log("Orchestrating " + artifactName + " red/black deployment");
+    monitorOrcaTask(idSupplier, orca);
   }
 
   private void createNamespace(KubernetesClient client, String namespace) {
@@ -163,14 +204,16 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     }
   }
 
-  public void deployService(AccountDeploymentDetails<KubernetesAccount> details,
-                            Service service,
-                            String image,
-                            List<Pair<VolumeMount, Volume>> volumes,
-                            Map<String, String> env) {
+  private String bootstrapService(AccountDeploymentDetails<KubernetesAccount> details,
+      SpinnakerService service,
+      boolean recreate,
+      String image,
+      List<Pair<VolumeMount, Volume>> volumes,
+      Map<String, String> env) {
     String namespace = getNamespaceFromAddress(service.getAddress());
     String serviceName = getServiceFromAddress(service.getAddress());
     String replicaSetName = serviceName + "-v000";
+    DaemonTaskHandler.log("Deploying service " + serviceName);
     int port = service.getPort();
 
     KubernetesClient client = getClient(details.getAccount());
@@ -197,11 +240,18 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         .withPorts(new ServicePortBuilder().withPort(port).build())
         .endSpec();
 
+    boolean serviceExists = false;
     if (client.services().inNamespace(namespace).withName(serviceName).get() != null) {
-      client.services().inNamespace(namespace).withName(serviceName).delete();
+      if (recreate) {
+        client.services().inNamespace(namespace).withName(serviceName).delete();
+      } else {
+        serviceExists = true;
+      }
     }
 
-    client.services().inNamespace(namespace).create(serviceBuilder.build());
+    if (!serviceExists) {
+      client.services().inNamespace(namespace).create(serviceBuilder.build());
+    }
 
     List<EnvVar> envVars = env.entrySet().stream().map(e -> {
       EnvVarBuilder envVarBuilder = new EnvVarBuilder();
@@ -258,34 +308,55 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         .endTemplate()
         .endSpec();
 
+    boolean serverExists = false;
     if (client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).get() != null) {
-      client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).delete();
+      if (recreate) {
+        client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).delete();
+      } else {
+        serverExists = true;
+      }
     }
 
-    client.extensions().replicaSets().inNamespace(namespace).create(replicaSetBuilder.build());
-    DaemonTaskHandler.log("Deployed service " + serviceName);
+    if (!serverExists) {
+      RunningServiceDetails serviceDetails = getRunningServiceDetails(details, service);
+      while (serviceDetails.getHealthy() != 0) {
+        try {
+          Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        } catch (InterruptedException ignored) {
+        }
+        serviceDetails = getRunningServiceDetails(details, service);
+      }
+
+      client.extensions().replicaSets().inNamespace(namespace).create(replicaSetBuilder.build());
+    }
+
+    return replicaSetName;
   }
 
-  public Map<String, String> specializeEnv(SpinnakerArtifact artifact) {
-    Map<String, String> env = new HashMap<>();
-    switch (artifact) {
-      case REDIS:
-        env.put("MASTER", "true");
-        break;
-      default:
-        break;
+  private String bootstrapService(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service, boolean recreate) {
+    SpinnakerArtifact artifact = service.getArtifact();
+    String namespace = getNamespaceFromAddress(service.getAddress());
+    List<Pair<VolumeMount, Volume>> volumes = new ArrayList<>();
+    volumes.add(stageDependencies(details, namespace, artifact.getName()));
+    volumes.add(stageProfile(details, namespace, artifact));
+    Map<String, String> env = service.getEnv();
+
+    if (!service.getProfiles().isEmpty()) {
+      env.put(artifact.getName().toUpperCase() + "_OPTS", "-Dspring.profiles.active=" + service.getProfiles().stream().reduce((a, b) -> a + "," + b).get());
     }
-    return env;
+    return bootstrapService(details, service, recreate, componentArtifact(details, artifact), volumes, env);
   }
 
   @Override
-  public void deployService(AccountDeploymentDetails<KubernetesAccount> details, Service service) {
-    SpinnakerArtifact artifact = service.getArtifact();
-    String namespace = getNamespaceFromAddress(service.getAddress());
-    List<Pair<VolumeMount, Volume>> volumes = stageProfileDependencies(details, namespace, artifact.getName());
-    volumes.add(stageProfile(details, namespace, artifact));
-    Map<String, String> env = specializeEnv(artifact);
-    deployService(details, service, componentArtifact(details, artifact), volumes, env);
+  public void ensureRedisIsRunning(AccountDeploymentDetails<KubernetesAccount> details, RedisService redisService) {
+    bootstrapService(details, redisService, false);
+  }
+
+  @Override
+  public void bootstrapSpinnaker(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerEndpoints.Services services) {
+    bootstrapService(details, services.getRedisBootstrap(), true);
+    bootstrapService(details, services.getClouddriverBootstrap(), true);
+    bootstrapService(details, services.getOrcaBootstrap(), true);
   }
 
   private List<String> kubectlAccountCommand(KubernetesAccount account) {
@@ -319,15 +390,15 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     return command;
   }
 
-  private String getServiceFromAddress(String address) {
+  static String getServiceFromAddress(String address) {
     return parseAddressEntry(address, 0);
   }
 
-  private String getNamespaceFromAddress(String address) {
+  static String getNamespaceFromAddress(String address) {
     return parseAddressEntry(address, 1);
   }
 
-  private String parseAddressEntry(String address, int index) {
+  static private String parseAddressEntry(String address, int index) {
     if (index < 0 || index > 1) {
       throw new IllegalArgumentException("Index must be in the range [0, 1]");
     }
@@ -344,45 +415,30 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     return "hal-" + name + "-config";
   }
 
-  private List<Pair<VolumeMount, Volume>> stageProfileDependencies(AccountDeploymentDetails<KubernetesAccount> details, String namespace, String profileName) {
-    List<String> requiredFiles = details
-        .getGenerateResult()
-        .getProfileRequirements()
-        .get(profileName);
-    List<Pair<VolumeMount, Volume>> result = new ArrayList<>();
-
-    if (requiredFiles == null) {
-      return result;
-    }
-
-    Map<String, List<String>> groupByDir = new HashMap<>();
-    requiredFiles.forEach(s -> {
-      File f = new File(s);
-      List<String> files = groupByDir.getOrDefault(f.getParent(), new ArrayList<>());
-      files.add(s);
-      groupByDir.put(f.getParent(), files);
-    });
-
-    groupByDir.entrySet().forEach(e -> {
-      String dirName = e.getKey();
-      String secretName = String.join("-", "hal", profileName, dirName
-          .replace(File.separator, "-")
-          .replace(".", "-")
-      );
-      upsertSecret(details, e.getValue(), secretName, namespace);
-
-      result.add(buildVolumePair(secretName, dirName));
-    });
-
-    return result;
+  private String componentDependencies(String name) {
+    return "hal-" + name + "-dependencies";
   }
 
-  private Pair<VolumeMount, Volume> stageProfile(AccountDeploymentDetails<KubernetesAccount> details, String namespace, SpinnakerArtifact artifact) {
+  private Pair<VolumeMount, Volume> stageProfile(AccountDeploymentDetails<KubernetesAccount> details,
+      String namespace,
+      SpinnakerArtifact artifact) {
     File outputPath = new File(spinnakerOutputPath);
     File[] profiles = outputPath.listFiles();
     String secretName = componentSecret(artifact.getName());
     upsertSecret(details, artifact.profilePaths(profiles), secretName, namespace);
     return buildVolumePair(secretName, CONFIG_MOUNT);
+  }
+
+  private Pair<VolumeMount, Volume> stageDependencies(AccountDeploymentDetails<KubernetesAccount> details,
+      String namespace,
+      String profileName) {
+    Set<String> requiredFiles = details
+        .getGenerateResult()
+        .getProfileRequirements()
+        .getOrDefault(profileName, new HashSet<>());
+    String secretName = componentDependencies(profileName);
+    upsertSecret(details, requiredFiles, secretName, namespace);
+    return buildVolumePair(secretName, spinnakerOutputDependencyPath);
   }
 
   private Pair<VolumeMount, Volume> buildVolumePair(String secretName, String dirName) {
@@ -399,7 +455,16 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     return new ImmutablePair<>(volumeMountBuilder.build(), volumeBuilder.build());
   }
 
-  private void upsertSecret(AccountDeploymentDetails<KubernetesAccount> details, List<String> files, String secretName, String namespace) {
+  private ConfigSource fromVolumePair(Pair<VolumeMount, Volume> volumePair) {
+    ConfigSource res = new ConfigSource();
+    Volume volume = volumePair.getRight();
+    VolumeMount volumeMount = volumePair.getLeft();
+    res.setId(volume.getSecret().getSecretName());
+    res.setMountPoint(volumeMount.getMountPath());
+    return res;
+  }
+
+  private void upsertSecret(AccountDeploymentDetails<KubernetesAccount> details, Set<String> files, String secretName, String namespace) {
     KubernetesClient client = getClient(details.getAccount());
     createNamespace(client, namespace);
 
@@ -443,5 +508,34 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         false);
 
     return new DefaultKubernetesClient(config);
+  }
+
+  @Override
+  public RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
+    RunningServiceDetails res = new RunningServiceDetails();
+    if (service instanceof SpinnakerPublicService) {
+      res.setPublicService((SpinnakerPublicService) service);
+    } else {
+      res.setService(service);
+    }
+
+    KubernetesClient client = getClient(details.getAccount());
+    String name = KubernetesProviderInterface.getServiceFromAddress(service.getAddress());
+    String namespace = KubernetesProviderInterface.getNamespaceFromAddress(service.getAddress());
+
+    List<Pod> pods = client.pods().inNamespace(namespace).withLabel("load-balancer-" + name, "true").list().getItems();
+
+    int count = (int) pods
+        .stream()
+        .filter(p -> p
+            .getStatus()
+            .getContainerStatuses()
+            .stream()
+            .allMatch(c -> c.getReady() && c.getState().getRunning() != null && c.getState().getTerminated() == null))
+        .count();
+
+    res.setHealthy(count);
+
+    return res;
   }
 }

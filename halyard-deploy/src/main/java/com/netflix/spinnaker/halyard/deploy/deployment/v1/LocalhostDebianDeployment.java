@@ -25,9 +25,9 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints.Service;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.Clouddriver;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerPublicService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import retrofit.RetrofitError;
 
 import java.util.HashMap;
@@ -48,30 +48,29 @@ public class LocalhostDebianDeployment extends Deployment {
   }
 
   @Override
-  public RunningServiceDetails getServiceDetails(EndpointType endpointType) {
+  public RunningServiceDetails getServiceDetails(SpinnakerService service) {
     RunningServiceDetails details = new RunningServiceDetails();
 
-    Service service = endpointType.getService(getEndpoints());
-
-    if (service instanceof SpinnakerEndpoints.PublicService) {
-      details.setPublicService((SpinnakerEndpoints.PublicService) service);
+    if (service instanceof SpinnakerPublicService) {
+      details.setPublicService((SpinnakerPublicService) service);
     } else {
       details.setService(service);
     }
 
     String endpoint = service.getBaseUrl();
-    Object serviceInterface = serviceFactory.createService(endpoint, endpointType);
+    Object serviceInterface = serviceInterfaceFactory.createService(endpoint, service);
+    SpinnakerArtifact artifact = service.getArtifact();
     boolean healthy = false;
 
     try {
-      switch (endpointType) {
+      switch (artifact) {
         case CLOUDDRIVER:
-          Clouddriver clouddriver = (Clouddriver) serviceInterface;
+          ClouddriverService.Clouddriver clouddriver = (ClouddriverService.Clouddriver) serviceInterface;
           healthy = clouddriver.health().getStatus().equals("UP");
           break;
         default:
           throw new HalException(
-            new ProblemBuilder(Problem.Severity.FATAL, "Service " + endpointType.getName() + " cannot be inspected.").build()
+            new ProblemBuilder(Problem.Severity.FATAL, "Service " + artifact.getName() + " cannot be inspected.").build()
           );
       }
     } catch (RetrofitError e) {
@@ -79,7 +78,7 @@ public class LocalhostDebianDeployment extends Deployment {
     }
 
     details.setHealthy(healthy ? 1 : 0);
-    details.setVersion(deploymentDetails.getGenerateResult().getArtifactVersion(endpointType.getArtifact()));
+    details.setVersion(deploymentDetails.getGenerateResult().getArtifactVersion(artifact));
 
     return details;
   }

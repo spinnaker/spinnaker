@@ -13,3 +13,6 @@ spinnaker:
     input:
       writerEnabled: false
       bucket: halconfig
+
+retrofit:
+  logLevel: BASIC

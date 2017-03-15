@@ -15,11 +15,26 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import lombok.Data;
 
 @Data
-public class SpringHealth {
-  String status;
+abstract public class SpinnakerPublicService<T> extends SpinnakerService<T> {
+  String protocol = "http";
+
+  public abstract String getPublicAddress();
+
+  public String getPublicEndpoint() {
+    return getProtocol() + "://" + getPublicAddress() + ":" + getPort();
+  }
+
+  SpinnakerPublicService() { }
+
+  SpinnakerPublicService(Security security) {
+    if (security.getSsl().isEnabled()) {
+      protocol = "https";
+    }
+  }
 }

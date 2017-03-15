@@ -20,8 +20,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+
+import java.util.concurrent.TimeUnit;
 
 abstract public class FlotillaDeployment<T extends Account> extends Deployment {
   public FlotillaDeployment(AccountDeploymentDetails<T> deploymentDetails, ProviderInterface<T> providerInterface) {
@@ -42,26 +46,51 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
   private ProviderInterface<T> providerInterface;
   private AccountDeploymentDetails<T> deploymentDetails;
 
+  private void waitForServiceUp(SpinnakerService service) {
+    DaemonTaskHandler.log("Waiting for " + service.getArtifact().getName() + " to appear healthy");
+    RunningServiceDetails details = getServiceDetails(service);
+    while (details.getHealthy() == 0) {
+      try {
+        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
+      } catch (InterruptedException ignored) {
+      }
+      details = getServiceDetails(service);
+    }
+  }
+
   @Override
   public DeployResult deploy(String spinnakerOutputPath) {
     SpinnakerEndpoints.Services services = getEndpoints().getServices();
-    DaemonTaskHandler.newStage("Deploying Spinnaker services and dependencies");
+    DaemonTaskHandler.newStage("Bootstrapping a minimal Spinnaker installation");
+    providerInterface.bootstrapSpinnaker(deploymentDetails, services);
 
-    providerInterface.deployService(deploymentDetails, services.getRedis());
+    waitForServiceUp(services.getRedisBootstrap());
+    waitForServiceUp(services.getOrcaBootstrap());
+    waitForServiceUp(services.getClouddriverBootstrap());
 
-    providerInterface.deployService(deploymentDetails, services.getClouddriver());
-    providerInterface.deployService(deploymentDetails, services.getDeck());
-    providerInterface.deployService(deploymentDetails, services.getEcho());
-    providerInterface.deployService(deploymentDetails, services.getFiat());
-    providerInterface.deployService(deploymentDetails, services.getFront50());
-    providerInterface.deployService(deploymentDetails, services.getGate());
-    providerInterface.deployService(deploymentDetails, services.getIgor());
-    providerInterface.deployService(deploymentDetails, services.getOrca());
-    providerInterface.deployService(deploymentDetails, services.getRosco());
+    DaemonTaskHandler.newStage("Deploying remainder of Spinnaker services");
+    OrcaService.Orca orca = providerInterface.connectTo(deploymentDetails, services.getOrcaBootstrap());
+    providerInterface.ensureRedisIsRunning(deploymentDetails, services.getRedis());
+    providerInterface.deployService(deploymentDetails, orca, services.getClouddriver());
+    providerInterface.deployService(deploymentDetails, orca, services.getDeck());
+
+    providerInterface.deployService(deploymentDetails, orca, services.getEcho());
+    providerInterface.deployService(deploymentDetails, orca, services.getFront50());
+    providerInterface.deployService(deploymentDetails, orca, services.getGate());
+    providerInterface.deployService(deploymentDetails, orca, services.getIgor());
+    providerInterface.deployService(deploymentDetails, orca, services.getOrca());
+    providerInterface.deployService(deploymentDetails, orca, services.getRosco());
+
+    providerInterface.deployService(deploymentDetails, orca, services.getFiat());
 
     DeployResult deployResult = new DeployResult();
     deployResult.setScriptDescription("Use the provided script to connect to your Spinnaker installation.");
     deployResult.setPostInstallScript(""); // TODO(lwander)
     return deployResult;
+  }
+
+  @Override
+  public RunningServiceDetails getServiceDetails(SpinnakerService service) {
+    return providerInterface.getRunningServiceDetails(deploymentDetails, service);
   }
 }

@@ -24,21 +24,28 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
+import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.yaml.snakeyaml.Yaml;
 import retrofit.RetrofitError;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * A profile is a specialization of an artifact by means of feature flipping in .js and .yml
@@ -53,6 +60,9 @@ abstract public class SpinnakerProfile {
 
   @Autowired
   ObjectMapper objectMapper;
+
+  @Autowired
+  String spinnakerOutputDependencyPath;
 
   @Autowired
   DeploymentService deploymentService;
@@ -110,7 +120,7 @@ abstract public class SpinnakerProfile {
           .setVersion(componentVersion);
     } catch (RetrofitError | IOException e) {
       throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL,
+          new ConfigProblemBuilder(FATAL,
               "Unable to retrieve a profile for \"" + getArtifact().getName() + "\": " + e.getMessage())
               .build()
       );
@@ -118,18 +128,40 @@ abstract public class SpinnakerProfile {
   }
 
   /**
-   * @param node is the node to find dependent files in.
+   * @param node is the node to find required files in.
    * @return the list of files required by the node to function.
    */
-  List<String> dependentFiles(Node node) {
+  List<String> processRequiredFiles(Node node) {
     List<String> files = new ArrayList<>();
 
     Consumer<Node> fileFinder = n -> files.addAll(n.localFiles().stream().map(f -> {
       try {
         f.setAccessible(true);
-        return (String) f.get(n);
+        String fPath = (String) f.get(n);
+        if (fPath == null) {
+          return null;
+        }
+
+        File fFile = new File(fPath);
+        String fName = fFile.getName();
+
+        // Hash the path to uniquely flatten all files into the output directory
+        Path newName = Paths.get(spinnakerOutputDependencyPath, Math.abs(fPath.hashCode()) + "-" + fName);
+        File parent = newName.toFile().getParentFile();
+        if (!parent.exists()) {
+          parent.mkdirs();
+        } else if (fFile.getParent().equals(parent.toString())) {
+          // Don't move paths that are already in the right folder
+          return fPath;
+        }
+        Files.copy(Paths.get(fPath), newName, REPLACE_EXISTING);
+
+        f.set(n, newName.toString());
+        return newName.toString();
       } catch (IllegalAccessException e) {
         throw new RuntimeException("Failed to get local files for node " + n.getNodeName(), e);
+      } catch (IOException e) {
+        throw new HalException(new ProblemBuilder(FATAL, "Failed to backup user file: " + e.getMessage()).build());
       } finally {
         f.setAccessible(false);
       }

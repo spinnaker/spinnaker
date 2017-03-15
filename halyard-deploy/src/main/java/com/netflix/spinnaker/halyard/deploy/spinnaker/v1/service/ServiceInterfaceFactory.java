@@ -12,30 +12,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
 @Component
-public class ServiceFactory {
+public class ServiceInterfaceFactory {
   @Autowired
   OkClient okClient;
 
-  public Object createService(String endpoint, EndpointType endpointType) {
-    Class clazz = endpointType.getServiceClass();
-    if (clazz == null) {
-      throw new HalException(new ProblemBuilder(Problem.Severity.FATAL, "No endpoint is available for service " + endpointType.getName()).build());
-    }
+  @Autowired
+  RestAdapter.LogLevel retrofitLogLevel;
+
+  public <T> T createService(String endpoint, SpinnakerService<T> service) {
+    Class<T> clazz = service.getEndpointClass();
     return new RestAdapter.Builder()
         .setClient(okClient)
+        .setLogLevel(retrofitLogLevel)
         .setEndpoint(endpoint)
         .build()
         .create(clazz);

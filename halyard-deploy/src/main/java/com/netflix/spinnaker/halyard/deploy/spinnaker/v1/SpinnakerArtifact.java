@@ -22,6 +22,7 @@ import lombok.Getter;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -56,14 +57,14 @@ public enum SpinnakerArtifact {
     this.spinnakerInternal = spinnakerInternal;
   }
 
-  public List<String> profilePaths(File[] allProfiles) {
+  public Set<String> profilePaths(File[] allProfiles) {
     return Arrays.stream(allProfiles)
         .filter(f -> profilePatterns
             .stream()
             .filter(p -> p.matcher(f.getName()).find()).count() > 0)
         .filter(File::isFile)
         .map(File::getAbsolutePath)
-        .collect(Collectors.toList());
+        .collect(Collectors.toSet());
   }
 
   public static SpinnakerArtifact fromString(String name) {

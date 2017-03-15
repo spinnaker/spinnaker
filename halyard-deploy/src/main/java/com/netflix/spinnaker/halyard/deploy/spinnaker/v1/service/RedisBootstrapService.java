@@ -15,20 +15,14 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+
 import lombok.Data;
 
 @Data
-public class ServerConfig {
-  SslConfig ssl = new SslConfig();
-
-  String port;
-  String address;
-
-  ServerConfig(SpinnakerService service) {
-    port = Integer.toString(service.getPort());
-    address = service.getHost();
+public class RedisBootstrapService extends RedisService {
+  public RedisBootstrapService() {
+    super();
   }
 }

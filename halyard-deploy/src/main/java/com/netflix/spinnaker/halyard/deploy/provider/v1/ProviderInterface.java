@@ -17,14 +17,24 @@
 package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderType;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.ServiceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * A ProviderInterface is an abstraction for communicating with a specific cloud-provider's installation
@@ -33,13 +43,18 @@ import org.springframework.stereotype.Component;
 @Component
 public abstract class ProviderInterface<T extends Account> {
   @Autowired
-  JobExecutor jobExecutor;
+  protected JobExecutor jobExecutor;
 
   @Autowired
-  ServiceFactory serviceFactory;
+  protected ServiceInterfaceFactory serviceInterfaceFactory;
 
   @Autowired
-  String spinnakerOutputPath;
+  protected String spinnakerOutputPath;
+
+  @Autowired
+  protected String spinnakerOutputDependencyPath;
+
+  abstract public ProviderType getProviderType();
 
   /**
    * @param details are the deployment details for the current deployment.
@@ -48,7 +63,38 @@ public abstract class ProviderInterface<T extends Account> {
    */
   abstract protected String componentArtifact(AccountDeploymentDetails<T> details, SpinnakerArtifact artifact);
 
-  abstract public Object connectTo(AccountDeploymentDetails<T> details, EndpointType endpointType);
+  abstract public <S> S connectTo(AccountDeploymentDetails<T> details, SpinnakerService<S> service);
 
-  abstract public void deployService(AccountDeploymentDetails<T> details, SpinnakerEndpoints.Service service);
+  abstract public void deployService(AccountDeploymentDetails<T> details, Orca orca, SpinnakerService service);
+
+  abstract public void ensureRedisIsRunning(AccountDeploymentDetails<T> details, RedisService redisService);
+  abstract public void bootstrapSpinnaker(AccountDeploymentDetails<T> details, SpinnakerEndpoints.Services services);
+  abstract public RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<T> details, SpinnakerService service);
+
+  protected Map<String, Object> monitorOrcaTask(Supplier<String> task, Orca orca) {
+    Map<String, Object> pipeline;
+    String status;
+    try {
+      String id = task.get();
+
+      pipeline = orca.getRef(id);
+      status = (String) pipeline.get("status");
+      while (status.equalsIgnoreCase("running") || status.equalsIgnoreCase("not_started")) {
+        try {
+          Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        } catch (InterruptedException ignored) {
+        }
+        pipeline = orca.getRef(id);
+        status = (String) pipeline.get("status");
+      }
+    } catch (RetrofitError e) {
+      throw new HalException(new ProblemBuilder(Problem.Severity.FATAL, "Failed to monitor task: " + e.getMessage()).build());
+    }
+
+    if (status.equalsIgnoreCase("terminal")) {
+      throw new HalException(new ProblemBuilder(Problem.Severity.FATAL, "Pipeline failed").build());
+    }
+
+    return pipeline;
+  }
 }

@@ -49,7 +49,7 @@ public class Front50Profile extends SpringProfile {
 
     if (account instanceof CommonGoogleAccount) {
       credentials.getSpinnaker().setGcs(new Front50Credentials.Spinnaker.GCS(storage, (CommonGoogleAccount) account));
-      config.setRequiredFiles(dependentFiles(account));
+      config.setRequiredFiles(processRequiredFiles(account));
       config.extendConfig(config.getPrimaryConfigFile(), yamlToString(credentials));
       return config;
     } else {

@@ -25,7 +25,6 @@ import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
-import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.deploy.config.v1.ConfigParser;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentFactory;
@@ -33,7 +32,6 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.EndpointFactory;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -50,12 +48,6 @@ public class DeployService {
 
   @Autowired
   DeploymentFactory deploymentFactory;
-
-  @Autowired
-  EndpointFactory endpointFactory;
-
-  @Autowired
-  ArtifactService artifactService;
 
   @Autowired
   GenerateService generateService;
@@ -118,8 +110,9 @@ public class DeployService {
 
       DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
       Deployment deployment = deploymentFactory.create(deploymentConfiguration, getPriorGenerateResult(deploymentName));
+      SpinnakerEndpoints endpoints = deployment.getEndpoints();
 
-      return deployment.getServiceDetails(EndpointType.fromString(serviceName));
+      return deployment.getServiceDetails(endpoints.getService(serviceName));
     } finally {
       halconfigParser.switchToPrimaryConfig();
     }

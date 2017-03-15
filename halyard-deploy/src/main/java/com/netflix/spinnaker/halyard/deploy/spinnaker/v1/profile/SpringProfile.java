@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 
 import java.util.Map;
@@ -24,7 +24,16 @@ import java.util.Map;
 abstract public class SpringProfile extends SpinnakerProfile {
   @Override
   public String getProfileFileName() {
-    return getArtifact().getName() + ".yml";
+    String name = getArtifact().getName();
+    String extension = getProfileExtension() ;
+    if (extension != null) {
+      name = name + "-" + extension;
+    }
+    return name + ".yml";
+  }
+
+  protected String getProfileExtension() {
+    return null;
   }
 
   @Override
@@ -36,13 +45,12 @@ abstract public class SpringProfile extends SpinnakerProfile {
     return yamlParser.dump(objectMapper.convertValue(o, Map.class));
   }
 
-
   @Data
   static class SpringProfileConfig {
     ServerConfig server;
     SpringConfig spring;
 
-    SpringProfileConfig(SpinnakerEndpoints.Service service) {
+    SpringProfileConfig(SpinnakerService service) {
       server = new ServerConfig(service);
     }
   }

@@ -67,6 +67,11 @@ public class ResourceConfig {
   }
 
   @Bean
+  String spinnakerOutputDependencyPath(@Value("${spinnaker.config.output.directory:~/.halyard}") String path) {
+    return Paths.get(normalizePath(path), "dependency").toString();
+  }
+
+  @Bean
   Yaml yamlParser() {
     DumperOptions options = new DumperOptions();
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);

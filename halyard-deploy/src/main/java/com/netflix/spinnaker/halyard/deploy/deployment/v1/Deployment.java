@@ -19,29 +19,27 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.EndpointType;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.endpoint.ServiceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * A Deployment is a running Spinnaker installation.
  */
 abstract public class Deployment {
   @Setter
-  ServiceFactory serviceFactory;
+  ServiceInterfaceFactory serviceInterfaceFactory;
 
   abstract public DeploymentType deploymentType();
 
   /**
    * Get details about a running Spinnaker service.
-   * @param endpointType is the type of the service to inspect.
+   * @param service is service being contacted for details.
    * @return details about the state of the running service.
    */
-  abstract public RunningServiceDetails getServiceDetails(EndpointType endpointType);
+  abstract public RunningServiceDetails getServiceDetails(SpinnakerService service);
 
   /**
    * The endpoint format is specific to a provider/deployment pair.

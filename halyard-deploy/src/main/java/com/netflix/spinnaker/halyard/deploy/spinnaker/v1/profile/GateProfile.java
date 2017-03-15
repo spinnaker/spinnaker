@@ -20,6 +20,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeckService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.GateService;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +43,7 @@ public class GateProfile extends SpringProfile {
   private static class GateConfig extends SpringProfileConfig {
     Cors cors = new Cors();
 
-    GateConfig(SpinnakerEndpoints.Service gate, Security security) {
+    GateConfig(GateService gate, Security security) {
       super(gate);
       spring = new SpringConfig(security);
     }
@@ -50,7 +52,7 @@ public class GateProfile extends SpringProfile {
     static class Cors {
       private String allowedOriginsPattern;
 
-      void setAllowedOriginsPattern(Security security, SpinnakerEndpoints.PublicService deck) {
+      void setAllowedOriginsPattern(Security security, DeckService deck) {
         String domain = security.getUiDomain();
         domain = domain.replace(".", "\\.");
 
