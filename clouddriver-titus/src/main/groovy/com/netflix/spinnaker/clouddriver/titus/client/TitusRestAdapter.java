@@ -45,7 +45,7 @@ public interface TitusRestAdapter {
     Call<List<Job>> getJobsByType(@Query("type") String type);
 
     @GET("/api/v2/jobs")
-    Call<List<Job>> getJobsByLabel(@Query("labels") String labels);
+    Call<List<Job>> getJobsByLabel(@Query(value="labels", encoded=true) String labels);
 
     @GET("/api/v2/jobs")
     Call<List<Job>> getJobsByApplication(@Query("appName") String application);
