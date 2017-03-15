@@ -19,6 +19,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfig
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.PipelineDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Severity;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.SchemaValidator;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
@@ -54,6 +55,15 @@ public class V1TemplateConfigurationSchemaValidator implements SchemaValidator {
     }
 
     V1SchemaValidationHelper.validateStageDefinitions(config.getStages(), errors, V1TemplateConfigurationSchemaValidator::location);
+
+    config.getStages().forEach(s -> {
+      if ((s.getDependsOn() == null || s.getDependsOn().isEmpty()) && (s.getInject() == null || !s.getInject().hasAny())) {
+        errors.addError(Error.builder()
+          .withMessage("A configuration-defined stage should have either dependsOn or an inject rule defined")
+          .withLocation(location(String.format("stages.%s", s.getId())))
+          .withSeverity(Severity.WARN));
+      }
+    });
 
     // TODO rz - validate required variables are set and of the correct type
   }

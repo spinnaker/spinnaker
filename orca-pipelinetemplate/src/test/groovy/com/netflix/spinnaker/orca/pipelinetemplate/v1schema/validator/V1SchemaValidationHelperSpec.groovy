@@ -42,13 +42,17 @@ class V1SchemaValidationHelperSpec extends Specification {
       new StageDefinition(),
       new StageDefinition(id: 'foo'),
       new StageDefinition(id: 'foo', type: 'findImage'),
-      new StageDefinition(id: 'foo', type: 'findImage', config: [:])
+      new StageDefinition(id: 'foo', type: 'findImage', config: [:]),
+      new StageDefinition(id: 'foo', type: 'findImage', config: [:], dependsOn: ['bar'], inject: [first: true]),
+      new StageDefinition(id: 'foo', type: 'findImage', config: [:], inject: [first: true, last: true])
     ]
     expectedError << [
       new Errors.Error(message: 'Stage ID is unset', location: 'namespace:stages'),
       new Errors.Error(message: 'Stage is missing type', location: 'namespace:stages.foo'),
       new Errors.Error(message: 'Stage configuration is unset', location: 'namespace:stages.foo'),
-      false
+      false,
+      new Errors.Error(message: 'A stage cannot have both dependsOn and an inject rule defined simultaneously', location: 'namespace:stages.foo'),
+      new Errors.Error(message: 'A stage cannot have multiple inject rules defined', location: 'namespace:stages.foo')
     ]
   }
 

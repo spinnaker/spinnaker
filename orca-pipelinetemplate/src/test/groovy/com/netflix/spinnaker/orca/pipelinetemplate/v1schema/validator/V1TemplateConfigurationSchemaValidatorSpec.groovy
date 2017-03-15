@@ -15,11 +15,13 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator
 
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.PipelineDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class V1TemplateConfigurationSchemaValidatorSpec extends Specification {
 
@@ -68,5 +70,39 @@ class V1TemplateConfigurationSchemaValidatorSpec extends Specification {
     application | hasErrors
     null        | true
     'myapp'     | false
+  }
+
+  @Unroll
+  def "should require either dependsOn or inject rule"() {
+    given:
+    def errors = new Errors()
+    def templateConfiguration = new TemplateConfiguration(
+      schema: "1",
+      pipeline: new PipelineDefinition(application: 'myapp'),
+      stages: [
+        new StageDefinition(
+          id: 'foo',
+          type: 'foo',
+          config: [:]
+        )
+      ]
+    )
+
+    when:
+    subject.validate(templateConfiguration, errors)
+
+    then:
+    if (hasErrors) {
+      errors.errors[0].message == "A configuration-defined stage should have either dependsOn or an inject rule defined"
+      errors.errors[0].location == 'configuration:stages.foo'
+    } else {
+      !errors.hasErrors(true)
+    }
+
+    where:
+    dependsOn | injectFirst | hasErrors
+    null      | true        | false
+    ['bar']   | false       | false
+    null      | null        | true
   }
 }

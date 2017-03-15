@@ -24,25 +24,6 @@ import spock.lang.Unroll
 
 class ConfigStageInjectionTransformSpec extends Specification {
 
-  def 'should add all stages from configuration if none in template'() {
-    given:
-    PipelineTemplate template = new PipelineTemplate(
-      stages: []
-    )
-
-    TemplateConfiguration configuration = new TemplateConfiguration(
-      stages: [
-        new StageDefinition(id: 's1')
-      ]
-    )
-
-    when:
-    new ConfigStageInjectionTransform(configuration).visitPipelineTemplate(template)
-
-    then:
-    template.stages*.id == ['s1']
-  }
-
   def 'should replace stages from configuration into template'() {
     given:
     PipelineTemplate template = new PipelineTemplate(

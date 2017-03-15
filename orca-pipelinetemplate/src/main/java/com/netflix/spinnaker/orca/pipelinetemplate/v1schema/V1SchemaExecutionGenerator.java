@@ -18,12 +18,10 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 import com.netflix.spinnaker.orca.pipelinetemplate.generator.ExecutionGenerator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -61,24 +59,12 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
         stage.put("refId", s.getId());
         stage.put("type", s.getType());
         stage.put("name", s.getName());
-        stage.put("requisiteStageRefIds", getStageRequisiteIds(s, template.getStages()));
+        stage.put("requisiteStageRefIds", s.getRequisiteStageRefIds());
         stage.putAll(s.getConfig());
         return stage;
       })
       .collect(Collectors.toList()));
 
     return pipeline;
-  }
-
-  private static List<String> getStageRequisiteIds(StageDefinition stage, List<StageDefinition> allStages) {
-    if (stage.getDependsOn().isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    return allStages
-      .stream()
-      .filter(s -> stage.getDependsOn().contains(s.getId()))
-      .map(StageDefinition::getId)
-      .collect(Collectors.toList());
   }
 }

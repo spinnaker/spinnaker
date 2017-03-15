@@ -52,16 +52,8 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
   @Override
   public void visitPipelineTemplate(PipelineTemplate pipelineTemplate) {
-    addAll(pipelineTemplate);
     replaceStages(pipelineTemplate);
     injectStages(pipelineTemplate);
-  }
-
-  private void addAll(PipelineTemplate pipelineTemplate) {
-    List<StageDefinition> templateStages = pipelineTemplate.getStages();
-    if (templateStages.size() == 0) {
-      templateStages.addAll(templateConfiguration.getStages());
-    }
   }
 
   private void replaceStages(PipelineTemplate pipelineTemplate) {
@@ -77,9 +69,14 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
   }
 
   private void injectStages(PipelineTemplate pipelineTemplate) {
-    // Create initial graph via dependsOn.
+    // Create initial graph via dependsOn. We need to include stages that the configuration defines with dependsOn as well
+    List<StageDefinition> initialStages = pipelineTemplate.getStages();
+    initialStages.addAll(templateConfiguration.getStages().stream()
+      .filter(s -> !s.getDependsOn().isEmpty())
+      .collect(Collectors.toList()));
+
     pipelineTemplate.setStages(
-      createGraph(pipelineTemplate.getStages())
+      createGraph(initialStages)
     );
 
     // Handle stage injections.

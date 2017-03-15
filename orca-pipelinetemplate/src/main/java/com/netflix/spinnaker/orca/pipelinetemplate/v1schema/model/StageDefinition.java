@@ -38,8 +38,8 @@ public class StageDefinition implements Identifiable, Conditional {
 
   public static class InjectionRule {
 
-    private Boolean first;
-    private Boolean last;
+    private Boolean first = false;
+    private Boolean last = false;
     private String before;
     private String after;
 
@@ -73,6 +73,27 @@ public class StageDefinition implements Identifiable, Conditional {
 
     public void setAfter(String after) {
       this.after = after;
+    }
+
+    public boolean hasAny() {
+      return first || last || before != null || after != null;
+    }
+
+    public boolean hasMany() {
+      int count = 0;
+      if (first) {
+        count += 1;
+      }
+      if (last) {
+        count += 1;
+      }
+      if (before != null) {
+        count += 1;
+      }
+      if (after != null) {
+        count += 1;
+      }
+      return count > 1;
     }
   }
 

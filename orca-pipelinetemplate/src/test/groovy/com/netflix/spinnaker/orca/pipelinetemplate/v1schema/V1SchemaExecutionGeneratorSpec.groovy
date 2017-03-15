@@ -54,6 +54,7 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
         new StageDefinition(
           id: 'bake',
           type: 'bake',
+          requisiteStageRefIds: [],
           config: [
             regions: ['us-west-2', 'us-east-1'],
             package: 'orca-package',
@@ -67,6 +68,7 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
           id: 'tagImage',
           type: 'tagImage',
           dependsOn: ['bake'],
+          requisiteStageRefIds: ['bake'],
           config: [tags: [stack: 'test']]
         )
       ]

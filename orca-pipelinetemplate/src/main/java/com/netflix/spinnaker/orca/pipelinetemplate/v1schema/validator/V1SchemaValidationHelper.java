@@ -46,6 +46,21 @@ public class V1SchemaValidationHelper {
           .withLocation(locationFormatter.apply("stages." + stageDefinition.getId()))
         );
       }
+
+      if (stageDefinition.getDependsOn() != null && !stageDefinition.getDependsOn().isEmpty() &&
+        stageDefinition.getInject() != null && stageDefinition.getInject().hasAny()) {
+        errors.addError(Error.builder()
+          .withMessage("A stage cannot have both dependsOn and an inject rule defined simultaneously")
+          .withLocation(locationFormatter.apply("stages." + stageDefinition.getId()))
+        );
+      }
+
+      if (stageDefinition.getInject() != null && stageDefinition.getInject().hasMany()) {
+        errors.addError(Error.builder()
+          .withMessage("A stage cannot have multiple inject rules defined")
+          .withLocation(locationFormatter.apply("stages." + stageDefinition.getId()))
+        );
+      }
     });
   }
 }

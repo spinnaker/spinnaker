@@ -73,6 +73,23 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     given:
     def request = createTemplateRequest('simple-001.yml', [
       regions: ['us-east-1', 'us-west-2']
+    ], [
+      [
+        id: 'wait',
+        type: 'wait',
+        dependsOn: ['tagImage'],
+        config: [waitTime: 5]
+      ],
+      [
+        id: 'injectedWait',
+        type: 'wait',
+        inject: [
+          first: true
+        ],
+        config: [
+          waitTime: 5
+        ]
+      ]
     ])
 
     when:
@@ -91,10 +108,18 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       stages: [
         [
           id: null,
+          refId: 'injectedWait',
+          requisiteStageRefIds: [],
+          type: 'wait',
+          name: 'injectedWait',
+          waitTime: 5
+        ],
+        [
+          id: null,
           refId: 'bake',
           type: 'bake',
           name: 'Bake',
-          requisiteStageRefIds: [],
+          requisiteStageRefIds: ['injectedWait'],
           regions: ['us-east-1', 'us-west-2'],
           package: 'myapp-package',
           baseOs: 'trusty',
@@ -111,6 +136,14 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
           tags: [
             stack: 'test'
           ]
+        ],
+        [
+          id: null,
+          refId: 'wait',
+          type: 'wait',
+          name: 'wait',
+          requisiteStageRefIds: ['tagImage'],
+          waitTime: 5
         ]
       ]
     ]
@@ -119,7 +152,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
   def 'should render jackson mapping exceptions'() {
     when:
-    def result = subject.process(createTemplateRequest('invalid-template-001.yml', [:], true))
+    def result = subject.process(createTemplateRequest('invalid-template-001.yml', [:], [], true))
 
     then:
     noExceptionThrown()
@@ -129,14 +162,14 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
   def 'should not render unknown handlebars identifiers'() {
     when:
-    def result = subject.process(createTemplateRequest('invalid-handlebars-001.yml', [:], true))
+    def result = subject.process(createTemplateRequest('invalid-handlebars-001.yml', [:], [], true))
 
     then:
     noExceptionThrown()
     result.stages[0].regions == '{{unknown_identifier}}'
   }
 
-  Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], boolean plan = false) {
+  Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], List<Map<String, Object>> stages = [:], boolean plan = false) {
     return [
       type: 'templatedPipeline',
       trigger: [
@@ -154,7 +187,8 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
             source: getClass().getResource("/templates/${templatePath}").toURI()
           ],
           variables: variables
-        ]
+        ],
+        stages: stages
       ],
       plan: plan
     ]
