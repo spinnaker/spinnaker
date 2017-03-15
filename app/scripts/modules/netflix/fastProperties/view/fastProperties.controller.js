@@ -17,7 +17,7 @@ module.exports = angular
   .controller('FastPropertiesController', function ($scope, $filter, $state, $urlRouter, $stateParams, $location, $uibModal, settings, app, fastPropertyReader) {
 
     let vm = this;
-    let filterNames = ['key', 'value', 'app','env', 'region', 'stack', 'cluster'];
+    let filterNames = ['substring', 'key', 'value', 'app','env', 'region', 'stack', 'cluster'];
 
     vm.application = app;
 
@@ -37,7 +37,7 @@ module.exports = angular
           label: tag.label,
           value: tag.value,
           clear: () => {
-            let newList = $scope.filters.list.filter((t) => t.label !== tag.label && t.value !== tag.value );
+            let newList = $scope.filters.list.filter((t) => !(t.label === tag.label && t.value === tag.value) );
             $scope.filters.list = newList;
           }
         };
@@ -152,13 +152,19 @@ module.exports = angular
           .filter((filter) => filter.label === filterLabel)
           .map((filter) => filter.value);
 
-        let item = property.scope[filterLabel] || property[filterLabel];
-        let matches = (scopeAttrList.length) ? normalizeForNone(scopeAttrList).includes(item) : true;
+        let item = property.scope[filterLabel] || property[filterLabel] || concatKeyAndValue(filterLabel, property);
+        let matches = (scopeAttrList.length) ? (normalizeForNone(scopeAttrList).includes(item) || scopeAttrList.some((attr) => item.includes(attr)) ) : true;
 
         return matches;
       };
     };
 
+    let concatKeyAndValue = (filterLabel, property) => {
+      if (filterLabel === 'substring') {
+        return `${property.key}|${property.value}|${property.scope.appId}|${property.env}|${JSON.stringify(property.scope)}|${property.scope.region}`;
+      }
+      return '';
+    };
 
     let predicateList = filterNames.reduce((acc, name) => {
       acc[name] = filterPredicateFactory(name);

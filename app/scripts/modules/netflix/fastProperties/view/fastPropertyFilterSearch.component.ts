@@ -1,5 +1,5 @@
 import {compact, findIndex, uniqWith} from 'lodash';
-import {module} from 'angular';
+import {module, ILogService, IComponentOptions, IComponentController} from 'angular';
 
 interface IFastProperty {
   scope: IFastPropertyScope;
@@ -17,7 +17,7 @@ interface IFastPropertyScope {
 }
 
 
-class FastPropertyFilterSearchController implements ng.IComponentController {
+class FastPropertyFilterSearchController implements IComponentController {
   public querying = false;
   public showSearchResults = false;
   public categories: any = [];
@@ -38,7 +38,7 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
 
   public constructor(
     private $element: JQuery,
-    private $log: ng.ILogService
+    private $log: ILogService
   ) {}
 
   public $onInit(): void {
@@ -51,8 +51,8 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
     this.showSearchResults = true;
   }
 
-  public displayResults(event: any): void {
-    if (this.query && (this.query !== event.target.value)) {
+  public displayResults(): void {
+    if (this.query) {
       this.executeQuery();
     } else {
       this.displayAllCategories();
@@ -105,6 +105,9 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
       }
       if (code === 38) { // up
         return this.focusLastSearchResult(event);
+      }
+      if (code === 13) {
+        return;
       }
       if (code === 9) { // tab
         if (!event.shiftKey) {
@@ -162,9 +165,9 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
         if (results.length > 0) {
           result = {category: category.category, results: results};
         }
-
         return result;
       }));
+      this.filteredCategories.splice(0, 0, {category: 'substring', results: [this.query]});
     }
     this.querying = false;
     this.showSearchResults = !!this.query;
@@ -202,7 +205,7 @@ class FastPropertyFilterSearchController implements ng.IComponentController {
 }
 
 
-class FastPropertyFilterSearchComponent implements ng.IComponentOptions {
+class FastPropertyFilterSearchComponent implements IComponentOptions {
 
   public bindings: any = {
     'properties': '<',

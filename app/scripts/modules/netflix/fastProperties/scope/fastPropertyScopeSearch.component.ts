@@ -3,7 +3,7 @@ import './fastPropetyScopeSearch.less';
 import { CATEGORY_BUTTON_LIST_COMPONENT } from './categoryButtonList.component';
 
 import {debounce, uniqWith, isEqual} from 'lodash';
-import { module, IComponentController, IQService} from 'angular';
+import { module, IComponentController, IComponentOptions, IQService} from 'angular';
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import { FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FastPropertyScopeCategoryService } from './fastPropertyScopeSearchCategory.service';
 import {Scope} from '../domain/scope.domain';
@@ -224,7 +224,7 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
   }
 }
 
-class FastPropertyScopeSearchComponent implements ng.IComponentOptions {
+class FastPropertyScopeSearchComponent implements IComponentOptions {
   public templateUrl: string = require('./fastPropertyScopeSearch.component.html');
   public controller: any = FastPropertyScopeSearchComponentController;
   public bindings: any = {

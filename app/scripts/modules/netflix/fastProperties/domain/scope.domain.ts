@@ -44,7 +44,7 @@ export class Scope {
     return Object.assign(scope, this);
   }
 
-  public getBaseOfScope() {
+  public getBaseOfScope(): string {
     if (this.serverId) { return this.serverId; }
     if (this.zone) { return this.zone; }
     if (this.asg) { return this.asg; }
