@@ -250,17 +250,20 @@ class BomGenerator(Annotator):
       component [string]: Name of the Spinnaker component.
       profile_path [string]: Path to component's yaml configuration file.
     """
-    result = run_quick(
-      'hal admin publish profile {0} --color false --bom-path {1} --profile-path {2}'
-      .format(component, self.__bom_file, profile_path)
-    )
-    if result.returncode != 0:
-      print "'hal admin publish profile' command failed with: \n{0}\n exiting...".format(result.stdout)
-      exit(result.returncode)
+    for profile in os.listdir(profile_path):
+      full_profile = os.path.join(profile_path, profile)
+      if os.path.isfile(full_profile):
+        result = run_quick(
+          'hal admin publish profile {0} --color false --bom-path {1} --profile-path {2}'
+          .format(component, self.__bom_file, full_profile)
+        )
+        if result.returncode != 0:
+          print "'hal admin publish profile' command failed with: \n{0}\n exiting...".format(result.stdout)
+          exit(result.returncode)
 
   def publish_microservice_configs(self):
     for comp in self.COMPONENTS:
-      config_path = os.path.join(comp, 'halconfig', '*')
+      config_path = os.path.join(comp, 'halconfig')
       self.__publish_config(comp, config_path)
 
   def determine_and_tag_versions(self):
