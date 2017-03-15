@@ -442,6 +442,7 @@ class Builder(object):
     """Build the Spinnaker packages as container images.
     """
     subsystems = [comp for comp in SUBSYSTEM_LIST if comp != 'spinnaker']
+    subsystems.append('spinnaker-monitoring')
 
     if self.__options.container_builder:
       weighted_processes = self.__options.cpu_ratio * multiprocessing.cpu_count()
