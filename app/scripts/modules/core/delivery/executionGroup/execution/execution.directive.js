@@ -46,7 +46,7 @@ module.exports = angular
     };
 
     this.toggleDetails = (node) => {
-      if (node.index === undefined && $state.current.name.includes('.executions.execution')) {
+      if (node.executionId === $state.params.executionId && $state.current.name.includes('.executions.execution')) {
         $state.go('^');
         return;
       }
