@@ -28,7 +28,7 @@
           <dd ng-if="provider === 'aws'">{{stage.context.subnetType || '[none]'}}</dd>
           <dt>Strategy</dt>
           <dd>{{stage.context.strategy || '[none]'}}</dd>
-          <dt>Capacity</dt>
+          <dt ng-if="stage.context.capacity || stage.context.useSourceCapacity">Capacity</dt>
           <dd ng-if="!stage.context.capacity">
             {{stage.context.targetSize}}
           </dd>
