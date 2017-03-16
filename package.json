@@ -73,7 +73,7 @@
     "@types/angular-ui-bootstrap": "^0.13.40",
     "@types/angular-ui-router": "^1.1.35",
     "@types/d3": "^4.5.0",
-    "@types/jasmine": "^2.5.42",
+    "@types/jasmine": "2.5.42",
     "@types/jquery": "^2.0.34",
     "@types/lodash": "4.14.41",
     "@types/moment-timezone": "^0.2.34",
