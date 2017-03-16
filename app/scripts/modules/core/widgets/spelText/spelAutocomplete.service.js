@@ -11,7 +11,7 @@ module.exports = angular
   .factory('spelAutocomplete', function($q, jsonListBuilder, executionService) {
     let brackets = [{open: '(', close: ')'}, {open: '[', close: ']'}, ];
     let quotes = [{open: '\'', close: '\'' }, {open: '\"', close: '\"' }];
-    let helperFunctions = ['alphanumerical', 'readJson', 'fromUrl', 'jsonFromUrl', 'judgment', 'stage', 'toBoolean', 'toFloat', 'toInt', 'toJson'];
+    let helperFunctions = ['alphanumerical', 'readJson', 'fromUrl', 'propertiesFromUrl', 'jsonFromUrl', 'judgment', 'stage', 'toBoolean', 'toFloat', 'toInt', 'toJson'];
     let helperParams = ['execution', 'parameters', 'trigger', 'scmInfo', 'scmInfo.sha1', 'scmInfo.branch', 'deployedServerGroups'];
     let codedHelperParams = helperParams.map((param) => {
       return {name: param, type: 'param'};
