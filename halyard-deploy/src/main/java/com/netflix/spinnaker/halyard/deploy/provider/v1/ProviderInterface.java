@@ -29,6 +29,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -70,10 +71,13 @@ public abstract class ProviderInterface<T extends Account> {
   /**
    * Deploy a service using Orca's orchestration engine.
    * @param details are the deployment details for the current deployment.
-   * @param orca is the orca service being used for deployment.
-   * @param service is the service to deploy.
+   * @param orca is the instance of orca used to orchestrate the deployment.
+   * @param endpoints are the endpoints spinnaker is conforming to.
+   * @param name is the service being deployed.
    */
-  public void deployService(AccountDeploymentDetails<T> details, Orca orca, SpinnakerService service) {
+  public void deployService(AccountDeploymentDetails<T> details, Orca orca, SpinnakerEndpoints endpoints, String name) {
+    SpinnakerService service = endpoints.getService(name);
+    SpinnakerMonitoringDaemonService monitoringService = endpoints.getServices().getSpinnakerMonitoringDaemon();
     String artifactName = service.getArtifact().getName();
     DaemonTaskHandler.newStage("Deploying " + service.getArtifact().getName());
     boolean update = serviceExists(details, service);
@@ -85,7 +89,7 @@ public abstract class ProviderInterface<T extends Account> {
       monitorOrcaTask(idSupplier, orca);
     }
 
-    Map<String, Object> pipeline = deployServerGroupPipeline(details, service, update);
+    Map<String, Object> pipeline = deployServerGroupPipeline(details, service, monitoringService, update);
     idSupplier = () -> orca.orchestrate(pipeline).get("ref");
     DaemonTaskHandler.log("Orchestrating " + artifactName + " deployment");
     monitorOrcaTask(idSupplier, orca);
@@ -93,7 +97,7 @@ public abstract class ProviderInterface<T extends Account> {
 
   abstract protected Map<String, Object> upsertLoadBalancerTask(AccountDeploymentDetails<T> details, SpinnakerService service);
 
-  abstract protected Map<String, Object> deployServerGroupPipeline(AccountDeploymentDetails<T> details, SpinnakerService service, boolean update);
+  abstract protected Map<String, Object> deployServerGroupPipeline(AccountDeploymentDetails<T> details, SpinnakerService service, SpinnakerMonitoringDaemonService monitoringService, boolean update);
 
   /**
    * Creates a service only if it isn't running yet. This is useful for dealing with dependent services that can't

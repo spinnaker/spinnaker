@@ -25,7 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import io.fabric8.utils.Strings;
 import lombok.Data;
@@ -34,14 +34,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class SpinnakerMonitoringProfile extends SpinnakerProfile {
+public class SpinnakerMonitoringDaemonProfile extends SpinnakerProfile {
   private String profileFileName = "spinnaker-monitoring.yml";
 
   @Override
@@ -51,14 +49,14 @@ public class SpinnakerMonitoringProfile extends SpinnakerProfile {
 
   @Override
   public SpinnakerArtifact getArtifact() {
-    return SpinnakerArtifact.SPINNAKER_MONITORING;
+    return SpinnakerArtifact.SPINNAKER_MONITORING_DAEMON;
   }
 
   @Override
   protected ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
     String primaryConfig = config.getPrimaryConfigFile();
     SpinnakerEndpoints.Services services = endpoints.getServices();
-    SpinnakerMonitoringService monitoringService = services.getSpinnakerMonitoring();
+    SpinnakerMonitoringDaemonService monitoringService = services.getSpinnakerMonitoringDaemon();
     MetricStores metricStores = deploymentConfiguration.getMetricStores();
     List<String> enabledMetricStores = new ArrayList<>();
 

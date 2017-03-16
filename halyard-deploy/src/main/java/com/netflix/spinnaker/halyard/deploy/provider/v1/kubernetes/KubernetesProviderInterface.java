@@ -37,8 +37,7 @@ import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerPublicService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import io.fabric8.kubernetes.api.model.*;
@@ -57,10 +56,10 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -84,6 +83,12 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   @Value("${deploy.kubernetes.config.dir:/opt/spinnaker/config}")
   private String CONFIG_MOUNT;
+
+  @Value("${deploy.kubernetes.config.dir:/opt/spinnaker-monitoring/config")
+  private String MONITORING_CONFIG_MOUNT;
+
+  @Value("${deploy.kubernetes.config.dir:/opt/spinnaker-monitoring/registry")
+  private String MONITORING_REGISTRY_MOUNT;
 
   @Autowired
   LookupService lookupService;
@@ -167,13 +172,26 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     return serviceInterfaceFactory.createService(endpoint, service);
   }
 
-  private List<ConfigSource> configSources(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
+  private List<Pair<VolumeMount, Volume>> serviceVolumes(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
     String namespace = getNamespaceFromAddress(service.getAddress());
     SpinnakerArtifact artifact = service.getArtifact();
     List<Pair<VolumeMount, Volume>> volumes = new ArrayList<>();
     volumes.add(stageDependencies(details, namespace, artifact.getName()));
-    volumes.add(stageProfile(details, namespace, artifact));
-    return volumes.stream().map(this::fromVolumePair).collect(Collectors.toList());
+    volumes.add(stageProfile(details, namespace, service));
+
+    if (service.isMonitoringEnabled()) {
+      volumes.add(stageMonitoringConfig(details, namespace, service));
+      volumes.add(stageMonitoringRegistry(details, namespace, service));
+    }
+
+    return volumes;
+  }
+
+  private List<ConfigSource> configSources(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
+    return serviceVolumes(details, service)
+        .stream()
+        .map(this::fromVolumePair)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -183,12 +201,18 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   }
 
   @Override
-  protected Map<String, Object> deployServerGroupPipeline(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service, boolean update) {
+  protected  Map<String, Object> deployServerGroupPipeline(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service, SpinnakerMonitoringDaemonService monitoringService, boolean update) {
     String accountName = details.getAccount().getName();
     SpinnakerArtifact artifact = service.getArtifact();
     List<ConfigSource> configSources = configSources(details, service);
+    String artifactVersion = componentArtifact(details, artifact);
+    String monitoringVersion = componentArtifact(details, monitoringService.getArtifact());
 
-    return kubernetesOperationFactory.createDeployPipeline(accountName, service, componentArtifact(details, artifact), configSources, update);
+    if (service.isMonitoringEnabled()) {
+      return kubernetesOperationFactory.createDeployPipeline(accountName, service, artifactVersion, monitoringService, monitoringVersion, configSources, update);
+    } else {
+      return kubernetesOperationFactory.createDeployPipeline(accountName, service, artifactVersion, configSources, update);
+    }
   }
 
   private void createNamespace(KubernetesClient client, String namespace) {
@@ -344,10 +368,8 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   private String bootstrapService(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service, boolean recreate) {
     SpinnakerArtifact artifact = service.getArtifact();
-    String namespace = getNamespaceFromAddress(service.getAddress());
-    List<Pair<VolumeMount, Volume>> volumes = new ArrayList<>();
-    volumes.add(stageDependencies(details, namespace, artifact.getName()));
-    volumes.add(stageProfile(details, namespace, artifact));
+    List<Pair<VolumeMount, Volume>> volumes = serviceVolumes(details, service);
+
     Map<String, String> env = service.getEnv();
 
     if (!service.getProfiles().isEmpty()) {
@@ -432,13 +454,42 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     return "hal-" + name + "-config";
   }
 
+  private String componentMonitoring(String name) {
+    return "hal-" + name + "-monitoring";
+  }
+
+  private String componentRegistry(String name) {
+    return "hal-" + name + "-registry";
+  }
+
   private String componentDependencies(String name) {
     return "hal-" + name + "-dependencies";
   }
 
+  private Pair<VolumeMount, Volume> stageMonitoringRegistry(AccountDeploymentDetails<KubernetesAccount> details,
+      String namespace,
+      SpinnakerService service) {
+    SpinnakerArtifact artifact = service.getArtifact();
+    Set<String> secretFile = Collections.singleton(Paths.get(spinnakerOutputPath, "registry", service.getName() + ".yml").toString());
+    String secretName = componentMonitoring(artifact.getName());
+    upsertSecret(details, secretFile, secretName, namespace);
+    return buildVolumePair(secretName, MONITORING_REGISTRY_MOUNT);
+  }
+
+  private Pair<VolumeMount, Volume> stageMonitoringConfig(AccountDeploymentDetails<KubernetesAccount> details,
+      String namespace,
+      SpinnakerService service) {
+    SpinnakerArtifact artifact = service.getArtifact();
+    Set<String> secretFile = Collections.singleton(Paths.get(spinnakerOutputPath, "spinnaker-monitoring.yml").toString());
+    String secretName = componentMonitoring(artifact.getName());
+    upsertSecret(details, secretFile, secretName, namespace);
+    return buildVolumePair(secretName, MONITORING_CONFIG_MOUNT);
+  }
+
   private Pair<VolumeMount, Volume> stageProfile(AccountDeploymentDetails<KubernetesAccount> details,
       String namespace,
-      SpinnakerArtifact artifact) {
+      SpinnakerService service) {
+    SpinnakerArtifact artifact = service.getArtifact();
     File outputPath = new File(spinnakerOutputPath);
     File[] profiles = outputPath.listFiles();
     String secretName = componentSecret(artifact.getName());

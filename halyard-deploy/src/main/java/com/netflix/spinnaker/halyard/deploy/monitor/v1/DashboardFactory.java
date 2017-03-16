@@ -15,24 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.metricStores.datadog;
+package com.netflix.spinnaker.halyard.deploy.monitor.v1;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class DatadogStore extends MetricStore {
-  @Override
-  public String getNodeName() {
-    return "datadog";
-  }
-
-  @JsonProperty("api_key")
-  private String apiKey;
-
-  @JsonProperty("app_key")
-  private String appKey;
+public class DashboardFactory {
 }

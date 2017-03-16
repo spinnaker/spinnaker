@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 
@@ -27,7 +28,18 @@ import java.util.List;
 import java.util.Map;
 
 abstract public class OperationFactory {
-  abstract public Map<String, Object> createDeployPipeline(String accountName, SpinnakerService service, String artifact, List<ConfigSource> configSources, boolean update);
+  abstract public Map<String, Object> createDeployPipeline(String accountName,
+      SpinnakerService service,
+      String artifact,
+      SpinnakerMonitoringDaemonService monitoringService,
+      String monitoringArtifact,
+      List<ConfigSource> configSources,
+      boolean update);
+  abstract public Map<String, Object> createDeployPipeline(String accountName,
+      SpinnakerService service,
+      String artifact,
+      List<ConfigSource> configSources,
+      boolean update);
   abstract public Map<String, Object> createUpsertPipeline(String accountName, SpinnakerService service);
 
   abstract protected Provider.ProviderType getProviderType();

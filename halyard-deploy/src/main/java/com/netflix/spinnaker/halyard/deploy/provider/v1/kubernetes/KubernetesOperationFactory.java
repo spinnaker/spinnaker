@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalan
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.OperationFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -73,12 +74,10 @@ public class KubernetesOperationFactory extends OperationFactory {
 
   private DeployKubernetesAtomicOperationDescription baseDeployDescription(String accountName, SpinnakerService service, String artifact, List<ConfigSource> configSources) {
     String address = service.getAddress();
-    int port = service.getPort();
     DeployKubernetesAtomicOperationDescription description = new DeployKubernetesAtomicOperationDescription();
 
     String namespace = KubernetesProviderInterface.getNamespaceFromAddress(address);
     String name = KubernetesProviderInterface.getServiceFromAddress(address);
-    String artifactName = service.getArtifact().getName();
     Names parsedName = Names.parseName(name);
 
     description.setNamespace(namespace);
@@ -106,9 +105,19 @@ public class KubernetesOperationFactory extends OperationFactory {
     loadBalancers.add(name);
     description.setLoadBalancers(loadBalancers);
 
+    KubernetesContainerDescription container = buildContainer(service, artifact, configSources);
+    List<KubernetesContainerDescription> containers = new ArrayList<>();
+    containers.add(container);
+    description.setContainers(containers);
+
+    return description;
+  }
+
+  private KubernetesContainerDescription buildContainer(SpinnakerService service, String artifactVersion, List<ConfigSource> configSources) {
     KubernetesContainerDescription container = new KubernetesContainerDescription();
     KubernetesProbe readinessProbe = new KubernetesProbe();
     KubernetesHandler handler = new KubernetesHandler();
+    int port = service.getPort();
 
     String httpHealth = service.getHttpHealth();
     if (httpHealth != null) {
@@ -127,9 +136,9 @@ public class KubernetesOperationFactory extends OperationFactory {
     readinessProbe.setHandler(handler);
     container.setReadinessProbe(readinessProbe);
 
-    KubernetesImageDescription imageDescription = KubernetesUtil.buildImageDescription(artifact);
+    KubernetesImageDescription imageDescription = KubernetesUtil.buildImageDescription(artifactVersion);
     container.setImageDescription(imageDescription);
-    container.setName(artifactName);
+    container.setName(service.getName());
 
     List<KubernetesContainerPort> ports = new ArrayList<>();
     KubernetesContainerPort containerPort = new KubernetesContainerPort();
@@ -150,7 +159,7 @@ public class KubernetesOperationFactory extends OperationFactory {
     List<KubernetesEnvVar> envVars = new ArrayList<>();
     if (!service.getProfiles().isEmpty()) {
       KubernetesEnvVar envVar = new KubernetesEnvVar();
-      envVar.setName(artifactName.toUpperCase() + "_OPTS");
+      envVar.setName(service.getArtifact().getName().toUpperCase() + "_OPTS");
       envVar.setValue("-Dspring.profiles.active=" + service.getProfiles().stream().reduce((a, b) -> a + "," + b).get());
 
       envVars.add(envVar);
@@ -166,11 +175,7 @@ public class KubernetesOperationFactory extends OperationFactory {
 
     container.setEnvVars(envVars);
 
-    List<KubernetesContainerDescription> containers = new ArrayList<>();
-    containers.add(container);
-    description.setContainers(containers);
-
-    return description;
+    return container;
   }
 
   private List<String> healthProviders() {
@@ -198,9 +203,13 @@ public class KubernetesOperationFactory extends OperationFactory {
   }
 
   @Override
-  public Map<String, Object> createDeployPipeline(String accountName, SpinnakerService service, String artifact, List<ConfigSource> configSources, boolean update) {
+  public Map<String, Object> createDeployPipeline(String accountName, SpinnakerService service, String artifact, SpinnakerMonitoringDaemonService monitoringService, String monitoringArtifact, List<ConfigSource> configSources, boolean update) {
     List<Map<String, Object>> stages = new ArrayList<>();
-    Map<String, Object> deploy = objectMapper.convertValue(baseDeployDescription(accountName, service, artifact, configSources), Map.class);
+    DeployKubernetesAtomicOperationDescription description = baseDeployDescription(accountName, service, artifact, configSources);
+    if (monitoringArtifact != null) {
+      description.getContainers().add(buildContainer(monitoringService, monitoringArtifact, configSources));
+    }
+    Map<String, Object> deploy = objectMapper.convertValue(description, Map.class);
     String namespace = KubernetesProviderInterface.getNamespaceFromAddress(service.getAddress());
     if (update) {
       deploy = redBlackStage(deploy, healthProviders(), namespace);
@@ -209,6 +218,11 @@ public class KubernetesOperationFactory extends OperationFactory {
     }
     stages.add(deploy);
     return buildPipeline("Deploy server group for " + service.getArtifact().getName(), stages);
+  }
+
+  @Override
+  public Map<String, Object> createDeployPipeline(String accountName, SpinnakerService service, String artifact, List<ConfigSource> configSources, boolean update) {
+    return createDeployPipeline(accountName, service, artifact, null, null, configSources, update);
   }
 
 

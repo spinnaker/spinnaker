@@ -60,7 +60,8 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
 
   @Override
   public DeployResult deploy(String spinnakerOutputPath) {
-    SpinnakerEndpoints.Services services = getEndpoints().getServices();
+    SpinnakerEndpoints endpoints = getEndpoints();
+    SpinnakerEndpoints.Services services = endpoints.getServices();
     DaemonTaskHandler.newStage("Bootstrapping a minimal Spinnaker installation");
     providerInterface.bootstrapSpinnaker(deploymentDetails, services);
 
@@ -71,17 +72,15 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
     DaemonTaskHandler.newStage("Deploying remainder of Spinnaker services");
     OrcaService.Orca orca = providerInterface.connectTo(deploymentDetails, services.getOrcaBootstrap());
     providerInterface.ensureServiceIsRunning(deploymentDetails, services.getRedis());
-    providerInterface.deployService(deploymentDetails, orca, services.getClouddriver());
-    providerInterface.deployService(deploymentDetails, orca, services.getDeck());
-
-    providerInterface.deployService(deploymentDetails, orca, services.getEcho());
-    providerInterface.deployService(deploymentDetails, orca, services.getFront50());
-    providerInterface.deployService(deploymentDetails, orca, services.getGate());
-    providerInterface.deployService(deploymentDetails, orca, services.getIgor());
-    providerInterface.deployService(deploymentDetails, orca, services.getOrca());
-    providerInterface.deployService(deploymentDetails, orca, services.getRosco());
-
-    providerInterface.deployService(deploymentDetails, orca, services.getFiat());
+    providerInterface.deployService(deploymentDetails, orca, endpoints, "clouddriver");
+    providerInterface.deployService(deploymentDetails, orca, endpoints, "deck");
+    providerInterface.deployService(deploymentDetails, orca, endpoints, "echo");
+    providerInterface.deployService(deploymentDetails, orca, endpoints, "front50");
+    providerInterface.deployService(deploymentDetails, orca, endpoints, "gate");
+    providerInterface.deployService(deploymentDetails, orca, endpoints, "igor");
+    providerInterface.deployService(deploymentDetails, orca, endpoints, "orca");
+    providerInterface.deployService(deploymentDetails, orca, endpoints, "rosco");
+    providerInterface.deployService(deploymentDetails, orca, endpoints, "fiat");
 
     DeployResult deployResult = new DeployResult();
     deployResult.setScriptDescription("Use the provided script to connect to your Spinnaker installation.");

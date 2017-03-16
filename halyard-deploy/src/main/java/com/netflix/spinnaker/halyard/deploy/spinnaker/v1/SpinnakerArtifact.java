@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * @see SpinnakerProfile
  */
 public enum SpinnakerArtifact {
-  CLOUDDRIVER("clouddriver", new String[]{"spinnaker\\.yml", "clouddriver.*\\.yml"}, true),
+  CLOUDDRIVER("clouddriver", new String[]{"spinnaker\\.yml",  "clouddriver.*\\.yml"}, true),
   DECK("deck", new String[]{"settings\\.js", "apache2/*"}, true),
   ECHO("echo", new String[]{"spinnaker\\.yml", "echo.*\\.yml"}, true),
   FIAT("fiat", new String[]{"spinnaker\\.yml", "fiat.*\\.yml"}, true),
@@ -42,7 +42,8 @@ public enum SpinnakerArtifact {
   IGOR("igor", new String[]{"spinnaker\\.yml", "igor.*\\.yml"}, true),
   ORCA("orca", new String[]{"spinnaker\\.yml", "orca.*\\.yml"}, true),
   ROSCO("rosco", new String[]{"spinnaker\\.yml", "rosco.*\\.yml"}, true),
-  SPINNAKER_MONITORING("spinnaker-monitoring", new String[]{"spinnaker-monitoring\\.yml"}, true),
+  SPINNAKER_MONITORING_THIRD_PARTY("spinnaker-monitoring-third-party", new String[]{}, true),
+  SPINNAKER_MONITORING_DAEMON("spinnaker-monitoring-daemon", new String[]{}, true),
   // Non-spinnaker
   REDIS("redis", new String[]{}, false);
 

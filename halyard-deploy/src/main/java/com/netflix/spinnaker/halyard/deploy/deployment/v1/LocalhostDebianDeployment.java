@@ -125,6 +125,7 @@ public class LocalhostDebianDeployment extends Deployment {
     bindings.put("pin-files", pinFiles);
     bindings.put("spinnaker-artifacts", artifacts);
     bindings.put("install-redis", "true");
+    bindings.put("install-java", "true");
     bindings.put("install-spinnaker", "true");
     bindings.put("etc-init", etcInit);
     bindings.put("config-dir", spinnakerOutputPath);

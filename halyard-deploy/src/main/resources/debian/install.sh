@@ -6,6 +6,7 @@ set -e
 set -o pipefail
 
 INSTALL_REDIS="{%install-redis%}"
+INSTALL_JAVA="{%install-java%}"
 INSTALL_SPINNAKER="{%install-spinnaker%}"
 SPINNAKER_ARTIFACTS=({%spinnaker-artifacts%})
 CONFIG_DIR="{%config-dir%}"
@@ -143,6 +144,10 @@ echo "Installing desired components..."
 
 if [ -n "$INSTALL_REDIS" ]; then
   install_redis_server
+fi
+
+if [ -n "$INSTALL_JAVA" ]; then
+  install_java
 fi
 
 if [ -n "$INSTALL_SPINNAKER" ]; then

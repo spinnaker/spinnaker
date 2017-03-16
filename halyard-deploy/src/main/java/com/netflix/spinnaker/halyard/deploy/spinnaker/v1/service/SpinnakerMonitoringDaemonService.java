@@ -24,12 +24,12 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SpinnakerMonitoringService extends SpinnakerService<SpinnakerMonitoringService.SpinnakerMonitoring> {
+public class SpinnakerMonitoringDaemonService extends SpinnakerService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
   int port = 8008;
   // Address is how the service is looked up.
   String address = "localhost";
   // Host is what's bound to by the service.
-  String host = "localhost";
+  String host = "0.0.0.0";
   String protocol = "http";
   String httpHealth = null;
   String name = "spinnaker-monitoring";
@@ -38,13 +38,13 @@ public class SpinnakerMonitoringService extends SpinnakerService<SpinnakerMonito
 
   @Override
   public SpinnakerArtifact getArtifact() {
-    return SpinnakerArtifact.SPINNAKER_MONITORING;
+    return SpinnakerArtifact.SPINNAKER_MONITORING_DAEMON;
   }
 
   @Override
-  public Class<SpinnakerMonitoring> getEndpointClass() {
-    return SpinnakerMonitoring.class;
+  public Class<SpinnakerMonitoringDaemon> getEndpointClass() {
+    return SpinnakerMonitoringDaemon.class;
   }
 
-  public interface SpinnakerMonitoring { }
+  public interface SpinnakerMonitoringDaemon { }
 }
