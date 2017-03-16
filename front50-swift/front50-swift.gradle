@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2017 Veritas Technologies, LLC.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-rootProject.name = "front50"
-
-include 'front50-web', 'front50-core', 'front50-cassandra', 'front50-gcs', 'front50-pipelines', 'front50-redis', 'front50-s3', 'front50-test', 'front50-migrations', 'front50-azure', 'front50-swift'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+configurations.all {
+  exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 }
 
-rootProject.children.each {
-  setBuildFile(it)
+dependencies {
+  compile project(":front50-core")
+  compile 'org.pacesys:openstack4j:3.0.3'
+
+  testCompile project(":front50-test")
 }
