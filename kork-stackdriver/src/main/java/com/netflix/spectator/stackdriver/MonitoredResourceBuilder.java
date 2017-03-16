@@ -56,12 +56,12 @@ class MonitoredResourceBuilder {
   }
 
   /**
-   * This is the project that we have to store data under.
-   *
-   * If we are running on GCE, it has to be our project.
-   * Otherwise, it is the project we are given as the default.
+   * This is the project that we will store data under.
    */
   public String determineProjectName(String defaultProjectName) {
+    if (defaultProjectName != null && !defaultProjectName.isEmpty()) {
+        return defaultProjectName;
+    }
     try {
       return getGoogleMetadataValue("project/project-id");
     } catch (IOException ioex) {
