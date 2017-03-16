@@ -292,9 +292,8 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         command.interestingHealthProviderNames = ['Google'];
       }
 
-      attemptToSetValidCredentials(application, defaultCredentials, command);
-
-      return $q.when(command);
+      return attemptToSetValidCredentials(application, defaultCredentials, command)
+        .then(() => command);
   }
 
     // Only used to prepare view requiring template selecting
