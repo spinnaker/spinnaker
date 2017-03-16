@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.orca.front50
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
+import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
+import org.springframework.context.support.StaticApplicationContext
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -43,20 +44,22 @@ class DependentPipelineStarterSpec extends Specification {
       )
     )
     def gotMDC = [:]
-    def executionLauncher = Stub(ExecutionLauncher) {
+    def executionLauncher = Stub(PipelineLauncher) {
       start(*_) >> {
         gotMDC.putAll(MDC.copyOfContextMap)
         def p = mapper.readValue(it[0], Map)
         return new Pipeline.Builder().withName(p.name).withId(p.name).withTrigger(p.trigger).build()
       }
     }
+    def applicationContext = new StaticApplicationContext()
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
     def mdc = [
       (AuthenticatedRequest.SPINNAKER_USER)    : "myMDCUser",
       (AuthenticatedRequest.SPINNAKER_ACCOUNTS): "acct3,acct4"
     ]
     dependentPipelineStarter = new DependentPipelineStarter(
       objectMapper: mapper,
-      executionLauncher: executionLauncher
+      applicationContext: applicationContext
     )
 
     when:
@@ -86,16 +89,18 @@ class DependentPipelineStarterSpec extends Specification {
       )
     )
     def gotMDC = [:]
-    def executionLauncher = Stub(ExecutionLauncher) {
+    def executionLauncher = Stub(PipelineLauncher) {
       start(*_) >> {
         gotMDC.putAll(MDC.copyOfContextMap)
         def p = mapper.readValue(it[0], Map)
         return new Pipeline.Builder().withName(p.name).withId(p.name).withTrigger(p.trigger).build()
       }
     }
+    def applicationContext = new StaticApplicationContext()
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
     dependentPipelineStarter = new DependentPipelineStarter(
       objectMapper: mapper,
-      executionLauncher: executionLauncher
+      applicationContext: applicationContext
     )
 
     when:
