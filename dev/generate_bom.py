@@ -40,7 +40,7 @@ GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG = {
     }
   ],
   'images': [],
-  'timeout': '900s'
+  'timeout': '3600s'
 }
 
 GOOGLE_CONTAINER_BUILDER_MONITORING_BASE_CONFIG = {
@@ -52,7 +52,7 @@ GOOGLE_CONTAINER_BUILDER_MONITORING_BASE_CONFIG = {
     }
   ],
   'images': [],
-  'timeout': '900s'
+  'timeout': '3600s'
 }
 
 class BomGenerator(Annotator):
