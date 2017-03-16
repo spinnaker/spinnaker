@@ -48,9 +48,11 @@ fi
 
 function print_usage() {
   cat <<EOF
-usage: $0 [--quiet] [--dependencies_only]
+usage: $0 [-y] [--quiet] [--dependencies_only]
     [--repository <debian repository url>]
     [--local-install] [--home_dir <path>]
+    -y                          Accept all default options during install
+                                (non-interactive mode).
 
     --quiet                     Sets cloud provider to "none". You will need to
                                 edit /etc/default/spinnaker manually
@@ -96,6 +98,10 @@ function process_args() {
       --dependencies_only)
         echo "deps"
         DEPENDENCIES_ONLY=true
+        ;;
+      -y)
+        echo "non-interactive"
+        YES=true
         ;;
       --local-install)
         echo "local"
@@ -183,13 +189,19 @@ function install_halyard() {
 function configure_bash_completion() {
   local yes
   echo ""
-  read -p "Would you like to configure halyard to use bash auto-completion? [default=Y]: " yes
+  if [ -z "$YES" ]; then
+    read -p "Would you like to configure halyard to use bash auto-completion? [default=Y]: " yes
+  else
+    yes="y"
+  fi
 
   completion_script="/etc/bash_completion.d/hal"
   if [ "$yes" = "y" ] || [ "$yes = "Y" ] || [ "$yes = "yes" ] || [ "$yes" = "" ]; then
     local bashrc
     hal --print-bash-completion | tee $completion_script  > /dev/null
-    read -p "Where is your bash RC? [default=$HOME/.bashrc]: " bashrc
+    if [ -z "$YES" ]; then
+      read -p "Where is your bash RC? [default=$HOME/.bashrc]: " bashrc
+    fi
     
     if [ -z "$bashrc" ]; then
       bashrc="$HOME/.bashrc"
@@ -210,7 +222,9 @@ function configure_bash_completion() {
 function configure_halyard_defaults() {
   local halconfig
   echo ""
-  read -p "Where would you like to store your halconfig? [default=$HOME/.hal]: " halconfig
+  if [ -z "$YES" ]; then
+    read -p "Where would you like to store your halconfig? [default=$HOME/.hal]: " halconfig
+  fi
 
   if [ -z "$halconfig" ]; then
     halconfig="$HOME/.hal"
