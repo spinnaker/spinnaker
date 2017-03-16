@@ -33,33 +33,20 @@ class AppengineCloneServerGroupCtrl {
               private $uibModalInstance: any,
               public serverGroupCommand: IAppengineServerGroupCommand,
               private application: Application,
-              taskMonitorBuilder: TaskMonitorBuilder,
+              private taskMonitorBuilder: TaskMonitorBuilder,
               private serverGroupWriter: ServerGroupWriter,
               commandBuilder: AppengineServerGroupCommandBuilder) {
-
     if (['create', 'clone', 'editPipeline'].includes(get<string>(serverGroupCommand, 'viewState.mode'))) {
       $scope.command = serverGroupCommand;
       this.state.loading = false;
+      this.initialize();
     } else {
       commandBuilder.buildNewServerGroupCommand(application, 'appengine', 'createPipeline')
         .then((constructedCommand) => {
           $scope.command = merge(constructedCommand, serverGroupCommand);
           this.state.loading = false;
+          this.initialize();
         });
-    }
-
-    $scope.application = application;
-    this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
-      application: this.application,
-      title: 'Creating your server group',
-      modalInstance: this.$uibModalInstance,
-    });
-
-    $scope.showPlatformHealthOnlyOverride = this.application.attributes.platformHealthOnlyShowOverride;
-    $scope.platformHealth = AppengineHealth.PLATFORM;
-
-    if (this.application.attributes.platformHealthOnly) {
-      $scope.command.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
   }
 
@@ -79,6 +66,20 @@ class AppengineCloneServerGroupCtrl {
       this.taskMonitor.submit(submitMethod);
 
       return null;
+    }
+  }
+
+  private initialize(): void {
+    this.$scope.application = this.application;
+    this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
+      application: this.application,
+      title: 'Creating your server group',
+      modalInstance: this.$uibModalInstance,
+    });
+    this.$scope.showPlatformHealthOnlyOverride = this.application.attributes.platformHealthOnlyShowOverride;
+    this.$scope.platformHealth = AppengineHealth.PLATFORM;
+    if (this.application.attributes.platformHealthOnly) {
+      this.$scope.command.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
   }
 }
