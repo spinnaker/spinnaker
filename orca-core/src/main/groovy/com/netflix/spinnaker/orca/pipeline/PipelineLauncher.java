@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +62,6 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
       .withLimitConcurrent(getBoolean(config, "limitConcurrent"))
       .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))
       .withExecutingInstance(currentInstanceId)
-      .withExecutionEngine(Execution.V2_EXECUTION_ENGINE)
       .withNotifications((List<Map<String, Object>>) config.get("notifications"))
       .build();
   }

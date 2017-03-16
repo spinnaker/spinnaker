@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.BiFunction
-import groovy.transform.CompileStatic
-import groovy.transform.ToString
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
@@ -30,6 +28,8 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
+import groovy.transform.CompileStatic
+import groovy.transform.ToString
 import static ExecutionStatus.NOT_STARTED
 
 @CompileStatic
@@ -50,18 +50,12 @@ abstract class AbstractStage<T extends Execution<T>> implements Stage<T>, Serial
   String refId
   Collection<String> requisiteStageRefIds = []
   SyntheticStageOwner syntheticStageOwner
-  List<InjectedStageConfiguration> beforeStages = []
-  List<InjectedStageConfiguration> afterStages = []
   long scheduledTime
 
   LastModifiedDetails lastModified
 
   @JsonIgnore
   AtomicInteger stageCounter = new AtomicInteger(0)
-
-  @Deprecated
-  @JsonIgnore
-  AtomicInteger taskCounter = new AtomicInteger(0)
 
   @JsonIgnore
   StageNavigator stageNavigator = null

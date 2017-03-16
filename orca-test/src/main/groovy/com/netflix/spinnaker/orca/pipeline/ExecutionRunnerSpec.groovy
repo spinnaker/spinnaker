@@ -1055,12 +1055,6 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
       }
 
       @Override
-      Task completeParallelTask() {
-        // unnecessary as `postBranchGraph` is explicitly overridden to not call `completeParallelTask`
-        return null
-      }
-
-      @Override
       String parallelStageName(Stage stage, boolean hasParallelFlows) {
         parallelStageName.apply(stage, hasParallelFlows)
       }

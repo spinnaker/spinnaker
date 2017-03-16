@@ -40,9 +40,9 @@ class AbstractDeployStrategyStageSpec extends Specification {
   def "should compose list of steps"() {
     given:
     // Step mocks
-    def determineSourceServerGroupTask = new TaskNode.TaskDefinition("determineSourceServerGroup", null)
-    def determineHealthProvidersTask = new TaskNode.TaskDefinition("determineHealthProviders", null)
-    def basicTask = new TaskNode.TaskDefinition("basic", null)
+    def determineSourceServerGroupTask = TaskNode.task("determineSourceServerGroup", null)
+    def determineHealthProvidersTask = TaskNode.task("determineHealthProviders", null)
+    def basicTask = TaskNode.task("basic", null)
 
     AbstractDeployStrategyStage testStage = Spy(AbstractDeployStrategyStage)
     testStage.with {

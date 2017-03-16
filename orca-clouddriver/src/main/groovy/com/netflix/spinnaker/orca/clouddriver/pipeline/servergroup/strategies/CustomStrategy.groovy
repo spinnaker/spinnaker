@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
-import com.netflix.spinnaker.orca.batch.StageBuilderProvider
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -81,9 +80,5 @@ class CustomStrategy implements Strategy, ApplicationContextAware {
   @Override
   boolean replacesBasicSteps() {
     return true
-  }
-
-  StageBuilderProvider getStageBuilderProvider() {
-    return applicationContext.getBean(StageBuilderProvider)
   }
 }

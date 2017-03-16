@@ -3,7 +3,6 @@ package com.netflix.spinnaker.orca.pipeline.model;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.orca.ExecutionStatus;
@@ -115,8 +114,6 @@ public interface Stage<T extends Execution<T>> {
 
   void setInitializationStage(boolean initializationStage);
 
-  AtomicInteger getTaskCounter();
-
   /**
    * @return a reference to the wrapped object in this event this object is the immutable wrapper
    */
@@ -160,7 +157,7 @@ public interface Stage<T extends Execution<T>> {
   void commit(String pointer, Object obj);
 
   /**
-   * Stages can be synthetically injected into the pipeline by a StageBuilder. This flag indicates the relationship
+   * Stages can be synthetically injected into the pipeline by a StageDefinitionBuilder. This flag indicates the relationship
    * of a synthetic stage to its position in the graph. To derive the owning stage, callers should directionally
    * traverse the graph until the first non-synthetic stage is found. If this property is null, the stage is not
    * synthetic.
@@ -172,13 +169,8 @@ public interface Stage<T extends Execution<T>> {
    */
   void setSyntheticStageOwner(SyntheticStageOwner syntheticStageOwner);
 
-  @JsonIgnore List<InjectedStageConfiguration> getBeforeStages();
-
-  @JsonIgnore List<InjectedStageConfiguration> getAfterStages();
-
   /**
-   * This stage's parent stage. Can be used in conjunction with {@link #getBeforeStages()} and {@link #getAfterStages()}
-   * to ascertain this stage's position in the graph.
+   * This stage's parent stage.
    */
   String getParentStageId();
 

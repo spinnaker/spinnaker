@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.restart
 
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.repository.JobRestartException
@@ -34,11 +34,11 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 class PipelineRecoveryListenerSpec extends Specification {
 
   def executionRepository = Stub(ExecutionRepository)
-  def pipelineStarter = Mock(PipelineStarter)
+  def executionRunner = Mock(ExecutionRunner)
   @Shared currentInstanceId = "localhost"
   def registry = new DefaultRegistry()
 
-  @Subject listener = new PipelineRecoveryListener(executionRepository, pipelineStarter, currentInstanceId, registry)
+  @Subject listener = new PipelineRecoveryListener(executionRepository, executionRunner, currentInstanceId, registry)
   def event = new ContextRefreshedEvent(new StaticApplicationContext())
 
   def "resumes pipelines that were in-progress on the current instance"() {
@@ -49,8 +49,8 @@ class PipelineRecoveryListenerSpec extends Specification {
     listener.onApplicationEvent(event)
 
     then:
-    1 * pipelineStarter.resume(pipeline1)
-    1 * pipelineStarter.resume(pipeline2)
+    1 * executionRunner.resume(pipeline1)
+    1 * executionRunner.resume(pipeline2)
 
     where:
     pipeline1 = pipelineWithStatus(RUNNING, currentInstanceId)
@@ -62,13 +62,13 @@ class PipelineRecoveryListenerSpec extends Specification {
     executionRepository.retrievePipelines() >> Observable.just(pipeline1, pipeline2)
 
     and:
-    pipelineStarter.resume(pipeline1) >> { throw new JobRestartException("o noes") }
+    executionRunner.resume(pipeline1) >> { throw new JobRestartException("o noes") }
 
     when:
     listener.onApplicationEvent(event)
 
     then:
-    1 * pipelineStarter.resume(pipeline2)
+    1 * executionRunner.resume(pipeline2)
 
     where:
     pipeline1 = pipelineWithStatus(RUNNING, currentInstanceId)
@@ -94,7 +94,7 @@ class PipelineRecoveryListenerSpec extends Specification {
     executionRepository.retrievePipelines() >> Observable.just(pipeline)
 
     and:
-    pipelineStarter.resume(pipeline) >> { throw new JobRestartException("o noes") }
+    executionRunner.resume(pipeline) >> { throw new JobRestartException("o noes") }
 
     when:
     listener.onApplicationEvent(event)
@@ -114,8 +114,8 @@ class PipelineRecoveryListenerSpec extends Specification {
     listener.onApplicationEvent(event)
 
     then:
-    0 * pipelineStarter.resume(pipeline1)
-    1 * pipelineStarter.resume(pipeline2)
+    0 * executionRunner.resume(pipeline1)
+    1 * executionRunner.resume(pipeline2)
 
     where:
     pipeline1 = pipelineWithStatus(RUNNING, "some other instance")
@@ -134,8 +134,8 @@ class PipelineRecoveryListenerSpec extends Specification {
     listener.onApplicationEvent(event)
 
     then:
-    0 * pipelineStarter.resume(pipeline1)
-    1 * pipelineStarter.resume(pipeline2)
+    0 * executionRunner.resume(pipeline1)
+    1 * executionRunner.resume(pipeline2)
 
     where:
     status    | _

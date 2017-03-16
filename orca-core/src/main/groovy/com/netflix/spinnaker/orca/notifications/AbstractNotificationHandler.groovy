@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.orca.notifications
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,7 +31,10 @@ abstract class AbstractNotificationHandler implements NotificationHandler {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired
-  PipelineStarter pipelineStarter
+  ExecutionRunner executionRunner
+
+  @Autowired
+  ExecutionRepository executionRepository
 
   @Autowired
   ObjectMapper objectMapper

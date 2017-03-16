@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.restart
 
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
-import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
@@ -34,7 +33,6 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 @CompileStatic
 class PipelineRestartHandler extends AbstractNotificationHandler {
 
-  @Autowired PipelineJobBuilder pipelineJobBuilder
   @Autowired ExecutionRepository executionRepository
   @Autowired Registry registry
 
@@ -56,7 +54,7 @@ class PipelineRestartHandler extends AbstractNotificationHandler {
     try {
       def pipeline = executionRepository.retrievePipeline(input.id as String)
       log.warn "Restarting pipeline $pipeline.application $pipeline.name $pipeline.id with status $pipeline.status"
-      pipelineStarter.resume(pipeline)
+      executionRunner.resume(pipeline)
       registry.counter("pipeline.restarts").increment()
     } catch (IllegalStateException e) {
       log.error("Unable to resume pipeline: $e.message")

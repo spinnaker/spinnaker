@@ -25,14 +25,10 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 
 @CompileStatic
 abstract class Execution<T extends Execution<T>> implements Serializable {
-  public static final String V1_EXECUTION_ENGINE = "v1"
-  public static final String V2_EXECUTION_ENGINE = "v2"
-  public static final String DEFAULT_EXECUTION_ENGINE = V2_EXECUTION_ENGINE
 
   String id
   String application
   String executingInstance
-  String executionEngine = DEFAULT_EXECUTION_ENGINE
 
   Long buildTime
 
@@ -68,14 +64,6 @@ abstract class Execution<T extends Execution<T>> implements Serializable {
   @JsonIgnore
   Set<Object> getBuiltPipelineObjects() {
     return builtPipelineObjects
-  }
-
-  void setExecutionEngine(String executionEngine) {
-    this.executionEngine = executionEngine
-  }
-
-  String getExecutionEngine() {
-    return executionEngine ?: DEFAULT_EXECUTION_ENGINE
   }
 
   static class AuthenticationDetails implements Serializable {

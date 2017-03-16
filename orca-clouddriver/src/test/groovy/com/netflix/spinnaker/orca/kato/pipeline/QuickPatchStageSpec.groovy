@@ -63,8 +63,6 @@ class QuickPatchStageSpec extends Specification {
 
     and:
     def stage = new PipelineStage(new Pipeline(), "quickPatch", config)
-    stage.beforeStages = new NeverClearedArrayList()
-    stage.afterStages = new NeverClearedArrayList()
 
     and:
     oortHelper.getInstancesForCluster(config, null, true, false) >> {
@@ -95,8 +93,6 @@ class QuickPatchStageSpec extends Specification {
     oortHelper.getInstancesForCluster(config, null, true, false) >> expectedInstances
 
     def stage = new PipelineStage(new Pipeline(), "quickPatch", config)
-    stage.beforeStages = new NeverClearedArrayList()
-    stage.afterStages = new NeverClearedArrayList()
 
     when:
     def syntheticStages = quickPatchStage.aroundStages(stage)

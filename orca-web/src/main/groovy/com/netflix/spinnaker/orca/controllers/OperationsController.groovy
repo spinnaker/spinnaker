@@ -22,9 +22,7 @@ import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationLauncher
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -47,9 +45,6 @@ import javax.servlet.http.HttpServletResponse
 class OperationsController {
   @Autowired
   PipelineLauncher pipelineLauncher
-
-  @Autowired
-  PipelineStarter pipelineStarter
 
   @Autowired
   OrchestrationLauncher orchestrationLauncher
@@ -198,12 +193,7 @@ class OperationsController {
     def json = objectMapper.writeValueAsString(config)
     log.info('requested pipeline: {}', json)
 
-    def pipeline
-    if (config.executionEngine == Execution.V2_EXECUTION_ENGINE) {
-      pipeline = pipelineLauncher.start(json)
-    } else {
-      pipeline = pipelineStarter.start(json)
-    }
+    def pipeline = pipelineLauncher.start(json)
 
     [ref: "/pipelines/${pipeline.id}".toString()]
   }

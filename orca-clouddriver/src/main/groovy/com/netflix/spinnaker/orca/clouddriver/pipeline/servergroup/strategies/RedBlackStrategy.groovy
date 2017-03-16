@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
-import com.netflix.spinnaker.orca.batch.StageBuilderProvider
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
@@ -111,9 +110,5 @@ class RedBlackStrategy implements Strategy, ApplicationContextAware {
     }
 
     return stages
-  }
-
-  StageBuilderProvider getStageBuilderProvider() {
-    return applicationContext.getBean(StageBuilderProvider)
   }
 }

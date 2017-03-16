@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.stereotype.Component
@@ -63,7 +62,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
   }
 
   static interface Rollback {
-    List<Stage> buildStages(Stage parentStage)
+    def <T extends Execution<T>> List<Stage<T>> buildStages(Stage<T> parentStage)
   }
 
   static class ExplicitRollback implements Rollback {
@@ -83,7 +82,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
     ResizeServerGroupStage resizeServerGroupStage
 
     @JsonIgnore
-    List<Step> buildStages(Stage parentStage) {
+    def <T extends Execution<T>> List<Stage<T>> buildStages(Stage<T> parentStage) {
       def stages = []
 
       Map enableServerGroupContext = new HashMap(parentStage.context)

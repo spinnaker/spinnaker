@@ -65,6 +65,10 @@ public interface TaskNode {
     return build(type, builder -> builder.withTask(name, implementingClass));
   }
 
+  static TaskDefinition task(String name, Class<? extends com.netflix.spinnaker.orca.Task> implementingClass) {
+    return new TaskDefinition(name, implementingClass);
+  }
+
   static Builder Builder(GraphType type) {
     return new Builder(type);
   }

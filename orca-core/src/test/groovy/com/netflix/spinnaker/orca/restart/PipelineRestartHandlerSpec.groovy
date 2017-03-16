@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.restart
 
 import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.repository.JobRestartException
@@ -27,7 +27,7 @@ import spock.lang.Subject
 
 class PipelineRestartHandlerSpec extends Specification {
 
-  def pipelineStarter = Mock(PipelineStarter)
+  def executionRunner = Mock(ExecutionRunner)
   def executionRepository = Stub(ExecutionRepository) {
     retrievePipeline(input.id) >> pipeline
   }
@@ -42,7 +42,7 @@ class PipelineRestartHandlerSpec extends Specification {
     handler.run()
 
     then:
-    1 * pipelineStarter.resume(pipeline)
+    1 * executionRunner.resume(pipeline)
   }
 
   def "counts successful restarts"() {
@@ -55,7 +55,7 @@ class PipelineRestartHandlerSpec extends Specification {
 
   def "counts failed restarts"() {
     given:
-    pipelineStarter.resume(pipeline) >> { throw new JobRestartException("o noes") }
+    executionRunner.resume(pipeline) >> { throw new JobRestartException("o noes") }
 
     when:
     handler.run()
@@ -69,7 +69,7 @@ class PipelineRestartHandlerSpec extends Specification {
 
   private PipelineRestartHandler handlerFor(Map input) {
     def handler = new PipelineRestartHandler(input)
-    handler.pipelineStarter = pipelineStarter
+    handler.executionRunner = executionRunner
     handler.executionRepository = executionRepository
     handler.registry = registry
     return handler

@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -31,6 +28,9 @@ import com.netflix.spinnaker.orca.pipeline.BranchingStageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Slf4j
@@ -52,11 +52,6 @@ class BakeStage implements BranchingStageDefinitionBuilder, RestartableStage {
   <T extends Execution<T>> void postBranchGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder
       .withTask("completeParallel", CompleteParallelBakeTask)
-  }
-
-  @Override
-  Task completeParallelTask() {
-    return new CompleteParallelBakeTask()
   }
 
   @Override

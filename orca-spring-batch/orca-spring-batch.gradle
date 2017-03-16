@@ -18,6 +18,8 @@ apply plugin: "io.franzbecker.gradle-lombok"
 
 dependencies {
   compile project(":orca-core")
+  compile spinnaker.dependency("batch")
+
   testCompile project(":orca-test")
 }
 
