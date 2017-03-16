@@ -47,7 +47,6 @@ def main():
   annotator = Annotator(options)
   __annotate_component(annotator, 'spinnaker')
   __annotate_component(annotator, 'halyard')
-  __annotate_component(annotator, 'spinnaker-monitoring')
 
   bom_generator = BomGenerator(options)
   bom_generator.determine_and_tag_versions()

@@ -27,7 +27,7 @@ from spinnaker.run import run_quick
 SERVICES = 'services'
 VERSION = 'version'
 
-GOOGLE_CONTAINER_BUILDER_BASE_CONFIG = {
+GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG = {
   'steps': [
     {
       'name': 'java:8',
@@ -36,6 +36,17 @@ GOOGLE_CONTAINER_BUILDER_BASE_CONFIG = {
     },
     {
       'name': 'gcr.io/cloud-builders/docker',
+      'args': []
+    }
+  ],
+  'images': []
+}
+
+GOOGLE_CONTAINER_BUILDER_MONITORING_BASE_CONFIG = {
+  'steps': [
+    {
+      'name': 'gcr.io/cloud-builders/docker',
+      'dir': 'spinnaker-monitoring-daemon',
       'args': []
     }
   ],
@@ -60,6 +71,7 @@ class BomGenerator(Annotator):
     'orca',
     'rosco',
     'fiat',
+    'spinnaker-monitoring'
   ]
 
   def __init__(self, options):
@@ -88,43 +100,59 @@ class BomGenerator(Annotator):
                         help="Alias to rename the 'real' BOM as. This also sets the Spinnaker version as the alias.")
     super(BomGenerator, cls).init_argument_parser(parser)
 
+  def __version_from_tag(self, comp):
+    """Determine the component version from the 'version-X.Y.Z' git tag.
+
+    Args:
+      comp [string]: Spinnaker component name.
+
+    Returns:
+      [string] Component version with build number and without 'version-'.
+    """
+    version_bump = self.__component_versions[comp]
+    next_tag_with_build = '{0}-{1}'.format(version_bump.version_str,
+                                           self.build_number)
+    first_dash_idx = next_tag_with_build.index('-')
+    return next_tag_with_build[first_dash_idx + 1:]
+
   def write_container_builder_gcr_config(self):
     """Write a configuration file for producing Container Images with Google Container Builder for each microservice.
     """
     for comp in self.__component_versions:
-      config = dict(GOOGLE_CONTAINER_BUILDER_BASE_CONFIG)
-      version_bump = self.__component_versions[comp]
-
-      next_tag_with_build = '{0}-{1}'.format(version_bump.version_str,
-                                             self.build_number)
-      first_dash_idx = next_tag_with_build.index('-')
-      gradle_version = next_tag_with_build[first_dash_idx + 1:]
-
-      gradle_cmd = ''
-      if comp == 'deck':
-        gradle_cmd = './gradlew build -PskipTests'
+      if comp == 'spinnaker-monitoring':
+        config = dict(GOOGLE_CONTAINER_BUILDER_MONITORING_BASE_CONFIG)
+        version = self.__version_from_tag(comp)
+        versioned_image = '{reg}/{repo}-daemon:{tag}'.format(reg=self.__docker_registry,
+                                                             repo=comp,
+                                                             tag=version)
+        config['steps'][0]['args'] = ['build', '-t', versioned_image, '-f', 'Dockerfile', '.']
+        config['images'] = [versioned_image]
+        config_file = '{0}-gcb.yml'.format(comp)
+        with open(config_file, 'w') as cfg:
+          yaml.dump(config, cfg, default_flow_style=True)
       else:
-        gradle_cmd = './gradlew {0}-web:installDist -x test'.format(comp)
-      config['steps'][0]['args'] = ['bash', '-c', gradle_cmd]
-      versioned_image = '{reg}/{repo}:{tag}'.format(reg=self.__docker_registry,
-                                                    repo=comp,
-                                                    tag=gradle_version)
-      config['steps'][1]['args'] = ['build', '-t', versioned_image, '-f', 'Dockerfile.slim', '.']
-      config['images'] = [versioned_image]
-      config_file = '{0}-gcb.yml'.format(comp)
-      with open(config_file, 'w') as cfg:
-        yaml.dump(config, cfg, default_flow_style=True)
+        config = dict(GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG)
+        gradle_version = self.__version_from_tag(comp)
+        gradle_cmd = ''
+        if comp == 'deck':
+          gradle_cmd = './gradlew build -PskipTests'
+        else:
+          gradle_cmd = './gradlew {0}-web:installDist -x test'.format(comp)
+        config['steps'][0]['args'] = ['bash', '-c', gradle_cmd]
+        versioned_image = '{reg}/{repo}:{tag}'.format(reg=self.__docker_registry,
+                                                      repo=comp,
+                                                      tag=gradle_version)
+        config['steps'][1]['args'] = ['build', '-t', versioned_image, '-f', 'Dockerfile.slim', '.']
+        config['images'] = [versioned_image]
+        config_file = '{0}-gcb.yml'.format(comp)
+        with open(config_file, 'w') as cfg:
+            yaml.dump(config, cfg, default_flow_style=True)
 
   def write_docker_version_files(self):
     """Write a file containing the full tag for each microservice for Docker.
     """
     for comp in self.__component_versions:
-      version_bump = self.__component_versions[comp]
-
-      next_tag_with_build = '{0}-{1}'.format(version_bump.version_str,
-                                             self.build_number)
-      first_dash_idx = next_tag_with_build.index('-')
-      gradle_version = next_tag_with_build[first_dash_idx + 1:]
+      gradle_version = self.__version_from_tag(comp)
       docker_tag = '{reg}/{comp}:{tag}'.format(reg=self.__docker_registry,
                                                comp=comp,
                                                tag=gradle_version)
@@ -142,11 +170,7 @@ class BomGenerator(Annotator):
     """
     changelog = ['Spinnaker {0}\n'.format(self.__toplevel_version)]
     for comp, hash in self.__changelog_start_hashes.iteritems():
-      version_bump = self.__component_versions[comp]
-      next_tag_with_build = '{0}-{1}'.format(version_bump.version_str,
-                                             self.build_number)
-      first_dash_idx = next_tag_with_build.index('-')
-      version = next_tag_with_build[first_dash_idx + 1:]
+      version = self.__version_from_tag(comp)
 
       # Generate the changelog for the component.
       print 'Generating changelog for {comp}...'.format(comp=comp)
@@ -178,12 +202,16 @@ class BomGenerator(Annotator):
       elif version_bump.minor == True:
         feature = True
 
-      next_tag_with_build = '{0}-{1}'.format(version_bump.version_str,
-                                             self.build_number)
-      first_dash_idx = next_tag_with_build.index('-')
-      gradle_version = next_tag_with_build[first_dash_idx + 1:]
+      gradle_version = self.__version_from_tag(comp)
       version_entry = {VERSION: gradle_version}
-      output_yaml[SERVICES][comp] = version_entry
+      if comp == 'spinnaker-monitoring':
+        # Add two entries for both components of spinnaker-monitoring
+        third_party = '{0}-third-party'.format(comp)
+        daemon = '{0}-daemon'.format(comp)
+        output_yaml[SERVICES][third_party] = dict(version_entry)
+        output_yaml[SERVICES][daemon] = dict(version_entry)
+      else:
+        output_yaml[SERVICES][comp] = version_entry
 
     # Current publicly released version of Spinnaker product.
     result = run_quick('hal versions latest --color false', echo=False)
@@ -263,8 +291,16 @@ class BomGenerator(Annotator):
 
   def publish_microservice_configs(self):
     for comp in self.COMPONENTS:
-      config_path = os.path.join(comp, 'halconfig')
-      self.__publish_config(comp, config_path)
+      if comp == 'spinnaker-monitoring':
+        third_party = '{0}-third-party'.format(comp)
+        config_path = os.path.join(comp, third_party, 'halconfig')
+        self.__publish_config(comp, config_path)
+        daemon = '{0}-daemon'.format(comp)
+        config_path = os.path.join(comp, daemon, 'halconfig')
+        self.__publish_config(comp, config_path)
+      else:
+        config_path = os.path.join(comp, 'halconfig')
+        self.__publish_config(comp, config_path)
 
   def determine_and_tag_versions(self):
     for comp in self.COMPONENTS:
@@ -279,7 +315,6 @@ class BomGenerator(Annotator):
   def main(cls):
     parser = argparse.ArgumentParser()
     cls.init_argument_parser(parser)
-    cls.init_extra_argument_parser(parser)
     options = parser.parse_args()
     if options.container_builder not in ['gcb', 'docker']:
       raise ValueError(
