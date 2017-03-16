@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.clouddriver.aws.lifecycle
 
-import groovy.transform.Canonical
 import org.springframework.boot.context.properties.ConfigurationProperties
-
 /*
  * Copyright 2017 Netflix, Inc.
  *

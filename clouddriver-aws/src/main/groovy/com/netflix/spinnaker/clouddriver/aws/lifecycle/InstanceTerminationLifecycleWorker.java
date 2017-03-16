@@ -31,21 +31,21 @@ import com.amazonaws.services.sqs.model.ReceiptHandleIsInvalidException;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials.LifecycleHook;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
-import com.netflix.spinnaker.clouddriver.data.task.Task;
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
+import com.netflix.spinnaker.clouddriver.eureka.api.Eureka;
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport.DiscoveryStatus;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit.RetrofitError;
+import retrofit.RetrofitError.Kind;
 
 import javax.inject.Provider;
 import java.io.IOException;
@@ -56,9 +56,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class InstanceTerminationLifecycleWorker implements Runnable {
@@ -140,8 +138,6 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
         continue;
       }
 
-      AtomicInteger messagesProcessed = new AtomicInteger(0);
-      AtomicInteger messagesSkipped = new AtomicInteger(0);
       receiveMessageResult.getMessages().forEach(message -> {
         LifecycleMessage lifecycleMessage = unmarshalLifecycleMessage(message.getBody());
 
@@ -149,27 +145,14 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
           if (!SUPPORTED_LIFECYCLE_TRANSITION.equalsIgnoreCase(lifecycleMessage.lifecycleTransition)) {
             log.info("Ignoring unsupported lifecycle transition: " + lifecycleMessage.lifecycleTransition);
             deleteMessage(amazonSQS, queueId, message);
-            messagesSkipped.incrementAndGet();
             return;
           }
-
-          Task originalTask = TaskRepository.threadLocalTask.get();
-          try {
-            TaskRepository.threadLocalTask.set(
-              Optional.ofNullable(originalTask).orElse(new DefaultTask(InstanceTerminationLifecycleWorker.class.getSimpleName()))
-            );
-            handleMessage(lifecycleMessage, TaskRepository.threadLocalTask.get());
-          } finally {
-            TaskRepository.threadLocalTask.set(originalTask);
-          }
-        } else {
-          messagesSkipped.incrementAndGet();
+          handleMessage(lifecycleMessage);
         }
 
         deleteMessage(amazonSQS, queueId, message);
-        messagesProcessed.incrementAndGet();
+        registry.counter(getProcessedMetricId(queueARN.region)).increment();
       });
-      log.info("Processed {} messages, {} skipped (queueARN: {})", messagesProcessed.get(), messagesSkipped.get(), queueARN.arn);
     }
   }
 
@@ -196,27 +179,37 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
     return lifecycleMessage;
   }
 
-  private void handleMessage(LifecycleMessage message, Task task) {
-    List<String> instanceIds = Collections.singletonList(message.ec2InstanceId);
-
+  private void handleMessage(LifecycleMessage message) {
     NetflixAmazonCredentials credentials = getAccountCredentialsById(message.accountId);
     if (credentials == null) {
       log.error("Unable to find credentials for account id: {}", message.accountId);
       return;
     }
 
-    EnableDisableInstanceDiscoveryDescription description = new EnableDisableInstanceDiscoveryDescription();
-    description.setCredentials(credentials);
-    description.setRegion(queueARN.region);
-    description.setAsgName(message.autoScalingGroupName);
-    description.setInstanceIds(instanceIds);
+    Names names = Names.parseName(message.autoScalingGroupName);
+    Eureka eureka = discoverySupport.get().getEureka(credentials, queueARN.region);
 
-    discoverySupport.get().updateDiscoveryStatusForInstances(
-      description, task, "handleLifecycleMessage", DiscoveryStatus.Disable, instanceIds,
-      properties.getEurekaFindApplicationRetryMax(), properties.getEurekaUpdateStatusRetryMax()
-    );
-
+    if (!updateInstanceStatus(eureka, names.getApp(), message.ec2InstanceId)) {
+      registry.counter(getFailedMetricId(queueARN.region)).increment();
+    }
     recordLag(message.time, queueARN.region, message.accountId, message.autoScalingGroupName, message.ec2InstanceId);
+  }
+
+  private boolean updateInstanceStatus(Eureka eureka, String app, String instanceId) {
+    int retry = 0;
+    while (retry < properties.getEurekaUpdateStatusRetryMax()) {
+      retry++;
+      try {
+        eureka.updateInstanceStatus(app, instanceId, DiscoveryStatus.Disable.getValue());
+        return true;
+      } catch (RetrofitError e) {
+        log.warn(String.format("Failed marking app out of service (status: %s, app: %s, instance: %s, retry: %d)", e.getResponse().getStatus(), app, instanceId, retry), e);
+        if (e.getKind() != Kind.NETWORK) {
+          return false;
+        }
+      }
+    }
+    return false;
   }
 
   private static void deleteMessage(AmazonSQS amazonSQS, String queueUrl, Message message) {
@@ -309,6 +302,14 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
       log.info("Lifecycle message processed (account: {}, serverGroup: {}, instance: {}, lagSeconds: {})", account, serverGroup, instanceId, Duration.ofMillis(lag).getSeconds());
       registry.gauge(getLagMetricId(region), lag);
     }
+  }
+
+  Id getProcessedMetricId(String region) {
+    return registry.createId("terminationLifecycle.totalProcessed", "region", region);
+  }
+
+  Id getFailedMetricId(String region) {
+    return registry.createId("terminationLifecycle.totalFailed", "region", region);
   }
 
   private static List<String> getAllAccountIds(Set<? extends AccountCredentials> accountCredentials) {

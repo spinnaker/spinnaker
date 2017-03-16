@@ -21,15 +21,18 @@ import com.amazonaws.services.sns.model.SetTopicAttributesRequest
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.CreateQueueResult
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
-import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport.DiscoveryStatus
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import retrofit.RetrofitError
+import retrofit.RetrofitError.Kind
+import retrofit.client.Response
+import retrofit.converter.Converter
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -54,6 +57,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
   }
   Provider<AwsEurekaSupport> awsEurekaSupportProvider = Mock()
   AwsEurekaSupport awsEurekaSupport = Mock()
+  Eureka eureka = Mock()
   Registry registry = Mock()
 
   def queueARN = new ARN([mgmtCredentials, testCredentials], "arn:aws:sqs:us-west-2:100:queueName")
@@ -74,8 +78,7 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
       -1,
       -1,
       -1,
-      -1,
-      -1
+      3
     ),
     awsEurekaSupportProvider,
     registry
@@ -127,25 +130,13 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
     )
 
     when:
-    subject.handleMessage(message, Mock(DefaultTask))
+    subject.handleMessage(message)
 
     then:
     1 * accountCredentialsProvider.getAll() >> [mgmtCredentials, testCredentials]
     1 * awsEurekaSupportProvider.get() >> awsEurekaSupport
-    1 * awsEurekaSupport.updateDiscoveryStatusForInstances(
-      { EnableDisableInstanceDiscoveryDescription arg ->
-        arg.credentials == testCredentials
-        arg.region == 'us-west-2'
-        arg.asgName == 'clouddriver-main-v000'
-        arg.instanceIds == ['i-1234']
-      },
-      _ as Task,
-      'handleLifecycleMessage',
-      DiscoveryStatus.Disable,
-      ['i-1234'],
-      -1,
-      -1
-    )
+    1 * awsEurekaSupport.getEureka(_, 'us-west-2') >> eureka
+    1 * eureka.updateInstanceStatus('clouddriver', 'i-1234', DiscoveryStatus.Disable.value)
   }
 
   def 'should process both sns and sqs messages'() {
@@ -210,5 +201,21 @@ class InstanceTerminationLifecycleWorkerSpec extends Specification {
       it.actions*.actionName == ['SendMessage, GetQueueUrl']
       it.resources*.id == ['arn:aws:sqs:us-west-2:100:queueName']
     }
+  }
+
+  def 'should retry on network errors'() {
+    given:
+    subject.queueARN >> Mock(ARN)
+    subject.registry.counter(_) >> Mock(Counter)
+
+    when:
+    subject.updateInstanceStatus(eureka, 'foo', 'i-1234')
+
+    then:
+    1 * eureka.updateInstanceStatus(_, _, _) >> {
+      throw new RetrofitError("cannot connect", "http://discovery", new Response("http://discovery", 400, "reason", [], null), Mock(Converter), String, Kind.NETWORK, Mock(Throwable))
+    }
+    1 * eureka.updateInstanceStatus(_, _, _)
+    0 * eureka.updateInstanceStatus(_, _, _)
   }
 }

@@ -88,7 +88,6 @@ public class InstanceTerminationLifecycleWorkerProvider {
           properties.getVisibilityTimeout(),
           properties.getWaitTimeSeconds(),
           properties.getSqsMessageRetentionPeriodSeconds(),
-          properties.getEurekaFindApplicationRetryMax(),
           properties.getEurekaUpdateStatusRetryMax()
         ),
         discoverySupport,
