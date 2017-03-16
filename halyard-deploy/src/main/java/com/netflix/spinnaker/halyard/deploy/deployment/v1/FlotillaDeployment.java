@@ -70,7 +70,7 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
 
     DaemonTaskHandler.newStage("Deploying remainder of Spinnaker services");
     OrcaService.Orca orca = providerInterface.connectTo(deploymentDetails, services.getOrcaBootstrap());
-    providerInterface.ensureRedisIsRunning(deploymentDetails, services.getRedis());
+    providerInterface.ensureServiceIsRunning(deploymentDetails, services.getRedis());
     providerInterface.deployService(deploymentDetails, orca, services.getClouddriver());
     providerInterface.deployService(deploymentDetails, orca, services.getDeck());
 

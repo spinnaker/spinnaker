@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 
 import java.util.HashMap;
@@ -27,14 +27,19 @@ import java.util.List;
 import java.util.Map;
 
 abstract public class OperationFactory {
-  abstract public Map<String, Object> createDeployPipeline(String accountName, SpinnakerService service, String artifact, List<ConfigSource> configSources);
+  abstract public Map<String, Object> createDeployPipeline(String accountName, SpinnakerService service, String artifact, List<ConfigSource> configSources, boolean update);
   abstract public Map<String, Object> createUpsertPipeline(String accountName, SpinnakerService service);
 
   abstract protected Provider.ProviderType getProviderType();
 
   protected Map<String, Object> redBlackStage(Map<String, Object> deployDescription, List<String> healthProviders, String region) {
-    deployDescription.put("interestingHealthProviders", healthProviders);
+    deployDescription = deployStage(deployDescription, healthProviders, region);
     deployDescription.put("strategy", "redblack");
+    return deployDescription;
+  }
+
+  protected Map<String, Object> deployStage(Map<String, Object> deployDescription, List<String> healthProviders, String region) {
+    deployDescription.put("interestingHealthProviders", healthProviders);
     deployDescription.put("region", region);
     deployDescription.put("type", AtomicOperations.CREATE_SERVER_GROUP);
     deployDescription.put("cloudProvider", getProviderType().getId());

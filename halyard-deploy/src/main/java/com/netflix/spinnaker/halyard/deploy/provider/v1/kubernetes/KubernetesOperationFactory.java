@@ -198,10 +198,16 @@ public class KubernetesOperationFactory extends OperationFactory {
   }
 
   @Override
-  public Map<String, Object> createDeployPipeline(String accountName, SpinnakerService service, String artifact, List<ConfigSource> configSources) {
+  public Map<String, Object> createDeployPipeline(String accountName, SpinnakerService service, String artifact, List<ConfigSource> configSources, boolean update) {
     List<Map<String, Object>> stages = new ArrayList<>();
     Map<String, Object> deploy = objectMapper.convertValue(baseDeployDescription(accountName, service, artifact, configSources), Map.class);
-    stages.add(redBlackStage(deploy, healthProviders(), (String) deploy.get("namespace")));
+    String namespace = KubernetesProviderInterface.getNamespaceFromAddress(service.getAddress());
+    if (update) {
+      deploy = redBlackStage(deploy, healthProviders(), namespace);
+    } else {
+      deploy = deployStage(deploy, healthProviders(), namespace);
+    }
+    stages.add(deploy);
     return buildPipeline("Deploy server group for " + service.getArtifact().getName(), stages);
   }
 

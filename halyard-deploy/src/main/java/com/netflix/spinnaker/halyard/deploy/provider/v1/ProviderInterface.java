@@ -22,12 +22,14 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
@@ -65,9 +67,49 @@ public abstract class ProviderInterface<T extends Account> {
 
   abstract public <S> S connectTo(AccountDeploymentDetails<T> details, SpinnakerService<S> service);
 
-  abstract public void deployService(AccountDeploymentDetails<T> details, Orca orca, SpinnakerService service);
+  /**
+   * Deploy a service using Orca's orchestration engine.
+   * @param details are the deployment details for the current deployment.
+   * @param orca is the orca service being used for deployment.
+   * @param service is the service to deploy.
+   */
+  public void deployService(AccountDeploymentDetails<T> details, Orca orca, SpinnakerService service) {
+    String artifactName = service.getArtifact().getName();
+    DaemonTaskHandler.newStage("Deploying " + service.getArtifact().getName());
+    boolean update = serviceExists(details, service);
+    Supplier<String> idSupplier;
+    if (!update) {
+      Map<String, Object> task = upsertLoadBalancerTask(details, service);
+      idSupplier = () -> orca.submitTask(task).get("ref");
+      DaemonTaskHandler.log("Upserting " + artifactName + " load balancer");
+      monitorOrcaTask(idSupplier, orca);
+    }
 
-  abstract public void ensureRedisIsRunning(AccountDeploymentDetails<T> details, RedisService redisService);
+    Map<String, Object> pipeline = deployServerGroupPipeline(details, service, update);
+    idSupplier = () -> orca.orchestrate(pipeline).get("ref");
+    DaemonTaskHandler.log("Orchestrating " + artifactName + " deployment");
+    monitorOrcaTask(idSupplier, orca);
+  }
+
+  abstract protected Map<String, Object> upsertLoadBalancerTask(AccountDeploymentDetails<T> details, SpinnakerService service);
+
+  abstract protected Map<String, Object> deployServerGroupPipeline(AccountDeploymentDetails<T> details, SpinnakerService service, boolean update);
+
+  /**
+   * Creates a service only if it isn't running yet. This is useful for dealing with dependent services that can't
+   * go down (e.g. redis, consul).
+   * @param details are the deployment details for the current deployment.
+   * @param service is the service to ensure is running.
+   */
+  abstract public void ensureServiceIsRunning(AccountDeploymentDetails<T> details, SpinnakerService service);
+
+  abstract public boolean serviceExists(AccountDeploymentDetails<T> details, SpinnakerService service);
+
+  /**
+   * Bootstrap the necessary services required to deploy the rest of Spinnaker.
+   * @param details are the deployment details for the current deployment.
+   * @param services is the full set of Spinnaker services to ultimately deploy.
+   */
   abstract public void bootstrapSpinnaker(AccountDeploymentDetails<T> details, SpinnakerEndpoints.Services services);
   abstract public RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<T> details, SpinnakerService service);
 

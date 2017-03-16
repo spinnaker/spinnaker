@@ -177,30 +177,39 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   }
 
   @Override
-  public void deployService(AccountDeploymentDetails<KubernetesAccount> details, Orca orca, SpinnakerService service) {
-    String artifactName = service.getArtifact().getName();
-    DaemonTaskHandler.newStage("Deploying " + service.getArtifact().getName());
+  protected Map<String, Object> upsertLoadBalancerTask(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
+    String accountName = details.getAccount().getName();
+    return kubernetesOperationFactory.createUpsertPipeline(accountName, service);
+  }
+
+  @Override
+  protected Map<String, Object> deployServerGroupPipeline(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service, boolean update) {
     String accountName = details.getAccount().getName();
     SpinnakerArtifact artifact = service.getArtifact();
     List<ConfigSource> configSources = configSources(details, service);
-    Map<String, Object> task = kubernetesOperationFactory.createUpsertPipeline(accountName, service);
-    Supplier<String> idSupplier = () -> orca.submitTask(task).get("ref");
-    DaemonTaskHandler.log("Upserting " + artifactName + " load balancer");
-    monitorOrcaTask(idSupplier, orca);
 
-    Map<String, Object> pipeline = kubernetesOperationFactory.createDeployPipeline(accountName, service, componentArtifact(details, artifact), configSources);
-    idSupplier = () -> orca.orchestrate(pipeline).get("ref");
-    DaemonTaskHandler.log("Orchestrating " + artifactName + " red/black deployment");
-    monitorOrcaTask(idSupplier, orca);
+    return kubernetesOperationFactory.createDeployPipeline(accountName, service, componentArtifact(details, artifact), configSources, update);
   }
 
   private void createNamespace(KubernetesClient client, String namespace) {
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("net.beta.kubernetes.io/network-policy", "{\"ingress\": {\"isolation\": \"DefaultDeny\"}}");
     if (client.namespaces().withName(namespace).get() == null) {
       client.namespaces().create(new NamespaceBuilder()
           .withNewMetadata()
           .withName(namespace)
+          .withAnnotations(annotations)
           .endMetadata()
           .build());
+    } else {
+      client.namespaces()
+          .withName(namespace)
+          .edit()
+          .withNewMetadata()
+          .withAnnotations(annotations)
+          .withName(namespace)
+          .endMetadata()
+          .done();
     }
   }
 
@@ -348,8 +357,16 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   }
 
   @Override
-  public void ensureRedisIsRunning(AccountDeploymentDetails<KubernetesAccount> details, RedisService redisService) {
-    bootstrapService(details, redisService, false);
+  public void ensureServiceIsRunning(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
+    bootstrapService(details, service, false);
+  }
+
+  @Override
+  public boolean serviceExists(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
+    String namespace = getNamespaceFromAddress(service.getAddress());
+    String name = getServiceFromAddress(service.getAddress());
+
+    return getClient(details.getAccount()).services().inNamespace(namespace).withName(name).get() != null;
   }
 
   @Override
