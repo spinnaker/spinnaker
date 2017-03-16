@@ -30,7 +30,7 @@ public class RoscoService extends SpinnakerService<RoscoService.Rosco> {
   // Address is how the service is looked up.
   String address = "localhost";
   // Host is what's bound to by the service.
-  String host = "localhost";
+  String host = "0.0.0.0";
   String protocol = "http";
   String httpHealth = "/health";
 
