@@ -27,4 +27,6 @@ public class KubernetesCommandProperties {
   static final String DOCKER_REGISTRIES_DESCRIPTION = "A list of the Spinnaker docker registry account names this Spinnaker account can use as image sources. "
       + "These docker registry accounts must be registered in your halconfig before you can add them here.";
 
+  static final String KUBECONFIG_DESCRIPTION = "The path to your kubeconfig file. By default, it will be under the Spinnaker user's home directory in the typical "
+      + ".kube/config location.";
 }

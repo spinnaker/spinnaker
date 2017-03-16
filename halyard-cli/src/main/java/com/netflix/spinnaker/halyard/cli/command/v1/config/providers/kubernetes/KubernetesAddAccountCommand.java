@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
@@ -36,6 +37,13 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
       description = KubernetesCommandProperties.CONTEXT_DESCRIPTION
   )
   private String context;
+
+  @Parameter(
+      names = "--kubeconfig-file",
+      converter = PathExpandingConverter.class,
+      description = KubernetesCommandProperties.KUBECONFIG_DESCRIPTION
+  )
+  private String kubeconfigFile;
 
   @Parameter(
       names = "--namespaces",
@@ -56,6 +64,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   protected Account buildAccount(String accountName) {
     KubernetesAccount account = (KubernetesAccount) new KubernetesAccount().setName(accountName);
     account.setContext(context);
+    account.setKubeconfigFile(kubeconfigFile);
     account.setNamespaces(namespaces);
     dockerRegistries.forEach(registryName -> account.getDockerRegistries().add(new DockerRegistryReference().setAccountName(registryName)));
     return account;

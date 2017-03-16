@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes
 
 import com.beust.jcommander.Parameter;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
@@ -35,6 +36,13 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
       description = KubernetesCommandProperties.CONTEXT_DESCRIPTION
   )
   private String context;
+
+  @Parameter(
+      names = "--kubeconfig-file",
+      converter = PathExpandingConverter.class,
+      description = KubernetesCommandProperties.KUBECONFIG_DESCRIPTION
+  )
+  private String kubeconfigFile;
 
   @Parameter(
       names = "--clear-context",
@@ -97,6 +105,8 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     } else if (contextSet && clearContext) {
       throw new IllegalArgumentException("Set either --context or --clear-context");
     }
+
+    account.setKubeconfigFile(isSet(kubeconfigFile) ? kubeconfigFile : account.getKubeconfigFile());
 
     try {
       account.setNamespaces(
