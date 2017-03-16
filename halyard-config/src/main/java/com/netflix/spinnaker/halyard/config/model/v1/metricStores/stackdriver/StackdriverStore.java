@@ -15,19 +15,30 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
+package com.netflix.spinnaker.halyard.config.model.v1.metricStores.stackdriver;
 
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ClouddriverBootstrapService extends ClouddriverService {
-  boolean monitoringEnabled = false;
-  String name = "clouddriver-bootstrap";
-
-  public ClouddriverBootstrapService() {
-    profiles.add("bootstrap");
+public class StackdriverStore extends MetricStore {
+  @Override
+  public String getNodeName() {
+    return "stackdriver";
   }
+
+  @JsonProperty("credentials_path")
+  @LocalFile
+  private String credentialsPath;
+
+  private String project;
+
+  private String zone;
+
+  @JsonProperty("instance_id")
+  private String instanceId;
 }

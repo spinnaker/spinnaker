@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeckService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.GateService;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -39,6 +40,7 @@ public class GateProfile extends SpringProfile {
     return config.extendConfig(config.getPrimaryConfigFile(), yamlToString(gateConfig));
   }
 
+  @EqualsAndHashCode(callSuper = true)
   @Data
   private static class GateConfig extends SpringProfileConfig {
     Cors cors = new Cors();

@@ -21,6 +21,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.squareup.okhttp.Response;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.POST;
@@ -29,6 +30,7 @@ import retrofit.http.Path;
 import java.util.List;
 import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class ClouddriverService extends SpinnakerService<ClouddriverService.Clouddriver> {
   int port = 7002;
@@ -38,6 +40,7 @@ public class ClouddriverService extends SpinnakerService<ClouddriverService.Clou
   String host = "0.0.0.0";
   String protocol = "http";
   String httpHealth = "/health";
+  String name = "clouddriver";
 
   @Override
   public SpinnakerArtifact getArtifact() {

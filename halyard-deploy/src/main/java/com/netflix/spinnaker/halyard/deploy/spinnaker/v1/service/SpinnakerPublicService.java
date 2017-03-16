@@ -19,7 +19,9 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 abstract public class SpinnakerPublicService<T> extends SpinnakerService<T> {
   String protocol = "http";

@@ -20,10 +20,12 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import retrofit.http.GET;
 
 import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class Front50Service extends SpinnakerService<Front50Service.Front50> {
   int port = 8080;
@@ -33,6 +35,7 @@ public class Front50Service extends SpinnakerService<Front50Service.Front50> {
   String host = "0.0.0.0";
   String protocol = "http";
   String httpHealth = "/health";
+  String name = "front50";
 
   @Override
   public SpinnakerArtifact getArtifact() {

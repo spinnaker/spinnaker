@@ -42,6 +42,7 @@ public enum SpinnakerArtifact {
   IGOR("igor", new String[]{"spinnaker\\.yml", "igor.*\\.yml"}, true),
   ORCA("orca", new String[]{"spinnaker\\.yml", "orca.*\\.yml"}, true),
   ROSCO("rosco", new String[]{"spinnaker\\.yml", "rosco.*\\.yml"}, true),
+  SPINNAKER_MONITORING("spinnaker-monitoring", new String[]{"spinnaker-monitoring\\.yml"}, true),
   // Non-spinnaker
   REDIS("redis", new String[]{}, false);
 

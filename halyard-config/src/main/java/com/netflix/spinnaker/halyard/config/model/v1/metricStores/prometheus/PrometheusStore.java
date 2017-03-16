@@ -15,19 +15,24 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
+package com.netflix.spinnaker.halyard.config.model.v1.metricStores.prometheus;
 
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ClouddriverBootstrapService extends ClouddriverService {
-  boolean monitoringEnabled = false;
-  String name = "clouddriver-bootstrap";
-
-  public ClouddriverBootstrapService() {
-    profiles.add("bootstrap");
+public class PrometheusStore extends MetricStore {
+  @Override
+  public String getNodeName() {
+    return "prometheus";
   }
+
+  @JsonProperty("push_gateway")
+  private String pushGateway;
+
+  @JsonProperty("add_source_metalabels")
+  private boolean addSourceMetalabels = true;
 }

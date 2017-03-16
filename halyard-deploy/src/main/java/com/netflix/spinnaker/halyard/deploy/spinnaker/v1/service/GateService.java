@@ -21,7 +21,9 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class GateService extends SpinnakerPublicService<GateService.Gate> {
   int port = 8084;
@@ -32,6 +34,7 @@ public class GateService extends SpinnakerPublicService<GateService.Gate> {
   String host = "0.0.0.0";
   String protocol = "http";
   String httpHealth = null;
+  String name = "gate";
 
   @Override
   public SpinnakerArtifact getArtifact() {

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.lang.reflect.Field;
@@ -39,10 +40,20 @@ public class BillOfMaterials {
     Artifact igor;
     Artifact orca;
     Artifact rosco;
+    @JsonProperty("spinnaker-monitoring")
+    Artifact spinnakerMonitoring;
 
     public String getArtifactVersion(String artifactName) {
       Optional<Field> field = Arrays.stream(Artifacts.class.getDeclaredFields())
-          .filter(f -> f.getName().equals(artifactName))
+          .filter(f -> {
+            boolean nameMatches = f.getName().equals(artifactName);
+            boolean propertyMatches = false;
+            JsonProperty property = f.getDeclaredAnnotation(JsonProperty.class);
+            if (property != null) {
+              propertyMatches = property.value().equals(artifactName);
+            }
+            return nameMatches || propertyMatches;
+          })
           .findFirst();
 
       if (!field.isPresent()) {

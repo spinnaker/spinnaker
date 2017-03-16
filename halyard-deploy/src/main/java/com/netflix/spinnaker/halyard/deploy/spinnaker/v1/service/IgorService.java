@@ -20,10 +20,12 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import retrofit.http.GET;
 
 import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class IgorService extends SpinnakerService<IgorService.Igor> {
   int port = 8088;
@@ -33,6 +35,7 @@ public class IgorService extends SpinnakerService<IgorService.Igor> {
   String host = "0.0.0.0";
   String protocol = "http";
   String httpHealth = "/health";
+  String name = "igor";
 
   @Override
   public SpinnakerArtifact getArtifact() {

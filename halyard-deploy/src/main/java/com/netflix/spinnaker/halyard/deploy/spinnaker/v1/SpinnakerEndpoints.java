@@ -25,7 +25,9 @@ import lombok.Data;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Data
 public class SpinnakerEndpoints {
@@ -48,6 +50,7 @@ public class SpinnakerEndpoints {
     services.rosco = new RoscoService();
     services.redis = new RedisService();
     services.redisBootstrap = new RedisBootstrapService();
+    services.spinnakerMonitoring = new SpinnakerMonitoringService();
   }
 
   @Data
@@ -65,7 +68,24 @@ public class SpinnakerEndpoints {
     RoscoService rosco;
     RedisService redis;
     RedisBootstrapService redisBootstrap;
+    SpinnakerMonitoringService spinnakerMonitoring;
+
+    public List<SpinnakerService> allServices() {
+      return Arrays.stream(Services.class.getDeclaredFields())
+          .filter(f -> SpinnakerService.class.isAssignableFrom(f.getType()))
+          .map(f -> {
+            f.setAccessible(true);
+            try {
+              return (SpinnakerService) f.get(this);
+            } catch (IllegalAccessException e) {
+              throw new RuntimeException("Failed to read field value for " + f.getName() + " in spinnaker endpoints");
+            } finally {
+              f.setAccessible(false);
+            }
+          }).collect(Collectors.toList());
+    }
   }
+
 
   public SpinnakerService getService(String name) {
     Optional<Field> matchingFields = Arrays.stream(Services.class.getDeclaredFields())

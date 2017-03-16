@@ -19,17 +19,19 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
-public class SpringConfig {
+class SpringConfig {
   OAuth2 oauth2;
 
-  public SpringConfig(Security security) {
+  SpringConfig(Security security) {
     OAuth2 oauth2 = security.getAuthn().getOauth2();
     if (oauth2.isEnabled()) {
       this.oauth2 = oauth2;
     }
   }
 }
+

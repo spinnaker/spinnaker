@@ -21,37 +21,30 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import retrofit.http.GET;
-
-import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class FiatService extends SpinnakerService<FiatService.Fiat> {
-  int port = 7003;
+public class SpinnakerMonitoringService extends SpinnakerService<SpinnakerMonitoringService.SpinnakerMonitoring> {
+  int port = 8008;
   // Address is how the service is looked up.
   String address = "localhost";
   // Host is what's bound to by the service.
-  String host = "0.0.0.0";
+  String host = "localhost";
   String protocol = "http";
-  String httpHealth = "/health";
-  String name = "fiat";
+  String httpHealth = null;
+  String name = "spinnaker-monitoring";
+  // We don't (yet) monitor the monitoring agent.
+  boolean monitoringEnabled = false;
 
   @Override
   public SpinnakerArtifact getArtifact() {
-    return SpinnakerArtifact.FIAT;
+    return SpinnakerArtifact.SPINNAKER_MONITORING;
   }
 
   @Override
-  public Class<Fiat> getEndpointClass() {
-    return Fiat.class;
+  public Class<SpinnakerMonitoring> getEndpointClass() {
+    return SpinnakerMonitoring.class;
   }
 
-  public interface Fiat {
-    @GET("/resolvedEnv")
-    Map<String, String> resolvedEnv();
-
-    @GET("/health")
-    SpringHealth health();
-  }
+  public interface SpinnakerMonitoring { }
 }

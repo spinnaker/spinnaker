@@ -15,19 +15,24 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
+package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Data
-public class ClouddriverBootstrapService extends ClouddriverService {
-  boolean monitoringEnabled = false;
-  String name = "clouddriver-bootstrap";
+abstract public class MetricStore extends Node {
+  boolean enabled;
 
-  public ClouddriverBootstrapService() {
-    profiles.add("bootstrap");
+  @Override
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeEmptyIterator();
+  }
+
+  @Override
+  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
   }
 }

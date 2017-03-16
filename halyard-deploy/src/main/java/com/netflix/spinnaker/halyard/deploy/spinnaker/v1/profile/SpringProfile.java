@@ -41,10 +41,6 @@ abstract public class SpringProfile extends SpinnakerProfile {
     return "## ";
   }
 
-  String yamlToString(Object o) {
-    return yamlParser.dump(objectMapper.convertValue(o, Map.class));
-  }
-
   @Data
   static class SpringProfileConfig {
     ServerConfig server;

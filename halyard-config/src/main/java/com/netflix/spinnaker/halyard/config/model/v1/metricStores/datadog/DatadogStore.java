@@ -15,19 +15,21 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
+package com.netflix.spinnaker.halyard.config.model.v1.metricStores.datadog;
 
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ClouddriverBootstrapService extends ClouddriverService {
-  boolean monitoringEnabled = false;
-  String name = "clouddriver-bootstrap";
-
-  public ClouddriverBootstrapService() {
-    profiles.add("bootstrap");
+public class DatadogStore extends MetricStore {
+  @Override
+  public String getNodeName() {
+    return "datadog";
   }
+
+  @JsonProperty("api_key")
+  private String apiKey;
 }

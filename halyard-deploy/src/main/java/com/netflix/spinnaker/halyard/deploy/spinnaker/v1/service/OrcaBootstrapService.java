@@ -19,9 +19,14 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class OrcaBootstrapService extends OrcaService {
+  String name = "orca-bootstrap";
+  boolean monitoringEnabled = false;
+
   public OrcaBootstrapService() {
     profiles.add("bootstrap");
   }

@@ -20,7 +20,9 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class RedisService extends SpinnakerService<RedisService.Redis> {
   int port = 6379;
@@ -30,6 +32,8 @@ public class RedisService extends SpinnakerService<RedisService.Redis> {
   String host = "0.0.0.0";
   String protocol = "redis";
   String httpHealth = null;
+  String name = "redis";
+  boolean monitoringEnabled = false;
 
   @Override
   public SpinnakerArtifact getArtifact() {

@@ -66,6 +66,11 @@ public class DeploymentConfiguration extends Node {
    */
   Features features = new Features();
 
+  /**
+   * Metric Store configuraton
+   */
+  MetricStores metricStores = new MetricStores();
+
   String timezone = "America/Los_Angeles";
 
   /**

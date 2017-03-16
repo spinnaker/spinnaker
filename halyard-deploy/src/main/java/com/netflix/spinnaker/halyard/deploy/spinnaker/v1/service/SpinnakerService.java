@@ -35,9 +35,13 @@ abstract public class SpinnakerService<T> {
   abstract public String getHttpHealth();
   List<String> profiles = new ArrayList<>();
   Map<String, String> env = new HashMap<>();
+  boolean monitoringEnabled = true;
 
   @JsonIgnore
   public abstract SpinnakerArtifact getArtifact();
+
+  @JsonIgnore
+  public abstract String getName();
 
   public String getBaseUrl() {
     return getProtocol() + "://" + getAddress() + ":" + getPort();
