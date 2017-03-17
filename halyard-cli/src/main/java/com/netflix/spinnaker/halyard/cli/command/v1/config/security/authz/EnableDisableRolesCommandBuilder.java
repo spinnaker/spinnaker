@@ -15,39 +15,31 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-public class AuthnMethodEnableDisableCommandBuilder implements CommandBuilder {
-  @Setter
-  AuthnMethod.Method method;
-
+public class EnableDisableRolesCommandBuilder implements CommandBuilder {
   @Setter
   boolean enable;
 
   @Override
   public NestableCommand build() {
-    return new AuthnMethodEnableDisableCommand(method, enable);
+    return new EnableDisableRolesCommand(enable);
   }
 
   @Parameters()
-  private static class AuthnMethodEnableDisableCommand extends AbstractAuthnMethodEnableDisableCommand {
-    private AuthnMethodEnableDisableCommand(AuthnMethod.Method method, boolean enable) {
-      this.method = method;
+  private static class EnableDisableRolesCommand extends AbstractEnableDisableRolesCommand {
+    private EnableDisableRolesCommand(boolean enable) {
       this.enable = enable;
     }
 
     @Getter(AccessLevel.PROTECTED)
     boolean enable;
-
-    @Getter
-    private AuthnMethod.Method method;
   }
 }

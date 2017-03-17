@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn;
 
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
@@ -52,7 +52,7 @@ abstract public class AuthnMethodCommand extends AbstractConfigCommand {
     String authnMethodName = getMethod().id;
 
     new OperationHandler<AuthnMethod>()
-        .setOperation(Daemon.getAuthnMethod(currentDeployment, authnMethodName, false))
+        .setOperation(Daemon.getAuthnMethod(currentDeployment, authnMethodName, !noValidate))
         .setFailureMesssage("Failed to get " + authnMethodName + " method.")
         .setSuccessMessage("Configured " + authnMethodName + " method: ")
         .setFormat(AnsiFormatUtils.Format.STRING)

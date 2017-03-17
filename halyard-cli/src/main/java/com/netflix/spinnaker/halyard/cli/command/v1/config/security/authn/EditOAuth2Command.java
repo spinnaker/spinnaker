@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn;
 
 import com.beust.jcommander.Parameter;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.OAuth2ProviderTypeConverter;

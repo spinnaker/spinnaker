@@ -16,13 +16,32 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Authz;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
+import lombok.Data;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class FiatProfile extends SpringProfile {
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.FIAT;
+  }
+
+  @Override
+  public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+    Authz authz = deploymentConfiguration.getSecurity().getAuthz();
+    List<String> files = processRequiredFiles(authz);
+    AuthConfig authConfig = new AuthConfig().setAuth(authz);
+    return config.extendConfig(config.getPrimaryConfigFile(), yamlToString(authConfig)).setRequiredFiles(files);
+  }
+
+  @Data
+  private static class AuthConfig {
+    Authz auth;
   }
 }

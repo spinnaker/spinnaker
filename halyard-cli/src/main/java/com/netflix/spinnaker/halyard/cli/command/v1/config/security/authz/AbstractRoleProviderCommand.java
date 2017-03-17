@@ -15,17 +15,21 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
+import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 
-public class OAuth2Command extends AuthnMethodCommand {
-  public AuthnMethod.Method getMethod() {
-    return AuthnMethod.Method.OAuth2;
+abstract public class AbstractRoleProviderCommand extends AbstractConfigCommand {
+  abstract public GroupMembership.RoleProviderType getRoleProviderType();
+
+  @Override
+  public String getDescription() {
+    return "Configure the " + getRoleProviderType() + " role provider.";
   }
 
-  public OAuth2Command() {
-    super();
-    registerSubcommand(new EditOAuth2Command());
+  @Override
+  public String getCommandName() {
+    return getRoleProviderType() + "";
   }
 }

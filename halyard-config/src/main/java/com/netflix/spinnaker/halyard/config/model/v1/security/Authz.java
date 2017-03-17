@@ -26,36 +26,24 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-@EqualsAndHashCode(callSuper = false)
 @Data
-public class Security extends Node {
+@EqualsAndHashCode(callSuper = true)
+public class Authz extends Node {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
 
   @Getter
-  private String nodeName = "security";
+  private String nodeName = "authz";
 
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeReflectiveIterator(this);
   }
 
-  private String apiAddress = "localhost";
-  private String apiDomain;
-  private String uiAddress = "localhost";
-  private String uiDomain;
+  private GroupMembership groupMembership = new GroupMembership();
+  private boolean enabled;
 
-  private Ssl ssl = new Ssl();
-  private Authn authn = new Authn();
-  private Authz authz = new Authz();
-
-  public String getApiDomain() {
-    return apiDomain != null ? apiDomain : apiAddress;
-  }
-
-  public String getUiDomain() {
-    return apiDomain != null ? apiDomain : apiAddress;
-  }
+  public void setEnabled(boolean _ignored) {}
 }

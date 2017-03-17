@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
+import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.services.v1.SecurityService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
@@ -31,8 +33,6 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/security")
@@ -62,6 +62,45 @@ public class SecurityController {
     return TaskRepository.submitTask(builder::build);
   }
 
+  @RequestMapping(value = "/authz/groupMembership", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setGroupMembership(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody Object rawMembership) {
+      GroupMembership membership = objectMapper.convertValue(rawMembership, GroupMembership.class);
+
+      UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+      builder.setSeverity(severity);
+      builder.setUpdate(() -> securityService.setGroupMembership(deploymentName, membership));
+
+      builder.setValidate(ProblemSet::new);
+      if (validate) {
+        builder.setValidate(() -> securityService.validateAuthz(deploymentName));
+      }
+
+      builder.setRevert(() -> halconfigParser.undoChanges());
+      builder.setSave(() -> halconfigParser.saveConfig());
+
+      return TaskRepository.submitTask(builder::build);
+    }
+
+  @RequestMapping(value = "/authz/groupMembership", method = RequestMethod.GET)
+  DaemonTask<Halconfig, GroupMembership> getGroupMembership(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    DaemonResponse.StaticRequestBuilder<GroupMembership> builder = new DaemonResponse.StaticRequestBuilder<>();
+
+    builder.setSeverity(severity);
+    builder.setBuildResponse(() -> securityService.getGroupMembership(deploymentName));
+
+    if (validate) {
+      builder.setValidateResponse(() -> securityService.validateAuthz(deploymentName));
+    }
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
   @RequestMapping(value = "/authn/{methodName:.+}", method = RequestMethod.GET)
   DaemonTask<Halconfig, AuthnMethod> getAuthmethod(@PathVariable String deploymentName,
       @PathVariable String methodName,
@@ -74,6 +113,23 @@ public class SecurityController {
 
     if (validate) {
       builder.setValidateResponse(() -> securityService.validateAuthnMethod(deploymentName, methodName));
+    }
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/authz/groupMembership/{roleProviderName:.+}", method = RequestMethod.GET)
+  DaemonTask<Halconfig, RoleProvider> getRoleProvider(@PathVariable String deploymentName,
+      @PathVariable String roleProviderName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    DaemonResponse.StaticRequestBuilder<RoleProvider> builder = new DaemonResponse.StaticRequestBuilder<>();
+
+    builder.setSeverity(severity);
+    builder.setBuildResponse(() -> securityService.getRoleProvider(deploymentName, roleProviderName));
+
+    if (validate) {
+      builder.setValidateResponse(() -> securityService.validateRoleProvider(deploymentName, roleProviderName));
     }
 
     return TaskRepository.submitTask(builder::build);
@@ -129,8 +185,35 @@ public class SecurityController {
     return TaskRepository.submitTask(builder::build);
   }
 
+  @RequestMapping(value = "/authz/groupMembership/{roleProviderName:.+}", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setRoleProvider(@PathVariable String deploymentName,
+      @PathVariable String roleProviderName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody Object rawProvider) {
+    RoleProvider roleProvider = objectMapper.convertValue(
+        rawProvider,
+        GroupMembership.translateRoleProviderType(roleProviderName)
+    );
+
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> securityService.setRoleProvider(deploymentName, roleProvider));
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> securityService.validateRoleProvider(deploymentName, roleProviderName));
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
   @RequestMapping(value = "/authn/{methodName:.+}/enabled/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setMethodEnabled(@PathVariable String deploymentName,
       @PathVariable String methodName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
@@ -143,6 +226,27 @@ public class SecurityController {
     builder.setValidate(ProblemSet::new);
     if (validate) {
       builder.setValidate(() -> securityService.validateAuthnMethod(deploymentName, methodName));
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/authz/enabled/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setMethodEnabled(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody boolean enabled) {
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setUpdate(() -> securityService.setAuthzEnabled(deploymentName, enabled));
+    builder.setSeverity(severity);
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> securityService.validateAuthz(deploymentName));
     }
 
     builder.setRevert(() -> halconfigParser.undoChanges());

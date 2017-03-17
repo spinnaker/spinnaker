@@ -24,38 +24,19 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class Security extends Node {
+abstract public class RoleProvider extends Node {
+  abstract public GroupMembership.RoleProviderType getRoleProviderType();
+
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
 
-  @Getter
-  private String nodeName = "security";
-
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeReflectiveIterator(this);
-  }
-
-  private String apiAddress = "localhost";
-  private String apiDomain;
-  private String uiAddress = "localhost";
-  private String uiDomain;
-
-  private Ssl ssl = new Ssl();
-  private Authn authn = new Authn();
-  private Authz authz = new Authz();
-
-  public String getApiDomain() {
-    return apiDomain != null ? apiDomain : apiAddress;
-  }
-
-  public String getUiDomain() {
-    return apiDomain != null ? apiDomain : apiAddress;
+    return NodeIteratorFactory.makeEmptyIterator();
   }
 }

@@ -19,10 +19,7 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.model.v1.security.Authn;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
-import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
-import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
@@ -66,12 +63,38 @@ public class SecurityService {
     setAuthnMethod(deploymentName, method);
   }
 
+  public void setAuthzEnabled(String deploymentName, boolean enabled) {
+    Authz authz = getAuthz(deploymentName);
+    authz.setEnabled(enabled);
+    setAuthz(deploymentName, authz);
+  }
+
   public Authn getAuthn(String deploymentName) {
     Security security = getSecurity(deploymentName);
     Authn result = security.getAuthn();
     if (result == null) {
       result = new Authn();
       security.setAuthn(result);
+    }
+
+    return result;
+  }
+
+  public GroupMembership getGroupMembership(String deploymentName) {
+    Authz authz = getAuthz(deploymentName);
+    if (authz.getGroupMembership() == null) {
+      authz.setGroupMembership(new GroupMembership());
+    }
+
+    return authz.getGroupMembership();
+  }
+
+  public Authz getAuthz(String deploymentName) {
+    Security security = getSecurity(deploymentName);
+    Authz result = security.getAuthz();
+    if (result == null) {
+      result = new Authz();
+      security.setAuthz(result);
     }
 
     return result;
@@ -100,6 +123,29 @@ public class SecurityService {
     }
   }
 
+  public RoleProvider getRoleProvider(String deploymentName, String roleProviderName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setRoleProvider(roleProviderName);
+
+    List<RoleProvider> matching = lookupService.getMatchingNodesOfType(filter, RoleProvider.class);
+
+    try {
+      switch (matching.size()) {
+        case 0:
+          RoleProvider roleProvider = GroupMembership.translateRoleProviderType(roleProviderName).newInstance();
+          setRoleProvider(deploymentName, roleProvider);
+          return roleProvider;
+        case 1:
+          return matching.get(0);
+        default:
+          throw new RuntimeException("It shouldn't be possible to have multiple security nodes. This is a bug.");
+      }
+    } catch (InstantiationException | IllegalAccessException e) {
+      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Can't create an empty authn node "
+          + "for authn role provider name \"" + roleProviderName + "\"").build()
+      );
+    }
+  }
+
   public void setSecurity(String deploymentName, Security newSecurity) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setSecurity(newSecurity);
@@ -107,6 +153,14 @@ public class SecurityService {
 
   public void setAuthn(String deploymentName, Authn authn) {
     getSecurity(deploymentName).setAuthn(authn);
+  }
+
+  public void setAuthz(String deploymentName, Authz authz) {
+    getSecurity(deploymentName).setAuthz(authz);
+  }
+
+  public void setGroupMembership(String deploymentName, GroupMembership membership) {
+    getAuthz(deploymentName).setGroupMembership(membership);
   }
 
   public void setAuthnMethod(String deploymentName, AuthnMethod method) {
@@ -120,6 +174,23 @@ public class SecurityService {
     }
   }
 
+  public void setRoleProvider(String deploymentName, RoleProvider roleProvider) {
+    Authz authz = getAuthz(deploymentName);
+    if (authz.getGroupMembership() == null) {
+      authz.setGroupMembership(new GroupMembership());
+    }
+
+    GroupMembership groupMembership = authz.getGroupMembership();
+
+    switch (roleProvider.getRoleProviderType()) {
+      case GOOGLE:
+        groupMembership.setGoogle((GoogleRoleProvider) roleProvider);
+        break;
+      default:
+        throw new RuntimeException("Unknown Role Provider " + roleProvider.getRoleProviderType());
+    }
+  }
+
   public ProblemSet validateSecurity(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity();
     return validateService.validateMatchingFilter(filter);
@@ -127,6 +198,16 @@ public class SecurityService {
 
   public ProblemSet validateAuthnMethod(String deploymentName, String methodName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setAuthnMethod(methodName);
+    return validateService.validateMatchingFilter(filter);
+  }
+
+  public ProblemSet validateAuthz(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().withAnyRoleProvider();
+    return validateService.validateMatchingFilter(filter);
+  }
+
+  public ProblemSet validateRoleProvider(String deploymentName, String roleProviderName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setRoleProvider(roleProviderName);
     return validateService.validateMatchingFilter(filter);
   }
 }

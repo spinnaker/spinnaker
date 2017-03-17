@@ -26,36 +26,60 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Optional;
+
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class Security extends Node {
+public class GroupMembership extends Node {
+  private RoleProviderType roleProviderType = RoleProviderType.GOOGLE;
+  private GoogleRoleProvider google = new GoogleRoleProvider();
+
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
 
-  @Getter
-  private String nodeName = "security";
+  @Override
+  public String getNodeName() {
+    return "groupMembership";
+  }
 
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeReflectiveIterator(this);
   }
 
-  private String apiAddress = "localhost";
-  private String apiDomain;
-  private String uiAddress = "localhost";
-  private String uiDomain;
+  public static Class<? extends RoleProvider> translateRoleProviderType(String roleProvider) {
+    Optional<? extends Class<?>> res = Arrays.stream(GroupMembership.class.getDeclaredFields())
+        .filter(f -> f.getName().equals(roleProvider))
+        .map(Field::getType)
+        .findFirst();
 
-  private Ssl ssl = new Ssl();
-  private Authn authn = new Authn();
-  private Authz authz = new Authz();
-
-  public String getApiDomain() {
-    return apiDomain != null ? apiDomain : apiAddress;
+    if (res.isPresent()) {
+      return (Class<? extends RoleProvider>)res.get();
+    } else {
+      throw new IllegalArgumentException("No role provider with name \"" + roleProvider + "\" handled by halyard");
+    }
   }
 
-  public String getUiDomain() {
-    return apiDomain != null ? apiDomain : apiAddress;
+  public enum RoleProviderType {
+    GOOGLE("google"),
+    GITHUB("github"),
+    LDAP("ldap"),
+    EXTERNAL("external");
+
+    @Getter
+    final String id;
+
+    RoleProviderType(String id) {
+      this.id = id;
+    }
+
+    @Override
+    public String toString() {
+      return id;
+    }
   }
 }

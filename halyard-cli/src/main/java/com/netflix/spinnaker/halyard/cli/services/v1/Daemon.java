@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
+import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
@@ -249,6 +251,41 @@ public class Daemon {
   public static Supplier<Void> setAuthnMethod(String deploymentName, String methodName, boolean validate, AuthnMethod authnMethod) {
     return () -> {
       ResponseUnwrapper.get(getService().setAuthnMethod(deploymentName, methodName, validate, authnMethod));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setGroupMembership(String deploymentName, boolean validate, GroupMembership membership) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setGroupMembership(deploymentName, validate, membership));
+      return null;
+    };
+  }
+
+  public static Supplier<GroupMembership> getGroupMembership(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawGroupMembership = ResponseUnwrapper.get(getService().getGroupMembership(deploymentName, validate));
+      return getObjectMapper().convertValue(rawGroupMembership, GroupMembership.class);
+    };
+  }
+
+  public static Supplier<RoleProvider> getRoleProvider(String deploymentName, String roleProviderName, boolean validate) {
+    return () -> {
+      Object rawRoleProvider = ResponseUnwrapper.get(getService().getRoleProvider(deploymentName, roleProviderName, validate));
+      return getObjectMapper().convertValue(rawRoleProvider, GroupMembership.translateRoleProviderType(roleProviderName));
+    };
+  }
+
+  public static Supplier<Void> setRoleProvider(String deploymentName, String roleProviderName, boolean validate, RoleProvider authnMethod) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setRoleProvider(deploymentName, roleProviderName, validate, authnMethod));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setAuthzEnabled(String deploymentName, boolean validate, boolean enabled) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setAuthzEnabled(deploymentName, validate, enabled));
       return null;
     };
   }

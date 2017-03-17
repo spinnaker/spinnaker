@@ -18,6 +18,8 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
+import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
@@ -177,6 +179,36 @@ public interface DaemonService {
   DaemonTask<Halconfig, Void> setAuthnMethodEnabled(
       @Path("deploymentName") String deploymentName,
       @Path("methodName") String methodName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/authz/groupMembership")
+  DaemonTask<Halconfig, Void> setGroupMembership(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body GroupMembership membership);
+
+  @GET("/v1/config/deployments/{deploymentName}/security/authz/groupMembership")
+  DaemonTask<Halconfig, Object> getGroupMembership(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @GET("/v1/config/deployments/{deploymentName}/security/authz/groupMembership/{roleProviderName}/")
+  DaemonTask<Halconfig, Object> getRoleProvider(
+      @Path("deploymentName") String deploymentName,
+      @Path("roleProviderName") String roleProviderName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/authz/groupMembership/{roleProviderName}/")
+  DaemonTask<Halconfig, Void> setRoleProvider(
+      @Path("deploymentName") String deploymentName,
+      @Path("roleProviderName") String roleProviderName,
+      @Query("validate") boolean validate,
+      @Body RoleProvider roleProvider);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/authz/enabled/")
+  DaemonTask<Halconfig, Void> setAuthzEnabled(
+      @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body boolean enabled);
 

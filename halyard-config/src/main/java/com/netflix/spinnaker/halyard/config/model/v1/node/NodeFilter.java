@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.security.Authn;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
-import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -117,6 +115,20 @@ public class NodeFilter implements Cloneable {
   public NodeFilter setAuthnMethod(String name) {
     matchers.add(Node.thisNodeAcceptor(Authn.class));
     matchers.add(Node.namedNodeAcceptor(AuthnMethod.class, name));
+    return this;
+  }
+
+  public NodeFilter setRoleProvider(String name) {
+    matchers.add(Node.thisNodeAcceptor(Authz.class));
+    matchers.add(Node.thisNodeAcceptor(GroupMembership.class));
+    matchers.add(Node.namedNodeAcceptor(RoleProvider.class, name));
+    return this;
+  }
+
+  public NodeFilter withAnyRoleProvider() {
+    matchers.add(Node.thisNodeAcceptor(Authz.class));
+    matchers.add(Node.thisNodeAcceptor(GroupMembership.class));
+    matchers.add(Node.thisNodeAcceptor(RoleProvider.class));
     return this;
   }
 

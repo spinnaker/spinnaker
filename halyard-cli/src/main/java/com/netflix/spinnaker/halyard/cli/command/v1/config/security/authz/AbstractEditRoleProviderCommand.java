@@ -15,13 +15,13 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -29,33 +29,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Parameters()
-public abstract class AbstractEditAuthnMethodCommand<T extends AuthnMethod> extends AbstractAuthnMethodCommand {
+public abstract class AbstractEditRoleProviderCommand<T extends RoleProvider> extends AbstractRoleProviderCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
 
-  protected abstract AuthnMethod editAuthnMethod(T authnMethod);
+  protected abstract RoleProvider editRoleProvider(T roleProvider);
 
   public String getDescription() {
-    return "Edit the " + getMethod().id + " authentication method.";
+    return "Edit the " + getRoleProviderType() + " role provider.";
   }
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
-    String authnMethodName = getMethod().id;
+    String roleProviderName = getRoleProviderType() + "";
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    AuthnMethod authnMethod = new OperationHandler<AuthnMethod>()
-        .setOperation(Daemon.getAuthnMethod(currentDeployment, authnMethodName, false))
-        .setFailureMesssage("Failed to get " + authnMethodName + " method.")
+    RoleProvider roleProvider = new OperationHandler<RoleProvider>()
+        .setOperation(Daemon.getRoleProvider(currentDeployment, roleProviderName, false))
+        .setFailureMesssage("Failed to get " + roleProviderName + " method.")
         .get();
 
     new OperationHandler<Void>()
-        .setOperation(Daemon.setAuthnMethod(currentDeployment, authnMethodName, !noValidate, editAuthnMethod((T) authnMethod)))
-        .setFailureMesssage("Failed to edit " + authnMethodName + " method.")
-        .setSuccessMessage("Successfully edited " + authnMethodName + " method.")
+        .setOperation(Daemon.setRoleProvider(currentDeployment, roleProviderName, !noValidate, editRoleProvider((T) roleProvider)))
+        .setFailureMesssage("Failed to edit " + roleProviderName + " method.")
+        .setSuccessMessage("Successfully edited " + roleProviderName + " method.")
         .get();
   }
 }

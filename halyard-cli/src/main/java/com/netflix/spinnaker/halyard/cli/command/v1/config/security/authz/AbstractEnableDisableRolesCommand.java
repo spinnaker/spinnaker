@@ -15,9 +15,10 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
@@ -26,7 +27,7 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class AbstractAuthnMethodEnableDisableCommand extends AbstractAuthnMethodCommand {
+public abstract class AbstractEnableDisableRolesCommand extends AbstractConfigCommand {
   @Override
   public String getCommandName() {
     return isEnable() ? "enable" : "disable";
@@ -47,19 +48,17 @@ public abstract class AbstractAuthnMethodEnableDisableCommand extends AbstractAu
 
   @Override
   public String getDescription() {
-    String methodName = getMethod().id;
-    return "Set the " + methodName + " method as " + subjunctivePerfectAction();
+    return "Set Spinnaker's role-based authorization to " + subjunctivePerfectAction();
   }
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
-    String methodName = getMethod().id;
     boolean enable = isEnable();
     new OperationHandler<Void>()
-        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " " + methodName)
-        .setFailureMesssage("Failed to " + getCommandName() + " " + methodName)
-        .setOperation(Daemon.setAuthnMethodEnabled(currentDeployment, methodName, !noValidate, enable))
+        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " authorization")
+        .setFailureMesssage("Failed to " + getCommandName() + " authorization")
+        .setOperation(Daemon.setAuthzEnabled(currentDeployment, !noValidate, enable))
         .get();
   }
 }
