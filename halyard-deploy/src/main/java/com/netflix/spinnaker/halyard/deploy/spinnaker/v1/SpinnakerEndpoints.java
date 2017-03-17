@@ -50,7 +50,7 @@ public class SpinnakerEndpoints {
     services.rosco = new RoscoService();
     services.redis = new RedisService();
     services.redisBootstrap = new RedisBootstrapService();
-    services.spinnakerMonitoringDaemon = new SpinnakerMonitoringDaemonService();
+    services.monitoringDaemon = new SpinnakerMonitoringDaemonService();
   }
 
   @Data
@@ -68,7 +68,7 @@ public class SpinnakerEndpoints {
     RoscoService rosco;
     RedisService redis;
     RedisBootstrapService redisBootstrap;
-    SpinnakerMonitoringDaemonService spinnakerMonitoringDaemon;
+    SpinnakerMonitoringDaemonService monitoringDaemon;
 
     public List<SpinnakerService> allServices() {
       return Arrays.stream(Services.class.getDeclaredFields())

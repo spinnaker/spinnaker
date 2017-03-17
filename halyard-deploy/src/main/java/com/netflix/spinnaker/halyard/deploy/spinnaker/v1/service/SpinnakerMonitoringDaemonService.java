@@ -32,7 +32,7 @@ public class SpinnakerMonitoringDaemonService extends SpinnakerService<Spinnaker
   String host = "0.0.0.0";
   String protocol = "http";
   String httpHealth = null;
-  String name = "spinnaker-monitoring";
+  String name = "monitoring";
   // We don't (yet) monitor the monitoring agent.
   boolean monitoringEnabled = false;
 

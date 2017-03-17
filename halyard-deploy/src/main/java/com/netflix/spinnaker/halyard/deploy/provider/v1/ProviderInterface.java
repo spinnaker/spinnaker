@@ -77,7 +77,7 @@ public abstract class ProviderInterface<T extends Account> {
    */
   public void deployService(AccountDeploymentDetails<T> details, Orca orca, SpinnakerEndpoints endpoints, String name) {
     SpinnakerService service = endpoints.getService(name);
-    SpinnakerMonitoringDaemonService monitoringService = endpoints.getServices().getSpinnakerMonitoringDaemon();
+    SpinnakerMonitoringDaemonService monitoringService = endpoints.getServices().getMonitoringDaemon();
     String artifactName = service.getArtifact().getName();
     DaemonTaskHandler.newStage("Deploying " + service.getArtifact().getName());
     boolean update = serviceExists(details, service);

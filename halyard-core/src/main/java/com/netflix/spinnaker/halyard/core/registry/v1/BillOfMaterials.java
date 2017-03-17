@@ -40,10 +40,10 @@ public class BillOfMaterials {
     Artifact igor;
     Artifact orca;
     Artifact rosco;
-    @JsonProperty("spinnaker-monitoring-third-party")
-    Artifact spinnakerMonitoringThirdParty;
-    @JsonProperty("spinnaker-monitoring-daemon")
-    Artifact spinnakerMonitoringDaemon;
+    @JsonProperty("monitoring-third-party")
+    Artifact monitoringThirdParty;
+    @JsonProperty("monitoring-daemon")
+    Artifact monitoringDaemon;
 
     public String getArtifactVersion(String artifactName) {
       Optional<Field> field = Arrays.stream(Artifacts.class.getDeclaredFields())

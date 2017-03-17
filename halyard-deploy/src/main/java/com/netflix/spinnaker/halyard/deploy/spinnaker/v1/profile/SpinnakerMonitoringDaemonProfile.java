@@ -56,7 +56,7 @@ public class SpinnakerMonitoringDaemonProfile extends SpinnakerProfile {
   protected ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
     String primaryConfig = config.getPrimaryConfigFile();
     SpinnakerEndpoints.Services services = endpoints.getServices();
-    SpinnakerMonitoringDaemonService monitoringService = services.getSpinnakerMonitoringDaemon();
+    SpinnakerMonitoringDaemonService monitoringService = services.getMonitoringDaemon();
     MetricStores metricStores = deploymentConfiguration.getMetricStores();
     List<String> enabledMetricStores = new ArrayList<>();
 
