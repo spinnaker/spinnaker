@@ -53,7 +53,9 @@ class SecurityGroupService {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupById".toString()) {
       def result = clouddriverService.search(id, "securityGroups", null, 10000, 1)[0]
       if (result.results) {
-        String uriString = ((List<Map>)result.results)[0].url
+        Map firstResult = ((List<Map>)result.results)[0]
+        String uriString = firstResult.url
+        String vpcId = firstResult.vpcId
         def uri = new URI(uriString)
         def path = uri.path
         def query = uri.query
@@ -62,7 +64,7 @@ class SecurityGroupService {
         def account = pathParts[2]
         def provider = pathParts[3]
         def sgName = pathParts[-1]
-        return getSecurityGroup(account, provider, sgName, region)
+        return getSecurityGroup(account, provider, sgName, region, vpcId)
       } else {
         [:]
       }
