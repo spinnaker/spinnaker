@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException;
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
@@ -60,6 +61,7 @@ public class RenderTransform implements PipelineTemplateVisitor {
 
   private void render(PipelineTemplate template) {
     RenderContext context = new RenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
+
     context.putAll(templateConfiguration.getPipeline().getVariables());
 
     // We only render the stages here, whereas modules will be rendered only if used within stages.
@@ -74,7 +76,13 @@ public class RenderTransform implements PipelineTemplateVisitor {
     }
 
     for (StageDefinition stage : stages) {
-      Object rendered = RenderUtil.deepRender(renderer, stage.getConfig(), context);
+      Object rendered;
+      try {
+        rendered = RenderUtil.deepRender(renderer, stage.getConfig(), context);
+      } catch (TemplateRenderException e) {
+        throw new TemplateRenderException("Failed rendering stage '" + stage.getId() + "': " + e.getMessage());
+      }
+
       if (!(rendered instanceof Map)) {
         throw new IllegalTemplateConfigurationException("A stage's rendered config must be a map");
       }

@@ -28,10 +28,10 @@ public class WithMapKeyHelper implements Helper<Map<String, Object>> {
 
   @Override
   public Object apply(Map<String, Object> context, Options options) throws IOException {
-    notNull(context, "Map value must not be null");
+    notNull(context, "withMapKey: Map value must not be null");
 
     String key = options.param(0);
-    notNull(key, "A key is required");
+    notNull(key, "withMapKey: A key is required");
 
     if (!context.containsKey(key)) {
       throw new IllegalArgumentException("withObjectKey helper given key that does not exist (key: " + key + ")");

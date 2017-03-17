@@ -70,8 +70,8 @@ class ConditionHelperSpec extends Specification {
     t.cause.getClass() == IllegalArgumentException
 
     where:
-    template                            | context
-    '{{contains value "something"}}'    | [value: 1]
+    template                             | context
+    '{{contains value "something"}}'     | [value: 1]
     '{{containsKey value "something"}}'  | [value: 1]
   }
 

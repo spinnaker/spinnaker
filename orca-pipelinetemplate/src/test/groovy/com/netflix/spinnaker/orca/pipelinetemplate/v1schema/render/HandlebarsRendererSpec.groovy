@@ -50,7 +50,8 @@ class HandlebarsRendererSpec extends Specification {
     '1.1'                 || Double         | 1.1
     'true'                || Boolean        | true
     '{{ stringVar }}'     || String         | 'myStringValue'
-    '''\
+    '''
+
 [
   {{#each regions}}
   "{{ this }}"{{#unless @last}},{{/unless}}

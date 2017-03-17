@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import org.unitils.reflectionassert.ReflectionComparatorMode
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals
 
@@ -169,7 +170,21 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     result.stages[0].regions == '{{unknown_identifier}}'
   }
 
-  Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], List<Map<String, Object>> stages = [:], boolean plan = false) {
+  @Unroll
+  def 'should not render falsy conditional stages'() {
+    when:
+    def result = subject.process(createTemplateRequest('conditional-stages-001.yml', [includeWait: includeWait]))
+
+    then:
+    result.stages*.name == expectedStageNames
+
+    where:
+    includeWait || expectedStageNames
+    true        || ['wait', 'conditionalWait']
+    false       || ['wait']
+  }
+
+  Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], List<Map<String, Object>> stages = [], boolean plan = false) {
     return [
       type: 'templatedPipeline',
       trigger: [
