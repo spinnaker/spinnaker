@@ -46,7 +46,7 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
       names = "--local-repository-directory",
       description = AppengineCommandProperties.LOCAL_REPOSITORY_DIRECTORY_DESCRIPTION
   )
-  private String localRepositoryDirectory = "/var/tmp/clouddriver";
+  private String localRepositoryDirectory;
 
   @Parameter(
       names = "--git-https-username",
