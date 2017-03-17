@@ -1,39 +1,45 @@
 import {module} from 'angular';
-import * as _ from 'lodash';
+import {map, isObject} from 'lodash';
 
-require('./annotationConfigurer.component.less');
+import './annotationConfigurer.component.less';
 
-class AnnotationView {
-  constructor (public key = '', public value = '') { }
+interface IAnnotationView {
+  key: string;
+  value: string;
 }
 
 class KubernetesAnnotationConfigurer implements ng.IComponentController {
   public component: any;
   public field: string;
   public label: string;
-  public annotationViews: AnnotationView[];
+  public annotationViews: IAnnotationView[];
 
-  public $onInit (): void {
-    if (!_.isObject(this.component[this.field])) {
+  public $onInit(): void {
+    if (!isObject(this.component[this.field])) {
       this.component[this.field] = {};
       this.annotationViews = [];
     } else {
-      this.annotationViews = _.map(this.component[this.field], (value: string, key: string) => {
-        return new AnnotationView(key, value);
+      this.annotationViews = map(this.component[this.field], (value: string, key: string) => {
+        return {key, value};
       });
     }
   }
 
-  public add (): void {
-    this.annotationViews.push(new AnnotationView());
+  public add($event: Event): void {
+    if ($event) {
+      // Disables Chrome's default form validation.
+      $event.preventDefault();
+    }
+    this.annotationViews.push({key: '', value: ''});
   }
 
-  public remove (index: number): void {
+  public remove(index: number): void {
     this.annotationViews.splice(index, 1);
+    this.onKeyOrValueChange();
   }
 
-  public onKeyOrValueChange (): void {
-    this.component[this.field] = this.annotationViews.reduce((annotationMap: any, view: AnnotationView) => {
+  public onKeyOrValueChange(): void {
+    this.component[this.field] = this.annotationViews.reduce((annotationMap: {[key: string]: string}, view: IAnnotationView) => {
       annotationMap[view.key] = view.value;
       return annotationMap;
     }, {});
@@ -51,6 +57,5 @@ class KubernetesAnnotationConfigurerComponent implements ng.IComponentOptions {
 }
 
 export const KUBERNETES_ANNOTATION_CONFIGURER = 'spinnaker.kubernetes.annotation.configurer.component';
-
 module(KUBERNETES_ANNOTATION_CONFIGURER, [])
   .component('kubernetesAnnotationConfigurer', new KubernetesAnnotationConfigurerComponent());

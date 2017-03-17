@@ -1,11 +1,12 @@
-<div class="form-group form-horizontal">
-  <kubernetes-annotation-configurer component="command" field="replicaSetAnnotations" label="Replica Set Annotations">
-  </kubernetes-annotation-configurer>
+<ng-form name="advancedSettings">
+  <div class="form-group form-horizontal">
+    <kubernetes-annotation-configurer component="command" field="replicaSetAnnotations" label="Replica Set Annotations">
+    </kubernetes-annotation-configurer>
 
-  <kubernetes-annotation-configurer component="command" field="podAnnotations" label="Pod Annotations">
-  </kubernetes-annotation-configurer>
+    <kubernetes-annotation-configurer component="command" field="podAnnotations" label="Pod Annotations">
+    </kubernetes-annotation-configurer>
 
-  <kubernetes-annotation-configurer component="command" field="nodeSelector" label="Node Selector">
-  </kubernetes-annotation-configurer>
-</div>
-
+    <kubernetes-annotation-configurer component="command" field="nodeSelector" label="Node Selector">
+    </kubernetes-annotation-configurer>
+  </div>
+</ng-form>

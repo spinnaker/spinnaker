@@ -76,13 +76,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
 
       wizardSubFormValidation
         .config({ scope: $scope, form: 'form' })
-        .register({ page: 'location', subForm: 'basicSettings'});
+        .register({ page: 'location', subForm: 'basicSettings'})
+        .register({page: 'advanced-settings', subForm: 'advancedSettings'});
     }
 
     this.isValid = function () {
       return $scope.command && $scope.command.containers.length > 0 &&
         $scope.command.account !== null &&
-        v2modalWizardService.isComplete();
+        v2modalWizardService.isComplete() &&
+        wizardSubFormValidation.subFormsAreValid();
     };
 
     this.showSubmitButton = function () {
