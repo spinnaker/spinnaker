@@ -3,14 +3,15 @@
 import Spinner from 'spin.js';
 let angular = require('angular');
 
-import {AUTHENTICATION} from 'core/authentication/authentication.module';
-import {API_SERVICE} from 'core/api/api.service';
-import {CLOUD_PROVIDER_LOGO} from 'core/cloudProvider/cloudProviderLogo.component';
-import {HELP_FIELD_COMPONENT} from 'core/help/helpField.component';
-import {STATE_CONFIG_PROVIDER} from 'core/navigation/state.provider';
-import {APPLICATIONS_STATE_PROVIDER} from 'core/application/applications.state.provider';
-import {INFRASTRUCTURE_STATES} from 'core/search/infrastructure/infrastructure.states';
-import {VERSION_CHECK_SERVICE} from 'core/config/versionCheck.service';
+import {AUTHENTICATION} from './authentication/authentication.module';
+import {API_SERVICE} from './api/api.service';
+import {CLOUD_PROVIDER_LOGO} from './cloudProvider/cloudProviderLogo.component';
+import {HELP_FIELD_COMPONENT} from './help/helpField.component';
+import {STATE_CONFIG_PROVIDER} from './navigation/state.provider';
+import {APPLICATIONS_STATE_PROVIDER} from './application/applications.state.provider';
+import {INFRASTRUCTURE_STATES} from './search/infrastructure/infrastructure.states';
+import {VERSION_CHECK_SERVICE} from './config/versionCheck.service';
+import {CORE_WIDGETS_MODULE} from './widgets';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -132,7 +133,7 @@ module.exports = angular
 
     require('./utils/utils.module.js'),
 
-    require('./widgets'),
+    CORE_WIDGETS_MODULE,
     require('./validation/validation.module.js'),
   ])
   .run(function($rootScope, $log, $state, settings) {

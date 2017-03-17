@@ -1,44 +1,53 @@
-import {module} from 'angular';
-import {PAGER_DUTY_READ_SERVICE, IPagerDutyService} from './pagerDuty.read.service';
+import {Component, Input, OnInit} from '@angular/core';
 
-export class PagerDutySelectFieldController implements ng.IComponentController {
-  public pagerDutyServices: [IPagerDutyService];
-  public servicesLoaded: boolean;
-  public helpContents = `<p>Make sure your service exists in Pager Duty and includes the "Generic API" 
-      integration (from your service in Pager Duty, click "New Integration", then select "Use our API directly").`;
+import {IDowngradeItem} from 'core/domain/IDowngradeItem';
+import {API_SERVICE_PROVIDER} from 'core/api/api.service';
+import {IPagerDutyService, PagerDutyReader} from './pagerDuty.read.service';
 
-  static get $inject() { return ['pagerDutyReader']; }
+@Component({
+  selector: 'deck-pager-duty-select-field',
+  providers: [API_SERVICE_PROVIDER, PagerDutyReader],
+  template: `
+    <div class="form-group row">
+      <div class="col-sm-3 sm-label-right">
+        PagerDuty *
+        <help-field [content]="helpContents"></help-field>
+      </div>
+      <div class="col-sm-9">
+        <ui-select-wrapper [items]="pagerDutyServices"
+                           [model]="component"
+                           modelProperty="pdApiKey"
+                           placeholder="Select a PagerDuty Service"
+                           renderProperty="name"
+                           selectProperty="integration_key"></ui-select-wrapper>
+      </div>
+    </div>
+  `
+})
+export class PagerDutySelectFieldComponent implements OnInit {
 
-  public constructor(private pagerDutyReader: any) {}
+  @Input()
+  public component: any;
 
-  public $onInit() {
-    this.pagerDutyReader.listServices().then((pagerDutyServices: [IPagerDutyService]) => {
-      this.pagerDutyServices = pagerDutyServices;
+  public servicesLoaded = false;
+  public pagerDutyServices: IPagerDutyService[];
+  public helpContents = `<p>Make sure your service exists in Pager Duty and includes the "Generic API"
+    integration (from your service in Pager Duty, click "New Integration", then select "Use our API directly").</p>`;
+
+  constructor(private pagerDutyReader: PagerDutyReader) {}
+
+  public ngOnInit(): void {
+    this.pagerDutyReader.listServices().subscribe((services: IPagerDutyService[]) => {
+      this.pagerDutyServices = services;
       this.servicesLoaded = true;
     });
   }
 }
 
-class PagerDutySelectFieldComponent implements ng.IComponentOptions {
-  public bindings: any = {
-    component: '='
-  };
-  public controller: any = PagerDutySelectFieldController;
-  public template = `
-  <div class="form-group row">
-    <div class="col-sm-3 sm-label-right">PagerDuty * <help-field content="{{$ctrl.helpContents}}"></help-field></div>
-    <div class="col-sm-9">
-      <ui-select ng-if="$ctrl.servicesLoaded" ng-model="$ctrl.component.pdApiKey" class="form-control input-sm" required>
-        <ui-select-match placeholder="Select a PagerDuty Service">{{$select.selected.name}}</ui-select-match>
-        <ui-select-choices repeat="pagerDuty.integration_key as pagerDuty in $ctrl.pagerDutyServices | filter: $select.search">
-          {{pagerDuty.name}}
-        </ui-select-choices>
-      </ui-select>
-    </div>
-  </div>
-  `;
-}
-
 export const PAGER_DUTY_SELECT_FIELD_COMPONENT = 'spinnaker.netflix.pagerDuty.pagerDutySelectField.component';
-module(PAGER_DUTY_SELECT_FIELD_COMPONENT, [PAGER_DUTY_READ_SERVICE])
-  .component('pagerDutySelectField', new PagerDutySelectFieldComponent());
+export const PAGER_DUTY_SELECT_FIELD_COMPONENT_DOWNGRADE: IDowngradeItem = {
+  moduleName: PAGER_DUTY_SELECT_FIELD_COMPONENT,
+  injectionName: 'pagerDutySelectField',
+  moduleClass: PagerDutySelectFieldComponent,
+  inputs: ['component']
+};

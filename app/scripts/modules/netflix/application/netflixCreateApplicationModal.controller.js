@@ -1,10 +1,10 @@
 'use strict';
 
-import _ from 'lodash';
 import {PAGER_DUTY_SELECT_FIELD_COMPONENT} from '../pagerDuty/pagerDutySelectField.component';
 import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
 import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {UI_SELECT_COMPONENT} from 'core/widgets/uiSelect.component';
 
 module.exports = angular
   .module('spinnaker.netflix.application.create.modal.controller', [
@@ -14,6 +14,7 @@ module.exports = angular
     ACCOUNT_SERVICE,
     require('core/config/settings.js'),
     PAGER_DUTY_SELECT_FIELD_COMPONENT,
+    UI_SELECT_COMPONENT
   ])
   .controller('netflixCreateApplicationModalCtrl', function($controller, $scope, $q, $log, $state, $uibModalInstance,
                                                             settings,
@@ -27,8 +28,7 @@ module.exports = angular
       $uibModalInstance: $uibModalInstance,
       accountService: accountService,
       applicationWriter: applicationWriter,
-      applicationReader: applicationReader,
-      _ : _,
+      applicationReader: applicationReader
     }));
 
     this.chaosEnabled = settings.feature.chaosMonkey;

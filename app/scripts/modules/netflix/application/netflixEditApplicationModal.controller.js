@@ -5,6 +5,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 import {PAGER_DUTY_SELECT_FIELD_COMPONENT} from '../pagerDuty/pagerDutySelectField.component';
 import {PAGER_DUTY_TAG_COMPONENT} from '../pagerDuty/pagerDutyTag.component';
+import {UI_SELECT_COMPONENT} from 'core/widgets/uiSelect.component';
 
 module.exports = angular
   .module('spinnaker.netflix.application.edit.modal.controller', [
@@ -12,9 +13,10 @@ module.exports = angular
     APPLICATION_WRITE_SERVICE,
     ACCOUNT_SERVICE,
     PAGER_DUTY_SELECT_FIELD_COMPONENT,
-    PAGER_DUTY_TAG_COMPONENT
+    PAGER_DUTY_TAG_COMPONENT,
+    UI_SELECT_COMPONENT
   ])
-  .controller('netflixEditApplicationController', function($controller, $window, $state, $uibModalInstance, application, applicationWriter,
+  .controller('netflixEditApplicationController', function ($controller, $window, $state, $uibModalInstance, application, applicationWriter,
                                                             accountService) {
 
     if (application.attributes.legacyUdf === undefined) {
@@ -26,8 +28,6 @@ module.exports = angular
       $uibModalInstance: $uibModalInstance,
       application: application,
       applicationWriter: applicationWriter,
-      _ : _,
       accountService: accountService,
     }));
-
   });

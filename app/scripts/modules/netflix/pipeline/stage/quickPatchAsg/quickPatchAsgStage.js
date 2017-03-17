@@ -2,13 +2,14 @@
 
 let angular = require('angular');
 
+import {CORE_WIDGETS_MODULE} from 'core/widgets';
 import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgStage', [
   require('core/pipeline/config/pipelineConfigProvider.js'),
   LIST_EXTRACTOR_SERVICE,
   require('core/config/settings.js'),
-  require('core/widgets')
+  CORE_WIDGETS_MODULE
 ])
   .config(function(pipelineConfigProvider, settings) {
     if (settings.feature && settings.feature.netflixMode) {

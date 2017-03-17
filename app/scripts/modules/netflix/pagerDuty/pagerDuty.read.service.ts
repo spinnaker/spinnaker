@@ -1,21 +1,19 @@
-import {module} from 'angular';
-import {API_SERVICE, Api} from '../../core/api/api.service';
+import {Observable} from 'rxjs';
+import {Injectable, Inject} from '@angular/core';
+
+import {Api} from 'core/api/api.service';
 
 export interface IPagerDutyService {
   name: string;
   integration_key: string;
 }
 
+@Injectable()
 export class PagerDutyReader {
-  static get $inject() { return ['API']; }
 
-  public constructor(private API: Api) {}
+  public constructor(@Inject('API') private API: Api) {}
 
-  public listServices(): ng.IPromise<[IPagerDutyService]> {
-    return this.API.one('pagerDuty/services').useCache().getList();
+  public listServices(): Observable<IPagerDutyService[]> {
+    return Observable.fromPromise(this.API.one('pagerDuty/services').useCache().getList());
   }
 }
-
-export const PAGER_DUTY_READ_SERVICE = 'spinnaker.netflix.pagerDuty.read.service';
-module(PAGER_DUTY_READ_SERVICE, [API_SERVICE])
-  .service('pagerDutyReader', PagerDutyReader);
