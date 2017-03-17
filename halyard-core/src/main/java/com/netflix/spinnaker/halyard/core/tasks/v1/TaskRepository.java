@@ -7,6 +7,8 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +20,10 @@ import java.util.function.Supplier;
 @Slf4j
 public class TaskRepository {
   static final Map<String, DaemonTaskStatus> tasks = new ConcurrentHashMap<>();
+
+  static public List<String> getTasks() {
+    return new ArrayList<>(tasks.keySet());
+  }
 
   static public <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> runner) {
     String uuid = UUID.randomUUID().toString();

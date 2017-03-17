@@ -28,8 +28,15 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import retrofit.http.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DaemonService {
+  @GET("/health")
+  Map<String, String> getHealth();
+
+  @GET("/v1/tasks/")
+  List<String> getTasks();
+
   @GET("/v1/tasks/{uuid}/")
   <C, T> DaemonTask<C, T> getTask(@Path("uuid") String uuid);
 

@@ -28,12 +28,25 @@ import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
+import lombok.extern.slf4j.Slf4j;
 import retrofit.RestAdapter;
+import retrofit.RetrofitError;
 import retrofit.client.OkClient;
 
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
+@Slf4j
 public class Daemon {
+  public static List<String> getTasks() {
+    return getService().getTasks();
+  }
+
+  public static boolean isHealthy() {
+    return getService().getHealth().get("status").equalsIgnoreCase("up");
+  }
+
   public static Supplier<String> getCurrentDeployment() {
     return () -> ResponseUnwrapper.get(getService().getCurrentDeployment());
   }

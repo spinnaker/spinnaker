@@ -14,5 +14,9 @@ spinnaker:
       writerEnabled: false
       bucket: halconfig
 
+endpoints:
+  shutdown:
+    enabled: true
+
 retrofit:
   logLevel: BASIC

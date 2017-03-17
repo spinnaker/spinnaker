@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.Parameter;
+import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -45,6 +46,18 @@ public class HalCommand extends NestableCommand {
       description = "Version of Halyard."
   )
   private boolean version;
+
+  @Parameter(
+      names = "--ready",
+      description = "Check if Halyard is up and running. Will exit with non-zero return code when it isn't."
+  )
+  private boolean healthy;
+
+  @Parameter(
+      names = "--tasks",
+      description = "Show which tasks Halyard is currently executing."
+  )
+  private boolean tasks;
 
   public HalCommand() {
     registerSubcommand(new AdminCommand());
@@ -89,6 +102,10 @@ public class HalCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
+    if (tasks) {
+      System.out.println(Daemon.getTasks());
+    }
+
     if (version) {
       System.out.println(getVersion());
     }
@@ -97,7 +114,11 @@ public class HalCommand extends NestableCommand {
       System.out.println(commandCompletor());
     }
 
-    if (!version && !printBashCompletion) {
+    if (healthy) {
+      System.exit(Daemon.isHealthy() ? 0 : -1);
+    }
+
+    if (!version && !printBashCompletion && !tasks) {
       showHelp();
     }
   }

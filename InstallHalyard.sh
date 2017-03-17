@@ -294,6 +294,18 @@ rm -rf $TEMPDIR
 
 start halyard
 
+printf 'Waiting for the Halyard daemon to start running'
+
+hal --ready > /dev/null
+
+while [ "$?" != "0" ]; do
+    printf '.'
+    sleep 2
+    hal --ready > /dev/null
+done
+
+echo 
+
 if [ -z "$QUIET" ]; then
 cat <<EOF
 
