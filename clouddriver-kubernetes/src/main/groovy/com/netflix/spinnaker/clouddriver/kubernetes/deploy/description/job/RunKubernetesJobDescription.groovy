@@ -30,6 +30,7 @@ class RunKubernetesJobDescription extends KubernetesAtomicOperationDescription {
   String stack
   String freeFormDetails
   String namespace
+  Boolean hostNetwork=false
   KubernetesContainerDescription container
   List<KubernetesVolumeSource> volumeSources
 }
