@@ -124,9 +124,8 @@ class BomGenerator(Annotator):
       if comp == 'spinnaker-monitoring':
         config = dict(GOOGLE_CONTAINER_BUILDER_MONITORING_BASE_CONFIG)
         version = self.__version_from_tag(comp)
-        versioned_image = '{reg}/{repo}-daemon:{tag}'.format(reg=self.__docker_registry,
-                                                             repo=comp,
-                                                             tag=version)
+        versioned_image = '{reg}/monitoring-daemon:{tag}'.format(reg=self.__docker_registry,
+                                                                 tag=version)
         config['steps'][0]['args'] = ['build', '-t', versioned_image, '-f', 'Dockerfile', '.']
         config['images'] = [versioned_image]
         config_file = '{0}-gcb.yml'.format(comp)
@@ -208,10 +207,8 @@ class BomGenerator(Annotator):
       version_entry = {VERSION: gradle_version}
       if comp == 'spinnaker-monitoring':
         # Add two entries for both components of spinnaker-monitoring
-        third_party = '{0}-third-party'.format(comp)
-        daemon = '{0}-daemon'.format(comp)
-        output_yaml[SERVICES][third_party] = dict(version_entry)
-        output_yaml[SERVICES][daemon] = dict(version_entry)
+        output_yaml[SERVICES]['monitoring-third-party'] = dict(version_entry)
+        output_yaml[SERVICES]['monitoring-daemon'] = dict(version_entry)
       else:
         output_yaml[SERVICES][comp] = version_entry
 
