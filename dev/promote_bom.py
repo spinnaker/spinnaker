@@ -33,7 +33,7 @@ class BomPromoter(BomGenerator):
   def __init__(self, options):
     self.__rc_version = options.rc_version
     self.__bom_dict = {}
-    self.__new_version = ''
+    self.__release_version = options.release_version
     self.__changelog_file = options.changelog_file
     self.__github_token = options.github_token
     self.__github_user = options.github_user
@@ -52,14 +52,8 @@ class BomPromoter(BomGenerator):
     """Read, update, and promote a release candidate BOM.
     """
     self.__unpack_bom()
-    dash_idx = self.__rc_version.index('-')
-    if dash_idx == -1:
-      raise Exception('Malformed Spinnaker release candidate version: {0}.'
-                      .format(self.__rc_version))
-    # Chop off build number for BOM promotion.
-    self.__new_version = self.__rc_version[:dash_idx]
-    new_bom_file = '{0}.yml'.format(self.__new_version)
-    self.__bom_dict[VERSION] = self.__new_version
+    new_bom_file = '{0}.yml'.format(self.__release_version)
+    self.__bom_dict[VERSION] = self.__release_version
     self.write_bom_file(new_bom_file, self.__bom_dict)
     self.publish_bom(new_bom_file)
     # Re-write the 'latest' Spinnaker version.
@@ -71,7 +65,7 @@ class BomPromoter(BomGenerator):
     """Publish the changelog as a github gist.
     """
     g = Github(self.__github_user, self.__github_token)
-    description = 'Changelog for Spinnaker {0}'.format(self.__new_version)
+    description = 'Changelog for Spinnaker {0}'.format(self.__release_version)
     with open(self.__changelog_file, 'r') as clog:
       raw_content = clog.read()
       content = InputFileContent(raw_content)
@@ -98,8 +92,9 @@ class BomPromoter(BomGenerator):
     parser.add_argument('--github_token', default='', required=True,
                         help="The GitHub user token with scope='gists' to write gists.")
     parser.add_argument('--rc_version', default='', required=True,
-                        help='The version of the Spinnaker release candidate we are promoting.'
-                        'We derive the promoted version from the release candidate version.')
+                        help='The version of the Spinnaker release candidate we are promoting.')
+    parser.add_argument('--release_version', default='', required=True,
+                        help='The version for the new Spinnaker release.')
     super(BomPromoter, cls).init_argument_parser(parser)
 
 if __name__ == '__main__':

@@ -133,7 +133,7 @@ class BomGenerator(Annotator):
         with open(config_file, 'w') as cfg:
           yaml.dump(config, cfg, default_flow_style=True)
       elif comp == 'spinnaker':
-        return
+        pass
       else:
         config = dict(GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG)
         gradle_version = self.__version_from_tag(comp)
@@ -157,7 +157,7 @@ class BomGenerator(Annotator):
     """
     for comp in self.__component_versions:
       if comp == 'spinnaker':
-        return
+        pass
       gradle_version = self.__version_from_tag(comp)
       docker_tag = '{reg}/{comp}:{tag}'.format(reg=self.__docker_registry,
                                                comp=comp,
@@ -240,10 +240,8 @@ class BomGenerator(Annotator):
       output_yaml [dict]: Dictionary containing BOM information.
     """
     with open(filename, 'w') as output_file:
-      timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
-      tracking = '# Generated on host {0} on {1}'.format(socket.gethostname(),
-                                                         timestamp)
-      output_file.write(tracking + '\n')
+      output_yaml['timestamp'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+      output_yaml['hostname'] = socket.gethostname()
       yaml.dump(output_yaml, output_file, default_flow_style=False)
       print 'Wrote BOM to {0}.'.format(filename)
 
@@ -284,7 +282,7 @@ class BomGenerator(Annotator):
         config_path = os.path.join(comp, daemon_path, 'halconfig')
         self.__publish_config('monitoring-daemon', config_path)
       elif comp == 'spinnaker':
-        return
+        pass
       else:
         config_path = os.path.join(comp, 'halconfig')
         self.__publish_config(comp, config_path)
