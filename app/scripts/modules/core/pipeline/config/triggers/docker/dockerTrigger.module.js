@@ -1,3 +1,4 @@
+
 'use strict';
 
 let angular = require('angular');
@@ -26,8 +27,6 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       validators: [
         { type: 'requiredField', fieldName: 'account',
           message: '<strong>Registry</strong> is a required field for Docker Registry triggers.'},
-        { type: 'requiredField', fieldName: 'organization',
-          message: '<strong>Organization</strong> is a required field for Docker Registry triggers.' },
         { type: 'requiredField', fieldName: 'repository',
           message: '<strong>Image</strong> is a required field for Docker Registry triggers.'},
         { type: 'serviceAccountAccess', preventSave: true,
