@@ -32,6 +32,10 @@ public class MetricStores extends Node {
   private StackdriverStore stackdriver = new StackdriverStore();
   private int period = 30;
 
+  public boolean isEnabled() {
+    return datadog.isEnabled() || prometheus.isEnabled() || stackdriver.isEnabled();
+  }
+
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);

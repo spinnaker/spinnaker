@@ -39,6 +39,7 @@ public class Front50Profile extends SpringProfile {
 
   @Override
   public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+    config = super.generateFullConfig(config, deploymentConfiguration, endpoints);
     PersistentStorage storage = deploymentConfiguration.getPersistentStorage();
     Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), storage.getAccountName());
     Front50Credentials credentials = new Front50Credentials();

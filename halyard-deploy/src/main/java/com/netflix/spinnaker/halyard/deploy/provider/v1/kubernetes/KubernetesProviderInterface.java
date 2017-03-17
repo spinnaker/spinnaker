@@ -84,10 +84,10 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   @Value("${deploy.kubernetes.config.dir:/opt/spinnaker/config}")
   private String CONFIG_MOUNT;
 
-  @Value("${deploy.kubernetes.config.dir:/opt/spinnaker-monitoring/config")
+  @Value("${deploy.kubernetes.config.dir:/opt/spinnaker-monitoring/config}")
   private String MONITORING_CONFIG_MOUNT;
 
-  @Value("${deploy.kubernetes.config.dir:/opt/spinnaker-monitoring/registry")
+  @Value("${deploy.kubernetes.config.dir:/opt/spinnaker-monitoring/registry}")
   private String MONITORING_REGISTRY_MOUNT;
 
   @Autowired
@@ -394,9 +394,9 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   @Override
   public void bootstrapSpinnaker(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerEndpoints.Services services) {
-    bootstrapService(details, services.getRedisBootstrap(), true);
     bootstrapService(details, services.getClouddriverBootstrap(), true);
     bootstrapService(details, services.getOrcaBootstrap(), true);
+    bootstrapService(details, services.getRedisBootstrap(), true);
   }
 
   private List<String> kubectlAccountCommand(KubernetesAccount account) {

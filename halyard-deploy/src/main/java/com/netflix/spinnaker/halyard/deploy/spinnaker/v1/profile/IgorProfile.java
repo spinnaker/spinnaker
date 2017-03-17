@@ -34,6 +34,7 @@ public class IgorProfile extends SpringProfile {
 
   @Override
   public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+    config = super.generateFullConfig(config, deploymentConfiguration, endpoints);
     Providers providers = deploymentConfiguration.getProviders();
     if (providers.getDockerRegistry().isEnabled()) {
       config.extendConfig(config.getPrimaryConfigFile(), "dockerRegistry.enabled: true");

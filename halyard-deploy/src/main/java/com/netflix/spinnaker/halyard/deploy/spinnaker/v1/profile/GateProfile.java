@@ -35,6 +35,7 @@ public class GateProfile extends SpringProfile {
 
   @Override
   public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+    config = super.generateFullConfig(config, deploymentConfiguration, endpoints);
     GateConfig gateConfig = new GateConfig(endpoints.getServices().getGate(), deploymentConfiguration.getSecurity());
     gateConfig.getCors().setAllowedOriginsPattern(deploymentConfiguration.getSecurity(), endpoints.getServices().getDeck());
     return config.extendConfig(config.getPrimaryConfigFile(), yamlToString(gateConfig));

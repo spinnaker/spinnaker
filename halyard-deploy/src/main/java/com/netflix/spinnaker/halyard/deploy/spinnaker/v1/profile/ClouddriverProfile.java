@@ -33,6 +33,7 @@ public class ClouddriverProfile extends SpringProfile {
 
   @Override
   public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+    config = super.generateFullConfig(config, deploymentConfiguration, endpoints);
     Providers providers = deploymentConfiguration.getProviders();
     List<String> files = processRequiredFiles(providers);
     return config.extendConfig(config.getPrimaryConfigFile(), yamlToString(deploymentConfiguration.getProviders())).setRequiredFiles(files);

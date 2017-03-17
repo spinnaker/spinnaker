@@ -34,6 +34,7 @@ public class FiatProfile extends SpringProfile {
 
   @Override
   public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
+    config = super.generateFullConfig(config, deploymentConfiguration, endpoints);
     Authz authz = deploymentConfiguration.getSecurity().getAuthz();
     List<String> files = processRequiredFiles(authz);
     AuthConfig authConfig = new AuthConfig().setAuth(authz);
