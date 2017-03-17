@@ -97,7 +97,7 @@
       "check-type"
     ],
     "directive-selector": [
-      true,
+      false,
       "attribute",
       "deck",
       "camelCase"

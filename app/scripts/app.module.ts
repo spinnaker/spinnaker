@@ -3,7 +3,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {UpgradeModule, downgradeInjectable, downgradeComponent} from '@angular/upgrade/static';
 declare let angular: any;
 
-import {SPINNAKER_DOWNGRADES, SPINNAKER_COMPONENT_DOWNGRADES} from './modules';
+import {SPINNAKER_DOWNGRADES, SPINNAKER_COMPONENT_DOWNGRADES, SPINNAKER_DIRECTIVE_UPGRADES} from './modules';
 
 const providers: Type<any>[] = [];
 export const DOWNGRADED_MODULE_NAMES: string[] = [];
@@ -39,7 +39,8 @@ SPINNAKER_COMPONENT_DOWNGRADES.forEach((item) => {
     UpgradeModule
   ],
   declarations: [
-    ...declarations
+    ...declarations,
+    ...SPINNAKER_DIRECTIVE_UPGRADES
   ],
   entryComponents: [
     ...declarations
