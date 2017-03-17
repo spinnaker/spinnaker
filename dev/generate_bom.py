@@ -291,12 +291,9 @@ class BomGenerator(Annotator):
   def publish_microservice_configs(self):
     for comp in self.COMPONENTS:
       if comp == 'spinnaker-monitoring':
-        third_party = '{0}-third-party'.format(comp)
-        config_path = os.path.join(comp, third_party, 'halconfig')
-        self.__publish_config(comp, config_path)
-        daemon = '{0}-daemon'.format(comp)
-        config_path = os.path.join(comp, daemon, 'halconfig')
-        self.__publish_config(comp, config_path)
+        daemon_path = '{0}-daemon'.format(comp)
+        config_path = os.path.join(comp, daemon_path, 'halconfig')
+        self.__publish_config('monitoring-daemon', config_path)
       else:
         config_path = os.path.join(comp, 'halconfig')
         self.__publish_config(comp, config_path)
