@@ -27,6 +27,8 @@ import java.util.Optional;
 @Data
 public class BillOfMaterials {
   String version;
+  String timestamp;
+  String hostname;
   Artifacts services;
 
   @Data
@@ -44,6 +46,7 @@ public class BillOfMaterials {
     Artifact monitoringThirdParty;
     @JsonProperty("monitoring-daemon")
     Artifact monitoringDaemon;
+    Artifact spinnaker;
 
     public String getArtifactVersion(String artifactName) {
       Optional<Field> field = Arrays.stream(Artifacts.class.getDeclaredFields())
