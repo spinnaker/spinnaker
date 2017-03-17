@@ -77,10 +77,17 @@ class BackgroundProcess(
   """
 
   @staticmethod
-  def spawn(name, args):
+  def spawn(name, args, logfile=None):
+    sp = None
+    if logfile:
+      log = open(logfile, 'w')
+      sp = subprocess.Popen(args, shell=True, close_fds=True,
+                            stdout=log, stderr=subprocess.STDOUT)
+
+    else:
       sp = subprocess.Popen(args, shell=True, close_fds=True,
                             stdout=sys.stdout, stderr=subprocess.STDOUT)
-      return BackgroundProcess(name, sp)
+    return BackgroundProcess(name, sp)
 
   def wait(self):
     if not self.subprocess:
@@ -199,7 +206,7 @@ class Builder(object):
       target = 'buildDeb'
       extra_args = []
 
-    if name == 'deck' and not 'CHROME_BIN' in os.environ:
+    if name == 'orca' or name == 'deck' and not 'CHROME_BIN' in os.environ:
       extra_args.append('-PskipTests')
     elif name == 'halyard':
       extra_args.append('-PbintrayPackageDebDistribution=trusty-nightly')
@@ -212,7 +219,8 @@ class Builder(object):
     return BackgroundProcess.spawn(
       'Building and publishing Debian for {name}...'.format(name=name),
       'cd "{gradle_root}"; ./gradlew {extra} {target}'.format(
-          gradle_root=gradle_root, extra=' '.join(extra_args), target=target)
+          gradle_root=gradle_root, extra=' '.join(extra_args), target=target),
+      logfile='{name}-debian-build.log'.format(name=name)
     )
 
   def start_container_build(self, name):
@@ -245,19 +253,29 @@ class Builder(object):
           'cd "{gradle_root}"'
           '; gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
         .format(gradle_root=gradle_root, name=name, account=self.__gcb_service_account,
-                project=self.__options.gcb_project)
+                project=self.__options.gcb_project),
+        logfile='{name}-gcb-build.log'.format(name=name)
       )
     elif self.__options.container_builder == 'docker':
+      dockerfile = ''
+      if name == 'spinnaker-monitoring':
+        dockerfile = 'spinnaker-monitoring-daemon/Dockerfile'
+      else:
+        dockerfile = 'Dockerfile'
       return BackgroundProcess.spawn(
-          'Build/publishing container image for {name} with Docker...'.format(
-              name=name),
-          'cd "{gradle_root}"'
-          ' ; docker build -f Dockerfile -t $(cat ../{name}-docker.yml) .'
-          ' ; docker push $(cat ../{name}-docker.yml)'
-          .format(gradle_root=gradle_root, name=name)
+        'Build/publishing container image for {name} with Docker...'.format(
+          name=name),
+        'cd "{gradle_root}"'
+        ' ; pwd'
+        ' ; docker build -f {dockerfile} -t $(cat ../{name}-docker.yml) .'
+        ' ; docker push $(cat ../{name}-docker.yml)'
+        ' ; cd ..'
+        ' ; pwd'
+        .format(gradle_root=gradle_root, dockerfile=dockerfile, name=name),
+        '{name}-docker-build.log'.format(name=name)
       )
     else:
-      raise NotImplemented(
+      raise NotImplementedError(
           'container_builder="{0}"'.format(self.__options.container_builder))
 
 
@@ -441,6 +459,7 @@ class Builder(object):
     try:
       self.start_deb_build(subsys).check_wait()
     except Exception as ex:
+      print ex
       self.__build_failures.append(subsys)
 
   def __do_container_build(self, subsys):
