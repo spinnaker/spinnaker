@@ -32,7 +32,7 @@ class CustomStrategy implements Strategy, ApplicationContextAware {
 
   final String name = "custom"
 
-  @Autowired
+  @Autowired(required = false)
   PipelineStage pipelineStage
 
   ApplicationContext applicationContext

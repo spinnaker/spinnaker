@@ -35,7 +35,7 @@ class DetermineHealthProvidersTaskSpec extends Specification {
 
   @Subject
   def task = new DetermineHealthProvidersTask(
-    front50Service,
+      new Optional<Front50Service>(front50Service),
     [new KubernetesServerGroupCreator(), new AmazonServerGroupCreator(), new GoogleServerGroupCreator(), new TitusServerGroupCreator()]
   )
 

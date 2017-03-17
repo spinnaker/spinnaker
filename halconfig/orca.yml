@@ -5,28 +5,31 @@ server:
   address: ${services.orca.host:localhost}
 
 oort:
-  baseUrl: ${services.clouddriver.baseUrl:localhost:7002}
+  baseUrl: ${services.clouddriver.baseUrl:http://localhost:7002}
 
 front50:
-  baseUrl: ${services.front50.baseUrl:localhost:8080}
+  enabled: true
+  baseUrl: ${services.front50.baseUrl:http://localhost:8080}
 
 mort:
-  baseUrl: ${services.clouddriver.baseUrl:localhost:7002}
+  baseUrl: ${services.clouddriver.baseUrl:http://localhost:7002}
 
 kato:
-  baseUrl: ${services.clouddriver.baseUrl:localhost:7002}
+  baseUrl: ${services.clouddriver.baseUrl:http://localhost:7002}
 
 bakery:
-  baseUrl: ${services.bakery.baseUrl:localhost:8087}
+  enabled: true
+  baseUrl: ${services.bakery.baseUrl:http://localhost:8087}
   extractBuildDetails: ${services.bakery.extractBuildDetails:true}
   allowMissingPackageInstallation: ${services.bakery.allowMissingPackageInstallation:false}
 
 echo:
   enabled: true
-  baseUrl: ${services.echo.baseUrl:localhost:8089}
+  baseUrl: ${services.echo.baseUrl:http://localhost:8089}
 
 igor:
-  baseUrl: ${services.igor.baseUrl:localhost:8088}
+  enabled: true
+  baseUrl: ${services.igor.baseUrl:http://localhost:8088}
 
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}

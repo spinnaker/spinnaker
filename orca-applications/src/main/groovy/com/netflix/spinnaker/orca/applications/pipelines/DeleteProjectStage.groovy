@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.applications.pipelines
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -41,11 +41,14 @@ class DeleteProjectStage implements StageDefinitionBuilder {
 
   @Component
   static class DeleteProjectTask implements Task {
-    @Autowired
+    @Autowired(required = false)
     Front50Service front50Service
 
     @Override
     TaskResult execute(Stage stage) {
+      if (!front50Service) {
+        throw new UnsupportedOperationException("Unable to modify projects, front50 has not been enabled. Fix this by setting front50.enabled: true")
+      }
       def projectId = stage.mapTo("/project", Front50Service.Project)
       front50Service.deleteProject(projectId.id)
 

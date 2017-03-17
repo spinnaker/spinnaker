@@ -35,7 +35,7 @@ public class PipelineStage implements StageDefinitionBuilder, RestartableStage, 
 
     if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().toLowerCase().equals("false")) {
       builder.withTask("monitorPipeline", MonitorPipelineTask.class);
-    }
+  }
   }
 
   @Override

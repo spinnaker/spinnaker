@@ -31,12 +31,7 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 import javax.servlet.http.HttpServletResponse
 
@@ -58,7 +53,7 @@ class OperationsController {
   @Autowired
   ExecutionRepository executionRepository
 
-  @Autowired
+  @Autowired(required = false)
   BuildArtifactFilter buildArtifactFilter
 
   @Autowired(required = false)
@@ -147,7 +142,12 @@ class OperationsController {
     if (trigger.master && trigger.job && trigger.buildNumber) {
       def buildInfo = buildService.getBuild(trigger.buildNumber, trigger.master, trigger.job)
       if (buildInfo?.artifacts) {
-        buildInfo.artifacts = buildArtifactFilter.filterArtifacts(buildInfo.artifacts)
+        if (!buildArtifactFilter) {
+          log.warn("Igor is not enabled, unable to lookup build artifacts. Fix this by setting igor.enabled: true")
+        } else {
+          buildInfo.artifacts = buildArtifactFilter.filterArtifacts(buildInfo.artifacts)
+        }
+
       }
       trigger.buildInfo = buildInfo
       if (trigger.propertyFile) {

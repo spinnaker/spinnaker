@@ -25,8 +25,8 @@ import spock.lang.Subject
 class EnabledPipelineValidatorSpec extends Specification {
 
   def front50Service = Stub(Front50Service)
-  @Subject def validator = new EnabledPipelineValidator(front50Service)
-
+  @Subject def validator = new EnabledPipelineValidator(new Optional<>(front50Service))
+  
   def "allows one-off pipeline to run"() {
     given:
     front50Service.getPipelines(pipeline.application) >> []

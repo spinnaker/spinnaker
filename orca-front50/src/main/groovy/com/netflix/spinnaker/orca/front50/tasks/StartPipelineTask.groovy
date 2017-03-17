@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component
 @Slf4j
 class StartPipelineTask implements Task {
 
-  @Autowired
+  @Autowired(required = false)
   Front50Service front50Service
 
   @Autowired
@@ -39,6 +39,9 @@ class StartPipelineTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
+    if (!front50Service) {
+      throw new UnsupportedOperationException("Cannot start a stored pipeline, front50 is not enabled. Fix this by setting front50.enabled: true")
+    }
 
     String application = stage.context.pipelineApplication ?: stage.context.application
     String pipelineId = stage.context.pipelineId ?: stage.context.pipeline

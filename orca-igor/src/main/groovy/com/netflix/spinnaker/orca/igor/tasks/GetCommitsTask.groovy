@@ -50,7 +50,7 @@ class GetCommitsTask implements DiffTask {
   @Autowired(required = false)
   BuildService buildService
 
-  @Autowired
+  @Autowired(required = false)
   Front50Service front50Service
 
   @Override
@@ -59,6 +59,11 @@ class GetCommitsTask implements DiffTask {
     // is igor not configured or have we exceeded configured retries
     if (!buildService || retriesRemaining == 0) {
       log.info("igor is not configured or retries exceeded : buildService : ${buildService}, retries : ${retriesRemaining}")
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: [], getCommitsRetriesRemaining: retriesRemaining])
+    }
+
+    if (!front50Service) {
+      log.warn("Front50 is not configured. Fix this by setting front50.enabled: true")
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: [], getCommitsRetriesRemaining: retriesRemaining])
     }
 

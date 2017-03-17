@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.bakery.config
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+
 import java.text.SimpleDateFormat
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.LowerCaseWithUnderscoresStrategy
@@ -46,6 +48,7 @@ import static retrofit.Endpoints.newFixedEndpoint
   "com.netflix.spinnaker.orca.bakery.tasks"
 ])
 @CompileStatic
+@ConditionalOnExpression('${bakery.enabled:true}')
 class BakeryConfiguration {
 
   @Autowired Client retrofitClient

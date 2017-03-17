@@ -279,6 +279,7 @@ class CreateBakeTaskSpec extends Specification {
     Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
     Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig)
     bakeConfig.buildInfo = contextInfo
+    task.bakery = Mock(BakeryService)
 
     when:
     task.execute(stage)
@@ -301,6 +302,7 @@ class CreateBakeTaskSpec extends Specification {
     given:
     Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: buildInfo]).build()
     Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig)
+    task.bakery = Mock(BakeryService)
     bakeConfig.buildInfo = [
       artifacts: [
         [fileName: 'hodor_1.2_all.deb'],
