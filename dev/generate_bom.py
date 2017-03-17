@@ -73,7 +73,8 @@ class BomGenerator(Annotator):
     'orca',
     'rosco',
     'fiat',
-    'spinnaker-monitoring'
+    'spinnaker-monitoring',
+    'spinnaker'
   ]
 
   def __init__(self, options):
@@ -131,6 +132,8 @@ class BomGenerator(Annotator):
         config_file = '{0}-gcb.yml'.format(comp)
         with open(config_file, 'w') as cfg:
           yaml.dump(config, cfg, default_flow_style=True)
+      elif comp == 'spinnaker':
+        pass
       else:
         config = dict(GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG)
         gradle_version = self.__version_from_tag(comp)
@@ -153,6 +156,8 @@ class BomGenerator(Annotator):
     """Write a file containing the full tag for each microservice for Docker.
     """
     for comp in self.__component_versions:
+      if comp == 'spinnaker':
+        pass
       gradle_version = self.__version_from_tag(comp)
       docker_tag = '{reg}/{comp}:{tag}'.format(reg=self.__docker_registry,
                                                comp=comp,
@@ -193,8 +198,6 @@ class BomGenerator(Annotator):
   def write_bom(self):
     output_yaml = {SERVICES: {}}
 
-    breaking_change = False
-    feature = False
     for comp in self.__component_versions:
       version_bump = self.__component_versions[comp]
 
@@ -212,22 +215,8 @@ class BomGenerator(Annotator):
       else:
         output_yaml[SERVICES][comp] = version_entry
 
-    # Current publicly released version of Spinnaker product.
-    result = run_quick('hal versions latest --color false', echo=False)
-    if result.returncode != 0:
-      print "'hal versions latest' command failed with: \n{0}\n exiting...".format(result.stdout)
-      exit(result.returncode)
-
-    curr_version = result.stdout.strip()
-    major, minor, patch = curr_version.split('.')
-    self.__toplevel_version = ''
-    if breaking_change == True:
-      self.__toplevel_version = str(int(major) + 1) + '.0.0'
-    elif feature == True:
-      self.__toplevel_version =  major + '.' + str(int(minor) + 1) + '.0'
-    else:
-      self.__toplevel_version =  major + '.' + minor + '.' + str(int(patch) + 1)
-
+    timestamp = '{:%Y-%m-%d}'.format(datetime.datetime.now())
+    self.__toplevel_version = '{0}-{1}'.format(self.branch, timestamp)
     toplevel_with_build = '{0}-{1}'.format(self.__toplevel_version, self.build_number)
     output_yaml[VERSION] = toplevel_with_build
     self.__bom_file = '{0}.yml'.format(toplevel_with_build)
@@ -251,10 +240,8 @@ class BomGenerator(Annotator):
       output_yaml [dict]: Dictionary containing BOM information.
     """
     with open(filename, 'w') as output_file:
-      timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
-      tracking = '# Generated on host {0} on {1}'.format(socket.gethostname(),
-                                                         timestamp)
-      output_file.write(tracking + '\n')
+      output_yaml['timestamp'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+      output_yaml['hostname'] = socket.gethostname()
       yaml.dump(output_yaml, output_file, default_flow_style=False)
       print 'Wrote BOM to {0}.'.format(filename)
 
@@ -294,6 +281,8 @@ class BomGenerator(Annotator):
         daemon_path = '{0}-daemon'.format(comp)
         config_path = os.path.join(comp, daemon_path, 'halconfig')
         self.__publish_config('monitoring-daemon', config_path)
+      elif comp == 'spinnaker':
+        pass
       else:
         config_path = os.path.join(comp, 'halconfig')
         self.__publish_config(comp, config_path)
