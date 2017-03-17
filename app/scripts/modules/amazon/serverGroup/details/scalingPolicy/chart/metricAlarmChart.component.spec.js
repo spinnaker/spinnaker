@@ -21,8 +21,7 @@ describe('Component: metricAlarmChart', function () {
       this.initialize = (bindings) => {
         $ctrl = $componentController('metricAlarmChart', {
           $scope: $scope,
-          cloudMetricsReader: cloudMetricsReader,
-          _: _,
+          cloudMetricsReader: cloudMetricsReader
         }, bindings);
       };
     })

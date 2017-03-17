@@ -1,6 +1,6 @@
 'use strict';
 
-import _ from 'lodash';
+import {find, uniq} from 'lodash';
 let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
@@ -28,16 +28,16 @@ module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
 
     this.instanceDetailsLoaded = () => {
       this.getBastionAddressForAccount($scope.instance.account);
-      var discoveryMetric = _.find($scope.healthMetrics, function(metric) { return metric.type === 'Discovery'; });
+      var discoveryMetric = find($scope.healthMetrics, function(metric) { return metric.type === 'Discovery'; });
       if (discoveryMetric && discoveryMetric.vipAddress) {
         var vipList = discoveryMetric.vipAddress;
         let vipAddress = vipList.includes(',') ? vipList.split(',') : [vipList];
-        $scope.instance.vipAddress = _.uniq(vipAddress);
+        $scope.instance.vipAddress = uniq(vipAddress);
       }
       if (discoveryMetric && discoveryMetric.secureVipAddress) {
         var secureVipList = discoveryMetric.secureVipAddress;
         let secureVipAddress = secureVipList.includes(',') ? secureVipList.split(',') : [secureVipList];
-        $scope.instance.secureVipAddress = _.uniq(secureVipAddress);
+        $scope.instance.secureVipAddress = uniq(secureVipAddress);
       }
     };
 
@@ -50,7 +50,6 @@ module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
       confirmationModalService: confirmationModalService,
       recentHistoryService: recentHistoryService,
       instanceReader: instanceReader,
-      _: _,
       instance: instance,
       app: app,
       $q: $q,

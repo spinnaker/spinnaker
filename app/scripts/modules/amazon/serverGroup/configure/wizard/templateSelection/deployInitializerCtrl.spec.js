@@ -13,7 +13,6 @@ describe('DeployInitializerCtrl', function() {
     this.serverGroupCommandBuilder = {};
     this.securityGroupReader = {};
     this.deploymentStrategyService = {};
-    this._ = _;
     this.$scope = $rootScope.$new();
     this.$q = $q;
 
@@ -22,8 +21,7 @@ describe('DeployInitializerCtrl', function() {
   describe('template initialization', function() {
     beforeEach(function() {
       var $q = this.$q,
-          $scope = this.$scope,
-          _ = this._;
+          $scope = this.$scope;
       this.initializeController = function () {
         var deploymentStrategiesMock = {
           listAvailableStrategies: function() { return $q.when([]); }
@@ -33,8 +31,7 @@ describe('DeployInitializerCtrl', function() {
           $scope: $scope,
           serverGroupCommandBuilder: this.serverGroupCommandBuilder,
           securityGroupReader: this.securityGroupReader,
-          deploymentStrategyService: deploymentStrategiesMock,
-          _: _
+          deploymentStrategyService: deploymentStrategiesMock
         });
       };
 

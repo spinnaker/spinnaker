@@ -19,7 +19,6 @@ describe('Controller: ManualPipelineExecution', function () {
         application: application,
         pipeline: pipeline,
         pipelineConfig: pipelineConfig,
-        _: _,
         $uibModalInstance: modalInstance || {},
         notificationService: this.notificationService,
       });
