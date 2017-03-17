@@ -141,8 +141,7 @@ class Annotator(object):
   def __init__(self, options, path=None):
     self.__next_tag = options.next_tag
     self.__path = path or options.path
-    self.__initial_branch = options.initial_branch
-    self.__stable_branch = options.stable_branch
+    self.__branch = options.branch
     self.__build_number = options.build_number or os.environ.get('BUILD_NUMBER', '')
     self.__force_rebuild = options.force_rebuild
     self.__tags_to_delete = []
@@ -156,6 +155,14 @@ class Annotator(object):
   @property
   def current_version(self):
     return self.__current_version
+
+  @property
+  def branch(self):
+    return self.__branch
+
+  @branch.setter
+  def branch(self, branch):
+    self.__branch = branch
 
   @property
   def path(self):
@@ -240,13 +247,11 @@ class Annotator(object):
       run_quick('git -C {path} tag -d {tag}'
                 .format(path=self.path, tag=bad_hash_tag.tag))
 
-  def create_stable_branch(self):
-    """Creates a branch from --initial_branch/HEAD named --stable_branch.
+  def checkout_branch(self):
+    """Checks out a branch.
     """
-    run_quick('git -C {path} checkout {initial_branch}'
-              .format(path=self.path, initial_branch=self.__initial_branch))
-    run_quick('git -C {path} checkout -b {stable_branch}'
-              .format(path=self.path, stable_branch=self.__stable_branch))
+    run_quick('git -C {path} checkout {branch}'.format(path=self.path,
+                                                       branch=self.branch))
 
   def __is_head_current(self):
     """Checks if the current version is at HEAD.
@@ -360,14 +365,12 @@ class Annotator(object):
     """Initialize command-line arguments."""
     parser.add_argument('--build_number', default=os.environ.get('BUILD_NUMBER'),
                         help='The build number to append to the semantic version tag.')
-    parser.add_argument('--initial_branch', default='master',
-                        help='Initial branch to create the stable release branch from.')
+    parser.add_argument('--branch', default='master',
+                        help='Git branch to checkout.')
     parser.add_argument('--next_tag', default='',
                         help='Tag to use as the next tag instead of determining the next semver tag.')
     parser.add_argument('--path', default='.',
                         help='Path to the git repository we want to annotate.')
-    parser.add_argument('--stable_branch', default='',
-                        help='Name of the stable release branch to create.')
     parser.add_argument('--force_rebuild', default=False, action='store_true',
                         help='Force a rebuild even if there is a git tag at HEAD.')
 
