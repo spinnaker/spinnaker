@@ -168,7 +168,8 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         + getNamespaceFromAddress(service.getAddress()) + "/services/"
         + getServiceFromAddress(service.getAddress()) + ":" + service.getPort() + "/";
 
-    log.info("Connecting to " + service.getAddress() + " on port " + proxy.getPort());
+    log.info("Connected to " + service.getAddress() + " on port " + proxy.getPort());
+    log.info("View the kube ui on http://localhost:" + proxy.getPort() + "/ui/");
     return serviceInterfaceFactory.createService(endpoint, service);
   }
 
@@ -471,7 +472,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       SpinnakerService service) {
     SpinnakerArtifact artifact = service.getArtifact();
     Set<String> secretFile = Collections.singleton(Paths.get(spinnakerOutputPath, "registry", service.getName() + ".yml").toString());
-    String secretName = componentMonitoring(artifact.getName());
+    String secretName = componentRegistry(artifact.getName());
     upsertSecret(details, secretFile, secretName, namespace);
     return buildVolumePair(secretName, MONITORING_REGISTRY_MOUNT);
   }

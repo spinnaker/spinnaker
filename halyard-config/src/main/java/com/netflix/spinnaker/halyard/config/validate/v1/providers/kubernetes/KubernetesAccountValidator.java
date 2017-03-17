@@ -148,6 +148,8 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     if (dockerRegistryProvider == null || dockerRegistryProvider.getAccounts() == null || dockerRegistryProvider.getAccounts().isEmpty()) {
       psBuilder.addProblem(ERROR, "The docker registry provider has not yet been configured for this deployment.", "dockerRegistries")
           .setRemediation("Kubernetes needs a Docker Registry as an image source to run.");
+    } else if (!dockerRegistryProvider.isEnabled()) {
+      psBuilder.addProblem(ERROR, "The docker registry provider needs to be enabled.");
     } else {
       List<String> availableRegistries = dockerRegistryProvider
           .getAccounts()

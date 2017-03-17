@@ -42,8 +42,8 @@ public enum SpinnakerArtifact {
   IGOR("igor", new String[]{"spinnaker\\.yml", "igor.*\\.yml"}, true),
   ORCA("orca", new String[]{"spinnaker\\.yml", "orca.*\\.yml"}, true),
   ROSCO("rosco", new String[]{"spinnaker\\.yml", "rosco.*\\.yml"}, true),
-  SPINNAKER_MONITORING_THIRD_PARTY("spinnaker-monitoring-third-party", new String[]{}, true),
-  SPINNAKER_MONITORING_DAEMON("spinnaker-monitoring-daemon", new String[]{}, true),
+  SPINNAKER_MONITORING_THIRD_PARTY("monitoring-third-party", new String[]{}, true),
+  SPINNAKER_MONITORING_DAEMON("monitoring-daemon", new String[]{}, true),
   // Non-spinnaker
   REDIS("redis", new String[]{}, false);
 
