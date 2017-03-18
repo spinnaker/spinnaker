@@ -9,11 +9,12 @@ import * as angular from 'angular';
 import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
 
 import {DOWNGRADED_MODULE_NAMES, DOWNGRADED_COMPONENT_MODULE_NAMES, SpinnakerModule} from './app.module';
+import {NETFLIX_MODULE} from './modules/netflix/netflix.module';
 import {APPENGINE_MODULE} from './modules/appengine/appengine.module';
 import {AUTHENTICATION_SERVICE} from './modules/core/authentication/authentication.service';
 
 module.exports = angular.module('netflix.spinnaker', [
-  require('./modules/netflix/netflix.module.js'),
+  NETFLIX_MODULE,
   require('./modules/core/core.module.js'),
   require('./modules/amazon/aws.module.js'),
   require('./modules/google/gce.module.js'),
