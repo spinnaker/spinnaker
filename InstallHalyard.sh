@@ -296,6 +296,7 @@ start halyard
 
 printf 'Waiting for the Halyard daemon to start running'
 
+set +e 
 hal --ready > /dev/null
 
 while [ "$?" != "0" ]; do
