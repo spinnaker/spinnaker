@@ -316,7 +316,8 @@ class BomGenerator(Annotator):
           options.container_builder))
 
     bom_generator.write_bom()
-    bom_generator.publish_microservice_configs()
+    bom_generator.publish_boms()
+    # bom_generator.publish_microservice_configs()
     bom_generator.generate_changelog()
 
 if __name__ == '__main__':

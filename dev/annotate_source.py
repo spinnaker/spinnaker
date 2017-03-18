@@ -136,7 +136,7 @@ class Annotator(object):
   """
 
   # regex for 'version-X.Y.Z' versions
-  TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+$')
+  TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$')
 
   def __init__(self, options, path=None):
     self.__next_tag = options.next_tag
