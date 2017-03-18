@@ -53,6 +53,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 import urllib2
 from urllib2 import HTTPError
 
@@ -597,13 +598,27 @@ class Builder(object):
       print '\nFINISHED writing release to {rep}'.format(
         rep=options.bintray_repo)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> fix(google): Remove build data from google images.
   @classmethod
   def main(cls):
     parser = argparse.ArgumentParser()
     cls.init_argument_parser(parser)
     options = parser.parse_args()
+<<<<<<< HEAD
     # builds debians only
     cls.do_build(options)
+=======
+    options.container_builder = None
+
+    build_number = (os.environ.get('BUILD_NUMBER')
+                    or time.strftime('%Y%m%d%H%M%S'))
+
+    cls.do_build(options, build_number, None)
+
+>>>>>>> fix(google): Remove build data from google images.
 
 if __name__ == '__main__':
   sys.exit(Builder.main())
