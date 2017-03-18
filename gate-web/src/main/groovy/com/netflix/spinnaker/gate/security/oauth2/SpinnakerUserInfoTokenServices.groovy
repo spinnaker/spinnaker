@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.security.oauth2
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
@@ -69,6 +70,10 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     OAuth2Authentication oAuth2Authentication = userInfoTokenServices.loadAuthentication(accessToken)
 
     Map details = oAuth2Authentication.userAuthentication.details as Map
+
+    if (log.isDebugEnabled()) {
+      log.debug("UserInfo details: " + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(details))
+    }
 
     if (!hasAllUserInfoRequirements(details)) {
       throw new BadCredentialsException("User's info does not have all required fields.")
