@@ -108,7 +108,7 @@ class ConfigStageInjectionTransformSpec extends Specification {
     def configBuilder = { injectRule ->
       new TemplateConfiguration(
         stages: [
-          new StageDefinition(id: 'injected', type: 'manualJudgement', inject: injectRule)
+          new StageDefinition(id: 'injected', type: 'manualJudgment', inject: injectRule)
         ]
       )
     }

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.echo.spring
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.batch.SpringBatchExecutionRunner
-import com.netflix.spinnaker.orca.batch.StageBuilderProvider
+
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
@@ -231,11 +231,6 @@ class SpringBatchEchoEventIntegrationSpec extends EchoEventIntegrationSpec<Sprin
     @Bean
     FactoryBean<ExceptionHandler> exceptionHandler() {
       new SpockMockFactoryBean(ExceptionHandler)
-    }
-
-    @Bean
-    FactoryBean<StageBuilderProvider> builderProvider() {
-      new SpockMockFactoryBean(StageBuilderProvider)
     }
 
     @Bean

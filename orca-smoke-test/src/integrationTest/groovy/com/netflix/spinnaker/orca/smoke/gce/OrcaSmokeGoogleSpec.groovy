@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.smoke.OrcaSmokeUtils
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
@@ -35,7 +35,6 @@ import spock.lang.IgnoreIf
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Timeout
-
 import static com.netflix.spinnaker.orca.test.net.Network.notReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
@@ -56,7 +55,7 @@ class OrcaSmokeGoogleSpec extends Specification {
     applicationName = "googletest${System.currentTimeMillis()}"
   }
 
-  @Autowired PipelineStarter jobStarter
+  @Autowired PipelineLauncher pipelineLauncher
   @Autowired ObjectMapper mapper
   @Autowired JobExplorer jobExplorer
 
@@ -67,7 +66,7 @@ class OrcaSmokeGoogleSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def pipeline = jobStarter.start(configJson)
+    def pipeline = pipelineLauncher.start(configJson)
     def jobName = OrcaSmokeUtils.buildJobName(config.application, config.name, pipeline.id)
 
     then:
@@ -108,7 +107,7 @@ class OrcaSmokeGoogleSpec extends Specification {
     def configJson = mapper.writeValueAsString(config)
 
     when:
-    def pipeline = jobStarter.start(configJson)
+    def pipeline = pipelineLauncher.start(configJson)
     def jobName = OrcaSmokeUtils.buildJobName(config.application, config.name, pipeline.id)
 
     then:

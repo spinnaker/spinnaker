@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -42,11 +43,12 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
   private static final Logger log = LoggerFactory.getLogger(DetermineHealthProvidersTask.class);
 
   private final Front50Service front50Service;
+
   private final Map<String, String> healthProviderNamesByPlatform;
 
   @Autowired
-  public DetermineHealthProvidersTask(Front50Service front50Service, Collection<ServerGroupCreator> serverGroupCreators) {
-    this.front50Service = front50Service;
+  public DetermineHealthProvidersTask(Optional<Front50Service> front50Service, Collection<ServerGroupCreator> serverGroupCreators) {
+    this.front50Service = front50Service.orElse(null);
     this.healthProviderNamesByPlatform = serverGroupCreators
       .stream()
       .filter(serverGroupCreator ->  serverGroupCreator.getHealthProviderName().isPresent())
@@ -80,6 +82,11 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
         applicationName = Names.parseName((String) stage.getContext().get("asgName")).getApp();
       } else if (applicationName == null && stage.getContext().containsKey("cluster")) {
         applicationName = Names.parseName((String) stage.getContext().get("cluster")).getApp();
+      }
+
+      if (front50Service == null) {
+        log.warn("Unable to determine health providers for an application without front50 enabled.");
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED);
       }
 
       Application application = front50Service.get(applicationName);

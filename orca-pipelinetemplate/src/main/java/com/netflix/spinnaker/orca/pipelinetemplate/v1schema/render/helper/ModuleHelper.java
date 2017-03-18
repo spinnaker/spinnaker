@@ -56,7 +56,7 @@ public class ModuleHelper implements Helper<Object> {
 
   @Override
   public String apply(Object context, Options options) throws IOException {
-    isTrue(context instanceof String, "found '%s', expected 'module id'", context);
+    isTrue(context instanceof String, "module: could not find module by given id '%s', or id type is invalid", context);
 
     PipelineTemplate template = options.get("pipelineTemplate");
     if (template == null) {

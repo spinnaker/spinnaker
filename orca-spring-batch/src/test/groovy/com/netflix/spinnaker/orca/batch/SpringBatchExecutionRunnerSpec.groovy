@@ -56,11 +56,6 @@ class SpringBatchExecutionRunnerSpec extends ExecutionRunnerSpec {
     }
 
     @Bean
-    FactoryBean<StageBuilderProvider> builderProvider() {
-      new SpockMockFactoryBean(StageBuilderProvider)
-    }
-
-    @Bean
     FactoryBean<Sleeper> sleeper() { new SpockMockFactoryBean(Sleeper) }
   }
 }

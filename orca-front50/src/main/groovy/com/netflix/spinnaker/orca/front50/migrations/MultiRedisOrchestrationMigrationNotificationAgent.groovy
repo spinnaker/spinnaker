@@ -49,8 +49,10 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
 
   Pool<Jedis> jedisPool
   Pool<Jedis> jedisPoolPrevious
-  Front50Service front50Service
   JedisExecutionRepository executionRepositoryPrevious
+
+  @Autowired(required = false)
+  Front50Service front50Service
 
   @Value('${pollers.multiRedisOrchestrationMigration.intervalMs:3600000}')
   long pollingIntervalMs
@@ -60,12 +62,10 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
                                                     Client jesqueClient,
                                                     Registry registry,
                                                     Pool<Jedis> jedisPool,
-                                                    Pool<Jedis> jedisPoolPrevious,
-                                                    Front50Service front50Service) {
+                                                    Pool<Jedis> jedisPoolPrevious) {
     super(objectMapper, jesqueClient)
     this.jedisPool = jedisPool
     this.jedisPoolPrevious = jedisPoolPrevious
-    this.front50Service = front50Service
 
     def queryAllScheduler = Schedulers.from(JedisExecutionRepository.newFixedThreadPool(registry, 1, "QueryAll"))
     def queryByAppScheduler = Schedulers.from(JedisExecutionRepository.newFixedThreadPool(registry, 1, "QueryByApp"))
@@ -91,6 +91,9 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
   }
 
   void migrate() {
+    if (!front50Service) {
+      throw new UnsupportedOperationException("Front50 is not enabled, fix this by setting front50.enabled: true")
+    }
     log.info("Starting Orchestration Migration...")
 
     def previouslyMigratedOrchestrationIds = new HashSet<String>()

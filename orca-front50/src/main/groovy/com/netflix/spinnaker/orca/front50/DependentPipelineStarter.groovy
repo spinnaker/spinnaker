@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.front50
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -38,9 +37,6 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
   @Autowired
   ObjectMapper objectMapper
-
-  @Autowired
-  PipelineStarter pipelineStarter
 
   Pipeline trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
     def json = objectMapper.writeValueAsString(pipelineConfig)
@@ -93,11 +89,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
                   ", principal: " + principal?.toString())
     def runnable = AuthenticatedRequest.propagate({
       log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
-      if (parentPipeline.executionEngine == Execution.V2_EXECUTION_ENGINE) {
-        pipeline = pipelineLauncher().start(json)
-      } else {
-        pipeline = pipelineStarter.start(json)
-      }
+      pipeline = pipelineLauncher().start(json)
     }, true, principal) as Runnable
 
     def t1 = new Thread(runnable)

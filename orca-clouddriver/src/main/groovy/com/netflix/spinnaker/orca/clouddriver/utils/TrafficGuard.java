@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.utils;
 
 import com.netflix.frigga.Names;
-import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.front50.Front50Service;
@@ -27,7 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -38,9 +39,9 @@ public class TrafficGuard {
   private final Front50Service front50Service;
 
   @Autowired
-  public TrafficGuard(OortHelper oortHelper, Front50Service front50Service) {
+  public TrafficGuard(OortHelper oortHelper, Optional<Front50Service> front50Service) {
     this.oortHelper = oortHelper;
-    this.front50Service = front50Service;
+    this.front50Service = front50Service.orElse(null);
   }
 
   public void verifyTrafficRemoval(String serverGroupName, String account, Location location, String cloudProvider, String operationDescriptor) {
@@ -74,6 +75,9 @@ public class TrafficGuard {
   }
 
   public boolean hasDisableLock(String cluster, String account, Location location) {
+    if (front50Service == null) {
+      throw new UnsupportedOperationException("Front50 has not been configured, no way to check disable lock. Fix this by setting front50.enabled: true");
+    }
     Names names = Names.parseName(cluster);
     Application application;
     try {

@@ -35,13 +35,16 @@ class ProjectController {
   @Autowired
   ExecutionRepository executionRepository
 
-  @Autowired
+  @Autowired(required = false)
   Front50Service front50Service
 
   @RequestMapping(value = "/projects/{projectId}/pipelines", method = RequestMethod.GET)
   List<Pipeline> list(@PathVariable String projectId,
                       @RequestParam(value="limit", defaultValue="5") int limit,
                       @RequestParam(value = "statuses", required = false) String statuses) {
+    if (!front50Service) {
+      throw new UnsupportedOperationException("Front50 is not enabled, no way to retrieve projects. Fix this by setting front50.enabled: true")
+    }
     if (!limit) {
       return []
     }

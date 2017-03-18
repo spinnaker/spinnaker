@@ -51,7 +51,8 @@ class RenderTransformSpec extends Specification {
       id: 'deployToPrestaging',
       schema: '1',
       variables: [
-        new Variable(name: 'regions', type: 'list')
+        new Variable(name: 'regions', type: 'list'),
+        new Variable(name: 'slackChannel', type: 'string', defaultValue: '#det')
       ],
       configuration: new Configuration(
         triggers: [
@@ -77,14 +78,14 @@ class RenderTransformSpec extends Specification {
           ]
         ),
         new StageDefinition(
-          id: 'manualJudgement',
-          type: 'manualJudgement',
+          id: 'manualjudgment',
+          type: 'manualjudgment',
           dependsOn: ['findImage'],
           config: [
             propagateAuthentication: true,
             notifications: [
               type: 'slack',
-              channel: '#det',
+              channel: '{{slackChannel}}',
               when: ['awaiting']
             ]
           ]
@@ -92,7 +93,7 @@ class RenderTransformSpec extends Specification {
         new StageDefinition(
           id: 'deploy',
           type: 'deploy',
-          dependsOn: ['manualJudgement'],
+          dependsOn: ['manualJudgment'],
           config: [
             clusters: '[{{#each regions}}{{module "deployCluster" region=this}}{{#unless @last}},{{/unless}}{{/each}}]'
           ]

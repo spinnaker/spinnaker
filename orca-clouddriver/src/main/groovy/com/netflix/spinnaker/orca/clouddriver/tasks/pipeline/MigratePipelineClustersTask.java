@@ -37,7 +37,7 @@ public class MigratePipelineClustersTask extends AbstractCloudProviderAwareTask 
   @Autowired
   KatoService katoService;
 
-  @Autowired
+  @Autowired(required = false)
   Front50Service front50Service;
 
   @Autowired
@@ -45,6 +45,9 @@ public class MigratePipelineClustersTask extends AbstractCloudProviderAwareTask 
 
   @Override
   public TaskResult execute(Stage stage) {
+    if (front50Service == null) {
+      throw new UnsupportedOperationException("Cannot migrate pipeline clusters, front50 is not enabled. Fix this by setting front50.enabled: true");
+    }
 
     Map<String, Object> context = stage.getContext();
     Optional<Map<String, Object>> pipelineMatch = getPipeline(context);

@@ -39,7 +39,7 @@ class ResolveQuipVersionTask implements RetryableTask {
 
   final long timeout = TimeUnit.SECONDS.toMillis(30)
 
-  @Autowired
+  @Autowired(required = false)
   BakeryService bakeryService
 
   @Value('${bakery.roscoApisEnabled:false}')
@@ -54,6 +54,9 @@ class ResolveQuipVersionTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     PackageType packageType
+    if (!bakeryService) {
+      throw new UnsupportedOperationException("You have not enabled baking for this orca instance. Set bakery.enabled: true")
+    }
     if (roscoApisEnabled) {
       def baseImage = bakeryService.getBaseImage(stage.context.cloudProviderType as String,
         stage.context.baseOs as String).toBlocking().single()

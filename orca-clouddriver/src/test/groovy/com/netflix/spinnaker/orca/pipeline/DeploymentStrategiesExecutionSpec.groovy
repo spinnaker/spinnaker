@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipeline
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.batch.SpringBatchExecutionRunner
-import com.netflix.spinnaker.orca.batch.StageBuilderProvider
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
@@ -217,11 +216,6 @@ abstract class DeploymentStrategiesExecutionSpec<R extends ExecutionRunner> exte
     @Bean
     FactoryBean<ExecutionRepository> executionRepository() {
       new SpockMockFactoryBean(ExecutionRepository)
-    }
-
-    @Bean
-    FactoryBean<StageBuilderProvider> builderProvider() {
-      new SpockMockFactoryBean(StageBuilderProvider)
     }
 
     @Bean

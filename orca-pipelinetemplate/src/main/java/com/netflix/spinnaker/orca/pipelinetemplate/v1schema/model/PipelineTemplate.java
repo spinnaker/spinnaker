@@ -72,6 +72,10 @@ public class PipelineTemplate implements VersionedSchema {
     public void setDefaultValue(Object defaultValue) {
       this.defaultValue = defaultValue;
     }
+
+    public boolean hasDefaultValue() {
+      return defaultValue != null;
+    }
   }
 
   public static class Configuration {

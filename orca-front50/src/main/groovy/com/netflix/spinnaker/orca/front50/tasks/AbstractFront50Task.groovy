@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
 abstract class AbstractFront50Task implements Task {
-  @Autowired
+  @Autowired(required = false)
   Front50Service front50Service
 
   @Autowired
@@ -40,6 +40,10 @@ abstract class AbstractFront50Task implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
+    if (!front50Service) {
+      throw new UnsupportedOperationException("Front50 was not enabled. Fix this by setting front50.enabled: true")
+    }
+
     def application = mapper.convertValue(stage.context.application, Application)
     if (stage.context.user){
       application.user = stage.context.user

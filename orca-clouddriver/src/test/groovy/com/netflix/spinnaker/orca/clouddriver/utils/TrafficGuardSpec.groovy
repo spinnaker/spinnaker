@@ -45,7 +45,7 @@ class TrafficGuardSpec extends Specification {
   Map<String, Object> applicationDetails = [:]
 
   @Subject
-  TrafficGuard trafficGuard = new TrafficGuard(oortHelper, front50Service)
+  TrafficGuard trafficGuard = new TrafficGuard(oortHelper, new Optional<>(front50Service))
 
   void setup() {
     targetServerGroup = [

@@ -24,7 +24,6 @@ import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.V1_EXECUTION_ENGINE
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 
@@ -165,20 +164,14 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
       }
     }
 
-    def determineTargetServerGroupStage = newStage(
+    stages.add(0, newStage(
       stage.execution,
       determineTargetServerGroupStage.type,
       DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE,
       dtsgContext,
       stage,
       STAGE_BEFORE
-    )
-    if (stage.execution.executionEngine == V1_EXECUTION_ENGINE) {
-      // For silly reasons, this must be added after the pre/post-DynamicInject to get the execution order right.
-      stages << determineTargetServerGroupStage
-    } else {
-      stages.add(0, determineTargetServerGroupStage)
-    }
+    ))
     return stages
   }
 

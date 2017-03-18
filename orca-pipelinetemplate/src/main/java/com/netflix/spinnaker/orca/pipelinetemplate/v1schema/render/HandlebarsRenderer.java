@@ -63,8 +63,6 @@ public class HandlebarsRenderer implements Renderer {
 
   @Override
   public String render(String template, RenderContext configuration) {
-    log.debug("rendering '" + template + "'");
-
     Template tmpl;
     try {
       tmpl = handlebars.compileInline(template);
@@ -74,13 +72,26 @@ public class HandlebarsRenderer implements Renderer {
 
     Context context = Context.newContext(configuration);
 
+    String rendered;
     try {
-      return tmpl.apply(context);
+      rendered = tmpl.apply(context);
     } catch (IOException e) {
+      log.error("Failed rendering template: " + template, e);
       throw new TemplateRenderException("could not apply context to template", e);
     } catch (HandlebarsException e) {
+      log.error("Failed rendering template: " + template, e);
       throw new TemplateRenderException(e.getMessage(), e.getCause());
     }
+
+    // Large handlebar templates can inject a lot of extra whitespace we don't want
+    // and can lead to incorrect (or non-existent) template-object expansion
+    rendered = rendered.trim().replaceAll("\n", "");
+
+    if (!template.equals(rendered)) {
+      log.debug("rendered '" + template + "' -> '" + rendered + "'");
+    }
+
+    return rendered;
   }
 
   @Override

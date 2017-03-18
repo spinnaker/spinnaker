@@ -17,9 +17,6 @@
 package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.MortService
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.orca.CancellableStage
@@ -34,6 +31,9 @@ import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.*
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -50,9 +50,6 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   @Autowired
   FindImageFromClusterTask findImage
 
-  @Autowired(required = false)
-  List<DiffTask> diffTasks
-
   @Autowired
   MineService mineService
 
@@ -67,11 +64,6 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   @Override
   <T extends Execution<T>> void postBranchGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder.withTask("completeDeployCanary", CompleteDeployCanaryTask)
-  }
-
-  @Override
-  com.netflix.spinnaker.orca.Task completeParallelTask() {
-    return new CompleteDeployCanaryTask(Optional.of(diffTasks), mortService)
   }
 
   @Override

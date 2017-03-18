@@ -44,13 +44,13 @@ public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
     trimConditionals(templateConfiguration.getStages(), pipelineTemplate);
   }
 
-  private <T extends Conditional> void trimConditionals(List<T> list, PipelineTemplate template) {
-    if (list == null) {
+  private <T extends Conditional> void trimConditionals(List<T> stages, PipelineTemplate template) {
+    if (stages == null) {
       return;
     }
 
-    for (T el : list) {
-      if (el.getWhen() == null || el.getWhen().size() == 0) {
+    for (T el : stages) {
+      if (el.getWhen() == null || el.getWhen().isEmpty()) {
         continue;
       }
 
@@ -60,7 +60,7 @@ public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
       for (String conditional : el.getWhen()) {
         String rendered = renderer.render(conditional, context);
         if (!Boolean.parseBoolean(rendered)) {
-          list.remove(el);
+          stages.remove(el);
           return;
         }
       }

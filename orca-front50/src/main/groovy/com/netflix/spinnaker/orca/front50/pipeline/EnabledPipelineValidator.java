@@ -16,14 +16,17 @@
 
 package com.netflix.spinnaker.orca.front50.pipeline;
 
-import java.util.List;
-import java.util.Map;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator;
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
 
@@ -34,9 +37,15 @@ public class EnabledPipelineValidator implements PipelineValidator {
   private final Front50Service front50Service;
 
   @Autowired
-  public EnabledPipelineValidator(Front50Service front50Service) {this.front50Service = front50Service;}
+  public EnabledPipelineValidator(Optional<Front50Service> front50Service) {
+    this.front50Service = front50Service.orElse(null);
+  }
+
 
   @Override public void checkRunnable(Pipeline pipeline) {
+    if (front50Service == null) {
+      throw new UnsupportedOperationException("Front50 not enabled, no way to validate pipeline. Fix this by setting front50.enabled: true");
+    }
     List<Map<String, Object>> pipelines = isStrategy(pipeline) ? front50Service.getStrategies(pipeline.getApplication()) : front50Service.getPipelines(pipeline.getApplication());
     pipelines
       .stream()

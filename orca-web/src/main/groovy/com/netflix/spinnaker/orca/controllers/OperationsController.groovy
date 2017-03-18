@@ -22,9 +22,7 @@ import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationLauncher
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -33,12 +31,7 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 import javax.servlet.http.HttpServletResponse
 
@@ -47,9 +40,6 @@ import javax.servlet.http.HttpServletResponse
 class OperationsController {
   @Autowired
   PipelineLauncher pipelineLauncher
-
-  @Autowired
-  PipelineStarter pipelineStarter
 
   @Autowired
   OrchestrationLauncher orchestrationLauncher
@@ -63,7 +53,7 @@ class OperationsController {
   @Autowired
   ExecutionRepository executionRepository
 
-  @Autowired
+  @Autowired(required = false)
   BuildArtifactFilter buildArtifactFilter
 
   @Autowired(required = false)
@@ -152,7 +142,12 @@ class OperationsController {
     if (trigger.master && trigger.job && trigger.buildNumber) {
       def buildInfo = buildService.getBuild(trigger.buildNumber, trigger.master, trigger.job)
       if (buildInfo?.artifacts) {
-        buildInfo.artifacts = buildArtifactFilter.filterArtifacts(buildInfo.artifacts)
+        if (!buildArtifactFilter) {
+          log.warn("Igor is not enabled, unable to lookup build artifacts. Fix this by setting igor.enabled: true")
+        } else {
+          buildInfo.artifacts = buildArtifactFilter.filterArtifacts(buildInfo.artifacts)
+        }
+
       }
       trigger.buildInfo = buildInfo
       if (trigger.propertyFile) {
@@ -198,12 +193,7 @@ class OperationsController {
     def json = objectMapper.writeValueAsString(config)
     log.info('requested pipeline: {}', json)
 
-    def pipeline
-    if (config.executionEngine == Execution.V2_EXECUTION_ENGINE) {
-      pipeline = pipelineLauncher.start(json)
-    } else {
-      pipeline = pipelineStarter.start(json)
-    }
+    def pipeline = pipelineLauncher.start(json)
 
     [ref: "/pipelines/${pipeline.id}".toString()]
   }

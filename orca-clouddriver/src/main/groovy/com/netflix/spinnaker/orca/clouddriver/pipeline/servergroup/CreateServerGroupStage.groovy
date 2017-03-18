@@ -44,21 +44,17 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
     def taggingEnabled = featuresService.isStageAvailable("upsertEntityTags")
 
     def tasks = [
-      new TaskNode.TaskDefinition("createServerGroup", CreateServerGroupTask),
-      new TaskNode.TaskDefinition("monitorDeploy", MonitorKatoTask),
-      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-      ]
+      TaskNode.task("createServerGroup", CreateServerGroupTask),
+      TaskNode.task("monitorDeploy", MonitorKatoTask),
+      TaskNode.task("forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+    ]
 
     if (taggingEnabled) {
-      tasks += [
-        new TaskNode.TaskDefinition("tagServerGroup", ServerGroupMetadataTagTask)
-      ]
+      tasks << TaskNode.task("tagServerGroup", ServerGroupMetadataTagTask)
     }
 
-    tasks += [
-      new TaskNode.TaskDefinition("waitForUpInstances", WaitForUpInstancesTask),
-      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    ]
+    tasks << TaskNode.task("waitForUpInstances", WaitForUpInstancesTask)
+    tasks << TaskNode.task("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
 
     return tasks
   }

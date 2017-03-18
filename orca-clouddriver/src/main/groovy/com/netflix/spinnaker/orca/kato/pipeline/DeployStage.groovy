@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import groovy.transform.CompileStatic
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
@@ -25,7 +24,9 @@ import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
 import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskDefinition
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -44,18 +45,18 @@ class DeployStage extends DeployStrategyStage {
 
   @VisibleForTesting
   @Override
-  protected List<TaskNode.TaskDefinition> basicTasks(Stage stage) {
+  protected List<TaskDefinition> basicTasks(Stage stage) {
     def tasks = [
-      new TaskNode.TaskDefinition("createDeploy", CreateDeployTask),
-      new TaskNode.TaskDefinition("monitorDeploy", MonitorKatoTask),
-      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-      new TaskNode.TaskDefinition("waitForUpInstances", WaitForUpInstancesTask),
-      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+      TaskNode.task("createDeploy", CreateDeployTask),
+      TaskNode.task("monitorDeploy", MonitorKatoTask),
+      TaskNode.task("forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+      TaskNode.task("waitForUpInstances", WaitForUpInstancesTask),
+      TaskNode.task("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     ]
 
     if (diffTasks) {
       diffTasks.each { DiffTask diffTask ->
-        tasks << new TaskNode.TaskDefinition(getDiffTaskName(diffTask.class.simpleName), diffTask.class)
+        tasks << TaskNode.task(getDiffTaskName(diffTask.class.simpleName), diffTask.class)
       }
     }
 

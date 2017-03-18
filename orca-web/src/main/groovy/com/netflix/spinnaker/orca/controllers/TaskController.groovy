@@ -16,14 +16,12 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import java.time.Clock
 import com.netflix.spinnaker.orca.ActiveExecutionTracker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
@@ -42,12 +40,14 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.V2_EXECUTION_ENGINE
+
+import java.time.Clock
+
 import static java.time.ZoneOffset.UTC
 
 @RestController
 class TaskController {
-  @Autowired
+  @Autowired(required = false)
   Front50Service front50Service
 
   @Autowired
@@ -55,9 +55,6 @@ class TaskController {
 
   @Autowired
   PipelineStartTracker startTracker
-
-  @Autowired
-  PipelineStarter pipelineStarter
 
   @Autowired
   ExecutionRunner executionRunner
@@ -256,11 +253,7 @@ class TaskController {
       def stageBuilder = stageBuilders.find { it.type == stage.type }
       stage = stageBuilder.prepareStageForRestart(executionRepository, stage, stageBuilders)
       executionRepository.storeStage(stage)
-      if (pipeline.executionEngine == V2_EXECUTION_ENGINE) {
-        executionRunner.resume(pipeline)
-      } else {
-        pipelineStarter.resume(pipeline)
-      }
+      executionRunner.resume(pipeline)
     }
     pipeline
   }
@@ -278,6 +271,10 @@ class TaskController {
   List<Pipeline> getPipelinesForApplication(@PathVariable String application,
                                             @RequestParam(value = "limit", defaultValue = "5") int limit,
                                             @RequestParam(value = "statuses", required = false) String statuses) {
+    if (!front50Service) {
+      throw new UnsupportedOperationException("Cannot lookup pipelines, front50 has not been enabled. Fix this by setting front50.enabled: true")
+    }
+
     if (!limit) {
       return []
     }

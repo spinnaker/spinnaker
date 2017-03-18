@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 
@@ -44,12 +42,6 @@ public interface Task {
   ExecutionStatus getStatus();
 
   void setStatus(ExecutionStatus status);
-
-  @Deprecated
-  @JsonIgnore
-  default boolean isBookend() {
-    return Objects.equals(getName(), "stageEnd") || Objects.equals(getName(), "stageStart");
-  }
 
   boolean isStageStart();
 

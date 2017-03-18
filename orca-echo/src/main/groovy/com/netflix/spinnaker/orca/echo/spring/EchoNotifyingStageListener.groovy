@@ -67,22 +67,6 @@ class EchoNotifyingStageListener implements StageListener {
     }
 
     recordEvent('task', (wasSuccessful ? "complete" : "failed"), stage, task)
-
-    // TODO: this should all be deleted once we move to v2 engine
-    if (stage.execution instanceof Pipeline && stage.execution.executionEngine == "v1") {
-      if (wasSuccessful) {
-        if (task.name.contains('stageEnd')) {
-          log.debug("***** $stage.execution.id Echo stage $stage.name complete")
-          recordEvent('stage', 'complete', stage, task)
-        } else if (task.name.contains('stageStart')) {
-          log.debug("***** $stage.execution.id Echo stage $stage.name starting")
-          recordEvent('stage', 'starting', stage, task)
-        }
-      } else {
-        log.debug("***** $stage.execution.id Echo stage $stage.name failed")
-        recordEvent('stage', 'failed', stage, task)
-      }
-    }
   }
 
   @Override

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.restart
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
@@ -40,13 +40,13 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 class PipelineRecoveryListener implements ApplicationListener<ContextRefreshedEvent> {
 
   private final ExecutionRepository executionRepository
-  private final PipelineStarter pipelineStarter
+  private final ExecutionRunner pipelineStarter
   private final String currentInstanceId
   private final Registry registry
 
   @Autowired
   PipelineRecoveryListener(ExecutionRepository executionRepository,
-                           PipelineStarter pipelineStarter,
+                           ExecutionRunner pipelineStarter,
                            String currentInstanceId,
                            Registry registry) {
     this.currentInstanceId = currentInstanceId

@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
@@ -103,5 +103,10 @@ class StageDefinitionBuilderSpec extends Specification {
 
     then:
     1 * executionRepository.resume(pipeline.id, _, true)
+  }
+
+  @CompileStatic
+  class TestStage implements StageDefinitionBuilder {
+
   }
 }

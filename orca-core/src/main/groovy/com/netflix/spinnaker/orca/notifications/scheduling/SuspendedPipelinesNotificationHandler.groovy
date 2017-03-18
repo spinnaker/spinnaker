@@ -31,7 +31,7 @@ class SuspendedPipelinesNotificationHandler extends AbstractNotificationHandler 
   @Override
   void handle(Map pipeline) {
     try {
-      pipelineStarter.resume(pipelineStarter.executionRepository.retrievePipeline(pipeline.id as String))
+      executionRunner.resume(executionRepository.retrievePipeline(pipeline.id as String))
     } catch (e) {
       log.error("Unable to resume pipeline", e)
       throw e

@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
-import groovy.transform.Immutable
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
@@ -34,7 +31,10 @@ import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import groovy.transform.CompileDynamic
+import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Autowired
+
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 
 /**
@@ -47,7 +47,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   @Autowired ModifyAsgLaunchConfigurationStage modifyAsgLaunchConfigurationStage
   @Autowired RollingPushStage rollingPushStage
   @Autowired DeprecationRegistry deprecationRegistry
-  @Autowired PipelineStage pipelineStage
+  @Autowired(required = false) PipelineStage pipelineStage
 
   @Autowired ShrinkClusterStage shrinkClusterStage
   @Autowired ScaleDownClusterStage scaleDownClusterStage

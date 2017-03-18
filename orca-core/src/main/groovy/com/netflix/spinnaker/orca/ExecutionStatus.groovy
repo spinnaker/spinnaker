@@ -17,70 +17,69 @@
 package com.netflix.spinnaker.orca
 
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.ExitStatus
 
 @CompileStatic
 enum ExecutionStatus {
   /**
    * The task has yet to start.
    */
-    NOT_STARTED(false, false, ExitStatus.EXECUTING),
+  NOT_STARTED(false, false),
 
   /**
    * The task is still running and the {@code Task} may be re-executed in order
    * to continue.
    */
-    RUNNING(false, false, ExitStatus.EXECUTING),
+    RUNNING(false, false),
 
   /**
    * The task is still running and the {@code Task} may be resumed in order
    * to continue.
    */
-    PAUSED(false, false, ExitStatus.EXECUTING),
+    PAUSED(false, false),
 
   /**
    * The task is complete but the pipeline should now be stopped pending a
    * trigger of some kind.
    */
-    SUSPENDED(false, false, ExitStatus.STOPPED),
+    SUSPENDED(false, false),
 
   /**
    * The task executed successfully and the pipeline may now proceed to the next
    * task.
    */
-    SUCCEEDED(true, false, ExitStatus.COMPLETED),
+    SUCCEEDED(true, false),
 
   /**
    * The task execution failed,  but the pipeline may proceed to the next
    * task.
    */
-    FAILED_CONTINUE(true, false, ExitStatus.COMPLETED),
+    FAILED_CONTINUE(true, false),
 
   /**
    * The task failed and the failure was terminal. The pipeline will not
    * progress any further.
    */
-    TERMINAL(true, true, ExitStatus.FAILED),
+    TERMINAL(true, true),
 
   /**
    * The task was canceled. The pipeline will not progress any further.
    */
-    CANCELED(true, true, ExitStatus.STOPPED),
+    CANCELED(true, true),
 
   /**
    * The step completed but is indicating that a decision path should be followed, not the default path.
    */
-    REDIRECT(false, false, new ExitStatus("REDIRECT")),
+    REDIRECT(false, false),
 
   /**
    * The task was stopped. The pipeline will not progress any further.
    */
-    STOPPED(true, true, ExitStatus.STOPPED),
+    STOPPED(true, true),
 
   /**
    * The task was skipped and the pipeline will proceed to the next task.
    */
-    SKIPPED(true, false, ExitStatus.COMPLETED)
+    SKIPPED(true, false)
 
   /**
    * Indicates that the task/stage/pipeline has finished its work (successfully or not).
@@ -92,15 +91,12 @@ enum ExecutionStatus {
    */
   final boolean halt
 
-  final ExitStatus exitStatus
-
   private static final Collection<ExecutionStatus> SUCCESSFUL = [SUCCEEDED, STOPPED, SKIPPED]
   private static final Collection<ExecutionStatus> FAILURE = [TERMINAL, STOPPED, FAILED_CONTINUE]
 
-  ExecutionStatus(boolean complete, boolean halt, ExitStatus exitStatus) {
+  ExecutionStatus(boolean complete, boolean halt) {
     this.complete = complete
     this.halt = halt
-    this.exitStatus = exitStatus
   }
 
   boolean isSuccessful() {

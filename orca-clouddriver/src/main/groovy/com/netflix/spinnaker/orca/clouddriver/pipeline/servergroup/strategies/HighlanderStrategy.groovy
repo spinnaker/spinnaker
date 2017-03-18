@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
-import groovy.util.logging.Slf4j
-import com.netflix.spinnaker.orca.batch.StageBuilderProvider
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
@@ -68,9 +67,5 @@ class HighlanderStrategy implements Strategy, ApplicationContextAware {
         SyntheticStageOwner.STAGE_AFTER
       )
     ]
-  }
-
-  StageBuilderProvider getStageBuilderProvider() {
-    return applicationContext.getBean(StageBuilderProvider)
   }
 }

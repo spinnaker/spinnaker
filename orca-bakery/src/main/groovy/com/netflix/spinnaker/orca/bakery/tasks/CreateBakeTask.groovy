@@ -16,21 +16,21 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
+import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import com.netflix.spinnaker.orca.pipeline.util.PackageType
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.bakery.api.BakeRequest
-import com.netflix.spinnaker.orca.bakery.api.BakeryService
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -43,7 +43,8 @@ class CreateBakeTask implements RetryableTask {
   long backoffPeriod = 30000
   long timeout = 300000
 
-  @Autowired BakeryService bakery
+  @Autowired(required = false)
+  BakeryService bakery
   @Autowired ObjectMapper mapper
 
   @Value('${bakery.extractBuildDetails:false}')
@@ -58,6 +59,9 @@ class CreateBakeTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     String region = stage.context.region
+    if (!bakery) {
+      throw new UnsupportedOperationException("You have not enabled baking for this orca instance. Set bakery.enabled: true")
+    }
 
     try {
       // If the user has specified a base OS that is unrecognized by Rosco, this method will

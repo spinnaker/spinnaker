@@ -5,28 +5,25 @@ server:
   address: ${services.orcaBootstrap.host:localhost}
 
 oort:
-  baseUrl: ${services.clouddriverBootstrap.baseUrl:localhost:7002}
-
-front50:
-  baseUrl: ${services.front50Bootstrap.baseUrl:localhost:8080}
+  baseUrl: ${services.clouddriverBootstrap.baseUrl:http://localhost:7002}
 
 mort:
-  baseUrl: ${services.clouddriverBootstrap.baseUrl:localhost:7002}
+  baseUrl: ${services.clouddriverBootstrap.baseUrl:http://localhost:7002}
 
 kato:
-  baseUrl: ${services.clouddriverBootstrap.baseUrl:localhost:7002}
-
-bakery:
-  baseUrl: ${services.bakeryBootstrap.baseUrl:localhost:8087}
-  extractBuildDetails: ${services.bakeryBootstrap.extractBuildDetails:true}
-  allowMissingPackageInstallation: ${services.bakeryBootstrap.allowMissingPackageInstallation:false}
+  baseUrl: ${services.clouddriverBootstrap.baseUrl:http://localhost:7002}
 
 echo:
   enabled: false
-  baseUrl: ${services.echoBootstrap.baseUrl:localhost:8089}
+
+front50:
+  enabled: false
+
+bakery:
+  enabled: false
 
 igor:
-  baseUrl: ${services.igorBootstrap.baseUrl:localhost:8088}
+  enabled: false
 
 redis:
   connection: ${services.redisBootstrap.baseUrl:redis://localhost:6379}
