@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate
 
-import com.netflix.spinnaker.config.FiatClientConfigurationProperties
+import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.controllers.PipelineController
@@ -27,23 +27,23 @@ import com.netflix.spinnaker.gate.services.ExecutionHistoryService
 import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.commands.ThrottledRequestException
-import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaService
+import org.springframework.boot.SpringApplication
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.context.ConfigurableApplicationContext
-import retrofit.RetrofitError
-
-import java.util.concurrent.ExecutorService
-import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.RestAdapter
+import retrofit.RetrofitError
 import retrofit.client.OkClient
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.util.concurrent.ExecutorService
 
 class FunctionalSpec extends Specification {
 

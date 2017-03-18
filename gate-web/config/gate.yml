@@ -37,7 +37,6 @@ services:
     enabled: false
   fiat:
     enabled: false
-    autoConfig: false
   flapjack:
     enabled: false
   igor:
