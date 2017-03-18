@@ -38,7 +38,6 @@ describe('Controller: createPipelineModal', function() {
         pipelineConfigService: this.pipelineConfigService,
         $uibModalInstance: this.$uibModalInstance,
         target: null,
-        _: _,
         $log: $log,
       });
     };

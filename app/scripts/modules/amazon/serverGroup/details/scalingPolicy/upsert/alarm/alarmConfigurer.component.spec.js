@@ -19,8 +19,7 @@ describe('Component: alarmConfigurer', function () {
       this.initialize = (bindings) => {
         $ctrl = $componentController('awsAlarmConfigurer', {
           $scope: $scope,
-          cloudMetricsReader: cloudMetricsReader,
-          _: _,
+          cloudMetricsReader: cloudMetricsReader
         }, bindings);
       };
     })

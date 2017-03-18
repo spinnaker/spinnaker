@@ -27,8 +27,7 @@ describe('Controller: modifyScalingProcesses', function() {
         application: { serverGroups: { refresh: angular.noop } },
         taskMonitorBuilder: this.taskMonitorBuilder,
         taskExecutor: this.taskExecutor,
-        $uibModalInstance: this.$uibModalInstance,
-        _: _,
+        $uibModalInstance: this.$uibModalInstance
       });
     };
   }));

@@ -28,8 +28,7 @@ describe('Controller: renamePipelineModal', function() {
         pipeline: pipeline,
         pipelineConfigService: this.pipelineConfigService,
         $uibModalInstance: this.$uibModalInstance,
-        $log: $log,
-        _: _,
+        $log: $log
       });
       this.$scope.$digest();
     };
