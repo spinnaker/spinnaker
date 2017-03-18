@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.ErrorConfiguration
-import com.netflix.spinnaker.config.FiatAuthenticationConfig
 import com.netflix.spinnaker.config.StackdriverConfig
 import com.netflix.spinnaker.config.TomcatConfiguration
 import com.netflix.spinnaker.kork.PlatformComponents
@@ -73,7 +72,6 @@ import org.springframework.scheduling.annotation.EnableAsync
   MineConfiguration,
   MaheConfiguration,
   ApplicationConfig,
-  FiatAuthenticationConfig,
   StackdriverConfig,
   PipelineTemplateConfiguration,
   ZombiePipelineCleanupConfig
