@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
@@ -25,7 +23,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGr
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.GoogleServerGroupCreator
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
@@ -37,19 +34,19 @@ class CreateServerGroupTaskSpec extends Specification {
   ServerGroupCreator aCreator = Stub(ServerGroupCreator) {
     getCloudProvider() >> "aCloud"
     isKatoResultExpected() >> false
-    getOperations(spock.lang.Specification._) >> [["aOp": "foo"]]
+    getOperations(_) >> [["aOp": "foo"]]
   }
   @Shared
   ServerGroupCreator bCreator = Stub(ServerGroupCreator) {
     getCloudProvider() >> "bCloud"
     isKatoResultExpected() >> false
-    getOperations(spock.lang.Specification._) >> [["bOp": "bar"]]
+    getOperations(_) >> [["bOp": "bar"]]
   }
   @Shared
   ServerGroupCreator cCreator = Stub(ServerGroupCreator) {
     getCloudProvider() >> "cCloud"
     isKatoResultExpected() >> true
-    getOperations(spock.lang.Specification._) >> [["cOp": "baz"]]
+    getOperations(_) >> [["cOp": "baz"]]
   }
   @Shared
   TaskId taskId = new TaskId(UUID.randomUUID().toString())
@@ -227,8 +224,6 @@ class CreateServerGroupTaskSpec extends Specification {
     def deployStage = buildStageForPipeline(childPipeline, "createServerGroup", deployConfig)
     makeDependentOn(deployStage, manualJudgmentStage)
 
-    def pipelineObjectMapper =
-      new ObjectMapper().registerModule(new SimpleModule("MyConverterModule").addAbstractTypeMapping(Stage, PipelineStage))
     def deployTask = new CreateServerGroupTask(kato: katoService, serverGroupCreators: buildServerGroupCreators(mortService))
 
     when:
