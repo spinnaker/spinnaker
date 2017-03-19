@@ -213,6 +213,145 @@ public abstract class NestableCommand {
     AnsiPrinter.println(story.toString());
   }
 
+  private void parameterDoc(StringBuilder result, ParameterDescription parameterDescription) {
+    result.append(" * `")
+        .append(parameterDescription.getNames())
+        .append("`: ");
+
+    Object def = parameterDescription.getDefault();
+    if (def != null) {
+      result.append("(*Default*: `")
+          .append(def.toString())
+          .append("`) ");
+    }
+
+    if (parameterDescription.getParameter().required()) {
+      result.append("(*Required*) ");
+    }
+
+    result.append(parameterDescription.getDescription())
+        .append("\n");
+  }
+
+  public String generateDocs() {
+    StringBuilder toc = new StringBuilder();
+    toc.append("# Table of Contents\n");
+    StringBuilder body = new StringBuilder();
+    nestedCommandDocs(toc, body);
+    return toc.toString() + body.toString();
+  }
+
+  private void nestedCommandDocs(StringBuilder toc, StringBuilder body) {
+    commandDocs(body);
+    commandLink(toc);
+
+    for (NestableCommand command : subcommands.values()) {
+      command.nestedCommandDocs(toc, body);
+    }
+  }
+
+  private void commandLink(StringBuilder result) {
+    result.append(" * ")
+        .append("[**")
+        .append(fullCommandName)
+        .append("**]")
+        .append("(#")
+        .append(fullCommandName.replace(" ", "-"))
+        .append(")")
+        .append("\n");
+  }
+
+  private void commandDocs(StringBuilder result) {
+    List<ParameterDescription> parameters = commander.getParameters();
+    parameters.sort(Comparator.comparing(ParameterDescription::getNames));
+
+    int parameterCount = 0;
+    for (ParameterDescription parameter : parameters) {
+      if (GlobalOptions.isGlobalOption(parameter.getLongestName())) {
+        parameterCount++;
+      }
+    }
+
+    result.append("## ")
+        .append(fullCommandName)
+        .append("\n\n")
+        .append(getDescription())
+        .append("\n\n")
+        .append("#### Usage")
+        .append("\n```\n")
+        .append(fullCommandName);
+
+    ParameterDescription mainParameter = commander.getMainParameter();
+    if (mainParameter != null) {
+      result.append(" ")
+          .append(getMainParameter().toUpperCase());
+
+    }
+
+    if (parameters.size() > parameterCount) {
+      result.append(" [parameters]");
+    }
+
+    if (!subcommands.isEmpty()) {
+      result.append(" [subcommands]");
+    }
+
+    result.append("\n```\n");
+
+    if (!parameters.isEmpty()) {
+      if (getCommandName() == "hal") {
+        result.append("#### Global Parameters\n");
+      }
+
+      for (ParameterDescription parameter : parameters) {
+        if (GlobalOptions.isGlobalOption(parameter.getLongestName())) {
+          // Omit printing global parameters for everything but the top-level command
+          if (getCommandName() == "hal") {
+            parameterDoc(result, parameter);
+          }
+        }
+      }
+    }
+
+    if (parameters.size() > parameterCount) {
+      result.append("#### Parameters\n");
+
+      if (mainParameter != null) {
+        result.append('`')
+            .append(getMainParameter().toUpperCase())
+            .append('`')
+            .append(": ")
+            .append(mainParameter.getDescription())
+            .append("\n");
+      }
+
+      for (ParameterDescription parameter : parameters) {
+        if (!GlobalOptions.isGlobalOption(parameter.getLongestName())) {
+          parameterDoc(result, parameter);
+        }
+      }
+    }
+
+    if (!subcommands.isEmpty()) {
+      result.append("#### Subcommands\n");
+
+      List<String> keys = new ArrayList<>(subcommands.keySet());
+      keys.sort(String::compareTo);
+
+      for (String key : keys) {
+        result.append(" * ")
+            .append("`")
+            .append(key)
+            .append("`")
+            .append(": ")
+            .append(subcommands.get(key).getDescription())
+            .append("\n");
+      }
+    }
+
+    result.append("\n---\n");
+  }
+
   private static void formatParameter(AnsiStoryBuilder story, ParameterDescription parameter, int indentWidth) {
     AnsiParagraphBuilder paragraph = story.addParagraph().setIndentWidth(indentWidth);
     paragraph.addSnippet(parameter.getNames()).addStyle(AnsiStyle.BOLD);

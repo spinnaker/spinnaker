@@ -59,6 +59,12 @@ public class HalCommand extends NestableCommand {
   )
   private boolean tasks;
 
+  @Parameter(
+      names = "--docs",
+      description = "Print markdown docs for the hal CLI."
+  )
+  private boolean docs;
+
   public HalCommand() {
     registerSubcommand(new AdminCommand());
     registerSubcommand(new ConfigCommand());
@@ -106,6 +112,10 @@ public class HalCommand extends NestableCommand {
       System.out.println(Daemon.getTasks());
     }
 
+    if (docs) {
+      System.out.println(generateDocs());
+    }
+
     if (version) {
       System.out.println(getVersion());
     }
@@ -118,7 +128,7 @@ public class HalCommand extends NestableCommand {
       System.exit(Daemon.isHealthy() ? 0 : -1);
     }
 
-    if (!version && !printBashCompletion && !tasks) {
+    if (!version && !printBashCompletion && !tasks && !docs) {
       showHelp();
     }
   }
