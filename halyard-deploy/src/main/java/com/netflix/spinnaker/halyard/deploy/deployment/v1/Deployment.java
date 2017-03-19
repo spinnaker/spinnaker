@@ -58,8 +58,11 @@ abstract public class Deployment {
   public static class DeployResult {
     @JsonIgnore
     String postInstallScript;
+    @JsonIgnore
+    String connectScript;
     String scriptDescription;
-    String scriptPath;
+    String postInstallScriptPath;
+    String connectScriptPath;
 
     String postInstallMessage;
   }

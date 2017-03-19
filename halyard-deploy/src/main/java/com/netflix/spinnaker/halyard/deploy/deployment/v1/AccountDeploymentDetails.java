@@ -34,7 +34,7 @@ public class AccountDeploymentDetails<T extends Account> extends DeploymentDetai
 
   public AccountDeploymentDetails(DeploymentDetails details) {
     super();
-    setDeploymentEnvironment(details.getDeploymentEnvironment());
+    setDeploymentConfiguration(details.getDeploymentConfiguration());
     setDeploymentName(details.getDeploymentName());
     setGenerateResult(details.getGenerateResult());
   }

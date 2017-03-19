@@ -68,6 +68,8 @@ public abstract class ProviderInterface<T extends Account> {
 
   abstract public <S> S connectTo(AccountDeploymentDetails<T> details, SpinnakerService<S> service);
 
+  abstract public String connectToCommand(AccountDeploymentDetails<T> details, SpinnakerService service);
+
   /**
    * Deploy a service using Orca's orchestration engine.
    * @param details are the deployment details for the current deployment.

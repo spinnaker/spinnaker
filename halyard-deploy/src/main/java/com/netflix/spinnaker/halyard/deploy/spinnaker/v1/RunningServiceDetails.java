@@ -21,6 +21,10 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerPublic
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Data
 public class RunningServiceDetails {
   int healthy;
@@ -28,6 +32,8 @@ public class RunningServiceDetails {
   String artifactId;
   String internalEndpoint;
   String externalEndpoint;
+  // Map of location/region/zone/namespace -> instances
+  Map<String, List<String>> instances = new HashMap<>();
 
   public RunningServiceDetails setService(SpinnakerService service) {
     internalEndpoint = service.getBaseUrl();

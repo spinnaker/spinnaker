@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
@@ -24,7 +25,7 @@ import lombok.Data;
 @Data
 public class DeploymentDetails {
   String deploymentName;
-  DeploymentEnvironment deploymentEnvironment;
+  DeploymentConfiguration deploymentConfiguration;
   GenerateResult generateResult;
 
   public SpinnakerEndpoints getEndpoints() {

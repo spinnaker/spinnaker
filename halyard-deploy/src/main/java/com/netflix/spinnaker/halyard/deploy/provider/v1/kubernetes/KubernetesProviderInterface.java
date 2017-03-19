@@ -21,6 +21,7 @@ import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
@@ -30,10 +31,12 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus.State;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.OperationFactory.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
+import com.netflix.spinnaker.halyard.deploy.provider.v1.SizingTranslation;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
@@ -95,6 +98,9 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   @Autowired
   KubernetesOperationFactory kubernetesOperationFactory;
+
+  @Autowired
+  KubernetesSizingTranslation sizingTranslation;
 
   // Map from deployment name -> the port & job managing the connection.
   private ConcurrentHashMap<String, Proxy> proxyMap = new ConcurrentHashMap<>();
@@ -173,6 +179,28 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     return serviceInterfaceFactory.createService(endpoint, service);
   }
 
+  @Override
+  public String connectToCommand(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
+    String namespace = getNamespaceFromAddress(service.getAddress());
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, service);
+    Map<String, List<String>> allInstances = runningServiceDetails.getInstances();
+    if (allInstances.get(namespace).isEmpty()) {
+      throw new HalException(
+          new ProblemBuilder(Severity.FATAL, "Unable to find any pods for service " + service.getName()).build()
+      );
+    }
+
+    List<String> command =  kubectlAccountCommand(details.getAccount());
+    command.add("--namespace");
+    command.add(namespace);
+
+    command.add("port-forward");
+    command.add(allInstances.get(namespace).get(0));
+
+    command.add(service.getPort() + "");
+    return command.stream().reduce((a, b) -> a + " " + b).orElseThrow(() -> new RuntimeException("Unexpected empty command"));
+  }
+
   private List<Pair<VolumeMount, Volume>> serviceVolumes(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
     String namespace = getNamespaceFromAddress(service.getAddress());
     SpinnakerArtifact artifact = service.getArtifact();
@@ -208,11 +236,12 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     List<ConfigSource> configSources = configSources(details, service);
     String artifactVersion = componentArtifact(details, artifact);
     String monitoringVersion = componentArtifact(details, monitoringService.getArtifact());
+    DeploymentEnvironment.Size size = details.getDeploymentConfiguration().getDeploymentEnvironment().getSize();
 
     if (service.isMonitoringEnabled()) {
-      return kubernetesOperationFactory.createDeployPipeline(accountName, service, artifactVersion, monitoringService, monitoringVersion, configSources, update);
+      return kubernetesOperationFactory.createDeployPipeline(accountName, service, artifactVersion, monitoringService, monitoringVersion, configSources, update, size);
     } else {
-      return kubernetesOperationFactory.createDeployPipeline(accountName, service, artifactVersion, configSources, update);
+      return kubernetesOperationFactory.createDeployPipeline(accountName, service, artifactVersion, configSources, update, size);
     }
   }
 
@@ -309,6 +338,12 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
           .endTcpSocket();
     }
 
+    DeploymentEnvironment.Size size = details.getDeploymentConfiguration().getDeploymentEnvironment().getSize();
+    SizingTranslation.ServiceSize serviceSize = sizingTranslation.getServiceSize(size, service);
+    Map<String, Quantity> resources = new HashMap<>();
+    resources.put("cpu", new Quantity(serviceSize.getCpu()));
+    resources.put("memory", new Quantity(serviceSize.getRam()));
+
     ContainerBuilder containerBuilder = new ContainerBuilder();
 
     containerBuilder = containerBuilder
@@ -317,7 +352,11 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         .withPorts(new ContainerPortBuilder().withContainerPort(port).build())
         .withVolumeMounts(volumes.stream().map(Pair::getLeft).collect(Collectors.toList()))
         .withEnv(envVars)
-        .withReadinessProbe(probeBuilder.build());
+        .withReadinessProbe(probeBuilder.build())
+        .withNewResources()
+        .withLimits(resources)
+        .withRequests(resources)
+        .endResources();
 
     ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder();
 
@@ -593,6 +632,8 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     String namespace = KubernetesProviderInterface.getNamespaceFromAddress(service.getAddress());
 
     List<Pod> pods = client.pods().inNamespace(namespace).withLabel("load-balancer-" + name, "true").list().getItems();
+
+    res.getInstances().put(namespace, pods.stream().map(p -> p.getMetadata().getName()).collect(Collectors.toList()));
 
     int count = (int) pods
         .stream()

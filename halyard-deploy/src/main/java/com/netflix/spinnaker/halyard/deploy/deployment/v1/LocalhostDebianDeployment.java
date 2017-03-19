@@ -133,10 +133,6 @@ public class LocalhostDebianDeployment extends Deployment {
 
     DeployResult result = new DeployResult();
     result.setPostInstallScript(installScript.setBindings(bindings).toString());
-    result.setScriptDescription("Run this script on any machine you want to install Spinnaker on.");
-    result.setPostInstallMessage("Halyard has generated an install script for you to run as "
-        + "root on the machine the Halyard daemon is on. Halyard will not run this install script itself "
-        + "since it does not have the necessary permissions to do so.");
 
     return result;
   }

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.deploy;
 
 import com.amazonaws.util.StringUtils;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import lombok.AccessLevel;
 import lombok.Getter;
+import org.fusesource.jansi.Ansi;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,10 +53,10 @@ public class RunDeployCommand extends AbstractConfigCommand {
     AnsiStoryBuilder storyBuilder = new AnsiStoryBuilder();
     AnsiParagraphBuilder paragraphBuilder = storyBuilder.addParagraph();
     paragraphBuilder.addSnippet(result.getPostInstallMessage());
-    String scriptPath = result.getScriptPath();
-    if (!StringUtils.isNullOrEmpty(scriptPath)) {
+    String installScriptPath = result.getPostInstallScriptPath();
+    if (!StringUtils.isNullOrEmpty(installScriptPath)) {
       List<String> command = new ArrayList<>();
-      command.add(scriptPath);
+      command.add(installScriptPath);
       JobRequest request = new JobRequest().setTokenizedCommand(command);
       JobExecutor executor = getJobExecutor();
       String jobId = executor.startJobFromStandardStreams(request);
@@ -67,6 +67,14 @@ public class RunDeployCommand extends AbstractConfigCommand {
         AnsiUi.error("Failed to install Spinnaker. See above output for details.");
         return;
       }
+    }
+
+    String connectScript = result.getConnectScript();
+
+    if (!StringUtils.isNullOrEmpty(connectScript)) {
+      AnsiUi.raw("Spinnaker is up and running. If you haven't configured external endpoints or auth, use the following"
+          + "script to connect to Spinnaker. Keep in mind this script will be regenerated when Spinnaker is redeployed.");
+      AnsiUi.raw(connectScript);
     }
 
     AnsiUi.success("Installation completed.\n");

@@ -55,7 +55,7 @@ public class DeploymentFactory {
     DeploymentDetails deploymentDetails = new DeploymentDetails()
         .setGenerateResult(generateResult)
         .setDeploymentName(deploymentConfiguration.getName())
-        .setDeploymentEnvironment(deploymentConfiguration.getDeploymentEnvironment());
+        .setDeploymentConfiguration(deploymentConfiguration);
 
     switch (type) {
       case LocalhostDebian:

@@ -36,6 +36,8 @@ public class MetricStores extends Node {
     return datadog.isEnabled() || prometheus.isEnabled() || stackdriver.isEnabled();
   }
 
+  public void setEnabled(boolean ignored) {}
+
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);

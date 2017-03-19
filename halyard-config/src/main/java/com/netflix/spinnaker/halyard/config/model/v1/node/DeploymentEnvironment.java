@@ -70,7 +70,24 @@ public class DeploymentEnvironment extends Node {
     }
   }
 
+  public enum Size {
+    SMALL,
+    MEDIUM,
+    LARGE;
 
+    public static Size fromString(String name) {
+      for (Size type : Size.values()) {
+        if (type.toString().equalsIgnoreCase(name)) {
+          return type;
+        }
+      }
+
+      throw new IllegalArgumentException("Size \"" + name + "\" is not a valid choice. The options are: "
+          + Arrays.toString(Size.values()));
+    }
+  }
+
+  private Size size = Size.LARGE;
   private DeploymentType type = DeploymentType.LocalhostDebian;
   private String accountName;
 }

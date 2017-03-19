@@ -80,11 +80,15 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
     providerInterface.deployService(deploymentDetails, orca, endpoints, "igor");
     providerInterface.deployService(deploymentDetails, orca, endpoints, "orca");
     providerInterface.deployService(deploymentDetails, orca, endpoints, "rosco");
-    providerInterface.deployService(deploymentDetails, orca, endpoints, "fiat");
+    if (deploymentDetails.getDeploymentConfiguration().getSecurity().getAuthz().isEnabled()) {
+      providerInterface.deployService(deploymentDetails, orca, endpoints, "fiat");
+    }
 
     DeployResult deployResult = new DeployResult();
-    deployResult.setScriptDescription("Use the provided script to connect to your Spinnaker installation.");
-    deployResult.setPostInstallScript(""); // TODO(lwander)
+
+    String deckConnection = providerInterface.connectToCommand(deploymentDetails, services.getDeck());
+    String gateConnection = providerInterface.connectToCommand(deploymentDetails, services.getGate());
+    deployResult.setConnectScript("#!/bin/bash\n" + deckConnection + "&\n" + gateConnection);
     return deployResult;
   }
 

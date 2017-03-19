@@ -93,14 +93,25 @@ public class DeployService {
 
     Deployment.DeployResult result = deployment.deploy(spinnakerOutputPath);
 
-    if (!StringUtils.isNullOrEmpty(result.getPostInstallScript())) {
-      Path installPath = halconfigDirectoryStructure.getInstallScriptPath(deploymentName);
-      configParser.atomicWrite(installPath, result.getPostInstallScript());
-      result.setScriptPath(installPath.toString());
-      installPath.toFile().setExecutable(true);
+    String installScript = result.getPostInstallScript();
+    if (!StringUtils.isNullOrEmpty(installScript)) {
+      String resultPath = writeExecutable(installScript, halconfigDirectoryStructure.getInstallScriptPath(deploymentName));
+      result.setPostInstallScriptPath(resultPath);
+    }
+
+    String connectScript = result.getConnectScript();
+    if (!StringUtils.isNullOrEmpty(connectScript)) {
+      String resultPath = writeExecutable(connectScript, halconfigDirectoryStructure.getConnectScriptPath(deploymentName));
+      result.setConnectScriptPath(resultPath);
     }
 
     return result;
+  }
+
+  private String writeExecutable(String contents, Path path) {
+    configParser.atomicWrite(path, contents);
+    path.toFile().setExecutable(true);
+    return path.toString();
   }
 
   public RunningServiceDetails getRunningServiceDetails(String deploymentName, String serviceName) {
