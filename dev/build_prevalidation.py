@@ -56,7 +56,8 @@ def main():
   else:
     raise NotImplementedError('container_builder="{0}"'
                               .format(options.container_builder))
-  Builder.do_build(options, options.build_number, options.container_builder)
+  Builder.do_build(options, build_number=options.build_number,
+                   container_builder=options.container_builder)
   # Load version information into memory and write BOM to disk. Don't publish yet.
   bom_generator.write_bom()
   bom_generator.publish_microservice_configs()
