@@ -64,6 +64,7 @@ public interface DaemonService {
   DaemonTask<Halconfig, Object> deployDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
+      @Query("installOnly") boolean installOnly,
       @Body String _ignore);
 
   @GET("/v1/config/deployments/{deploymentName}/configDiff/")

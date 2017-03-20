@@ -11,6 +11,9 @@ INSTALL_SPINNAKER="{%install-spinnaker%}"
 SPINNAKER_ARTIFACTS=({%spinnaker-artifacts%})
 CONFIG_DIR="{%config-dir%}"
 
+CONSUL_VERSION=0.7.5
+VAULT_VERSION=0.7.0
+
 REPOSITORY_URL="{%debian-repo%}"
 
 ## check that the user is root
@@ -104,19 +107,7 @@ function install_redis_server() {
   fi
 }
 
-function install_apache2() {
-  if ! $(dpkg -s apache2 2>/dev/null >/dev/null) ; then
-    local apt_status=`apt-get -s -y --force-yes install apache2 > /dev/null 2>&1 ; echo $?`
-    if [[ $apt_status -eq 0 ]]; then
-      echo "apt sources contain apache2; installing using apt-get"
-      apt-get -q -y --force-yes install apache2
-    else
-      echo "Unknown error ($apt_status) occurred while attempting to install Apache2."
-      echo "Cannot continue installation; exiting."
-      exit 1
-    fi
-  fi
-
+function configure_apache2() {
   service apache2 stop
   mkdir -p /etc/apache2/sites-available
   mv ${CONFIG_DIR}/apache2/spinnaker.conf /etc/apache2/sites-available
@@ -124,7 +115,25 @@ function install_apache2() {
   mv ${CONFIG_DIR}/settings.js /opt/deck/html/settings.js
 
   a2ensite spinnaker
-  service apache2 start
+}
+
+function install_dependencies() {
+  apt-get install unzip
+  TEMPDIR=$(mktemp -d installspinnaker.XXXX)
+
+  mkdir $TEMPDIR/consul && pushd $TEMPDIR/consul
+  curl -s -L -O https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
+  unzip -u -o -q consul_${CONSUL_VERSION}_linux_amd64.zip -d /usr/bin
+  popd
+  rm -rf $TEMPDIR/consul
+
+  mkdir $TEMPDIR/vault && pushd $TEMPDIR/vault
+  curl -s -L -O https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
+  unzip -u -o -q vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/bin
+  popd
+  rm -rf $TEMPDIR/vault
+
+  rm -rf $TEMPDIR
 }
 
 echo "Updating apt package lists..."
@@ -152,6 +161,7 @@ fi
 
 if [ -n "$INSTALL_SPINNAKER" ]; then
   install_java
+  install_dependencies
 
   rm -f /etc/apt/preferences.d/pin-spin-*
   {%pin-files%}
@@ -161,9 +171,12 @@ if [ -n "$INSTALL_SPINNAKER" ]; then
   for package in ${SPINNAKER_ARTIFACTS[@]}; do
     apt-get install -y --force-yes --allow-unauthenticated spinnaker-${package}
   done
+fi
 
+
+if [ -n "$CONFIG_DIR" ]; then
   if contains "deck" "${SPINNAKER_ARTIFACTS[@]}"; then
-    install_apache2
+    configure_apache2
   fi
 
   mkdir -p /opt/spinnaker/config/
@@ -172,4 +185,5 @@ if [ -n "$INSTALL_SPINNAKER" ]; then
 fi
 
 # so this script can be used for updates
-service spinnaker restart
+set +e
+service spinnaker {%service-action%}

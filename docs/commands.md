@@ -2006,6 +2006,7 @@ Deploy the currently configured instance of Spinnaker to a selected environment.
 hal deploy run [parameters]
 ```
 #### Parameters
+ * `--install-only`: (*Default*: `false`) Download the Spinnaker artifacts without configuring them. This does not work for remote deployments of Spinnaker
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---

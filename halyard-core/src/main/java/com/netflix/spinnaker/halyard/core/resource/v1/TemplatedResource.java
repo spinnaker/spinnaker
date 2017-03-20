@@ -30,6 +30,11 @@ abstract public class TemplatedResource {
   @Setter
   Map<String, String> bindings = new HashMap<>();
 
+  public TemplatedResource extendBindings(Map<String, String> bindings) {
+    this.bindings.putAll(bindings);
+    return this;
+  }
+
   protected String formatKey(String key) {
     return "{%" + key + "%}";
   }

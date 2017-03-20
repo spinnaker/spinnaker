@@ -61,7 +61,7 @@ public class ArtifactService {
   }
 
   public String getArtifactVersion(String deploymentName, SpinnakerArtifact artifact) {
-    return getBillOfMaterials(deploymentName).getServices().getArtifactVersion(artifact.getName());
+    return getBillOfMaterials(deploymentName).getArtifactVersion(artifact.getName());
   }
 
   public void writeBom(String bomPath) {

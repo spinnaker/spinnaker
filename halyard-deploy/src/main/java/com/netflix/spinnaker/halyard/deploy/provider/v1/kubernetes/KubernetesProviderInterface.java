@@ -122,7 +122,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
       case REDIS:
         return "gcr.io/kubernetes-spinnaker/redis-cluster:v2";
       default:
-        String version = details.getGenerateResult().getArtifactVersions().get(artifact);
+        String version = details.getBillOfMaterials().getArtifactVersion(artifact.getName());
 
         KubernetesImageDescription image = new KubernetesImageDescription(artifact.getName(), version, REGISTRY);
         return KubernetesUtil.getImageId(image);

@@ -23,18 +23,16 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import lombok.extern.slf4j.Slf4j;
 import retrofit.RestAdapter;
-import retrofit.RetrofitError;
 import retrofit.client.OkClient;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 @Slf4j
@@ -226,10 +224,10 @@ public class Daemon {
     };
   }
 
-  public static Supplier<Deployment.DeployResult> deployDeployment(String deploymentName, boolean validate) {
+  public static Supplier<RemoteAction> deployDeployment(String deploymentName, boolean validate, boolean installOnly) {
     return () -> {
-      Object rawDeployResult = ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, ""));
-      return getObjectMapper().convertValue(rawDeployResult, Deployment.DeployResult.class);
+      Object rawDeployResult = ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, installOnly, ""));
+      return getObjectMapper().convertValue(rawDeployResult, RemoteAction.class);
     };
   }
 

@@ -18,18 +18,21 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.deploy;
 
 import com.amazonaws.util.StringUtils;
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.cli.ui.v1.*;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiParagraphBuilder;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiStoryBuilder;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiStyle;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import lombok.AccessLevel;
 import lombok.Getter;
-import org.fusesource.jansi.Ansi;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,40 +46,53 @@ public class RunDeployCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String description = "Deploy the currently configured instance of Spinnaker to a selected environment.";
 
+  @Parameter(
+      names = "--install-only",
+      description = "Download the Spinnaker artifacts without configuring them. This does not work for remote deployments of Spinnaker"
+  )
+  boolean installOnly;
+
   @Override
   protected void executeThis() {
-    Deployment.DeployResult result = new OperationHandler<Deployment.DeployResult>()
+    RemoteAction result = new OperationHandler<RemoteAction>()
         .setFailureMesssage("Failed to deploy Spinnaker.")
-        .setOperation(Daemon.deployDeployment(getCurrentDeployment(), !noValidate))
+        .setOperation(Daemon.deployDeployment(getCurrentDeployment(), !noValidate, installOnly))
         .get();
 
     AnsiStoryBuilder storyBuilder = new AnsiStoryBuilder();
     AnsiParagraphBuilder paragraphBuilder = storyBuilder.addParagraph();
-    paragraphBuilder.addSnippet(result.getPostInstallMessage());
-    String installScriptPath = result.getPostInstallScriptPath();
-    if (!StringUtils.isNullOrEmpty(installScriptPath)) {
-      List<String> command = new ArrayList<>();
-      command.add(installScriptPath);
-      JobRequest request = new JobRequest().setTokenizedCommand(command);
-      JobExecutor executor = getJobExecutor();
-      String jobId = executor.startJobFromStandardStreams(request);
+    String scriptDescription = result.getScriptDescription();
+    String scriptPath = result.getScriptPath();
+    if (!StringUtils.isNullOrEmpty(scriptPath)) {
+      if (result.isAutoRun()) {
+        paragraphBuilder.addSnippet(scriptDescription);
 
-      JobStatus status = executor.backoffWait(jobId, 10, TimeUnit.SECONDS.toMillis(5));
+        List<String> command = new ArrayList<>();
+        command.add(scriptPath);
+        JobRequest request = new JobRequest().setTokenizedCommand(command);
+        JobExecutor executor = getJobExecutor();
+        String jobId = executor.startJobFromStandardStreams(request);
 
-      if (status.getResult() != JobStatus.Result.SUCCESS) {
-        AnsiUi.error("Failed to install Spinnaker. See above output for details.");
-        return;
+        JobStatus status = executor.backoffWait(jobId, 10, TimeUnit.SECONDS.toMillis(5));
+
+        if (status.getResult() != JobStatus.Result.SUCCESS) {
+          AnsiUi.error("Failed to install Spinnaker. See above output for details.");
+          System.exit(1);
+        }
+      } else {
+        paragraphBuilder.addSnippet("Your deployment is almost complete.");
+        storyBuilder.addNewline();
+        paragraphBuilder = storyBuilder.addParagraph();
+        paragraphBuilder.addSnippet(scriptDescription);
+        storyBuilder.addNewline();
+        paragraphBuilder = storyBuilder.addParagraph();
+        paragraphBuilder.addSnippet("Please run the following command: ");
+        storyBuilder.addNewline();
+        paragraphBuilder = storyBuilder.addParagraph();
+        paragraphBuilder.addSnippet(scriptPath).addStyle(AnsiStyle.UNDERLINE);
       }
     }
 
-    String connectScript = result.getConnectScript();
-
-    if (!StringUtils.isNullOrEmpty(connectScript)) {
-      AnsiUi.raw("Spinnaker is up and running. If you haven't configured external endpoints or auth, use the following"
-          + "script to connect to Spinnaker. Keep in mind this script will be regenerated when Spinnaker is redeployed.");
-      AnsiUi.raw(connectScript);
-    }
-
-    AnsiUi.success("Installation completed.\n");
+    AnsiUi.success("Deployment successful.\n");
   }
 }

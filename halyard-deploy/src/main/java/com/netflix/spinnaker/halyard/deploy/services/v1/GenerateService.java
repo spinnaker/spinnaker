@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.config.v1.ConfigParser;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.EndpointFactory;
@@ -68,6 +69,9 @@ public class GenerateService {
   @Autowired
   private ConfigParser configParser;
 
+  @Autowired
+  private ArtifactService artifactService;
+
   /**
    * Generate config for a given deployment.
    *
@@ -104,7 +108,6 @@ public class GenerateService {
     // Step 2.
     DaemonTaskHandler.newStage("Generating all Spinnaker profile files");
     Map<String, Set<String>> profileRequirements = new HashMap<>();
-    Map<SpinnakerArtifact, String> artifactVersions = new HashMap<>();
     FileSystem defaultFileSystem = FileSystems.getDefault();
     Path path;
     for (SpinnakerProfile profile : spinnakerProfiles) {
@@ -122,8 +125,6 @@ public class GenerateService {
 
       Set<String> currentRequirements = profileRequirements.getOrDefault(artifactName, new HashSet<>());
       currentRequirements.addAll(config.getRequiredFiles());
-      profileRequirements.put(artifactName, currentRequirements);
-      artifactVersions.put(profile.getArtifact(), config.getVersion());
     }
 
     // Step 3.
@@ -150,7 +151,6 @@ public class GenerateService {
 
     // Step 4.
     GenerateResult result = new GenerateResult()
-        .setArtifactVersions(artifactVersions)
         .setProfileRequirements(profileRequirements)
         .setEndpoints(endpoints);
 
@@ -160,11 +160,6 @@ public class GenerateService {
   @Data
   public static class GenerateResult {
     private Map<String, Set<String>> profileRequirements = new HashMap<>();
-    private Map<SpinnakerArtifact, String> artifactVersions = new HashMap<>();
     SpinnakerEndpoints endpoints;
-
-    public String getArtifactVersion(SpinnakerArtifact artifact) {
-      return artifactVersions.get(artifact);
-    }
   }
 }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
@@ -75,7 +76,24 @@ public class DeployService {
     }
   }
 
-  public Deployment.DeployResult deploySpinnaker(String deploymentName) {
+  public RemoteAction installSpinnaker(String deploymentName) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+
+    Deployment deployment = deploymentFactory.create(deploymentConfiguration, null);
+
+    RemoteAction result = deployment.install(spinnakerOutputPath);
+
+    String script = result.getScript();
+    if (!StringUtils.isNullOrEmpty(script)) {
+      String resultPath = writeExecutable(script, halconfigDirectoryStructure.getInstallScriptPath(deploymentName));
+      result.setScriptPath(resultPath);
+      result.setAutoRun(true);
+    }
+
+    return result;
+  }
+
+  public RemoteAction deploySpinnaker(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     GenerateResult generateResult = generateService.generateConfig(deploymentName);
     Path generateResultPath = halconfigDirectoryStructure.getGenerateResultPath(deploymentName);
@@ -91,18 +109,13 @@ public class DeployService {
 
     configParser.atomicWrite(path, configParser.yamlToString(deployment.getEndpoints()));
 
-    Deployment.DeployResult result = deployment.deploy(spinnakerOutputPath);
+    RemoteAction result = deployment.deploy(spinnakerOutputPath);
 
-    String installScript = result.getPostInstallScript();
-    if (!StringUtils.isNullOrEmpty(installScript)) {
-      String resultPath = writeExecutable(installScript, halconfigDirectoryStructure.getInstallScriptPath(deploymentName));
-      result.setPostInstallScriptPath(resultPath);
-    }
-
-    String connectScript = result.getConnectScript();
-    if (!StringUtils.isNullOrEmpty(connectScript)) {
-      String resultPath = writeExecutable(connectScript, halconfigDirectoryStructure.getConnectScriptPath(deploymentName));
-      result.setConnectScriptPath(resultPath);
+    String script = result.getScript();
+    if (!StringUtils.isNullOrEmpty(script)) {
+      String resultPath = writeExecutable(script, halconfigDirectoryStructure.getInstallScriptPath(deploymentName));
+      result.setScriptPath(resultPath);
+      result.setAutoRun(true);
     }
 
     return result;

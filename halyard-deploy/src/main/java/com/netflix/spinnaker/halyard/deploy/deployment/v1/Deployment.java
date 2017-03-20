@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Setter;
 
 /**
@@ -52,18 +53,10 @@ abstract public class Deployment {
    * Deploy a fresh install of Spinnaker. This will fail if Spinnaker is already
    * running.
    */
-  abstract public DeployResult deploy(String spinnakerOutputPath);
+  abstract public RemoteAction deploy(String spinnakerOutputPath);
 
-  @Data
-  public static class DeployResult {
-    @JsonIgnore
-    String postInstallScript;
-    @JsonIgnore
-    String connectScript;
-    String scriptDescription;
-    String postInstallScriptPath;
-    String connectScriptPath;
-
-    String postInstallMessage;
-  }
+  /**
+   * Install Spinnaker w/o config. This generally only work on local deployments.
+   */
+  abstract public RemoteAction install(String spinnakerOutputPath);
 }

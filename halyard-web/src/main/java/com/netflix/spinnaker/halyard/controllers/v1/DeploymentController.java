@@ -24,16 +24,15 @@ import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.Deployment;
 import com.netflix.spinnaker.halyard.deploy.services.v1.DeployService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -107,13 +106,18 @@ public class DeploymentController {
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
-  DaemonTask<Halconfig, Deployment.DeployResult> deploy(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, RemoteAction> deploy(@PathVariable String deploymentName,
+    @RequestParam(required = false, defaultValue = "false") boolean installOnly,
     @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
     @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<Deployment.DeployResult> builder = new StaticRequestBuilder<>();
+    StaticRequestBuilder<RemoteAction> builder = new StaticRequestBuilder<>();
     builder.setSeverity(severity);
 
-    builder.setBuildResponse(() -> deployService.deploySpinnaker(deploymentName));
+    if (installOnly) {
+      builder.setBuildResponse(() -> deployService.installSpinnaker(deploymentName));
+    } else {
+      builder.setBuildResponse(() -> deployService.deploySpinnaker(deploymentName));
+    }
 
     if (validate) {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));

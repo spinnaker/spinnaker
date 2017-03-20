@@ -18,6 +18,10 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
@@ -59,7 +63,7 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
   }
 
   @Override
-  public DeployResult deploy(String spinnakerOutputPath) {
+  public RemoteAction deploy(String spinnakerOutputPath) {
     SpinnakerEndpoints endpoints = getEndpoints();
     SpinnakerEndpoints.Services services = endpoints.getServices();
     DaemonTaskHandler.newStage("Bootstrapping a minimal Spinnaker installation");
@@ -84,16 +88,21 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
       providerInterface.deployService(deploymentDetails, orca, endpoints, "fiat");
     }
 
-    DeployResult deployResult = new DeployResult();
+    RemoteAction result = new RemoteAction();
 
     String deckConnection = providerInterface.connectToCommand(deploymentDetails, services.getDeck());
     String gateConnection = providerInterface.connectToCommand(deploymentDetails, services.getGate());
-    deployResult.setConnectScript("#!/bin/bash\n" + deckConnection + "&\n" + gateConnection);
-    return deployResult;
+    result.setScript("#!/bin/bash\n" + deckConnection + "&\n" + gateConnection);
+    return result;
   }
 
   @Override
   public RunningServiceDetails getServiceDetails(SpinnakerService service) {
     return providerInterface.getRunningServiceDetails(deploymentDetails, service);
+  }
+
+  @Override
+  public RemoteAction install(String spinnakerOutputPath) {
+    throw new HalException(new ProblemBuilder(Problem.Severity.FATAL, "Cannot deploy Spinnaker remotely without configuration.").build());
   }
 }

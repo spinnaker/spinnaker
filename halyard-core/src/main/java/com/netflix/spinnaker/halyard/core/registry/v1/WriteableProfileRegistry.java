@@ -79,7 +79,7 @@ public class WriteableProfileRegistry {
   }
 
   public void writeArtifactConfig(BillOfMaterials bom, String artifactName, String profileName, String contents) {
-    String version = bom.getServices().getArtifactVersion(artifactName);
+    String version = bom.getArtifactVersion(artifactName);
     String name = ProfileRegistry.profilePath(artifactName, version, profileName);
     writeTextObject(name, contents);
   }

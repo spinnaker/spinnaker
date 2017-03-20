@@ -48,7 +48,13 @@ public class BillOfMaterials {
     Artifact monitoringDaemon;
     Artifact spinnaker;
 
-    public String getArtifactVersion(String artifactName) {
+    @Data
+    static class Artifact {
+      String version;
+      // TODO(lwander) dependencies will go here.
+    }
+
+    String getArtifactVersion(String artifactName) {
       Optional<Field> field = Arrays.stream(Artifacts.class.getDeclaredFields())
           .filter(f -> {
             boolean nameMatches = f.getName().equals(artifactName);
@@ -66,18 +72,16 @@ public class BillOfMaterials {
       }
 
       try {
-        return ((Artifact) field.get().get(this)).getVersion();
+        return ((Artifacts.Artifact) field.get().get(this)).getVersion();
       } catch (IllegalAccessException e) {
         throw new RuntimeException(e);
       } catch (NullPointerException e) {
         throw new RuntimeException("Spinnaker artifact " + artifactName + " is not listed in the BOM");
       }
     }
+  }
 
-    @Data
-    static class Artifact {
-      String version;
-      // TODO(lwander) dependencies will go here.
-    }
+  public String getArtifactVersion(String artifactName) {
+    return services.getArtifactVersion(artifactName);
   }
 }

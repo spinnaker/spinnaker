@@ -17,10 +17,13 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
+import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
@@ -30,8 +33,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerPublic
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import retrofit.RetrofitError;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class LocalhostDebianDeployment extends Deployment {
   final DeploymentDetails deploymentDetails;
@@ -78,7 +80,7 @@ public class LocalhostDebianDeployment extends Deployment {
     }
 
     details.setHealthy(healthy ? 1 : 0);
-    details.setVersion(deploymentDetails.getGenerateResult().getArtifactVersion(artifact));
+    details.setVersion(deploymentDetails.getBillOfMaterials().getArtifactVersion(artifact.getName()));
 
     return details;
   }
@@ -89,14 +91,38 @@ public class LocalhostDebianDeployment extends Deployment {
   }
 
   @Override
-  public DeployResult deploy(String spinnakerOutputPath) {
-    DaemonTaskHandler.newStage("Generating install file for Spinnaker debians");
+  public RemoteAction deploy(String spinnakerOutputPath) {
+    Map<String, String> bindings = new HashMap<>();
+    bindings.put("config-dir", spinnakerOutputPath);
+    bindings.put("service-action", "restart");
+    RemoteAction result = new RemoteAction();
+    List<SpinnakerArtifact> artifacts = Arrays.asList(SpinnakerArtifact.values());
+    result.setScript(installScript(artifacts).extendBindings(bindings).toString());
+
+    return result;
+  }
+
+  @Override
+  public RemoteAction install(String spinnakerOutputPath) {
+    Map<String, String> bindings = new HashMap<>();
+    bindings.put("config-dir", "");
+    bindings.put("service-action", "stop");
+    RemoteAction result = new RemoteAction();
+    List<SpinnakerArtifact> artifacts = Arrays.asList(SpinnakerArtifact.values());
+    result.setScript(installScript(artifacts).extendBindings(bindings).toString());
+
+    return result;
+  }
+
+  private TemplatedResource installScript(Collection<SpinnakerArtifact> spinnakerArtifacts) {
+    DaemonTaskHandler.newStage("Generating install script for Spinnaker debians");
+    BillOfMaterials billOfMaterials = deploymentDetails.getBillOfMaterials();
 
     String pinFiles = "";
     String artifacts = "";
 
     DaemonTaskHandler.log("Collecting desired Spinnaker artifact versions");
-    for (SpinnakerArtifact artifact : SpinnakerArtifact.values()) {
+    for (SpinnakerArtifact artifact : spinnakerArtifacts) {
       if (!artifact.isSpinnakerInternal()) {
         continue;
       }
@@ -106,7 +132,7 @@ public class LocalhostDebianDeployment extends Deployment {
       String artifactName = artifact.getName();
 
       bindings.put("artifact", artifactName);
-      bindings.put("version", deploymentDetails.getGenerateResult().getArtifactVersions().get(artifact));
+      bindings.put("version", billOfMaterials.getArtifactVersion(artifactName));
       pinFiles += pinFile.setBindings(bindings).toString();
 
       artifacts += "\"" + artifactName + "\" ";
@@ -124,16 +150,12 @@ public class LocalhostDebianDeployment extends Deployment {
     bindings = new HashMap<>();
     bindings.put("pin-files", pinFiles);
     bindings.put("spinnaker-artifacts", artifacts);
+    bindings.put("etc-init", etcInit);
+    bindings.put("debian-repo", repository);
     bindings.put("install-redis", "true");
     bindings.put("install-java", "true");
     bindings.put("install-spinnaker", "true");
-    bindings.put("etc-init", etcInit);
-    bindings.put("config-dir", spinnakerOutputPath);
-    bindings.put("debian-repo", repository);
 
-    DeployResult result = new DeployResult();
-    result.setPostInstallScript(installScript.setBindings(bindings).toString());
-
-    return result;
+    return installScript.setBindings(bindings);
   }
 }
