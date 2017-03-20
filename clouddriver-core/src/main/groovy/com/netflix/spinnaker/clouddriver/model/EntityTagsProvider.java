@@ -69,4 +69,11 @@ public interface EntityTagsProvider {
    * Reindex all EntityTags
    */
   void reindex();
+
+  /**
+   * Fetch metadata (counts of EntityTags broken down by Elasticsearch and Front50)
+   *
+   * Can be used to identify when Elasticsearch and Front50 are out-of-sync.
+   */
+  Map metadata();
 }

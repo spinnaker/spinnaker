@@ -26,12 +26,15 @@ import com.netflix.spinnaker.config.ElasticSearchConfigProperties;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.Bulk;
+import io.searchbox.core.ClearScroll;
 import io.searchbox.core.Delete;
 import io.searchbox.core.Index;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
+import io.searchbox.core.SearchScroll;
 import io.searchbox.indices.CreateIndex;
 import io.searchbox.indices.DeleteIndex;
+import io.searchbox.params.Parameters;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -49,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -92,7 +96,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
     if (entityIds != null && !entityIds.isEmpty()) {
       // restrict to a specific set of entityIds (optional)
-     queryBuilder = queryBuilder.must(QueryBuilders.termsQuery("entityRef.entityId", entityIds));
+      queryBuilder = queryBuilder.must(QueryBuilders.termsQuery("entityRef.entityId", entityIds));
     }
 
     if (account != null) {
@@ -139,7 +143,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
   public Optional<EntityTags> get(String id, Map<String, Object> tags) {
     BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("_id", id));
     if (tags != null) {
-      for (Map.Entry<String, Object> entry: tags.entrySet()) {
+      for (Map.Entry<String, Object> entry : tags.entrySet()) {
         // each key/value pair maps to a distinct nested `tags` object and must be a unique query snippet
         queryBuilder = queryBuilder.must(
           applyTagsToBuilder(null, Collections.singletonMap(entry.getKey(), entry.getValue()))
@@ -255,11 +259,68 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     log.info("Indexing {} entity tags", entityTags.size());
     bulkIndex(
       entityTags
-      .stream()
-      .filter(e -> e.getEntityRef() != null)
-      .collect(Collectors.toList())
+        .stream()
+        .filter(e -> e.getEntityRef() != null)
+        .collect(Collectors.toList())
     );
     log.info("Indexed {} entity tags", entityTags.size());
+  }
+
+  @Override
+  public Map metadata() {
+    Collection<EntityTags> allEntityTagsFront50 = front50Service.getAllEntityTags();
+    Map<String, List<EntityTags>> entityTagsByEntityTypeFront50 = allEntityTagsFront50
+      .stream()
+      .collect(Collectors.groupingBy(e ->
+          Optional.ofNullable(
+            Optional.ofNullable(e.getEntityRef()).orElse(new EntityTags.EntityRef()).getEntityType()
+          ).orElse("unknown")
+        )
+      );
+
+    Map<String, List<EntityTags>> entityTagsByEntityTypeElasticsearch = new HashMap<>();
+    entityTagsByEntityTypeFront50.keySet().forEach(entityType ->
+      entityTagsByEntityTypeElasticsearch.put(entityType, fetchAll(entityType, 5000, "2m"))
+    );
+
+    Map<String, Map> metadata = new HashMap<>();
+
+    entityTagsByEntityTypeFront50.keySet().forEach(entityType -> {
+      Map<String, Object> entityTypeMetadata = new HashMap<>();
+      metadata.put(entityType, entityTypeMetadata);
+
+      Set<String> entityIdsFront50 = entityTagsByEntityTypeFront50.get(entityType).stream()
+        .map(EntityTags::getId)
+        .collect(Collectors.toSet());
+
+      Set<String> entityIdsElasticsearch = entityTagsByEntityTypeElasticsearch.get(entityType).stream()
+        .map(EntityTags::getId)
+        .collect(Collectors.toSet());
+
+      entityTypeMetadata.put("front50_count", entityIdsFront50.size());
+      entityTypeMetadata.put("elasticsearch_count", entityIdsElasticsearch.size());
+
+      if (!entityIdsFront50.equals(entityIdsElasticsearch)) {
+        Set<String> entityIdsMissingInFront50 = entityIdsElasticsearch.stream()
+          .filter(e -> !entityIdsFront50.contains(e))
+          .collect(Collectors.toSet());
+
+        Set<String> entityIdsMissingInElasticsearch = entityIdsFront50.stream()
+          .filter(e -> !entityIdsElasticsearch.contains(e))
+          .collect(Collectors.toSet());
+
+        log.warn("'{}' missing in Front50 ({}) {}", entityType, entityIdsMissingInFront50.size(), entityIdsMissingInFront50);
+        log.warn("'{}' missing in Elasticsearch ({}) {}", entityType, entityIdsMissingInElasticsearch.size(), entityIdsMissingInElasticsearch);
+
+        entityTypeMetadata.put("front50_missing", entityIdsMissingInFront50);
+        entityTypeMetadata.put("front50_missing_count", entityIdsMissingInFront50.size());
+
+        entityTypeMetadata.put("elasticsearch_missing", entityIdsMissingInElasticsearch);
+        entityTypeMetadata.put("elasticsearch_missing_count", entityIdsMissingInElasticsearch.size());
+      }
+    });
+
+    return metadata;
   }
 
   @Override
@@ -308,7 +369,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
   /**
    * Elasticsearch requires that all search criteria be flattened (vs. nested)
    */
-  private Map<String,Object> flatten(Map<String, Object> accumulator, String rootKey, Map<String, Object> criteria) {
+  private Map<String, Object> flatten(Map<String, Object> accumulator, String rootKey, Map<String, Object> criteria) {
     criteria.forEach((k, v) -> {
         if (v instanceof Map) {
           flatten(accumulator, (rootKey == null) ? "" + k : rootKey + "." + k, (Map) v);
@@ -339,6 +400,57 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
         .collect(Collectors.toList());
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private List<EntityTags> fetchAll(String type, int scrollSize, String scrollTime) {
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+
+    Search search = new Search.Builder(searchSourceBuilder.toString())
+      .addIndex(activeElasticSearchIndex)
+      .addType(type)
+      .setParameter(Parameters.SIZE, scrollSize)
+      .setParameter(Parameters.SCROLL, scrollTime)
+      .build();
+
+    List<EntityTags> allEntityTags = new ArrayList<>();
+
+    JestResult result;
+    try {
+      result = jestClient.execute(search);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    Collection<EntityTags> entityTags = result.getSourceAsObjectList(EntityTags.class);
+    allEntityTags.addAll(entityTags);
+
+    String scrollId = result.getJsonObject().get("_scroll_id").getAsString();
+
+    try {
+      while (entityTags.size() > 0) {
+        SearchScroll scroll = new SearchScroll.Builder(scrollId, scrollTime)
+          .setParameter(Parameters.SIZE, scrollSize).build();
+
+        try {
+          result = jestClient.execute(scroll);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+
+        entityTags = result.getSourceAsObjectList(EntityTags.class);
+        allEntityTags.addAll(entityTags);
+
+        scrollId = result.getJsonObject().getAsJsonPrimitive("_scroll_id").getAsString();
+      }
+
+      return allEntityTags;
+    } finally {
+      try {
+        jestClient.execute(new ClearScroll.Builder().addScrollId(scrollId).build());
+      } catch (IOException e) {
+        log.warn("Unable to clear scroll id {}", scrollId, e);
+      }
     }
   }
 

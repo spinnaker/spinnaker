@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -34,8 +35,13 @@ public class EntityTagsAdminController {
     this.entityTagsProvider = entityTagsProvider.orElse(null);
   }
 
-  @RequestMapping(value="/reindex", method = RequestMethod.POST)
+  @RequestMapping(value = "/reindex", method = RequestMethod.POST)
   void reindex() {
     entityTagsProvider.reindex();
+  }
+
+  @RequestMapping(value = "/metadata", method = RequestMethod.GET)
+  Map metadata() {
+    return entityTagsProvider.metadata();
   }
 }
