@@ -1,4 +1,5 @@
-import {module} from 'angular';
+import {Provider} from '@angular/core';
+import {module, IHttpService, IPromise, IQResolveReject, IQService, IRequestConfig} from 'angular';
 import {
   AUTHENTICATION_INITIALIZER_SERVICE,
   AuthenticationInitializer
@@ -9,7 +10,7 @@ interface DefaultParams {
 }
 
 export interface IRequestBuilder {
-  config?: ng.IRequestConfig;
+  config?: IRequestConfig;
   one?: IRequestBuilder;
   all?: IRequestBuilder;
   useCache?: IRequestBuilder;
@@ -31,8 +32,8 @@ export class Api {
   private gateUrl: string;
   private defaultParams: DefaultParams;
 
-  constructor(private $q: ng.IQService,
-              private $http: ng.IHttpService,
+  constructor(private $q: IQService,
+              private $http: IHttpService,
               settings: any,
               private authenticationIntializer: AuthenticationInitializer) {
     this.gateUrl = settings.gateUrl;
@@ -41,8 +42,8 @@ export class Api {
     };
   }
 
-  private getData(result: any): ng.IPromise<any> {
-    return this.$q((resolve: ng.IQResolveReject<any>, reject: ng.IQResolveReject<any>) => {
+  private getData(result: any): IPromise<any> {
+    return this.$q((resolve: IQResolveReject<any>, reject: IQResolveReject<any>) => {
       const contentType = result.headers('content-type');
       if (contentType) {
         const isJson = contentType.includes('application/json');
@@ -57,7 +58,7 @@ export class Api {
     });
   }
 
-  private internalOne(config: ng.IRequestConfig): IRequestBuilder {
+  private internalOne(config: IRequestConfig): IRequestBuilder {
     return (...urls: string[]) => {
       urls.forEach((url: string) => {
         if (url) {
@@ -69,14 +70,14 @@ export class Api {
     };
   }
 
-  private useCacheFn(config: ng.IRequestConfig): IRequestBuilder {
+  private useCacheFn(config: IRequestConfig): IRequestBuilder {
     return (useCache = true) => {
       config.cache = useCache;
       return this.baseReturn(config);
     };
   }
 
-  private withParamsFn(config: ng.IRequestConfig): IRequestBuilder {
+  private withParamsFn(config: IRequestConfig): IRequestBuilder {
     return (params: any) => {
       if (params) {
         config.params = params;
@@ -87,7 +88,7 @@ export class Api {
   }
 
   // sets the data for PUT and POST operations
-  private dataFn(config: ng.IRequestConfig): IRequestBuilder {
+  private dataFn(config: IRequestConfig): IRequestBuilder {
     return (data: any) => {
       if (data) {
         config.data = data;
@@ -98,7 +99,7 @@ export class Api {
   }
 
   // HTTP GET operation
-  private getFn(config: ng.IRequestConfig): IRequestBuilder {
+  private getFn(config: IRequestConfig): IRequestBuilder {
     return (params: any) => {
       config.method = 'get';
       Object.assign(config, this.defaultParams);
@@ -111,7 +112,7 @@ export class Api {
   }
 
   // HTTP POST operation
-  private postFn(config: ng.IRequestConfig): IRequestBuilder {
+  private postFn(config: IRequestConfig): IRequestBuilder {
     return (data: any) => {
       config.method = 'post';
       if (data) {
@@ -124,7 +125,7 @@ export class Api {
   }
 
   // HTTP DELETE operation
-  private removeFn(config: ng.IRequestConfig): IRequestBuilder {
+  private removeFn(config: IRequestConfig): IRequestBuilder {
     return (params: any) => {
       config.method = 'delete';
       if (params) {
@@ -137,7 +138,7 @@ export class Api {
   }
 
   // HTTP PUT operation
-  private putFn(config: ng.IRequestConfig): IRequestBuilder {
+  private putFn(config: IRequestConfig): IRequestBuilder {
     return (data: any) => {
       config.method = 'put';
       if (data) {
@@ -149,7 +150,7 @@ export class Api {
     };
   }
 
-  private baseReturn(config: ng.IRequestConfig): IRequestBuilder {
+  private baseReturn(config: IRequestConfig): IRequestBuilder {
     return {
       config: config,
       one: this.internalOne(config),
@@ -166,7 +167,7 @@ export class Api {
   }
 
   private init(urls: string[]) {
-    const config: ng.IRequestConfig = {
+    const config: IRequestConfig = {
       method: '',
       url: this.gateUrl
     };
@@ -188,6 +189,13 @@ export class Api {
   }
 }
 
+const API_SERVICE_NAME = 'API';
 export const API_SERVICE = 'spinnaker.core.api.provider';
 module(API_SERVICE, [require('../config/settings'), AUTHENTICATION_INITIALIZER_SERVICE])
-  .service('API', Api);
+  .service(API_SERVICE_NAME, Api);
+
+export const API_SERVICE_PROVIDER: Provider = {
+  provide: API_SERVICE_NAME,
+  useFactory: (i: any) => i.get(API_SERVICE_NAME),
+  deps: ['$injector']
+};
