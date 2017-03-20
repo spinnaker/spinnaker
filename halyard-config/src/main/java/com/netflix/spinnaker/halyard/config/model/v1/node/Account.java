@@ -20,10 +20,14 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = false)
 public abstract class Account extends Node implements Cloneable {
   String name;
+  List<String> requiredGroupMembership = new ArrayList<>();
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {

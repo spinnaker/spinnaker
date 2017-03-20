@@ -730,6 +730,7 @@ hal config provider appengine account add ACCOUNT [parameters]
  * `--local-repository-directory`: (*Default*: `/var/tmp/clouddriver`) A local directory to be used to stage source files for App Engine deployments within Spinnaker's Clouddriver microservice.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: (*Required*) The Google Cloud Platform project this Spinnaker account will manage.
+ * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: The path to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-passphrase`: The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
 
@@ -744,6 +745,7 @@ hal config provider appengine account edit ACCOUNT [parameters]
 ```
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--git-https-password`: A password to be used when connecting with a remote git repository server over HTTPS.
  * `--git-https-username`: A username to be used when connecting with a remote git repository server over HTTPS.
  * `--github-oauth-access-token`: An OAuth token provided by Github for connecting to  a git repository over HTTPS. See https://help.github.com/articles/creating-an-access-token-for-command-line-use for more information.
@@ -751,6 +753,8 @@ hal config provider appengine account edit ACCOUNT [parameters]
  * `--local-repository-directory`: A local directory to be used to stage source files for App Engine deployments within Spinnaker's Clouddriver microservice.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The Google Cloud Platform project this Spinnaker account will manage.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
+ * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: The path to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-passphrase`: The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
 
@@ -869,6 +873,7 @@ When no context is configured for an account the 'current-context' in your kubec
  * `--namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account can deploy to and will cache.
 When no namespaces are configured, this defaults to 'all namespaces'.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
 ---
 ## hal config provider kubernetes account edit
@@ -883,6 +888,7 @@ hal config provider kubernetes account edit ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--add-docker-registry`: Add this docker registry to the list of docker registries to use as a source of images.
  * `--add-namespace`: Add this namespace to the list of namespaces to manage.
+ * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--all-namespaces`: (*Default*: `false`) Set the list of namespaces to cache and deploy to every namespace available to your supplied credentials.
  * `--clear-context`: (*Default*: `false`) Removes the currently configured context, defaulting to 'current-context' in your kubeconfig.See http://kubernetes.io/docs/user-guide/kubeconfig-file/#context for more information.
  * `--context`: The kubernetes context to be managed by Spinnaker. See http://kubernetes.io/docs/user-guide/kubeconfig-file/#context for more information.
@@ -894,6 +900,8 @@ When no namespaces are configured, this defaults to 'all namespaces'.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--remove-docker-registry`: Remove this docker registry from the list of docker registries to use as a source of images.
  * `--remove-namespace`: Remove this namespace to the list of namespaces to manage.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
+ * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
 ---
 ## hal config provider kubernetes account get
@@ -1015,6 +1023,7 @@ hal config provider docker-registry account add ACCOUNT [parameters]
  * `--password`: Your docker registry password
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--repositories`: (*Default*: `[]`) An optional list of repositories to cache images from. If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint
+ * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--username`: Your docker registry username
 
 ---
@@ -1029,6 +1038,7 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--add-repository`: Add this repository to the list of repositories to cache images from.
+ * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--address`: The registry address you want to pull and deploy images from. For example:
 
   index.docker.io     - DockerHub
@@ -1041,7 +1051,9 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
  * `--password`: Your docker registry password
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--remove-repository`: Remove this repository to the list of repositories to cache images from.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--repositories`: (*Default*: `[]`) An optional list of repositories to cache images from. If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint
+ * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--username`: Your docker registry username
 
 ---
@@ -1285,6 +1297,7 @@ hal config provider google account add ACCOUNT [parameters]
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: (*Required*) The Google Cloud Platform project this Spinnaker account will manage.
+ * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
 ---
 ## hal config provider google account edit
@@ -1298,11 +1311,14 @@ hal config provider google account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--add-image-project`: Add this image project to the list of image projects to cache and deploy images from.
+ * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--image-projects`: (*Default*: `[]`) A list of Google Cloud Platform projects Spinnaker will be able to cache and deploy images from. When this is omitted, it defaults to the current project.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The Google Cloud Platform project this Spinnaker account will manage.
  * `--remove-image-project`: Remove this image project from the list of image projects to cache and deploy images from.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
+ * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--set-alpha-listed`: Enable this flag if your project has access to alpha features and you want Spinnaker to take advantage of them.
 
 ---
@@ -1422,6 +1438,7 @@ hal config provider openstack account add ACCOUNT [parameters]
  * `--password`: (*Required*) The password used to access your cloud.
  * `--project-name`: (*Required*) The name of the project (formerly tenant) within the cloud. Can be found in the RC file.
  * `--regions`: (*Default*: `[]`) (*Required*) The region(s) of the cloud. Can be found in the RC file.
+ * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--user-data-file`: User data passed to Heat Orchestration Template. Replacement of tokens supported, see http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-openstack for details.
  * `--username`: (*Required*) The username used to access your cloud.
 
@@ -1437,6 +1454,7 @@ hal config provider openstack account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--add-region`: Add this region to the list of managed regions.
+ * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--auth-url`: The auth url of your cloud, usually found in the Horizon console under Compute > Access & Security > API Access > url for Identity. Must be Keystone v3
  * `--domain-name`: The domain of the cloud. Can be found in the RC file.
  * `--insecure`: Disable certificate validation on SSL connections. Needed if certificates are self signed. Default false.
@@ -1447,7 +1465,9 @@ hal config provider openstack account edit ACCOUNT [parameters]
  * `--project-name`: The name of the project (formerly tenant) within the cloud. Can be found in the RC file.
  * `--regions`: (*Default*: `[]`) The region(s) of the cloud. Can be found in the RC file.
  * `--remove-region`: Remove this region from the list of managed regions.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--remove-user-data-file`: (*Default*: `false`) Removes currently configured user data file.
+ * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--user-data-file`: User data passed to Heat Orchestration Template. Replacement of tokens supported, see http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-openstack for details.
  * `--username`: The username used to access your cloud.
 
@@ -1569,6 +1589,7 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
  * `--edda`: The endpoint Edda is reachable at. Edda is not a hard dependency of Spinnaker, but is helpful for reducing the request volume against AWS. See https://github.com/Netflix/edda for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--regions`: The AWS regions this Spinnaker account will manage.
+ * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
 ---
 ## hal config provider aws account edit
@@ -1583,6 +1604,7 @@ hal config provider aws account edit ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--account-id`: Your AWS account ID to manage. See http://docs.aws.amazon.com/IAM/latest/UserGuide/console_account-alias.html for more information.
  * `--add-region`: Add this region to the list of managed regions.
+ * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--default-key-pair`: Provide the name of the AWS key-pair to use. See http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html for more information.
  * `--discovery`: The endpoint your Eureka discovery system is reachable at. See https://github.com/Netflix/eureka for more information.
 
@@ -1593,6 +1615,8 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--regions`: The AWS regions this Spinnaker account will manage.
  * `--remove-region`: Remove this region from the list of managed regions.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
+ * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
 ---
 ## hal config provider aws account get
@@ -1837,6 +1861,7 @@ hal config provider azure account add ACCOUNT [parameters]
  * `--object-id`: The objectId of your service principal. This is only required if using Packer to bake Windows images.
  * `--packer-resource-group`: The resource group to use if baking images with Packer.
  * `--packer-storage-account`: The storage account to use if baking images with Packer.
+ * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--subscription-id`: (*Required*) The subscriptionId that your service principal is assigned to.
  * `--tenant-id`: (*Required*) The tenantId that your service principal is assigned to.
 
@@ -1851,6 +1876,7 @@ hal config provider azure account edit ACCOUNT [parameters]
 ```
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--app-key`: The appKey (password) of your service principal.
  * `--client-id`: The clientId (also called appId) of your service principal.
  * `--default-key-vault`: The name of a KeyVault that contains the default user name and password used to create VMs
@@ -1859,6 +1885,8 @@ hal config provider azure account edit ACCOUNT [parameters]
  * `--object-id`: The objectId of your service principal. This is only required if using Packer to bake Windows images.
  * `--packer-resource-group`: The resource group to use if baking images with Packer.
  * `--packer-storage-account`: The storage account to use if baking images with Packer.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
+ * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--subscription-id`: The subscriptionId that your service principal is assigned to.
  * `--tenant-id`: The tenantId that your service principal is assigned to.
 

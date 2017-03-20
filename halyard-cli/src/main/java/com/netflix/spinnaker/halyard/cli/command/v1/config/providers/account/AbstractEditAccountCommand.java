@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
@@ -26,7 +27,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import lombok.AccessLevel;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Parameters()
@@ -36,6 +39,25 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
 
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
+
+  @Parameter(
+      names = "--add-required-group-membership",
+      description = "Add this group to the list of required group memberships."
+  )
+  private String addRequiredGroupMembership;
+
+  @Parameter(
+      names = "--remove-required-group-membership",
+      description = "Remove this group from the list of required group memberships."
+  )
+  private String removeRequiredGroupMembership;
+
+  @Parameter(
+      variableArity = true,
+      names = "--required-group-membership",
+      description = AccountCommandProperties.REQUIRED_GROUP_MEMBERSHIP_DESCRIPTION
+  )
+  List<String> requiredGroupMembership;
 
   protected abstract Account editAccount(T account);
 
@@ -57,6 +79,9 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
     int originaHash = account.hashCode();
 
     account = editAccount((T) account);
+
+    account.setRequiredGroupMembership(
+        updateStringList(account.getRequiredGroupMembership(), requiredGroupMembership, addRequiredGroupMembership, removeRequiredGroupMembership));
 
     if (originaHash == account.hashCode()) {
       AnsiUi.failure("No changes supplied.");
