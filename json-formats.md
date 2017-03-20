@@ -66,8 +66,8 @@ to re-run with different thresholds.
 
 ```JSON
 {
-	"results": [
-		{
+  "results": [
+    {
       "name": "cpu",
       "tags": {"tagName": "tagValue"},
       "values": {
