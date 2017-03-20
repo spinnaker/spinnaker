@@ -93,6 +93,7 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
     String deckConnection = providerInterface.connectToCommand(deploymentDetails, services.getDeck());
     String gateConnection = providerInterface.connectToCommand(deploymentDetails, services.getGate());
     result.setScript("#!/bin/bash\n" + deckConnection + "&\n" + gateConnection);
+    result.setAutoRun(false);
     return result;
   }
 

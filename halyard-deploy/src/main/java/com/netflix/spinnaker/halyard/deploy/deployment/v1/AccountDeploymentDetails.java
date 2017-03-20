@@ -37,5 +37,6 @@ public class AccountDeploymentDetails<T extends Account> extends DeploymentDetai
     setDeploymentConfiguration(details.getDeploymentConfiguration());
     setDeploymentName(details.getDeploymentName());
     setGenerateResult(details.getGenerateResult());
+    setBillOfMaterials(details.getBillOfMaterials());
   }
 }

@@ -85,7 +85,6 @@ public class DeployService {
     if (!StringUtils.isNullOrEmpty(script)) {
       String resultPath = writeExecutable(script, halconfigDirectoryStructure.getInstallScriptPath(deploymentName));
       result.setScriptPath(resultPath);
-      result.setAutoRun(true);
     }
 
     return result;
@@ -113,7 +112,6 @@ public class DeployService {
     if (!StringUtils.isNullOrEmpty(script)) {
       String resultPath = writeExecutable(script, halconfigDirectoryStructure.getInstallScriptPath(deploymentName));
       result.setScriptPath(resultPath);
-      result.setAutoRun(true);
     }
 
     return result;

@@ -141,12 +141,14 @@ public class KubernetesOperationFactory extends OperationFactory {
     readinessProbe.setHandler(handler);
     container.setReadinessProbe(readinessProbe);
 
+    /* TODO(lwander) this needs work
     SizingTranslation.ServiceSize serviceSize = sizingTranslation.getServiceSize(size, service);
     KubernetesResourceDescription resources = new KubernetesResourceDescription();
     resources.setCpu(serviceSize.getCpu());
     resources.setMemory(serviceSize.getRam());
     container.setRequests(resources);
     container.setLimits(resources);
+    */
 
     KubernetesImageDescription imageDescription = KubernetesUtil.buildImageDescription(artifactVersion);
     container.setImageDescription(imageDescription);

@@ -144,7 +144,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
       // Wait for the proxy to spin up.
       try {
-        Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
       } catch (InterruptedException ignored) {
       }
 
@@ -166,7 +166,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         DaemonTaskHandler.log("Connected to kubernetes cluster for account " + account.getName() + " on port " + proxy.getPort());
       } else {
         throw new HalException(new ConfigProblemBuilder(Severity.FATAL,
-            "Could not parse connection information from:\n" + connectionMessage).build());
+            "Could not parse connection information from:\n" + connectionMessage + "(" + status.getStdErr() + ")").build());
       }
     }
 
@@ -175,7 +175,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         + getServiceFromAddress(service.getAddress()) + ":" + service.getPort() + "/";
 
     log.info("Connected to " + service.getAddress() + " on port " + proxy.getPort());
-    log.info("View the kube ui on http://localhost:" + proxy.getPort() + "/ui/");
+    DaemonTaskHandler.log("View the kube ui on http://localhost:" + proxy.getPort() + "/ui/");
     return serviceInterfaceFactory.createService(endpoint, service);
   }
 
@@ -238,7 +238,10 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     String monitoringVersion = componentArtifact(details, monitoringService.getArtifact());
     DeploymentEnvironment.Size size = details.getDeploymentConfiguration().getDeploymentEnvironment().getSize();
 
-    if (service.isMonitoringEnabled()) {
+    boolean monitorSpinnaker = details.getDeploymentConfiguration().getMetricStores().isEnabled();
+    boolean monitorService = service.isMonitoringEnabled();
+
+    if (monitorService && monitorSpinnaker) {
       return kubernetesOperationFactory.createDeployPipeline(accountName, service, artifactVersion, monitoringService, monitoringVersion, configSources, update, size);
     } else {
       return kubernetesOperationFactory.createDeployPipeline(accountName, service, artifactVersion, configSources, update, size);
@@ -338,11 +341,13 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
           .endTcpSocket();
     }
 
+    /* TODO(lwander) this needs work
     DeploymentEnvironment.Size size = details.getDeploymentConfiguration().getDeploymentEnvironment().getSize();
     SizingTranslation.ServiceSize serviceSize = sizingTranslation.getServiceSize(size, service);
     Map<String, Quantity> resources = new HashMap<>();
     resources.put("cpu", new Quantity(serviceSize.getCpu()));
     resources.put("memory", new Quantity(serviceSize.getRam()));
+    */
 
     ContainerBuilder containerBuilder = new ContainerBuilder();
 
@@ -352,11 +357,11 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
         .withPorts(new ContainerPortBuilder().withContainerPort(port).build())
         .withVolumeMounts(volumes.stream().map(Pair::getLeft).collect(Collectors.toList()))
         .withEnv(envVars)
-        .withReadinessProbe(probeBuilder.build())
-        .withNewResources()
-        .withLimits(resources)
-        .withRequests(resources)
-        .endResources();
+        .withReadinessProbe(probeBuilder.build());
+    //  .withNewResources()
+    //  .withLimits(resources)
+    //  .withRequests(resources)
+    //  .endResources();
 
     ReplicaSetBuilder replicaSetBuilder = new ReplicaSetBuilder();
 
@@ -433,9 +438,9 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
 
   @Override
   public void bootstrapSpinnaker(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerEndpoints.Services services) {
+    bootstrapService(details, services.getRedisBootstrap(), true);
     bootstrapService(details, services.getClouddriverBootstrap(), true);
     bootstrapService(details, services.getOrcaBootstrap(), true);
-    bootstrapService(details, services.getRedisBootstrap(), true);
   }
 
   private List<String> kubectlAccountCommand(KubernetesAccount account) {

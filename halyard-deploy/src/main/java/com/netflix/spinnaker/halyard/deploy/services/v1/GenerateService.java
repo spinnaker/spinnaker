@@ -125,6 +125,7 @@ public class GenerateService {
 
       Set<String> currentRequirements = profileRequirements.getOrDefault(artifactName, new HashSet<>());
       currentRequirements.addAll(config.getRequiredFiles());
+      profileRequirements.put(artifactName, currentRequirements);
     }
 
     // Step 3.

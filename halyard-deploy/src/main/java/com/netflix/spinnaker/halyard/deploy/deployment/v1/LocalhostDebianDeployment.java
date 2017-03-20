@@ -98,6 +98,7 @@ public class LocalhostDebianDeployment extends Deployment {
     RemoteAction result = new RemoteAction();
     List<SpinnakerArtifact> artifacts = Arrays.asList(SpinnakerArtifact.values());
     result.setScript(installScript(artifacts).extendBindings(bindings).toString());
+    result.setAutoRun(true);
 
     return result;
   }
@@ -110,6 +111,7 @@ public class LocalhostDebianDeployment extends Deployment {
     RemoteAction result = new RemoteAction();
     List<SpinnakerArtifact> artifacts = Arrays.asList(SpinnakerArtifact.values());
     result.setScript(installScript(artifacts).extendBindings(bindings).toString());
+    result.setAutoRun(true);
 
     return result;
   }

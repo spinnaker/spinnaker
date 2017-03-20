@@ -87,7 +87,7 @@ public class DeploymentEnvironment extends Node {
     }
   }
 
-  private Size size = Size.LARGE;
+  private Size size = Size.SMALL;
   private DeploymentType type = DeploymentType.LocalhostDebian;
   private String accountName;
   private String vaultAddress;
