@@ -15,11 +15,20 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.prometheus;
 
-import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 
-abstract public class AbstractAuthnMethodCommand extends AbstractConfigCommand {
-  abstract public AuthnMethod.Method getMethod();
+import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.MetricStoreCommand;
+import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
+import lombok.Getter;
+
+public class PrometheusCommand extends MetricStoreCommand {
+  public MetricStores.MetricStoreType getMetricStoreType() {
+    return MetricStores.MetricStoreType.PROMETHEUS;
+  }
+
+  public PrometheusCommand() {
+    super();
+    registerSubcommand(new EditPrometheusCommand());
+  }
 }

@@ -40,6 +40,7 @@ public class ConfigCommand extends NestableCommand {
     registerSubcommand(new DeploymentEnvironmentCommand());
     registerSubcommand(new FeaturesCommand());
     registerSubcommand(new GenerateCommand());
+    registerSubcommand(new MetricStoresCommand());
     registerSubcommand(new PersistentStorageCommand());
     registerSubcommand(new ProviderCommand());
     registerSubcommand(new SecurityCommand());

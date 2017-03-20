@@ -112,6 +112,20 @@
  * [**hal config provider azure account get**](#hal-config-provider-azure-account-get)
  * [**hal config provider azure account list**](#hal-config-provider-azure-account-list)
  * [**hal config provider azure account delete**](#hal-config-provider-azure-account-delete)
+ * [**hal config metric-stores**](#hal-config-metric-stores)
+ * [**hal config metric-stores edit**](#hal-config-metric-stores-edit)
+ * [**hal config metric-stores datadog**](#hal-config-metric-stores-datadog)
+ * [**hal config metric-stores datadog edit**](#hal-config-metric-stores-datadog-edit)
+ * [**hal config metric-stores datadog enable**](#hal-config-metric-stores-datadog-enable)
+ * [**hal config metric-stores datadog disable**](#hal-config-metric-stores-datadog-disable)
+ * [**hal config metric-stores prometheus**](#hal-config-metric-stores-prometheus)
+ * [**hal config metric-stores prometheus edit**](#hal-config-metric-stores-prometheus-edit)
+ * [**hal config metric-stores prometheus enable**](#hal-config-metric-stores-prometheus-enable)
+ * [**hal config metric-stores prometheus disable**](#hal-config-metric-stores-prometheus-disable)
+ * [**hal config metric-stores stackdriver**](#hal-config-metric-stores-stackdriver)
+ * [**hal config metric-stores stackdriver edit**](#hal-config-metric-stores-stackdriver-edit)
+ * [**hal config metric-stores stackdriver enable**](#hal-config-metric-stores-stackdriver-enable)
+ * [**hal config metric-stores stackdriver disable**](#hal-config-metric-stores-stackdriver-disable)
  * [**hal config storage**](#hal-config-storage)
  * [**hal config storage edit**](#hal-config-storage-edit)
  * [**hal config generate**](#hal-config-generate)
@@ -277,6 +291,7 @@ hal config [subcommands]
  * `deploy`: Display the configured Spinnaker deployment.
  * `features`: Display the state of Spinnaker's feature flags.
  * `generate`: Generate the full Spinnaker config for your current deployment.
+ * `metric-stores`: Configure Spinnaker's metric stores. This configuration only affects the publishing of metrics against whichever metric stores you enable (it can be more than one).
  * `provider`: Configure, validate, and view the specified provider.
  * `security`: Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.
  * `storage`: Show Spinnaker's persistent storage options.
@@ -1883,6 +1898,198 @@ hal config provider azure account delete ACCOUNT [parameters]
 ```
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config metric-stores
+
+Configure Spinnaker's metric stores. This configuration only affects the publishing of metrics against whichever metric stores you enable (it can be more than one).
+
+#### Usage
+```
+hal config metric-stores [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `datadog`: Configure your datadog metric store.
+ * `edit`: Configure global metric stores properties.
+ * `prometheus`: Configure your prometheus metric store.
+ * `stackdriver`: Configure your stackdriver metric store.
+
+---
+## hal config metric-stores edit
+
+Configure global metric stores properties.
+
+#### Usage
+```
+hal config metric-stores edit [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--period`: (*Required*) Set the polling period for the monitoring daemon.
+
+---
+## hal config metric-stores datadog
+
+Configure your datadog metric store.
+
+#### Usage
+```
+hal config metric-stores datadog [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `disable`: Set the datadog method as disabled
+ * `edit`: Edit the datadog authentication method.
+ * `enable`: Set the datadog method as enabled
+
+---
+## hal config metric-stores datadog edit
+
+Edit the datadog authentication method.
+
+#### Usage
+```
+hal config metric-stores datadog edit [parameters]
+```
+#### Parameters
+ * `--api-key`: Your datadog API key.
+ * `--app-key`: Your datadog app key. This is only required if you want Spinnaker to push pre-configured Spinnaker dashboards to your Datadog account.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config metric-stores datadog enable
+
+Set the datadog method as enabled
+
+#### Usage
+```
+hal config metric-stores datadog enable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config metric-stores datadog disable
+
+Set the datadog method as disabled
+
+#### Usage
+```
+hal config metric-stores datadog disable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config metric-stores prometheus
+
+Configure your prometheus metric store.
+
+#### Usage
+```
+hal config metric-stores prometheus [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `disable`: Set the prometheus method as disabled
+ * `edit`: Edit the prometheus authentication method.
+ * `enable`: Set the prometheus method as enabled
+
+---
+## hal config metric-stores prometheus edit
+
+Edit the prometheus authentication method.
+
+#### Usage
+```
+hal config metric-stores prometheus edit [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--push-gateway`: The endpoint the monitoring Daemon should push metrics to. If you have configured Prometheus to automatically discover all your Spinnaker services and pull metrics from them this is not required.
+
+---
+## hal config metric-stores prometheus enable
+
+Set the prometheus method as enabled
+
+#### Usage
+```
+hal config metric-stores prometheus enable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config metric-stores prometheus disable
+
+Set the prometheus method as disabled
+
+#### Usage
+```
+hal config metric-stores prometheus disable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config metric-stores stackdriver
+
+Configure your stackdriver metric store.
+
+#### Usage
+```
+hal config metric-stores stackdriver [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `disable`: Set the stackdriver method as disabled
+ * `edit`: Edit the stackdriver authentication method.
+ * `enable`: Set the stackdriver method as enabled
+
+---
+## hal config metric-stores stackdriver edit
+
+Edit the stackdriver authentication method.
+
+#### Usage
+```
+hal config metric-stores stackdriver edit [parameters]
+```
+#### Parameters
+ * `--credentials-path`: A path to a Google JSON service account that has permission to publish metrics.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--project`: The project Spinnaker's metrics should be published to.
+ * `--zone`: The zone Spinnaker's metrics should be associated with.
+
+---
+## hal config metric-stores stackdriver enable
+
+Set the stackdriver method as enabled
+
+#### Usage
+```
+hal config metric-stores stackdriver enable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config metric-stores stackdriver disable
+
+Set the stackdriver method as disabled
+
+#### Usage
+```
+hal config metric-stores stackdriver disable [parameters]
+```
+#### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---

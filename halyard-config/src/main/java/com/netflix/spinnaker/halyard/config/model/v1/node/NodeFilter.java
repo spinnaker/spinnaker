@@ -118,6 +118,17 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter setMetricStores() {
+    matchers.add(Node.thisNodeAcceptor(MetricStores.class));
+    return this;
+  }
+
+  public NodeFilter setMetricStore(String name) {
+    matchers.add(Node.thisNodeAcceptor(MetricStores.class));
+    matchers.add(Node.namedNodeAcceptor(MetricStore.class, name));
+    return this;
+  }
+
   public NodeFilter setRoleProvider(String name) {
     matchers.add(Node.thisNodeAcceptor(Authz.class));
     matchers.add(Node.thisNodeAcceptor(GroupMembership.class));

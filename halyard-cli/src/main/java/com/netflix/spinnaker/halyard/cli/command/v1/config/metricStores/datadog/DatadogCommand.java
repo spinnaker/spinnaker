@@ -15,11 +15,20 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.datadog;
 
-import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 
-abstract public class AbstractAuthnMethodCommand extends AbstractConfigCommand {
-  abstract public AuthnMethod.Method getMethod();
+import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.MetricStoreCommand;
+import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
+import lombok.Getter;
+
+public class DatadogCommand extends MetricStoreCommand {
+  public MetricStores.MetricStoreType getMetricStoreType() {
+    return MetricStores.MetricStoreType.DATADOG;
+  }
+
+  public DatadogCommand() {
+    super();
+    registerSubcommand(new EditDatadogCommand());
+  }
 }

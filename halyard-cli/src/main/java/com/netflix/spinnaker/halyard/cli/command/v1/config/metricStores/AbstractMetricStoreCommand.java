@@ -15,29 +15,15 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.metricStores.prometheus;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Data
-public class PrometheusStore extends MetricStore {
-  @Override
-  public String getNodeName() {
-    return "prometheus";
-  }
-
-  @JsonIgnore
-  private MetricStores.MetricStoreType metricStoreType = MetricStores.MetricStoreType.PROMETHEUS;
-
-  @JsonProperty("push_gateway")
-  private String pushGateway;
-
-  @JsonProperty("add_source_metalabels")
-  private boolean addSourceMetalabels = true;
+abstract public class AbstractMetricStoreCommand extends AbstractConfigCommand {
+  abstract public MetricStores.MetricStoreType getMetricStoreType();
 }

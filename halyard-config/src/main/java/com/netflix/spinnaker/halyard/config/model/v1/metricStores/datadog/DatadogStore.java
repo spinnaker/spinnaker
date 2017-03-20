@@ -17,8 +17,10 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.metricStores.datadog;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
+import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,6 +31,9 @@ public class DatadogStore extends MetricStore {
   public String getNodeName() {
     return "datadog";
   }
+
+  @JsonIgnore
+  private MetricStores.MetricStoreType metricStoreType = MetricStores.MetricStoreType.DATADOG;
 
   @JsonProperty("api_key")
   private String apiKey;

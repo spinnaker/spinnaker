@@ -17,9 +17,11 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.metricStores.stackdriver;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
+import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -30,6 +32,9 @@ public class StackdriverStore extends MetricStore {
   public String getNodeName() {
     return "stackdriver";
   }
+
+  @JsonIgnore
+  private MetricStores.MetricStoreType metricStoreType = MetricStores.MetricStoreType.STACKDRIVER;
 
   @JsonProperty("credentials_path")
   @LocalFile

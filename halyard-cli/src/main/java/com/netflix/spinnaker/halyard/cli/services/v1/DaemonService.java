@@ -21,9 +21,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import retrofit.http.*;
 
@@ -152,6 +152,37 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body Security security);
+
+  @GET("/v1/config/deployments/{deploymentName}/metricStores/")
+  DaemonTask<Halconfig, MetricStores> getMetricStores(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/metricStores/")
+  DaemonTask<Halconfig, Void> setMetricStores(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body MetricStores metricStores);
+
+  @GET("/v1/config/deployments/{deploymentName}/metricStores/{metricStoreType}/")
+  DaemonTask<Halconfig, Object> getMetricStore(
+      @Path("deploymentName") String deploymentName,
+      @Path("metricStoreType") String metricStoreType,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/metricStores/{metricStoreType}/")
+  DaemonTask<Halconfig, Void> setMetricStore(
+      @Path("deploymentName") String deploymentName,
+      @Path("metricStoreType") String metricStoreType,
+      @Query("validate") boolean validate,
+      @Body Map metricStore);
+
+  @PUT("/v1/config/deployments/{deploymentName}/metricStores/{metricStoreType}/enabled/")
+  DaemonTask<Halconfig, Void> setMetricStoreEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Path("metricStoreType") String metricStoreType,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
 
   @GET("/v1/config/deployments/{deploymentName}/version/")
   DaemonTask<Halconfig, String> getVersion(

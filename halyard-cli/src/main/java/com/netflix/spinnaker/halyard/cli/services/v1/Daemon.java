@@ -33,6 +33,7 @@ import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 @Slf4j
@@ -235,6 +236,42 @@ public class Daemon {
     return () -> {
       Object rawDiff = ResponseUnwrapper.get(getService().configDiff(deploymentName, validate));
       return getObjectMapper().convertValue(rawDiff, NodeDiff.class);
+    };
+  }
+
+  public static Supplier<MetricStores> getMetricStores(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawMetricStores = ResponseUnwrapper.get(getService().getMetricStores(deploymentName, validate));
+      return getObjectMapper().convertValue(rawMetricStores, MetricStores.class);
+    };
+  }
+
+  public static Supplier<Void> setMetricStores(String deploymentName, boolean validate, MetricStores metricStores) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setMetricStores(deploymentName, validate, metricStores));
+      return null;
+    };
+  }
+
+  public static Supplier<MetricStore> getMetricStore(String deploymentName, String metricStoreType, boolean validate) {
+    return () -> {
+      Object rawMetricStore = ResponseUnwrapper.get(getService().getMetricStore(deploymentName, metricStoreType, validate));
+      return getObjectMapper().convertValue(rawMetricStore, MetricStores.translateMetricStoreType(metricStoreType));
+    };
+  }
+
+  public static Supplier<Void> setMetricStore(String deploymentName, String metricStoreType, boolean validate, MetricStore metricStore) {
+    return () -> {
+      Map translatedMetricStore = getObjectMapper().convertValue(metricStore, Map.class);
+      ResponseUnwrapper.get(getService().setMetricStore(deploymentName, metricStoreType, validate, translatedMetricStore));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setMetricStoreEnabled(String deploymentName, String metricStoreType, boolean validate, boolean enabled) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setMetricStoreEnabled(deploymentName, metricStoreType, validate, enabled));
+      return null;
     };
   }
 
