@@ -68,8 +68,8 @@ to re-run with different thresholds.
 {
 	"results": [
 		{
-			"name": "cpu",
-			"tags": {"tagName": "tagValue"},
+      "name": "cpu",
+      "tags": {"tagName": "tagValue"},
       "values": {
         "baseline": [ 1, 2, 3, 4, 5 ],
         "canary": [ 1, 2, 3, 4, 5 ]
