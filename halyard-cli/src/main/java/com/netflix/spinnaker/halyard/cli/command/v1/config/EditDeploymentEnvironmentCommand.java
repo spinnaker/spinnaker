@@ -51,6 +51,20 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
   )
   private DeploymentType type;
 
+  @Parameter(
+      names = "--consul-address",
+      description = "The address of a running Consul cluster. See https://www.consul.io/.\n"
+          + "This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration."
+  )
+  private String consulAddress;
+
+  @Parameter(
+      names = "--vault-address",
+      description = "The address of a running Vault datastore. See https://www.vaultproject.io/."
+          + "This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration."
+  )
+  private String vaultAddress;
+
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
@@ -64,6 +78,8 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
 
     deploymentEnvironment.setAccountName(isSet(accountName) ? accountName : deploymentEnvironment.getAccountName());
     deploymentEnvironment.setType(type != null ? type : deploymentEnvironment.getType());
+    deploymentEnvironment.setConsulAddress(isSet(consulAddress) ? consulAddress : deploymentEnvironment.getConsulAddress());
+    deploymentEnvironment.setVaultAddress(isSet(vaultAddress) ? vaultAddress : deploymentEnvironment.getVaultAddress());
 
     if (originalHash == deploymentEnvironment.hashCode()) {
       AnsiUi.failure("No changes supplied.");

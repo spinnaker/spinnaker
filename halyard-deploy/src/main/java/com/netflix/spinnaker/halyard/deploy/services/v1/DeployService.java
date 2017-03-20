@@ -78,9 +78,7 @@ public class DeployService {
 
   public RemoteAction installSpinnaker(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-
     Deployment deployment = deploymentFactory.create(deploymentConfiguration, null);
-
     RemoteAction result = deployment.install(spinnakerOutputPath);
 
     String script = result.getScript();

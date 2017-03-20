@@ -3,11 +3,13 @@
 # This script installs Halyard.
 # See http://www.spinnaker.io/docs/creating-a-spinnaker-instance
 
-
 set -e
 set -o pipefail
 
 REPOSITORY_URL="https://dl.bintray.com/spinnaker-team/spinnakerbuild"
+
+VAULT_VERSION=0.7.0
+VAULT_ARCH=linux_amd64
 
 # We can only currently support limited releases
 # First guess what sort of operating system
@@ -258,11 +260,20 @@ if [ -n "$DOWNLOAD"]; then
   add_apt_repositories
 fi
 
-TEMPDIR=$(mktemp -d installhalyard.XXXX)
-
 echo "$(tput bold)Installing Java 8...$(tput sgr0)"
 
 install_java
+
+apt-get install -y unzip
+
+TEMPDIR=$(mktemp -d installhalyard.XXXX)
+
+mkdir $TEMPDIR/vault && pushd $TEMPDIR/vault
+wget https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_${VAULT_ARCH}.zip
+unzip -u -o -q vault_${VAULT_VERSION}_${VAULT_ARCH}.zip -d /usr/bin
+popd
+
+rm -rf $TEMPDIR
 
 if [ -n "$DEPENDENCIES_ONLY" ]; then
   exit 0
@@ -289,8 +300,6 @@ fi
 
 configure_halyard_defaults
 configure_bash_completion
-
-rm -rf $TEMPDIR
 
 start halyard
 
