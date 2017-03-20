@@ -33,7 +33,7 @@ but a suggestion.
     sudo apt-get install python-pip
     
     # Instal FFI package needed by pyopenssl
-    sudo apt-get install libffi-dev python-dev
+    sudo apt-get install libffi-dev libssl-dev python-dev
 
     # Install virtualenv tools  and setup a Virtual Environment.
     pip install virtualenv
