@@ -24,11 +24,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 1
         },
@@ -41,11 +41,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 2
         },
@@ -58,11 +58,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 2
         },
@@ -75,11 +75,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 3
         },
@@ -92,11 +92,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 3
         },
@@ -110,11 +110,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 2
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 2
+            count: 0
           },
           costFactor: 4
         }
@@ -179,11 +179,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 2
         },
@@ -196,11 +196,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 2
         },
@@ -213,11 +213,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 3
         },
@@ -230,11 +230,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 3
         },
@@ -248,11 +248,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 2
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 2
+            count: 0
           },
           costFactor: 4
         }
@@ -274,11 +274,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 1
         },
@@ -291,11 +291,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 2
         },
@@ -308,11 +308,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 2
         },
@@ -325,11 +325,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 1
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 1
+            count: 0
           },
           costFactor: 3
         },
@@ -343,11 +343,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
             defaultSettings: {
               persistentDiskType: 'pd-ssd',
               persistentDiskSizeGb: 10,
-              localSSDCount: 2
+              localSSDCount: 0
             },
             localSSDSupported: true,
             size: 375,
-            count: 2
+            count: 0
           },
           costFactor: 4
         }
