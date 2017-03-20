@@ -36,7 +36,7 @@ Atlas is used.
   ],
   "services": {
     "atlas": {
-			"type": "atlas",
+      "type": "atlas",
       "region": "us-east-1",
       "env": "prod",
       "backend": {
@@ -68,16 +68,12 @@ to re-run with different thresholds.
 {
 	"results": [
 		{
-			"name": "metricName",
-			"tags": {"tagName": "tagValue"}
-			"baseline": {
-				"legend": "CPU Time: Baseline",
-				"values": [1,2,3,4,5,6,7,8,9,10],
-			},
-			"canary": {
-				"legend": "CPU time: Canary",
-				"values": [1,2,3,4,5,6,7,8,9,10],
-			}
+			"name": "cpu",
+			"tags": {"tagName": "tagValue"},
+      "values": {
+        "baseline": [ 1, 2, 3, 4, 5 ],
+        "canary": [ 1, 2, 3, 4, 5 ]
+      }
 		}
 	]
 }
