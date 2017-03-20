@@ -68,5 +68,8 @@ module(APPENGINE_MODULE, [
         detailsTemplateUrl: require('./loadBalancer/details/details.html'),
         detailsController: 'appengineLoadBalancerDetailsCtrl',
       },
+      logo: {
+        path: require('./logo/appengine.logo.svg'),
+      },
     });
   });
