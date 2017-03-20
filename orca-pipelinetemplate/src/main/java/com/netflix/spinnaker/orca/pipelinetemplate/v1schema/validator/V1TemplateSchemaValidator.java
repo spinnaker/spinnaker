@@ -33,7 +33,7 @@ public class V1TemplateSchemaValidator implements SchemaValidator {
     PipelineTemplate template = (PipelineTemplate) pipelineTemplate;
 
     if (!SUPPORTED_VERSION.equals(template.getSchemaVersion())) {
-      errors.addError(Error.builder()
+      errors.addError(new Error()
         .withMessage("template schema version is unsupported: expected '" + SUPPORTED_VERSION + "', got '" + template.getSchemaVersion() + "'"));
     }
 

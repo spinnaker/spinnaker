@@ -22,17 +22,16 @@ import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderExce
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedHashMap;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateModule;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-
-import static org.apache.commons.lang3.Validate.isTrue;
 
 /**
  * Renders a module with the given context and parameters.
@@ -56,20 +55,30 @@ public class ModuleHelper implements Helper<Object> {
 
   @Override
   public String apply(Object context, Options options) throws IOException {
-    isTrue(context instanceof String, "module: could not find module by given id '%s', or id type is invalid", context);
+    if (!(context instanceof String)) {
+      throw new TemplateRenderException(new Error()
+        .withMessage(String.format("Invalid module ID provided: %s", context))
+        .withCause("Expected string, got: " + (context == null ? "null" : context.getClass().getSimpleName()))
+      );
+    }
 
     PipelineTemplate template = options.get("pipelineTemplate");
     if (template == null) {
-      throw new TemplateRenderException("pipeline template missing from handlebars context");
+      throw new TemplateRenderException(new Error()
+        .withMessage("Pipeline template missing from handlebars context")
+        .withCause("Internal error")
+        .withLocation(String.format("module:%s", context))
+      );
     }
 
     TemplateModule module = template.getModules()
       .stream()
       .filter(m -> m.getId().equals(context))
       .findFirst()
-      .orElseThrow((Supplier<RuntimeException>) () -> new TemplateRenderException("requested module '" + context + "' does not exist"));
+      .orElseThrow((Supplier<RuntimeException>) () -> new TemplateRenderException(String.format("Module does not exist by ID: %s", context)));
 
-    RenderContext moduleContext = new RenderContext(options.get("application"), template, options.get("trigger"));
+    DefaultRenderContext moduleContext = new DefaultRenderContext(options.get("application"), template, options.get("trigger"));
+    moduleContext.setLocation("module:" + module.getId());
 
     List<String> missing = new ArrayList<>();
     for (NamedHashMap var : module.getVariables()) {
@@ -82,10 +91,14 @@ public class ModuleHelper implements Helper<Object> {
           continue;
         }
       }
-      moduleContext.put(var.getName(), val);
+      moduleContext.getVariables().put(var.getName(), val);
     }
     if (missing.size() > 0) {
-      throw new TemplateRenderException("missing required variables in module " + module.getId() + ": " + StringUtils.join(missing, ","));
+      throw new TemplateRenderException(new Error()
+        .withMessage("Missing required variables in module")
+        .withCause("'" + StringUtils.join(missing, "', '") + "' must be defined")
+        .withLocation(moduleContext.getLocation())
+      );
     }
 
     Object rendered = RenderUtil.deepRender(renderer, module.getDefinition(), moduleContext);

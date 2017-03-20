@@ -72,11 +72,15 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     try {
       return processInternal(pipeline);
     } catch (TemplateLoaderException e) {
-      return new Errors().addError(Error.builder().withMessage("failed loading template").withCause(e.getMessage())).toResponse();
+      return new Errors().addError(new Error().withMessage("failed loading template").withCause(e.getMessage())).toResponse();
     } catch (TemplateRenderException e) {
-      return new Errors().addError(Error.builder().withMessage("failed rendering handlebars template").withCause(e.getMessage())).toResponse();
+      return new Errors().addError(
+        e.getError() != null ? e.getError() : new Error().withMessage("failed rendering handlebars template").withCause(e.getMessage())
+      ).toResponse();
     } catch (IllegalTemplateConfigurationException e) {
-      return new Errors().addError(Error.builder().withMessage("malformed template configuration").withCause(e.getMessage())).toResponse();
+      return new Errors().addError(
+        e.getError() != null ? e.getError() : new Error().withMessage("malformed template configuration").withCause(e.getMessage())
+      ).toResponse();
     }
   }
 

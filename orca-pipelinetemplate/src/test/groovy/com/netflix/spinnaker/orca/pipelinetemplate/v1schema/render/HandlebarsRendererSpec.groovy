@@ -30,10 +30,10 @@ class HandlebarsRendererSpec extends Specification {
   @Unroll
   def 'should render and return correct java type'() {
     given:
-    RenderContext context = new RenderContext('myApp', new PipelineTemplate(), [job: 'job', buildNumber: 1234 ]).with {
-      put('stringVar', 'myStringValue')
-      put('regions', ['us-east-1', 'us-west-2'])
-      put('objectVar', [key1: 'value1', key2: 'value2'])
+    DefaultRenderContext context = new DefaultRenderContext('myApp', new PipelineTemplate(), [job: 'job', buildNumber: 1234 ]).with {
+      variables.put('stringVar', 'myStringValue')
+      variables.put('regions', ['us-east-1', 'us-west-2'])
+      variables.put('objectVar', [key1: 'value1', key2: 'value2'])
       return it
     }
 

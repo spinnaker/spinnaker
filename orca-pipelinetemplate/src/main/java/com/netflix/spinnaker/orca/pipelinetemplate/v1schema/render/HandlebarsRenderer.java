@@ -70,7 +70,7 @@ public class HandlebarsRenderer implements Renderer {
       throw new TemplateRenderException("could not compile handlebars template", e);
     }
 
-    Context context = Context.newContext(configuration);
+    Context context = Context.newContext(configuration.getVariables());
 
     String rendered;
     try {

@@ -23,9 +23,11 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisi
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 
 import java.util.List;
 import java.util.Map;
@@ -60,17 +62,17 @@ public class RenderTransform implements PipelineTemplateVisitor {
   }
 
   private void render(PipelineTemplate template) {
-    RenderContext context = new RenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
+    RenderContext context = new DefaultRenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
 
-    context.putAll(templateConfiguration.getPipeline().getVariables());
+    context.getVariables().putAll(templateConfiguration.getPipeline().getVariables());
 
     // We only render the stages here, whereas modules will be rendered only if used within stages.
-    renderStages(template.getStages(), context);
-    renderStages(templateConfiguration.getStages(), context);
+    renderStages(template.getStages(), context, "template");
+    renderStages(templateConfiguration.getStages(), context, "configuration");
   }
 
   @SuppressWarnings("unchecked")
-  private void renderStages(List<StageDefinition> stages, RenderContext context) {
+  private void renderStages(List<StageDefinition> stages, RenderContext context, String locationNamespace) {
     if (stages == null) {
       return;
     }
@@ -80,11 +82,19 @@ public class RenderTransform implements PipelineTemplateVisitor {
       try {
         rendered = RenderUtil.deepRender(renderer, stage.getConfig(), context);
       } catch (TemplateRenderException e) {
-        throw new TemplateRenderException("Failed rendering stage '" + stage.getId() + "': " + e.getMessage());
+        throw new TemplateRenderException(new Errors.Error()
+          .withMessage("Failed rendering stage")
+          .withCause(e.getMessage())
+          .withLocation(String.format("%s:stages.%s", locationNamespace, stage.getId()))
+        );
       }
 
       if (!(rendered instanceof Map)) {
-        throw new IllegalTemplateConfigurationException("A stage's rendered config must be a map");
+        throw new IllegalTemplateConfigurationException(new Errors.Error()
+          .withMessage("A stage's rendered config must be a map")
+          .withCause("Received type " + rendered.getClass().toString())
+          .withLocation(String.format("%s:stages.%s", locationNamespace, stage.getId()))
+        );
       }
       stage.setConfig((Map<String, Object>) rendered);
     }

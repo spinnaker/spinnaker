@@ -15,7 +15,15 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.exceptions;
 
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
+
 public class TemplateRenderException extends RuntimeException {
+
+  private Error error;
+
+  public TemplateRenderException(Error error) {
+    this.error = error;
+  }
 
   public TemplateRenderException(String message) {
     super(message);
@@ -25,7 +33,7 @@ public class TemplateRenderException extends RuntimeException {
     super(message, cause);
   }
 
-  public TemplateRenderException(Throwable cause) {
-    super(cause);
+  public Error getError() {
+    return error;
   }
 }

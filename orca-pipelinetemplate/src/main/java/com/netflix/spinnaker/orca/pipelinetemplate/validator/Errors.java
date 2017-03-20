@@ -73,10 +73,6 @@ public class Errors {
     String cause;
     String suggestion;
 
-    public static Error builder() {
-      return new Error();
-    }
-
     public Error withSeverity(Severity severity) {
       this.severity = severity;
       return this;
