@@ -492,7 +492,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       
   def __init_appengine_bindings(self):
     bindings = self.bindings
-    if bindings.get('SPINNAKER_APPENGINE_ACCOUNT'):
+    if bindings.get('APPENGINE_PRIMARY_MANAGED_PROJECT_ID'):
       self.__appengine_observer = gcp.GcpAppengineAgent.make_agent(
         scopes=(gcp.APPENGINE_FULL_SCOPE if bindings['APPENGINE_CREDENTIALS_PATH'] else None),
         credentials_path=bindings['APPENGINE_CREDENTIALS_PATH'], 
