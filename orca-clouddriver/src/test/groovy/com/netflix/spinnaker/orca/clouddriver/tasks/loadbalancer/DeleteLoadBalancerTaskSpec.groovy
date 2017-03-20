@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -27,7 +27,7 @@ import spock.lang.Subject
  */
 class DeleteLoadBalancerTaskSpec extends Specification {
   @Subject task = new DeleteLoadBalancerTask()
-  def stage = new PipelineStage(type: "whatever")
+  def stage = new Stage<>(type: "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deleteLoadBalancerConfig = [

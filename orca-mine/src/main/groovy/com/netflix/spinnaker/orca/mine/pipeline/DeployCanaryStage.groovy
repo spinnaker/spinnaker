@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
-import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.FindImageFromClusterTask
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
@@ -30,7 +30,10 @@ import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -106,7 +109,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
     }.flatten()
 
     def findImageCtx = [application: stage.execution.application, account: stage.context.baseline.account, cluster: stage.context.baseline.cluster, regions: regions, cloudProvider: stage.context.baseline.cloudProvider ?: 'aws']
-    Stage s = new OrchestrationStage(new Orchestration(), "findImage", findImageCtx)
+    Stage s = new Stage<>(new Orchestration(), "findImage", findImageCtx)
     TaskResult result = findImage.execute(s)
     try {
       return result.stageOutputs.amiDetails

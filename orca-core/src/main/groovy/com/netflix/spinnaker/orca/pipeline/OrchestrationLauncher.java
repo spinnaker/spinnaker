@@ -23,7 +23,6 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.AuthenticationDetails;
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +72,7 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
       }
 
       // TODO: need to check it's valid?
-      Stage<Orchestration> stage = new OrchestrationStage(orchestration, type, context);
+      Stage<Orchestration> stage = new Stage<>(orchestration, type, context);
       orchestration.getStages().add(stage);
     }
 

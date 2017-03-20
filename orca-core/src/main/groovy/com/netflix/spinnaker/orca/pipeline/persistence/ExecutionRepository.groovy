@@ -17,7 +17,10 @@
 package com.netflix.spinnaker.orca.pipeline.persistence
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 interface ExecutionRepository {
   void store(Orchestration orchestration)
@@ -25,9 +28,7 @@ interface ExecutionRepository {
 
   void storeExecutionContext(String id, Map<String, Object> context)
 
-  void storeStage(Stage stage)
-  void storeStage(OrchestrationStage stage)
-  void storeStage(PipelineStage stage)
+  def <T extends Execution<T>> void storeStage(Stage<T> stage)
 
   void cancel(String id)
   void cancel(String id, String user, String reason)

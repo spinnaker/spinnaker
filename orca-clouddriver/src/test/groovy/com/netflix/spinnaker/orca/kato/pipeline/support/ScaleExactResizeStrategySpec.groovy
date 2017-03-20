@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -39,7 +39,7 @@ class ScaleExactResizeStrategySpec extends Specification {
     def context = [
       capacity: specifiedCap
     ]
-    def stage = new PipelineStage(new Pipeline(), "resizeServerGroup", context)
+    def stage = new Stage<>(new Pipeline(), "resizeServerGroup", context)
 
     when:
     def cap = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)

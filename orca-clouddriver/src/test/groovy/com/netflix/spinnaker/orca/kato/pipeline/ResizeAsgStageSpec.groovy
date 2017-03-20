@@ -23,14 +23,10 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.repository.JobRepository
-import org.springframework.context.ApplicationContext
-import org.springframework.transaction.PlatformTransactionManager
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
+import org.springframework.context.ApplicationContext
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import spock.lang.AutoCleanup
@@ -72,7 +68,7 @@ class ResizeAsgStageSpec extends Specification {
     setup:
     def config = [asgName    : "testapp-asg-v000", regions: ["us-west-1", "us-east-1"], capacity: [min: 0, max: 0, desired: 0],
                   credentials: "test"]
-    def stage = new PipelineStage(new Pipeline(), "resizeAsg", config)
+    def stage = new Stage<>(new Pipeline(), "resizeAsg", config)
 
     when:
     stageBuilder.buildTaskGraph(stage)
@@ -131,7 +127,7 @@ class ResizeAsgStageSpec extends Specification {
     setup:
     def config = [cluster : "testapp-asg", target: target, regions: ["us-west-1", "us-east-1"],
                   capacity: [min: 0, max: 0, desired: 0], credentials: "test"]
-    def stage = new PipelineStage(new Pipeline(), "resizeAsg", config)
+    def stage = new Stage<>(new Pipeline(), "resizeAsg", config)
 
     when:
     def syntheticStages = stageBuilder.aroundStages(stage)
@@ -173,7 +169,7 @@ class ResizeAsgStageSpec extends Specification {
     setup:
     def config = [cluster : "testapp-asg", target: target, regions: ["us-east-1"],
                   capacity: [min: 0, max: 0, desired: 0], credentials: "test"]
-    def stage = new PipelineStage(new Pipeline(), "resizeAsg", config)
+    def stage = new Stage<>(new Pipeline(), "resizeAsg", config)
 
     when:
     def syntheticStages = stageBuilder.aroundStages(stage)

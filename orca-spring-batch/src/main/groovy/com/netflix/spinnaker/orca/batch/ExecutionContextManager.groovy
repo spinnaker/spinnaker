@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -31,7 +30,7 @@ import org.springframework.batch.core.scope.context.ChunkContext
 class ExecutionContextManager {
   static <T extends Execution> Stage<T> retrieve(Stage<T> stage, ChunkContext chunkContext) {
     Map<String, Object> processed = processEntries(stage.context, stage, chunkContext)
-    ((AbstractStage) stage).context = new DelegatingHashMap(processed ?: [:], chunkContext, stage)
+    stage.context = new DelegatingHashMap(processed ?: [:], chunkContext, stage)
     return stage
   }
 

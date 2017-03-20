@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSour
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -36,7 +36,7 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
   @Unroll
   void "should no-op if useSourceCapacity is false"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "", stageContext)
+    def stage = new Stage<>(new Pipeline(), "", stageContext)
 
     when:
     def result = task.execute(stage)
@@ -54,7 +54,7 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
 
   void "should capture source server group capacity and update target capacity"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline(), "", [
       useSourceCapacity: true,
       capacity         : [
         min    : 0,

@@ -21,14 +21,14 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
 class CloneServerGroupTaskSpec extends Specification {
   @Subject task = new CloneServerGroupTask()
-  def stage = new PipelineStage(new Pipeline(), "cloneServerGroup")
+  def stage = new Stage<>(new Pipeline(), "cloneServerGroup")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
@@ -132,7 +132,7 @@ class CloneServerGroupTaskSpec extends Specification {
 
   def "amiName uses value from bake"() {
     given:
-    def bakeEast = new PipelineStage(stage.execution, "bake", [ami: bakeAmi, region: 'us-east-1', cloudProvider: 'aws'])
+    def bakeEast = new Stage<>(stage.execution, "bake", [ami: bakeAmi, region: 'us-east-1', cloudProvider: 'aws'])
     bakeEast.refId = "1"
     stage.refId = "3"
     stage.requisiteStageRefIds = [ "1" ]
@@ -167,7 +167,7 @@ class CloneServerGroupTaskSpec extends Specification {
 
   def "image is not resolved from bake if cloud provider does not match"() {
     given:
-    def bakeEast = new PipelineStage(stage.execution, "bake", [ami: bakeAmi, region: 'us-east-1', cloudProvider: 'gce'])
+    def bakeEast = new Stage<>(stage.execution, "bake", [ami: bakeAmi, region: 'us-east-1', cloudProvider: 'gce'])
     bakeEast.refId = "1"
     stage.refId = "3"
     stage.requisiteStageRefIds = [ "1" ]

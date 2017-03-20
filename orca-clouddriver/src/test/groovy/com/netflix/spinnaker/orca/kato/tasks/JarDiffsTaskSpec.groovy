@@ -19,12 +19,12 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
-import com.netflix.spinnaker.orca.libdiffs.Library
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
+import com.netflix.spinnaker.orca.libdiffs.Library
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -167,14 +167,14 @@ class JarDiffsTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("app")
       .build()
-    def stage = new PipelineStage(pipe, 'jarDiff', config)
+    def stage = new Stage<>(pipe, 'jarDiff', config)
 
     stage.context << deployContext
 
     when:
     task.oortHelper = oortHelper
-    1 * oortHelper.getInstancesForCluster(config, "myapp-v000", false, false) >> sourceExpectedInstances
-    1 * oortHelper.getInstancesForCluster(config, "myapp-v002", false, false) >> targetExpectedInstances
+    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v000", false, false) >> sourceExpectedInstances
+    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v002", false, false) >> targetExpectedInstances
     1 * instanceService.getJars() >> sourceResponse
     1 * instanceService.getJars() >> targetResponse
 
@@ -205,14 +205,14 @@ class JarDiffsTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("app")
       .build()
-    def stage = new PipelineStage(pipe, 'jarDiff', config)
+    def stage = new Stage<>(pipe, 'jarDiff', config)
 
     stage.context << deployContext
 
     when:
     task.oortHelper = oortHelper
-    1 * oortHelper.getInstancesForCluster(config, "myapp-v000", false, false) >> sourceExpectedInstances
-    1 * oortHelper.getInstancesForCluster(config, "myapp-v002", false, false) >> targetExpectedInstances
+    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v000", false, false) >> sourceExpectedInstances
+    1 * oortHelper.getInstancesForCluster(stage.context, "myapp-v002", false, false) >> targetExpectedInstances
     1 * instanceService.getJars() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
     1 * instanceService.getJars() >> targetResponse
 
@@ -235,7 +235,7 @@ class JarDiffsTaskSpec extends Specification {
 
   def "return success if retries limit hit"() {
     given:
-    def stage = new PipelineStage(pipeline, "jarDiffs", [jarDiffsRetriesRemaining: 0])
+    def stage = new Stage<>(pipeline, "jarDiffs", [jarDiffsRetriesRemaining: 0])
 
     when:
     def result = task.execute(stage)

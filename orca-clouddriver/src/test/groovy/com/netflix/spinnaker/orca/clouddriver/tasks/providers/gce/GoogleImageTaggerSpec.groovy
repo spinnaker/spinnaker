@@ -19,11 +19,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
-import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonImageTagger
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.context.ApplicationContext
 import spock.lang.Specification
@@ -42,11 +40,11 @@ class GoogleImageTaggerSpec extends Specification {
     given:
     def pipeline = new Pipeline()
 
-    def stage1 = new PipelineStage(pipeline, "", [
+    def stage1 = new Stage<>(pipeline, "", [
       imageId      : imageId,
       cloudProvider: "gce"
     ])
-    def stage2 = new PipelineStage(pipeline, "", [
+    def stage2 = new Stage<>(pipeline, "", [
       imageNames   : imageName ? [imageName] : null,
       cloudProvider: "gce"
     ])
@@ -74,7 +72,7 @@ class GoogleImageTaggerSpec extends Specification {
 
   def "should build upsertImageTags operation"() {
     given:
-    def stage = new OrchestrationStage(new Orchestration(), "", [
+    def stage = new Stage<>(new Orchestration(), "", [
       account   : "my-google-account",
       imageNames: ["my-gce-image"],
       tags      : [

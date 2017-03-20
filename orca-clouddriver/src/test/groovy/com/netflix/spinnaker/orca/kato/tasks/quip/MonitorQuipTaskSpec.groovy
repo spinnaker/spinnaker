@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Client
 import retrofit.client.Response
@@ -46,7 +46,7 @@ class MonitorQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("foo")
       .build()
-    def stage = new PipelineStage(pipe, 'monitorQuip', [:])
+    def stage = new Stage<>(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
 
@@ -83,7 +83,7 @@ class MonitorQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("foo")
       .build()
-    def stage = new PipelineStage(pipe, 'monitorQuip', [:])
+    def stage = new Stage<>(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
 
@@ -115,7 +115,7 @@ class MonitorQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("foo")
       .build()
-    def stage = new PipelineStage(pipe, 'monitorQuip', [:])
+    def stage = new Stage<>(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
 
@@ -141,7 +141,7 @@ class MonitorQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("foo")
       .build()
-    def stage = new PipelineStage(pipe, 'monitorQuip', [:])
+    def stage = new Stage<>(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
 
@@ -168,7 +168,7 @@ class MonitorQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("foo")
       .build()
-    def stage = new PipelineStage(pipe, 'monitorQuip', [:])
+    def stage = new Stage<>(pipe, 'monitorQuip', [:])
     stage.context.instances = instances
     stage.context.taskIds = taskIds
 

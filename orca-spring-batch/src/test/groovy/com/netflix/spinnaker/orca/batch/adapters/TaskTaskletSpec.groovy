@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -255,7 +254,7 @@ class TaskTaskletSpec extends Specification {
   @Unroll
   def "should invoke matching exception handler when task execution fails"() {
     expect:
-    with(sourceTasklet.executeTask(new PipelineStage(), chunkContext)) {
+    with(sourceTasklet.executeTask(new Stage<>(), chunkContext)) {
       status == expectedStatus
     }
 
@@ -274,7 +273,7 @@ class TaskTaskletSpec extends Specification {
   @Unroll
   def "should override status depending on `failPipeline`"() {
     given:
-    def stage = new PipelineStage()
+    def stage = new Stage<>()
     stage.context = stageContext
 
     when:
@@ -333,7 +332,7 @@ class TaskTaskletSpec extends Specification {
 
     and:
     def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, stageType)
+    def stage = new Stage<>(pipeline, stageType)
     stage.tasks << new DefaultTask(status: SUCCEEDED)
     stage.tasks << new DefaultTask()
     stage.stageNavigator = new StageNavigator(applicationContext)

@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInsta
 import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInstanceSupport
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -33,7 +33,7 @@ class TerminatingInstanceSupportSpec extends Specification {
   @Unroll
   def "should lookup instances by server group name"() {
     given:
-      def stage = new PipelineStage(new Pipeline(), "whatever", [
+      def stage = new Stage<>(new Pipeline(), "whatever", [
           credentials    : "creds",
           region         : "north-pole",
           serverGroupName: "santa-claus"
@@ -62,7 +62,7 @@ class TerminatingInstanceSupportSpec extends Specification {
   @Unroll
   def "should lookup instances by searching"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "whatever", stageMods)
+    def stage = new Stage<>(new Pipeline(), "whatever", stageMods)
 
 
     when:

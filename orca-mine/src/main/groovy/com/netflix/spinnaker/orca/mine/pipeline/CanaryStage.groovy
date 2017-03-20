@@ -17,15 +17,14 @@
 package com.netflix.spinnaker.orca.mine.pipeline
 
 import java.util.concurrent.TimeUnit
-import groovy.util.logging.Slf4j
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
@@ -86,7 +85,7 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
     }
 
     def shrinkResults = shrinkContexts.collect {
-      def shrinkStage = new PipelineStage()
+      def shrinkStage = new Stage<>()
       shrinkStage.context.putAll(it)
       shrinkClusterTask.execute(shrinkStage)
     }

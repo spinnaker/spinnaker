@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -37,7 +37,7 @@ class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
         return localInstanceDetails.find { it.instanceId == instanceId }
       }
     }
-    def stage = new PipelineStage(pipeline, "waitForDownInstance", [
+    def stage = new Stage<>(pipeline, "waitForDownInstance", [
       instanceIds                   : localInstanceDetails*.instanceId,
       interestingHealthProviderNames: interestingHealthProviderNames
     ])
@@ -78,7 +78,7 @@ class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
         return localInstanceDetails.find { it.instanceId == instanceId }
       }
     }
-    def stage = new PipelineStage(pipeline, "waitForDownInstance", [
+    def stage = new Stage<>(pipeline, "waitForDownInstance", [
       instanceIds                   : localInstanceDetails*.instanceId,
       interestingHealthProviderNames: interestingHealthProviderNames
     ])

@@ -23,13 +23,13 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceConfiguration
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DisableAsgTaskSpec extends Specification {
   @Subject task = new DisableAsgTask()
-  def stage = new PipelineStage(type: "whatever")
+  def stage = new Stage<>(type: "whatever")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 

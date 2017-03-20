@@ -18,12 +18,12 @@
 package com.netflix.spinnaker.orca.listeners
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 
 class ExecutionCleanupListenerSpec extends Specification {
   @Subject
@@ -36,10 +36,10 @@ class ExecutionCleanupListenerSpec extends Specification {
     given:
     def pipeline = new Pipeline()
     pipeline.status = executionStatus
-    pipeline.stages << new PipelineStage(pipeline, "", [
+    pipeline.stages << new Stage<>(pipeline, "", [
       targetReferences: "my-target-reference"
     ])
-    pipeline.stages << new PipelineStage(pipeline, "", [
+    pipeline.stages << new Stage<>(pipeline, "", [
       targetReferences: "my-other-target-reference"
     ])
 

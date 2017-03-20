@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.batch.pipeline.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import spock.lang.Specification
 import spock.lang.Subject
@@ -26,7 +26,7 @@ import spock.lang.Unroll
 class PackageInfoSpec extends Specification {
 
   @Subject
-  def stage = new PipelineStage(context: [package: "package"])
+  def stage = new Stage<>(context: [package: "package"])
   PackageInfo info = new PackageInfo(stage, 'deb', '_', true, true, Mock(ObjectMapper))
 
   Map buildInfo = [

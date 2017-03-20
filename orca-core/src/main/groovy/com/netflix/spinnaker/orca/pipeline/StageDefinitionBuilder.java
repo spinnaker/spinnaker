@@ -18,7 +18,10 @@ package com.netflix.spinnaker.orca.pipeline;
 
 import java.util.*;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.*;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
+import com.netflix.spinnaker.orca.pipeline.model.Task;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
@@ -67,14 +70,14 @@ public interface StageDefinitionBuilder {
      * - marking the halted task as NOT_STARTED and resetting its start and end times
      * - marking the stage as RUNNING
      */
-    public static Stage prepareStageForRestart(
+    public static <T extends Execution<T>> Stage<T> prepareStageForRestart(
       ExecutionRepository executionRepository,
-      Stage stage,
+      Stage<T> stage,
       StageDefinitionBuilder self,
       Collection<StageDefinitionBuilder> allStageBuilders) {
       stage.getExecution().setCanceled(false);
 
-      List<Stage> stages = stage.getExecution().getStages();
+      List<Stage<T>> stages = stage.getExecution().getStages();
       stages
         .stream()
         .filter(s -> s.getStatus() == ExecutionStatus.CANCELED)
@@ -92,7 +95,7 @@ public interface StageDefinitionBuilder {
           }
         );
 
-      List<Stage> childStages = stages
+      List<Stage<T>> childStages = stages
         .stream()
         .filter(it -> {
           Collection<String> requisiteStageRefIds = it.getRequisiteStageRefIds();
@@ -108,7 +111,7 @@ public interface StageDefinitionBuilder {
         })
         .collect(toList());
 
-      childStages.forEach((Stage childStage) -> {
+      childStages.forEach((Stage<T> childStage) -> {
         StageDefinitionBuilder stageBuilder = allStageBuilders
           .stream()
           .filter(it -> it.getType().equals(childStage.getType()))
@@ -124,7 +127,7 @@ public interface StageDefinitionBuilder {
           it.setEndTime(null);
           it.setStatus(ExecutionStatus.NOT_STARTED);
         });
-        executionRepository.storeStage((PipelineStage) childStage);
+        executionRepository.storeStage(childStage);
       });
 
       List<Task> tasks = stage.getTasks();
@@ -149,7 +152,7 @@ public interface StageDefinitionBuilder {
       stage.setStatus(ExecutionStatus.RUNNING);
       stage.setStartTime(null);
       stage.setEndTime(null);
-      executionRepository.storeStage((PipelineStage) stage);
+      executionRepository.storeStage(stage);
 
       Execution.PausedDetails paused = stage.getExecution().getPaused();
       if (paused != null && paused.isPaused()) {
@@ -170,12 +173,7 @@ public interface StageDefinitionBuilder {
                                                              Map<String, Object> context,
                                                              Stage<E> parent,
                                                              SyntheticStageOwner stageOwner) {
-      Stage stage;
-      if (execution instanceof Orchestration) {
-        stage = new OrchestrationStage((Orchestration) execution, type, context);
-      } else {
-        stage = new PipelineStage((Pipeline) execution, type, name, context);
-      }
+      Stage<E> stage = new Stage<>(execution, type, name, context);
 
       stage.setSyntheticStageOwner(stageOwner);
 
@@ -196,8 +194,8 @@ public interface StageDefinitionBuilder {
 
       if (parent != null) {
         String stageName = Optional.ofNullable(stage.getName()).map(s -> s.replaceAll("[^A-Za-z0-9]", "")).orElse(null);
-        ((AbstractStage) stage).setId(
-          parent.getId() + "-" + ((AbstractStage) parent).getStageCounter().incrementAndGet() + "-" + stageName
+        stage.setId(
+          parent.getId() + "-" + parent.getStageCounter().incrementAndGet() + "-" + stageName
         );
       }
 

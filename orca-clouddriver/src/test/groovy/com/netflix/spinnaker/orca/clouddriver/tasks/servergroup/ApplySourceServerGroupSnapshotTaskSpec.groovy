@@ -21,9 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityTask
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.context.ApplicationContext
@@ -46,7 +45,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
   void "should support ancestor deploy stages w/ a custom strategy"() {
     given:
     def parentPipeline = new Pipeline()
-    parentPipeline.stages << new PipelineStage(parentPipeline, "", [
+    parentPipeline.stages << new Stage<>(parentPipeline, "", [
       strategy                         : "custom",
       sourceServerGroupCapacitySnapshot: [
         min    : 0,
@@ -54,21 +53,21 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
         max    : 10
       ]
     ])
-    parentPipeline.stages << new PipelineStage(parentPipeline, "", [
+    parentPipeline.stages << new Stage<>(parentPipeline, "", [
       executionId: "execution-id"
     ])
-    ((AbstractStage) parentPipeline.stages[0]).id = "stage-1"
-    ((AbstractStage) parentPipeline.stages[1]).parentStageId = "stage-1"
-    ((AbstractStage) parentPipeline.stages[1]).type = "pipeline"
+    parentPipeline.stages[0].id = "stage-1"
+    parentPipeline.stages[1].parentStageId = "stage-1"
+    parentPipeline.stages[1].type = "pipeline"
 
     def childPipeline = new Pipeline()
-    childPipeline.stages << new PipelineStage(childPipeline, "", [
+    childPipeline.stages << new Stage<>(childPipeline, "", [
       type: "doSomething"
     ])
-    childPipeline.stages << new PipelineStage(childPipeline, "", [
+    childPipeline.stages << new Stage<>(childPipeline, "", [
       type: "createServerGroup"
     ])
-    childPipeline.stages << new PipelineStage(childPipeline, "", [
+    childPipeline.stages << new Stage<>(childPipeline, "", [
       type                  : "createServerGroup",
       "deploy.server.groups": [
         "us-west-1": ["asg-v001"]
@@ -76,7 +75,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
     ])
 
     (parentPipeline.stages + childPipeline.stages).each {
-      ((AbstractStage) it).setStageNavigator(stageNavigator)
+      it.setStageNavigator(stageNavigator)
     }
 
     when:
@@ -94,7 +93,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
   @Unroll
   void "should support ancestor deploy stages w/ a #strategy strategy"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline(), "", [
       strategy                         : strategy,
       sourceServerGroupCapacitySnapshot: [
         min    : 0,
@@ -102,7 +101,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
         max    : 10
       ]
     ])
-    ((AbstractStage) stage).setStageNavigator(stageNavigator)
+    stage.setStageNavigator(stageNavigator)
 
     expect:
     ApplySourceServerGroupCapacityTask.getAncestorDeployStage(null, stage) == stage
@@ -117,7 +116,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
   void "should construct resizeServerGroup context with source `min` + target `desired` and `max` capacity"() {
     given:
     def pipeline = new Pipeline()
-    pipeline.stages << new PipelineStage(pipeline, "", [
+    pipeline.stages << new Stage<>(pipeline, "", [
       "deploy.server.groups"           : [
         "us-east-1": ["application-stack-v001"]
       ],
@@ -131,13 +130,13 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
         max    : 20
       ]
     ])
-    pipeline.stages << new PipelineStage(pipeline, "", [account: "test"])
+    pipeline.stages << new Stage<>(pipeline, "", [account: "test"])
     pipeline.stages.each {
-      ((AbstractStage) it).setStageNavigator(stageNavigator)
+      it.setStageNavigator(stageNavigator)
     }
 
-    ((AbstractStage) pipeline.stages[0]).id = "stage-1"
-    ((AbstractStage) pipeline.stages[1]).parentStageId = "stage-1"
+    pipeline.stages[0].id = "stage-1"
+    pipeline.stages[1].parentStageId = "stage-1"
 
     and:
     def targetServerGroup = new TargetServerGroup(

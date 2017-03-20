@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 /**
  * Tasks may implement this trait to get convention-based access to deployment details that should come from in order of preference:
@@ -30,8 +32,7 @@ import com.netflix.spinnaker.orca.pipeline.model.*
  */
 trait DeploymentDetailsAware {
 
-  private ObjectMapper pipelineObjectMapper =
-    new OrcaObjectMapper().registerModule(new SimpleModule("MyConverterModule").addAbstractTypeMapping(Stage, PipelineStage))
+  private ObjectMapper pipelineObjectMapper = new OrcaObjectMapper()
 
   void withImageFromPrecedingStage(
     Stage stage,

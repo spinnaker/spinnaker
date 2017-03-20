@@ -21,10 +21,9 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Client
-import retrofit.client.OkClient
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -48,7 +47,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("foo")
       .build()
-    def stage = new PipelineStage(pipe, 'instanceHealthCheck', [:])
+    def stage = new Stage<>(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
 
     def responses = []
@@ -88,7 +87,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("foo")
       .build()
-    def stage = new PipelineStage(pipe, 'instanceHealthCheck', [:])
+    def stage = new Stage<>(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
 
     when:
@@ -113,7 +112,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("foo")
       .build()
-    def stage = new PipelineStage(pipe, 'instanceHealthCheck', [:])
+    def stage = new Stage<>(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
     task.oortHelper = oortHelper
     when:

@@ -21,13 +21,13 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ResizeAsgTaskSpec extends Specification {
   @Subject task = new ResizeAsgTask()
-  def stage = new PipelineStage(type: "pipeline")
+  def stage = new Stage<>(type: "pipeline")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def resizeASGConfig = [

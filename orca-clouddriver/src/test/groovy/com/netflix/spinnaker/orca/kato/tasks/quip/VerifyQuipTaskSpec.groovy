@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Client
 import retrofit.client.Response
@@ -82,7 +82,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication(app)
       .build()
-    def stage = new PipelineStage(pipe, 'verifyQuip', [
+    def stage = new Stage<>(pipe, 'verifyQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
@@ -109,7 +109,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication(app)
       .build()
-    def stage = new PipelineStage(pipe, 'verifyQuip', [
+    def stage = new Stage<>(pipe, 'verifyQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
@@ -137,7 +137,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication(app)
       .build()
-    def stage = new PipelineStage(pipe, 'verifyQuip', [
+    def stage = new Stage<>(pipe, 'verifyQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
@@ -165,7 +165,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication(app)
       .build()
-    def stage = new PipelineStage(pipe, 'verifyQuip', [
+    def stage = new Stage<>(pipe, 'verifyQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
@@ -196,7 +196,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication(app)
       .build()
-    def stage = new PipelineStage(pipe, 'verifyQuip', [
+    def stage = new Stage<>(pipe, 'verifyQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
@@ -227,7 +227,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication(app)
       .build()
-    def stage = new PipelineStage(pipe, 'verifyQuip', [
+    def stage = new Stage<>(pipe, 'verifyQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
@@ -264,7 +264,7 @@ class VerifyQuipTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication(app)
       .build()
-    def stage = new PipelineStage(pipe, 'verifyQuip', [
+    def stage = new Stage<>(pipe, 'verifyQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,

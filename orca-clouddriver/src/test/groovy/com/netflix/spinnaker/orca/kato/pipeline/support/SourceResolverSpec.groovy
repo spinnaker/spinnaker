@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -66,7 +66,7 @@ class SourceResolverSpec extends Specification {
 
     and:
     def context = exampleContexts[exampleContextName]
-    def stage = new PipelineStage(new Pipeline(), "test", context + [
+    def stage = new Stage<>(new Pipeline(), "test", context + [
       application: "app", stack: "test", account: "test", availabilityZones: ["us-west-1": []]
     ])
 
@@ -101,7 +101,7 @@ class SourceResolverSpec extends Specification {
     )
 
     when:
-    def stage = new PipelineStage(
+    def stage = new Stage<>(
       new Pipeline(),
       "test",
       [
@@ -139,7 +139,7 @@ class SourceResolverSpec extends Specification {
     SourceResolver resolver = new SourceResolver(mapper: new ObjectMapper())
 
     when:
-    def stage = new PipelineStage(
+    def stage = new Stage<>(
       new Pipeline(),
       "test",
       [

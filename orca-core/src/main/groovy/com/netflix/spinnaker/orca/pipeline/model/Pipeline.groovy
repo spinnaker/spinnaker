@@ -72,7 +72,7 @@ class Pipeline extends Execution<Pipeline> {
         type += "_$context.providerType"
       }
 
-      pipeline.stages << new PipelineStage(pipeline, type, name, context)
+      pipeline.stages << new Stage<>(pipeline, type, name, context)
       return this
     }
 

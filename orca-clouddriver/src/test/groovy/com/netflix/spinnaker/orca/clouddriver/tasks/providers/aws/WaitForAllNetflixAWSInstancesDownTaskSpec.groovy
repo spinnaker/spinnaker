@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -74,7 +73,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage(pipeline, "asgActionWaitForDownInstances", [
+    def stage = new Stage<>(pipeline, "asgActionWaitForDownInstances", [
       "targetop.asg.enableAsg.name"   : "front50-v000",
       "targetop.asg.enableAsg.regions": ['us-west-1'],
       "account.name"                  : "test"
@@ -88,7 +87,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
   @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "")
+    def stage = new Stage<>(new Pipeline(), "")
 
     expect:
     hasSucceeded == task.hasSucceeded(stage, [minSize: 0], instances, healthProviderNames)

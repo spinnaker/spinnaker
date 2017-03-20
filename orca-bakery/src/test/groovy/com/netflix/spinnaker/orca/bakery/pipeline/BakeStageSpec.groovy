@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
-import groovy.time.TimeCategory
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.time.TimeCategory
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -34,7 +33,7 @@ class BakeStageSpec extends Specification {
     }
     def pipeline = pipelineBuilder.build()
 
-    def bakeStage = new PipelineStage(pipeline, "bake", "Bake!", bakeStageContext)
+    def bakeStage = new Stage<>(pipeline, "bake", "Bake!", bakeStageContext)
     def builder = Spy(BakeStage, {
       (0..1) * now() >> {
         use([TimeCategory]) {
@@ -82,11 +81,11 @@ class BakeStageSpec extends Specification {
       .withStage(BakeStage.PIPELINE_CONFIG_TYPE, "Bake", ["ami": 3])
       .build()
 
-    def pipelineStage = new PipelineStage(pipeline, "bake")
+    def pipelineStage = new Stage<>(pipeline, "bake")
     pipeline.stages.each {
       it.status = ExecutionStatus.RUNNING
       it.parentStageId = pipelineStage.parentStageId
-      ((AbstractStage) it).id = pipelineStage.parentStageId
+      it.id = pipelineStage.parentStageId
     }
 
     when:
@@ -103,7 +102,7 @@ class BakeStageSpec extends Specification {
   @Unroll
   def "should return a different stage name when parallel flows are present"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "type", stageName, [:])
+    def stage = new Stage<>(new Pipeline(), "type", stageName, [:])
 
     expect:
     new BakeStage().parallelStageName(stage, hasParallelFlows) == expectedStageName

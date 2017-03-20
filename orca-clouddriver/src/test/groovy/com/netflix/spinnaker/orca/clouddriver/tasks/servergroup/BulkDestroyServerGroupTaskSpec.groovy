@@ -6,7 +6,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Targe
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
 class BulkDestroyServerGroupTaskSpec extends Specification {
@@ -14,7 +14,7 @@ class BulkDestroyServerGroupTaskSpec extends Specification {
   def "should create multiple destroy operations on bulk destroy server group task"() {
     given:
     def task = new BulkDestroyServerGroupTask(trafficGuard: Mock(TrafficGuard))
-    def stage = new PipelineStage(new Pipeline(), "")
+    def stage = new Stage<>(new Pipeline(), "")
     stage.context = [
       cloudProvider:  "titus",
       credentials:  "test",

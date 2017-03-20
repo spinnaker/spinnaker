@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.front50.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
 
 class PipelineStageSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
@@ -33,9 +32,7 @@ class PipelineStageSpec extends Specification {
   @Unroll
   def "should cancel child pipeline (if started)"() {
     given:
-    def stage = new com.netflix.spinnaker.orca.pipeline.model.PipelineStage(
-      new Pipeline(), "pipeline", stageContext
-    )
+    def stage = new Stage<>(new Pipeline(), "pipeline", stageContext)
 
     when:
     pipelineStage.cancel(stage)

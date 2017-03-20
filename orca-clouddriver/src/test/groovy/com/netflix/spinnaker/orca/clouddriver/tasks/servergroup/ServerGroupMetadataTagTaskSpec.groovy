@@ -20,9 +20,8 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -38,7 +37,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
 
   void "should return with failed/continue status if tagging operation fails"() {
     when:
-    def stage = new PipelineStage(new Pipeline(), "whatever", [:])
+    def stage = new Stage<>(new Pipeline(), "whatever", [:])
     def result = task.execute(stage)
 
     then:
@@ -87,7 +86,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
       id: "ex-id",
       authentication: [ user: "chris" ]
     )
-    def stage = new PipelineStage(pipeline, "whatever", [
+    def stage = new Stage<>(pipeline, "whatever", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"],
         "us-west-1": ["foo-v001", "foo-v002"]
@@ -106,7 +105,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
     mockTaggingOperation()
 
     when:
-    def stage = new PipelineStage(new Pipeline(), "whatever", [
+    def stage = new Stage<>(new Pipeline(), "whatever", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"],
       ]
@@ -124,7 +123,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
 
     when:
     def orchestration = new Orchestration(description: "some description")
-    def stage = new OrchestrationStage(orchestration, "zzz", [
+    def stage = new Stage<>(orchestration, "zzz", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"],
       ]
@@ -141,7 +140,7 @@ class ServerGroupMetadataTagTaskSpec extends Specification {
     mockTaggingOperation()
 
     when:
-    def stage = new PipelineStage(new Pipeline(), "whatever", [
+    def stage = new Stage<>(new Pipeline(), "whatever", [
       "deploy.server.groups": [
         "us-east-1": ["foo-v001"],
       ],

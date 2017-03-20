@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.GoogleServerGroupCreator
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
@@ -63,7 +63,7 @@ class CreateServerGroupTaskSpec extends Specification {
     given:
       KatoService katoService = Mock(KatoService)
       def task = new CreateServerGroupTask(kato: katoService, serverGroupCreators: [aCreator, bCreator, cCreator])
-      def stage = new PipelineStage(new Pipeline(), "whatever", [credentials: "abc", cloudProvider: cloudProvider])
+      def stage = new Stage<>(new Pipeline(), "whatever", [credentials: "abc", cloudProvider: cloudProvider])
 
     when:
       def result = task.execute(stage)
@@ -534,14 +534,14 @@ class CreateServerGroupTaskSpec extends Specification {
   }
 
   private def buildStageForPipeline(def pipeline, String stageType, def context = [:]) {
-    def stage = new PipelineStage(pipeline, stageType, context)
+    def stage = new Stage<>(pipeline, stageType, context)
 
     pipeline.stages << stage
 
     return stage
   }
 
-  private void makeDependentOn(PipelineStage dependent, PipelineStage dependency) {
+  private void makeDependentOn(Stage<Pipeline> dependent, Stage<Pipeline> dependency) {
     if (!dependency.refId) {
       dependency.refId = UUID.randomUUID()
     }
@@ -549,7 +549,7 @@ class CreateServerGroupTaskSpec extends Specification {
     dependent.requisiteStageRefIds = [dependency.refId]
   }
 
-  private void makeChildOf(PipelineStage child, PipelineStage parent) {
+  private void makeChildOf(Stage<Pipeline> child, Stage<Pipeline> parent) {
     child.parentStageId = parent.id
   }
 

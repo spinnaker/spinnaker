@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -45,7 +45,7 @@ class ScaleDownClusterTaskSpec extends Specification {
     if (allowScaleDownActive != null) {
       ctx.allowScaleDownActive = allowScaleDownActive
     }
-    def stage = new PipelineStage(new Pipeline(), "scaleDownCluster", ctx)
+    def stage = new Stage<>(new Pipeline(), "scaleDownCluster", ctx)
 
     when:
     def filtered = task.filterServerGroups(stage, account, location, serverGroups)

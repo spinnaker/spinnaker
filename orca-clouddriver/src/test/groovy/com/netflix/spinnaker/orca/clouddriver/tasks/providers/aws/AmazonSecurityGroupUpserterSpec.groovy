@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Shared
@@ -41,7 +41,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
 
   def "should throw exception on missing region"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "upsertSecurityGroup", [:])
+    def stage = new Stage<>(new Pipeline(), "upsertSecurityGroup", [:])
 
     when:
       upserter.getOperationContext(stage)
@@ -53,7 +53,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
   @Unroll
   def "should return ops and extra outputs"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "upsertSecurityGroup", context)
+    def stage = new Stage<>(new Pipeline(), "upsertSecurityGroup", context)
       upserter.mortService = Mock(MortService) {
         1 * getVPCs() >> allVPCs
       }
@@ -98,7 +98,7 @@ class AmazonSecurityGroupUpserterSpec extends Specification {
           currentSecurityGroupProvider.call()
         }
       }
-      def stage = new PipelineStage(new Pipeline(), "whatever", [
+      def stage = new Stage<>(new Pipeline(), "whatever", [
           targets : [bT(account, region, null, groupName)],
           securityGroupIngress: filterForSecurityGroupIngress(upserter.mortService, expectedSecurityGroup)
       ])

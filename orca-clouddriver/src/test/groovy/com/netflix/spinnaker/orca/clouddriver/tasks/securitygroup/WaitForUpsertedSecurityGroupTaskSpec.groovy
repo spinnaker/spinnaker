@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
 class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
@@ -35,7 +35,7 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
         }
       }
       def task = new WaitForUpsertedSecurityGroupTask(securityGroupUpserters: [aUpserter])
-      def stage = new PipelineStage(new Pipeline(), "whatever", [
+      def stage = new Stage<>(new Pipeline(), "whatever", [
           credentials  : "abc",
           cloudProvider: "aCloud",
           targets      : [new MortService.SecurityGroup(name: "abc")]
@@ -53,33 +53,45 @@ class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
 
   def "should result in running if not upserted yet"() {
     given:
-      SecurityGroupUpserter aUpserter = Mock(SecurityGroupUpserter) {
-        getCloudProvider() >> "aCloud"
-        1 * isSecurityGroupUpserted(*_) >> false
-        1 * isSecurityGroupUpserted(*_) >> true
-      }
-      def task = new WaitForUpsertedSecurityGroupTask(securityGroupUpserters: [aUpserter])
-      def ctx = [
-          credentials  : "abc",
-          cloudProvider: "aCloud",
-          targets      : [new MortService.SecurityGroup(name: "abc")]
-      ]
-      def stage = new PipelineStage(new Pipeline(), "whatever", ctx)
+    SecurityGroupUpserter aUpserter = Stub(SecurityGroupUpserter) {
+      getCloudProvider() >> "aCloud"
+      isSecurityGroupUpserted(*_) >>> [false, true]
+    }
+    def task = new WaitForUpsertedSecurityGroupTask(securityGroupUpserters: [aUpserter])
+    def ctx = [
+      credentials  : "abc",
+      cloudProvider: "aCloud",
+      targets      : [new MortService.SecurityGroup(name: "abc")]
+    ]
+    def stage = new Stage<>(new Pipeline(), "whatever", ctx)
 
     when:
-      def result = task.execute(stage)
+    def result = task.execute(stage)
 
     then:
-      result.status == ExecutionStatus.RUNNING
+    result.status == ExecutionStatus.RUNNING
 
     when:
-      result = task.execute(stage)
+    result = task.execute(stage)
 
     then:
-      result.status == ExecutionStatus.SUCCEEDED
+    result.status == ExecutionStatus.SUCCEEDED
+  }
+
+  def "should throw an exception if the cloud provider is not recognized"() {
+    given:
+    def aUpserter = Stub(SecurityGroupUpserter) {
+      getCloudProvider() >> "aCloud"
+    }
+    def task = new WaitForUpsertedSecurityGroupTask(securityGroupUpserters: [aUpserter])
+    def ctx = [
+      credentials  : "abc",
+      cloudProvider: "bCloud",
+      targets      : [new MortService.SecurityGroup(name: "abc")]
+    ]
+    def stage = new Stage<>(new Pipeline(), "whatever", ctx)
 
     when:
-      ctx.cloudProvider = "bCloud"
       task.execute(stage)
 
     then:

@@ -223,25 +223,10 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  void storeStage(PipelineStage stage) {
-    withJedis(getJedisPoolForId("pipeline:${stage.execution.id}" )) { Jedis jedis ->
-      storeStageInternal(jedis, Pipeline, stage)
-    }
-  }
-
-  @Override
-  void storeStage(Stage stage) {
-    if (stage instanceof OrchestrationStage) {
-      storeStage((OrchestrationStage) stage)
-    } else {
-      storeStage((PipelineStage) stage)
-    }
-  }
-
-  @Override
-  void storeStage(OrchestrationStage stage) {
-    withJedis(getJedisPoolForId("orchestration:${stage.execution.id}")) { Jedis jedis ->
-      storeStageInternal(jedis, Orchestration, stage)
+  <T extends Execution<T>> void storeStage(Stage<T> stage) {
+    Class<T> executionType = stage.execution.getClass()
+    withJedis(getJedisPoolForId("${executionType.simpleName.toLowerCase()}:${stage.execution.id}" )) { Jedis jedis ->
+      storeStageInternal(jedis, executionType, stage)
     }
   }
 
@@ -547,7 +532,7 @@ class JedisExecutionRepository implements ExecutionRepository {
 
       def stageIds = map.stageIndex.tokenize(",")
       stageIds.each { stageId ->
-        def stage = execution instanceof Pipeline ? new PipelineStage() : new OrchestrationStage()
+        def stage = new Stage<>()
         stage.stageNavigator = stageNavigator
         stage.id = stageId
         stage.refId = map["stage.${stageId}.refId".toString()]

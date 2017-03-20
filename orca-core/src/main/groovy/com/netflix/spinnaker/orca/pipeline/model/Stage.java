@@ -1,75 +1,162 @@
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.codehaus.groovy.runtime.ReverseListIterator;
+import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 
-public interface Stage<T extends Execution<T>> {
-  String getRefId();
+public class Stage<T extends Execution<T>> implements Serializable {
 
-  void setRefId(String refId);
+  public Stage() {}
+
+  @SuppressWarnings("unchecked")
+  public Stage(T execution, String type, String name, Map<String, Object> context) {
+    this.execution = execution;
+    this.type = type;
+    this.name = name;
+    this.context.putAll(context);
+
+    this.refId = (String) context.remove("refId");
+    this.requisiteStageRefIds = (Collection<String>) context.remove("requisiteStageRefIds");
+  }
+
+  public Stage(T execution, String type, Map<String, Object> context) {
+    this(execution, type, null, context);
+  }
+
+  public Stage(T execution, String type) {
+    this(execution, type, emptyMap());
+  }
 
   /**
    * A stage's unique identifier
    */
-  String getId();
+  @Getter @Setter
+  private String id = UUID.randomUUID().toString();
+
+  @Getter @Setter
+  private String refId;
 
   /**
    * The type as it corresponds to the Mayo configuration
    */
-  String getType();
-
-  void setType(String type);
+  @Getter @Setter
+  private  String type;
 
   /**
    * The name of the stage. Can be different from type, but often will be the same.
    */
-  String getName();
-
-  void setName(String name);
+  @Getter @Setter
+  private String name;
 
   /**
    * Gets the execution object for this stage
    */
-  T getExecution();
+  @Getter @Setter
+  @JsonBackReference private T execution;
 
   /**
    * Gets the start time for this stage. May return null if the stage has not been started.
    */
-  Long getStartTime();
+  @Getter @Setter
+  private Long startTime;
 
   /**
    * Gets the end time for this stage. May return null if the stage has not yet finished.
    */
-  Long getEndTime();
-
-  void setStartTime(Long startTime);
-
-  void setEndTime(Long endTime);
+  @Getter @Setter
+  private Long endTime;
 
   /**
    * The execution status for this stage
    */
-  ExecutionStatus getStatus();
+  @Getter @Setter
+  private ExecutionStatus status = NOT_STARTED;
 
   /**
-   * sets the execution status for this stage
+   * The context driving this stage. Provides inputs necessary to component steps
    */
-  void setStatus(ExecutionStatus status);
+  @Getter @Setter
+  private Map<String, Object> context = new HashMap<>();
+
+  /**
+   * Returns a flag indicating if the stage is in an immutable state
+   */
+  @Getter @Setter
+  private boolean immutable = false;
+
+  /**
+   * Returns a flag indicating if the stage is a parallel initialization stage
+   */
+  @Getter @Setter
+  private boolean initializationStage = false;
+
+  /**
+   * Returns the tasks that are associated with this stage. Tasks are the most granular unit of work in a stage.
+   * Because tasks can be dynamically composed, this list is open updated during a stage's execution.
+   *
+   * @see StageTaskPropagationListener
+   */
+  @Getter @Setter
+  private List<Task> tasks = new ArrayList<>();
+
+  /**
+   * Stages can be synthetically injected into the pipeline by a StageDefinitionBuilder. This flag indicates the relationship
+   * of a synthetic stage to its position in the graph. To derive the owning stage, callers should directionally
+   * traverse the graph until the first non-synthetic stage is found. If this property is null, the stage is not
+   * synthetic.
+   */
+  @Getter @Setter
+  private SyntheticStageOwner syntheticStageOwner;
+
+  /**
+   * This stage's parent stage.
+   */
+  @Getter @Setter
+  private String parentStageId;
+
+  @Getter @Setter
+  private Collection<String> requisiteStageRefIds = new HashSet<>();
+
+  /**
+   * A date when this stage is scheduled to execute.
+   */
+  @Getter @Setter
+  private long scheduledTime;
+
+  @Getter @Setter
+  private LastModifiedDetails lastModified;
+
+  @JsonIgnore
+  @Getter
+  private AtomicInteger stageCounter = new AtomicInteger(0);
 
   /**
    * Gets the last stage preceding this stage that has the specified type.
    */
-  default Stage preceding(String type) {
+  public Stage preceding(String type) {
     int i = getExecution()
       .getStages()
       .indexOf(this);
@@ -83,70 +170,67 @@ public interface Stage<T extends Execution<T>> {
       .orElse(null);
   }
 
+  @JsonIgnore
+  @Setter
+  private StageNavigator stageNavigator = null;
+
   /**
    * Gets all ancestor stages that satisfy {@code matcher}, including the current stage.
    */
-  List<StageNavigator.Result> ancestors(BiFunction<Stage<T>, StageDefinitionBuilder, Boolean> matcher);
+  @SuppressWarnings("unchecked")
+  public List<StageNavigator.Result> ancestors(BiFunction<Stage<T>, StageDefinitionBuilder, Boolean> matcher) {
+    return (List<StageNavigator.Result>) (stageNavigator != null ? stageNavigator.findAll(this, matcher) : emptyList());
+  }
 
   /**
    * Gets all ancestor stages, including the current stage.
    */
-  default List<StageNavigator.Result> ancestors() {
+  public List<StageNavigator.Result> ancestors() {
     return ancestors((stage, builder) -> true);
   }
 
   /**
-   * The context driving this stage. Provides inputs necessary to component steps
-   */
-  Map<String, Object> getContext();
-
-  /**
-   * Returns a flag indicating if the stage is in an immutable state
-   */
-  default boolean isImmutable() {
-    return false;
-  }
-
-  /**
-   * Returns a flag indicating if the stage is a parallel initialization stage
-   */
-  boolean isInitializationStage();
-
-  void setInitializationStage(boolean initializationStage);
-
-  /**
    * @return a reference to the wrapped object in this event this object is the immutable wrapper
    */
-  @JsonIgnore default Stage<T> getSelf() {
+  @JsonIgnore public Stage<T> getSelf() {
     return this;
   }
 
   /**
-   * Returns the tasks that are associated with this stage. Tasks are the most granular unit of work in a stage.
-   * Because tasks can be dynamically composed, this list is open updated during a stage's execution.
-   *
-   * @see StageTaskPropagationListener
-   */
-  List<Task> getTasks();
-
-  /**
    * Maps the stage's context to a typed object
    */
-  default <O> O mapTo(Class<O> type) {
+  public <O> O mapTo(Class<O> type) {
     return mapTo(null, type);
   }
+
+  @JsonIgnore
+  private final transient ObjectMapper objectMapper = new OrcaObjectMapper();
 
   /**
    * Maps the stage's context to a typed object at a provided pointer. Uses
    * <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> notation for determining the pointer's position
    */
-  <O> O mapTo(String pointer, Class<O> type);
+  <O> O mapTo(String pointer, Class<O> type) {
+    try {
+      return objectMapper.readValue(new TreeTraversingParser(getPointer(pointer != null ? pointer : "", contextToNode()), objectMapper), type);
+    } catch (IOException e) {
+      throw new IllegalArgumentException(format("Unable to map context to %s", type), e);
+    }
+  }
+
+  private JsonNode getPointer(String pointer, ObjectNode rootNode) {
+    return pointer != null ? rootNode.at(pointer) : rootNode;
+  }
+
+  private ObjectNode contextToNode() {
+    return (ObjectNode) objectMapper.valueToTree(context);
+  }
 
   /**
    * Commits a typed object back to the stage's context. The context is recreated during this operation, so callers
    * will need to re-reference the context object to have the new values reflected
    */
-  default void commit(Object obj) {
+  public void commit(Object obj) {
     commit("", obj);
   }
 
@@ -154,65 +238,95 @@ public interface Stage<T extends Execution<T>> {
    * Commits a typed object back to the stage's context at a provided pointer. Uses <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a>
    * notation for detremining the pointer's position
    */
-  void commit(String pointer, Object obj);
+  @SuppressWarnings("unchecked")
+  public void commit(String pointer, Object obj) {
+    ObjectNode rootNode = contextToNode();
+    JsonNode ptr = getPointer(pointer, rootNode);
+    if (ptr == null || ptr.isMissingNode()) {
+      ptr = rootNode.setAll(createAndMap(pointer, obj));
+    }
+    mergeCommit(ptr, obj);
+    context = (Map<String, Object>) objectMapper.convertValue(rootNode, LinkedHashMap.class);
+  }
 
-  /**
-   * Stages can be synthetically injected into the pipeline by a StageDefinitionBuilder. This flag indicates the relationship
-   * of a synthetic stage to its position in the graph. To derive the owning stage, callers should directionally
-   * traverse the graph until the first non-synthetic stage is found. If this property is null, the stage is not
-   * synthetic.
-   */
-  SyntheticStageOwner getSyntheticStageOwner();
+  private ObjectNode createAndMap(String pointer, Object obj) {
+    if (!pointer.startsWith("/")) {
+      throw new IllegalArgumentException("Not allowed to create a root node");
+    }
+    Stack<String> pathParts = new Stack<>();
+    pathParts.addAll(asList(pointer.substring(1).split("/")));
+    reverse(pathParts);
+    ObjectNode node = objectMapper.createObjectNode();
+    ObjectNode last = expand(pathParts, node);
+    mergeCommit(last, obj);
+    return node;
+  }
 
-  /**
-   * @see #getSyntheticStageOwner()
-   */
-  void setSyntheticStageOwner(SyntheticStageOwner syntheticStageOwner);
+  private void mergeCommit(JsonNode node, Object obj) {
+    merge(objectMapper.valueToTree(obj), node);
+  }
 
-  /**
-   * This stage's parent stage.
-   */
-  String getParentStageId();
+  private void merge(JsonNode sourceNode, JsonNode destNode) {
+    Iterator<String> fieldNames = sourceNode.fieldNames();
+    while (fieldNames.hasNext()) {
+      String fieldName = fieldNames.next();
+      JsonNode sourceFieldValue = sourceNode.get(fieldName);
+      JsonNode destFieldValue = destNode.get(fieldName);
+      if (destFieldValue != null && destFieldValue.isObject()) {
+        merge(sourceFieldValue, destFieldValue);
+      } else if (destNode instanceof ObjectNode) {
+        ((ObjectNode) destNode).replace(fieldName, sourceFieldValue);
+      }
+    }
+  }
 
-  /**
-   * @see #getParentStageId()
-   */
-  void setParentStageId(String id);
-
-  Collection<String> getRequisiteStageRefIds();
-
-  void setRequisiteStageRefIds(Collection<String> requisiteStageRefIds);
-
-  /**
-   * @see #setScheduledTime(long scheduledTime)
-   */
-  long getScheduledTime();
-
-  /**
-   * Sets a date when this stage is scheduled to execute
-   */
-  void setScheduledTime(long scheduledTime);
+  private ObjectNode expand(Stack<String> path, ObjectNode node) {
+    String ptr = path.pop();
+    ObjectNode next = objectMapper.createObjectNode();
+    node.set(ptr, next);
+    return path.empty() ? next : expand(path, next);
+  }
 
   /**
    * Enriches stage context if it supports strategies
    */
-  default void resolveStrategyParams() {
+  @SuppressWarnings("unchecked")
+  public void resolveStrategyParams() {
+    if (execution instanceof Pipeline) {
+      Pipeline pipeline = (Pipeline) execution;
+      Map<String, Object> parameters = (Map<String, Object>) pipeline.getTrigger().get("parameters");
+      if (parameters != null && (boolean) parameters.get("strategy")) {
+        context.put("cloudProvider", parameters.get("cloudProvider"));
+        context.put("cluster", parameters.get("cluster"));
+        context.put("credentials", parameters.get("credentials"));
+        if (parameters.get("region") != null) {
+          context.put("regions", singletonList(parameters.get("region")));
+        } else if (parameters.get("zone") != null) {
+          context.put("zones", singletonList(parameters.get("zone")));
+        }
+      }
+    }
   }
 
-  AbstractStage.LastModifiedDetails getLastModified();
+  @Data
+  public static class LastModifiedDetails implements Serializable {
+    String user;
+    Collection<String> allowedAccounts;
+    Long lastModifiedTime;
+  }
 
   /**
    * @return `true` if this stage does not depend on any others to execute, i.e. it has no #requisiteStageRefIds or #parentStageId.
    */
-  @JsonIgnore default boolean isInitialStage() {
+  @JsonIgnore public boolean isInitialStage() {
     return (getRequisiteStageRefIds() == null || getRequisiteStageRefIds().isEmpty()) && getParentStageId() == null;
   }
 
-  @JsonIgnore default boolean isJoin() {
+  @JsonIgnore public boolean isJoin() {
     return getRequisiteStageRefIds() != null && getRequisiteStageRefIds().size() > 1;
   }
 
-  @JsonIgnore default List<Stage<T>> downstreamStages() {
+  @JsonIgnore public List<Stage<T>> downstreamStages() {
     return getExecution()
       .getStages()
       .stream()
@@ -220,6 +334,6 @@ public interface Stage<T extends Execution<T>> {
       .collect(toList());
   }
 
-  String STAGE_TIMEOUT_OVERRIDE_KEY = "stageTimeoutMs";
+  public static final String STAGE_TIMEOUT_OVERRIDE_KEY = "stageTimeoutMs";
 
 }

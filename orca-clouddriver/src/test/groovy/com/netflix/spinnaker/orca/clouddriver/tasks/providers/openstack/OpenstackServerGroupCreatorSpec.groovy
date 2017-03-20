@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.openstack
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
 class OpenstackServerGroupCreatorSpec extends Specification {
@@ -29,13 +29,13 @@ class OpenstackServerGroupCreatorSpec extends Specification {
       region           : "north-pole",
       deploymentDetails: [[imageId: "testImageId", region: "north-pole"]]
     ]
-    def stage = new PipelineStage(new Pipeline(), "whatever", ctx)
+    def stage = new Stage<>(new Pipeline(), "whatever", ctx)
 
     when:
     def ops = new OpenstackServerGroupCreator().getOperations(stage)
 
     then:
-    ops.toString() == [
+    ops == [
       [
         "createServerGroup": [
           account              : "abc",
@@ -46,15 +46,15 @@ class OpenstackServerGroupCreatorSpec extends Specification {
           ]
         ]
       ]
-    ].toString()
+    ]
 
     when: "fallback to non-region matching image"
     ctx.region = "south-pole"
-    stage = new PipelineStage(new Pipeline(), "whatever", ctx)
+    stage = new Stage<>(new Pipeline(), "whatever", ctx)
     ops = new OpenstackServerGroupCreator().getOperations(stage)
 
     then:
-    ops.toString() == [
+    ops == [
       [
         "createServerGroup": [
           account          : "abc",
@@ -65,11 +65,11 @@ class OpenstackServerGroupCreatorSpec extends Specification {
           ]
         ],
       ]
-    ].toString()
+    ]
 
     when: "throw error if no image found"
     ctx.deploymentDetails = []
-    stage = new PipelineStage(new Pipeline(), "whatever", ctx)
+    stage = new Stage<>(new Pipeline(), "whatever", ctx)
     new OpenstackServerGroupCreator().getOperations(stage)
 
     then:
@@ -86,7 +86,7 @@ class OpenstackServerGroupCreatorSpec extends Specification {
       deploymentDetails: [[cloudProviderType: "openstack",
                            imageId: imageId]]
     ]
-    def stage = new PipelineStage(new Pipeline(), "whatever", ctx)
+    def stage = new Stage<>(new Pipeline(), "whatever", ctx)
 
     when:
     def ops = new OpenstackServerGroupCreator().getOperations(stage)

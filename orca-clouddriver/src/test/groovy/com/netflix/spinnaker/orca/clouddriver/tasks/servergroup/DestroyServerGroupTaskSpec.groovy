@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Targe
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -31,7 +31,7 @@ class DestroyServerGroupTaskSpec extends Specification {
   def trafficGuard = Stub(TrafficGuard)
   @Subject
     task = new DestroyServerGroupTask(trafficGuard: trafficGuard)
-  def stage = new PipelineStage(new Pipeline(), "whatever")
+  def stage = new Stage<>(new Pipeline(), "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def destroyASGConfig = [
@@ -104,7 +104,7 @@ class DestroyServerGroupTaskSpec extends Specification {
 
   def "task uses serverGroupName if present"() {
     given:
-      def stage = new PipelineStage(new Pipeline(), "whatever2")
+      def stage = new Stage<>(new Pipeline(), "whatever2")
       stage.context = [
         cloudProvider  : "aws",
         serverGroupName: "test-server-group",

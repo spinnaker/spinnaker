@@ -29,14 +29,14 @@ class OptionalStageSupportSpec extends Specification {
     pipeline.trigger.parameters = [
       "p1": "v1"
     ]
-    pipeline.stages << new PipelineStage(pipeline, "", "Test1", [:])
+    pipeline.stages << new Stage<>(pipeline, "", "Test1", [:])
     pipeline.stages[0].status = ExecutionStatus.FAILED_CONTINUE
 
-    pipeline.stages << new PipelineStage(pipeline, "", "Test2", [:])
+    pipeline.stages << new Stage<>(pipeline, "", "Test2", [:])
     pipeline.stages[1].status = ExecutionStatus.SUCCEEDED
 
     and:
-    def stage = new PipelineStage(pipeline, "", [
+    def stage = new Stage<>(pipeline, "", [
       stageEnabled: optionalConfig
     ])
 
@@ -64,12 +64,12 @@ class OptionalStageSupportSpec extends Specification {
     pipeline.trigger.parameters = [
       "p1": "v1"
     ]
-    pipeline.stages << new PipelineStage(pipeline, "", "Test1", [
+    pipeline.stages << new Stage<>(pipeline, "", "Test1", [
       stageEnabled: optionalConfig
     ])
     pipeline.stages[0].status = ExecutionStatus.FAILED_CONTINUE
 
-    pipeline.stages << new PipelineStage(pipeline, "", "Test2", [:])
+    pipeline.stages << new Stage<>(pipeline, "", "Test2", [:])
     pipeline.stages[1].status = ExecutionStatus.SUCCEEDED
     pipeline.stages[1].syntheticStageOwner = SyntheticStageOwner.STAGE_AFTER
     pipeline.stages[1].parentStageId = pipeline.stages[0].id

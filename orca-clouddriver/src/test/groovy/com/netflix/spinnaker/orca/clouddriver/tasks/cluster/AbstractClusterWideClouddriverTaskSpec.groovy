@@ -24,9 +24,8 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServer
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.context.ApplicationContext
 import spock.lang.Specification
@@ -41,21 +40,21 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
   def "should extract server groups from parent stages"() {
     given:
     def pipeline = new Pipeline()
-    pipeline.stages << new PipelineStage(pipeline, null)
-    pipeline.stages << new PipelineStage(pipeline, CreateServerGroupStage.PIPELINE_CONFIG_TYPE, [
+    pipeline.stages << new Stage<>(pipeline, null)
+    pipeline.stages << new Stage<>(pipeline, CreateServerGroupStage.PIPELINE_CONFIG_TYPE, [
       "deploy.account.name" : account,
       "deploy.server.groups": [
         "us-west-1": [sg1.name]
       ]
     ])
-    pipeline.stages << new PipelineStage(pipeline, CloneServerGroupStage.PIPELINE_CONFIG_TYPE, [
+    pipeline.stages << new Stage<>(pipeline, CloneServerGroupStage.PIPELINE_CONFIG_TYPE, [
       "deploy.account.name" : account,
       "deploy.server.groups": [
         "us-west-1": [sg2.name, sg4.name]
       ]
     ])
 
-    (pipeline.stages[0] as AbstractStage).stageNavigator = new StageNavigator(Stub(ApplicationContext))
+    pipeline.stages[0].stageNavigator = new StageNavigator(Stub(ApplicationContext))
     pipeline.stages[0].parentStageId = pipeline.stages[1].id
     pipeline.stages[1].requisiteStageRefIds = ["2"]
     pipeline.stages[2].refId = "2"
@@ -101,7 +100,7 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
   def "should succeed immediately if cluster not found and continueIfClusterNotFound flag set in context"() {
     given:
     def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, DisableServerGroupStage.PIPELINE_CONFIG_TYPE, [
+    def stage = new Stage<>(pipeline, DisableServerGroupStage.PIPELINE_CONFIG_TYPE, [
         continueIfClusterNotFound: true
     ])
     def task = new AbstractClusterWideClouddriverTask() {
@@ -125,7 +124,7 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
   def "should succeed immediately if cluster is empty and continueIfClusterNotFound flag set in context"() {
     given:
     def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, DisableServerGroupStage.PIPELINE_CONFIG_TYPE, [
+    def stage = new Stage<>(pipeline, DisableServerGroupStage.PIPELINE_CONFIG_TYPE, [
         continueIfClusterNotFound: true
     ])
     def task = new AbstractClusterWideClouddriverTask() {

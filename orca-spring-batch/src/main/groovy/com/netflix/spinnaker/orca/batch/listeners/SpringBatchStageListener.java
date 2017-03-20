@@ -20,7 +20,9 @@ import java.util.List;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.listeners.StageListener;
-import com.netflix.spinnaker.orca.pipeline.model.*;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.Task;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
@@ -148,12 +150,8 @@ public class SpringBatchStageListener extends StepExecutionListenerSupport imple
     }
 
     @Override
-    public void save(Stage stage) {
-      if (stage.getSelf() instanceof PipelineStage) {
-        executionRepository.storeStage((PipelineStage) stage.getSelf());
-      } else {
-        executionRepository.storeStage((OrchestrationStage) stage.getSelf());
-      }
+    public <T extends Execution<T>> void save(Stage<T> stage) {
+      executionRepository.storeStage(stage);
     }
 
     @Override

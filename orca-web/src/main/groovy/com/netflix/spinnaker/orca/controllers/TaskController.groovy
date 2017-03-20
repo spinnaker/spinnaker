@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import java.time.Clock
 import com.netflix.spinnaker.orca.ActiveExecutionTracker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -23,10 +24,9 @@ import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.zombie.ZombiePipelineCleanupAgent
@@ -40,9 +40,6 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
-
-import java.time.Clock
-
 import static java.time.ZoneOffset.UTC
 
 @RestController
@@ -225,11 +222,11 @@ class TaskController {
     @PathVariable String id,
     @PathVariable String stageId, @RequestBody Map context) {
     def pipeline = executionRepository.retrievePipeline(id)
-    def stage = pipeline.stages.find { it.id == stageId } as PipelineStage
+    def stage = pipeline.stages.find { it.id == stageId }
     if (stage) {
       stage.context.putAll(context)
 
-      stage.lastModified = new AbstractStage.LastModifiedDetails(
+      stage.lastModified = new Stage.LastModifiedDetails(
         user: AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
         allowedAccounts: AuthenticatedRequest.getSpinnakerAccounts().orElse(null)?.split(",") ?: [],
         lastModifiedTime: System.currentTimeMillis()
@@ -248,7 +245,7 @@ class TaskController {
   Pipeline retryPipelineStage(
     @PathVariable String id, @PathVariable String stageId) {
     def pipeline = executionRepository.retrievePipeline(id)
-    def stage = pipeline.stages.find { it.id == stageId } as PipelineStage
+    def stage = pipeline.stages.find { it.id == stageId }
     if (stage) {
       def stageBuilder = stageBuilders.find { it.type == stage.type }
       stage = stageBuilder.prepareStageForRestart(executionRepository, stage, stageBuilders)

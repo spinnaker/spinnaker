@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import retrofit.RetrofitError
@@ -57,7 +56,7 @@ class TriggerQuipTaskSpec extends Specification {
     .build()
 
   @Shared
-  Stage versionStage = new PipelineStage(pipe, "quickPatch", ["version": "1.2"])
+  Stage versionStage = new Stage<>(pipe, "quickPatch", ["version": "1.2"])
 
 
   @Shared
@@ -79,7 +78,7 @@ class TriggerQuipTaskSpec extends Specification {
   @Unroll
   def "successfully trigger quip on #instances.size() instance(s)"() {
     given:
-    def stage = new PipelineStage(pipe, 'triggerQuip', [
+    def stage = new Stage<>(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
@@ -117,7 +116,7 @@ class TriggerQuipTaskSpec extends Specification {
 
   def "checks versions and skips up to date instances in skipUpToDate mode"() {
     given:
-    def stage = new PipelineStage(pipe, 'triggerQuip', [
+    def stage = new Stage<>(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
@@ -159,7 +158,7 @@ class TriggerQuipTaskSpec extends Specification {
 
   @Unroll
   def "servers return errors, expect RUNNING"() {
-    def stage = new PipelineStage(pipe, 'triggerQuip', [
+    def stage = new Stage<>(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
@@ -204,7 +203,7 @@ class TriggerQuipTaskSpec extends Specification {
   @Unroll
   def 'missing configuration data'() {
     given:
-    def stage = new PipelineStage(pipe, 'triggerQuip', [
+    def stage = new Stage<>(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
@@ -235,7 +234,7 @@ class TriggerQuipTaskSpec extends Specification {
   }
 
   def "skipUpToDate with getVersion retries"() {
-    def stage = new PipelineStage(pipe, 'triggerQuip', [
+    def stage = new Stage<>(pipe, 'triggerQuip', [
       "clusterName" : cluster,
       "account" : account,
       "region" : region,

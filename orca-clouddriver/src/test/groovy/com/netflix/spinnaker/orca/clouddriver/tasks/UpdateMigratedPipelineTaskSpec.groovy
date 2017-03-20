@@ -18,11 +18,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.pipeline.UpdateMigratedPipelineTask
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployClusterExtractor
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -64,7 +63,7 @@ class UpdateMigratedPipelineTaskSpec extends Specification {
         ]
       ]
     ]
-    def result = task.execute(new PipelineStage(null, "updatePipeline", "migrate", context))
+    def result = task.execute(new Stage<>(null, "updatePipeline", "migrate", context))
 
     then:
     1 * front50Service.savePipeline({

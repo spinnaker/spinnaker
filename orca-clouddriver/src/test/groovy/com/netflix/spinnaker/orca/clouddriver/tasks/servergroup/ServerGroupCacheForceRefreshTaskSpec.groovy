@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -34,7 +34,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
   @Subject
   def task = new ServerGroupCacheForceRefreshTask(objectMapper: new ObjectMapper())
-  def stage = new PipelineStage(type: "whatever")
+  def stage = new Stage<>(type: "whatever")
 
   def deployConfig = [
     "cloudProvider"       : "aws",
