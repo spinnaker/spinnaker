@@ -40,7 +40,7 @@ To finish the installation, follow these steps:
 
 (2) Wait for the installation to complete:
 
-  tail -f /var/log/startupscript.log
+  tail -f /var/log/syslog
 
   When the instance startup script finishes installing the developer tools
   you will be ready to continue. ^C to terminate the tail process.
