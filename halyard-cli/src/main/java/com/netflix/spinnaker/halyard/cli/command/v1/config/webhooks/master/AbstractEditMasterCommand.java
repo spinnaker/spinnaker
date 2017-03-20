@@ -40,7 +40,7 @@ public abstract class AbstractEditMasterCommand<T extends Master> extends Abstra
   protected abstract Master editMaster(T master);
 
   public String getDescription() {
-    return "Edit a " + getWebhookName() + " master.";
+    return "Edit a master for the " + getWebhookName() + " webhook type.";
   }
 
   @Override

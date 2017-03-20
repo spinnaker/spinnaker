@@ -559,16 +559,16 @@ hal config webhook jenkins master MASTER [parameters] [subcommands]
 `MASTER`: The name of the master to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `add`: Add a jenkins master.
+ * `add`: Add a master for the jenkins webhook type.
  * `delete`: Delete a specific jenkins master by name.
- * `edit`: Edit a jenkins master.
+ * `edit`: Edit a master for the jenkins webhook type.
  * `get`: Get the specified master details for the jenkins webhook.
  * `list`: List the master names for the jenkins webhook.
 
 ---
 ## hal config webhook jenkins master add
 
-Add a jenkins master.
+Add a master for the jenkins webhook type.
 
 #### Usage
 ```
@@ -584,7 +584,7 @@ hal config webhook jenkins master add MASTER [parameters]
 ---
 ## hal config webhook jenkins master edit
 
-Edit a jenkins master.
+Edit a master for the jenkins webhook type.
 
 #### Usage
 ```
@@ -706,16 +706,16 @@ hal config provider appengine account ACCOUNT [parameters] [subcommands]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `add`: Add a appengine account.
+ * `add`: Add an account to the appengine provider.
  * `delete`: Delete a specific appengine account by name.
- * `edit`: Edit a appengine account.
+ * `edit`: Edit an account in the appengine provider.
  * `get`: Get the specified account details for the appengine provider.
  * `list`: List the account names for the appengine provider.
 
 ---
 ## hal config provider appengine account add
 
-Add a appengine account.
+Add an account to the appengine provider.
 
 #### Usage
 ```
@@ -736,7 +736,7 @@ hal config provider appengine account add ACCOUNT [parameters]
 ---
 ## hal config provider appengine account edit
 
-Edit a appengine account.
+Edit an account in the appengine provider.
 
 #### Usage
 ```
@@ -845,16 +845,16 @@ hal config provider kubernetes account ACCOUNT [parameters] [subcommands]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `add`: Add a kubernetes account.
+ * `add`: Add an account to the kubernetes provider.
  * `delete`: Delete a specific kubernetes account by name.
- * `edit`: Edit a kubernetes account.
+ * `edit`: Edit an account in the kubernetes provider.
  * `get`: Get the specified account details for the kubernetes provider.
  * `list`: List the account names for the kubernetes provider.
 
 ---
 ## hal config provider kubernetes account add
 
-Add a kubernetes account.
+Add an account to the kubernetes provider.
 
 #### Usage
 ```
@@ -873,7 +873,7 @@ When no namespaces are configured, this defaults to 'all namespaces'.
 ---
 ## hal config provider kubernetes account edit
 
-Edit a kubernetes account.
+Edit an account in the kubernetes provider.
 
 #### Usage
 ```
@@ -986,16 +986,16 @@ hal config provider docker-registry account ACCOUNT [parameters] [subcommands]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `add`: Add a dockerRegistry account.
+ * `add`: Add an account to the dockerRegistry provider.
  * `delete`: Delete a specific dockerRegistry account by name.
- * `edit`: Edit a dockerRegistry account.
+ * `edit`: Edit an account in the dockerRegistry provider.
  * `get`: Get the specified account details for the dockerRegistry provider.
  * `list`: List the account names for the dockerRegistry provider.
 
 ---
 ## hal config provider docker-registry account add
 
-Add a dockerRegistry account.
+Add an account to the dockerRegistry provider.
 
 #### Usage
 ```
@@ -1020,7 +1020,7 @@ hal config provider docker-registry account add ACCOUNT [parameters]
 ---
 ## hal config provider docker-registry account edit
 
-Edit a dockerRegistry account.
+Edit an account in the dockerRegistry provider.
 
 #### Usage
 ```
@@ -1126,16 +1126,16 @@ hal config provider google bakery base-image [parameters] [subcommands]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `add`: Add a google base image.
+ * `add`: Add a base image for the google provider's bakery.
  * `delete`: Delete a specific google base image by name.
- * `edit`: Edit a google base image.
+ * `edit`: Edit a base image for the google provider's bakery.
  * `get`: Get the specified base image details for the google provider.
  * `list`: List the base image names for the google provider.
 
 ---
 ## hal config provider google bakery base-image add
 
-Add a google base image.
+Add a base image for the google provider's bakery.
 
 #### Usage
 ```
@@ -1155,7 +1155,7 @@ hal config provider google bakery base-image add BASE-IMAGE [parameters]
 ---
 ## hal config provider google bakery base-image edit
 
-Edit a google base image.
+Edit a base image for the google provider's bakery.
 
 #### Usage
 ```
@@ -1263,16 +1263,16 @@ hal config provider google account ACCOUNT [parameters] [subcommands]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `add`: Add a google account.
+ * `add`: Add an account to the google provider.
  * `delete`: Delete a specific google account by name.
- * `edit`: Edit a google account.
+ * `edit`: Edit an account in the google provider.
  * `get`: Get the specified account details for the google provider.
  * `list`: List the account names for the google provider.
 
 ---
 ## hal config provider google account add
 
-Add a google account.
+Add an account to the google provider.
 
 #### Usage
 ```
@@ -1289,7 +1289,7 @@ hal config provider google account add ACCOUNT [parameters]
 ---
 ## hal config provider google account edit
 
-Edit a google account.
+Edit an account in the google provider.
 
 #### Usage
 ```
@@ -1396,16 +1396,16 @@ hal config provider openstack account ACCOUNT [parameters] [subcommands]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `add`: Add a openstack account.
+ * `add`: Add an account to the openstack provider.
  * `delete`: Delete a specific openstack account by name.
- * `edit`: Edit a openstack account.
+ * `edit`: Edit an account in the openstack provider.
  * `get`: Get the specified account details for the openstack provider.
  * `list`: List the account names for the openstack provider.
 
 ---
 ## hal config provider openstack account add
 
-Add a openstack account.
+Add an account to the openstack provider.
 
 #### Usage
 ```
@@ -1428,7 +1428,7 @@ hal config provider openstack account add ACCOUNT [parameters]
 ---
 ## hal config provider openstack account edit
 
-Edit a openstack account.
+Edit an account in the openstack provider.
 
 #### Usage
 ```
@@ -1542,16 +1542,16 @@ hal config provider aws account ACCOUNT [parameters] [subcommands]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `add`: Add a aws account.
+ * `add`: Add an account to the aws provider.
  * `delete`: Delete a specific aws account by name.
- * `edit`: Edit a aws account.
+ * `edit`: Edit an account in the aws provider.
  * `get`: Get the specified account details for the aws provider.
  * `list`: List the account names for the aws provider.
 
 ---
 ## hal config provider aws account add
 
-Add a aws account.
+Add an account to the aws provider.
 
 #### Usage
 ```
@@ -1573,7 +1573,7 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
 ---
 ## hal config provider aws account edit
 
-Edit a aws account.
+Edit an account in the aws provider.
 
 #### Usage
 ```
@@ -1676,16 +1676,16 @@ hal config provider azure bakery base-image [parameters] [subcommands]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `add`: Add a azure base image.
+ * `add`: Add a base image for the azure provider's bakery.
  * `delete`: Delete a specific azure base image by name.
- * `edit`: Edit a azure base image.
+ * `edit`: Edit a base image for the azure provider's bakery.
  * `get`: Get the specified base image details for the azure provider.
  * `list`: List the base image names for the azure provider.
 
 ---
 ## hal config provider azure bakery base-image add
 
-Add a azure base image.
+Add a base image for the azure provider's bakery.
 
 #### Usage
 ```
@@ -1706,7 +1706,7 @@ hal config provider azure bakery base-image add BASE-IMAGE [parameters]
 ---
 ## hal config provider azure bakery base-image edit
 
-Edit a azure base image.
+Edit a base image for the azure provider's bakery.
 
 #### Usage
 ```
@@ -1812,16 +1812,16 @@ hal config provider azure account ACCOUNT [parameters] [subcommands]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `add`: Add a azure account.
+ * `add`: Add an account to the azure provider.
  * `delete`: Delete a specific azure account by name.
- * `edit`: Edit a azure account.
+ * `edit`: Edit an account in the azure provider.
  * `get`: Get the specified account details for the azure provider.
  * `list`: List the account names for the azure provider.
 
 ---
 ## hal config provider azure account add
 
-Add a azure account.
+Add an account to the azure provider.
 
 #### Usage
 ```
@@ -1843,7 +1843,7 @@ hal config provider azure account add ACCOUNT [parameters]
 ---
 ## hal config provider azure account edit
 
-Edit a azure account.
+Edit an account in the azure provider.
 
 #### Usage
 ```
@@ -2185,9 +2185,12 @@ hal config deploy edit [parameters]
 ```
 #### Parameters
  * `--account-name`: The Spinnaker account that Spinnaker will be deployed to, assuming you are runninga deployment of Spinnaker that requires an active cloud provider.
+ * `--consul-address`: The address of a running Consul cluster. See https://www.consul.io/.
+This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--type`: Flotilla: Deploy Spinnaker with one server group per microservice, and a single shared Redis.
 LocalhostDebian: Download and run the Spinnaker debians on the machine running the Daemon.
+ * `--vault-address`: The address of a running Vault datastore. See https://www.vaultproject.io/.This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
 
 ---
 ## hal deploy

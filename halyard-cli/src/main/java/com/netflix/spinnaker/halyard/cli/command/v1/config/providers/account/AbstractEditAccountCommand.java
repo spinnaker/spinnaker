@@ -40,7 +40,7 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
   protected abstract Account editAccount(T account);
 
   public String getDescription() {
-    return "Edit a " + getProviderName() + " account.";
+    return "Edit an account in the " + getProviderName() + " provider.";
   }
 
   @Override

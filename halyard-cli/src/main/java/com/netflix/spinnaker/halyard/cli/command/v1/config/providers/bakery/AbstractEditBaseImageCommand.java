@@ -71,7 +71,7 @@ public abstract class AbstractEditBaseImageCommand<T extends BaseImage> extends 
   private String templateFile;
 
   public String getDescription() {
-    return "Edit a " + getProviderName() + " base image.";
+    return "Edit a base image for the " + getProviderName() + " provider's bakery.";
   }
 
   @Override

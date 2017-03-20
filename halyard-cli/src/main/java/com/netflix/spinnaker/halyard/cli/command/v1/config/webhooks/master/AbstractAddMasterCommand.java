@@ -40,7 +40,7 @@ public abstract class AbstractAddMasterCommand extends AbstractHasMasterCommand 
   protected abstract Master buildMaster(String masterName);
 
   public String getDescription() {
-    return "Add a " + getWebhookName() + " master.";
+    return "Add a master for the " + getWebhookName() + " webhook type.";
   }
 
   @Override
