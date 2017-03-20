@@ -74,7 +74,7 @@ to re-run with different thresholds.
         "baseline": [ 1, 2, 3, 4, 5 ],
         "canary": [ 1, 2, 3, 4, 5 ]
       }
-		}
-	]
+    }
+  ]
 }
 ```
