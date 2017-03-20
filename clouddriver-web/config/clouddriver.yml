@@ -149,40 +149,26 @@ google:
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instanceType: n1-standard-2
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instanceType: n1-standard-4
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instanceType: n1-standard-8
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instanceType: n1-standard-16
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instanceType: n1-standard-32
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
-      - type: local-ssd
-        sizeGb: 375
     - instanceType: f1-micro
       supportsLocalSSD: false
       disks:
@@ -197,66 +183,42 @@ google:
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instance-type: n1-highmem-4
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instance-type: n1-highmem-8
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instance-type: n1-highmem-16
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instance-type: n1-highmem-32
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
-      - type: local-ssd
-        sizeGb: 375
     - instance-type: n1-highcpu-2
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instance-type: n1-highcpu-4
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instance-type: n1-highcpu-8
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instance-type: n1-highcpu-16
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
     - instance-type: n1-highcpu-32
       disks:
       - type: pd-ssd
         sizeGb: 10
-      - type: local-ssd
-        sizeGb: 375
-      - type: local-ssd
-        sizeGb: 375
     - instance-type: default
       disks:
       - type: pd-standard
