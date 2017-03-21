@@ -9,6 +9,7 @@ import './availability.less';
 
 interface IAggregateDetails {
   score: number;
+  title: string;
   reason: string;
 }
 
@@ -29,6 +30,7 @@ export class AvailabilityController implements ng.IComponentController {
 
   private getAggregateScore (result: IAvailabilityData): IAggregateDetails {
     let score = 1;
+    let title = 'Stable';
     let reason = 'ALL AVAILABILITY<br/>GOALS MET!';
 
     // Figure out score
@@ -38,23 +40,27 @@ export class AvailabilityController implements ng.IComponentController {
     } else if (result.trends.yesterday.score > 1) {
       // If there were recent incidents yesterday
       score = 4;
-      reason = 'Yesterday\'s GOAL <strong>NOT</strong> MET';
+      title = 'Danger';
+      reason = 'Yesterday\'s goal <strong>not</strong> met';
       // TODO: Add incident links to details
     } else if (result.trends['28days'].score > 1 && result.trends['91days'].score > 1) {
       // If we have not acheived 28 day availability goals
       score = 3;
-      reason = '28 DAY GOAL AND <br/>91 DAY GOAL <strong>NOT</strong> MET';
+      title = 'Warning';
+      reason = '28 day goal and 91 day goal <strong>not</strong> met';
     } else if (result.trends['28days'].score > 1) {
       // If we have not acheived 28 day availability goals (but rest are acheived)
       score = 2;
+      title = 'Warning';
       reason = '28 DAY GOAL <strong>NOT</strong> MET';
     } else if (result.trends['91days'].score > 1) {
       // If we have not acheived 90 day availability goals (but rest are acheived)
       score = 2;
-      reason = '91 DAY GOAL <strong>NOT</strong> MET';
+      title = 'Warning';
+      reason = '91 day goal <strong>not</strong> met';
     }
 
-    return { score, reason };
+    return { score, title, reason };
   }
 
   public refreshData(): void {
