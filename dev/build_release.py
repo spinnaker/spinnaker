@@ -44,6 +44,7 @@ Usage:
 import argparse
 import base64
 import collections
+import datetime
 import glob
 import os
 import multiprocessing
@@ -123,7 +124,7 @@ class Builder(object):
       self.__background_processes = []
 
       os.environ['NODE_ENV'] = os.environ.get('NODE_ENV', 'dev')
-      self.__build_number = build_number or os.environ.get('BUILD_NUMBER')
+      self.__build_number = build_number or os.environ.get('BUILD_NUMBER') or '{:%Y-%m-%d}'.format(datetime.datetime.now())
       self.__gcb_service_account = options.gcb_service_account
       self.__options = options
       if (container_builder and container_builder not in ['gcb', 'docker']):
@@ -560,7 +561,7 @@ class Builder(object):
 
 
   @classmethod
-  def do_build(cls, options, build_number, container_builder):
+  def do_build(cls, options, build_number=None, container_builder=None):
     if options.build and not (options.bintray_repo):
       sys.stderr.write('ERROR: Missing a --bintray_repo')
       return -1
@@ -570,7 +571,8 @@ class Builder(object):
         builder.refresher.pull_all_from_origin()
 
     builder.build_packages()
-    builder.build_container_images()
+    if container_builder:
+      builder.build_container_images()
 
     if options.build and options.bintray_repo:
       fd, temp_path = tempfile.mkstemp()
@@ -594,3 +596,14 @@ class Builder(object):
 
       print '\nFINISHED writing release to {rep}'.format(
         rep=options.bintray_repo)
+
+  @classmethod
+  def main(cls):
+    parser = argparse.ArgumentParser()
+    cls.init_argument_parser(parser)
+    options = parser.parse_args()
+    # builds debians only
+    cls.do_build(options)
+
+if __name__ == '__main__':
+  sys.exit(Builder.main())
