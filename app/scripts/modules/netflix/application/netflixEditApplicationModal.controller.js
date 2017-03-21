@@ -1,6 +1,5 @@
 'use strict';
 
-import _ from 'lodash';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 import {PAGER_DUTY_SELECT_FIELD_COMPONENT} from '../pagerDuty/pagerDutySelectField.component';
