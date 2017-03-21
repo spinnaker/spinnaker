@@ -166,7 +166,7 @@ class CassandraChanger(object):
 
   def change(self):
     paths = []
-    if self.__options.change_defaults:
+    if str(self.__options.change_defaults).lower() == "true":
         path = '/opt/spinnaker/config/spinnaker.yml'
         with open(path, 'r'):
           paths.append(path)
@@ -180,7 +180,7 @@ class CassandraChanger(object):
         except IOError:
           pass
 
-    if self.__options.change_local:
+    if str(self.__options.change_local).lower() == "true":
         path = '/opt/spinnaker/config/spinnaker-local.yml'
         try:
           with open(path, 'r'):
