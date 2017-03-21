@@ -1,11 +1,12 @@
 'use strict';
 
 import _ from 'lodash';
+import {ACCOUNT_SERVICE} from 'core/account/account.service.ts';
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.gce.instanceType.service', [])
-  .factory('gceInstanceTypeService', function ($http, $q) {
+module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_SERVICE])
+  .factory('gceInstanceTypeService', function ($http, $q, accountService) {
 
     var cachedResult = null;
 
@@ -20,16 +21,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'Small',
           cpu: 1,
           memory: 3.75,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 1
         },
         {
@@ -37,16 +28,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'Medium',
           cpu: 2,
           memory: 7.5,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 2
         },
         {
@@ -54,16 +35,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'Large',
           cpu: 4,
           memory: 15,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 2
         },
         {
@@ -71,16 +42,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'XLarge',
           cpu: 8,
           memory: 30,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 3
         },
         {
@@ -88,16 +49,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: '2XLarge',
           cpu: 16,
           memory: 60,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 3
         },
         {
@@ -106,16 +57,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: '4XLarge',
           cpu: 32,
           memory: 120,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 4
         }
       ]
@@ -132,16 +73,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'Micro',
           cpu: 1,
           memory: 0.60,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: false,
-            size: 10,
-            count: 1
-          },
           costFactor: 1
         },
         {
@@ -149,16 +80,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'Small',
           cpu: 1,
           memory: 1.70,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: false,
-            size: 10,
-            count: 1
-          },
           costFactor: 1
         }
       ]
@@ -175,16 +96,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'Medium',
           cpu: 2,
           memory: 13,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 2
         },
         {
@@ -192,16 +103,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'Large',
           cpu: 4,
           memory: 26,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 2
         },
         {
@@ -209,16 +110,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'XLarge',
           cpu: 8,
           memory: 52,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 3
         },
         {
@@ -226,16 +117,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: '2XLarge',
           cpu: 16,
           memory: 104,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 3
         },
         {
@@ -244,16 +125,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: '4XLarge',
           cpu: 32,
           memory: 208,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 4
         }
       ]
@@ -270,16 +141,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'Medium',
           cpu: 2,
           memory: 1.80,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 1
         },
         {
@@ -287,16 +148,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'Large',
           cpu: 4,
           memory: 3.60,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 2
         },
         {
@@ -304,16 +155,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: 'XLarge',
           cpu: 8,
           memory: 7.20,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 2
         },
         {
@@ -321,16 +162,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: '2XLarge',
           cpu: 16,
           memory: 14.4,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 3
         },
         {
@@ -339,16 +170,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
           label: '4XLarge',
           cpu: 32,
           memory: 28.8,
-          storage: {
-            defaultSettings: {
-              persistentDiskType: 'pd-ssd',
-              persistentDiskSizeGb: 10,
-              localSSDCount: 0
-            },
-            localSSDSupported: true,
-            size: 375,
-            count: 0
-          },
           costFactor: 4
         }
       ]
@@ -404,9 +225,63 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
       },
     ];
 
-    function getCategories() {
-      return $q.when(categories);
-    }
+    let getCategories = _.memoize(() => {
+      let initializedCategories = _.cloneDeep(categories);
+      return accountService.getAllAccountDetailsForProvider('gce').then(accountDetails => {
+        // All GCE accounts have the same instance type disk defaults, so we can pick the first one.
+        let instanceTypeDisks = _.get(accountDetails, '[0].instanceTypeDisks');
+        if (instanceTypeDisks) {
+          let families = _.flatten(initializedCategories.map(category => category.families));
+          families.forEach(family => {
+            family.instanceTypes.forEach(instanceType => {
+              let diskDefaults = instanceTypeDisks
+                .find(instanceTypeDisk => instanceTypeDisk.instanceType === instanceType.name);
+              if (diskDefaults) {
+                let localSSDCount = 0, persistentDiskType, persistentDiskSizeGb;
+                diskDefaults.disks.forEach(disk => {
+                  switch (disk.type) {
+                    case 'PD_SSD':
+                      persistentDiskType = 'pd-ssd';
+                      persistentDiskSizeGb = disk.sizeGb;
+                      break;
+                    case 'PD_STANDARD':
+                      persistentDiskType = 'pd-standard';
+                      persistentDiskSizeGb = disk.sizeGb;
+                      break;
+                    case 'LOCAL_SSD':
+                      localSSDCount++;
+                      break;
+                    default:
+                      break;
+                  }
+
+                  let size, count;
+                  if (family.storageType === 'SSD') {
+                    size = 375;
+                    count = localSSDCount;
+                  } else {
+                    size = persistentDiskSizeGb;
+                    count = 1;
+                  }
+
+                  instanceType.storage = {
+                    localSSDSupported: diskDefaults.supportsLocalSSD,
+                    size,
+                    count,
+                    defaultSettings: {
+                      persistentDiskType,
+                      persistentDiskSizeGb,
+                      localSSDCount,
+                    },
+                  };
+                });
+              }
+            });
+          });
+        }
+        return initializedCategories;
+      });
+    });
 
     function getAllTypesByRegion() {
 
@@ -414,20 +289,16 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [])
         return $q.when(cachedResult);
       }
 
-      var deferred = $q.defer();
-
-      deferred.resolve(_.chain(categories)
+      return getCategories().then(categories => {
+        return _.chain(categories)
           .map('families')
           .flatten()
           .map('instanceTypes')
           .flatten()
           .map('name')
           .filter(name => name !== 'buildCustom')
-          .value()
-      );
-
-      return deferred.promise;
-
+          .value();
+      });
     }
 
     function getAvailableTypesForLocations(instanceTypes, locationToInstanceTypesMap, selectedLocations) {

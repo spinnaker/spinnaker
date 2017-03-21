@@ -134,7 +134,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     function calculateOverriddenStorageDescription(instanceTypeDetails, command) {
       if (instanceTypeDetails.storage.localSSDSupported) {
         if (command.localSSDCount !== instanceTypeDetails.storage.count) {
-          command.viewState.overriddenStorageDescription = command.localSSDCount > 0 ? command.localSSDCount + '×375' : '0';
+          command.viewState.overriddenStorageDescription = command.localSSDCount + '×375';
         }
       } else {
         if (command.persistentDiskSizeGb !== instanceTypeDetails.storage.size) {
