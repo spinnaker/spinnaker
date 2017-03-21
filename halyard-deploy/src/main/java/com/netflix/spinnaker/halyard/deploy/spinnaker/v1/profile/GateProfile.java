@@ -37,7 +37,7 @@ public class GateProfile extends SpringProfile {
   public ProfileConfig generateFullConfig(ProfileConfig config, DeploymentConfiguration deploymentConfiguration, SpinnakerEndpoints endpoints) {
     config = super.generateFullConfig(config, deploymentConfiguration, endpoints);
     GateConfig gateConfig = new GateConfig(endpoints.getServices().getGate(), deploymentConfiguration.getSecurity());
-    gateConfig.getCors().setAllowedOriginsPattern(deploymentConfiguration.getSecurity(), endpoints.getServices().getDeck());
+    gateConfig.getCors().setAllowedOrigins(deploymentConfiguration.getSecurity(), endpoints.getServices().getDeck());
     return config.extendConfig(config.getPrimaryConfigFile(), yamlToString(gateConfig));
   }
 
@@ -53,21 +53,15 @@ public class GateProfile extends SpringProfile {
 
     @Data
     static class Cors {
-      private String allowedOriginsPattern;
+      private String allowedOrigins;
 
-      void setAllowedOriginsPattern(Security security, DeckService deck) {
-        String domain = security.getUiDomain();
-        domain = domain.replace(".", "\\.");
-
+      void setAllowedOrigins(Security security, DeckService deck) {
         boolean ssl = security.getSsl().isEnabled();
         String protocol = ssl ? "https" : "http";
-
+        String domain = security.getUiDomain();
         String port = Integer.toString(deck.getPort());
 
-
-        allowedOriginsPattern = "^" + protocol + "://"
-            + "(?:" + domain + ")"
-            + "(?::" + port + ")?/?$";
+        allowedOrigins = protocol + "://" + domain + ":" + port;
       }
     }
   }

@@ -50,8 +50,8 @@ public class DeckService extends SpinnakerPublicService<DeckService.Deck> {
     super();
   }
 
-  public DeckService(Security security) {
-    super(security);
+  public DeckService(Security security, String domain) {
+    super(security, domain);
     publicAddress = security.getUiAddress();
   }
 

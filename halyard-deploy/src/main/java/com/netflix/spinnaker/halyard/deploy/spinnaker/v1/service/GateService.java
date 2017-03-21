@@ -50,8 +50,8 @@ public class GateService extends SpinnakerPublicService<GateService.Gate> {
     super();
   }
 
-  public GateService(Security security) {
-    super(security);
+  public GateService(Security security, String domain) {
+    super(security, domain);
     publicAddress = security.getApiAddress();
   }
 

@@ -29,6 +29,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.OperationFactory;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.SizingTranslation;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerPublicService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -69,6 +70,15 @@ public class KubernetesOperationFactory extends OperationFactory {
     servicePort.setTargetPort(port);
     servicePort.setName("http");
     servicePort.setProtocol("TCP");
+
+    if (service instanceof SpinnakerPublicService) {
+      SpinnakerPublicService publicService = (SpinnakerPublicService) service;
+      String publicAddress = publicService.getPublicAddress();
+      if (publicAddress != "localhost" && !publicAddress.startsWith("127.")) {
+        description.setLoadBalancerIp(publicService.getPublicAddress());
+        description.setServiceType("LoadBalancer");
+      }
+    }
 
     List<KubernetesNamedServicePort> servicePorts = new ArrayList<>();
     servicePorts.add(servicePort);

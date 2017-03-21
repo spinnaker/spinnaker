@@ -39,11 +39,11 @@ public class SpinnakerEndpoints {
   public SpinnakerEndpoints(Security security) {
     services.clouddriver = new ClouddriverService();
     services.clouddriverBootstrap = new ClouddriverBootstrapService();
-    services.deck = new DeckService(security);
+    services.deck = new DeckService(security, security.getUiDomain());
     services.echo = new EchoService();
     services.fiat = new FiatService();
     services.front50 = new Front50Service();
-    services.gate = new GateService(security);
+    services.gate = new GateService(security, security.getApiDomain());
     services.igor = new IgorService();
     services.orca = new OrcaService();
     services.orcaBootstrap = new OrcaBootstrapService();

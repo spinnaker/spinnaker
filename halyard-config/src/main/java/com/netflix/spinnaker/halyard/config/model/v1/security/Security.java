@@ -56,6 +56,6 @@ public class Security extends Node {
   }
 
   public String getUiDomain() {
-    return apiDomain != null ? apiDomain : apiAddress;
+    return uiDomain != null ? uiDomain : uiAddress;
   }
 }

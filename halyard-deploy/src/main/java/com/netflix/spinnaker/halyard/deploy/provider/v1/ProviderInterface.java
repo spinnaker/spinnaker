@@ -124,6 +124,9 @@ public abstract class ProviderInterface<T extends Account> {
     String status;
     try {
       String id = task.get();
+      if (id.startsWith("/")) {
+        id = id.substring(1);
+      }
 
       pipeline = orca.getRef(id);
       status = (String) pipeline.get("status");

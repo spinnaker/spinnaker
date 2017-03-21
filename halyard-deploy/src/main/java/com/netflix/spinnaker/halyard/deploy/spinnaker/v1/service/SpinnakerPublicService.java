@@ -25,18 +25,25 @@ import lombok.EqualsAndHashCode;
 @Data
 abstract public class SpinnakerPublicService<T> extends SpinnakerService<T> {
   String protocol = "http";
+  String domain;
 
   public abstract String getPublicAddress();
 
   public String getPublicEndpoint() {
-    return getProtocol() + "://" + getPublicAddress() + ":" + getPort();
+    return getProtocol() + "://" + domain + ":" + getPort();
+  }
+
+  @Override
+  public String getBaseUrl() {
+    return getPublicEndpoint();
   }
 
   SpinnakerPublicService() { }
 
-  SpinnakerPublicService(Security security) {
+  SpinnakerPublicService(Security security, String domain) {
+    this.domain = domain;
     if (security.getSsl().isEnabled()) {
-      protocol = "https";
+      this.protocol = "https";
     }
   }
 }
