@@ -181,4 +181,40 @@ class AmazonSubnetProviderSpec extends Specification {
       [:]
     )
   }
+
+  void "should handle invalid immutable_metadata"() {
+    when:
+    def result = provider.getAll()
+
+    then:
+    result == [
+      new AmazonSubnet(
+        type: 'aws',
+        id: 'subnet-00000001',
+        state: 'available',
+        vpcId: 'vpc-1',
+        cidrBlock: '10',
+        availableIpAddressCount: 1,
+        account: 'test',
+        region: 'us-east-1',
+        availabilityZone: 'us-east-1a',
+        purpose: 'external (vpc0)',
+      )
+    ] as Set
+
+    and:
+    1 * cache.filterIdentifiers(Keys.Namespace.SUBNETS.ns, "aws:$Keys.Namespace.SUBNETS.ns:*:*:*")
+    1 * cache.getAll(Keys.Namespace.SUBNETS.ns, _, _ as CacheFilter) >> [snData('test', 'us-east-1', new Subnet(
+      subnetId: 'subnet-00000001',
+      state: 'available',
+      vpcId: 'vpc-1',
+      cidrBlock: '10',
+      availableIpAddressCount: 1,
+      availabilityZone: 'us-east-1a',
+      tags: [
+        new Tag(key: 'name', value: 'vpc0.external.us-east-1d'),
+        new Tag(key: 'immutable_metadata', value: '{"JSON"="BROKEN","target": "EC2"}')
+      ]
+    ))]
+  }
 }

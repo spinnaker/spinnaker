@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
 import com.amazonaws.services.ec2.model.Subnet
+import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
@@ -26,12 +27,14 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonSubnet
 import com.netflix.spinnaker.clouddriver.model.SubnetProvider
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SUBNETS
 
 @Component
+@Slf4j
 class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
   private static final String METADATA_TAG_KEY = 'immutable_metadata'
   private static final String NAME_TAG_KEY = 'name'
@@ -74,10 +77,16 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
     String target = null
     if (json) {
       def objectMapper = new ObjectMapper()
-      def metadata = objectMapper.readValue((String) json, Map.class)
-      metadata?.purpose
-      purpose = metadata?.purpose
-      target = metadata?.target
+      try {
+        def metadata = objectMapper.readValue((String) json, Map.class)
+        purpose = metadata?.purpose
+        target = metadata?.target
+      } catch (JsonParseException e) {
+        log.error("Can not extract purpose and/or target from ${METADATA_TAG_KEY}\n" +
+          "\tAccount: ${parts.account? parts.account : "account not resolved"}\n" +
+          "\tSubnet id: ${parts.id? parts.id: "subnet id not found"}\n" +
+          "\tException message: ${e.message}")
+      }
     }
 
     def name = subnet.tags.find { it.key.equalsIgnoreCase(NAME_TAG_KEY) }?.value
