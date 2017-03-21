@@ -180,8 +180,13 @@ class BomGenerator(Annotator):
 
       # Generate the changelog for the component.
       print 'Generating changelog for {comp}...'.format(comp=comp)
-      result = run_quick('cd {comp}; clog -f {hash} --setversion {version}; cd ..'
-                         .format(comp=comp, hash=hash, version=version))
+      # Assumes the remote repository is aliased as 'origin'.
+      component_url = run_quick('git -C {path} config --get remote.origin.url'
+                                .format(path=comp)).stdout.strip()
+      if component_url.endswith('.git'):
+        component_url = component_url.replace('.git', '')
+      result = run_quick('cd {comp}; clog -r {url} -f {hash} --setversion {version}; cd ..'
+                         .format(comp=comp, url=component_url, hash=hash, version=version))
       if result.returncode != 0:
         print "Changelog generation failed for {0} with \n{1}\n exiting...".format(comp, result.stdout)
         exit(result.returncode)
