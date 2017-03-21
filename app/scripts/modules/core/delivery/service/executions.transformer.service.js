@@ -299,7 +299,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
         let jenkins = deploymentDetails[0].jenkins;
         execution.buildInfo = {
           number: jenkins.number,
-          url: `${jenkins.host}job/${jenkins.name}/${jenkins.number}`
+          url: deploymentDetails[0].buildInfoUrl || `${jenkins.host}job/${jenkins.name}/${jenkins.number}`
         };
       }
     }
