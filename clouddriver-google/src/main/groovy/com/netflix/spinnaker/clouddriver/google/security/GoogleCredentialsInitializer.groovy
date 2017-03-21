@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.security
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
+import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
@@ -39,8 +40,9 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
                                                                               GoogleConfigurationProperties googleConfigurationProperties,
                                                                               ApplicationContext applicationContext,
                                                                               AccountCredentialsRepository accountCredentialsRepository,
-                                                                              List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
-    synchronizeGoogleAccounts(clouddriverUserAgentApplicationName, googleConfigurationProperties, null, applicationContext, accountCredentialsRepository, providerSynchronizerTypeWrappers)
+                                                                              List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers,
+                                                                              DeployDefaults googleDeployDefaults) {
+    synchronizeGoogleAccounts(clouddriverUserAgentApplicationName, googleConfigurationProperties, null, applicationContext, accountCredentialsRepository, providerSynchronizerTypeWrappers, googleDeployDefaults)
   }
 
   @Override
@@ -55,7 +57,8 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
                                                                           CatsModule catsModule,
                                                                           ApplicationContext applicationContext,
                                                                           AccountCredentialsRepository accountCredentialsRepository,
-                                                                          List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers) {
+                                                                          List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers,
+                                                                          DeployDefaults googleDeployDefaults) {
     def (ArrayList<GoogleConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
       ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
                                            GoogleNamedAccountCredentials,
@@ -75,6 +78,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
             .requiredGroupMembership(managedAccount.requiredGroupMembership)
             .applicationName(clouddriverUserAgentApplicationName)
             .consulConfig(managedAccount.consul)
+            .instanceTypeDisks(googleDeployDefaults.instanceTypeDisks)
             .build()
 
         if (!managedAccount.project) {

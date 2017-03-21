@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.TupleConstructor
 
@@ -44,6 +45,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final ComputeVersion computeVersion
   final Map<String, List<String>> regionToZonesMap
   final Map<String, Map> locationToInstanceTypesMap
+  final List<GoogleInstanceTypeDisk> instanceTypeDisks
   final ConsulConfig consulConfig
   final Compute compute
 
@@ -58,6 +60,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     ComputeVersion computeVersion = ComputeVersion.DEFAULT
     Map<String, List<String>> regionToZonesMap = [:]
     Map<String, Map> locationToInstanceTypesMap = [:]
+    List<GoogleInstanceTypeDisk> instanceTypeDisks = []
     String jsonKey
     GoogleCredentials credentials
     Compute compute
@@ -125,6 +128,11 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
       return this
     }
 
+    Builder instanceTypeDisks(List<GoogleInstanceTypeDisk> instanceTypeDisks) {
+      this.instanceTypeDisks = instanceTypeDisks
+      return this
+    }
+
     Builder liveLookupsEnabled(boolean enabled) {
       this.liveLookupsEnabled = enabled
       return this
@@ -182,6 +190,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
                                         computeVersion,
                                         regionToZonesMap,
                                         locationToInstanceTypesMap,
+                                        instanceTypeDisks,
                                         consulConfig,
                                         compute)
 
