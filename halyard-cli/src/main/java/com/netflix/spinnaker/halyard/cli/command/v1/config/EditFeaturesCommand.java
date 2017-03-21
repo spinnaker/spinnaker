@@ -79,7 +79,7 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
 
     new OperationHandler<Void>()
         .setOperation(Daemon.setFeatures(currentDeployment, !noValidate, features))
-        .setFailureMesssage("Failed to edit features.")
+        .setSuccessMessage("Failed to edit features.")
         .setFailureMesssage("Successfully updated features.")
         .get();
   }

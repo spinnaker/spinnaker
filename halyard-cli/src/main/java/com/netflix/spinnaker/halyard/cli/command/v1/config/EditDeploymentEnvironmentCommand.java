@@ -52,11 +52,25 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
   private DeploymentType type;
 
   @Parameter(
+      names = "--consul-enabled",
+      arity = 1,
+      description = "Whether or not to use Consul as a service discovery mechanism to deploy Spinnaker."
+  )
+  private Boolean consulEnabled;
+
+  @Parameter(
       names = "--consul-address",
       description = "The address of a running Consul cluster. See https://www.consul.io/.\n"
           + "This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration."
   )
   private String consulAddress;
+
+  @Parameter(
+      names = "--vault-enabled",
+      arity = 1,
+      description = "Whether or not to use Vault as a secret storage mechanism to deploy Spinnaker."
+  )
+  private Boolean vaultEnabled;
 
   @Parameter(
       names = "--vault-address",
@@ -76,10 +90,26 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
 
     int originalHash = deploymentEnvironment.hashCode();
 
+    DeploymentEnvironment.Consul consul = deploymentEnvironment.getConsul();
+    if (consul == null) {
+      consul = new DeploymentEnvironment.Consul();
+    }
+
+    DeploymentEnvironment.Vault vault = deploymentEnvironment.getVault();
+    if (vault == null) {
+      vault = new DeploymentEnvironment.Vault();
+    }
+
     deploymentEnvironment.setAccountName(isSet(accountName) ? accountName : deploymentEnvironment.getAccountName());
     deploymentEnvironment.setType(type != null ? type : deploymentEnvironment.getType());
-    deploymentEnvironment.setConsulAddress(isSet(consulAddress) ? consulAddress : deploymentEnvironment.getConsulAddress());
-    deploymentEnvironment.setVaultAddress(isSet(vaultAddress) ? vaultAddress : deploymentEnvironment.getVaultAddress());
+
+    consul.setAddress(isSet(consulAddress) ? consulAddress : consul.getAddress());
+    consul.setEnabled(isSet(consulEnabled) ? consulEnabled : consul.isEnabled());
+    deploymentEnvironment.setConsul(consul);
+
+    vault.setAddress(isSet(vaultAddress) ? vaultAddress : vault.getAddress());
+    vault.setEnabled(isSet(vaultEnabled) ? vaultEnabled : vault.isEnabled());
+    deploymentEnvironment.setVault(vault);
 
     if (originalHash == deploymentEnvironment.hashCode()) {
       AnsiUi.failure("No changes supplied.");
@@ -91,6 +121,5 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
         .setSuccessMessage("Successfully updated your deployment environment.")
         .setOperation(Daemon.setDeploymentEnvironment(currentDeployment, !noValidate, deploymentEnvironment))
         .get();
-
   }
 }

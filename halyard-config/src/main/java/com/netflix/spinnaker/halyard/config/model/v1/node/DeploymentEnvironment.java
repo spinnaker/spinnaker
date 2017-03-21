@@ -90,6 +90,18 @@ public class DeploymentEnvironment extends Node {
   private Size size = Size.SMALL;
   private DeploymentType type = DeploymentType.LocalhostDebian;
   private String accountName;
-  private String vaultAddress;
-  private String consulAddress;
+  private Consul consul = new Consul();
+  private Vault vault = new Vault();
+
+  @Data
+  public static class Consul {
+    String address;
+    boolean enabled;
+  }
+
+  @Data
+  public static class Vault {
+    String address;
+    boolean enabled;
+  }
 }

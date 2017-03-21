@@ -11,6 +11,7 @@
  * [**hal config features**](#hal-config-features)
  * [**hal config features edit**](#hal-config-features-edit)
  * [**hal config security**](#hal-config-security)
+ * [**hal config security edit**](#hal-config-security-edit)
  * [**hal config security roles**](#hal-config-security-roles)
  * [**hal config security roles provider**](#hal-config-security-roles-provider)
  * [**hal config security roles provider google**](#hal-config-security-roles-provider-google)
@@ -339,8 +340,25 @@ hal config security [parameters] [subcommands]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
+ * `edit`: Edit top-level spinnaker security settings.
  * `oauth2`: Configure the oauth2 method for authenticating.
  * `roles`: Configure authorization via a roles provider.
+
+---
+## hal config security edit
+
+Edit top-level spinnaker security settings.
+
+#### Usage
+```
+hal config security edit [parameters]
+```
+#### Parameters
+ * `--api-address`: The IP address the API is to be served from. If this is anything other than localhost it must be provisioned and owned by the cloud provider Spinnaker is being deployed to. The deployment of Spinnaker will automatically provision a load balancer that binds to this address.
+ * `--api-domain`: A domain that resolves to the address supplied to --api-address. This is required for generating valid SSL keypairs based on whatever CA you provide Spinnaker.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--ui-address`: The IP address the UI is to be served from. If this is anything other than localhost it must be provisioned and owned by the cloud provider Spinnaker is being deployed to. The deployment of Spinnaker will automatically provision a load balancer that binds to this address.
+ * `--ui-domain`: A domain that resolves to the address supplied to --ui-address. This is required for generating valid SSL keypairs based on whatever CA you provide Spinnaker.
 
 ---
 ## hal config security roles
@@ -2215,10 +2233,12 @@ hal config deploy edit [parameters]
  * `--account-name`: The Spinnaker account that Spinnaker will be deployed to, assuming you are runninga deployment of Spinnaker that requires an active cloud provider.
  * `--consul-address`: The address of a running Consul cluster. See https://www.consul.io/.
 This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
+ * `--consul-enabled`: Whether or not to use Consul as a service discovery mechanism to deploy Spinnaker.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--type`: Flotilla: Deploy Spinnaker with one server group per microservice, and a single shared Redis.
 LocalhostDebian: Download and run the Spinnaker debians on the machine running the Daemon.
  * `--vault-address`: The address of a running Vault datastore. See https://www.vaultproject.io/.This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
+ * `--vault-enabled`: Whether or not to use Vault as a secret storage mechanism to deploy Spinnaker.
 
 ---
 ## hal deploy

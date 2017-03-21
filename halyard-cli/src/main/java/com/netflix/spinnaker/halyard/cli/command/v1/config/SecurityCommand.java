@@ -38,6 +38,7 @@ public class SecurityCommand extends AbstractConfigCommand {
   public SecurityCommand() {
     registerSubcommand(new OAuth2Command());
     registerSubcommand(new RolesCommand());
+    registerSubcommand(new EditSecurityCommand());
   }
 
   @Override
