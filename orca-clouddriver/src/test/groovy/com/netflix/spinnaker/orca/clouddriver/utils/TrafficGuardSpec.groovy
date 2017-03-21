@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.utils
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location.Type
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import retrofit.RetrofitError
@@ -127,13 +128,30 @@ class TrafficGuardSpec extends Specification {
     given:
     addGuard([account: "test", location: "us-east-1", stack: "foo"])
     otherServerGroup.isDisabled = false
-    otherServerGroup.instances = [[id: 'a']]
+    otherServerGroup.instances = [[id: 'a', healthState: 'Up']]
 
     when:
     trafficGuard.verifyTrafficRemoval("app-foo-v001", "test", location, "aws", "x")
 
     then:
     notThrown(IllegalStateException)
+    1 * front50Service.get("app") >> application
+    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+      serverGroups: [targetServerGroup, otherServerGroup]
+    ]
+  }
+
+  void "should throw if another server group is enabled but no instances are 'up'"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+    otherServerGroup.isDisabled = false
+    otherServerGroup.instances = [[id: 'a', healthState: 'OutOfService']]
+
+    when:
+    trafficGuard.verifyTrafficRemoval("app-foo-v001", "test", location, "aws", "x")
+
+    then:
+    thrown(IllegalStateException)
     1 * front50Service.get("app") >> application
     1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
       serverGroups: [targetServerGroup, otherServerGroup]
@@ -207,6 +225,93 @@ class TrafficGuardSpec extends Specification {
     then:
     result == false
     1 * front50Service.get("app") >> application
+  }
+
+  void "instance termination should fail when last healthy instance in only server group in cluster"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+    targetServerGroup.instances = [[name: "i-1", healthState: "Up"], [name: "i-2", healthState: "Down"]]
+    when:
+    trafficGuard.verifyInstanceTermination(["i-1"], "test", location, "aws", "x")
+
+    then:
+    thrown(IllegalStateException)
+    1 * front50Service.get("app") >> application
+    1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [ [results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
+    1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
+    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+      serverGroups: [targetServerGroup]
+    ]
+  }
+
+  void "instance termination should fail when last healthy instance in only active server group in cluster"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+    targetServerGroup.instances = [[name: "i-1", healthState: "Up"], [name: "i-2", healthState: "Down"]]
+    otherServerGroup.instances = [[name: "i-1", healthState: "Down"]]
+    when:
+    trafficGuard.verifyInstanceTermination(["i-1"], "test", location, "aws", "x")
+
+    then:
+    thrown(IllegalStateException)
+    1 * front50Service.get("app") >> application
+    1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [ [results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
+    1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
+    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+      serverGroups: [targetServerGroup, otherServerGroup]
+    ]
+  }
+
+  void "instance termination should succeed when other server group in cluster contains healthy instance"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+    targetServerGroup.instances = [[name: "i-1", healthState: "Up"], [name: "i-2", healthState: "Down"]]
+    otherServerGroup.instances = [[name: "i-1", healthState: "Up"]]
+    when:
+    trafficGuard.verifyInstanceTermination(["i-1"], "test", location, "aws", "x")
+
+    then:
+    notThrown(IllegalStateException)
+    1 * front50Service.get("app") >> application
+    1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [ [results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
+    1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
+    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+      serverGroups: [targetServerGroup, otherServerGroup]
+    ]
+  }
+
+  void "instance termination should fail when trying to terminate all up instances in the cluster"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+    targetServerGroup.instances = [[name: "i-1", healthState: "Up"], [name: "i-2", healthState: "Up"]]
+    otherServerGroup.instances = [[name: "i-1", healthState: "Down"]]
+    when:
+    trafficGuard.verifyInstanceTermination(["i-1", "i-2"], "test", location, "aws", "x")
+
+    then:
+    thrown(IllegalStateException)
+    1 * front50Service.get("app") >> application
+    1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [ [results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
+    1 * oortHelper.getSearchResults("i-2", "instances", "aws") >> [ [results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
+    1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
+    1 * oortHelper.getCluster("app", "test", "app-foo", "aws") >> [
+      serverGroups: [targetServerGroup, otherServerGroup]
+    ]
+  }
+
+  void "instance termination should succeed when instance is not up, regardless of other instances"() {
+    given:
+    addGuard([account: "test", location: "us-east-1", stack: "foo"])
+    targetServerGroup.instances = [[name: "i-1"]]
+    when:
+    trafficGuard.verifyInstanceTermination(["i-1"], "test", location, "aws", "x")
+
+    then:
+    notThrown(IllegalStateException)
+    1 * front50Service.get("app") >> application
+    1 * oortHelper.getSearchResults("i-1", "instances", "aws") >> [ [results: [[account: "test", region: location.value, serverGroup: "app-foo-v001"]]]]
+    1 * oortHelper.getTargetServerGroup("test", "app-foo-v001", location.value, "aws") >> (targetServerGroup as TargetServerGroup)
+    0 * _
   }
 
   private void addGuard(Map guard) {

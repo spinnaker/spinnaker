@@ -21,18 +21,37 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.instance.TerminatingInstanceSupport
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class DisableInstancesTask implements Task {
+class DisableInstancesTask implements CloudProviderAware, Task {
 
   @Autowired KatoService katoService
 
+  @Autowired
+  TrafficGuard trafficGuard
+
   @Override
   TaskResult execute(Stage stage) {
+
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+
+    trafficGuard.verifyInstanceTermination(
+      stage.context.instanceIds as List<String>,
+      account,
+      Location.region(stage.context.region as String),
+      cloudProvider,
+      "Disabling the requested instances in")
+
     def actions = [[disableInstancesInDiscovery: stage.context], [deregisterInstancesFromLoadBalancer: stage.context]]
     def taskId = katoService.requestOperations(actions)
       .toBlocking()
