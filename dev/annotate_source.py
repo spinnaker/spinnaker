@@ -382,6 +382,7 @@ class Annotator(object):
     options = parser.parse_args()
 
     annotator = cls(options)
+    annotator.checkout_branch()
     annotator.parse_git_tree()
     annotator.tag_head()
     annotator.delete_unwanted_tags()

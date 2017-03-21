@@ -48,7 +48,6 @@ def main():
   __annotate_component(annotator, 'halyard')
 
   bom_generator = BomGenerator(options)
-  bom_generator.checkout_branch()
   bom_generator.determine_and_tag_versions()
   if options.container_builder == 'gcb':
     bom_generator.write_container_builder_gcr_config()
