@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import argparse
+import sys
 import unittest
 
 from annotate_source import Annotator, CommitTag, VersionBump
@@ -156,9 +157,10 @@ class SourceAnnotatorTest(unittest.TestCase):
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   Annotator.init_argument_parser(parser)
-  Annotator.init_extra_argument_parser(parser)
   OPTIONS = parser.parse_args()
 
   loader = unittest.TestLoader()
   suite = loader.loadTestsFromTestCase(SourceAnnotatorTest)
-  unittest.TextTestRunner(verbosity=2).run(suite)
+  got = unittest.TextTestRunner(verbosity=2).run(suite)
+  sys.exit(len(got.errors) + len(got.failures))
+

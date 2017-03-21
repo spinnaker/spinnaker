@@ -128,4 +128,5 @@ stuff here is left along.
 if __name__ == '__main__':
   loader = unittest.TestLoader()
   suite = loader.loadTestsFromTestCase(ConfiguratorTest)
-  unittest.TextTestRunner(verbosity=2).run(suite)
+  got = unittest.TextTestRunner(verbosity=2).run(suite)
+  sys.exit(len(got.failures) + len(got.errors))

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import sys
 import tempfile
 import unittest
 
@@ -403,4 +404,5 @@ e:
 if __name__ == '__main__':
   loader = unittest.TestLoader()
   suite = loader.loadTestsFromTestCase(YamlUtilTest)
-  unittest.TextTestRunner(verbosity=2).run(suite)
+  got = unittest.TextTestRunner(verbosity=2).run(suite)
+  sys.exit(len(got.errors) + len(got.failures))

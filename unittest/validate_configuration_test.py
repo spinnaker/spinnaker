@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import sys
 import tempfile
 import unittest
 
@@ -341,6 +342,6 @@ class ValidateConfigurationTest(unittest.TestCase):
 if __name__ == '__main__':
   loader = unittest.TestLoader()
   suite = loader.loadTestsFromTestCase(ValidateConfigurationTest)
-  unittest.TextTestRunner(verbosity=2).run(suite)
-
+  got = unittest.TextTestRunner(verbosity=2).run(suite)
+  sys.exit(len(got.errors) + len(got.failures))
 
