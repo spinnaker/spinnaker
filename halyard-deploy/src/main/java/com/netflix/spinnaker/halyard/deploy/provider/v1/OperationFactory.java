@@ -23,12 +23,19 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 abstract public class OperationFactory {
+  @Value("${deploy.maxRemainingServerGroups:2}")
+  protected Integer MAX_REMAINING_SERVER_GROUPS;
+
   abstract public Map<String, Object> createDeployPipeline(String accountName,
       SpinnakerService service,
       String artifact,
@@ -47,9 +54,11 @@ abstract public class OperationFactory {
 
   abstract protected Provider.ProviderType getProviderType();
 
-  protected Map<String, Object> redBlackStage(Map<String, Object> deployDescription, List<String> healthProviders, String region) {
+  protected Map<String, Object> redBlackStage(Map<String, Object> deployDescription, List<String> healthProviders, String region, Integer maxRemaining, boolean scaleDown) {
     deployDescription = deployStage(deployDescription, healthProviders, region);
     deployDescription.put("strategy", "redblack");
+    deployDescription.put("maxRemainingAsgs", maxRemaining + "");
+    deployDescription.put("scaleDown", scaleDown + "");
     return deployDescription;
   }
 

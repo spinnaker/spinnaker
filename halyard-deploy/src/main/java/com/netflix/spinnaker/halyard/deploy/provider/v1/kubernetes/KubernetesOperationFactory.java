@@ -26,8 +26,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalan
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.Size;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.OperationFactory;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.SizingTranslation;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerPublicService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
@@ -236,7 +238,12 @@ public class KubernetesOperationFactory extends OperationFactory {
     Map<String, Object> deploy = objectMapper.convertValue(description, Map.class);
     String namespace = KubernetesProviderInterface.getNamespaceFromAddress(service.getAddress());
     if (update) {
-      deploy = redBlackStage(deploy, healthProviders(), namespace);
+      boolean scaleDown = false;
+      Integer maxRemaining = MAX_REMAINING_SERVER_GROUPS;
+      if (service.getArtifact() == SpinnakerArtifact.ORCA) {
+        maxRemaining = null;
+      }
+      deploy = redBlackStage(deploy, healthProviders(), namespace, maxRemaining, scaleDown);
     } else {
       deploy = deployStage(deploy, healthProviders(), namespace);
     }

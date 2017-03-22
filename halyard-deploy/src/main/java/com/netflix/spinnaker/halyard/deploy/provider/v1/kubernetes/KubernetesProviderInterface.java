@@ -36,7 +36,6 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.OperationFactory.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.ProviderInterface;
-import com.netflix.spinnaker.halyard.deploy.provider.v1.SizingTranslation;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
@@ -437,6 +436,14 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   }
 
   @Override
+  public void deleteServerGroup(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service, String serverGroupName) {
+    KubernetesClient client = getClient(details.getAccount());
+    String namespace = getNamespaceFromAddress(service.getAddress());
+
+    client.extensions().replicaSets().inNamespace(namespace).withName(serverGroupName).delete();
+  }
+
+  @Override
   public void bootstrapSpinnaker(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerEndpoints.Services services) {
     bootstrapService(details, services.getRedisBootstrap(), true);
     bootstrapService(details, services.getClouddriverBootstrap(), true);
@@ -652,5 +659,11 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
     res.setHealthy(count);
 
     return res;
+  }
+
+  @Override
+  protected String getServerGroupFromInstanceId(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service, String instanceId) {
+    int lastDash = instanceId.lastIndexOf("-");
+    return instanceId.substring(0, lastDash);
   }
 }

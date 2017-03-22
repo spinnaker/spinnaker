@@ -58,10 +58,19 @@ public class OrcaService extends SpinnakerService<OrcaService.Orca> {
     @GET("/{id}")
     Map<String, Object> getRef(@Path(encode = false, value = "id") String id);
 
+    @GET("/executions/activeByInstance")
+    Map<String, ActiveExecutions> getActiveExecutions();
+
     @GET("/resolvedEnv")
     Map<String, String> resolvedEnv();
 
     @GET("/health")
     SpringHealth health();
+
+    @Data
+    class ActiveExecutions {
+      boolean overdue;
+      int count;
+    }
   }
 }

@@ -88,6 +88,8 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
       providerInterface.deployService(deploymentDetails, orca, endpoints, "fiat");
     }
 
+    providerInterface.reapOrcaServerGroups(deploymentDetails, services.getOrca());
+
     RemoteAction result = new RemoteAction();
 
     String deckConnection = providerInterface.connectToCommand(deploymentDetails, services.getDeck());
