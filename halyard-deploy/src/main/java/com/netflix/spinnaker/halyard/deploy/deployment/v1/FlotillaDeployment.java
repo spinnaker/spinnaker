@@ -66,7 +66,7 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
   public RemoteAction deploy(String spinnakerOutputPath) {
     SpinnakerEndpoints endpoints = getEndpoints();
     SpinnakerEndpoints.Services services = endpoints.getServices();
-    DaemonTaskHandler.newStage("Bootstrapping a minimal Spinnaker installation");
+    DaemonTaskHandler.newStage("Deploying minimal Spinnaker installation for bootstrapping");
     providerInterface.bootstrapSpinnaker(deploymentDetails, services);
 
     waitForServiceUp(services.getRedisBootstrap());

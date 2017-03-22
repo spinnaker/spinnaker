@@ -223,7 +223,7 @@ public class KubernetesProviderInterface extends ProviderInterface<KubernetesAcc
   }
 
   @Override
-  protected Map<String, Object> upsertLoadBalancerTask(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
+  protected Map<String, Object> upsertLoadBalancerStage(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerService service) {
     String accountName = details.getAccount().getName();
     return kubernetesOperationFactory.createUpsertPipeline(accountName, service);
   }

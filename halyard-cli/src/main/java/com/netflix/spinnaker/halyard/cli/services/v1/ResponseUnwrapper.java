@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class ResponseUnwrapper {
-  private static final Long WAIT_MILLIS = 200L;
+  private static final Long WAIT_MILLIS = 400L;
 
   public static <C, T> T get(DaemonTask<C, T> task) {
     PrintCoordinates coords = new PrintCoordinates();

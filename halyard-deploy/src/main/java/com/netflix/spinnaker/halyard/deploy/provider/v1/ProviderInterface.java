@@ -18,10 +18,7 @@ package com.netflix.spinnaker.halyard.deploy.provider.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderType;
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
@@ -35,13 +32,11 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
@@ -65,6 +60,9 @@ public abstract class ProviderInterface<T extends Account> {
   @Autowired
   protected String spinnakerOutputDependencyPath;
 
+  @Autowired
+  private OrcaRunner orcaRunner;
+
   abstract public ProviderType getProviderType();
 
   /**
@@ -77,7 +75,7 @@ public abstract class ProviderInterface<T extends Account> {
   abstract public <S> S connectTo(AccountDeploymentDetails<T> details, SpinnakerService<S> service);
   abstract public String connectToCommand(AccountDeploymentDetails<T> details, SpinnakerService service);
 
-  abstract protected Map<String, Object> upsertLoadBalancerTask(AccountDeploymentDetails<T> details, SpinnakerService service);
+  abstract protected Map<String, Object> upsertLoadBalancerStage(AccountDeploymentDetails<T> details, SpinnakerService service);
   abstract protected Map<String, Object> deployServerGroupPipeline(AccountDeploymentDetails<T> details, SpinnakerService service, SpinnakerMonitoringDaemonService monitoringService, boolean update);
 
   /**
@@ -111,20 +109,21 @@ public abstract class ProviderInterface<T extends Account> {
     SpinnakerService service = endpoints.getService(name);
     SpinnakerMonitoringDaemonService monitoringService = endpoints.getServices().getMonitoringDaemon();
     String artifactName = service.getArtifact().getName();
-    DaemonTaskHandler.newStage("Deploying " + service.getArtifact().getName());
     boolean update = serviceExists(details, service);
     Supplier<String> idSupplier;
     if (!update) {
-      Map<String, Object> task = upsertLoadBalancerTask(details, service);
+      Map<String, Object> task = upsertLoadBalancerStage(details, service);
+      DaemonTaskHandler.newStage("Upserting " + artifactName + " load balancer");
+      DaemonTaskHandler.log("Submitting upsert task of " + artifactName + " load balancer");
       idSupplier = () -> orca.submitTask(task).get("ref");
-      DaemonTaskHandler.log("Upserting " + artifactName + " load balancer");
-      monitorOrcaTask(idSupplier, orca);
+      orcaRunner.monitorTask(idSupplier, orca);
     }
 
     Map<String, Object> pipeline = deployServerGroupPipeline(details, service, monitoringService, update);
+    DaemonTaskHandler.newStage("Orchestrating " + artifactName + " deployment");
+    DaemonTaskHandler.log("Submitting deploy task of " + artifactName + " server group");
     idSupplier = () -> orca.orchestrate(pipeline).get("ref");
-    DaemonTaskHandler.log("Orchestrating " + artifactName + " deployment");
-    monitorOrcaTask(idSupplier, orca);
+    orcaRunner.monitorPipeline(idSupplier, orca);
   }
 
   public void reapOrcaServerGroups(AccountDeploymentDetails<T> details, OrcaService orcaService) {
@@ -161,33 +160,4 @@ public abstract class ProviderInterface<T extends Account> {
     }
   }
 
-  protected Map<String, Object> monitorOrcaTask(Supplier<String> task, Orca orca) {
-    Map<String, Object> pipeline;
-    String status;
-    try {
-      String id = task.get();
-      if (id.startsWith("/")) {
-        id = id.substring(1);
-      }
-
-      pipeline = orca.getRef(id);
-      status = (String) pipeline.get("status");
-      while (status.equalsIgnoreCase("running") || status.equalsIgnoreCase("not_started")) {
-        try {
-          Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-        } catch (InterruptedException ignored) {
-        }
-        pipeline = orca.getRef(id);
-        status = (String) pipeline.get("status");
-      }
-    } catch (RetrofitError e) {
-      throw new HalException(new ProblemBuilder(Problem.Severity.FATAL, "Failed to monitor task: " + e.getMessage()).build());
-    }
-
-    if (status.equalsIgnoreCase("terminal")) {
-      throw new HalException(new ProblemBuilder(Problem.Severity.FATAL, "Pipeline failed").build());
-    }
-
-    return pipeline;
-  }
 }
