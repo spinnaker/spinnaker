@@ -13,12 +13,7 @@
 # limitations under the License.
 
 """
-<<<<<<< HEAD
 Smoke test to see if Spinnaker can interoperate with OpenStack.
-=======
-Integration test to see if the security group creation process is working for
-the Spinnaker OpenStack integration.
->>>>>>> 5fa281503211dfdbac3d97f32ca3413c074ea087
 
 See testable_service/integration_test.py and spinnaker_testing/spinnaker.py
 for more details.
@@ -27,20 +22,14 @@ The test will use the spinnaker configuration parameters from the server
 endpoint (gate) to determine the managed project it should verify, and to
 determine the spinnaker account name to use when sending it commands.
 
-<<<<<<< HEAD
 Note:
     This test needs certain environment variables defined in order for the
-    OpenStack client to work. Please refer testing/citest/README.md for more 
+    OpenStack client to work. Please refer testing/citest/README.md for more
     details.
 
 Sample Usage:
     PYTHONPATH=testing/citest \
     python tesing/citest/tests/openstack_smoke_test.py \
-=======
-Sample Usage:
-    PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
-    python $CITEST_ROOT/spinnaker/spinnaker_system/openstack_smoke_test.py \
->>>>>>> 5fa281503211dfdbac3d97f32ca3413c074ea087
     --native_hostname=host-running-smoke-test
 """
 
@@ -167,29 +156,20 @@ class OpenStackSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder(
         'Security Group Created', retryable_for_secs=30)
      .show_resource('security group', self.TEST_SECURITY_GROUP)
-<<<<<<< HEAD
-     .contains_pred_list([jp.DICT_MATCHES({'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP),
-                      'rules': jp.STR_SUBSTR("protocol='tcp'")
-                               and jp.STR_SUBSTR("port_range_min='80'")
-                               and jp.STR_SUBSTR("port_range_max='80'")}),
-     jp.DICT_MATCHES({'rules': jp.STR_SUBSTR("protocol='udp'")
-                               and jp.STR_SUBSTR("port_range_min='10'")
-                               and jp.STR_SUBSTR("port_range_max='65530'")}),
-     jp.DICT_MATCHES({'rules': jp.STR_SUBSTR("protocol='icmp'")
-                               and jp.STR_SUBSTR("port_range_min='12'")
-                               and jp.STR_SUBSTR("port_range_max='9'")})]))
-=======
-     .contains_match({'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP),
-                      'rules': jp.STR_SUBSTR("protocol='tcp'")
-                               and jp.STR_SUBSTR("port_range_min='80'")
-                               and jp.STR_SUBSTR("port_range_max='80'")})
-     .contains_match({'rules': jp.STR_SUBSTR("protocol='udp'")
-                               and jp.STR_SUBSTR("port_range_min='10'")
-                               and jp.STR_SUBSTR("port_range_max='65530'")})
-     .contains_match({'rules': jp.STR_SUBSTR("protocol='icmp'")
-                               and jp.STR_SUBSTR("port_range_min='12'")
-                               and jp.STR_SUBSTR("port_range_max='9'")}))
->>>>>>> 5fa281503211dfdbac3d97f32ca3413c074ea087
+     .contains_pred_list([
+         jp.DICT_MATCHES({
+             'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP),
+             'rules': jp.STR_SUBSTR("protocol='tcp'")
+                      and jp.STR_SUBSTR("port_range_min='80'")
+                      and jp.STR_SUBSTR("port_range_max='80'")}),
+         jp.DICT_MATCHES({
+             'rules': jp.STR_SUBSTR("protocol='udp'")
+                      and jp.STR_SUBSTR("port_range_min='10'")
+                      and jp.STR_SUBSTR("port_range_max='65530'")}),
+         jp.DICT_MATCHES({
+             'rules': jp.STR_SUBSTR("protocol='icmp'")
+                      and jp.STR_SUBSTR("port_range_min='12'")
+                      and jp.STR_SUBSTR("port_range_max='9'")})]))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=' Test - create security group for {app}'.format(
@@ -256,45 +236,23 @@ class OpenStackSmokeTest(st.AgentTestCase):
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
 
-<<<<<<< HEAD
   def test_z_delete_app(self):
     self.run_test_case(self.scenario.delete_app(),
                        retry_interval_secs=8, max_retries=8)
-=======
->>>>>>> 5fa281503211dfdbac3d97f32ca3413c074ea087
 
   def test_b_create_security_group(self):
     self.run_test_case(self.scenario.create_a_security_group())
 
-<<<<<<< HEAD
-  def test_y_delete_security_group(self):
-    self.run_test_case(self.scenario.delete_a_security_group(),
-                       retry_interval_secs=8, max_retries=8)
-=======
->>>>>>> 5fa281503211dfdbac3d97f32ca3413c074ea087
-
-  def test_z_delete_app(self):
-    self.run_test_case(self.scenario.delete_app(),
-                       retry_interval_secs=8, max_retries=8)
-
-<<<<<<< HEAD
-=======
   def test_y_delete_security_group(self):
     self.run_test_case(self.scenario.delete_a_security_group(),
                        retry_interval_secs=8, max_retries=8)
 
->>>>>>> 5fa281503211dfdbac3d97f32ca3413c074ea087
 def main():
   """Implements the main method running this smoke test."""
 
   defaults = {
-<<<<<<< HEAD
       'TEST_STACK': str(OpenStackSmokeTestScenario.DEFAULT_TEST_ID),
       'TEST_APP': 'openstack-smoketest' + OpenStackSmokeTestScenario.DEFAULT_TEST_ID
-=======
-      'TEST_STACK': OpenStackSmokeTestScenario.DEFAULT_TEST_ID,
-      'TEST_APP': 'openstacksmoke' + OpenStackSmokeTestScenario.DEFAULT_TEST_ID
->>>>>>> 5fa281503211dfdbac3d97f32ca3413c074ea087
       }
 
   return citest.base.TestRunner.main(

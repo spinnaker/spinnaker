@@ -64,10 +64,6 @@ Google Cloud Platform | gcloud | ```curl https://sdk.cloud.google.com | bash```
 Kubernetes | kubectl | [See instructions](http://kubernetes.io/docs/user-guide/prereqs/)
 OpenStack | openstack | [See instructions](https://docs.openstack.org/user-guide/common/cli-install-openstack-command-line-clients.html)
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> a2b02b412d026b2d83fad73073fbf065bccbc425
 
 ## Defining Environment Variables
 ### OpenStack
@@ -84,13 +80,8 @@ OS_USERNAME | OpenStack user name
 OS_PASSWORD | OpenStack user password
 OS_REGION_NAME | OpenStack region name
 OS_IDENTITY_API_VERSION | Keystone service endpoint version number
-<<<<<<< HEAD
-
-=======
 OS_PROJECT_DOMAIN_NAME | OpenStack project domain name
-=======
->>>>>>> 5fa281503211dfdbac3d97f32ca3413c074ea087
->>>>>>> a2b02b412d026b2d83fad73073fbf065bccbc425
+
 
 ## Install Spinnaker citest Dependencies
 citest is not yet published to a pip repository so you need to clone

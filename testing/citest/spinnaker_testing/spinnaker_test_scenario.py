@@ -311,35 +311,15 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         default=defaults.get('SPINNAKER_OS_ACCOUNT', None),
         help='Spinnaker account name to use for test operations against OpenStack.'
              'Only used when managing resources on OpenStack.')
-<<<<<<< HEAD
     parser.add_argument(
         '--os_region_name',
         default=defaults.get('OS_REGION_NAME', None),
         help='The OpenStack region to test generated instances in (when managing'
-             ' OpenStack). ')
+             'OpenStack).')
     parser.add_argument(
         '--test_os_username',
         default=defaults.get('TEST_OS_USERNAME', 'my-openstack-account'),
-        help='The OpenStack authentiaction username for test operations against OpenStack. ')
-=======
-    parser.add_argument(
-        '--os_region_name',
-        default=defaults.get('OS_REGION_NAME', None),
-        help='The OpenStack region to test generated instances in (when managing'
-             ' OpenStack). ')
-    parser.add_argument(
-        '--test_os_username',
-        default=defaults.get('TEST_OS_USERNAME', 'my-openstack-account'),
-        help='The OpenStack authentiaction username for test operations against OpenStack. ')
-    parser.add_argument(
-        '--test_os_project_name',
-        default=defaults.get('TEST_OS_PROJECT_NAME', ''),
-        help='OpenStack project to test instances in (when managing OS).')
-
-    parser.add_argument(
-        '--test_os_auth_url', default=defaults.get('TEST_OS_AUTH_URL', "http://localhost:5000/v2.0"),
-        help='Openstack authentication URL.')
->>>>>>> 5fa281503211dfdbac3d97f32ca3413c074ea087
+        help='The OpenStack authentiaction username for test operations against OpenStack.')
 
   @classmethod
   def _initOperationConfigurationParameters(cls, parser, defaults):
@@ -522,8 +502,6 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     if not bindings.get('TEST_GCE_REGION', ''):
       bindings['TEST_GCE_REGION'] = bindings['TEST_GCE_ZONE'][:-2]
 
-    # TODO:GOOGLE_PRIMARY_MANAGED_PROJECT_ID will be always present
-    # and can't be None so should it be changed to GCE_PROJECT?
     if bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
       self.__gcp_observer = gcp.GcpComputeAgent.make_agent(
           scopes=(gcp.COMPUTE_READ_WRITE_SCOPE
