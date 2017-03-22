@@ -64,6 +64,7 @@ class OperationsController {
     parsePipelineTrigger(executionRepository, buildService, pipeline)
     Map trigger = pipeline.trigger
 
+    boolean plan = pipeline.plan ?: false
     for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
       pipeline = preprocessor.process(pipeline)
     }
@@ -85,7 +86,7 @@ class OperationsController {
     def augmentedContext = [trigger: pipeline.trigger]
     def processedPipeline = ContextParameterProcessor.process(pipeline, augmentedContext, false)
 
-    if (pipeline.plan == true) {
+    if (plan) {
       log.info('not starting pipeline (plan: true): {}', pipeline.id)
       if (pipeline.errors != null) {
         throw new InvalidPipelineTemplateException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
