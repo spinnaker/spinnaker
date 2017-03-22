@@ -10,7 +10,7 @@ buildscript {
   }
   dependencies {
     classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.12.0'
-    classpath 'com.moowork.gradle:gradle-node-plugin:0.11'
+    classpath 'com.moowork.gradle:gradle-node-plugin:1.1.1'
   }
 }
 
@@ -35,6 +35,7 @@ node {
 
     version = packageJson.engines.node
     npmVersion = packageJson.engines.npm
+    yarnVersion = packageJson.engines.yarn
 
     // Enabled the automatic download. False is the default (for now).
     download = true
@@ -70,8 +71,8 @@ task generateVersionFile << {
 
 webpack.outputs.dir file('build/webpack')
 
-npmInstall.dependsOn 'generateVersionFile'
-webpack.dependsOn 'npmInstall'
+yarn.dependsOn 'generateVersionFile'
+webpack.dependsOn 'yarn'
 karma.dependsOn 'webpack'
 test.dependsOn 'karma'
 buildDeb.dependsOn 'test'

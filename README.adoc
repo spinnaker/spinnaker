@@ -4,14 +4,14 @@ image::https://api.travis-ci.org/spinnaker/deck.svg?branch=master["Build Status"
 
 == Prerequisites
 
-Make sure that node and npm are installed on your system (http://nodejs.org/download/[download]). The minimum versions for each are listed in package.json.
+Make sure that http://nodejs.org/download/[node] and https://yarnpkg.com/en/docs/install[yarn] are installed on your system. The minimum versions for each are listed in package.json.
 
 == Quick Start
 
 Run the following commands (in the deck directory) to get all dependencies installed in deck and to start the server:
 
-* `npm install`
-* `npm start`
+* `yarn`
+* `yarn run start`
 
 The app will start up on localhost:9000.
 
@@ -28,25 +28,25 @@ The following external resources can be specified with environment variables:
 * `API_HOST` overrides the default Spinnaker API host.
 * `AUTH_ENABLED` determines whether Deck will attempt to authenticate users via Gate.
 
-For example, `API_HOST=http://spinnaker.prod.netflix.net npm start` will run Deck with `http://spinnaker.prod.netflix.net` as the API host.
+For example, `API_HOST=http://spinnaker.prod.netflix.net yarn run start` will run Deck with `http://spinnaker.prod.netflix.net` as the API host.
 
 == Testing
 
-To run the tests within the application, run `npm test`.
+To run the tests within the application, run `yarn run test`.
 
 [[NOTE]]
 ====
 Developing things locally? You will want to run https://github.com/spinnaker/gate[gate] locally (which runs on port 8084) as well. It's the gateway to clouddriver. Then run deck like this:
 
 ```
-API_HOST=http://localhost:8084 npm start
+API_HOST=http://localhost:8084 yarn run start
 ```
 ====
 
 
 == Building &amp; Deploying
 
-To build the application, run `npm run build`. The built application lives in `build/`.
+To build the application, run `yarn run build`. The built application lives in `build/`.
 
 == Conventions
 
