@@ -144,7 +144,7 @@ public class LocalhostDebianDeployment extends Deployment {
 
     JarResource etcInitResource = new JarResource("/debian/init.sh");
     Map<String, String> bindings = new HashMap<>();
-    bindings.put("spinnaker-artifacts", artifacts.replace("deck", "apache2"));
+    bindings.put("spinnaker-artifacts", artifacts.replace("deck", "apache2").replace("monitoring-daemon", "spinnaker-monitoring"));
     String etcInit = etcInitResource.setBindings(bindings).toString();
 
     DaemonTaskHandler.log("Writing installation file");
