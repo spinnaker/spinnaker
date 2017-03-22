@@ -7,7 +7,7 @@
 set -e
 set -o pipefail
 
-REPOSITORY_URL=${REPOSITORY_URL:-"https://dl.bintray.com/spinnaker/debians"}
+REPOSITORY_URL="https://dl.bintray.com/spinnaker/debians"
 
 
 # This script uses the following global variables.

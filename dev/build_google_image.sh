@@ -288,10 +288,6 @@ function create_prototype_disk() {
 
   command="sudo ./install-spinnaker-${TIME_DECORATOR}.sh ${args}"
   command="$command && sudo service spinnaker stop"
-  if [[ "$UPDATE_OS" == "true" ]]; then
-    command="$command && sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade"
-    command="$command && sudo apt-get autoremove -y"
-  fi
 
   echo "`date`: Installing Spinnaker onto '$INSTANCE'"
   gcloud compute ssh $INSTANCE \
@@ -300,6 +296,16 @@ function create_prototype_disk() {
     --zone $ZONE \
     --ssh-key-file $SSH_KEY_FILE \
     --command="$command"
+
+  if [[ "$UPDATE_OS" == "true" ]]; then
+    echo "`date`: Updating distribution on '$INSTANCE'"
+    gcloud compute ssh $INSTANCE \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --ssh-key-file $SSH_KEY_FILE \
+      --command="sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade && sudo apt-get autoremove -y"
+  fi
 
   echo "`date`: Deleting '$INSTANCE' but keeping disk"
   gcloud compute instances set-disk-auto-delete $INSTANCE \
