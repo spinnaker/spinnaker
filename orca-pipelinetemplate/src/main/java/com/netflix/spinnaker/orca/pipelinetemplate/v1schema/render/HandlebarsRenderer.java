@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.EscapingStrategy;
@@ -28,13 +27,10 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.JsonHe
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.ModuleHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.UnknownIdentifierHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.helper.WithMapKeyHelper;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
 
 /**
  * Runs a two-phase render, first to process the handlebars template, then a second
@@ -46,10 +42,14 @@ public class HandlebarsRenderer implements Renderer {
 
   Handlebars handlebars;
 
-  ObjectMapper pipelineTemplateObjectMapper;
+  private RenderedValueConverter renderedValueConverter;
 
   public HandlebarsRenderer(ObjectMapper pipelineTemplateObjectMapper) {
-    this.pipelineTemplateObjectMapper = pipelineTemplateObjectMapper;
+    this(new JsonRenderedValueConverter(pipelineTemplateObjectMapper), pipelineTemplateObjectMapper);
+  }
+
+  public HandlebarsRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper) {
+    this.renderedValueConverter = renderedValueConverter;
 
     handlebars = new Handlebars()
       .with(EscapingStrategy.NOOP)
@@ -59,6 +59,8 @@ public class HandlebarsRenderer implements Renderer {
       .registerHelper("withMapKey", new WithMapKeyHelper())
     ;
     ConditionHelper.register(handlebars);
+
+    log.info("PipelineTemplates: Using HandlebarsRenderer");
   }
 
   @Override
@@ -96,61 +98,6 @@ public class HandlebarsRenderer implements Renderer {
 
   @Override
   public Object renderGraph(String template, RenderContext context) {
-    String rendered = render(template, context);
-
-    // Short-circuit primitive values.
-    // TODO rz - having trouble getting jackson to parse primitive values outside of unit tests
-    if (NumberUtils.isNumber(rendered)) {
-      if (rendered.contains(".")) {
-        return NumberUtils.createDouble(rendered);
-      }
-      try {
-        return NumberUtils.createInteger(rendered);
-      } catch (NumberFormatException ignored) {
-        return NumberUtils.createLong(rendered);
-      }
-    } else if (rendered.equals("true") || rendered.equals("false")) {
-      return Boolean.parseBoolean(rendered);
-    } else if (rendered.startsWith("{{") || (!rendered.startsWith("{") && !rendered.startsWith("["))) {
-      return rendered;
-    }
-
-    JsonNode node;
-    try {
-      node = pipelineTemplateObjectMapper.readTree(rendered);
-    } catch (IOException e) {
-      throw new TemplateRenderException("template produced invalid json", e);
-    }
-
-    try {
-      if (node.isArray()) {
-        return pipelineTemplateObjectMapper.readValue(rendered, Collection.class);
-      }
-      if (node.isObject()) {
-        return pipelineTemplateObjectMapper.readValue(rendered, HashMap.class);
-      }
-      if (node.isBoolean()) {
-        return Boolean.parseBoolean(node.asText());
-      }
-      if (node.isDouble()) {
-        return node.doubleValue();
-      }
-      if (node.canConvertToInt()) {
-        return node.intValue();
-      }
-      if (node.canConvertToLong()) {
-        return node.longValue();
-      }
-      if (node.isTextual()) {
-        return node.textValue();
-      }
-      if (node.isNull()) {
-        return null;
-      }
-    } catch (IOException e) {
-      throw new TemplateRenderException("template produced invalid json", e);
-    }
-
-    throw new TemplateRenderException("unknown rendered object type");
+    return renderedValueConverter.convertRenderedValue(render(template, context));
   }
 }

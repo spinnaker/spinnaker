@@ -17,9 +17,9 @@ stages:
   config:
     regions: |
       [
-      {{#each regions}}
-      "{{ this }}"{{#unless @last}},{{/unless}}
-      {{/each}}
+      {% for region in regions %}
+      "{{ region }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
       ]
     package: "{{ application }}-package"
     baseOs: trusty

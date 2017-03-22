@@ -1,8 +1,0 @@
-schema: "1"
-id: invalidHandlebarsTemplate
-stages:
-- id: bake
-  type: bake
-  name: Bake
-  config:
-    regions: "{{unknown_identifier}}"

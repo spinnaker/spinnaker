@@ -15,4 +15,5 @@ stages:
   config:
     waitTime: 5
   when:
-  - '{{isEqual includeWait true}}'
+  # This could also just be '{{ includeWait }}', but examples.
+  - '{{ includeWait == true }}'

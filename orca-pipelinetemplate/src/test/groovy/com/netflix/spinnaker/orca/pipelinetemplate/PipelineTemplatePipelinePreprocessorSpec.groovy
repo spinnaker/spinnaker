@@ -22,7 +22,7 @@ import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.FileTemplateSchemeLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.HandlebarsRenderer
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import org.unitils.reflectionassert.ReflectionComparatorMode
 import spock.lang.Specification
@@ -37,7 +37,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
   TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)])
 
-  Renderer renderer = new HandlebarsRenderer(objectMapper)
+  Renderer renderer = new JinjaRenderer(objectMapper)
 
   Registry registry = Mock() {
     clock() >> Mock(Clock) {
@@ -159,15 +159,6 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     noExceptionThrown()
     result.errors != null
     result.errors*.message.contains("failed loading template")
-  }
-
-  def 'should not render unknown handlebars identifiers'() {
-    when:
-    def result = subject.process(createTemplateRequest('invalid-handlebars-001.yml', [:], [], true))
-
-    then:
-    noExceptionThrown()
-    result.stages[0].regions == '{{unknown_identifier}}'
   }
 
   @Unroll

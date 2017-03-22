@@ -21,7 +21,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateModule;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.HandlebarsRenderer;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JsonRenderedValueConverter;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderedValueConverter;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -38,7 +42,19 @@ public class PipelineTemplateConfiguration {
   }
 
   @Bean
-  Renderer renderer(ObjectMapper pipelineTemplateObjectMapper) {
-    return new HandlebarsRenderer(pipelineTemplateObjectMapper);
+  RenderedValueConverter jsonRenderedValueConverter(ObjectMapper pipelineTemplateObjectMapper) {
+    return new JsonRenderedValueConverter(pipelineTemplateObjectMapper);
+  }
+
+  @Bean
+  @ConditionalOnExpression("!${pipelineTemplate.jinja.enabled}")
+  Renderer handlebarsRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper) {
+    return new HandlebarsRenderer(renderedValueConverter, pipelineTemplateObjectMapper);
+  }
+
+  @Bean
+  @ConditionalOnExpression("${pipelineTemplate.jinja.enabled}")
+  Renderer jinjaRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper) {
+    return new JinjaRenderer(renderedValueConverter, pipelineTemplateObjectMapper);
   }
 }

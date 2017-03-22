@@ -5,6 +5,9 @@ dependencies {
 
   compile('com.github.jknack:handlebars:4.0.6')
   compile('com.github.jknack:handlebars-jackson2:1.0.0')
+
+  compile('com.hubspot.jinjava:jinjava:2.1.14')
+
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
   compile('com.jayway.jsonpath:json-path:2.2.0')
 
