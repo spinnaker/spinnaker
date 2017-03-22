@@ -67,9 +67,12 @@ OpenStack | openstack | [See instructions](https://docs.openstack.org/user-guide
 
 ## Defining Environment Variables
 ### OpenStack
+
+Below mentioned environment variables are neeeded in order for openstack client to work.
+ 
 Variable | Description
 ---------|------------
-OS_AUTH_URL | Keystone authentication server URL.(https://identityHost:portNumber/version)
+OS_AUTH_URL | Keystone authentication server URL. e.g.https://identityHost:portNumber/version
 OS_PROJECT_ID | OpenStack project ID
 OS_PROJECT_NAME | OpenStack project name
 OS_USER_DOMAIN_NAME | OpenStack user domain name
@@ -77,7 +80,7 @@ OS_USERNAME | OpenStack user name
 OS_PASSWORD | OpenStack user password
 OS_REGION_NAME | OpenStack region name
 OS_IDENTITY_API_VERSION | Keystone service endpoint version number
-OS_PROJECT_DOMAIN_NAME | OpenStack project domain name
+
 
 ## Install Spinnaker citest Dependencies
 citest is not yet published to a pip repository so you need to clone
@@ -198,7 +201,11 @@ Flag | Description
 spinnaker_google_credentials | The name of the Spinnaker [clouddriver] account that you wish to use for Google operations. If not specified, this will use the configured primary account.
 spinnaker_kubernetes_credentials |  The name of the Spinnaker [clouddriver] account that you wish to use for Kubernetes operations. If not specified, this will use the configured primary account.
 spinnaker_aws_credentials |  The name of the Spinnaker [clouddriver] account that you wish to use for Amazon Web Services operations. If not specified, this will use the configured primary account.
+<<<<<<< HEAD
 spinnaker_os_account | The name of the Spinnaker [clouddriver] account that you wish to use for OpenStack operations. If not specified, this will use the configured primary account.
+=======
+spinnaker_os_credentials | The name of the Spinnaker [clouddriver] account that you wish to use for OpenStack operations. If not specified, this will use the configured primary account.
+>>>>>>> 5fa281503211dfdbac3d97f32ca3413c074ea087
 
 
 ## Standard Parameters For Configuring Observers
