@@ -29,7 +29,7 @@ function __get_google_metadata_value() {
 
 function __determine_default_bucket() {
   if [[ ! -z "${SPINNAKER_GOOGLE_PROJECT_ID}" ]]; then
-    echo "spinnaker-${SPINNAKER_GOOGLE_PROJECT_ID}"
+    echo "spinnaker-${SPINNAKER_GOOGLE_PROJECT_ID//google.com:/}"
   else
     echo ""
   fi

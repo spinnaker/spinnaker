@@ -98,13 +98,13 @@ def init_argument_parser(parser):
         help='The Google Cloud Platform zone to create the new instance in.')
 
     parser.add_argument(
-        '--disk_type',  default='pd-standard',
+        '--disk_type',  default='pd-ssd',
         help='The Google Cloud Platform disk type to use for the new instance.'
         '  The default is pd-standard. For a list of other available options,'
         ' see "gcloud compute disk-types list".')
     parser.add_argument('--disk_size', default='200GB',
                         help='Warnings appear if disk size < 200GB')
-    parser.add_argument('--machine_type', default='n1-highmem-8')
+    parser.add_argument('--machine_type', default='n1-standard-8')
 
     parser.add_argument(
         '--copy_personal_files', default=True, action='store_true',
@@ -112,13 +112,6 @@ def init_argument_parser(parser):
     parser.add_argument(
         '--no_personal_files', dest='copy_personal_files',
         action='store_false', help='Do not copy personal files.')
-    parser.add_argument(
-        '--nopersonal', dest='copy_personal_files', action='store_false',
-        help='DEPRECATED')
-
-    parser.add_argument(
-        '--copy_private_files', default=False, action='store_true',
-        help='DEPRECATED')
 
     parser.add_argument(
         '--copy_git_credentials', default=False, action='store_true',
@@ -126,12 +119,6 @@ def init_argument_parser(parser):
     parser.add_argument(
         '--no_git_credentials', dest='copy_git_credentials',
         action='store_false', help='Do not copy git credentials')
-    parser.add_argument(
-        '--copy_ssh_credentials', default=False, action='store_true',
-        help='Copy ssh credentials (.ssh/id_rsa, .ssh/google_compute_engine)')
-    parser.add_argument(
-        '--no_ssh_credentials', dest='copy_ssh_credentials',
-        action='store_false', help='Do not copy ssh credentials')
 
     parser.add_argument(
         '--copy_gcloud_config', default=False, action='store_true',
@@ -261,15 +248,6 @@ def maybe_copy_git_credentials(options):
                      '.git-credentials', '--copy_git_credentials')
 
 
-def maybe_copy_ssh_credentials(options):
-    if options.copy_ssh_credentials:
-        copy_home_file_list(options, 'ssh credentials',
-                            '.ssh', ['id_rsa', 'google_compute_engine'])
-    else:
-        maybe_inform('ssh credentials',
-                     '.ssh/.id_rsa', '--copy_ssh_credentials')
-
-
 def copy_personal_files(options):
    copy_home_file_list(options, 'personal configuration files',
                        '.',
@@ -322,8 +300,9 @@ def create_instance(options):
                '--project', get_project(options),
                '--zone', get_zone(options),
                '--machine-type', options.machine_type,
-               '--image', 'ubuntu-14-04',
-               '--scopes', 'compute-rw,storage-rw',
+               '--image-family', 'ubuntu-1404-lts',
+               '--image-project', 'ubuntu-os-cloud',
+               '--scopes', options.scopes,
                '--boot-disk-size={size}'.format(size=options.disk_size),
                '--boot-disk-type={type}'.format(type=options.disk_type),
                '--metadata', metadata,
@@ -423,11 +402,6 @@ if __name__ == '__main__':
     init_argument_parser(parser)
     options = parser.parse_args()
 
-    if options.copy_private_files:
-        sys.stderr.write('--copy_private_files is deprecated.\n'
-                         'Use --copy_git_credentials --copy_ssh_credentials.')
-        sys.exit(-1)
-
     check_args(options)
     create_instance(options)
 
@@ -436,7 +410,6 @@ if __name__ == '__main__':
     if options.copy_personal_files:
       copy_personal_files(options)
 
-    maybe_copy_ssh_credentials(options)
     maybe_copy_git_credentials(options)
     maybe_copy_aws_credentials(options)
     maybe_copy_gcloud_config(options)
