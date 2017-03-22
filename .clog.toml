@@ -1,5 +1,4 @@
 [clog]
 
 [sections]
-"Breaking Changes" = ["bc"]
 "Configuration Changes" = ["config", "conf"]
