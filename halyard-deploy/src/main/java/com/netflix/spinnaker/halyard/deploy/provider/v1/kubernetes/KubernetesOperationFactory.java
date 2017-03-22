@@ -26,9 +26,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalan
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.Size;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.OperationFactory;
-import com.netflix.spinnaker.halyard.deploy.provider.v1.SizingTranslation;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerPublicService;
@@ -36,6 +37,8 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -76,7 +79,14 @@ public class KubernetesOperationFactory extends OperationFactory {
     if (service instanceof SpinnakerPublicService) {
       SpinnakerPublicService publicService = (SpinnakerPublicService) service;
       String publicAddress = publicService.getPublicAddress();
-      if (publicAddress != "localhost" && !publicAddress.startsWith("127.")) {
+      InetAddress addr;
+      try {
+        addr = InetAddress.getByName(publicAddress);
+      } catch (UnknownHostException e) {
+        throw new HalException(new ProblemBuilder(Problem.Severity.FATAL, "Failed to parse supplied public address: " + e.getMessage()).build());
+      }
+
+      if (!(addr.isAnyLocalAddress() || addr.isLoopbackAddress())) {
         description.setLoadBalancerIp(publicService.getPublicAddress());
         description.setServiceType("LoadBalancer");
       }
