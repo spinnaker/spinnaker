@@ -1,0 +1,36 @@
+<div ng-controller="WebhookExecutionDetailsCtrl as ctrl">
+  <execution-details-section-nav sections="ctrl.configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="ctrl.detailsSection === 'webhookConfig'">
+    <div class="row">
+      <div class="col-md-12">
+        <h5>Webhook Stage Configuration</h5>
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Url</dt>
+          <dd>{{ctrl.stage.context.url}}</dd>
+          <dt>Payload</dt>
+          <dd>{{ctrl.stage.context.payload}}</dd>
+        </dl>
+        <dl class="dl-narrow dl-horizontal"
+            ng-if="ctrl.stage.context.waitForCompletion">
+          <dt>Status endpoint</dt>
+          <dd>{{ctrl.stage.context.statusEndpoint}}</dd>
+        </dl>
+      </div>
+    </div>
+    <stage-failure-message stage="ctrl.stage" is-failed="ctrl.stage.isFailed" message="ctrl.getException(stage) || ctrl.failureMessage"></stage-failure-message>
+    <div class="well alert-info" ng-if="ctrl.stage.context.progressMessage || ctrl.stage.status">
+      <h4>Results</h4>
+      <dl class="dl-narrow dl-horizontal ng-scope">
+        <dt>Status</dt>
+        <dd class="ng-binding">{{ctrl.stage.status}}</dd>
+        <dt>Info</dt>
+        <dd class="ng-binding">{{ctrl.stage.context.progressMessage}}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="step-section-details" ng-if="ctrl.detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="ctrl.stage"></execution-step-details>
+    </div>
+  </div>
+</div>

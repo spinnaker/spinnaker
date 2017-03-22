@@ -15,6 +15,7 @@ import {INFRASTRUCTURE_STATES} from './search/infrastructure/infrastructure.stat
 import {VERSION_CHECK_SERVICE} from './config/versionCheck.service';
 import {CORE_WIDGETS_MODULE} from './widgets';
 import {TRAVIS_STAGE_MODULE} from './pipeline/config/stages/travis/travisStage.module';
+import {WEBHOOK_STAGE_MODULE} from './pipeline/config/stages/webhook/webhookStage.module';
 import {SETTINGS} from 'core/config/settings';
 
 require('../../../fonts/spinnaker/icons.css');
@@ -113,6 +114,7 @@ module.exports = angular
     require('./pipeline/config/stages/findImageFromTags/findImageFromTagsStage.module.js'),
     require('./pipeline/config/stages/jenkins/jenkinsStage.module.js'),
     TRAVIS_STAGE_MODULE,
+    WEBHOOK_STAGE_MODULE,
     require('./pipeline/config/stages/manualJudgment/manualJudgmentStage.module.js'),
     require('./pipeline/config/stages/tagImage/tagImageStage.module.js'),
     require('./pipeline/config/stages/pipeline/pipelineStage.module.js'),
