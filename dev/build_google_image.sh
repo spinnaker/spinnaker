@@ -160,11 +160,11 @@ function process_args() {
             shift
             ;;
         --image_project)
-            2>& echo "--image_project is no longer used -- ignoring."
+            >&2 echo "--image_project is no longer used -- ignoring."
             shift
             ;;
         --json_credentials)
-            2>& echo "--json_credentials is no longer used -- ignoring.  Use --account instead"
+            >&2 echo "--json_credentials is no longer used -- ignoring.  Use --account instead"
             shift
             ;;
 
