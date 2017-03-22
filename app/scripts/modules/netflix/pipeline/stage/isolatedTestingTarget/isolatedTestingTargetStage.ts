@@ -199,10 +199,12 @@ class IsolatedTestingTargetStageCtrl {
     return command;
   }
 
-  private generateNewVip(oldVip: string, details: string) {
+  private generateNewVip(oldVip: string, details: string): string {
     if (!oldVip) { return undefined; }
 
-    let vipParts = oldVip.split(':');
+    // the oldVip can actually be a comma separated list of vips, so just grab the first one in the list to mimic
+    const vips = oldVip.split(',');
+    let vipParts = vips[0].split(':');
 
     // Check if the last part is a port
     const lastPart = vipParts.pop();
