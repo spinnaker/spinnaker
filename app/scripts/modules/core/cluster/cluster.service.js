@@ -15,9 +15,9 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
 ])
   .factory('clusterService', function ($q, API, serverGroupTransformer, namingService) {
 
-    function loadServerGroups(applicationName) {
+    function loadServerGroups(application) {
       var serverGroupLoader = $q.all({
-        serverGroups: API.one('applications').one(applicationName).all('serverGroups').getList().then(g => g, () => []),
+        serverGroups: API.one('applications').one(application.name).all('serverGroups').getList().then(g => g, () => []),
       });
       return serverGroupLoader.then(function(results) {
         results.serverGroups = results.serverGroups || [];
@@ -28,7 +28,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
             serverGroup.category = 'serverGroup'
           );
 
-        return $q.all(results.serverGroups.map(serverGroupTransformer.normalizeServerGroup));
+        return $q.all(results.serverGroups.map(serverGroup => serverGroupTransformer.normalizeServerGroup(serverGroup, application)));
       });
     }
 

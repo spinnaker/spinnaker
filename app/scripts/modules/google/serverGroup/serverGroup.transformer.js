@@ -1,21 +1,40 @@
 'use strict';
 
-import _ from 'lodash';
+import {defaults, uniq} from 'lodash';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [])
-  .factory('gceServerGroupTransformer', function ($q) {
+  .factory('gceServerGroupTransformer', function () {
 
-    function normalizeServerGroup(serverGroup) {
-      return $q.when(serverGroup); // no-op
+    function normalizeServerGroup(serverGroup, application) {
+      return application.getDataSource('loadBalancers').ready().then(() => {
+        if (serverGroup.loadBalancers) {
+          let normalizedServerGroupLoadBalancerNames = [];
+          // At this point, the HTTP(S) load balancers have been normalized (listener names mapped to URL map names).
+          // Our server groups' lists of load balancer names still need to make this mapping.
+          serverGroup.loadBalancers.forEach(loadBalancerName => {
+            let matchingUrlMap = application.getDataSource('loadBalancers').data.find(loadBalancer => {
+              return serverGroup.account === loadBalancer.account &&
+                loadBalancer.listeners &&
+                loadBalancer.listeners.map(listener => listener.name).includes(loadBalancerName);
+            });
+
+            matchingUrlMap
+              ? normalizedServerGroupLoadBalancerNames.push(matchingUrlMap.name)
+              : normalizedServerGroupLoadBalancerNames.push(loadBalancerName);
+          });
+          serverGroup.loadBalancers = uniq(normalizedServerGroupLoadBalancerNames);
+        }
+        return serverGroup;
+      });
     }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
       var truncatedZones = base.backingData.filtered.truncatedZones;
 
-      // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
-      var command = _.defaults({backingData: [], viewState: []}, base);
+      // use defaults to avoid copying the backingData, which is huge and expensive to copy over
+      var command = defaults({backingData: [], viewState: []}, base);
       if (base.viewState.mode !== 'clone') {
         delete command.source;
       }

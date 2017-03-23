@@ -15,7 +15,7 @@ module.exports = angular
   .run(function($q, applicationDataSourceRegistry, clusterService, entityTagsReader, serverGroupTransformer, settings) {
 
     let loadServerGroups = (application) => {
-      return clusterService.loadServerGroups(application.name);
+      return clusterService.loadServerGroups(application);
     };
 
     let addServerGroups = (application, serverGroups) => {

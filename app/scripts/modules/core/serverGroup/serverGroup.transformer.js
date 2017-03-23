@@ -7,9 +7,9 @@ module.exports = angular.module('spinnaker.core.serverGroup.transformer', [
 ])
   .factory('serverGroupTransformer', function (serviceDelegate) {
 
-    function normalizeServerGroup(serverGroup) {
+    function normalizeServerGroup(serverGroup, application) {
       return serviceDelegate.getDelegate(serverGroup.provider || serverGroup.type, 'serverGroup.transformer').
-        normalizeServerGroup(serverGroup);
+        normalizeServerGroup(serverGroup, application);
     }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
