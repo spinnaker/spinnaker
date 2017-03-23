@@ -17,18 +17,24 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.PipelineDefinition;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.EmptyValidatorContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Severity;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.SchemaValidator;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.ValidatorContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
 public class V1TemplateConfigurationSchemaValidator implements SchemaValidator {
 
   private static final String SUPPORTED_VERSION = "1";
 
-  @Override
   public void validate(VersionedSchema configuration, Errors errors) {
+    validate(configuration, errors, new EmptyValidatorContext());
+  }
+
+  @Override
+  public void validate(VersionedSchema configuration, Errors errors, ValidatorContext context) {
     if (!(configuration instanceof TemplateConfiguration)) {
       throw new IllegalArgumentException("Expected TemplateConfiguration");
     }

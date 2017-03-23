@@ -32,6 +32,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfig
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateConfigurationSchemaValidator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateSchemaValidator;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateSchemaValidator.SchemaValidatorContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,7 +102,7 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     List<PipelineTemplate> templates = templateLoader.load(templateConfiguration.getPipeline().getTemplate());
     PipelineTemplate template = TemplateMerge.merge(templates);
 
-    new V1TemplateSchemaValidator().validate(template, validationErrors);
+    new V1TemplateSchemaValidator().validate(template, validationErrors, new SchemaValidatorContext(!templateConfiguration.getStages().isEmpty()));
     if (validationErrors.hasErrors(request.plan)) {
       return validationErrors.toResponse();
     }

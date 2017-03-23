@@ -31,16 +31,22 @@ public class TemplateMerge {
     for (PipelineTemplate template : templates) {
       appendSource(result, template);
 
-      // TODO rz - should validate var types are the same here or elsewhere?
+      // If any of the templates are set as protected, configurations won't be allowed to alter stages.
+      if (template.getProtect()) {
+        result.setProtect(true);
+      }
+
       result.setVariables(mergeNamedContent(result.getVariables(), template.getVariables()));
 
       mergeConfiguration(result, template);
 
-      // TODO rz - might make sense that any child template must use inject syntax / modules.
       result.setStages(mergeIdentifiable(result.getStages(), template.getStages()));
-
       result.setModules(mergeIdentifiable(result.getModules(), template.getModules()));
     }
+
+    // Apply the last template's metadata to the final result
+    result.setMetadata(templates.get(templates.size() - 1).getMetadata());
+
     return result;
   }
 

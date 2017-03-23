@@ -29,6 +29,7 @@ class TemplateMergeSpec extends Specification {
     PipelineTemplate t1 = new PipelineTemplate().with {
       id = 't1'
       schema = '1'
+      protect = true
       variables = [
         new Variable(name: 'foo', description: 'foo description', type: 'string', defaultValue: 'foo value'),
         new Variable(name: 'bar', description: 'bar description', type: 'list', defaultValue: ['bar value'])
@@ -89,6 +90,7 @@ class TemplateMergeSpec extends Specification {
     result.id == 'mergedTemplate'
     result.schema == '1'
     result.source == 't1'
+    result.protect
     result.variables*.name == ['foo', 'bar']
     result.variables.find { it.name == 'foo' }.defaultValue == 'overridden value'
     result.configuration.triggers*.name == ['trigger1', 'trigger2']

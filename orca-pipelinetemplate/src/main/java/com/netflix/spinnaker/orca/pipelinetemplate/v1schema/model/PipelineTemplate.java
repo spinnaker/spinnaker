@@ -29,10 +29,42 @@ public class PipelineTemplate implements VersionedSchema {
   private String schema;
   private String id;
   private String source;
+  private Metadata metadata = new Metadata();
+  private Boolean protect = false;
   private List<Variable> variables;
   private Configuration configuration;
   private List<StageDefinition> stages;
   private List<TemplateModule> modules;
+
+  public static class Metadata {
+    private String name;
+    private String description;
+    private String owner;
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getDescription() {
+      return description;
+    }
+
+    public void setDescription(String description) {
+      this.description = description;
+    }
+
+    public String getOwner() {
+      return owner;
+    }
+
+    public void setOwner(String owner) {
+      this.owner = owner;
+    }
+  }
 
   public static class Variable implements NamedContent {
     private String name;
@@ -144,6 +176,22 @@ public class PipelineTemplate implements VersionedSchema {
 
   public void setSource(String source) {
     this.source = source;
+  }
+
+  public Metadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(Metadata metadata) {
+    this.metadata = metadata;
+  }
+
+  public Boolean getProtect() {
+    return protect;
+  }
+
+  public void setProtect(Boolean protect) {
+    this.protect = protect;
   }
 
   public List<Variable> getVariables() {

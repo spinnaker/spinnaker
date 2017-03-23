@@ -16,9 +16,11 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator
 
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateSchemaValidator.SchemaValidatorContext
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class V1TemplateSchemaValidatorSpec extends Specification {
 
@@ -31,7 +33,7 @@ class V1TemplateSchemaValidatorSpec extends Specification {
     def template = new PipelineTemplate(schema: schema)
 
     when:
-    subject.validate(template, errors)
+    subject.validate(template, errors, new SchemaValidatorContext(false))
 
     then:
     if (hasErrors) {
@@ -45,5 +47,25 @@ class V1TemplateSchemaValidatorSpec extends Specification {
     null   | true
     "1"    | false
     "2"    | true
+  }
+
+  @Unroll
+  def "should error if configuration defines stages when template is protected"() {
+    given:
+    def errors = new Errors()
+    def template = new PipelineTemplate(schema: '1', protect: true)
+
+    when:
+    subject.validate(template, errors, new SchemaValidatorContext(hasStages))
+
+    then:
+    if (hasStages) {
+      errors.hasErrors(true)
+    } else {
+      !errors.hasErrors(true)
+    }
+
+    where:
+    hasStages << [true, false]
   }
 }
