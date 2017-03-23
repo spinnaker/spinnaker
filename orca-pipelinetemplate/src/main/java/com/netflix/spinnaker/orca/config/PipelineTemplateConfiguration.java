@@ -47,13 +47,13 @@ public class PipelineTemplateConfiguration {
   }
 
   @Bean
-  @ConditionalOnExpression("!${pipelineTemplate.jinja.enabled}")
+  @ConditionalOnExpression("!${pipelineTemplate.jinja.enabled:false}")
   Renderer handlebarsRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper) {
     return new HandlebarsRenderer(renderedValueConverter, pipelineTemplateObjectMapper);
   }
 
   @Bean
-  @ConditionalOnExpression("${pipelineTemplate.jinja.enabled}")
+  @ConditionalOnExpression("${pipelineTemplate.jinja.enabled:false}")
   Renderer jinjaRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper) {
     return new JinjaRenderer(renderedValueConverter, pipelineTemplateObjectMapper);
   }
