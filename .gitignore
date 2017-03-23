@@ -13,3 +13,4 @@ packer/example_output.txt
 *.lock
 *.deb
 consul/hello-consul/target
+.vscode/
