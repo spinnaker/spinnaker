@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -38,7 +38,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           region     : region,
           asgName    : asgName
       ]
-      def stage = new PipelineStage(new Pipeline(), "whatever", taskConfig)
+      def stage = new Stage<>(new Pipeline(), "whatever", taskConfig)
 
     when:
       def result = task.execute(stage)
@@ -63,7 +63,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           ],
           amiName          : contextAmi
       ]
-      def stage = new PipelineStage(new Pipeline(), "whatever", taskConfig)
+      def stage = new Stage<>(new Pipeline(), "whatever", taskConfig)
 
     when:
       def result = task.execute(stage)
@@ -95,7 +95,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
               ["ami": "also-not-my-ami", "region": region, cloudProvider: "aws"]
           ]
       ]
-      def stage = new PipelineStage(new Pipeline(), "whatever", taskConfig)
+      def stage = new Stage<>(new Pipeline(), "whatever", taskConfig)
       stage.context.amiName = null
       stage.context.deploymentDetails = [
           ["ami": "not-my-ami", "region": region, cloudProvider: "aws"],
@@ -114,29 +114,29 @@ class UpdateLaunchConfigTaskSpec extends Specification {
       }
 
     and:
-      def bakeStage1 = new PipelineStage(stage.execution, "bake")
+      def bakeStage1 = new Stage<>(stage.execution, "bake")
       bakeStage1.id = UUID.randomUUID()
       bakeStage1.refId = "1a"
       stage.execution.stages << bakeStage1
 
       def bakeSynthetic1 =
-        new PipelineStage(stage.execution, "bake in $region", [ami: amiName, region: region, cloudProvider: "aws"])
+        new Stage<>(stage.execution, "bake in $region", [ami: amiName, region: region, cloudProvider: "aws"])
       bakeSynthetic1.id = UUID.randomUUID()
       bakeSynthetic1.parentStageId = bakeStage1.id
       stage.execution.stages << bakeSynthetic1
 
-      def bakeStage2 = new PipelineStage(stage.execution, "bake")
+      def bakeStage2 = new Stage<>(stage.execution, "bake")
       bakeStage2.id = UUID.randomUUID()
       bakeStage2.refId = "2a"
       stage.execution.stages << bakeStage2
 
-      def bakeSynthetic2 = new PipelineStage(stage.execution, "bake in $region",
+      def bakeSynthetic2 = new Stage<>(stage.execution, "bake in $region",
                                              [ami: "parallel-branch-ami", region: region, cloudProvider: "aws"])
       bakeSynthetic2.id = UUID.randomUUID()
       bakeSynthetic2.parentStageId = bakeStage2.id
       stage.execution.stages << bakeSynthetic2
 
-      def intermediateStage = new PipelineStage(stage.execution, "whatever")
+      def intermediateStage = new Stage<>(stage.execution, "whatever")
       intermediateStage.id = UUID.randomUUID()
       intermediateStage.refId = "1b"
       stage.execution.stages << intermediateStage
@@ -167,7 +167,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           asgName    : asgName,
           amiName    : "ami-abcdef"
       ]
-      def stage = new PipelineStage(new Pipeline(), "whatever", taskConfig)
+      def stage = new Stage<>(new Pipeline(), "whatever", taskConfig)
 
     when:
       task.execute(stage)
@@ -201,7 +201,7 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           foo          : "bar",
           cloudProvider: "abc"
       ]
-      def stage = new PipelineStage(new Pipeline(), "whatever", taskConfig)
+      def stage = new Stage<>(new Pipeline(), "whatever", taskConfig)
 
     when:
       task.execute(stage)

@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -50,7 +50,7 @@ class GetCommitsTaskSpec extends Specification {
     task.buildService = null
 
     when:
-    def result = task.execute(new PipelineStage(new Pipeline(), ""))
+    def result = task.execute(new Stage<>(new Pipeline(), ""))
 
     then:
     0 * _
@@ -59,7 +59,7 @@ class GetCommitsTaskSpec extends Specification {
 
   def "global credential is preferred to the stage account for application lookup"() {
     given:
-    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account])//, "kato.tasks" : katoMap])
+    def stage = new Stage<>(pipeline, "stash", [application: app, account: account])//, "kato.tasks" : katoMap])
     task.buildService = buildService
     task.front50Service = front50Service
 
@@ -204,8 +204,8 @@ class GetCommitsTaskSpec extends Specification {
     jobState = 'SUCCESS'
   }
 
-  PipelineStage setupGetCommits(Map contextMap, String account, String app, String sourceImage, String targetImage, String region, String cluster, String serverGroup, int serverGroupCalls = 1, int oortCalls = 1) {
-    def stage = new PipelineStage(pipeline, "stash", contextMap)
+  Stage<Pipeline> setupGetCommits(Map contextMap, String account, String app, String sourceImage, String targetImage, String region, String cluster, String serverGroup, int serverGroupCalls = 1, int oortCalls = 1) {
+    def stage = new Stage<>(pipeline, "stash", contextMap)
 
     task.buildService = Stub(BuildService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
@@ -253,7 +253,7 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
-    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
+    def stage = new Stage<>(pipeline, "stash", [application: app, account: account,
                                                       source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [amiId: targetImage, ami: targetImageName, region: region]], "kato.tasks": katoMap])
 
     and:
@@ -302,7 +302,7 @@ class GetCommitsTaskSpec extends Specification {
   @Unroll
   def "returns success if there are no repo details provided"() {
     given:
-    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [amiId: targetImage, ami: targetImageName, region: region]]])
+    def stage = new Stage<>(pipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [amiId: targetImage, ami: targetImageName, region: region]]])
 
     and:
     task.buildService = buildService
@@ -333,7 +333,7 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
-    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
+    def stage = new Stage<>(pipeline, "stash", [application: app, account: account,
                                                       source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, amiId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
@@ -384,7 +384,7 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
-    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
+    def stage = new Stage<>(pipeline, "stash", [application: app, account: account,
                                                       source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, amiId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
@@ -453,7 +453,7 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
-    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
+    def stage = new Stage<>(pipeline, "stash", [application: app, account: account,
                                                       source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, amiId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
@@ -501,7 +501,7 @@ class GetCommitsTaskSpec extends Specification {
 
   def "return success if retries limit hit"() {
     given:
-    def stage = new PipelineStage(pipeline, "stash", [getCommitsRemainingRetries: 0])
+    def stage = new Stage<>(pipeline, "stash", [getCommitsRemainingRetries: 0])
 
     when:
     def result = task.execute(stage)

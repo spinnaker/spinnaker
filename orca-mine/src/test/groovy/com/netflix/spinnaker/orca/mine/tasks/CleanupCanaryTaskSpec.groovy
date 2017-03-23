@@ -21,11 +21,11 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
-
-import static com.netflix.spinnaker.orca.mine.tasks.CleanupCanaryTask.Action.*
-import static com.netflix.spinnaker.orca.mine.tasks.CleanupCanaryTask.Health.*
+import static com.netflix.spinnaker.orca.mine.tasks.CleanupCanaryTask.Action.DISABLE
+import static com.netflix.spinnaker.orca.mine.tasks.CleanupCanaryTask.Action.TERMINATE
+import static com.netflix.spinnaker.orca.mine.tasks.CleanupCanaryTask.Health.UNHEALTHY
 
 class CleanupCanaryTaskSpec extends Specification {
   def katoService = Mock(KatoService)
@@ -33,7 +33,7 @@ class CleanupCanaryTaskSpec extends Specification {
 
   def "should only attempt to cleanup canary clusters if TERMINATE is enabled"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "Canary", "Canary", [
+    def stage = new Stage<>(new Pipeline(), "Canary", "Canary", [
       canary: [
         health      : UNHEALTHY,
         canaryConfig: [

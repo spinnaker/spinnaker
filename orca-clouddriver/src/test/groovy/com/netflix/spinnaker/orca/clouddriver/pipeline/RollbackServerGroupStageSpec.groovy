@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerG
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import spock.lang.Shared
@@ -52,7 +52,7 @@ class RollbackServerGroupStageSpec extends Specification {
     def rollbackServerGroupStage = new RollbackServerGroupStage()
     rollbackServerGroupStage.autowireCapableBeanFactory = autowireCapableBeanFactory
 
-    def stage = new PipelineStage(new Pipeline(), "rollbackServerGroup", [
+    def stage = new Stage<>(new Pipeline(), "rollbackServerGroup", [
       rollbackType: "EXPLICIT",
       rollbackContext: [
         restoreServerGroupName: "servergroup-v001",

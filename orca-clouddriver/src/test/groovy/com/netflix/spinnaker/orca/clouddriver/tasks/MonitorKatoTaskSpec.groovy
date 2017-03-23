@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -39,7 +39,7 @@ class MonitorKatoTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage(new Pipeline(), "whatever", [
+    def stage = new Stage<>(new Pipeline(), "whatever", [
       "kato.last.task.id": new TaskId(taskId)
     ])
 
@@ -64,7 +64,7 @@ class MonitorKatoTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage(new Pipeline(), "whatever", [
+    def stage = new Stage<>(new Pipeline(), "whatever", [
         "kato.last.task.id": new TaskId(taskId),
         "kato.result.expected": katoResultExpected,
         "deploy.server.groups": [:]
@@ -88,7 +88,7 @@ class MonitorKatoTaskSpec extends Specification {
   @Unroll
   def "should automatically succeed if task id does not exist"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "whatever", context)
+    def stage = new Stage<>(new Pipeline(), "whatever", context)
 
     when:
     def result = task.execute(stage)

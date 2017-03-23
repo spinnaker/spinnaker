@@ -22,8 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import spock.lang.Shared
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -59,7 +58,7 @@ class UpsertApplicationTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(new PipelineStage(new Pipeline(), "UpsertApplication", config))
+    def result = task.execute(new Stage<>(new Pipeline(), "UpsertApplication", config))
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
@@ -84,7 +83,7 @@ class UpsertApplicationTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(new PipelineStage(new Pipeline(), "UpsertApplication", config))
+    def result = task.execute(new Stage<>(new Pipeline(), "UpsertApplication", config))
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
@@ -110,7 +109,7 @@ class UpsertApplicationTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(new PipelineStage(new Pipeline(), "UpsertApplication", config))
+    def result = task.execute(new Stage<>(new Pipeline(), "UpsertApplication", config))
 
     then:
     result.stageOutputs.previousState == (initialState ?: [:])

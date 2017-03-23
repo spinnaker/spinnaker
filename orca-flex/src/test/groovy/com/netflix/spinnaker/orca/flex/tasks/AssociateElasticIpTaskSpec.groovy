@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.flex.FlexService
 import com.netflix.spinnaker.orca.flex.model.ElasticIpResult
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
 class AssociateElasticIpTaskSpec extends Specification {
@@ -37,7 +37,7 @@ class AssociateElasticIpTaskSpec extends Specification {
     def task = new AssociateElasticIpTask(flexService: flexService)
 
     when:
-    def result = task.execute(new PipelineStage(new Pipeline(), "associateElasticIp", [
+    def result = task.execute(new Stage<>(new Pipeline(), "associateElasticIp", [
       account  : account,
       region   : region,
       cluster  : cluster,

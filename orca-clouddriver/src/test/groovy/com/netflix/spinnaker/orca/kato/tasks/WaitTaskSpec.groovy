@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import spock.lang.Specification
 import spock.lang.Subject
@@ -31,7 +31,7 @@ class WaitTaskSpec extends Specification {
     setup:
       def wait = 5
       def pipeline = new Pipeline()
-      def stage = new PipelineStage(pipeline, "wait", [waitTime: wait])
+      def stage = new Stage<>(pipeline, "wait", [waitTime: wait])
 
     when:
       def result = task.execute(stage)
@@ -54,7 +54,7 @@ class WaitTaskSpec extends Specification {
   void "should skip waiting when marked in context"() {
     setup:
     def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, "wait", [waitTime: 1000000])
+    def stage = new Stage<>(pipeline, "wait", [waitTime: 1000000])
 
     when:
     def result = task.execute(stage)

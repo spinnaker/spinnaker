@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGr
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.BranchingStageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -118,7 +117,7 @@ class ParallelDeployStage implements BranchingStageDefinitionBuilder {
         cluster.remove("stageEnabled")
 
         // Parent stage can be deploy or cloneServerGroup.
-        ((AbstractStage) stage).type = parentStage.type
+        stage.type = parentStage.type
         stage.context.clusters = [cluster as Map<String, Object>]
       }
     }

@@ -3,7 +3,10 @@ package com.netflix.spinnaker.orca.echo.spring
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.listeners.Persister
-import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -19,10 +22,10 @@ class EchoNotifyingStageListenerSpec extends Specification {
   def echoListener = new EchoNotifyingStageListener(echoService)
 
   @Shared
-  def pipelineStage = new PipelineStage(new Pipeline(), "test", "test", [:])
+  def pipelineStage = new Stage<>(new Pipeline(), "test", "test", [:])
 
   @Shared
-  def orchestrationStage = new OrchestrationStage(new Orchestration(), "test")
+  def orchestrationStage = new Stage<>(new Orchestration(), "test")
 
   def "triggers an event when a task step starts"() {
     given:

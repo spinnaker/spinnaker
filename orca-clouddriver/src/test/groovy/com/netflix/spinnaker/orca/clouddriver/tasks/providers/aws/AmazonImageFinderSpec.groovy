@@ -17,15 +17,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
+import java.util.stream.Collectors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
-
-import java.util.stream.Collectors
 
 class AmazonImageFinderSpec extends Specification {
   def objectMapper = new ObjectMapper()
@@ -41,7 +39,7 @@ class AmazonImageFinderSpec extends Specification {
 
   def "should match most recently created image per region"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "", [
+    def stage = new Stage<>(new Pipeline(), "", [
       regions: ["us-west-1", "us-west-2"]
     ])
     def tags = [

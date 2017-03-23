@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -54,7 +54,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ],
       status: resultStatus
     ]
-    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [canary: canaryConf])
+    def stage = new Stage<>(new Pipeline(application: "foo"), "canary", [canary: canaryConf])
 
     when:
     TaskResult result = task.execute(stage)
@@ -96,7 +96,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ]
     ]
     def canaryStageId = UUID.randomUUID().toString()
-    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [
+    def stage = new Stage<>(new Pipeline(application: "foo"), "canary", [
       canaryStageId: canaryStageId,
       canary: canaryConf,
       scaleUp: [
@@ -166,7 +166,7 @@ class MonitorCanaryTaskSpec extends Specification {
       ]
     ]
     def canaryStageId = UUID.randomUUID().toString()
-    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [
+    def stage = new Stage<>(new Pipeline(application: "foo"), "canary", [
       canaryStageId: canaryStageId,
       canary: canaryConf,
       deployedClusterPairs: [[

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -33,7 +32,7 @@ class EnsureInterestingHealthProviderNamesTaskSpec extends Specification {
   @Unroll
   def "should ensure interesting health provider names"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "", [:])
+    def stage = new Stage<>(new Pipeline(), "", [:])
 
     and:
     interestingHealthProviderNamesSuppliers.supports(_,_ as Stage) >> supports

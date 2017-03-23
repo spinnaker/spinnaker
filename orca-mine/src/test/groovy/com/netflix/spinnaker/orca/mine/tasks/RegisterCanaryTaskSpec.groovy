@@ -18,9 +18,8 @@ package com.netflix.spinnaker.orca.mine.tasks
 
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
-import com.netflix.spinnaker.orca.mine.pipeline.MonitorCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -39,7 +38,7 @@ class RegisterCanaryTaskSpec extends Specification {
 
     def canaryStageId = UUID.randomUUID().toString()
     def parentStageId = UUID.randomUUID().toString()
-    def deployCanaryStage = new PipelineStage(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [
+    def deployCanaryStage = new Stage<>(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [
       canaryStageId       : canaryStageId,
       account             : 'test',
       canary              : [
@@ -97,7 +96,7 @@ class RegisterCanaryTaskSpec extends Specification {
                              ]]
     ])
     deployCanaryStage.parentStageId = parentStageId
-    def monitorCanaryStage = new PipelineStage(pipeline, "monitorCanary", [:])
+    def monitorCanaryStage = new Stage<>(pipeline, "monitorCanary", [:])
 
     pipeline.stages.addAll([deployCanaryStage, monitorCanaryStage])
 
@@ -133,10 +132,10 @@ class RegisterCanaryTaskSpec extends Specification {
 
     given:
     def pipeline = new Pipeline(application: 'foo')
-    def deployCanaryStage = new PipelineStage(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [canary: canary, deployedClusterPairs: [:]])
+    def deployCanaryStage = new Stage<>(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [canary: canary, deployedClusterPairs: [:]])
     def parentStageId = UUID.randomUUID().toString()
     deployCanaryStage.parentStageId = parentStageId
-    def monitorCanaryStage = new PipelineStage(pipeline, "monitorCanary", [:])
+    def monitorCanaryStage = new Stage<>(pipeline, "monitorCanary", [:])
 
     pipeline.stages.addAll([deployCanaryStage, monitorCanaryStage])
 

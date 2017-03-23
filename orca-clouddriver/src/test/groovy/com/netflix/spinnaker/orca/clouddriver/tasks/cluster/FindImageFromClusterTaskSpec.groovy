@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -46,7 +46,7 @@ class FindImageFromClusterTaskSpec extends Specification {
       def pipe = new Pipeline.Builder()
           .withApplication("contextAppName") // Should be ignored.
           .build()
-      def stage = new PipelineStage(pipe, "findImage", [
+      def stage = new Stage<>(pipe, "findImage", [
           cloudProvider    : "cloudProvider",
           cluster          : "foo-test",
           account          : "test",
@@ -93,7 +93,7 @@ class FindImageFromClusterTaskSpec extends Specification {
 
   def "should be RUNNING if summary does not include imageId"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "findImage", [
+    def stage = new Stage<>(new Pipeline(), "findImage", [
       cloudProvider    : "cloudProvider",
       cluster          : "foo-test",
       account          : "test",
@@ -174,7 +174,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("contextAppName") // Should be ignored.
       .build()
-    def stage = new PipelineStage(pipe, "findImage", [
+    def stage = new Stage<>(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider    : "cloudProvider",
       cluster          : "foo-test",
@@ -233,7 +233,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("contextAppName") // Should be ignored.
       .build()
-    def stage = new PipelineStage(pipe, "findImage", [
+    def stage = new Stage<>(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider    : "cloudProvider",
       cluster          : "foo-test",
@@ -292,7 +292,7 @@ class FindImageFromClusterTaskSpec extends Specification {
     def pipe = new Pipeline.Builder()
       .withApplication("contextAppName") // Should be ignored.
       .build()
-    def stage = new PipelineStage(pipe, "findImage", [
+    def stage = new Stage<>(pipe, "findImage", [
       resolveMissingLocations: true,
       cloudProvider    : "aws",
       cluster          : "foo-test",
@@ -349,7 +349,7 @@ class FindImageFromClusterTaskSpec extends Specification {
 
   def "should parse fail strategy error message"() {
     given:
-      def stage = new PipelineStage(new Pipeline(), "whatever", [
+      def stage = new Stage<>(new Pipeline(), "whatever", [
           cloudProvider    : "cloudProvider",
           cluster          : "foo-test",
           account          : "test",

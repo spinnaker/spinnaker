@@ -21,9 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -48,7 +47,7 @@ class DeleteApplicationTaskSpec extends Specification {
     }
 
     when:
-    def taskResult = task.execute(new PipelineStage(new Pipeline(), "DeleteApplication", config))
+    def taskResult = task.execute(new Stage<>(new Pipeline(), "DeleteApplication", config))
 
     then:
     taskResult.status == ExecutionStatus.SUCCEEDED
@@ -63,7 +62,7 @@ class DeleteApplicationTaskSpec extends Specification {
     }
 
     when:
-    def taskResult = task.execute(new PipelineStage(new Pipeline(), "DeleteApplication", config))
+    def taskResult = task.execute(new Stage<>(new Pipeline(), "DeleteApplication", config))
 
     then:
     taskResult.status == ExecutionStatus.SUCCEEDED
@@ -80,7 +79,7 @@ class DeleteApplicationTaskSpec extends Specification {
     }
 
     when:
-    def taskResult = task.execute(new PipelineStage(new Pipeline(), "DeleteApplication", config))
+    def taskResult = task.execute(new Stage<>(new Pipeline(), "DeleteApplication", config))
 
     then:
     taskResult.stageOutputs.previousState == application

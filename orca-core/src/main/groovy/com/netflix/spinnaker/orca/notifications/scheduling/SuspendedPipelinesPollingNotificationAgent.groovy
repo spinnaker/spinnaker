@@ -21,7 +21,8 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
 import net.greghaines.jesque.client.Client
@@ -82,7 +83,7 @@ class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotifica
     return SuspendedPipelinesNotificationHandler
   }
 
-  private static long extractScheduledTime(PipelineStage stage) {
+  private static long extractScheduledTime(Stage<Pipeline> stage) {
     long scheduledTime = Long.MAX_VALUE
     try {
       scheduledTime = stage.scheduledTime != null && stage.scheduledTime as long != 0L ?

@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.mahe.tasks
 
-import groovy.json.JsonOutput
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.pipeline.MonitorCreatePropertyStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.json.JsonOutput
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
@@ -56,7 +56,7 @@ class MonitorPropertiesTaskSpec extends Specification {
     List propertyIds = [[propertyId: propId]]
     List persistedProperty = [[key: 'foo', value:'bar']]
     Map context = [propertyIdList: propertyIds, persistedProperties: persistedProperty, scope: scope]
-    def stage = new PipelineStage(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE, context)
+    def stage = new Stage<>(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE, context)
 
     when:
     TaskResult result = task.execute(stage)

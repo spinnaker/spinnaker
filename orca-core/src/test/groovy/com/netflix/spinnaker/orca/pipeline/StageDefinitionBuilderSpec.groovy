@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.pipeline
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import spock.lang.Specification
@@ -36,12 +36,12 @@ class StageDefinitionBuilderSpec extends Specification {
 
     def pipeline = new Pipeline()
     pipeline.stages = [
-      new PipelineStage(pipeline, "1"),
-      new PipelineStage(pipeline, "2"),
-      new PipelineStage(pipeline, "3"),
-      new PipelineStage(pipeline, "4")
+      new Stage<>(pipeline, "1"),
+      new Stage<>(pipeline, "2"),
+      new Stage<>(pipeline, "3"),
+      new Stage<>(pipeline, "4")
     ]
-    pipeline.stages.eachWithIndex { PipelineStage stage, int index ->
+    pipeline.stages.eachWithIndex { Stage<Pipeline> stage, int index ->
       stage.refId = index.toString()
       if (index > 0) {
         stage.requisiteStageRefIds = ["${index - 1}".toString()]
@@ -89,7 +89,7 @@ class StageDefinitionBuilderSpec extends Specification {
 
     def pipeline = new Pipeline()
     pipeline.stages = [
-      new PipelineStage(pipeline, "1"),
+      new Stage<>(pipeline, "1"),
     ]
 
     and:

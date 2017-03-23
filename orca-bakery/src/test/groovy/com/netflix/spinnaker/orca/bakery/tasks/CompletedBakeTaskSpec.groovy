@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.bakery.api.Bake
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import rx.Observable
@@ -50,7 +50,7 @@ class CompletedBakeTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage(pipeline, "bake", [region: region, status: new BakeStatus(resourceId: bakeId)])
+    def stage = new Stage<>(pipeline, "bake", [region: region, status: new BakeStatus(resourceId: bakeId)])
 
     when:
     def result = task.execute(stage)
@@ -72,7 +72,7 @@ class CompletedBakeTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage(pipeline, "bake", [region: region, status: new BakeStatus(resourceId: bakeId)])
+    def stage = new Stage<>(pipeline, "bake", [region: region, status: new BakeStatus(resourceId: bakeId)])
 
     when:
     task.execute(stage)

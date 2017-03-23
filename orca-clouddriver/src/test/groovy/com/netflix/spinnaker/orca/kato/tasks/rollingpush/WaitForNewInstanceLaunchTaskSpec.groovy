@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
@@ -42,7 +42,7 @@ class WaitForNewInstanceLaunchTaskSpec extends Specification {
       instanceIds     : terminatedInstanceIds
     ]
 
-    def stage = new OrchestrationStage(new Orchestration(), 'test', context)
+    def stage = new Stage<>(new Orchestration(), 'test', context)
 
     def oortResponse = oortResponse([
       instances: currentInstances.collect { [instanceId: it] }

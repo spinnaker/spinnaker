@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -25,7 +25,7 @@ class ParallelDeployStageSpec extends Specification {
   @Unroll
   def "should build contexts corresponding to cluster configuration(s)"() {
     given:
-    def bakeStage = new PipelineStage(new Pipeline(), "deploy", "Deploy!", stageContext)
+    def bakeStage = new Stage<>(new Pipeline(), "deploy", "Deploy!", stageContext)
     def builder = new ParallelDeployStage()
 
     when:
@@ -48,7 +48,7 @@ class ParallelDeployStageSpec extends Specification {
   @Unroll
   def "should return stage name regardless of whether parallel flows are present"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "type", stageName, [:])
+    def stage = new Stage<>(new Pipeline(), "type", stageName, [:])
 
     expect:
     new ParallelDeployStage().parallelStageName(stage, hasParallelFlows) == expectedStageName

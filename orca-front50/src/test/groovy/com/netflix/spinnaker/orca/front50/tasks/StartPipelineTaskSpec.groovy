@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.front50.tasks
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -35,7 +35,7 @@ class StartPipelineTaskSpec extends Specification {
     given:
       def pipelineConfig = [id: "testStrategyId", name: "testStrategy"]
       1 * front50Service.getStrategies(_) >> [pipelineConfig]
-      def stage = new PipelineStage(new Pipeline(), "whatever", [
+      def stage = new Stage<>(new Pipeline(), "whatever", [
           pipelineId        : "testStrategyId",
           pipelineParameters: [
               strategy: true,

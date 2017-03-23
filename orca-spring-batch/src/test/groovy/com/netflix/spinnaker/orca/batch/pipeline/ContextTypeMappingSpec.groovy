@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 
 class ContextTypeMappingSpec extends Specification {
 
   def pipeline = new Pipeline()
   def context = [name: "foo", type: "bar", nested: [isNested: true, numbers: 1234]]
-  def stage = new PipelineStage(pipeline, "foo", context)
+  def stage = new Stage<>(pipeline, "foo", context)
 
   static class StageData {
     String name

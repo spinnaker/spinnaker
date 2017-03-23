@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
@@ -34,7 +34,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
 
     expect:
     ExecutionStatus.values().each {
-      def stage = new PipelineStage(new Pipeline(), "")
+      def stage = new Stage<>(new Pipeline(), "")
       stage.status = it
 
       filter.call(new Pipeline(stages: [stage])) == (it == ExecutionStatus.SUCCEEDED)
@@ -91,7 +91,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
   private
   static Collection<Execution> buildExecutions(AtomicInteger startTime, int count, String pipelineConfigId = null) {
     (1..count).collect {
-      def stage = new PipelineStage(new Pipeline(), "")
+      def stage = new Stage<>(new Pipeline(), "")
       stage.startTime = startTime.incrementAndGet()
       stage.status = ExecutionStatus.SUCCEEDED
       stage.tasks = [new DefaultTask()]

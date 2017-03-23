@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -36,7 +36,7 @@ class AbstractServerGroupTaskSpec extends Specification {
 
   @Subject
     task = new TestServerGroupTask()
-  def stage = new PipelineStage(new Pipeline(), "whatever")
+  def stage = new Stage<>(new Pipeline(), "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def stageContext = [

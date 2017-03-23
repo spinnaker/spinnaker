@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.StackdriverConfig
 import com.netflix.spinnaker.config.TomcatConfiguration
@@ -25,7 +24,6 @@ import com.netflix.spinnaker.orca.applications.config.ApplicationConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.config.*
-import com.netflix.spinnaker.orca.data.jackson.StageMixins
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
 import com.netflix.spinnaker.orca.eureka.DiscoveryPollingConfiguration
 import com.netflix.spinnaker.orca.flex.config.FlexConfiguration
@@ -33,7 +31,6 @@ import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.igor.config.IgorConfiguration
 import com.netflix.spinnaker.orca.mahe.config.MaheConfiguration
 import com.netflix.spinnaker.orca.mine.config.MineConfiguration
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import com.netflix.spinnaker.orca.zombie.ZombiePipelineCleanupConfig
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
@@ -42,11 +39,9 @@ import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.scheduling.annotation.EnableAsync
 
 @Configuration
@@ -98,14 +93,4 @@ class Main extends SpringBootServletInitializer {
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
     application.properties(DEFAULT_PROPS).sources(Main)
   }
-
-  static class StockMappingJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
-  }
-
-  @Bean
-  StockMappingJackson2HttpMessageConverter customJacksonConverter(ObjectMapper objectMapper) {
-    objectMapper.addMixInAnnotations(PipelineStage, StageMixins)
-    new StockMappingJackson2HttpMessageConverter(objectMapper: objectMapper)
-  }
-
 }

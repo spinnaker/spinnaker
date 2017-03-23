@@ -35,7 +35,6 @@ import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage.CompletePara
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionTask
@@ -95,7 +94,7 @@ abstract class DeploymentStrategiesExecutionSpec<R extends ExecutionRunner> exte
   @Unroll
   def "parallel deploy stages create server groups"() {
     given:
-    def stage = new PipelineStage(execution, "deploy", "deploy", deployStageContext("prod", "none", *regions))
+    def stage = new Stage<>(execution, "deploy", "deploy", deployStageContext("prod", "none", *regions))
     execution.stages << stage
 
     and:
@@ -129,7 +128,7 @@ abstract class DeploymentStrategiesExecutionSpec<R extends ExecutionRunner> exte
   @Unroll
   def "deploy stages will run tasks from a strategy"() {
     given:
-    def stage = new PipelineStage(execution, "deploy", "deploy", deployStageContext("prod", "test", *regions))
+    def stage = new Stage<>(execution, "deploy", "deploy", deployStageContext("prod", "test", *regions))
     execution.stages << stage
 
     and:

@@ -259,7 +259,7 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
       null,
       null
     );
-    ((AbstractStage) waitForStage).setId(format("%s-waitForRequisite", stage.getId()));
+    waitForStage.setId(format("%s-waitForRequisite", stage.getId()));
     waitForStage.setRequisiteStageRefIds(emptyList());
 
     // 'this' stage should be added after the join stage

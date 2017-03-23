@@ -21,12 +21,11 @@ import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.pipeline.CreatePropertyStage
 import com.netflix.spinnaker.orca.mahe.pipeline.MonitorCreatePropertyStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Unroll
-
 /*
  * Copyright 2016 Netflix, Inc.
  *
@@ -216,7 +215,7 @@ class CreatePropertiesTaskSpec extends Specification {
       [key: "foo1", value: 'baz']
     ]
 
-    def createPropertiesStage = new PipelineStage(pipeline, CreatePropertyStage.PIPELINE_CONFIG_TYPE, [
+    def createPropertiesStage = new Stage<>(pipeline, CreatePropertyStage.PIPELINE_CONFIG_TYPE, [
       scope              : createScope(),
       persistedProperties: properties,
       email              : 'foo@netflix.com',
@@ -224,7 +223,7 @@ class CreatePropertiesTaskSpec extends Specification {
     ])
 
     createPropertiesStage.parentStageId = parentStageId
-    def monitorCreatePropertyStage = new PipelineStage(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE)
+    def monitorCreatePropertyStage = new Stage<>(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE)
 
     pipeline.stages.addAll([createPropertiesStage, monitorCreatePropertyStage])
 
@@ -260,11 +259,11 @@ class CreatePropertiesTaskSpec extends Specification {
       email              : 'test@netflix.com',
       cmcTicket          : 'cmcTicket'
     ]
-    new PipelineStage(pipeline, CreatePropertyStage.PIPELINE_CONFIG_TYPE, context)
+    new Stage<>(pipeline, CreatePropertyStage.PIPELINE_CONFIG_TYPE, context)
   }
 
   def createMonitorStage(pipeline) {
-    new PipelineStage(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE)
+    new Stage<>(pipeline, MonitorCreatePropertyStage.PIPELINE_CONFIG_TYPE)
   }
 
   def createScope() {

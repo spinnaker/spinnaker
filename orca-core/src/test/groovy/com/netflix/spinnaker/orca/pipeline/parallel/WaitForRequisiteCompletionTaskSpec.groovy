@@ -18,17 +18,11 @@ package com.netflix.spinnaker.orca.pipeline.parallel
 
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
-import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import static com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 class WaitForRequisiteCompletionTaskSpec extends Specification {
   @Subject
@@ -38,21 +32,21 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
   def "should SUCCEED iff all requisite stages completed successfully or marked 'failed continue'"() {
     given:
     def pipeline = new Pipeline()
-    pipeline.stages << new PipelineStage(["refId": "1"])
-    pipeline.stages << new PipelineStage(["refId": "2"])
+    pipeline.stages << new Stage<>(["refId": "1"])
+    pipeline.stages << new Stage<>(["refId": "2"])
 
     pipeline.stages[0].status = SUCCEEDED
     pipeline.stages[0].tasks = tasks
     pipeline.stages[1].status = RUNNING
     pipeline.stages[1].tasks = tasks
 
-    pipeline.stages << new PipelineStage()
+    pipeline.stages << new Stage<>()
     pipeline.stages[-1].parentStageId = pipeline.stages[0].id
     pipeline.stages[-1].status = syntheticStatus
     pipeline.stages[-1].tasks = syntheticTasks
 
     when:
-    def result = task.execute(new PipelineStage(pipeline, null, [requisiteIds: requisiteIds]))
+    def result = task.execute(new Stage<>(pipeline, null, [requisiteIds: requisiteIds]))
 
     then:
     result.status == expectedStatus
@@ -80,15 +74,15 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
   def "should fail with an exception if any requisite stages completed terminally"() {
     given:
     def pipeline = new Pipeline()
-    pipeline.stages << new PipelineStage(pipeline, "test", "parent", ["refId": "1"])
-    pipeline.stages << new PipelineStage(pipeline, "test", "synthetic", [:])
+    pipeline.stages << new Stage<>(pipeline, "test", "parent", ["refId": "1"])
+    pipeline.stages << new Stage<>(pipeline, "test", "synthetic", [:])
 
     pipeline.stages[0].status = parentStatus
     pipeline.stages[1].status = syntheticStatus
     pipeline.stages[1].parentStageId = pipeline.stages[0].id
 
     when:
-    task.execute(new PipelineStage(pipeline, null, [requisiteIds: ["1"]]))
+    task.execute(new Stage<>(pipeline, null, [requisiteIds: ["1"]]))
 
     then:
     def ex = thrown(IllegalStateException)
@@ -104,15 +98,15 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
   def "should continue running if a requisite stage is STOPPED but not all stages are complete"() {
     given:
     def pipeline = new Pipeline()
-    pipeline.stages << new PipelineStage(pipeline, "test", "parentA", ["refId": "1"])
-    pipeline.stages << new PipelineStage(pipeline, "test", "parentB", ["refId": "2"])
+    pipeline.stages << new Stage<>(pipeline, "test", "parentA", ["refId": "1"])
+    pipeline.stages << new Stage<>(pipeline, "test", "parentB", ["refId": "2"])
 
     pipeline.stages[0].status = STOPPED
     pipeline.stages[1].status = RUNNING
     pipeline.stages[1].parentStageId = pipeline.stages[0].id
 
     when:
-    def result = task.execute(new PipelineStage(pipeline, null, [requisiteIds: ["1", "2"]]))
+    def result = task.execute(new Stage<>(pipeline, null, [requisiteIds: ["1", "2"]]))
 
     then:
     result.status == RUNNING
@@ -121,15 +115,15 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
   def "should stop running if a requisite stage is STOPPED all stages are complete"() {
     given:
     def pipeline = new Pipeline()
-    pipeline.stages << new PipelineStage(pipeline, "test", "parentA", ["refId": "1"])
-    pipeline.stages << new PipelineStage(pipeline, "test", "parentB", ["refId": "2"])
+    pipeline.stages << new Stage<>(pipeline, "test", "parentA", ["refId": "1"])
+    pipeline.stages << new Stage<>(pipeline, "test", "parentB", ["refId": "2"])
 
     pipeline.stages[0].status = STOPPED
     pipeline.stages[1].status = SUCCEEDED
     pipeline.stages[1].parentStageId = pipeline.stages[0].id
 
     when:
-    def result = task.execute(new PipelineStage(pipeline, null, [requisiteIds: ["1", "2"]]))
+    def result = task.execute(new Stage<>(pipeline, null, [requisiteIds: ["1", "2"]]))
 
     then:
     result.status == STOPPED
@@ -139,15 +133,15 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
   def "should fail if a requisite stage is STOPPED but any failed"() {
     given:
     def pipeline = new Pipeline()
-    pipeline.stages << new PipelineStage(pipeline, "test", "parentA", ["refId": "1"])
-    pipeline.stages << new PipelineStage(pipeline, "test", "parentB", ["refId": "2"])
+    pipeline.stages << new Stage<>(pipeline, "test", "parentA", ["refId": "1"])
+    pipeline.stages << new Stage<>(pipeline, "test", "parentB", ["refId": "2"])
 
     pipeline.stages[0].status = STOPPED
     pipeline.stages[1].status = TERMINAL
     pipeline.stages[1].parentStageId = pipeline.stages[0].id
 
     when:
-    task.execute(new PipelineStage(pipeline, null, [requisiteIds: ["1", "2"]]))
+    task.execute(new Stage<>(pipeline, null, [requisiteIds: ["1", "2"]]))
 
     then:
     thrown(IllegalStateException)

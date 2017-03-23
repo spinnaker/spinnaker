@@ -21,7 +21,10 @@ import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
-import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
@@ -89,7 +92,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     executionRepository.retrieveOrchestrations() >> rx.Observable.from([new Orchestration(
-      stages: [new OrchestrationStage(tasks: [new DefaultTask(name: 'jobOne'), new DefaultTask(name: 'jobTwo')])])])
+      stages: [new Stage<>(tasks: [new DefaultTask(name: 'jobOne'), new DefaultTask(name: 'jobTwo')])])])
     with(new JsonSlurper().parseText(response.contentAsString).first()) {
       steps.name == ['jobOne', 'jobTwo']
     }
@@ -100,7 +103,7 @@ class TaskControllerSpec extends Specification {
     setup:
     def orchestration = new Orchestration(id: "1")
     orchestration.stages = [
-      new OrchestrationStage(orchestration, "OrchestratedType", ["customOutput": "variable"])
+      new Stage<>(orchestration, "OrchestratedType", ["customOutput": "variable"])
     ]
 
     when:
@@ -231,7 +234,7 @@ class TaskControllerSpec extends Specification {
 
   void 'should update existing stage context'() {
     given:
-    def pipelineStage = new PipelineStage(new Pipeline(), "", [value: "1"])
+    def pipelineStage = new Stage<>(new Pipeline(), "", [value: "1"])
     pipelineStage.id = "s1"
 
     when:
@@ -252,9 +255,9 @@ class TaskControllerSpec extends Specification {
         stage.context == [
         judgmentStatus: "stop", value: "1", lastModifiedBy: "anonymous"
       ]
-    } as PipelineStage)
+    } as Stage)
     objectMapper.readValue(response.contentAsString, Map).stages*.context == [
-      [value: "1", judgmentStatus: "stop", , lastModifiedBy: "anonymous"]
+      [value: "1", judgmentStatus: "stop", lastModifiedBy: "anonymous"]
     ]
     0 * _
   }

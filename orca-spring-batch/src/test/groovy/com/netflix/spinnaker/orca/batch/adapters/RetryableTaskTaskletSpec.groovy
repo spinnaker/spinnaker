@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.batch.exceptions.TimeoutException
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -63,7 +63,7 @@ class RetryableTaskTaskletSpec extends Specification {
     )
 
     and:
-    def stage = new PipelineStage(new Pipeline(), null, stageContext)
+    def stage = new Stage<>(new Pipeline(), null, stageContext)
     def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), stageNavigator, clock)
     stage.execution.paused = new Execution.PausedDetails(pauseTime: 0)
 
@@ -100,7 +100,7 @@ class RetryableTaskTaskletSpec extends Specification {
     )
 
     and:
-    def stage = new PipelineStage(new Pipeline(), null, [:])
+    def stage = new Stage<>(new Pipeline(), null, [:])
     stage.tasks << new DefaultTask(status: SUCCEEDED)
     stage.tasks << new DefaultTask(status: RUNNING)
     stage.execution.status = PAUSED

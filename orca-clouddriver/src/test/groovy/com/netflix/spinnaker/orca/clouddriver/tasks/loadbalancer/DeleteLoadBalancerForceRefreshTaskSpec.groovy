@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
   @Subject task = new DeleteLoadBalancerForceRefreshTask()
-  def stage = new PipelineStage(type: "whatever")
+  def stage = new Stage<>(type: "whatever")
 
   def config = [
     cloudProvider   : 'aws',

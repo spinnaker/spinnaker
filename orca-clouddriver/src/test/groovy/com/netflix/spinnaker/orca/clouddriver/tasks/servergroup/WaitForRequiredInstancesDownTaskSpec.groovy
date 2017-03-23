@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Targe
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -72,7 +72,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
     }
 
     and:
-    def stage = new PipelineStage(pipeline, 'asgActionWaitForDownInstances', [
+    def stage = new Stage<>(pipeline, 'asgActionWaitForDownInstances', [
       'targetop.asg.disableAsg.name'   : 'front50-v000',
       'targetop.asg.disableAsg.regions': ['us-east-1'],
       'account.name'                   : 'test'
@@ -92,7 +92,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
   @Unroll
   void "should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "", [desiredPercentage: desiredPercentage])
+    def stage = new Stage<>(new Pipeline(), "", [desiredPercentage: desiredPercentage])
 
     expect:
     hasSucceeded == task.hasSucceeded(stage, [capacity: [min: min, max: max, desired: desired], minSize: 0], instances, healthProviderNames)

@@ -21,9 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.context.ApplicationContext
 import spock.lang.Specification
@@ -47,11 +46,11 @@ class AmazonImageTaggerSpec extends Specification {
     given:
     def pipeline = new Pipeline()
 
-    def stage1 = new PipelineStage(pipeline, "", [
+    def stage1 = new Stage<>(pipeline, "", [
       imageId      : imageId,
       cloudProvider: "aws"
     ])
-    def stage2 = new PipelineStage(pipeline, "", [
+    def stage2 = new Stage<>(pipeline, "", [
       imageNames   : imageName ? [imageName] : null,
       cloudProvider: "aws"
     ])
@@ -79,7 +78,7 @@ class AmazonImageTaggerSpec extends Specification {
 
   def "should build upsertMachineImageTags and allowLaunchDescription operations"() {
     given:
-    def stage = new OrchestrationStage(new Orchestration(), "", [
+    def stage = new Stage<>(new Orchestration(), "", [
       imageNames: ["my-ami"],
       tags      : [
         "tag1"      : "value1",

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import spock.lang.Specification
@@ -31,7 +31,7 @@ class ExecutionContextManagerSpec extends Specification {
     def trigger = [trigger: "Trigger Details"]
     def pipeline = new Pipeline()
     pipeline.trigger.putAll(trigger)
-    def stage = new PipelineStage(pipeline, null, context)
+    def stage = new Stage<>(pipeline, null, context)
     def chunkContext = Stub(ChunkContext) {
       getStepContext() >> {
         return Stub(StepContext) {
@@ -62,7 +62,7 @@ class ExecutionContextManagerSpec extends Specification {
   def "should resolve expressions"() {
     given:
     def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, null, context)
+    def stage = new Stage<>(pipeline, null, context)
     def chunkContext = Stub(ChunkContext) {
       getStepContext() >> {
         return Stub(StepContext) {
@@ -90,7 +90,7 @@ class ExecutionContextManagerSpec extends Specification {
   @Unroll
   def "should convert SPEL expressions into actual values"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), null, ["key": "normal-string", "replaceKey": '${#alphanumerical(key)}'])
+    def stage = new Stage<>(new Pipeline(), null, ["key": "normal-string", "replaceKey": '${#alphanumerical(key)}'])
     def chunkContext = Mock(ChunkContext) {
       _ * getStepContext() >> {
         return Mock(StepContext) {

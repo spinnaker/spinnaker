@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
@@ -31,7 +30,7 @@ class MonitorPipelineTaskSpec extends Specification {
   @Subject
   MonitorPipelineTask task = new MonitorPipelineTask()
   ExecutionRepository repo = Mock(ExecutionRepository)
-  Stage stage = new PipelineStage(type: "whatever")
+  Stage stage = new Stage<>(type: "whatever")
 
   def setup() {
     task.executionRepository = repo
