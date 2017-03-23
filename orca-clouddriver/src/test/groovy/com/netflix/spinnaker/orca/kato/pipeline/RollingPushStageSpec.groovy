@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService
+import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CleanUpTagsTask
 import com.netflix.spinnaker.config.SpringBatchConfiguration
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
@@ -93,11 +95,14 @@ class RollingPushStageSpec extends Specification {
    * Task that is after the end of the loop
    */
   @Autowired @Qualifier("postLoop") Task postLoopTask
+  @Autowired @Qualifier("cleanup") Task cleanupTask
 
   /**
    * Task in the stage downstream from rolling push
    */
   @Autowired @Qualifier("downstream") Task downstreamTask
+
+  @Autowired @Qualifier("featuresService") FeaturesService featuresService
 
   private static final SUCCESS = new DefaultTaskResult(SUCCEEDED)
   private static final REDIR = new DefaultTaskResult(REDIRECT)
@@ -117,6 +122,13 @@ class RollingPushStageSpec extends Specification {
 
     and: "the loop will repeat a couple of times"
     endOfLoopTask.execute(_) >> REDIR >> REDIR >> SUCCESS
+
+    1 * featuresService.isStageAvailable('upsertEntityTags') >> true
+    with(cleanupTask) {
+      1 * execute(_) >> SUCCESS
+      1 * getBackoffPeriod() >> 5000L
+      1 * getTimeout() >> 3600000L
+    }
 
     when:
     pipelineLauncher.start(configJson)
@@ -175,6 +187,12 @@ class RollingPushStageSpec extends Specification {
     }
 
     @Bean
+    @Qualifier("cleanup")
+    FactoryBean<CleanUpTagsTask> cleanUpTagsTask() {
+      new SpockMockFactoryBean<>(CleanUpTagsTask)
+    }
+
+    @Bean
     @Qualifier("downstream")
     FactoryBean<DownstreamTask> endTask() {
       new SpockMockFactoryBean<>(DownstreamTask)
@@ -226,6 +244,12 @@ class RollingPushStageSpec extends Specification {
     @Qualifier("inLoop")
     FactoryBean<WaitForUpInstanceHealthTask> waitForUpInstanceHealthTask() {
       new SpockMockFactoryBean<>(WaitForUpInstanceHealthTask)
+    }
+
+    @Bean
+    @Qualifier("featuresService")
+    FactoryBean<FeaturesService> featuresService() {
+      new SpockMockFactoryBean<>(FeaturesService)
     }
   }
 
