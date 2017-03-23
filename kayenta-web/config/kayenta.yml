@@ -2,19 +2,35 @@ server:
   port: 8090
 
 kayenta:
-  redis:
-    enabled: true
-  gcs:
+  atlas:
     enabled: false
+#    endpoint:
+#      baseUrl: http://localhost:7101
+#    accounts:
+#      - name:
+#        namespace:
+#        supportedTypes:
+#          - METRICS_STORE
+
   google:
     enabled: false
 #    accounts:
 #      - name:
 #        project:
 #        jsonPath:
+#        bucket:
+#        rootFolder:
 #        supportedTypes:
 #          - METRICS_STORE
+#          - OBJECT_STORE
+
+  gcs:
+    enabled: false
+
   stackdriver:
+    enabled: false
+
+  redis:
     enabled: false
 
 swagger:

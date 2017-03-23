@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.security;
+package com.netflix.kayenta.atlas.security;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
+import java.util.Optional;
 
-public interface AccountCredentials<T> {
-  String getName();
+@Builder
+@Data
+@Slf4j
+// TODO: Not sure what kind of credentials or configuration is really required here yet.
+public class AtlasCredentials {
 
-  String getType();
-
-  List<Type> getSupportedTypes();
-
-  @JsonIgnore
-  T getCredentials();
-
-  enum Type {
-    METRICS_STORE,
-    OBJECT_STORE
-  }
+  private static String applicationVersion =
+    Optional.ofNullable(AtlasCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
 }

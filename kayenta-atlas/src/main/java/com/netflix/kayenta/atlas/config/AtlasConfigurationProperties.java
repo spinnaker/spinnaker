@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.security;
+package com.netflix.kayenta.atlas.config;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.kayenta.retrofit.config.RemoteService;
+import lombok.Getter;
+import lombok.Setter;
 
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface AccountCredentials<T> {
-  String getName();
+public class AtlasConfigurationProperties {
 
-  String getType();
+  @NotNull
+  @Getter
+  @Setter
+  private RemoteService endpoint;
 
-  List<Type> getSupportedTypes();
-
-  @JsonIgnore
-  T getCredentials();
-
-  enum Type {
-    METRICS_STORE,
-    OBJECT_STORE
-  }
+  @Getter
+  private List<AtlasManagedAccount> accounts = new ArrayList<>();
 }

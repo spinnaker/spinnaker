@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.stackdriver.metrics;
+package com.netflix.kayenta.atlas.metrics;
 
-import com.google.api.services.monitoring.v3.Monitoring;
-import com.google.api.services.monitoring.v3.model.ListTimeSeriesResponse;
-import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
+import com.netflix.kayenta.atlas.model.AtlasResults;
+import com.netflix.kayenta.atlas.security.AtlasNamedAccountCredentials;
+import com.netflix.kayenta.atlas.service.AtlasRemoteService;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import lombok.Builder;
@@ -28,13 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Builder
-public class StackdriverMetricsService implements MetricsService {
+public class AtlasMetricsService implements MetricsService {
 
   @NotNull
   @Singular
@@ -51,28 +51,15 @@ public class StackdriverMetricsService implements MetricsService {
 
   @Override
   // These are still placeholder arguments. Each metrics service will have its own set of required/optional arguments. The return type is a placeholder as well.
-  public Optional<Map> queryMetrics(String accountName,
-                                    String instanceNamePrefix,
-                                    String intervalStartTime,
-                                    String intervalEndTime) throws IOException {
-    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
+  public Optional<Map> queryMetrics(String accountName, String instanceNamePrefix, String intervalStartTime, String intervalEndTime) throws IOException {
+    AtlasNamedAccountCredentials credentials = (AtlasNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
-    Monitoring monitoring = credentials.getMonitoring();
-    // Some sample query parameters (mainly leaving all of these here so that I remember the api).
-    ListTimeSeriesResponse response = monitoring
-      .projects()
-      .timeSeries()
-      .list("projects/" + credentials.getProject())
-      .setAggregationAlignmentPeriod("3600s")
-      .setAggregationCrossSeriesReducer("REDUCE_MEAN")
-      .setAggregationGroupByFields(Arrays.asList("metric.label.instance_name"))
-      .setAggregationPerSeriesAligner("ALIGN_MEAN")
-      .setFilter("metric.type=\"compute.googleapis.com/instance/cpu/utilization\" AND metric.label.instance_name=starts_with(\"" + instanceNamePrefix + "\")")
-      .setIntervalStartTime(intervalStartTime)
-      .setIntervalEndTime(intervalEndTime)
-      .execute();
+    AtlasRemoteService atlasRemoteService = credentials.getAtlasRemoteService();
+    AtlasResults atlasResults = atlasRemoteService.fetch("name,randomValue,:eq,:sum,(,name,),:by", "std.json");
 
-    return Optional.of(response);
+    System.out.println("** Got back from fetch: atlasResults=" + atlasResults);
+
+    return Optional.of(Collections.singletonMap("some-key", "some-value"));
   }
 }

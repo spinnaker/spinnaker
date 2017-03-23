@@ -22,6 +22,8 @@ import java.util.Optional;
 
 public interface MetricsService {
   boolean servicesAccount(String accountName);
+
+  // These are still placeholder arguments. Each metrics service will have its own set of required/optional arguments. The return type is a placeholder as well.
   Optional<Map> queryMetrics(String accountName,
                              String instanceNamePrefix,
                              String intervalStartTime,

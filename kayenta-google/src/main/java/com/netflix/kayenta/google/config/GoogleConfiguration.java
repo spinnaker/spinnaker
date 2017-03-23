@@ -48,7 +48,8 @@ public class GoogleConfiguration {
   }
 
   @Bean
-  boolean registerGoogleCredentials(GoogleConfigurationProperties googleConfigurationProperties, AccountCredentialsRepository accountCredentialsRepository) throws IOException {
+  boolean registerGoogleCredentials(GoogleConfigurationProperties googleConfigurationProperties,
+                                    AccountCredentialsRepository accountCredentialsRepository) throws IOException {
     for (GoogleManagedAccount googleManagedAccount : googleConfigurationProperties.getAccounts()) {
       String name = googleManagedAccount.getName();
       String project = googleManagedAccount.getProject();

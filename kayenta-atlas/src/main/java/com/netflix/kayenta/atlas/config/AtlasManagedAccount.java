@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.security;
+package com.netflix.kayenta.atlas.config;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.kayenta.security.AccountCredentials;
+import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
-public interface AccountCredentials<T> {
-  String getName();
+@Data
+public class AtlasManagedAccount {
 
-  String getType();
+  @NotNull
+  private String name;
 
-  List<Type> getSupportedTypes();
+  private String namespace;
 
-  @JsonIgnore
-  T getCredentials();
-
-  enum Type {
-    METRICS_STORE,
-    OBJECT_STORE
-  }
+  private List<AccountCredentials.Type> supportedTypes;
 }

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.google.security;
+package com.netflix.kayenta.atlas.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.api.services.monitoring.v3.Monitoring;
-import com.google.api.services.storage.Storage;
+import com.netflix.kayenta.atlas.service.AtlasRemoteService;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Builder;
 import lombok.Data;
@@ -29,7 +28,7 @@ import java.util.List;
 
 @Builder
 @Data
-public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
+public class AtlasNamedAccountCredentials implements AccountCredentials<AtlasCredentials> {
 
   @NotNull
   private String name;
@@ -39,23 +38,18 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
   private List<Type> supportedTypes;
 
   @NotNull
-  private GoogleCredentials credentials;
+  private AtlasCredentials credentials;
 
+  // Any required fields to use in identifying a project space or something similar in Atlas would go here.
+  // This one is just an example/placeholder.
   @NotNull
-  private String project;
-
-  private String bucket;
-  private String bucketLocation;
-  private String rootFolder;
+  private String namespace;
 
   @Override
   public String getType() {
-    return "google";
+    return "atlas";
   }
 
   @JsonIgnore
-  Monitoring monitoring;
-
-  @JsonIgnore
-  Storage storage;
+  AtlasRemoteService atlasRemoteService;
 }

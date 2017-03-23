@@ -41,15 +41,13 @@ public class GcsConfiguration {
   public StorageService storageService(AccountCredentialsRepository accountCredentialsRepository) {
     GcsStorageService.GcsStorageServiceBuilder gcsStorageServiceBuilder = GcsStorageService.builder();
 
-    for (AccountCredentials accountCredentials : accountCredentialsRepository.getAll()) {
-      if (accountCredentials instanceof GoogleNamedAccountCredentials) {
-        GoogleNamedAccountCredentials googleNamedAccountCredentials = (GoogleNamedAccountCredentials)accountCredentials;
-
-        if (googleNamedAccountCredentials.getSupportedTypes().contains(AccountCredentials.Type.OBJECT_STORE)) {
-          gcsStorageServiceBuilder.accountName(googleNamedAccountCredentials.getName());
-        }
-      }
-    }
+    accountCredentialsRepository
+      .getAll()
+      .stream()
+      .filter(c -> c instanceof GoogleNamedAccountCredentials)
+      .filter(c -> c.getSupportedTypes().contains(AccountCredentials.Type.OBJECT_STORE))
+      .map(c -> c.getName())
+      .forEach(gcsStorageServiceBuilder::accountName);
 
     GcsStorageService gcsStorageService = gcsStorageServiceBuilder.build();
 

@@ -29,8 +29,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
-import java.io.IOException;
-
 @Configuration
 @EnableConfigurationProperties
 @ConditionalOnProperty("kayenta.stackdriver.enabled")
@@ -40,18 +38,16 @@ public class StackdriverConfiguration {
 
   @Bean
   @DependsOn({"registerGoogleCredentials"})
-  MetricsService metricsService(AccountCredentialsRepository accountCredentialsRepository) throws IOException {
+  MetricsService stackdriverMetricsService(AccountCredentialsRepository accountCredentialsRepository) {
     StackdriverMetricsService.StackdriverMetricsServiceBuilder stackdriverMetricsServiceBuilder = StackdriverMetricsService.builder();
 
-    for (AccountCredentials accountCredentials : accountCredentialsRepository.getAll()) {
-      if (accountCredentials instanceof GoogleNamedAccountCredentials) {
-        GoogleNamedAccountCredentials googleNamedAccountCredentials = (GoogleNamedAccountCredentials)accountCredentials;
-
-        if (googleNamedAccountCredentials.getSupportedTypes().contains(AccountCredentials.Type.METRICS_STORE)) {
-          stackdriverMetricsServiceBuilder.accountName(googleNamedAccountCredentials.getName());
-        }
-      }
-    }
+    accountCredentialsRepository
+      .getAll()
+      .stream()
+      .filter(c -> c instanceof GoogleNamedAccountCredentials)
+      .filter(c -> c.getSupportedTypes().contains(AccountCredentials.Type.METRICS_STORE))
+      .map(c -> c.getName())
+      .forEach(stackdriverMetricsServiceBuilder::accountName);
 
     StackdriverMetricsService stackdriverMetricsService = stackdriverMetricsServiceBuilder.build();
 

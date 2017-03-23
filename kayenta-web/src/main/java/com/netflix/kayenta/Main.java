@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta;
 
+import com.netflix.kayenta.atlas.config.AtlasConfiguration;
 import com.netflix.kayenta.config.KayentaConfiguration;
 import com.netflix.kayenta.config.WebConfiguration;
 import com.netflix.kayenta.gcs.config.GcsConfiguration;
@@ -35,6 +36,7 @@ import java.util.Map;
 
 @Configuration
 @Import({
+  AtlasConfiguration.class,
   GcsConfiguration.class,
   GoogleConfiguration.class,
   JedisConfig.class,
@@ -54,9 +56,9 @@ class Main extends SpringBootServletInitializer {
     defaults.put("netflix.environment", "test");
     defaults.put("netflix.account", "${netflix.environment}");
     defaults.put("netflix.stack", "test");
-    defaults.put("spring.config.location", "${user.home}/.spinnaker/");
+    defaults.put("spring.config.location", "${user.home}/.kayenta/");
     defaults.put("spring.application.name", "kayenta");
-    defaults.put("spring.config.name", "spinnaker,${spring.application.name}");
+    defaults.put("spring.config.name", "kayenta,${spring.application.name}");
     defaults.put("spring.profiles.active", "${netflix.environment},local");
     return Collections.unmodifiableMap(defaults);
   }

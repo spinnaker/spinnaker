@@ -1,6 +1,8 @@
 dependencies {
   compile spinnaker.dependency('jedis')
+  compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency('lombok')
   spinnaker.group('bootWeb')
   spinnaker.group('jackson')
+  spinnaker.group('retrofitDefault')
 }

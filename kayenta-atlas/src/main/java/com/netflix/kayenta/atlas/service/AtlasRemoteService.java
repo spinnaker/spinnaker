@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.security;
+package com.netflix.kayenta.atlas.service;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.kayenta.atlas.model.AtlasResults;
+import retrofit.http.GET;
+import retrofit.http.Query;
 
-import java.util.List;
+public interface AtlasRemoteService {
 
-public interface AccountCredentials<T> {
-  String getName();
-
-  String getType();
-
-  List<Type> getSupportedTypes();
-
-  @JsonIgnore
-  T getCredentials();
-
-  enum Type {
-    METRICS_STORE,
-    OBJECT_STORE
-  }
+  @GET("/api/v1/fetch")
+  AtlasResults fetch(@Query("q") String q, @Query("format") String format);
 }

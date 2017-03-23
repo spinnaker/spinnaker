@@ -24,7 +24,11 @@ import com.netflix.kayenta.storage.MapBackedStorageServiceRepository;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
+@ComponentScan({"com.netflix.kayenta.config", "com.netflix.kayenta.retrofit.config"})
 public class KayentaConfiguration {
 
   @Bean

@@ -1,0 +1,8 @@
+dependencies {
+  compile project(":kayenta-core")
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('lombok')
+  spinnaker.group('retrofitDefault')
+
+  compile "org.apache.commons:commons-io:1.3.2"
+}

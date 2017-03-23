@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.security;
+package com.netflix.kayenta.retrofit.config;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.List;
+import javax.validation.constraints.NotNull;
 
-public interface AccountCredentials<T> {
-  String getName();
+@ToString
+public class RemoteService {
 
-  String getType();
-
-  List<Type> getSupportedTypes();
-
-  @JsonIgnore
-  T getCredentials();
-
-  enum Type {
-    METRICS_STORE,
-    OBJECT_STORE
-  }
+  @NotNull
+  @Getter
+  @Setter
+  private String baseUrl;
 }

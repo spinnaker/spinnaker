@@ -2,7 +2,7 @@ apply plugin: 'spring-boot'
 apply plugin: 'spinnaker.package'
 
 ext {
-  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.kayenta/")
   repackage = System.getProperty('springBoot.repackage', "false")
 }
 
@@ -16,6 +16,7 @@ configurations.all {
 }
 
 dependencies {
+  compile project(':kayenta-atlas')
   compile project(':kayenta-core')
   compile project(':kayenta-gcs')
   compile project(':kayenta-google')

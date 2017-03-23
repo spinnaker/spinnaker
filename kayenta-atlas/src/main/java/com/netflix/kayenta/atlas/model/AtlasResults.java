@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.security;
+package com.netflix.kayenta.atlas.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
-public interface AccountCredentials<T> {
-  String getName();
+@Data
+public class AtlasResults {
 
-  String getType();
+  private long start;
 
-  List<Type> getSupportedTypes();
+  private long step;
 
-  @JsonIgnore
-  T getCredentials();
+  private List<String> legend;
 
-  enum Type {
-    METRICS_STORE,
-    OBJECT_STORE
-  }
+  @JsonProperty("metrics")
+  private List<Map<String, String>> metricsDescriptors;
+
+  private List<List<Double>> values;
 }
