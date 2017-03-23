@@ -1,19 +1,31 @@
 import { module } from 'angular';
-import { Arc, arc, DefaultArcObject, Pie, pie } from 'd3-shape';
+import { Arc, arc, DefaultArcObject } from 'd3-shape';
+import { scalePow } from 'd3-scale';
 
 import './availability.less';
 
-interface ArcData {
+interface IArcData {
   path: string;
   score: number;
 }
 
+interface ITargetData {
+  availability: number;
+  path: string;
+  rotation: number;
+  labelPosition: [number, number];
+  score: number;
+}
+
 interface IDonutGraphData {
-  arcs: ArcData[];
+  arcs: IArcData[];
+  targets: ITargetData[];
   total: string;
   width: number;
   height: number;
 }
+
+const maxNines = 4.6;
 
 export class AvailabilityDonutController implements ng.IComponentController {
   public availability: number;
@@ -26,11 +38,23 @@ export class AvailabilityDonutController implements ng.IComponentController {
   private targetNines: number;
   private outerRadius: number;
   private arc: Arc<any, DefaultArcObject> = arc();
-  private pie: Pie<any, number> = pie<number>().sort(null).sortValues(null);
   private donutWidthPercent = 0.7;
 
+  // inflection points for changing the scale of the donut
+  private inflectionDomains = [ [0, 2], [2, maxNines] ];
+  private inflectionRange = 360 / this.inflectionDomains.length;
+  private inflectionRanges = this.inflectionDomains.map((_, i) => [ this.inflectionRange * i, this.inflectionRange * (i + 1) ]);
+  private inflectionRangesRadians = this.inflectionRanges.map((range) => [ range[0] * (Math.PI / 180), range[1] * (Math.PI / 180) ]);
+
+  private scaleTargets(target: number, radians = false): number {
+    const inflectionIndex = this.inflectionDomains.findIndex((domain) => domain[0] < target && target < domain[1]);
+    const inflectionRanges = radians ? this.inflectionRangesRadians : this.inflectionRanges;
+
+    return scalePow().domain(this.inflectionDomains[inflectionIndex]).range(inflectionRanges[inflectionIndex])(target);
+  }
+
   private updateData(): void {
-    if (this.targetNines && this.nines && this.outerRadius) {
+    if (this.nines && this.outerRadius) {
       this.donut = this.buildDonutGraph();
       this.ninesSize = this.outerRadius * 0.46;
       this.percentSize = this.outerRadius * 0.2;
@@ -47,15 +71,14 @@ export class AvailabilityDonutController implements ng.IComponentController {
   }
 
   private buildDonutGraph(): IDonutGraphData {
-    const totalNines = Math.min(this.nines, this.targetNines);
-    const pieData = [totalNines, this.targetNines - totalNines];
-    const availabilityPie = this.pie(pieData);
-    const arcs: ArcData[] = [
+    const currentNines = Math.min(this.nines, maxNines);
+    const angle = this.scaleTargets(currentNines, true) - 0.02;
+    const arcs: IArcData[] = [
       // Availability arc
       {
         path: this.arc({
-          startAngle: availabilityPie[0].startAngle,
-          endAngle: availabilityPie[0].endAngle,
+          startAngle: 0,
+          endAngle: angle,
           innerRadius: this.outerRadius * this.donutWidthPercent,
           outerRadius: this.outerRadius,
           padAngle: 0
@@ -65,8 +88,8 @@ export class AvailabilityDonutController implements ng.IComponentController {
       // Empty arc
       {
         path: this.arc({
-          startAngle: availabilityPie[1].startAngle,
-          endAngle: availabilityPie[1].endAngle,
+          startAngle: angle,
+          endAngle: Math.PI * 2,
           innerRadius: this.outerRadius * this.donutWidthPercent,
           outerRadius: this.outerRadius,
           padAngle: 0
@@ -90,9 +113,45 @@ export class AvailabilityDonutController implements ng.IComponentController {
       padAngle: 0
     });
 
+    // Figure out rotations needed for target inflection markers
+    const radius = this.outerRadius + 5;
+    const tHeight = 8;
+    const tWidth = 7;
+
+    const targetArrowPath = `M 0 -${radius} L -${tWidth / 2} -${radius + tHeight} L ${tWidth / 2} -${radius + tHeight} L 0 -${radius}`;
+    const targetRotation = this.scaleTargets(this.targetNines);
+    const targetUnderRotation = this.scaleTargets(this.targetNines * 0.95);
+    const targetAngle = this.scaleTargets(this.targetNines, true) - (Math.PI / 2);
+    const targetUnderAngle = this.scaleTargets(this.targetNines * 0.95, true) - (Math.PI / 2);
+
+    const labelRadius = radius + tHeight + 3;
+    const targets: ITargetData[] = [
+      {
+        availability: this.targetNines,
+        rotation: targetRotation,
+        path: targetArrowPath,
+        labelPosition: [
+          labelRadius * Math.cos(targetAngle),
+          labelRadius * Math.sin(targetAngle)
+        ],
+        score: 1
+      },
+      {
+        availability: (this.targetNines * 0.95),
+        rotation: targetUnderRotation,
+        path: targetArrowPath,
+        labelPosition: [
+          labelRadius * Math.cos(targetUnderAngle),
+          labelRadius * Math.sin(targetUnderAngle)
+        ],
+        score: 2
+      }
+    ];
+
     return {
       arcs: arcs,
       total: total,
+      targets: targets,
       width: this.outerRadius * 2.5,
       height: this.outerRadius * 2.5
     };

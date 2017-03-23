@@ -1,5 +1,5 @@
 <div class="availability-trend">
-  <svg ng-attr-width="{{$ctrl.width}}" ng-attr-height="{{$ctrl.height}}">
+  <svg ng-attr-width="{{$ctrl.width+100}}" ng-attr-height="{{$ctrl.height+10}}">
     <g>
       <path ng-attr-d="{{$ctrl.trendLine}}"></path>
       <g ng-repeat="(i, dot) in $ctrl.dots"
@@ -11,6 +11,13 @@
         popover-trigger="none">
         <circle ng-attr-r="{{dot.r}}" ng-attr-cx="{{dot.cx}}" ng-attr-cy="{{dot.cy}}" class="score-fill-{{dot.score}}"></circle>
       </g>
+    </g>
+    <g ng-repeat="axisPoint in $ctrl.axisData" transform="translate(200,0)">
+      <g class="tick" ng-attr-transform="translate(0,{{axisPoint.y}})" style="opacity: 1;">
+        <line x2="6" y2="0"></line>
+        <text dy=".32em" x="9" y="0">{{axisPoint.value}}</text>
+      </g>
+    </g>
     </g>
   </svg>
 </div>

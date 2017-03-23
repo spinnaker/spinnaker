@@ -1,6 +1,6 @@
 import { module } from 'angular';
-import { Line, line } from 'd3-shape';
 import { scaleLinear, scaleLog } from 'd3-scale';
+import { Line, line } from 'd3-shape';
 import { get } from 'lodash';
 
 import { IAvailabilityWindow } from './availability.read.service';
@@ -21,12 +21,18 @@ interface Dot {
   popoverContent: PopoverContent;
 }
 
+interface IAxisData {
+  value: string;
+  y: number;
+}
+
 export class AvailabilityTrendController implements ng.IComponentController {
   public availabilityWindow: IAvailabilityWindow;
   public height: number;
   public width: number;
   public trendLine: string;
   public dots: Dot[] = [];
+  private axisData: IAxisData[];
   public popoverOpen: boolean[] = [];
   public popoverTemplate: string = require('./availability.trend.popover.html');
 
@@ -40,11 +46,6 @@ export class AvailabilityTrendController implements ng.IComponentController {
   // Based on: https://en.wikipedia.org/wiki/High_availability#.22Nines.22
   private getNines(availability: number): number {
     return -Math.log10((100 - availability) / 100);
-  }
-
-  // Inverse of getNines
-  private getAvailability (nines: number): number {
-    return 100 - (Math.pow(10, -nines) * 100);
   }
 
   private getScore(availability: number): number {
@@ -79,7 +80,7 @@ export class AvailabilityTrendController implements ng.IComponentController {
   private updateData(): void {
     if (this.availabilityWindow && this.availabilityWindow.ts.availability && this.availabilityWindow.ts.availability.length) {
       // Set the min value to a large fraction of target nines
-      const minValue = this.getAvailability(this.availabilityWindow.target_nines) * 0.995;
+      const minValue = 99.8;
 
       // Create line function
       const xScale = scaleLinear().domain([0, this.availabilityWindow.ts.availability.length]).range([this.margin, this.width]);
@@ -93,6 +94,22 @@ export class AvailabilityTrendController implements ng.IComponentController {
 
       // Generate the dots
       this.dots = this.generateDots(xScale, yScale);
+
+      // Generate the right axis
+      this.axisData = [
+        {
+          value: minValue.toFixed(3).substring(2),
+          y: yScale(minValue) + this.margin
+        },
+        {
+          value: yScale.invert(((this.height - this.margin) / 2) + this.margin).toFixed(3).substring(2),
+          y: ((this.height - this.margin) / 2) + this.margin
+        },
+        {
+          value: '100',
+          y: yScale(100)
+        }
+      ];
     }
   }
 

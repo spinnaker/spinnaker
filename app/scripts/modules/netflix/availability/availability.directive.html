@@ -5,37 +5,42 @@
 
   <div class="dropdown-menu availability-graphs" uib-dropdown-menu>
     <div class="heading">
-      <h4>Netflix Service Availability Status <help-field key="availability.context"></help-field></h4>
+      <h4>Netflix Streaming Availability Status <help-field key="availability.context"></help-field></h4>
     </div>
     <div class="row">
       <div class="section current">
         <h5>Recent</h5>
-        <h6>Reason</h6>
-        <div class="current-score aggregate-score-{{aggregate.score}}"><span ng-bind-html="aggregate.reason"></span></div>
-        <h6>Yesterday <help-field content="The availability of the Netflix service from {{yesterday.date_range[0] | date:'short'}} to {{yesterday.date_range[1] | date:'short'}} has a target of {{yesterday.target_nines}} nines."></help-field></h6>
-        <div class="section-title">Average</div>
+        <div class="section-title">REASON</div>
+        <div class="current-container">
+          <div class="current-score aggregate-score-{{aggregate.score}}"></div>
+          <div class="current-reason">
+            <div class="current-reason-header score-color-{{aggregate.score}}">{{aggregate.title}}</div>
+            <div class="current-reason-content" ng-bind-html="aggregate.reason"></div>
+          </div>
+        </div>
+        <div class="section-title donut">YESTERDAY'S<br/>AVG <help-field content="The availability of the Netflix service from {{yesterday.date_range[0] | date:'short'}} to {{yesterday.date_range[1] | date:'short'}} has a target of {{yesterday.target_nines}} nines."></help-field></div>
         <availability-donut nines="yesterday.nines" target-nines="yesterday.target_nines" score="yesterday.score" availability="yesterday.availability" outer-radius="100"></availability-donut>
       </div>
       <div class="section past">
         <div class="row">
           <h5>Last 28 Days <help-field content="The availability of the Netflix service from {{twentyeightdays.date_range[0] | date:'shortDate'}} to {{twentyeightdays.date_range[1] | date:'shortDate'}} has a target of {{twentyeightdays.target_nines}} nines."></h5>
           <div class="sub-section average">
-            <div class="section-title">Average</div>
+            <div class="section-title">AVERAGE</div>
             <availability-donut nines="twentyeightdays.nines" target-nines="twentyeightdays.target_nines" score="twentyeightdays.score" availability="twentyeightdays.availability" outer-radius="60"></availability-donut>
           </div>
           <div class="sub-section trend">
-            <div class="section-title">Trend</div>
+            <div class="section-title">TREND</div>
             <availability-trend availability-window="twentyeightdays" width="200" height="80"></availability-trend>
           </div>
         </div>
         <div class="row">
           <h5>Last 91 Days <help-field content="The availability of the Netflix service from {{ninetyonedays.date_range[0] | date:'shortDate'}} to {{ninetyonedays.date_range[1] | date:'shortDate'}} has a target of {{ninetyonedays.target_nines}} nines."></h5>
           <div class="sub-section average">
-            <div class="section-title">Average</div>
+            <div class="section-title">AVERAGE</div>
             <availability-donut nines="ninetyonedays.nines" target-nines="ninetyonedays.target_nines" score="ninetyonedays.score" availability="ninetyonedays.availability" outer-radius="60"></availability-donut>
           </div>
           <div class="sub-section trend">
-            <div class="section-title">Trend</div>
+            <div class="section-title">TREND</div>
             <availability-trend availability-window="ninetyonedays" width="200" height="80"></availability-trend>
           </div>
         </div>

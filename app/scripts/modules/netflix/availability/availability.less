@@ -5,52 +5,95 @@
     height: 58px;
   }
   .availability-graphs {
+    availability-donut {
+      svg {
+        overflow: visible;
+        margin-top: -20px;
+        .target-value {
+          text-anchor: end;
+          fill: @unknown-label-color;
+          font-size: 12px;
+        }
+      }
+    }
     .current {
       background-color: #e2ebef;
-      width: 250px;
+      width: 270px;
       float: left;
       h5 {
-        text-align: center;
         font-size: 18px;
-        margin-left: 20px;
+        margin-left: 15px;
+        margin-bottom: 8px;
       }
       h6 {
         font-size: 16px;
-        margin-left: 5px;
+        margin-left: 15px;
       }
+      .section-title.donut {
+        margin-top: 25px;
+      }
+
       .aggregate-score-4 {
         color: @mid_light_grey;
       }
-      .current-score {
+      .current-container {
         width: 220px;
-        text-align: center;
-        padding: 10px;
-        margin: 0 15px 20px;
-        line-height: 1em;
+        height: 60px;
+        .current-score {
+          display: inline-block;
+          height: 50px;
+          width: 50px;
+          margin-left: 15px;
+          border: 2px solid @lightest_grey;
+          border-radius: 3px;
+        }
+        .current-reason {
+          height: 50px;
+          text-align: left;
+          line-height: 1.1em;
+          padding-left: 5px;
+          width: 155px;
+          float: right;
+          .current-reason-header {
+            font-weight: 600;
+            padding-bottom: 3px;
+          }
+        }
       }
-      availability-donut > svg {
-        height: 230px;
-        margin-top: -20px;
+      availability-donut {
+        svg {
+          height: 230px;
+        }
       }
     }
     .past {
-      width: 420px;
+      width: 473px;
       float: right;
       .average {
         width: 170px;
         float: left;
       }
       .trend {
-        width: 248px;
+        width: 275px;
         float: right;
       }
       h5 {
         padding-left: 15px;
         font-size: 16px;
+        margin-bottom: 8px;
       }
       availability-donut > svg {
-        margin-top: -20px;
-        margin-left: 25px;
+        margin-left: 15px;
+      }
+      .section-title {
+        padding-bottom: 8px;
+      }
+      .row {
+        margin-left: 5px;
+        margin-right: 5px;
+        &:first-of-type {
+          border-bottom: 1px solid @mid_light_grey;
+        }
       }
     }
     .row {
@@ -71,6 +114,13 @@
           stroke-width: 1;
           fill: none;
         }
+        .tick {
+          text {
+            text-anchor: start;
+            fill: @unknown-label-color;
+            font-size: 12px;
+          }
+        }
       }
     }
     .availability-trend {
@@ -80,6 +130,8 @@
       margin-left: 15px;
       padding: 5px;
       margin-top: 7px;
+      width: 210px;
+      height: 97px;
     }
   }
 
@@ -101,7 +153,7 @@
       top: -7px;
     }
     height: 450px;
-    width: 700px;
+    width: 745px;
     z-index: 10000;
     padding: 0;
     margin-top: 7px !important;
@@ -144,6 +196,19 @@
   }
   .score-fill-4 {
     fill: @unhealthy_red;
+  }
+
+  .score-color-1 {
+    color: @healthy_green_border;
+  }
+  .score-color-2 {
+    color: @stage-failed_continue;
+  }
+  .score-color-3 {
+    color: @unhealthy_orange;
+  }
+  .score-color-4 {
+    color: @unhealthy_red;
   }
 
   .heading {
