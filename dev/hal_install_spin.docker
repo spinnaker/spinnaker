@@ -1,0 +1,26 @@
+FROM ubuntu:14.04
+
+# This is assumed to run in spinnaker/dev.
+# The container already has a '/dev' so we name it something different.
+COPY . runscript
+
+RUN apt-get install -y curl software-properties-common apt-transport-https wget
+
+# The container expects the following environment variables to be set.
+# These should be handled by creating k8s secrets and specifying
+# environment variables in the pod spec using those secrets.
+# ---
+# Parameters of the GCP project Spinnaker is maintaining.
+# BUILD_PROJECT
+# BUILD_KEY # json keyfile contents
+#
+# Parameters to configure the Docker registry.
+# DOCKER_KEY # json keyfile contents
+#
+# Kubernetes config in json format so we can pass it to the
+# container an an env variable.
+# KUBE_CONF
+
+WORKDIR runscript
+
+CMD /runscript/hal_k8s_run.sh
