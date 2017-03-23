@@ -7,3 +7,6 @@ citest
 
 # This is needed by the google_http_lb_tests
 pyopenssl
+
+# OpenStack client needed for openstack_smoke_test
+python-openstackclient
