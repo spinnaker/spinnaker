@@ -47,7 +47,8 @@ export class AvailabilityDonutController implements ng.IComponentController {
   private inflectionRangesRadians = this.inflectionRanges.map((range) => [ range[0] * (Math.PI / 180), range[1] * (Math.PI / 180) ]);
 
   private scaleTargets(target: number, radians = false): number {
-    const inflectionIndex = this.inflectionDomains.findIndex((domain) => domain[0] < target && target < domain[1]);
+    let inflectionIndex = this.inflectionDomains.findIndex((domain) => domain[0] <= target && target <= domain[1]);
+    inflectionIndex = inflectionIndex !== -1 ? inflectionIndex : this.inflectionDomains.length - 1;
     const inflectionRanges = radians ? this.inflectionRangesRadians : this.inflectionRanges;
 
     return scalePow().domain(this.inflectionDomains[inflectionIndex]).range(inflectionRanges[inflectionIndex])(target);
@@ -72,7 +73,7 @@ export class AvailabilityDonutController implements ng.IComponentController {
 
   private buildDonutGraph(): IDonutGraphData {
     const currentNines = Math.min(this.nines, maxNines);
-    const angle = this.scaleTargets(currentNines, true) - 0.02;
+    const angle = this.scaleTargets(currentNines, true);
     const arcs: IArcData[] = [
       // Availability arc
       {
