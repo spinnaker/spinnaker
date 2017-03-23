@@ -59,8 +59,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];
         }
         $scope.viewState.roscoMode = settings.feature.roscoMode;
+        $scope.showAdvancedOptions = showAdvanced();
         $scope.viewState.loading = false;
       });
+    }
+
+    function showAdvanced() {
+      let stage = $scope.stage;
+      return !!(stage.templateFileName || (stage.extendedAttributes && _.size(stage.extendedAttributes) > 0) ||
+        stage.varFileName || stage.baseAmi || stage.accountName);
     }
 
     function deleteEmptyProperties() {
