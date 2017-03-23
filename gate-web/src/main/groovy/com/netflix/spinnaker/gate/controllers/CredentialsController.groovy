@@ -38,7 +38,7 @@ class CredentialsController {
   @PostFilter("hasPermission(filterObject.name, 'ACCOUNT', 'READ')")
   @RequestMapping(method = RequestMethod.GET)
   List<ClouddriverService.Account> getAccounts(@SpinnakerUser User user) {
-    credentialsService.getAccounts(user.roles)
+    credentialsService.getAccounts(user?.roles ?: [])
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")

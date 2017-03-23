@@ -24,6 +24,7 @@ import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -45,8 +46,8 @@ class AuthConfig {
   @Autowired
   PermissionRevokingLogoutSuccessHandler permissionRevokingLogoutSuccessHandler
 
-  @Value('${basicAuth.enabled:false}')
-  Boolean basicAuthEnabled
+  @Autowired
+  SecurityProperties securityProperties
 
   @Bean
   @ConditionalOnMissingBean(UserRolesProvider)
@@ -84,10 +85,9 @@ class AuthConfig {
         .disable()
     // @formatter:on
 
-    if (basicAuthEnabled) {
+    if (securityProperties.basic.enabled) {
       result.httpBasic()
     }
-
   }
 
   @Component

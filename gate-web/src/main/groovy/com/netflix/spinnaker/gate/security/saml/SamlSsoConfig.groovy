@@ -131,33 +131,40 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   void configure(HttpSecurity http) {
-    http.rememberMe().rememberMeServices(rememberMeServices(userDetailsService()))
-      .and()
-      .authorizeRequests().antMatchers("/saml/**").permitAll()
+    http
+      .rememberMe()
+        .rememberMeServices(rememberMeServices(userDetailsService()))
+        .and()
+      .authorizeRequests()
+        .antMatchers("/saml/**").permitAll()
 
+    // @formatter:off
+    http
+      .apply(saml())
+        .userDetailsService(samlUserDetailsService)
+        .identityProvider()
+          .metadataFilePath(samlSecurityConfigProperties.metadataUrl)
+          .discoveryEnabled(false)
+          .and()
+        .serviceProvider()
+          .entityId(samlSecurityConfigProperties.issuerId)
+          .protocol(samlSecurityConfigProperties.redirectProtocol)
+          .hostname(samlSecurityConfigProperties.redirectHostname ?: serverProperties?.address?.hostName)
+          .basePath(samlSecurityConfigProperties.redirectBasePath)
+          .keyStore()
+          .storeFilePath(samlSecurityConfigProperties.keyStore)
+          .password(samlSecurityConfigProperties.keyStorePassword)
+          .keyname(samlSecurityConfigProperties.keyStoreAliasName)
+          .keyPassword(samlSecurityConfigProperties.keyStorePassword)
+    // @formatter:on
+
+    // We must do the default auth configuration AFTER the SAML one, because otherwise an HTTP Basic
+    // (if enabled) auth window might appear in the browser before the SAML filter is hit.
     authConfig.configure(http)
 
     configurers?.each {
       it.configure(http)
     }
-
-    http
-      .apply(saml())
-      .userDetailsService(samlUserDetailsService)
-      .identityProvider()
-      .metadataFilePath(samlSecurityConfigProperties.metadataUrl)
-      .discoveryEnabled(false)
-      .and()
-      .serviceProvider()
-      .entityId(samlSecurityConfigProperties.issuerId)
-      .protocol(samlSecurityConfigProperties.redirectProtocol)
-      .hostname(samlSecurityConfigProperties.redirectHostname ?: serverProperties?.address?.hostName)
-      .basePath(samlSecurityConfigProperties.redirectBasePath)
-      .keyStore()
-      .storeFilePath(samlSecurityConfigProperties.keyStore)
-      .password(samlSecurityConfigProperties.keyStorePassword)
-      .keyname(samlSecurityConfigProperties.keyStoreAliasName)
-      .keyPassword(samlSecurityConfigProperties.keyStorePassword)
   }
 
   @Bean
