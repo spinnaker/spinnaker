@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStackTck
-import redis.clients.jedis.JedisPool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Subject
@@ -30,7 +29,7 @@ class JedisPipelineStackSpec extends PipelineStackTck<JedisPipelineStack> {
   @AutoCleanup("destroy")
   EmbeddedRedis embeddedRedis
   @Shared
-    mapper = new OrcaObjectMapper()
+    mapper = OrcaObjectMapper.newInstance()
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()

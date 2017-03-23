@@ -29,7 +29,7 @@ import spock.lang.Unroll
 
 class TitusInterestingHealthProviderNamesSupplierSpec extends Specification {
   def oortService = Mock(OortService)
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
 
   @Subject
   def titusInterestingHealthProviderNamesSupplier = new TitusInterestingHealthProviderNamesSupplier(oortService, new SourceResolver(), mapper)

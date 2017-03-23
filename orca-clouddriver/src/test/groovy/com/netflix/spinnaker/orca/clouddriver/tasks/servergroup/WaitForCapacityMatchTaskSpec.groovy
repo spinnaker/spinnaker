@@ -32,7 +32,7 @@ import spock.lang.Unroll
 class WaitForCapacityMatchTaskSpec extends Specification {
 
   @Shared OortService oort
-  @Shared ObjectMapper mapper = new OrcaObjectMapper()
+  @Shared ObjectMapper mapper = OrcaObjectMapper.newInstance()
   @Subject WaitForCapacityMatchTask task = new WaitForCapacityMatchTask() {
     {
       objectMapper = mapper

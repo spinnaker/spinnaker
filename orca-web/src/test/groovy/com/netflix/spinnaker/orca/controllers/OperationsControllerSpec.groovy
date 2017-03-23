@@ -16,20 +16,15 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.InvalidPipelineTemplateException
-import com.netflix.spinnaker.security.AuthenticatedRequest
-import org.apache.log4j.MDC
-import org.springframework.mock.env.MockEnvironment
-
-import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.InvalidPipelineTemplateException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.json.JsonSlurper
 import org.apache.log4j.MDC
@@ -49,7 +44,7 @@ class OperationsControllerSpec extends Specification {
 
   def pipelineLauncher = Mock(PipelineLauncher)
   def buildService = Stub(BuildService)
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
   def executionRepository = Mock(ExecutionRepository)
 
   def env = new MockEnvironment()

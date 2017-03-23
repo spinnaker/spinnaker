@@ -29,7 +29,7 @@ import spock.lang.Unroll
 
 class TargetReferenceSupportSpec extends Specification {
 
-  ObjectMapper mapper = OrcaObjectMapper.DEFAULT
+  ObjectMapper mapper = OrcaObjectMapper.newInstance()
   OortService oort
   TargetReferenceSupport subject
 

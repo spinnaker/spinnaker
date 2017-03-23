@@ -52,7 +52,7 @@ class ResizeAsgStageSpec extends Specification {
 
   Pool<Jedis> jedisPool = embeddedRedis.pool
 
-  def mapper = OrcaObjectMapper.DEFAULT
+  def mapper = OrcaObjectMapper.newInstance()
   def targetReferenceSupport = Mock(TargetReferenceSupport)
   def resizeSupport = new ResizeSupport(targetReferenceSupport: targetReferenceSupport)
   def stageBuilder = new ResizeAsgStage()

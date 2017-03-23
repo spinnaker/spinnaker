@@ -59,7 +59,7 @@ class ApplicationSpec extends Specification {
 
   void 'dynamic properties should be marshalled at root of application'() {
     setup:
-    def mapper = new OrcaObjectMapper()
+    def mapper = OrcaObjectMapper.newInstance()
     application.someBoolean = true
     application.someMap = [ a: 'some string', b: 4 ]
     def expected = [

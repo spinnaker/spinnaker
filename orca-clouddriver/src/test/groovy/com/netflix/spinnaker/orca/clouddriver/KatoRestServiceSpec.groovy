@@ -49,7 +49,7 @@ class KatoRestServiceSpec extends Specification {
   def setup() {
     def cfg = new CloudDriverConfiguration()
     def builder = cfg.clouddriverRetrofitBuilder(
-        new OrcaObjectMapper(),
+        OrcaObjectMapper.newInstance(),
         new OkClient(),
         FULL,
         noopInterceptor,

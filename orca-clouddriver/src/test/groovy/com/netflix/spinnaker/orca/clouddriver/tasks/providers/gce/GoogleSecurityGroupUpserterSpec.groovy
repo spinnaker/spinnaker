@@ -145,7 +145,7 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
         ]
       ]
       def stage = new Stage<>(new Pipeline(), "whatever", ctx)
-      upserter = new GoogleSecurityGroupUpserter(mortService: mortService, objectMapper: new OrcaObjectMapper())
+      upserter = new GoogleSecurityGroupUpserter(mortService: mortService, objectMapper: OrcaObjectMapper.newInstance())
 
     when:
       def result = upserter.isSecurityGroupUpserted(sg, stage)

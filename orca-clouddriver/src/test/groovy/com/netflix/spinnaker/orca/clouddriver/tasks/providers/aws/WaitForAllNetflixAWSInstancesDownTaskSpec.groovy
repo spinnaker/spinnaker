@@ -43,7 +43,7 @@ class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
   @Shared
   def oneMinuteAgo = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1)
 
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
 
   void "should check cluster to get server groups"() {
     given:

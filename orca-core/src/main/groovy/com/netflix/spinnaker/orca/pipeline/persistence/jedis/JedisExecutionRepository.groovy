@@ -56,7 +56,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   private static final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT = new TypeReference<Map<String, Object>>() {}
   private final Pool<Jedis> jedisPool
   private final Optional<Pool<Jedis>> jedisPoolPrevious
-  private final ObjectMapper mapper = new OrcaObjectMapper()
+  private final ObjectMapper mapper = OrcaObjectMapper.newInstance()
   private final int chunkSize
   private final Scheduler queryAllScheduler
   private final Scheduler queryByAppScheduler

@@ -33,7 +33,7 @@ class CreateDeployTaskSpec extends Specification {
   @Subject
   def task = new CreateDeployTask()
   def stage = new Stage<>(new Pipeline(), "deploy")
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deployRegion = "us-east-1"

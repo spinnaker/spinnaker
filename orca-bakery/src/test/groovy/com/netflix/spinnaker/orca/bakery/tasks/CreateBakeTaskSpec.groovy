@@ -41,7 +41,7 @@ class CreateBakeTaskSpec extends Specification {
   @Subject
   task = new CreateBakeTask()
   Stage stage
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
 
   @Shared
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
