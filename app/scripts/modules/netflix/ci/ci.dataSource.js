@@ -1,17 +1,17 @@
 import {DataSourceConfig} from 'core/application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
+import {NetflixSettings} from '../netflix.settings';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.ci.dataSource', [
-    require('core/config/settings'),
     APPLICATION_DATA_SOURCE_REGISTRY,
     require('./build.read.service'),
   ])
-  .run(function($q, applicationDataSourceRegistry, settings, buildService) {
+  .run(function($q, applicationDataSourceRegistry, buildService) {
 
-    if (settings.feature && settings.feature.netflixMode) {
+    if (NetflixSettings.feature.netflixMode) {
       let loadRunningBuilds = (application) => {
         let attr = application.attributes;
         return buildService.getRunningBuilds(attr.repoType, attr.repoProjectKey, attr.repoSlug);

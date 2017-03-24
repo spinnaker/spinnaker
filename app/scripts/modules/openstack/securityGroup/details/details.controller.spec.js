@@ -8,10 +8,7 @@ describe('Controller: openstackSecurityGroupDetailsController', function() {
   );
 
   // Initialize the controller and a mock scope
-  beforeEach(window.inject(function ($controller, $rootScope, $q, settings) {
-    this.settings = settings;
-
-
+  beforeEach(window.inject(function ($controller, $rootScope, $q) {
     this.editSecurityGroup = {
         name: 'example-TestSecurityGroup1',
         region: 'TestRegion1',

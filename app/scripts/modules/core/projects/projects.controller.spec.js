@@ -20,10 +20,9 @@ describe('Controller: Projects', function() {
 
     // Initialize the controller and a mock scope
     beforeEach(window.inject(function ($controller, $rootScope, $window, $q, $uibModal, $log, $filter,
-                                $state, $timeout, settings, projectReader) {
+                                $state, $timeout, projectReader) {
 
       this.$scope = $rootScope.$new();
-      this.settings = settings;
       this.$q = $q;
       this.projectReader = projectReader;
 

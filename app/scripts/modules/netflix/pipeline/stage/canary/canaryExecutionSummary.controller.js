@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.summary
   require('./actions/endCanary.controller.js'),
   require('../../../../core/pipeline/config/pipelineConfigProvider.js')
 ])
-  .controller('CanaryExecutionSummaryCtrl', function ($scope, $http, settings, $uibModal, pipelineConfig) {
+  .controller('CanaryExecutionSummaryCtrl', function ($scope, $http, $uibModal, pipelineConfig) {
 
     this.generateCanaryScore = function() {
       $uibModal.open({

@@ -2,13 +2,14 @@
 
 let angular = require('angular');
 
+import {SETTINGS} from 'core/config/settings';
+
 module.exports = angular.module('spinnaker.core.utils.timeFormatters', [
-  require('./moment.js'),
-  require('../config/settings.js'),
+  require('./moment.js')
 ])
-  .filter('timestamp', function(momentService, settings) {
+  .filter('timestamp', function(momentService) {
     return function(input) {
-      var tz = settings.defaultTimeZone || 'America/Los_Angeles';
+      var tz = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
       if (!input || isNaN(input) || input < 0) {
         return '-';
       }
@@ -72,8 +73,8 @@ module.exports = angular.module('spinnaker.core.utils.timeFormatters', [
   })
   .component('systemTimezone', {
     template: `<span ng-bind="$ctrl.tz"></span>`,
-    controller: function(momentService, settings) {
-      var zone = settings.defaultTimeZone || 'America/Los_Angeles';
+    controller: function(momentService) {
+      var zone = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
       this.tz = momentService.tz(new Date().getTime(), zone).zoneAbbr();
     }
   });

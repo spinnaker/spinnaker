@@ -1,20 +1,21 @@
 'use strict';
 
 import _ from 'lodash';
+
 import {API_SERVICE} from 'core/api/api.service';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   require('../../utils/appendTransform.js'),
-  require('../../config/settings.js'),
   require('../filter/executionFilter.model.js'),
   require('./executions.transformer.service.js'),
   require('core/pipeline/config/pipelineConfigProvider.js'),
   API_SERVICE
 ])
   .factory('executionService', function($http, API, $timeout, $q, $log, ExecutionFilterModel, $state,
-                                        settings, appendTransform, executionsTransformer, pipelineConfig) {
+                                        appendTransform, executionsTransformer, pipelineConfig) {
 
     const activeStatuses = ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED'];
     const runningLimit = 30;
@@ -137,7 +138,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       $http({
         method: 'PUT',
         url: [
-          settings.gateUrl,
+          SETTINGS.gateUrl,
           'applications',
           application.name,
           'pipelines',
@@ -164,7 +165,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       $http({
         method: 'PUT',
         url: [
-          settings.gateUrl,
+          SETTINGS.gateUrl,
           'pipelines',
           executionId,
           'pause',
@@ -185,7 +186,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       $http({
         method: 'PUT',
         url: [
-          settings.gateUrl,
+          SETTINGS.gateUrl,
           'pipelines',
           executionId,
           'resume',
@@ -202,7 +203,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       $http({
         method: 'DELETE',
         url: [
-          settings.gateUrl,
+          SETTINGS.gateUrl,
           'pipelines',
           executionId,
         ].join('/')
@@ -340,12 +341,12 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     }
 
     function patchExecution(executionId, stageId, data) {
-      var targetUrl = [settings.gateUrl, 'pipelines', executionId, 'stages', stageId].join('/');
+      var targetUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'stages', stageId].join('/');
       var request = {
         method: 'PATCH',
         url: targetUrl,
         data: data,
-        timeout: settings.pollSchedule * 2 + 5000
+        timeout: SETTINGS.pollSchedule * 2 + 5000
       };
       return $http(request).then(resp => resp.data);
     }

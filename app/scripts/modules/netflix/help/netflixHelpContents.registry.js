@@ -1,15 +1,15 @@
 'use strict';
 
 import {HELP_CONTENTS_REGISTRY} from 'core/help/helpContents.registry';
+import {NetflixSettings} from '../netflix.settings';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.help.registry', [
     HELP_CONTENTS_REGISTRY,
-    require('core/config/settings.js'),
   ])
-  .run(function(helpContentsRegistry, settings) {
+  .run(function(helpContentsRegistry) {
     let helpContents = [
       {
         key: 'application.legacyUdf',
@@ -80,7 +80,7 @@ module.exports = angular
         contents: 'The availability trends for the Netflix streaming service represented as percentage of expected stream starts acheived and the number of \'nines\' of that availability. <a href="http://go/availabilitycontextdoc" target="_blank">Click here</a> for more details.'
       }
     ];
-    if (settings.feature && settings.feature.netflixMode) {
+    if (NetflixSettings.feature.netflixMode) {
       helpContents.forEach((entry) => helpContentsRegistry.registerOverride(entry.key, entry.contents));
     }
   });

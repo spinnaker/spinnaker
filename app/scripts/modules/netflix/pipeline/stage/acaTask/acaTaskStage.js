@@ -2,17 +2,17 @@
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {NetflixSettings} from '../../../netflix.settings';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage', [
   CLOUD_PROVIDER_REGISTRY,
-  require('core/config/settings.js'),
   require('../canary/canaryExecutionSummary.controller'),
   ACCOUNT_SERVICE,
 ])
-  .config(function (pipelineConfigProvider, settings) {
-    if (settings.feature && settings.feature.netflixMode) {
+  .config(function (pipelineConfigProvider) {
+    if (NetflixSettings.feature.netflixMode) {
       pipelineConfigProvider.registerStage({
         label: 'ACA Task',
         description: 'Runs a canary task against an existing cluster, asg, or query',

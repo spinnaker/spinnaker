@@ -8,12 +8,7 @@ describe('scheduler', function() {
   beforeEach(function() {
     var pollSchedule = 25;
     window.module(
-      require('./scheduler.factory.js'),
-      function($provide) {
-        return $provide.constant('settings', {
-          pollSchedule: pollSchedule,
-        });
-      }
+      require('./scheduler.factory.js')
     );
 
     this.pollSchedule = pollSchedule;

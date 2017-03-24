@@ -5,6 +5,7 @@ import {APPLICATION_READ_SERVICE} from 'core/application/service/application.rea
 import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {UI_SELECT_COMPONENT} from 'core/widgets/uiSelect.component';
+import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular
   .module('spinnaker.netflix.application.create.modal.controller', [
@@ -12,12 +13,10 @@ module.exports = angular
     APPLICATION_WRITE_SERVICE,
     APPLICATION_READ_SERVICE,
     ACCOUNT_SERVICE,
-    require('core/config/settings.js'),
     PAGER_DUTY_SELECT_FIELD_COMPONENT,
     UI_SELECT_COMPONENT
   ])
   .controller('netflixCreateApplicationModalCtrl', function($controller, $scope, $q, $log, $state, $uibModalInstance,
-                                                            settings,
                                                             accountService, applicationWriter, applicationReader) {
 
     angular.extend(this, $controller('CreateApplicationModalCtrl', {
@@ -31,7 +30,7 @@ module.exports = angular
       applicationReader: applicationReader
     }));
 
-    this.chaosEnabled = settings.feature.chaosMonkey;
+    this.chaosEnabled = SETTINGS.feature.chaosMonkey;
 
     if (this.chaosEnabled) {
       this.application.chaosMonkey = {

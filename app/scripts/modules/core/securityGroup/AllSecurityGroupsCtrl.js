@@ -3,6 +3,7 @@
 import _ from 'lodash';
 
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
@@ -10,12 +11,11 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
   require('./filter/securityGroup.filter.service.js'),
   require('./filter/securityGroup.filter.model.js'),
   require('../cloudProvider/providerSelection/providerSelection.service.js'),
-  require('../config/settings.js'),
   require('angular-ui-bootstrap'),
   CLOUD_PROVIDER_REGISTRY,
 ])
   .controller('AllSecurityGroupsCtrl', function($scope, app, $uibModal, $timeout,
-                                                providerSelectionService, settings, cloudProviderRegistry,
+                                                providerSelectionService, cloudProviderRegistry,
                                                 SecurityGroupFilterModel, securityGroupFilterService) {
 
     SecurityGroupFilterModel.activate();
@@ -46,8 +46,8 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
     this.createSecurityGroup = function createSecurityGroup() {
       providerSelectionService.selectProvider(app, 'securityGroup').then(function(selectedProvider) {
         let provider = cloudProviderRegistry.getValue(selectedProvider, 'securityGroup');
-        var defaultCredentials = app.defaultCredentials[selectedProvider] || settings.providers[selectedProvider].defaults.account,
-            defaultRegion = app.defaultRegions[selectedProvider] || settings.providers[selectedProvider].defaults.region;
+        var defaultCredentials = app.defaultCredentials[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.account,
+            defaultRegion = app.defaultRegions[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.region;
         $uibModal.open({
           templateUrl: provider.createSecurityGroupTemplateUrl,
           controller: `${provider.createSecurityGroupController} as ctrl`,

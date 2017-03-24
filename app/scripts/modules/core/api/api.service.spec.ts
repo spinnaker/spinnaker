@@ -2,6 +2,7 @@ import Spy = jasmine.Spy;
 import {mock, noop} from 'angular';
 import {AuthenticationInitializer} from '../authentication/authentication.initializer.service';
 import {API_SERVICE, Api} from './api.service';
+import {SETTINGS} from 'core/config/settings';
 
 describe('API Service', function () {
   let API: Api;
@@ -11,8 +12,7 @@ describe('API Service', function () {
 
   beforeEach(
     mock.module(
-      API_SERVICE,
-      require('../config/settings')
+      API_SERVICE
     )
   );
 
@@ -20,11 +20,10 @@ describe('API Service', function () {
     mock.inject(
       function (_API_: Api,
                 _$httpBackend_: ng.IHttpBackendService,
-                settings: any,
                 _authenticationInitializer_: AuthenticationInitializer) {
       API = _API_;
       $httpBackend = _$httpBackend_;
-      baseUrl = settings.gateUrl;
+      baseUrl = SETTINGS.gateUrl;
       authenticationInitializer = _authenticationInitializer_;
     }));
 

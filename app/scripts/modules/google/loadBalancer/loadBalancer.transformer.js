@@ -2,10 +2,12 @@
 
 import _ from 'lodash';
 
+import {GCEProviderSettings} from '../gce.settings';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
-  .factory('gceLoadBalancerTransformer', function ($q, settings) {
+  .factory('gceLoadBalancerTransformer', function ($q) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;
@@ -128,8 +130,8 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
         provider: 'gce',
         stack: '',
         detail: '',
-        credentials: settings.providers.gce ? settings.providers.gce.defaults.account : null,
-        region: settings.providers.gce ? settings.providers.gce.defaults.region : null,
+        credentials: GCEProviderSettings.defaults.account,
+        region: GCEProviderSettings.defaults.region,
         healthCheckProtocol: 'HTTP',
         healthCheckPort: 80,
         healthCheckPath: '/',

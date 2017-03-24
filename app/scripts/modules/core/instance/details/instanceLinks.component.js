@@ -2,14 +2,14 @@
 
 import _ from 'lodash';
 
+import {SETTINGS} from 'core/config/settings';
+
 const angular = require('angular');
 
 require('./instanceLinks.component.less');
 
 module.exports = angular
-  .module('spinnaker.core.instance.details.instanceLinks', [
-    require('../../config/settings'),
-  ])
+  .module('spinnaker.core.instance.details.instanceLinks', [])
   .component('instanceLinks', {
     bindings: {
       address: '=',
@@ -17,9 +17,9 @@ module.exports = angular
       instance: '=',
     },
     templateUrl: require('./instanceLinks.component.html'),
-    controller: function(settings, $interpolate) {
-      this.port = _.get(this.application, 'attributes.instancePort', settings.defaultInstancePort) || 80;
-      this.sections = _.cloneDeep(_.get(this.application, 'attributes.instanceLinks', settings.defaultInstanceLinks) || []);
+    controller: function($interpolate) {
+      this.port = _.get(this.application, 'attributes.instancePort', SETTINGS.defaultInstancePort) || 80;
+      this.sections = _.cloneDeep(_.get(this.application, 'attributes.instanceLinks', SETTINGS.defaultInstanceLinks) || []);
       this.sections.forEach(section => {
         section.links = section.links.map(link => {
           let port = link.path.indexOf(':') === 0 || !this.port ? '' : ':' + this.port;

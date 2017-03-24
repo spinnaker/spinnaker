@@ -5,15 +5,15 @@ let angular = require('angular');
 import {API_SERVICE} from 'core/api/api.service';
 import {CI_FILTER_MODEL} from './ci.filter.model';
 import {ORCHESTRATED_ITEM_TRANSFORMER} from 'core/orchestratedItem/orchestratedItem.transformer';
+import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular
   .module('spinnaker.netflix.ci.build.read.service', [
     API_SERVICE,
     CI_FILTER_MODEL,
-    require('core/config/settings'),
     ORCHESTRATED_ITEM_TRANSFORMER,
   ])
-  .factory('buildService', function (API, settings, orchestratedItemTransformer, CiFilterModel) {
+  .factory('buildService', function (API, orchestratedItemTransformer, CiFilterModel) {
 
     const MAX_LINES = 4095;
 
@@ -53,7 +53,7 @@ module.exports = angular
     }
 
     function getBuildRawLogLink(buildId) {
-      return [settings.gateUrl, 'ci', 'builds', buildId, 'rawOutput'].join('/');
+      return [SETTINGS.gateUrl, 'ci', 'builds', buildId, 'rawOutput'].join('/');
     }
 
     function builds() {

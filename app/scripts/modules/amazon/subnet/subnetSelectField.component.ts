@@ -3,11 +3,7 @@ import {get} from 'lodash';
 
 import {ISubnet} from 'core/subnet/subnet.read.service';
 import {Application} from 'core/application/application.model';
-
-export interface IClassicLaunchWhitelist {
-  region: string;
-  credentials: string;
-}
+import {AWSProviderSettings} from '../aws.settings';
 
 class SubnetSelectFieldController implements ng.IComponentController {
   public subnets: ISubnet[];
@@ -23,10 +19,6 @@ class SubnetSelectFieldController implements ng.IComponentController {
   public helpKey: string;
   public labelColumns: string;
 
-  static get $inject() { return ['settings']; }
-
-  constructor(private settings: any) {}
-
   public $onInit(): void {
     this.$onChanges();
   }
@@ -37,7 +29,7 @@ class SubnetSelectFieldController implements ng.IComponentController {
   }
 
   private setClassicLock(): void {
-    const lockoutDate: number = get<number>(this.settings, 'providers.aws.classicLaunchLockout');
+    const lockoutDate: number = AWSProviderSettings.classicLaunchLockout;
     if (lockoutDate) {
       const appCreationDate: number = Number(get(this.application, 'attributes.createTs', 0));
       if (appCreationDate > lockoutDate) {
@@ -45,7 +37,7 @@ class SubnetSelectFieldController implements ng.IComponentController {
         return;
       }
     }
-    const classicWhitelist: IClassicLaunchWhitelist[] = get<IClassicLaunchWhitelist[]>(this.settings, 'providers.aws.classicLaunchWhitelist');
+    const classicWhitelist = AWSProviderSettings.classicLaunchWhitelist;
     if (classicWhitelist) {
       this.hideClassic = classicWhitelist.every(e => e.region !== this.region || e.credentials !== this.component.credentials);
     }
@@ -84,5 +76,4 @@ class SubnetSelectFieldComponent implements ng.IComponentOptions {
 
 export const SUBNET_SELECT_FIELD_COMPONENT = 'spinnaker.amazon.subnet.subnetSelectField.component';
 module(SUBNET_SELECT_FIELD_COMPONENT, [
-  require('core/config/settings'),
 ]).component('subnetSelectField', new SubnetSelectFieldComponent());

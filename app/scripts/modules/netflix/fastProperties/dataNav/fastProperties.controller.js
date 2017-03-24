@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import { CREATE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../wizard/createFastPropertyWizard.controller';
+import {NetflixSettings} from '../../netflix.settings';
 
 
 let angular = require('angular');
@@ -13,11 +14,11 @@ module.exports = angular
     require('../fastProperty.read.service.js'),
     CREATE_FAST_PROPERTY_WIZARD_CONTROLLER,
   ])
-  .controller('FastPropertiesController', function ($scope, $filter, $state, $stateParams, $location, $uibModal, settings, fastPropertyReader) {
+  .controller('FastPropertiesController', function ($scope, $filter, $state, $stateParams, $location, $uibModal, fastPropertyReader) {
     let vm = this;
     let filterNames = ['app','env', 'region', 'stack', 'cluster'];
 
-    vm.isOn = settings.feature.fastProperty;
+    vm.isOn = NetflixSettings.feature.fastProperty;
     vm.fetchingProperties = false;
 
     $scope.filters = {list: []};

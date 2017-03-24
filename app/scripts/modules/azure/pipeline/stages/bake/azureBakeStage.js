@@ -1,7 +1,9 @@
 'use strict';
 
 import _ from 'lodash';
+
 import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
@@ -36,7 +38,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.bakeStage',
       restartable: true,
     });
   })
-  .controller('azureBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, settings, $uibModal) {
+  .controller('azureBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, $uibModal) {
 
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];
@@ -81,7 +83,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.bakeStage',
         if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];
         }
-        $scope.viewState.roscoMode = settings.feature.roscoMode;
+        $scope.viewState.roscoMode = SETTINGS.feature.roscoMode;
         $scope.viewState.loading = false;
       });
     }

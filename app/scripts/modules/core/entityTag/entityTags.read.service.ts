@@ -4,16 +4,16 @@ import {get} from 'lodash';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {IEntityTags, IEntityTag, ICreationMetadataTag} from '../domain/IEntityTags';
 import {RETRY_SERVICE, RetryService} from 'core/retry/retry.service';
+import {SETTINGS} from 'core/config/settings';
 
 export class EntityTagsReader {
 
-  static get $inject() { return ['API', '$q', '$exceptionHandler', 'retryService', 'settings']; }
+  static get $inject() { return ['API', '$q', '$exceptionHandler', 'retryService']; }
 
   constructor(private API: Api,
               private $q: ng.IQService,
               private $exceptionHandler: ng.IExceptionHandlerService,
-              private retryService: RetryService,
-              private settings: any) {}
+              private retryService: RetryService) {}
 
   public getAllEntityTags(entityType: string, entityIds: string[]): ng.IPromise<IEntityTags[]> {
     if (!entityIds || !entityIds.length) {
@@ -70,8 +70,8 @@ export class EntityTagsReader {
   }
 
   private collateEntityIds(entityType: string, entityIds: string[]): string[] {
-    const baseUrlLength = `${this.settings.gateUrl}/tags?entityType=${entityType}&entityIds=`.length;
-    const maxIdGroupLength = get(this.settings, 'entityTags.maxUrlLength', 4000) - baseUrlLength;
+    const baseUrlLength = `${SETTINGS.gateUrl}/tags?entityType=${entityType}&entityIds=`.length;
+    const maxIdGroupLength = get(SETTINGS, 'entityTags.maxUrlLength', 4000) - baseUrlLength;
     const idGroups: string[] = [];
     const joinedEntityIds = entityIds.join(',');
 
@@ -103,6 +103,5 @@ export class EntityTagsReader {
 export const ENTITY_TAGS_READ_SERVICE = 'spinnaker.core.entityTag.read.service';
 module(ENTITY_TAGS_READ_SERVICE, [
   API_SERVICE,
-  RETRY_SERVICE,
-  require('core/config/settings'),
+  RETRY_SERVICE
 ]).service('entityTagsReader', EntityTagsReader);

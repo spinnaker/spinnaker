@@ -4,6 +4,7 @@ let angular = require('angular');
 
 import {UUIDGenerator} from 'core/utils/uuid.service';
 import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
+import {SETTINGS} from 'core/config/settings';
 import './cronTrigger.less';
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
@@ -31,10 +32,10 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
       ]
     });
   })
-  .controller('CronTriggerCtrl', function(trigger, settings, serviceAccountService) {
+  .controller('CronTriggerCtrl', function(trigger, serviceAccountService) {
 
     this.trigger = trigger;
-    this.fiatEnabled = settings.feature.fiatEnabled;
+    this.fiatEnabled = SETTINGS.feature.fiatEnabled;
 
     serviceAccountService.getServiceAccounts().then(accounts => {
       this.serviceAccounts = accounts || [];

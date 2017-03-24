@@ -3,12 +3,12 @@
 let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+import {CloudFoundryProviderSettings} from '../../../cf.settings';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage', [
   LIST_EXTRACTOR_SERVICE,
   require('./findAmiExecutionDetails.controller.js'),
   ACCOUNT_SERVICE,
-  require('core/config/settings.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage',
         { type: 'requiredField', fieldName: 'credentials' }
       ]
     });
-  }).controller('cfFindAmiStageCtrl', function($scope, accountService, appListExtractorService, settings) {
+  }).controller('cfFindAmiStageCtrl', function($scope, accountService, appListExtractorService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -51,7 +51,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage',
     };
 
     ctrl.updateRegions = function() {
-      let preferredZoneList = settings.providers.cf.preferredZonesByAccount[$scope.stage.credentials];
+      let preferredZoneList = CloudFoundryProviderSettings.preferredZonesByAccount[$scope.stage.credentials];
       stage.regions = Object.keys(preferredZoneList);
     };
 

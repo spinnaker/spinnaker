@@ -2,9 +2,11 @@
 
 let angular = require('angular');
 
+import {OpenStackProviderSettings} from '../openstack.settings';
+
 module.exports = angular.module('spinnaker.openstack.securityGroup.transformer', [
 ])
-  .factory('openstackSecurityGroupTransformer', function (settings, $q) {
+  .factory('openstackSecurityGroupTransformer', function ($q) {
 
     function normalizeSecurityGroup(securityGroup) {
       return $q.when(securityGroup);
@@ -17,7 +19,7 @@ module.exports = angular.module('spinnaker.openstack.securityGroup.transformer',
         stack: '',
         description: '',
         detail: '',
-        account: settings.providers.openstack ? settings.providers.openstack.defaults.account : null,
+        account: OpenStackProviderSettings.defaults.account,
         rules: [],
       };
     }

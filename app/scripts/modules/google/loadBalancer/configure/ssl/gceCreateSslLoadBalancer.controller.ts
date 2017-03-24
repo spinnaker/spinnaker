@@ -16,6 +16,7 @@ import {
   ILoadBalancerUpsertDescription
 } from 'core/loadBalancer/loadBalancer.write.service';
 import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
+import {GCEProviderSettings} from '../../../gce.settings';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
@@ -88,7 +89,6 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
                                   'loadBalancerWriter',
                                   'wizardSubFormValidation',
                                   'taskMonitorBuilder',
-                                  'settings',
                                   '$state',
                                   'infrastructureCaches']; }
 
@@ -102,7 +102,6 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
                private loadBalancerWriter: LoadBalancerWriter,
                private wizardSubFormValidation: any,
                private taskMonitorBuilder: TaskMonitorBuilder,
-               private settings: any,
                $state: IStateService,
                infrastructureCaches: InfrastructureCacheService) {
     super($scope, application, $uibModalInstance, $state, infrastructureCaches);
@@ -116,8 +115,8 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
           this.initializeEditMode();
         } else {
           this.loadBalancer = new SslLoadBalancer(
-            this.settings.providers.gce
-            ? this.settings.providers.gce.defaults.region
+            GCEProviderSettings
+            ? GCEProviderSettings.defaults.region
             : null);
         }
 

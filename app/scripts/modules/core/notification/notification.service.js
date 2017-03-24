@@ -5,7 +5,7 @@ import {API_SERVICE} from 'core/api/api.service';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.notification.service', [API_SERVICE])
-  .factory('notificationService', function (settings, API) {
+  .factory('notificationService', function (API) {
 
     function getNotificationsForApplication(applicationName) {
       return API.one('notifications').one('application', applicationName).get();

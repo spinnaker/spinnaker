@@ -1,6 +1,7 @@
 'use strict';
 
 import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
@@ -10,14 +11,14 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.bake.titus.execut
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('titusBakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,
-                                                          $interpolate, settings) {
+                                                          $interpolate) {
 
     $scope.configSections = ['bakeConfig', 'taskStatus'];
 
     let initialized = () => {
       $scope.detailsSection = $stateParams.details;
       $scope.provider = $scope.stage.context.cloudProviderType || 'titus';
-      $scope.bakeryDetailUrl = $interpolate(settings.bakeryDetailUrl);
+      $scope.bakeryDetailUrl = $interpolate(SETTINGS.bakeryDetailUrl);
     };
 
     let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);

@@ -2,13 +2,13 @@
 
 import _ from 'lodash';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {SETTINGS} from 'core/config/settings';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.modal.applicationProviderFields.directive', [
     CLOUD_PROVIDER_REGISTRY,
-    require('../../config/settings.js'),
   ])
   .component('applicationProviderFields', {
       templateUrl: require('./applicationProviderFields.component.html'),
@@ -18,9 +18,9 @@ module.exports = angular
       },
       controller: 'ApplicationProviderFieldsCtrl',
   })
-  .controller('ApplicationProviderFieldsCtrl', function(cloudProviderRegistry, settings) {
+  .controller('ApplicationProviderFieldsCtrl', function(cloudProviderRegistry) {
     const templateUrlPath = 'applicationProviderFields.templateUrl';
-    let defaultProviderFields = settings.providers;
+    let defaultProviderFields = SETTINGS.providers;
 
     this.initializeApplicationField = (fieldPath) => {
       let applicationFieldPath = 'providerSettings.' + fieldPath;

@@ -1,6 +1,8 @@
 import * as moment from 'moment';
 import {module} from 'angular';
 
+import {SETTINGS} from 'core/config/settings';
+
 interface ILocalStorage {
   getItem: (key: string) => void;
   removeItem: (key: string) => void;
@@ -13,11 +15,11 @@ interface ICacheProxy {
 
 class SelfClearingLocalStorage implements ILocalStorage {
 
-  constructor(private $log: ng.ILogService, private settings: any, private cacheProxy: ICacheProxy) {}
+  constructor(private $log: ng.ILogService, private cacheProxy: ICacheProxy) {}
 
   public setItem(k: string, v: any) {
     try {
-      if (k.includes(this.settings.gateUrl)) {
+      if (k.includes(SETTINGS.gateUrl)) {
         const response = JSON.parse(v);
         if (response.value && Array.isArray(response.value) && (response.value.length > 2) && Array.isArray(response.value[2])) {
 
@@ -111,7 +113,7 @@ export interface ICacheMap {
 export class DeckCacheService {
 
   static get $inject(): string[] {
-    return ['$log', 'CacheFactory', 'settings'];
+    return ['$log', 'CacheFactory'];
   }
 
   private caches: ICacheMap = Object.create(null);
@@ -201,7 +203,7 @@ export class DeckCacheService {
       disabled: cacheConfig.disabled,
       maxAge: cacheConfig.maxAge || moment.duration(2, 'days').asMilliseconds(),
       recycleFreq: moment.duration(5, 'seconds').asMilliseconds(),
-      storageImpl: new SelfClearingLocalStorage(this.$log, this.settings, this.cacheProxy),
+      storageImpl: new SelfClearingLocalStorage(this.$log, this.cacheProxy),
       storageMode: 'localStorage',
       storagePrefix: DeckCacheService.getStoragePrefix(key, currentVersion)
     });
@@ -211,8 +213,7 @@ export class DeckCacheService {
   }
 
   constructor(private $log: ng.ILogService,
-              private CacheFactory: any,
-              private settings: any) {}
+              private CacheFactory: any) {}
 
   public clearCache(namespace: string, key: string): void {
     if (this.caches[key] && this.caches[key].destroy) {
@@ -233,6 +234,5 @@ export class DeckCacheService {
 export const DECK_CACHE_SERVICE = 'spinnaker.core.cache.deckCacheService';
 module(DECK_CACHE_SERVICE, [
   require('angular-cache'),
-  require('core/config/settings')
 ])
   .service('deckCacheFactory', DeckCacheService);

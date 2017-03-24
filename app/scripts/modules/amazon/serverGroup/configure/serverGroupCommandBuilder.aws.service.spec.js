@@ -1,7 +1,8 @@
 'use strict';
 
-describe('Service: awsServerGroup', function () {
+import {AWSProviderSettings} from '../../aws.settings';
 
+describe('Service: awsServerGroup', function () {
   beforeEach(
     window.module(
       require('./serverGroupCommandBuilder.service.js')
@@ -10,16 +11,17 @@ describe('Service: awsServerGroup', function () {
 
   beforeEach(
     window.inject(function (_$httpBackend_, awsServerGroupCommandBuilder, _accountService_, _instanceTypeService_, _$q_,
-                            _settings_, _subnetReader_, $rootScope) {
+                            _subnetReader_, $rootScope) {
       this.$httpBackend = _$httpBackend_;
       this.service = awsServerGroupCommandBuilder;
       this.accountService = _accountService_;
       this.subnetReader = _subnetReader_;
       this.$q = _$q_;
-      this.settings = _settings_;
       this.$scope = $rootScope;
       spyOn(_instanceTypeService_, 'getCategoryForInstanceType').and.returnValue(_$q_.when('custom'));
   }));
+
+  afterEach(AWSProviderSettings.resetToOriginal);
 
   describe('buildServerGroupCommandFromPipeline', function () {
 
@@ -37,24 +39,9 @@ describe('Service: awsServerGroup', function () {
         }
       };
 
-      this.settings.providers.aws.defaults.account = 'test';
-      this.settings.providers.aws.defaults.region = 'us-east-1';
-
-      this.settings.preferredZonesByAccount = {
-        test: {
-          'us-west-1': ['a', 'b'],
-          'us-east-1': ['d', 'e'],
-        },
-        prod: {
-          'us-west-1': ['d', 'g'],
-          'us-east-1': ['d', 'e'],
-          'eu-west-1': ['a', 'm']
-        },
-        default: {
-          'us-west-1': ['a', 'c'],
-          'us-east-1': ['d', 'e'],
-          'eu-west-1': ['a', 'm']
-        }
+      AWSProviderSettings.defaults = {
+        account: 'test',
+        region: 'us-east-1'
       };
 
       spyOn(this.accountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(

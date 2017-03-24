@@ -2,6 +2,7 @@
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {CANCEL_MODAL_SERVICE} from 'core/cancelModal/cancelModal.service';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
@@ -31,10 +32,10 @@ module.exports = angular
     };
   })
   .controller('ExecutionCtrl', function ($scope, $location, $stateParams, $state, urlParser, schedulerFactory,
-                                         settings, ExecutionFilterModel, executionService, cancelModalService,
+                                         ExecutionFilterModel, executionService, cancelModalService,
                                          confirmationModalService) {
 
-    this.pipelinesUrl = [settings.gateUrl, 'pipelines/'].join('/');
+    this.pipelinesUrl = [SETTINGS.gateUrl, 'pipelines/'].join('/');
 
     this.showDetails = () => {
       return this.standalone === true || ( this.execution.id === $stateParams.executionId &&

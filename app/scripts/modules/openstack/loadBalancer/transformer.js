@@ -2,13 +2,15 @@
 
 import _ from 'lodash';
 
+import {OpenStackProviderSettings} from '../openstack.settings';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', [])
-  .factory('openstackLoadBalancerTransformer', function ($q, settings) {
+  .factory('openstackLoadBalancerTransformer', function ($q) {
     var defaults = {
       provider: 'openstack',
-      account: settings.providers.openstack ? settings.providers.openstack.defaults.account : null,
+      account: OpenStackProviderSettings.defaults.account,
       stack: '',
       detail: '',
       subnetId: '',

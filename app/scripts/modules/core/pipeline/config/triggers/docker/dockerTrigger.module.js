@@ -6,9 +6,9 @@ let angular = require('angular');
 import {DOCKER_IMAGE_READER} from 'docker/image/docker.image.reader.service';
 import {DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT} from 'docker/image/dockerImageAndTagSelector.component';
 import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
+import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
-    require('core/config/settings.js'),
     SERVICE_ACCOUNT_SERVICE,
     DOCKER_IMAGE_READER,
     require('./dockerTriggerOptions.directive.js'),
@@ -43,9 +43,9 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       selectorTemplate: require('./selectorTemplate.html'),
     };
   })
-  .controller('DockerTriggerCtrl', function (trigger, settings, serviceAccountService) {
+  .controller('DockerTriggerCtrl', function (trigger, serviceAccountService) {
     this.trigger = trigger;
-    this.fiatEnabled = settings.feature.fiatEnabled;
+    this.fiatEnabled = SETTINGS.feature.fiatEnabled;
 
     serviceAccountService.getServiceAccounts().then(accounts => {
       this.serviceAccounts = accounts || [];

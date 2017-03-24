@@ -3,11 +3,11 @@ import {mock, module} from 'angular';
 
 import {AUTHENTICATION_INTERCEPTOR_SERVICE, AuthenticationInterceptor} from './authentication.interceptor.service';
 import {AUTHENTICATION_SERVICE, AuthenticationService} from './authentication.service';
+import {SETTINGS} from 'core/config/settings';
 
 describe('authenticationInterceptor', function() {
 
   let interceptor: AuthenticationInterceptor,
-    settings: any,
     authenticationService: AuthenticationService,
     $rootScope: ng.IRootScopeService;
 
@@ -19,16 +19,14 @@ describe('authenticationInterceptor', function() {
       return injector.get(AuthenticationService);
     });
 
-  beforeEach(mock.module(require('../config/settings'), AUTHENTICATION_INTERCEPTOR_SERVICE));
+  beforeEach(mock.module(AUTHENTICATION_INTERCEPTOR_SERVICE));
 
   beforeEach(
     mock.inject(
       function (_$q_: ng.IQService,
-                _settings_: any,
                 _authenticationService_: AuthenticationService,
                 _$rootScope_: ng.IRootScopeService,
                 _authenticationInterceptor_: AuthenticationInterceptor) {
-        settings = _settings_;
         authenticationService = _authenticationService_;
         $rootScope = _$rootScope_;
         interceptor = _authenticationInterceptor_;
@@ -37,7 +35,7 @@ describe('authenticationInterceptor', function() {
   describe('non-intercepted requests', function() {
     it('resolves immediately for auth endpoint', function() {
       let resolved: ng.IRequestConfig = null;
-      const request: ng.IRequestConfig = { url: settings.authEndpoint, method: 'GET' };
+      const request: ng.IRequestConfig = { url: SETTINGS.authEndpoint, method: 'GET' };
       interceptor.request(request).then(function(result) { resolved = result; });
       $rootScope.$digest();
       expect(resolved).toBe(request);

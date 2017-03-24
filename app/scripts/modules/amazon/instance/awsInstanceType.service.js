@@ -8,10 +8,9 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.instanceType.service', [
   API_SERVICE,
-  require('core/config/settings.js'),
   INFRASTRUCTURE_CACHE_SERVICE
 ])
-  .factory('awsInstanceTypeService', function ($http, $q, settings, API, infrastructureCaches) {
+  .factory('awsInstanceTypeService', function ($http, $q, API, infrastructureCaches) {
 
     var m3 = {
       type: 'm3',

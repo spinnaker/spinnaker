@@ -1,7 +1,8 @@
-import { module } from 'angular';
+import {module} from 'angular';
 import {IModalService} from 'angular-ui-bootstrap';
 
-import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
+import {DirectiveFactory} from 'core/utils/tsDecorators/directiveFactoryDecorator';
+import {NetflixSettings} from '../netflix.settings';
 
 import './feedback.less';
 
@@ -10,16 +11,15 @@ import './feedback.less';
 // component because we style the li based on information in the controller..,
 export class FeedbackController implements ng.IComponentController {
   static get $inject(): string[] {
-    return ['$location', '$scope', '$uibModal', 'settings'];
+    return ['$location', '$scope', '$uibModal'];
   }
 
   constructor (private $location: ng.ILocationService,
                private $scope: any,
-               private $uibModal: IModalService,
-               private settings: any) {}
+               private $uibModal: IModalService) {}
 
   public initialize(): void {
-    this.$scope.slackConfig = this.settings.feedback ? this.settings.feedback.slack : null;
+    this.$scope.slackConfig = NetflixSettings.feedback ? NetflixSettings.feedback.slack : null;
 
     this.$scope.state = {
       open: false,
@@ -59,6 +59,5 @@ class FeedbackDirective implements ng.IDirective {
 }
 
 export const FEEDBACK_DIRECTIVE = 'spinnaker.netflix.feedback.directive';
-module(FEEDBACK_DIRECTIVE, [
-  require('core/config/settings')
-]).directive('feedback', <any>FeedbackDirective);
+module(FEEDBACK_DIRECTIVE, [])
+  .directive('feedback', <any>FeedbackDirective);

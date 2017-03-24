@@ -9,11 +9,10 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
   require('angular-ui-router'),
   INFRASTRUCTURE_CACHE_SERVICE,
   CACHE_INITIALIZER_SERVICE,
-  require('core/config/settings.js'),
 ])
   .controller('awsCreateSecurityGroupCtrl', function($scope, $uibModalInstance, $state, $controller,
                                                      cacheInitializer, infrastructureCaches,
-                                                     application, securityGroup, settings ) {
+                                                     application, securityGroup) {
 
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),
@@ -26,8 +25,7 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
       $scope: $scope,
       $uibModalInstance: $uibModalInstance,
       application: application,
-      securityGroup: securityGroup,
-      settings: settings,
+      securityGroup: securityGroup
     }));
 
     $scope.state.isNew = true;

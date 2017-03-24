@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
+import {OpenStackProviderSettings} from '../../../openstack.settings';
 
 describe('Controller: openstackCreateLoadBalancerCtrl', function () {
 
@@ -15,13 +16,12 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
 
   // Initialize the controller and a mock scope
   var testSuite;
-  beforeEach(window.inject(function ($controller, $rootScope, $q, settings, applicationModelBuilder) {
+  beforeEach(window.inject(function ($controller, $rootScope, $q, applicationModelBuilder) {
     testSuite = this;
-    this.settings = settings;
 
     this.loadBalancerDefaults = {
       provider: 'openstack',
-      account: settings.providers.openstack ? settings.providers.openstack.defaults.account : null,
+      account: OpenStackProviderSettings.defaults.account,
       stack: '',
       detail: '',
       subnetId: '',
@@ -341,7 +341,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
 
   describe('initialized for edit', function() {
     beforeEach(function() {
-      this.settings.providers.openstack.defaults.account = 'account1';
+      OpenStackProviderSettings.defaults.account = 'account1';
       this.createController(angular.copy(this.testData.loadBalancerList[3]));
     });
 

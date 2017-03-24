@@ -12,6 +12,7 @@ import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SUBNET_SELECT_FIELD_COMPONENT} from '../../subnet/subnetSelectField.component';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import {AWSProviderSettings} from '../../aws.settings';
 
 let angular = require('angular');
 
@@ -31,13 +32,12 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   require('core/region/regionSelectField.directive.js'),
   require('core/account/accountSelectField.directive.js'),
   SUBNET_SELECT_FIELD_COMPONENT,
-  require('core/config/settings.js'),
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,
                                                     cacheInitializer, infrastructureCaches,
                                                     v2modalWizardService, loadBalancerWriter, taskMonitorBuilder,
-                                                    subnetReader, namingService, settings,
+                                                    subnetReader, namingService,
                                                     application, loadBalancer, isNew, forPipelineConfig) {
 
     var ctrl = this;
@@ -111,11 +111,11 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
 
     function initializeCreateMode() {
       preloadSecurityGroups();
-      if (_.has(settings, 'providers.aws.defaultSecurityGroups')) {
-        defaultSecurityGroups = settings.providers.aws.defaultSecurityGroups;
-      }
-      if (_.has(settings, 'providers.aws.loadBalancers.inferInternalFlagFromSubnet')) {
-        if (settings.providers.aws.loadBalancers.inferInternalFlagFromSubnet) {
+      if (AWSProviderSettings) {
+        if (AWSProviderSettings.defaultSecurityGroups) {
+          defaultSecurityGroups = AWSProviderSettings.defaultSecurityGroups;
+        }
+        if (AWSProviderSettings.loadBalancers && AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet) {
           delete $scope.loadBalancer.isInternal;
           $scope.state.hideInternalFlag = true;
         }
@@ -296,7 +296,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       });
     };
 
-    this.certificateTypes = _.get(settings, 'providers.aws.loadBalancers.certificateTypes', ['iam', 'acm']);
+    this.certificateTypes = AWSProviderSettings.loadBalancers && AWSProviderSettings.loadBalancers.certificateTypes || ['iam', 'acm'];
 
     initializeController();
 

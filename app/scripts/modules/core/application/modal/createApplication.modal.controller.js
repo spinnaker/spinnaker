@@ -8,6 +8,7 @@ import {APPLICATION_NAME_VALIDATION_MESSAGES} from './validation/applicationName
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 import {VALIDATE_APPLICATION_NAME} from './validation/validateApplicationName.directive';
 import {CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT} from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
@@ -18,7 +19,6 @@ module.exports = angular
     APPLICATION_READ_SERVICE,
     ACCOUNT_SERVICE,
     TASK_READ_SERVICE,
-    require('../../config/settings'),
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
     require('./applicationProviderFields.component.js'),
@@ -26,8 +26,7 @@ module.exports = angular
     CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT,
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, accountService,
-                                                     applicationWriter, applicationReader, taskReader, $timeout,
-                                                     settings) {
+                                                     applicationWriter, applicationReader, taskReader, $timeout) {
 
     let applicationLoader = applicationReader.listApplications();
     applicationLoader.then((applications) => this.data.appNameList = _.map(applications, 'name'));
@@ -51,7 +50,7 @@ module.exports = angular
     this.application = {
       accounts: [],
       cloudProviders: [],
-      instancePort: settings.defaultInstancePort || null,
+      instancePort: SETTINGS.defaultInstancePort || null,
     };
 
     let submitting = () => {

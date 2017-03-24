@@ -2,13 +2,14 @@
 
 import _ from 'lodash';
 import {Subject} from 'rxjs';
+
 import {CLOUD_METRICS_READ_SERVICE} from 'core/serverGroup/metrics/cloudMetrics.read.service';
+import {AWSProviderSettings} from '../../../../../aws.settings';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.alarm.configurer', [
-    require('core/config/settings.js'),
     CLOUD_METRICS_READ_SERVICE,
     require('./dimensionsEditor.component.js'),
   ])
@@ -20,12 +21,12 @@ module.exports = angular
       boundsChanged: '&',
     },
     templateUrl: require('./alarmConfigurer.component.html'),
-    controller: function (cloudMetricsReader, settings) {
+    controller: function (cloudMetricsReader) {
 
       // AWS does not provide an API to get this, so we're baking it in. If you use custom namespaces, add them to
       // the settings.js block for aws as an array, e.g. aws { metrics: { customNamespaces: ['myns1', 'other'] } }
       this.namespaces =
-        _.get(settings, 'providers.aws.metrics.customNamespaces', []).concat([
+        _.get(AWSProviderSettings, 'metrics.customNamespaces', []).concat([
           'AWS/AutoScaling',
           'AWS/Billing',
           'AWS/CloudFront',

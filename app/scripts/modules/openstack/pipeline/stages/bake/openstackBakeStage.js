@@ -1,7 +1,9 @@
 'use strict';
 
 import _ from 'lodash';
+
 import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
@@ -36,7 +38,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.bakeSta
       restartable: true,
     });
   })
-  .controller('openstackBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, settings) {
+  .controller('openstackBakeStageCtrl', function($scope, bakeryService, $q, authenticationService) {
 
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];
@@ -73,7 +75,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.bakeSta
         if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
           $scope.stage.baseOs = $scope.baseOsOptions[0].id;
         }
-        $scope.viewState.roscoMode = settings.feature.roscoMode;
+        $scope.viewState.roscoMode = SETTINGS.feature.roscoMode;
         $scope.viewState.loading = false;
       });
     }

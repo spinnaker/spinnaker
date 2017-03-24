@@ -2,6 +2,7 @@ import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 import {ENTITY_TAGS_READ_SERVICE} from '../entityTag/entityTags.read.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
@@ -9,10 +10,9 @@ module.exports = angular
   .module('spinnaker.core.loadBalancer.dataSource', [
     APPLICATION_DATA_SOURCE_REGISTRY,
     ENTITY_TAGS_READ_SERVICE,
-    LOAD_BALANCER_READ_SERVICE,
-    require('core/config/settings'),
+    LOAD_BALANCER_READ_SERVICE
   ])
-  .run(function($q, applicationDataSourceRegistry, loadBalancerReader, entityTagsReader, settings) {
+  .run(function($q, applicationDataSourceRegistry, loadBalancerReader, entityTagsReader) {
 
     let loadLoadBalancers = (application) => {
       return loadBalancerReader.loadLoadBalancers(application.name);
@@ -23,7 +23,7 @@ module.exports = angular
     };
 
     let addTags = (loadBalancers) => {
-      if (!settings.feature.entityTags) {
+      if (!SETTINGS.feature.entityTags) {
         return $q.when(loadBalancers);
       }
       const entityIds = loadBalancers.map(lb => lb.name);

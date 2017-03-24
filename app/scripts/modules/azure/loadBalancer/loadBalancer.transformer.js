@@ -2,11 +2,13 @@
 
 import _ from 'lodash';
 
+import {AzureProviderSettings} from '../azure.settings';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
 ])
-  .factory('azureLoadBalancerTransformer', function ($q, settings) {
+  .factory('azureLoadBalancerTransformer', function ($q) {
 
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.serverGroups.forEach(function(serverGroup) {
@@ -60,8 +62,8 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
     }
 
     function constructNewLoadBalancerTemplate(application) {
-      var defaultCredentials = application.defaultCredentials.azure || settings.providers.azure.defaults.account,
-          defaultRegion = application.defaultRegion || settings.providers.azure.defaults.region;
+      var defaultCredentials = application.defaultCredentials.azure || AzureProviderSettings.defaults.account,
+          defaultRegion = application.defaultRegion || AzureProviderSettings.defaults.region;
       return {
         stack: '',
         detail: 'frontend',

@@ -5,10 +5,9 @@ import {API_SERVICE} from 'core/api/api.service';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.ci.jenkins.igor.service', [
-  require('../../config/settings.js'),
   API_SERVICE,
 ])
-  .factory('igorService', function (settings, API) {
+  .factory('igorService', function (API) {
 
     function listMasters() {
       return API.one('v2').one('builds').get();

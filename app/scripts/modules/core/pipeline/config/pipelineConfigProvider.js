@@ -2,20 +2,20 @@
 
 import _ from 'lodash';
 
+import {SETTINGS} from 'core/config/settings';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.config.configProvider', [
-  require('../../config/settings.js'),
-])
-  .provider('pipelineConfig', function(settings) {
+module.exports = angular.module('spinnaker.core.pipeline.config.configProvider', [])
+  .provider('pipelineConfig', function() {
 
     var triggerTypes = [],
         stageTypes = [],
         transformers = [];
 
     function registerTrigger(triggerConfig) {
-      if (settings && settings.triggerTypes) {
-        if (settings.triggerTypes.indexOf(triggerConfig.key) >= 0) {
+      if (SETTINGS.triggerTypes) {
+        if (SETTINGS.triggerTypes.indexOf(triggerConfig.key) >= 0) {
           triggerTypes.push(triggerConfig);
         }
       } else {
@@ -92,7 +92,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
       }
 
       // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
-      let dockerBakeEnabled = _.get(settings, 'feature.dockerBake') && type.key === 'bake';
+      let dockerBakeEnabled = SETTINGS.feature.dockerBake && type.key === 'bake';
 
       if (dockerBakeEnabled) {
         providers = angular.copy(providers);

@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
   require('./listeners/listener.component.js'),
   require('./transformer.service.js'),
 ])
-  .controller('gceCreateHttpLoadBalancerCtrl', function ($scope, $uibModal, settings, $uibModalInstance, application, taskMonitorBuilder,
+  .controller('gceCreateHttpLoadBalancerCtrl', function ($scope, $uibModal, $uibModalInstance, application, taskMonitorBuilder,
                                                          loadBalancer, isNew, loadBalancerWriter, taskExecutor,
                                                          gceHttpLoadBalancerWriter, $state, wizardSubFormValidation,
                                                          gceHttpLoadBalancerCommandBuilder, gceHttpLoadBalancerTransformer) {

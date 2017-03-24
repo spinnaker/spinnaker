@@ -2,14 +2,15 @@
 
 let angular = require('angular');
 
+import {SETTINGS} from 'core/config/settings';
+
 module.exports = angular.module('spinnaker.core.deploymentStrategy.custom', [
   require('./customStrategySelector.directive.js'),
   require('./customStrategySelector.controller.js'),
-  require('core/utils/timeFormatters.js'),
-  require('core/config/settings.js'),
+  require('core/utils/timeFormatters.js')
 ])
-  .config(function(deploymentStrategyConfigProvider, settings) {
-    if (settings.feature && settings.feature.pipelines !== false) {
+  .config(function(deploymentStrategyConfigProvider) {
+    if (SETTINGS.feature.pipelines !== false) {
       deploymentStrategyConfigProvider.registerStrategy({
         label: 'Custom',
         description: 'Runs a custom deployment strategy',

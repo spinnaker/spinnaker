@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.providerSelection.directive', [
       },
     };
   })
-  .controller('ProviderSelectCtrl', function($scope, $uibModalInstance, settings, cloudProviderRegistry, providerOptions) {
+  .controller('ProviderSelectCtrl', function($scope, $uibModalInstance, cloudProviderRegistry, providerOptions) {
 
     $scope.command = {
       provider: ''

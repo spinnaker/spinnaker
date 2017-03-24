@@ -1,23 +1,23 @@
 'use strict';
 
 import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
+import {NetflixSettings} from '../../../netflix.settings';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.chap.executionDetails.controller', [
   require('angular-ui-router'),
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive'),
-  require('core/config/settings'),
+  require('core/delivery/details/executionDetailsSectionNav.directive')
 ])
-  .controller('ChapExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, settings) {
+  .controller('ChapExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['testRunDetails', 'taskStatus'];
 
     let initialized = () => {
       $scope.detailsSection = $stateParams.details;
       $scope.canaryReportUrl = [
-        settings.chap.canaryReportBaseUrl,
+        NetflixSettings.chap.canaryReportBaseUrl,
         $scope.stage.context.run.testCase.properties.account,
         $scope.stage.context.run.testCase.properties.region,
         $scope.stage.context.run.properties.acaConfigId,
@@ -25,19 +25,19 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.chap.execution
       ].join('/');
 
       $scope.testCaseUrl = [
-        settings.chap.chapBaseUrl,
+        NetflixSettings.chap.chapBaseUrl,
         'testcases',
         $scope.stage.context.run.testCase.id,
       ].join('/');
 
       $scope.runUrl = [
-        settings.chap.chapBaseUrl,
+        NetflixSettings.chap.chapBaseUrl,
         'runs',
         $scope.stage.context.run.id,
       ].join('/');
 
       $scope.fitScenarioUrl = [
-        settings.chap.fitBaseUrl,
+        NetflixSettings.chap.fitBaseUrl,
         'scenarios',
         $scope.stage.context.run.testCase.properties.scenario,
       ].join('/');

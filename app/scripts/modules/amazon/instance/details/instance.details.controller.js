@@ -6,6 +6,7 @@ import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationMod
 import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
 import {INSTANCE_WRITE_SERVICE} from 'core/instance/instance.write.service';
 import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
@@ -19,11 +20,10 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
   require('core/utils/selectOnDblClick.directive.js'),
-  require('core/config/settings.js'),
   CLOUD_PROVIDER_REGISTRY,
   require('core/instance/details/instanceLinks.component'),
 ])
-  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $uibModal, settings,
+  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $uibModal,
                                                   instanceWriter, confirmationModalService, recentHistoryService,
                                                   cloudProviderRegistry, instanceReader, instance, app, $q, overrides) {
 
@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
     $scope.state = {
       loading: true,
       standalone: app.isStandalone,
-      instancePort: _.get(app, 'attributes.instancePort') || settings.defaultInstancePort || 80,
+      instancePort: _.get(app, 'attributes.instancePort') || SETTINGS.defaultInstancePort || 80,
     };
 
     $scope.application = app;

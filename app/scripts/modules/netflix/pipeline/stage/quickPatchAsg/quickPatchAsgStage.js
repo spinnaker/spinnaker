@@ -4,15 +4,15 @@ let angular = require('angular');
 
 import {CORE_WIDGETS_MODULE} from 'core/widgets';
 import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+import {NetflixSettings} from '../../../netflix.settings';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgStage', [
   require('core/pipeline/config/pipelineConfigProvider.js'),
   LIST_EXTRACTOR_SERVICE,
-  require('core/config/settings.js'),
   CORE_WIDGETS_MODULE
 ])
-  .config(function(pipelineConfigProvider, settings) {
-    if (settings.feature && settings.feature.netflixMode) {
+  .config(function(pipelineConfigProvider) {
+    if (NetflixSettings.feature.netflixMode) {
       pipelineConfigProvider.registerStage({
         label: 'Quick Patch Server Group',
         description: 'Quick Patches a server group',

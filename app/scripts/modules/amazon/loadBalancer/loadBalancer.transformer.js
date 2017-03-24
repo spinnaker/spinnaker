@@ -1,13 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
+import {AWSProviderSettings} from '../aws.settings';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
   require('../vpc/vpc.read.service.js'),
 ])
-  .factory('awsLoadBalancerTransformer', function (settings, vpcReader) {
+  .factory('awsLoadBalancerTransformer', function (vpcReader) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;
@@ -137,9 +138,9 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
     }
 
     function constructNewLoadBalancerTemplate(application) {
-      var defaultCredentials = application.defaultCredentials.aws || settings.providers.aws.defaults.account,
-          defaultRegion = application.defaultRegions.aws || settings.providers.aws.defaults.region,
-          defaultSubnetType = settings.providers.aws.defaults.subnetType;
+      var defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
+          defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
+          defaultSubnetType = AWSProviderSettings.defaults.subnetType;
       return {
         stack: '',
         detail: '',

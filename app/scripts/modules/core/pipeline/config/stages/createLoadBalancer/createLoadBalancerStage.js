@@ -1,16 +1,17 @@
 'use strict';
 
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalancerStage', [
   CLOUD_PROVIDER_REGISTRY,
 ])
-  .config(function(pipelineConfigProvider, settings) {
+  .config(function(pipelineConfigProvider) {
 
     // Register this stage only if infrastructure stages are enabled in settings.js
-    if (settings.feature && settings.feature.infrastructureStages) {
+    if (SETTINGS.feature.infrastructureStages) {
       pipelineConfigProvider.registerStage({
         key: 'upsertLoadBalancers',
         label: 'Create Load Balancers',

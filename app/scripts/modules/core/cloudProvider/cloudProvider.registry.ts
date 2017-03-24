@@ -2,6 +2,8 @@
 import {module} from 'angular';
 import {cloneDeep} from 'lodash';
 
+import {SETTINGS} from 'core/config/settings';
+
 export interface ICloudProviderLogo {
   path: string;
 }
@@ -18,16 +20,12 @@ export class CloudProviderRegistry {
    */
   private providers: Map<string, ICloudProviderConfig> = new Map();
 
-  static get $inject() { return ['settings']; }
-
-  public constructor(private settings: any) {}
-
   public $get(): CloudProviderRegistry {
     return this;
   }
 
   public registerProvider(cloudProvider: string, config: ICloudProviderConfig): void {
-    if (this.settings.providers && this.settings.providers[cloudProvider]) {
+    if (SETTINGS.providers[cloudProvider]) {
       this.providers.set(cloudProvider, config);
     }
   }
@@ -91,6 +89,5 @@ export class CloudProviderRegistry {
 }
 
 export const CLOUD_PROVIDER_REGISTRY = 'spinnaker.core.cloudProvider.registry';
-module(CLOUD_PROVIDER_REGISTRY, [
-  require('core/config/settings')
-]).provider('cloudProviderRegistry', CloudProviderRegistry);
+module(CLOUD_PROVIDER_REGISTRY, [])
+  .provider('cloudProviderRegistry', CloudProviderRegistry);

@@ -4,20 +4,21 @@ let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
+import {TitusProviderSettings} from '../../titus.settings';
 
 module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.service', [
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
 ])
-  .factory('titusServerGroupCommandBuilder', function (settings, $q,
+  .factory('titusServerGroupCommandBuilder', function ($q,
                                                        accountService, namingService) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      var defaultCredentials = defaults.account || settings.providers.titus.defaults.account;
-      var defaultRegion = defaults.region || settings.providers.titus.defaults.region;
-      var defaultZone = defaults.zone || settings.providers.titus.defaults.zone;
-      var defaultIamProfile = settings.providers.titus.defaults.iamProfile || '{{application}}InstanceProfile';
+      var defaultCredentials = defaults.account || TitusProviderSettings.defaults.account;
+      var defaultRegion = defaults.region || TitusProviderSettings.defaults.region;
+      var defaultZone = defaults.zone || TitusProviderSettings.defaults.zone;
+      var defaultIamProfile = TitusProviderSettings.defaults.iamProfile || '{{application}}InstanceProfile';
       defaultIamProfile = defaultIamProfile.replace('{{application}}', application.name);
 
       var command = {

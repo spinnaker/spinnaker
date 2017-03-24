@@ -6,11 +6,10 @@ import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.directive', [
-  require('core/config/settings'),
   SUBNET_READ_SERVICE,
   require('../common/selectField.component.js')
 ])
-  .directive('osSubnetSelectField', function (settings, subnetReader) {
+  .directive('osSubnetSelectField', function (subnetReader) {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),

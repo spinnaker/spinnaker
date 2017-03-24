@@ -7,16 +7,16 @@ import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry
 import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
 import {CANARY_SCORE_CONFIG_COMPONENT} from './canaryScore.component';
+import {NetflixSettings} from '../../../netflix.settings';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', [
   LIST_EXTRACTOR_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   CANARY_SCORE_CONFIG_COMPONENT,
-  require('core/pipeline/config/pipelineConfigProvider'),
-  require('core/config/settings.js'),
+  require('core/pipeline/config/pipelineConfigProvider')
 ])
-  .config(function (pipelineConfigProvider, settings) {
+  .config(function (pipelineConfigProvider) {
 
     function isExpression(value) {
       return isString(value) && value.includes('${');
@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       return result;
     }
 
-    if (settings.feature && settings.feature.netflixMode) {
+    if (NetflixSettings.feature.netflixMode) {
 
       pipelineConfigProvider.registerStage({
         label: 'Canary',

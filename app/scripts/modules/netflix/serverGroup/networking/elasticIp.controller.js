@@ -3,16 +3,17 @@
 let angular = require('angular');
 
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.controller', [
   require('./elasticIp.write.service.js'),
   TASK_MONITOR_BUILDER,
 ])
   .controller('ElasticIpCtrl', function($scope, $uibModalInstance, elasticIpWriter, taskMonitorBuilder,
-                                        application, serverGroup, elasticIp, onTaskComplete, settings) {
+                                        application, serverGroup, elasticIp, onTaskComplete) {
     $scope.serverGroup = serverGroup;
     $scope.elasticIp = elasticIp;
-    $scope.gateUrl = settings.gateUrl;
+    $scope.gateUrl = SETTINGS.gateUrl;
 
     $scope.verification = {};
 

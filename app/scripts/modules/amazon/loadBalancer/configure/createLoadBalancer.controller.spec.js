@@ -1,9 +1,9 @@
 'use strict';
 
 import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
+import {AWSProviderSettings} from '../../aws.settings';
 
 describe('Controller: awsCreateLoadBalancerCtrl', function () {
-
   // load the controller's module
   beforeEach(
     window.module(
@@ -14,7 +14,6 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
 
   // Initialize the controller and a mock scope
   beforeEach(window.inject(function ($controller, $rootScope, applicationModelBuilder) {
-    this.settings = {};
     this.$scope = $rootScope.$new();
     const app = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: true});
     this.initialize = () => {
@@ -24,11 +23,12 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
         application: app,
         loadBalancer: null,
         isNew: true,
-        forPipelineConfig: false,
-        settings: this.settings,
+        forPipelineConfig: false
       });
     };
   }));
+
+  afterEach(AWSProviderSettings.resetToOriginal);
 
   it('requires health check path for HTTP/S', function () {
     this.initialize();
@@ -105,9 +105,7 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
 
   describe('isInternal flag', function () {
     it('should remove the flag and set a state value if inferInternalFlagFromSubnet is true', function () {
-      this.settings.providers = {
-        aws: { loadBalancers: { inferInternalFlagFromSubnet: true }}
-      };
+      AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet = true;
       this.initialize();
 
       expect(this.$scope.loadBalancer.isInternal).toBe(undefined);
@@ -160,38 +158,24 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
     });
 
     it('should leave the flag and not set a state value if inferInternalFlagFromSubnet is false or not defined', function () {
-      this.settings.providers = {
-        aws: { loadBalancers: { inferInternalFlagFromSubnet: true }}
-      };
+      AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet = true;
 
       this.initialize();
       expect(this.$scope.loadBalancer.isInternal).toBe(undefined);
       expect(this.$scope.state.hideInternalFlag).toBe(true);
 
-      this.settings.providers.aws.loadBalancers.inferInternalFlagFromSubnet = false;
+      AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet = false;
       this.initialize();
       expect(this.$scope.loadBalancer.isInternal).toBe(false);
       expect(this.$scope.state.hideInternalFlag).toBeUndefined();
 
-      delete this.settings.providers.aws.loadBalancers.inferInternalFlagFromSubnet;
-      this.initialize();
-
-      expect(this.$scope.loadBalancer.isInternal).toBe(false);
-      expect(this.$scope.state.hideInternalFlag).toBeUndefined();
-
-      delete this.settings.providers.aws.loadBalancers;
+      delete AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet;
       this.initialize();
 
       expect(this.$scope.loadBalancer.isInternal).toBe(false);
       expect(this.$scope.state.hideInternalFlag).toBeUndefined();
 
-      delete this.settings.providers.aws;
-      this.initialize();
-
-      expect(this.$scope.loadBalancer.isInternal).toBe(false);
-      expect(this.$scope.state.hideInternalFlag).toBeUndefined();
-
-      delete this.settings.providers;
+      delete AWSProviderSettings.loadBalancers;
       this.initialize();
 
       expect(this.$scope.loadBalancer.isInternal).toBe(false);

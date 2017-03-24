@@ -1,5 +1,7 @@
 'use strict';
 
+import {SETTINGS} from 'core/config/settings';
+
 describe('Service: SnapshotRead', function() {
   const application = 'snapshotReadTest';
   const account = 'my-google-account';
@@ -8,16 +10,15 @@ describe('Service: SnapshotRead', function() {
   beforeEach(
     window.module(require('./snapshot.read.service.js')));
 
-  beforeEach(window.inject(function($httpBackend, settings, snapshotReader) {
+  beforeEach(window.inject(function($httpBackend, snapshotReader) {
     this.$httpBackend = $httpBackend;
-    this.settings = settings;
     this.snapshotReader = snapshotReader;
   }));
 
   describe('getSnapshotHistory', function () {
     it('makes request to correct gate endpoint', function () {
       this.$httpBackend
-        .expectGET(`${this.settings.gateUrl}/applications/snapshotReadTest/snapshots/my-google-account/history?limit=20`)
+        .expectGET(`${SETTINGS.gateUrl}/applications/snapshotReadTest/snapshots/my-google-account/history?limit=20`)
         .respond([]);
       this.snapshotReader.getSnapshotHistory(application, account, params);
 
@@ -26,7 +27,7 @@ describe('Service: SnapshotRead', function() {
 
     it('returns what the endpoint returns', function () {
       this.$httpBackend
-        .whenGET(`${this.settings.gateUrl}/applications/snapshotReadTest/snapshots/my-google-account/history?limit=20`)
+        .whenGET(`${SETTINGS.gateUrl}/applications/snapshotReadTest/snapshots/my-google-account/history?limit=20`)
         .respond([{ infrastructure: 'myInfrastructure' }]);
 
       this.snapshotReader.getSnapshotHistory(application, account, params)
@@ -42,7 +43,7 @@ describe('Service: SnapshotRead', function() {
 
     it('does not fail if not passed parameters', function () {
       this.$httpBackend
-        .expectGET(`${this.settings.gateUrl}/applications/snapshotReadTest/snapshots/my-google-account/history`)
+        .expectGET(`${SETTINGS.gateUrl}/applications/snapshotReadTest/snapshots/my-google-account/history`)
         .respond([]);
       try {
         this.snapshotReader.getSnapshotHistory(application, account)

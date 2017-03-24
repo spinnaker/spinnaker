@@ -7,6 +7,7 @@ import {
 import {IPipeline, IStage} from 'core/domain/index';
 import {PIPELINE_CONFIG_SERVICE} from '../services/pipelineConfig.service';
 import {ServiceAccountService} from 'core/serviceAccount/serviceAccount.service';
+import {SETTINGS} from 'core/config/settings';
 
 export interface ITriggerWithServiceAccount extends IStage {
   runAsUser: string;
@@ -18,16 +19,16 @@ export interface IServiceAccountAccessValidationConfig extends IValidatorConfig 
 
 export class ServiceAccountAccessValidator implements IStageOrTriggerValidator {
 
-  static get $inject() { return ['serviceAccountService', 'settings']; }
+  static get $inject() { return ['serviceAccountService']; }
 
-  constructor(private serviceAccountService: ServiceAccountService, private settings: any) {}
+  constructor(private serviceAccountService: ServiceAccountService) {}
 
   public validate(_pipeline: IPipeline,
                   stage: ITriggerWithServiceAccount,
                   validator: IServiceAccountAccessValidationConfig,
                   _config: IStageOrTriggerTypeConfig): ng.IPromise<string> {
 
-    if (this.settings.feature.fiatEnabled) {
+    if (SETTINGS.feature.fiatEnabled) {
       return this.serviceAccountService.getServiceAccounts()
         .then((serviceAccounts: string[]) => {
           if (stage.runAsUser && !serviceAccounts.includes(stage.runAsUser)) {

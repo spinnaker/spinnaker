@@ -1,8 +1,9 @@
 'use strict';
 
-import {isArray, uniqWith, flatten, compact, uniq, values, isEmpty, sortBy, groupBy, debounce } from 'lodash';
+import { isArray, uniqWith, flatten, compact, uniq, values, isEmpty, sortBy, groupBy, debounce } from 'lodash';
 import { CREATE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../wizard/createFastPropertyWizard.controller';
 import { FAST_PROPERTY_READ_SERVICE } from '../fastProperty.read.service';
+import { NetflixSettings } from '../../netflix.settings';
 
 let angular = require('angular');
 
@@ -14,14 +15,14 @@ module.exports = angular
     require('./fastPropertyTable.directive.js'),
     CREATE_FAST_PROPERTY_WIZARD_CONTROLLER,
   ])
-  .controller('FastPropertiesController', function ($scope, $filter, $state, $urlRouter, $stateParams, $location, $uibModal, settings, app, fastPropertyReader) {
+  .controller('FastPropertiesController', function ($scope, $filter, $state, $urlRouter, $stateParams, $location, $uibModal, app, fastPropertyReader) {
 
     let vm = this;
     let filterNames = ['substring', 'key', 'value', 'app','env', 'region', 'stack', 'cluster'];
 
     vm.application = app;
 
-    vm.isOn = settings.feature.fastProperty;
+    vm.isOn = NetflixSettings.feature.fastProperty;
     vm.fetchingProperties = false;
 
     $scope.filters = {list: []};

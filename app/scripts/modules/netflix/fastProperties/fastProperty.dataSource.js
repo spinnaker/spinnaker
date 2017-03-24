@@ -1,16 +1,16 @@
 import {DataSourceConfig} from 'core/application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
+import {NetflixSettings} from '../netflix.settings';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperty.dataSource', [
-    require('core/config/settings'),
-    APPLICATION_DATA_SOURCE_REGISTRY,
+    APPLICATION_DATA_SOURCE_REGISTRY
   ])
-  .run(function($q, applicationDataSourceRegistry, settings) {
+  .run(function($q, applicationDataSourceRegistry) {
 
-    if (settings.feature && settings.feature.fastProperty && settings.feature.netflixMode) {
+    if (NetflixSettings.feature.fastProperty && NetflixSettings.feature.netflixMode) {
       applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
         key: 'properties',
         sref: '.propInsights.properties',

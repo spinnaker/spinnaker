@@ -1,23 +1,23 @@
 'use strict';
 
 import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.alert.handler', [
-    require('core/config/settings.js'),
     AUTHENTICATION_SERVICE
   ])
   .config(function ($provide) {
-    $provide.decorator('$exceptionHandler', function($delegate, settings, authenticationService, $injector) {
+    $provide.decorator('$exceptionHandler', function($delegate, authenticationService, $injector) {
       let currentVersion = require('../../../../../version.json');
 
       return function(exception, cause) {
         $delegate(exception, cause);
         // using injector access to avoid a circular dependency
         let $http = $injector.get('$http');
-        if (!settings.alert) {
+        if (!SETTINGS.alert) {
           return;
         }
         let message = exception.message;
@@ -45,16 +45,16 @@ module.exports = angular
           actions: [
             {
               action: 'email',
-              suppressTimeSecs: settings.alert.throttleInSeconds,
-              to: settings.alert.recipients,
-              subject: settings.alert.subject || '[Spinnaker] Error in Deck',
-              htmlTemplate: settings.alert.template || 'spinnaker_deck_error',
+              suppressTimeSecs: SETTINGS.alert.throttleInSeconds,
+              to: SETTINGS.alert.recipients,
+              subject: SETTINGS.alert.subject || '[Spinnaker] Error in Deck',
+              htmlTemplate: SETTINGS.alert.template || 'spinnaker_deck_error',
               incidentKey: exception.message,
             }
           ],
         };
 
-        $http.post(settings.alert.url, payload);
+        $http.post(SETTINGS.alert.url, payload);
       };
     });
   });

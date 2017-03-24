@@ -1,8 +1,10 @@
 'use strict';
 
+import {SETTINGS} from 'core/config/settings';
+
 describe('Service: manualJudgment', function () {
 
-  var $scope, service, $http, $q, settings, executionService;
+  var $scope, service, $http, $q, executionService;
 
   beforeEach(
     window.module(
@@ -11,13 +13,12 @@ describe('Service: manualJudgment', function () {
   );
 
   beforeEach(
-    window.inject(function ($rootScope, manualJudgmentService, $httpBackend, _$q_, _settings_,
+    window.inject(function ($rootScope, manualJudgmentService, $httpBackend, _$q_,
                             _executionService_) {
       $scope = $rootScope.$new();
       service = manualJudgmentService;
       $http = $httpBackend;
       $q = _$q_;
-      settings = _settings_;
       executionService = _executionService_;
     })
   );
@@ -26,7 +27,7 @@ describe('Service: manualJudgment', function () {
     beforeEach(function() {
       this.execution = { id: 'ex-id' };
       this.stage = { id: 'stage-id' };
-      this.requestUrl = [settings.gateUrl, 'pipelines', this.execution.id, 'stages', this.stage.id].join('/');
+      this.requestUrl = [SETTINGS.gateUrl, 'pipelines', this.execution.id, 'stages', this.stage.id].join('/');
     });
 
     it('should resolve when execution status matches request', function () {

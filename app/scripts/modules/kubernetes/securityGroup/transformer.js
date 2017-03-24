@@ -2,9 +2,11 @@
 
 let angular = require('angular');
 
+import {KubernetesProviderSettings} from '../kubernetes.settings';
+
 module.exports = angular.module('spinnaker.kubernetes.securityGroup.transformer', [
 ])
-  .factory('kubernetesSecurityGroupTransformer', function (settings, $q) {
+  .factory('kubernetesSecurityGroupTransformer', function ($q) {
 
     function normalizeSecurityGroup(securityGroup) {
       return $q.when(securityGroup); // no-op
@@ -15,8 +17,8 @@ module.exports = angular.module('spinnaker.kubernetes.securityGroup.transformer'
         provider: 'kubernetes',
         stack: '',
         detail: '',
-        account: settings.providers.kubernetes ? settings.providers.kubernetes.defaults.account : null,
-        namespace: settings.providers.kubernetes ? settings.providers.kubernetes.defaults.namespace : null,
+        account: KubernetesProviderSettings.defaults.account,
+        namespace: KubernetesProviderSettings.defaults.namespace,
         ingress: {
           serviceName: '',
           port: null,

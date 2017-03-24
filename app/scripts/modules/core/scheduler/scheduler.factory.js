@@ -2,14 +2,14 @@
 
 import {Observable, Subject} from 'rxjs';
 
+import {SETTINGS} from 'core/config/settings';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.scheduler', [
-  require('../config/settings.js')
-])
-  .factory('schedulerFactory', function (settings, $log, $window, $timeout) {
+module.exports = angular.module('spinnaker.core.scheduler', [])
+  .factory('schedulerFactory', function ($log, $window, $timeout) {
 
-    function createScheduler(pollSchedule = settings.pollSchedule) {
+    function createScheduler(pollSchedule = SETTINGS.pollSchedule) {
       var scheduler = new Subject();
 
       let lastRunTimestamp = new Date().getTime();

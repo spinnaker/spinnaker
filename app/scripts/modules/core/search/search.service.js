@@ -2,8 +2,10 @@
 
 let angular = require('angular');
 
+import {SETTINGS} from 'core/config/settings';
+
 module.exports = angular.module('spinnaker.core.search.service', [])
-  .factory('searchService', function($q, $http, $log, settings) {
+  .factory('searchService', function($q, $http, $log) {
 
     var defaultPageSize = 500;
 
@@ -17,9 +19,9 @@ module.exports = angular.module('spinnaker.core.search.service', [])
       };
 
       return $http({
-        url: settings.gateUrl + '/search',
+        url: SETTINGS.gateUrl + '/search',
         params: angular.extend(defaultParams, params),
-        timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
+        timeout: SETTINGS.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
       })
         .then(
           function(response) {

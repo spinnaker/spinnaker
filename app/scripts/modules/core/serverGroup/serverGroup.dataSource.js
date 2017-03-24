@@ -4,15 +4,15 @@ let angular = require('angular');
 import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 import {ENTITY_TAGS_READ_SERVICE} from '../entityTag/entityTags.read.service';
+import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.dataSource', [
     APPLICATION_DATA_SOURCE_REGISTRY,
     ENTITY_TAGS_READ_SERVICE,
-    require('../cluster/cluster.service'),
-    require('core/config/settings'),
+    require('../cluster/cluster.service')
   ])
-  .run(function($q, applicationDataSourceRegistry, clusterService, entityTagsReader, serverGroupTransformer, settings) {
+  .run(function($q, applicationDataSourceRegistry, clusterService, entityTagsReader, serverGroupTransformer) {
 
     let loadServerGroups = (application) => {
       return clusterService.loadServerGroups(application);
@@ -30,7 +30,7 @@ module.exports = angular
     };
 
     let addTags = (serverGroups) => {
-      if (!settings.feature.entityTags) {
+      if (!SETTINGS.feature.entityTags) {
         return $q.when(null);
       }
       const serverGroupNames = uniq(serverGroups.map(g => g.name));

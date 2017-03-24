@@ -1,17 +1,16 @@
 'use strict';
 
-import _ from 'lodash';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.baseProviderStage', [
-  require('core/config/settings'),
   require('core/cloudProvider/providerSelection/providerSelector.directive.js'),
 ])
-  .controller('BaseProviderStageCtrl', function($scope, stage, accountService, pipelineConfig, settings) {
+  .controller('BaseProviderStageCtrl', function($scope, stage, accountService, pipelineConfig) {
 
     // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
-    let dockerBakeEnabled = _.get(settings, 'feature.dockerBake') && stage.type === 'bake';
+    let dockerBakeEnabled = SETTINGS.feature.dockerBake && stage.type === 'bake';
 
     $scope.stage = stage;
 

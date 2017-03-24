@@ -5,14 +5,14 @@ let angular = require('angular');
 
 import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
 import {FAST_PROPERTY_READ_SERVICE} from 'netflix/fastProperties/fastProperty.read.service';
+import {NetflixSettings} from '../../../../netflix.settings';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage', [
   AUTHENTICATION_SERVICE,
-  require('core/config/settings.js'),
   FAST_PROPERTY_READ_SERVICE
 ])
-  .config(function (pipelineConfigProvider, settings) {
-    if (settings.feature && settings.feature.netflixMode) {
+  .config(function (pipelineConfigProvider) {
+    if (NetflixSettings.feature.netflixMode) {
       pipelineConfigProvider.registerStage({
         label: 'Persisted Properties',
         description: 'Deploy persisted properties',

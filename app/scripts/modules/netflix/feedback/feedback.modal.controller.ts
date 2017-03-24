@@ -2,6 +2,7 @@ import { module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import { AUTHENTICATION_SERVICE, AuthenticationService } from 'core/authentication/authentication.service';
+import { NetflixSettings } from '../netflix.settings';
 
 interface IFeedback {
   title: string;
@@ -27,7 +28,6 @@ class FeedbackModalController implements ng.IComponentController {
       '$location',
       '$http',
       '$uibModalInstance',
-      'settings',
       'authenticationService'
     ];
   }
@@ -35,7 +35,6 @@ class FeedbackModalController implements ng.IComponentController {
   constructor (private $location: ng.ILocationService,
                private $http: ng.IHttpService,
                private $uibModalInstance: IModalServiceInstance,
-               private settings: any,
                private authenticationService: AuthenticationService) {}
 
   public $onInit (): void {
@@ -80,7 +79,7 @@ class FeedbackModalController implements ng.IComponentController {
 
   public submit(): void {
     this.state = this.states.SUBMITTING;
-    this.$http.post(this.settings.feedbackUrl, this.buildRequestBody())
+    this.$http.post(NetflixSettings.feedbackUrl, this.buildRequestBody())
       .then((result: any) => {
         this.state = this.states.SUBMITTED;
         this.issueUrl = result.data.url;
@@ -98,7 +97,6 @@ class FeedbackModalController implements ng.IComponentController {
 
 export const FEEDBACK_MODAL_CONTROLLER = 'spinnaker.netflix.feedback.modal.controller';
 module(FEEDBACK_MODAL_CONTROLLER, [
-  require('core/config/settings'),
   AUTHENTICATION_SERVICE
 ])
 .controller('FeedbackModalCtrl', FeedbackModalController);

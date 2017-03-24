@@ -1,10 +1,12 @@
 'use strict';
 
 import _ from 'lodash';
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
+import {AWSProviderSettings} from '../../aws.settings';
 
 let angular = require('angular');
 
@@ -15,17 +17,16 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
   NAMING_SERVICE,
   require('./serverGroupConfiguration.service.js'),
 ])
-  .factory('awsServerGroupCommandBuilder', function (settings, $q,
-                                                     accountService, subnetReader, namingService, instanceTypeService,
+  .factory('awsServerGroupCommandBuilder', function ($q, accountService, subnetReader, namingService, instanceTypeService,
                                                      awsServerGroupConfigurationService) {
 
     function buildNewServerGroupCommand (application, defaults) {
       defaults = defaults || {};
       var credentialsLoader = accountService.getCredentialsKeyedByAccount('aws');
 
-      var defaultCredentials = defaults.account || application.defaultCredentials.aws || settings.providers.aws.defaults.account;
-      var defaultRegion = defaults.region || application.defaultRegions.aws || settings.providers.aws.defaults.region;
-      var defaultSubnet = defaults.subnet || settings.providers.aws.defaults.subnetType || '';
+      var defaultCredentials = defaults.account || application.defaultCredentials.aws || AWSProviderSettings.defaults.account;
+      var defaultRegion = defaults.region || application.defaultRegions.aws || AWSProviderSettings.defaults.region;
+      var defaultSubnet = defaults.subnet || AWSProviderSettings.defaults.subnetType || '';
 
       var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion('aws', defaultCredentials, defaultRegion);
 
@@ -40,7 +41,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           var keyPair = credentials ? credentials.defaultKeyPair : null;
           var applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
 
-          var defaultIamRole = settings.providers.aws.defaults.iamRole || 'BaseIAMRole';
+          var defaultIamRole = AWSProviderSettings.defaults.iamRole || 'BaseIAMRole';
           defaultIamRole = defaultIamRole.replace('{{application}}', application.name);
 
           var command = {

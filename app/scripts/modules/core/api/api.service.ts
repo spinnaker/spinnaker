@@ -4,6 +4,7 @@ import {
   AUTHENTICATION_INITIALIZER_SERVICE,
   AuthenticationInitializer
 } from '../authentication/authentication.initializer.service';
+import {SETTINGS} from 'core/config/settings';
 
 interface DefaultParams {
   timeout: number;
@@ -26,7 +27,7 @@ export interface IRequestBuilder {
 export class Api {
 
   static get $inject() {
-    return ['$q', '$http', 'settings', 'authenticationInitializer'];
+    return ['$q', '$http', 'authenticationInitializer'];
   }
 
   private gateUrl: string;
@@ -34,11 +35,10 @@ export class Api {
 
   constructor(private $q: IQService,
               private $http: IHttpService,
-              settings: any,
               private authenticationIntializer: AuthenticationInitializer) {
-    this.gateUrl = settings.gateUrl;
+    this.gateUrl = SETTINGS.gateUrl;
     this.defaultParams = {
-      timeout: settings.pollSchedule * 2 + 5000
+      timeout: SETTINGS.pollSchedule * 2 + 5000
     };
   }
 
@@ -191,7 +191,7 @@ export class Api {
 
 const API_SERVICE_NAME = 'API';
 export const API_SERVICE = 'spinnaker.core.api.provider';
-module(API_SERVICE, [require('../config/settings'), AUTHENTICATION_INITIALIZER_SERVICE])
+module(API_SERVICE, [AUTHENTICATION_INITIALIZER_SERVICE])
   .service(API_SERVICE_NAME, Api);
 
 export const API_SERVICE_PROVIDER: Provider = {
