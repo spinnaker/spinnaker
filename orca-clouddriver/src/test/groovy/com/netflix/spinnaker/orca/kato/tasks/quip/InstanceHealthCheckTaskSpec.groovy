@@ -44,7 +44,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
   @Unroll
   def "check different tasks statuses, servers with responseCode #responseCode expect #executionStatus"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("foo")
       .build()
     def stage = new Stage<>(pipe, 'instanceHealthCheck', [:])
@@ -84,7 +84,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
   @Unroll
   def "missing instance healthCheckUrl returns running"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("foo")
       .build()
     def stage = new Stage<>(pipe, 'instanceHealthCheck', [:])
@@ -109,7 +109,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
 
   def "retry on missing instance healthCheckUrl"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("foo")
       .build()
     def stage = new Stage<>(pipe, 'instanceHealthCheck', [:])

@@ -51,7 +51,7 @@ class TriggerQuipTaskSpec extends Specification {
   String app = 'foo'
 
   @Shared
-  Pipeline pipe = new Pipeline.Builder()
+  Pipeline pipe = Pipeline.builder()
     .withApplication(app)
     .build()
 

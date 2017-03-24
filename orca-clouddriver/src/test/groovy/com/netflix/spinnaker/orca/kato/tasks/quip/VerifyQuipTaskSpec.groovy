@@ -79,7 +79,7 @@ class VerifyQuipTaskSpec extends Specification {
 
   @Unroll
   def "missing configuration #app, #cluster, #account, #region,#healthProviders"() {
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication(app)
       .build()
     def stage = new Stage<>(pipe, 'verifyQuip', [
@@ -106,7 +106,7 @@ class VerifyQuipTaskSpec extends Specification {
   }
 
   def "more than one asg"() {
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication(app)
       .build()
     def stage = new Stage<>(pipe, 'verifyQuip', [
@@ -134,7 +134,7 @@ class VerifyQuipTaskSpec extends Specification {
   }
 
   def "bad oort response"() {
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication(app)
       .build()
     def stage = new Stage<>(pipe, 'verifyQuip', [
@@ -162,7 +162,7 @@ class VerifyQuipTaskSpec extends Specification {
 
   def "no server groups in cluster"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication(app)
       .build()
     def stage = new Stage<>(pipe, 'verifyQuip', [
@@ -193,7 +193,7 @@ class VerifyQuipTaskSpec extends Specification {
 
     def "no instances in cluster"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication(app)
       .build()
     def stage = new Stage<>(pipe, 'verifyQuip', [
@@ -224,7 +224,7 @@ class VerifyQuipTaskSpec extends Specification {
 
   def "verifies at least one instance without quip"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication(app)
       .build()
     def stage = new Stage<>(pipe, 'verifyQuip', [
@@ -261,7 +261,7 @@ class VerifyQuipTaskSpec extends Specification {
 
   def "verifies quip is running"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication(app)
       .build()
     def stage = new Stage<>(pipe, 'verifyQuip', [

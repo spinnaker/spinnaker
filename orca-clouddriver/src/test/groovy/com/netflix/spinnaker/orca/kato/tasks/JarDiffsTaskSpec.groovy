@@ -164,7 +164,7 @@ class JarDiffsTaskSpec extends Specification {
       "application": "app"
     ]
 
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("app")
       .build()
     def stage = new Stage<>(pipe, 'jarDiff', config)
@@ -202,7 +202,7 @@ class JarDiffsTaskSpec extends Specification {
       "application": "app"
     ]
 
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("app")
       .build()
     def stage = new Stage<>(pipe, 'jarDiff', config)

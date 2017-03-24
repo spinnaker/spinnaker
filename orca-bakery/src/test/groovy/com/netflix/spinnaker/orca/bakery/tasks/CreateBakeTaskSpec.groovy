@@ -240,7 +240,7 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "finds package details from context and trigger"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
 
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)
@@ -272,7 +272,7 @@ class CreateBakeTaskSpec extends Specification {
   def "fails if pipeline trigger or context includes artifacts but no artifact for the bake package"() {
     given:
     bakeConfig.buildInfo = contextInfo
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: triggerInfo]).build()
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)
     task.bakery = Mock(BakeryService)
 
@@ -302,7 +302,7 @@ class CreateBakeTaskSpec extends Specification {
         [fileName: 'hodor.1.2.nupkg']
       ]
     ]
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: buildInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: buildInfo]).build()
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)
     task.bakery = Mock(BakeryService)
 
@@ -346,7 +346,7 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "build info with url yields bake stage output containing build host, job and build number"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
 
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)
@@ -376,7 +376,7 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "build info with url and scm yields bake stage output containing build host, job, build number and commit hash"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
 
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)
@@ -404,7 +404,7 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "build info with url and two scms yields bake stage output containing build host, job, build number and correctly-chosen commit hash"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
 
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)
@@ -432,7 +432,7 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "build info with url and master and develop scms yields bake stage output containing build host, job, build number and first commit hash"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
 
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)
@@ -460,7 +460,7 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "build info without url yields bake stage output without build host, job, build number and commit hash"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
 
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)
@@ -490,7 +490,7 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "build info with url yields bake request containing build host, job and build number"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
 
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)
@@ -523,7 +523,7 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "build info with url but without extractBuildDetails yields bake request without build host, job, build number, and commit hash"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
 
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)
@@ -555,7 +555,7 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "build info without url yields bake request without build host, job, build number and commit hash"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    Pipeline pipelineWithTrigger = Pipeline.builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
 
     Stage stage = new Stage<>(pipelineWithTrigger, "bake", bakeConfig)

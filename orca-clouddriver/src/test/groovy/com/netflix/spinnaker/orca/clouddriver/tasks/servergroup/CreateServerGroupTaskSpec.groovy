@@ -143,12 +143,12 @@ class CreateServerGroupTaskSpec extends Specification {
         ["imageId": "parent-ami", "ami": "parent-ami", "region": deployRegion]
       ]
     ]
-    def parentPipeline = new Pipeline.Builder().withName("parent").withGlobalContext(parentGlobalContext).build()
+    def parentPipeline = Pipeline.builder().withName("parent").withGlobalContext(parentGlobalContext).build()
 
     def childTrigger = [
       parentExecution: parentPipeline
     ]
-    def childPipeline = new Pipeline.Builder().withName("child").withTrigger(childTrigger).build()
+    def childPipeline = Pipeline.builder().withName("child").withTrigger(childTrigger).build()
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 
     def deployConfig = buildDeployConfig(deployRegion, operationCloudProvider)
@@ -217,7 +217,7 @@ class CreateServerGroupTaskSpec extends Specification {
         trigger: parentTrigger
       ]
     ]
-    def childPipeline = new Pipeline.Builder().withName("child").withTrigger(childTrigger).build()
+    def childPipeline = Pipeline.builder().withName("child").withTrigger(childTrigger).build()
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 
     def deployConfig = buildDeployConfig(deployRegion, operationCloudProvider)
@@ -258,7 +258,7 @@ class CreateServerGroupTaskSpec extends Specification {
     KatoService katoService = Mock(KatoService)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
-    def parentPipeline = new Pipeline.Builder().withName("parent").build()
+    def parentPipeline = Pipeline.builder().withName("parent").build()
 
     def bakeStage1 = buildStageForPipeline(parentPipeline, "bake")
 
@@ -268,7 +268,7 @@ class CreateServerGroupTaskSpec extends Specification {
     def childTrigger = [
       parentExecution: parentPipeline
     ]
-    def childPipeline = new Pipeline.Builder().withName("child").withTrigger(childTrigger).build()
+    def childPipeline = Pipeline.builder().withName("child").withTrigger(childTrigger).build()
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 
     def deployConfig = buildDeployConfig(deployRegion, operationCloudProvider)
@@ -312,7 +312,7 @@ class CreateServerGroupTaskSpec extends Specification {
     KatoService katoService = Mock(KatoService)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
-    def grandparentPipeline = new Pipeline.Builder().withName("grandparent").build()
+    def grandparentPipeline = Pipeline.builder().withName("grandparent").build()
 
     def bakeStage1 = buildStageForPipeline(grandparentPipeline, "bake")
 
@@ -322,12 +322,12 @@ class CreateServerGroupTaskSpec extends Specification {
     def parentTrigger = [
       parentExecution: grandparentPipeline
     ]
-    def parentPipeline = new Pipeline.Builder().withName("parent").withTrigger(parentTrigger).build()
+    def parentPipeline = Pipeline.builder().withName("parent").withTrigger(parentTrigger).build()
 
     def childTrigger = [
       parentExecution: parentPipeline
     ]
-    def childPipeline = new Pipeline.Builder().withName("child").withTrigger(childTrigger).build()
+    def childPipeline = Pipeline.builder().withName("child").withTrigger(childTrigger).build()
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 
     def deployConfig = buildDeployConfig(deployRegion, operationCloudProvider)
@@ -373,7 +373,7 @@ class CreateServerGroupTaskSpec extends Specification {
         ["imageId": "parent-ami", "ami": "parent-ami", "region": deployRegion]
       ]
     ]
-    def parentPipeline = new Pipeline.Builder().withName("parent").withGlobalContext(parentGlobalContext).build()
+    def parentPipeline = Pipeline.builder().withName("parent").withGlobalContext(parentGlobalContext).build()
 
     def pipelineStage = buildStageForPipeline(parentPipeline, "pipeline")
 
@@ -381,7 +381,7 @@ class CreateServerGroupTaskSpec extends Specification {
       parentExecution: parentPipeline,
       parentPipelineStageId: pipelineStage.id
     ]
-    def childPipeline = new Pipeline.Builder().withName("child").withTrigger(childTrigger).build()
+    def childPipeline = Pipeline.builder().withName("child").withTrigger(childTrigger).build()
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 
     def deployConfig = buildDeployConfig(deployRegion, operationCloudProvider)
@@ -428,7 +428,7 @@ class CreateServerGroupTaskSpec extends Specification {
     KatoService katoService = Mock(KatoService)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
-    def parentPipeline = new Pipeline.Builder().withName("parent").build()
+    def parentPipeline = Pipeline.builder().withName("parent").build()
 
     def waitStage = buildStageForPipeline(parentPipeline, "wait")
 
@@ -451,7 +451,7 @@ class CreateServerGroupTaskSpec extends Specification {
       parentExecution: parentPipeline,
       parentPipelineStageId: pipelineStageA.id
     ]
-    def childPipelineA = new Pipeline.Builder().withName("child").withTrigger(childTriggerA).build()
+    def childPipelineA = Pipeline.builder().withName("child").withTrigger(childTriggerA).build()
     def manualJudgmentStageA = buildStageForPipeline(childPipelineA, "manualJudgment")
 
     def deployConfig = buildDeployConfig(deployRegion, operationCloudProvider)
@@ -467,7 +467,7 @@ class CreateServerGroupTaskSpec extends Specification {
       parentExecution: parentPipeline,
       parentPipelineStageId: pipelineStageB.id
     ]
-    def childPipelineB = new Pipeline.Builder().withName("child").withTrigger(childTriggerB).build()
+    def childPipelineB = Pipeline.builder().withName("child").withTrigger(childTriggerB).build()
     def manualJudgmentStageB = buildStageForPipeline(childPipelineB, "manualJudgment")
 
     def deployStageB = buildStageForPipeline(childPipelineB, "createServerGroup", deployConfig)
