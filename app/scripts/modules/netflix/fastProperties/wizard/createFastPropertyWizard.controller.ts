@@ -1,9 +1,9 @@
 import {module} from 'angular';
 
-import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.componet';
+import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.component';
 import { FAST_PROPERTY_SCOPE_COMPONENT } from './propertyScope/propertyScope.component';
-import { FAST_PROPERTY_REVIEW_COMPONENT } from './propertyReview/propertyReview.componet';
-import { FAST_PROPERTY_STRATEGY_COMPONENT } from './propertyStrategy/propertyStrategy.componet';
+import { FAST_PROPERTY_REVIEW_COMPONENT } from './propertyReview/propertyReview.component';
+import { FAST_PROPERTY_STRATEGY_COMPONENT } from './propertyStrategy/propertyStrategy.component';
 import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
 import { PROPERTY_MONITOR_SERVICE } from './monitor/propertyMonitorService';
 import { PropertyCommandType }from '../domain/propertyCommandType.enum';

@@ -1,6 +1,6 @@
 import {mock} from 'angular';
 
-import {FastPropertyDetailsComponentController, FAST_PROPERTY_DETAILS_COMPONENT} from './propertyDetails.componet';
+import {FastPropertyDetailsComponentController, FAST_PROPERTY_DETAILS_COMPONENT} from './propertyDetails.component';
 import {PropertyCommand} from '../../domain/propertyCommand.model';
 import {Property} from '../../domain/property.domain';
 

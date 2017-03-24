@@ -1,10 +1,10 @@
 import {module, IScope} from 'angular';
 
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
-import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.componet';
+import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.component';
 import { FAST_PROPERTY_SCOPE_UPDATABLE_COMPONENT } from './propertyScope/propertyScopeUpdatable.component';
-import { FAST_PROPERTY_REVIEW_COMPONENT } from './propertyReview/propertyReview.componet';
-import { FAST_PROPERTY_STRATEGY_COMPONENT } from './propertyStrategy/propertyStrategy.componet';
+import { FAST_PROPERTY_REVIEW_COMPONENT } from './propertyReview/propertyReview.component';
+import { FAST_PROPERTY_STRATEGY_COMPONENT } from './propertyStrategy/propertyStrategy.component';
 import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
 import { PROPERTY_MONITOR_SERVICE, PropertyMonitorService} from './monitor/propertyMonitorService';
 import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';

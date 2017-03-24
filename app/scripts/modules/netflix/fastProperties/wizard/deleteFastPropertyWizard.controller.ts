@@ -1,9 +1,9 @@
 import {module} from 'angular';
 
-import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.componet';
+import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.component';
 import { FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT } from './propertyScope/propertyScopeReadOnly.component';
-import { FAST_PROPERTY_REVIEW_COMPONENT } from './propertyReview/propertyReview.componet';
-import { FAST_PROPERTY_STRATEGY_COMPONENT } from './propertyStrategy/propertyStrategy.componet';
+import { FAST_PROPERTY_REVIEW_COMPONENT } from './propertyReview/propertyReview.component';
+import { FAST_PROPERTY_STRATEGY_COMPONENT } from './propertyStrategy/propertyStrategy.component';
 import { PropertyCommandType }from '../domain/propertyCommandType.enum';
 import {PropertyPipeline} from '../domain/propertyPipeline.domain';
 import IModalServiceInstance = angular.ui.bootstrap.IModalServiceInstance;
