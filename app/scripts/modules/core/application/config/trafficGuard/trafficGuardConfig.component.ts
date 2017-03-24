@@ -7,6 +7,7 @@ import {
 } from 'core/account/account.service';
 import {Application} from 'core/application/application.model';
 import {IViewState} from '../footer/configSectionFooter.component';
+import {CLUSTER_MATCHES_COMPONENT, IClusterMatch} from 'core/widgets/cluster/clusterMatches.component';
 import {TRAFFIC_GUARD_CONFIG_HELP} from './trafficGuardConfig.help';
 import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
 
@@ -15,12 +16,6 @@ interface ITrafficGuard {
   location: string;
   stack: string;
   detail: string;
-}
-
-interface IClusterMatch {
-  name: string;
-  account: string;
-  regions: string[];
 }
 
 export class TrafficGuardConfigController {
@@ -115,6 +110,7 @@ export const TRAFFIC_GUARD_CONFIG_COMPONENT = 'spinnaker.core.application.config
 module(TRAFFIC_GUARD_CONFIG_COMPONENT, [
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
+  CLUSTER_MATCHES_COMPONENT,
   TRAFFIC_GUARD_CONFIG_HELP,
 ])
   .component('trafficGuardConfig', new TrafficGuardConfigComponent());
