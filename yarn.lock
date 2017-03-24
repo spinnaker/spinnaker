@@ -2,37 +2,37 @@
 # yarn lockfile v1
 
 
-"@angular/common@^4.0.0-rc.2":
-  version "4.0.0-rc.6"
-  resolved "https://registry.yarnpkg.com/@angular/common/-/common-4.0.0-rc.6.tgz#f6855c36e1c8e1b7ce94c0739a1fa277a9d29584"
+"@angular/common@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@angular/common/-/common-4.0.0.tgz#ca18983222fdab4ecaa7a8b99eda6ff661e6dc92"
 
-"@angular/compiler@^4.0.0-rc.2":
-  version "4.0.0-rc.6"
-  resolved "https://registry.yarnpkg.com/@angular/compiler/-/compiler-4.0.0-rc.6.tgz#b46cd4c0c732eafac5a8658ca2d5d9b953906e99"
+"@angular/compiler@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@angular/compiler/-/compiler-4.0.0.tgz#e1aa061a6f8ef269f9748af1a7bc290f9d37ed6c"
 
-"@angular/core@^4.0.0-rc.2":
-  version "4.0.0-rc.6"
-  resolved "https://registry.yarnpkg.com/@angular/core/-/core-4.0.0-rc.6.tgz#ba70534bd45f3bda3ac39fb0a90d552510436dec"
+"@angular/core@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@angular/core/-/core-4.0.0.tgz#fd877e074b29dfa9c63b96a21995fc7556d423a3"
 
-"@angular/forms@^4.0.0-rc.2":
-  version "4.0.0-rc.6"
-  resolved "https://registry.yarnpkg.com/@angular/forms/-/forms-4.0.0-rc.6.tgz#b075ca2bf0f0a37c84d1dcb67ac59ae334c1a392"
+"@angular/forms@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@angular/forms/-/forms-4.0.0.tgz#03163047a2e84af42106270da2e1f47ab0fafc37"
 
-"@angular/http@^4.0.0-rc.2":
-  version "4.0.0-rc.6"
-  resolved "https://registry.yarnpkg.com/@angular/http/-/http-4.0.0-rc.6.tgz#ebeb95a92725d6481b418b4a7beafd9281cc0e5c"
+"@angular/http@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@angular/http/-/http-4.0.0.tgz#45a538eac42a0b13f3744c7e8bafeb17d58da31c"
 
-"@angular/platform-browser-dynamic@^4.0.0-rc.2":
-  version "4.0.0-rc.6"
-  resolved "https://registry.yarnpkg.com/@angular/platform-browser-dynamic/-/platform-browser-dynamic-4.0.0-rc.6.tgz#89dfce31283fb3fc1b484ffa620cd2b5f292ecdd"
+"@angular/platform-browser-dynamic@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@angular/platform-browser-dynamic/-/platform-browser-dynamic-4.0.0.tgz#d1d9de80fe1e02735be89f512e0faf5a80d57fa5"
 
-"@angular/platform-browser@^4.0.0-rc.2":
-  version "4.0.0-rc.6"
-  resolved "https://registry.yarnpkg.com/@angular/platform-browser/-/platform-browser-4.0.0-rc.6.tgz#bce3be3ee8a62b91a591f4b3cb894a1bc39c6da7"
+"@angular/platform-browser@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@angular/platform-browser/-/platform-browser-4.0.0.tgz#512ae9ab19ccc25fa79027f44e291bcee236cd2b"
 
-"@angular/upgrade@^4.0.0-rc.2":
-  version "4.0.0-rc.6"
-  resolved "https://registry.yarnpkg.com/@angular/upgrade/-/upgrade-4.0.0-rc.6.tgz#fa8a58e6cadc10d34e94f07df06c695561d0281d"
+"@angular/upgrade@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@angular/upgrade/-/upgrade-4.0.0.tgz#bb5cac73a80064c4aa0aa896ac37d8cdda4d1411"
 
 "@types/angular-mocks@1.5.8":
   version "1.5.8"
@@ -1924,7 +1924,7 @@ dateformat@^1.0.6:
     get-stdin "^4.0.1"
     meow "^3.3.0"
 
-debug@2, debug@2.6.3, debug@^2.1.1, debug@^2.2.0:
+debug@2, debug@^2.1.1, debug@^2.2.0:
   version "2.6.3"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.3.tgz#0f7eb8c30965ec08c72accfa0130c8b79984141d"
   dependencies:
@@ -2621,23 +2621,11 @@ fill-range@^2.1.0:
     repeat-element "^1.1.2"
     repeat-string "^1.5.2"
 
-finalhandler@1.0.0:
+finalhandler@1.0.0, finalhandler@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/finalhandler/-/finalhandler-1.0.0.tgz#b5691c2c0912092f18ac23e9416bde5cd7dc6755"
   dependencies:
     debug "2.6.1"
-    encodeurl "~1.0.1"
-    escape-html "~1.0.3"
-    on-finished "~2.3.0"
-    parseurl "~1.3.1"
-    statuses "~1.3.1"
-    unpipe "~1.0.0"
-
-finalhandler@~1.0.0:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/finalhandler/-/finalhandler-1.0.1.tgz#bcd15d1689c0e5ed729b6f7f541a6df984117db8"
-  dependencies:
-    debug "2.6.3"
     encodeurl "~1.0.1"
     escape-html "~1.0.3"
     on-finished "~2.3.0"
@@ -3878,11 +3866,7 @@ miller-rabin@^4.0.0:
     bn.js "^4.0.0"
     brorand "^1.0.1"
 
-"mime-db@>= 1.24.0 < 2":
-  version "1.27.0"
-  resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.27.0.tgz#820f572296bbd20ec25ed55e5b5de869e5436eb1"
-
-mime-db@~1.26.0:
+"mime-db@>= 1.24.0 < 2", mime-db@~1.26.0:
   version "1.26.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.26.0.tgz#eaffcd0e4fc6935cf8134da246e2e6c35305adff"
 
@@ -6121,16 +6105,9 @@ write@^0.2.1:
   dependencies:
     mkdirp "^0.5.1"
 
-ws@1.1.2:
+ws@1.1.2, ws@^1.0.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/ws/-/ws-1.1.2.tgz#8a244fa052401e08c9886cf44a85189e1fd4067f"
-  dependencies:
-    options ">=0.0.5"
-    ultron "1.0.x"
-
-ws@^1.0.1:
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-1.1.4.tgz#57f40d036832e5f5055662a397c4de76ed66bf61"
   dependencies:
     options ">=0.0.5"
     ultron "1.0.x"
