@@ -83,17 +83,28 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
   private Map<String, Set<String>> loadTags() {
     credentials.repositories.findAll { it ->
       threadCount == 1 || (it.hashCode() % threadCount).abs() == index
-    }.collectEntries {
-      if(credentials.skip?.contains(it)) {
+    }.collectEntries { repository ->
+      if(credentials.skip?.contains(repository)) {
           return [:]
       }
       DockerRegistryTags tags = null
       try {
-        tags = credentials.client.getTags(it)
+        tags = credentials.client.getTags(repository)
       } catch (e) {
-        log.error("Could not load tags for ${it}")
+        log.error("Could not load tags for ${repository}")
       }
-      tags?.tags && tags?.name ? [(tags.name): tags.tags] : [:]
+      def name = tags?.name
+      def imageTags = tags?.tags
+      if (name && imageTags) {
+        if (name != repository) {
+          // TODO(lwander) remove this warning if this doesn't cause problems
+          log.warn("Docker registry $accountName responded with an image name that does not match the repository name. Defaulting to repository='$repository' over name='$name'")
+          name = repository
+        }
+        [(name): imageTags]
+      } else {
+        return [:]
+      }
     }
   }
 
