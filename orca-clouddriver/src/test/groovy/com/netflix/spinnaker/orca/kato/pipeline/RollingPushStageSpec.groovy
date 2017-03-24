@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.EnsureInterestingHealthProviderNamesTask
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.config.SpringBatchConfiguration
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
@@ -27,6 +25,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.instance.TerminateInstancesT
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstanceHealthTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.EnsureInterestingHealthProviderNamesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
@@ -46,6 +45,7 @@ import com.netflix.spinnaker.orca.test.JobCompletionListener
 import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import groovy.transform.CompileStatic
 import org.spockframework.spring.xml.SpockMockFactoryBean
 import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,7 +65,7 @@ import static com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage.PushComp
   MockTaskConfig, RollingPushStage, DownstreamStage])
 class RollingPushStageSpec extends Specification {
 
-  @Shared def mapper = new OrcaObjectMapper()
+  @Shared def mapper = OrcaObjectMapper.newInstance()
   @Autowired PipelineLauncher pipelineLauncher
 
   /**

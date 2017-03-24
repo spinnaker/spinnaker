@@ -36,7 +36,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     }
   }
 
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
 
   void "should check cluster to get server groups"() {
     given:

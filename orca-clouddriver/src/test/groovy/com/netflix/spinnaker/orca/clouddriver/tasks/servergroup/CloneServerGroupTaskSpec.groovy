@@ -29,7 +29,7 @@ import spock.lang.Subject
 class CloneServerGroupTaskSpec extends Specification {
   @Subject task = new CloneServerGroupTask()
   def stage = new Stage<>(new Pipeline(), "cloneServerGroup")
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   //The minimum required fields to cloneServerGroup

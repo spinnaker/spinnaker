@@ -35,7 +35,7 @@ class EnableAsgTaskSpec extends Specification {
 
   @Subject task = new EnableAsgTask()
   def stage = new Stage<>(new Pipeline(), "whatever")
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def disableASGConfig = [

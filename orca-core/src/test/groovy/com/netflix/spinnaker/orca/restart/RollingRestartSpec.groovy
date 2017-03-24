@@ -52,7 +52,7 @@ import static java.lang.System.currentTimeMillis
   WaitForRequisiteCompletionStage, RestrictExecutionDuringTimeWindow,
   BatchTestConfiguration, TaskTaskletAdapterImpl,
   SpringBatchExecutionListenerProvider, Config, NoOpTask,
-  PipelineLauncher, SpringBatchExecutionRunner, OrcaObjectMapper, JobCompletionListener
+  PipelineLauncher, SpringBatchExecutionRunner, JobCompletionListener
 ])
 class RollingRestartSpec extends Specification {
 
@@ -163,6 +163,11 @@ class RollingRestartSpec extends Specification {
     @Bean
     StageDefinitionBuilder redirectingTestStage() {
       new RedirectingTestStage()
+    }
+
+    @Bean
+    ObjectMapper objectMapper() {
+      OrcaObjectMapper.newInstance()
     }
   }
 }

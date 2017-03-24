@@ -72,7 +72,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
   void "should be provided with health provider names"() {
     task.oortService = Mock(OortService)
-    task.objectMapper = new OrcaObjectMapper()
+    task.objectMapper = OrcaObjectMapper.newInstance()
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
     def pipeline = new Pipeline()
@@ -116,7 +116,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
   @Unroll
   void 'should reset zeroDesiredCapacityCount when targetDesiredCapacity is not zero, otherwise increment'() {
     task.oortService = Mock(OortService)
-    task.objectMapper = new OrcaObjectMapper()
+    task.objectMapper = OrcaObjectMapper.newInstance()
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
     def pipeline = new Pipeline()
@@ -172,7 +172,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
   void 'should set zeroDesiredCapacityCount when targetDesiredCapacity is zero and no zeroDesiredCapacityCount is not present on context'() {
     task.oortService = Mock(OortService)
-    task.objectMapper = new OrcaObjectMapper()
+    task.objectMapper = OrcaObjectMapper.newInstance()
     task.hasSucceededSpy = Mock(HasSucceededSpy)
 
     def pipeline = new Pipeline()

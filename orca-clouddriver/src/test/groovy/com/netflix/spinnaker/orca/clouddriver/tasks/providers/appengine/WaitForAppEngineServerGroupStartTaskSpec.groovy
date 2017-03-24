@@ -30,7 +30,7 @@ import spock.lang.Subject
 
 class WaitForAppEngineServerGroupStartTaskSpec extends Specification {
   @Shared OortService oort
-  @Shared ObjectMapper mapper = new OrcaObjectMapper()
+  @Shared ObjectMapper mapper = OrcaObjectMapper.newInstance()
   @Subject WaitForAppEngineServerGroupStartTask task = new WaitForAppEngineServerGroupStartTask() {
     {
       objectMapper = mapper

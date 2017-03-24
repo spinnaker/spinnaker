@@ -204,7 +204,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
   }
 
   @JsonIgnore
-  private final transient ObjectMapper objectMapper = new OrcaObjectMapper();
+  private final transient ObjectMapper objectMapper = OrcaObjectMapper.newInstance();
 
   /**
    * Maps the stage's context to a typed object at a provided pointer. Uses

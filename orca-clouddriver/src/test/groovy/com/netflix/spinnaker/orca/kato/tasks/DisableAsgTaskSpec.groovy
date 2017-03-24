@@ -30,7 +30,7 @@ import spock.lang.Subject
 class DisableAsgTaskSpec extends Specification {
   @Subject task = new DisableAsgTask()
   def stage = new Stage<>(type: "whatever")
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def disableASGConfig = [

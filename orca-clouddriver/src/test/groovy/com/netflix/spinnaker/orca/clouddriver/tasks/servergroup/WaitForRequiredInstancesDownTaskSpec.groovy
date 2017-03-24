@@ -34,7 +34,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
 
   @Subject task = new WaitForRequiredInstancesDownTask()
 
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
 
   void "should check cluster to get server groups"() {
     given:

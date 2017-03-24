@@ -31,7 +31,7 @@ import spock.lang.Subject
 class DestroyAwsServerGroupTaskSpec extends Specification {
   @Subject task = new DestroyAwsServerGroupTask()
   def stage = new Stage<>(new Pipeline(), "whatever")
-  def mapper = new OrcaObjectMapper()
+  def mapper = OrcaObjectMapper.newInstance()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def destroyASGConfig = [

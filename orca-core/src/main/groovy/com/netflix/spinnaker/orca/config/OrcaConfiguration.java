@@ -59,7 +59,7 @@ public class OrcaConfiguration {
   }
 
   @Bean @Scope(SCOPE_PROTOTYPE) public ObjectMapper mapper() {
-    return new OrcaObjectMapper();
+    return OrcaObjectMapper.newInstance();
   }
 
   @Bean @ConditionalOnMissingBean(name = "pipelineStack")

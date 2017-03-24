@@ -17,12 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
-import com.netflix.spinnaker.orca.clouddriver.FeaturesRestService
-import com.netflix.spinnaker.orca.clouddriver.KatoRestService
-import com.netflix.spinnaker.orca.clouddriver.MortService
-import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
+import com.netflix.spinnaker.orca.clouddriver.*
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
@@ -58,7 +53,7 @@ class CloudDriverConfiguration {
   @ConditionalOnMissingBean(ObjectMapper)
   @Bean
   ObjectMapper mapper() {
-    new OrcaObjectMapper()
+    OrcaObjectMapper.newInstance()
   }
 
   @Bean
