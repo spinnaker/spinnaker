@@ -102,7 +102,9 @@ abstract public class FlotillaDeployment<T extends Account> extends Deployment {
   @Override
   public RunningServiceDetails getServiceDetails(SpinnakerService service) {
     RunningServiceDetails details = providerInterface.getRunningServiceDetails(deploymentDetails, service);
-    details.setVersion(deploymentDetails.getBillOfMaterials().getArtifactVersion(service.getArtifact().getName()));
+    if (service.getArtifact().isSpinnakerInternal()) {
+      details.setVersion(deploymentDetails.getBillOfMaterials().getArtifactVersion(service.getArtifact().getName()));
+    }
     return details;
   }
 
