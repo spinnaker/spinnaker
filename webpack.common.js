@@ -147,10 +147,12 @@ function configure(IS_TEST) {
     ]);
   }
 
+  config.plugins.push(new webpack.ContextReplacementPlugin(/angular(\\|\/)core(\\|\/)@angular/, path.resolve(__dirname, '../src')));
+
   // this is temporary and will be deprecated in WP3.  moving forward,
   // loaders will individually need to accept this as an option.
   config.plugins.push(new webpack.LoaderOptionsPlugin({debug: !IS_TEST}));
-  
+
   return config;
 }
 
