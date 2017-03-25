@@ -27,7 +27,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

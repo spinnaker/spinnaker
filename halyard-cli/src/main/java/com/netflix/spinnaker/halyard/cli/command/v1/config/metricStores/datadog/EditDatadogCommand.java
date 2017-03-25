@@ -22,7 +22,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.Abstract
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.datadog.DatadogStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
-import lombok.Getter;
 
 public class EditDatadogCommand extends AbstractEditMetricStoreCommand<DatadogStore> {
   public MetricStores.MetricStoreType getMetricStoreType() {

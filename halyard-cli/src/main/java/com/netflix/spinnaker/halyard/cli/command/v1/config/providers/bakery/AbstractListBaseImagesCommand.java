@@ -23,7 +23,6 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import lombok.Getter;
 
 import java.util.List;

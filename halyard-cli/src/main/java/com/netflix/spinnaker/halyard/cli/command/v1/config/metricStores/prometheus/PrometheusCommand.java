@@ -20,7 +20,6 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.prometh
 
 import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.MetricStoreCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
-import lombok.Getter;
 
 public class PrometheusCommand extends MetricStoreCommand {
   public MetricStores.MetricStoreType getMetricStoreType() {

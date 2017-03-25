@@ -17,15 +17,8 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
-import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
-import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.List;
-import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

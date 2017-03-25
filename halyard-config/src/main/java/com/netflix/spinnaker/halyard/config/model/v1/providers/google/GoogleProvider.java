@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderType;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;

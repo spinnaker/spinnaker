@@ -21,8 +21,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 
-import java.util.Map;
-
 abstract public class SpringProfile extends SpinnakerProfile {
   @Override
   public String getProfileFileName() {

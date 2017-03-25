@@ -22,7 +22,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.Abstract
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.prometheus.PrometheusStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
-import lombok.Getter;
 
 public class EditPrometheusCommand extends AbstractEditMetricStoreCommand<PrometheusStore> {
   public MetricStores.MetricStoreType getMetricStoreType() {

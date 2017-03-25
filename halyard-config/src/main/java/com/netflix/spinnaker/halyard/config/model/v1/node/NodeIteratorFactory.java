@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.sun.jersey.core.impl.provider.entity.XMLJAXBElementProvider;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;

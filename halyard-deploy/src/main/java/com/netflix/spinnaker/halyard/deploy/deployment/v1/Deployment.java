@@ -22,8 +22,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Setter;
 
 /**

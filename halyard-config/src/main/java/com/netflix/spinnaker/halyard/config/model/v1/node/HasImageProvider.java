@@ -19,11 +19,6 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

@@ -23,7 +23,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConve
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.stackdriver.StackdriverStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
-import lombok.Getter;
 
 public class EditStackdriverCommand extends AbstractEditMetricStoreCommand<StackdriverStore> {
   public MetricStores.MetricStoreType getMetricStoreType() {

@@ -17,11 +17,9 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.FlotillaDeployment;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.provider.v1.kubernetes.KubernetesProviderInterface;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 
 public class KubernetesFlotillaDeployment extends FlotillaDeployment<KubernetesAccount> {
   public KubernetesFlotillaDeployment(

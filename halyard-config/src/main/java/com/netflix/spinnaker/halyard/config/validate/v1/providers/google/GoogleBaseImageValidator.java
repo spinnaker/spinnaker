@@ -23,7 +23,6 @@ import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Image;
 import com.google.api.services.compute.model.ImageList;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
@@ -37,7 +36,6 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
