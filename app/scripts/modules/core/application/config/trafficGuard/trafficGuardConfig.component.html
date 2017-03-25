@@ -54,13 +54,7 @@
                      ng-change="$ctrl.configChanged()"/>
             </td>
             <td>
-              <div ng-repeat="match in $ctrl.clusterMatches[$index]">
-                <account-tag account="match.account"></account-tag>
-                {{match.name}}
-                <i ng-if="match.regions">in {{match.regions.join(', ')}}</i>
-              </div>
-              <div ng-if="$ctrl.clusterMatches[$index].length === 0">(no matches)</div>
-
+              <cluster-matches matches="$ctrl.clusterMatches" index="$index"></cluster-matches>
             </td>
             <td><a href ng-click="$ctrl.removeGuard($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove guard"></span></a></td>
           </tr>

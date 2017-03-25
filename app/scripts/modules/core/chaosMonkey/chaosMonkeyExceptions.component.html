@@ -8,6 +8,7 @@
         <th>Region</th>
         <th>Stack</th>
         <th>Detail</th>
+        <th>Matched Clusters</th>
         <th></th>
       </tr>
       </thead>
@@ -19,13 +20,13 @@
               field="account"
               provider="'aws'"
               accounts="$ctrl.accounts"
-              on-change="$ctrl.configChanged()"></account-select-field>
+              on-change="$ctrl.updateConfig()"></account-select-field>
         </td>
         <td>
           <span ng-if="!exception.account">(select account)</span>
           <select class="form-control input-sm"
                   ng-model="exception.region"
-                  ng-change="$ctrl.configChanged()"
+                  ng-change="$ctrl.updateConfig()"
                   ng-if="exception.account"
               >
             <option ng-repeat="region in $ctrl.regionsByAccount[exception.account]" value="{{region}}">{{region}}</option>
@@ -34,14 +35,17 @@
         <td>
           <input type="text" class="form-control input-sm"
                  ng-model="exception.stack"
-                 ng-change="$ctrl.configChanged()"
+                 ng-change="$ctrl.updateConfig()"
                  required/>
         </td>
         <td>
           <input type="text" class="form-control input-sm"
                  ng-model="exception.detail"
-                 ng-change="$ctrl.configChanged()"
+                 ng-change="$ctrl.updateConfig()"
                  required/>
+        </td>
+        <td>
+          <cluster-matches matches="$ctrl.clusterMatches" index="$index"></cluster-matches>
         </td>
         <td><a href ng-click="$ctrl.removeException($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove exception"></span></a></td>
       </tr>

@@ -1,14 +1,18 @@
-import {mock} from 'angular';
+import {mock, IComponentControllerService, IScope, IQService, IRootScopeService, IPromise} from 'angular';
 
 import {CHAOS_MONKEY_EXCEPTIONS_COMPONENT, ChaosMonkeyExceptionsController} from './chaosMonkeyExceptions.component';
+import {AccountService} from 'core/account/account.service';
+import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
+import {ChaosMonkeyConfig} from 'core/chaosMonkey/chaosMonkeyConfig.component';
 
 describe('Controller: ChaosMonkeyExceptions', () => {
 
-  let $componentController: ng.IComponentControllerService,
-      accountService: any,
+  let $componentController: IComponentControllerService,
+      accountService: AccountService,
       $ctrl: ChaosMonkeyExceptionsController,
-      $scope: ng.IScope,
-      $q: ng.IQService;
+      $scope: IScope,
+      $q: IQService,
+      applicationBuilder: ApplicationModelBuilder;
 
   let initializeController = (data: any) => {
     $ctrl = <ChaosMonkeyExceptionsController> $componentController(
@@ -18,17 +22,19 @@ describe('Controller: ChaosMonkeyExceptions', () => {
     );
   };
 
-  beforeEach(mock.module(CHAOS_MONKEY_EXCEPTIONS_COMPONENT));
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, CHAOS_MONKEY_EXCEPTIONS_COMPONENT));
 
   beforeEach(mock.inject((
-    _$componentController_: ng.IComponentControllerService,
-    _$q_: ng.IQService,
-    $rootScope: ng.IRootScopeService,
-    _accountService_: any) => {
+    _$componentController_: IComponentControllerService,
+    _$q_: IQService,
+    $rootScope: IRootScopeService,
+    _accountService_: AccountService,
+    _applicationModelBuilder_: ApplicationModelBuilder) => {
       $scope = $rootScope.$new();
       accountService = _accountService_;
       $componentController = _$componentController_;
       $q = _$q_;
+      applicationBuilder = _applicationModelBuilder_;
   }));
 
   describe('data initialization', () => {
@@ -41,11 +47,15 @@ describe('Controller: ChaosMonkeyExceptions', () => {
       };
 
       spyOn(accountService, 'listAccounts').and.returnValue($q.when(accounts));
-      spyOn(accountService, 'getAccountDetails').and.callFake((accountName: string): ng.IPromise<any> => {
+      spyOn(accountService, 'getAccountDetails').and.callFake((accountName: string): IPromise<any> => {
         return $q.when(details[accountName]);
       });
 
       initializeController(null);
+      $ctrl.application =
+        applicationBuilder.createApplication({key: 'serverGroups', data: [], ready: () => $q.when(null), loaded: true});
+      $ctrl.config = new ChaosMonkeyConfig($ctrl.application.attributes.chaosMonkey || {});
+
       $ctrl.$onInit();
       $scope.$digest();
 

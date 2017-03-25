@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import {module, toJson} from 'angular';
 
+import {CLUSTER_MATCHES_COMPONENT} from 'core/widgets/cluster/clusterMatches.component';
 import {CHAOS_MONKEY_HELP} from './chaosMonkey.help';
 import {CHAOS_MONKEY_EXCEPTIONS_COMPONENT} from './chaosMonkeyExceptions.component';
 import {CONFIG_SECTION_FOOTER, IViewState} from '../application/config/footer/configSectionFooter.component';
@@ -14,6 +15,7 @@ class GroupingOption {
 }
 
 export class ChaosMonkeyConfig {
+  [key: string]: any;
   public enabled = false;
   public meanTimeBetweenKillsInWorkDays = 2;
   public minTimeBetweenKillsInWorkDays = 1;
@@ -73,6 +75,7 @@ class ChaosMonkeyConfigComponent implements ng.IComponentOptions {
 export const CHAOS_MONKEY_CONFIG_COMPONENT = 'spinnaker.core.chaosMonkey.config.component';
 module(CHAOS_MONKEY_CONFIG_COMPONENT, [
   require('../config/settings'),
+  CLUSTER_MATCHES_COMPONENT,
   CHAOS_MONKEY_EXCEPTIONS_COMPONENT,
   CHAOS_MONKEY_HELP,
   CONFIG_SECTION_FOOTER,
