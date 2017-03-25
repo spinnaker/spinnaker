@@ -67,6 +67,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
     });
 
     function initializeEditMode() {
+      $scope.state.accountsLoaded = true;
     }
 
     function initializeCreateMode() {
@@ -103,7 +104,6 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
     if (loadBalancer) {
       $scope.loadBalancer = kubernetesLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
       initializeEditMode();
-      initializeCreateMode();
     } else {
       $scope.loadBalancer = kubernetesLoadBalancerTransformer.constructNewLoadBalancerTemplate();
       updateLoadBalancerNames();
