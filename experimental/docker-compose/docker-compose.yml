@@ -111,8 +111,8 @@ fiat:
   container_name: fiat
   env_file: ./compose.env
   environment:
-    - SERVICES_CLOUDDRIVER_HOST=clouddriver
-    - SERVICES_FRONT50_HOST=front50
+    - SERVICES_CLOUDDRIVER_BASEURL=clouddriver
+    - SERVICES_FRONT50_BASEURL=front50
   image: quay.io/spinnaker/fiat:master
   links:
     - redis
