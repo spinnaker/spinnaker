@@ -295,7 +295,11 @@ public class Stage<T extends Execution<T>> implements Serializable {
     if (execution instanceof Pipeline) {
       Pipeline pipeline = (Pipeline) execution;
       Map<String, Object> parameters = (Map<String, Object>) pipeline.getTrigger().get("parameters");
+      boolean strategy = false;
       if (parameters != null && parameters.get("strategy") != null) {
+        strategy = (boolean) parameters.get("strategy");
+      }
+      if (strategy) {
         context.put("cloudProvider", parameters.get("cloudProvider"));
         context.put("cluster", parameters.get("cluster"));
         context.put("credentials", parameters.get("credentials"));
