@@ -87,8 +87,8 @@ public class EditSecurityCommand extends AbstractConfigCommand {
 
     new OperationHandler<Void>()
         .setOperation(Daemon.setSecurity(currentDeployment, !noValidate, security))
-        .setSuccessMessage("Failed to edit security.")
-        .setFailureMesssage("Successfully updated security.")
+        .setSuccessMessage("Successfully updated security settings.")
+        .setFailureMesssage("Failed to edit security settings.")
         .get();
   }
 }
