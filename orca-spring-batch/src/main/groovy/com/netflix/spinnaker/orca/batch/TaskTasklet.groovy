@@ -176,7 +176,7 @@ class TaskTasklet implements Tasklet {
   }
 
   private void save(Stage stage, ChunkContext chunkContext) {
-    executionRepository.storeStage(stage.self)
+    executionRepository.storeStage(stage)
     executionRepository.storeExecutionContext(stage.execution.id, chunkContext.stepContext.jobExecutionContext)
   }
 

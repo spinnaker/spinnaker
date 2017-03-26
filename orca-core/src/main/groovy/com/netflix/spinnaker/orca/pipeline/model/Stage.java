@@ -102,12 +102,6 @@ public class Stage<T extends Execution<T>> implements Serializable {
   private Map<String, Object> context = new HashMap<>();
 
   /**
-   * Returns a flag indicating if the stage is in an immutable state
-   */
-  @Getter @Setter
-  private boolean immutable = false;
-
-  /**
    * Returns a flag indicating if the stage is a parallel initialization stage
    */
   @Getter @Setter
@@ -187,13 +181,6 @@ public class Stage<T extends Execution<T>> implements Serializable {
    */
   public List<StageNavigator.Result> ancestors() {
     return ancestors((stage, builder) -> true);
-  }
-
-  /**
-   * @return a reference to the wrapped object in this event this object is the immutable wrapper
-   */
-  @JsonIgnore public Stage<T> getSelf() {
-    return this;
   }
 
   /**
