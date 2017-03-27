@@ -126,6 +126,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     instanceProperties = new InstanceProperties(machineType: INSTANCE_TYPE,
                                                 disks: attachedDisks,
                                                 networkInterfaces: [networkInterface],
+                                                canIpForward: false,
                                                 metadata: instanceMetadata,
                                                 tags: tags,
                                                 labels: LABELS,
@@ -169,6 +170,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          network: "other-network",
                                                          subnet: "other-subnet",
                                                          associatePublicIpAddress: false,
+                                                         canIpForward: true,
                                                          loadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          autoscalingPolicy:
                                                              new GoogleAutoscalingPolicy(
@@ -237,6 +239,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.network = DEFAULT_NETWORK_NAME
       newDescription.subnet = SUBNET_NAME
       newDescription.associatePublicIpAddress = true
+      newDescription.canIpForward = false
       newDescription.loadBalancers = LOAD_BALANCERS
       newDescription.autoscalingPolicy = new GoogleAutoscalingPolicy(coolDownPeriodSec: 45,
                                                                      minNumReplicas: 2,

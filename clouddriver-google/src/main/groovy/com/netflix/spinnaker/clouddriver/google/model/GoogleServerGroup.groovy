@@ -47,6 +47,7 @@ class GoogleServerGroup {
   Boolean disabled = false
   Boolean discovery = false
   String networkName
+  Boolean canIpForward = false
   Set<String> instanceTemplateTags = []
   Map<String, String> instanceTemplateLabels = [:]
   String selfLink
@@ -92,6 +93,7 @@ class GoogleServerGroup {
     Map buildInfo = GoogleServerGroup.this.buildInfo
     Boolean disabled = GoogleServerGroup.this.disabled
     String networkName = GoogleServerGroup.this.networkName
+    Boolean canIpForward = GoogleServerGroup.this.canIpForward
     Set<String> instanceTemplateTags = GoogleServerGroup.this.instanceTemplateTags
     Map<String, String> instanceTemplateLabels = GoogleServerGroup.this.instanceTemplateLabels
     String selfLink = GoogleServerGroup.this.selfLink

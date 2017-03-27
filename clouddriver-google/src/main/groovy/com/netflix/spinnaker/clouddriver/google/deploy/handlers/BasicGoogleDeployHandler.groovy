@@ -125,6 +125,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def location = isRegional ? region : zone
     def instanceMetadata = description.instanceMetadata
     def labels = description.labels
+    def canIpForward = description.canIpForward
 
     def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials, safeRetry, this)
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
@@ -307,6 +308,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def instanceProperties = new InstanceProperties(machineType: machineTypeName,
                                                     disks: attachedDisks,
                                                     networkInterfaces: [networkInterface],
+                                                    canIpForward: canIpForward,
                                                     metadata: metadata,
                                                     tags: tags,
                                                     labels: labels,

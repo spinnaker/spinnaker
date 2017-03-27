@@ -35,6 +35,7 @@ class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription
   String subnet
   // This will be treated as true if it is null to preserve backwards-compatibility with existing pipelines.
   Boolean associatePublicIpAddress
+  Boolean canIpForward
   String serviceAccountEmail
   List<String> authScopes
   Boolean preemptible

@@ -89,6 +89,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
     def compute = credentials.compute
     def project = credentials.project
     def region = description.region
+    def canIpForward = description.canIpForward
     def serverGroupName = description.serverGroupName
     def serverGroup = GCEUtil.queryServerGroup(googleClusterProvider, accountName, region, serverGroupName)
     def isRegional = serverGroup.regional
@@ -189,6 +190,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
         }
 
         instanceTemplateProperties.setMachineType(machineTypeName)
+      }
+
+      // Override the instance template's canIpForward property if it was specified.
+      if (overriddenProperties.canIpForward) {
+        instanceTemplateProperties.setCanIpForward(canIpForward)
       }
 
       // Override the instance template's metadata if instanceMetadata was specified.

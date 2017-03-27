@@ -78,6 +78,7 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
     def project = description.credentials.project
     def zone = description.zone
     def region = credentials.regionFromZone(zone)
+    def canIpForward = description.canIpForward
 
     def machineTypeName
     if (description.instanceType.startsWith('custom')) {
@@ -129,6 +130,7 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
                                 machineType: "zones/$zone/machineTypes/$machineTypeName",
                                 disks: attachedDisks,
                                 networkInterfaces: [networkInterface],
+                                canIpForward: canIpForward,
                                 metadata: metadata,
                                 tags: tags,
                                 labels: description.labels,

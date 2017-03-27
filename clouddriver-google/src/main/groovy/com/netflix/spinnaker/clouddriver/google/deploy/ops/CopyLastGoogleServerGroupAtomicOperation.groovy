@@ -210,6 +210,11 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
           description.associatePublicIpAddress != null
           ? description.associatePublicIpAddress
           : ancestorInstanceProperties.networkInterfaces?.getAt(0)?.accessConfigs?.size() > 0
+
+      newDescription.canIpForward =
+          description.canIpForward != null
+          ? description.canIpForward
+          : ancestorInstanceProperties.canIpForward
     }
 
     AutoscalingPolicy ancestorAutoscalingPolicy = ancestorServerGroup.autoscalingPolicy
