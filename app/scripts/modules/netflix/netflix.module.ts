@@ -1,8 +1,12 @@
 import {module} from 'angular';
 
-import {APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry} from 'core/application/service/applicationDataSource.registry';
+import {
+  APPLICATION_DATA_SOURCE_REGISTRY,
+  ApplicationDataSourceRegistry
+} from 'core/application/service/applicationDataSource.registry';
 import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {BLESK_MODULE} from './blesk/blesk.module';
+import {EXCEPTION_HANDLER} from './exception/exceptionHandler';
 import {TABLEAU_STATES} from './tableau/tableau.states';
 import {ISOLATED_TESTING_TARGET_STAGE_MODULE} from './pipeline/stage/isolatedTestingTarget/isolatedTestingTargetStage.module';
 import {FEEDBACK_MODULE} from './feedback/feedback.module';
@@ -21,7 +25,7 @@ module('spinnaker.netflix', [
   require('./whatsNew/whatsNew.directive.js'),
   BLESK_MODULE,
   require('./fastProperties/fastProperties.module.js'),
-  require('./alert/alertHandler.js'),
+  EXCEPTION_HANDLER,
   FEEDBACK_MODULE,
   require('./instance/aws/netflixAwsInstanceDetails.controller.js'),
   require('./instance/titus/netflixTitusInstanceDetails.controller.js'),
