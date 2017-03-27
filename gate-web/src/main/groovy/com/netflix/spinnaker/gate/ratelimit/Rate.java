@@ -19,9 +19,10 @@ import javax.servlet.http.HttpServletResponse;
 
 public class Rate {
 
-  private static final String CAPACITY_HEADER = "X-RateLimit-Capacity";
-  private static final String REMAINING_HEADER = "X-RateLimit-Remaining";
-  private static final String RESET_HEADER = "X-RateLimit-Reset";
+  static final String CAPACITY_HEADER = "X-RateLimit-Capacity";
+  static final String REMAINING_HEADER = "X-RateLimit-Remaining";
+  static final String RESET_HEADER = "X-RateLimit-Reset";
+  static final String LEARNING_HEADER = "X-RateLimit-Learning";
 
   Integer capacity;
   Integer rateSeconds;
@@ -33,9 +34,10 @@ public class Rate {
     return throttled;
   }
 
-  public void assignHttpHeaders(HttpServletResponse response) {
+  public void assignHttpHeaders(HttpServletResponse response, Boolean learning) {
     response.setIntHeader(CAPACITY_HEADER, capacity);
     response.setIntHeader(REMAINING_HEADER, remaining);
     response.setDateHeader(RESET_HEADER, reset);
+    response.setHeader(LEARNING_HEADER, learning.toString());
   }
 }

@@ -23,10 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.ZonedDateTime;
 
 public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
@@ -56,24 +58,36 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
     Rate rate = rateLimiter.incrementAndGetRate(principal);
 
+    rate.assignHttpHeaders(response, learning);
+
     if (learning) {
       if (rate.isThrottled()) {
         throttlingCounter.increment();
-        log.warn("Rate limiting principal (principal: {}, learning: true)", principal);
+        log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: true)", principal, rate.rateSeconds, rate.capacity);
       }
       return true;
     }
 
-    rate.assignHttpHeaders(response);
 
     if (rate.isThrottled()) {
       throttlingCounter.increment();
-      log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {})", principal, rate.rateSeconds, rate.capacity);
+      log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: false)", principal, rate.rateSeconds, rate.capacity);
       response.sendError(429, "Rate capacity exceeded");
       return false;
     }
 
     return true;
+  }
+
+  @Override
+  public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+    // Hystrix et-al can return 429's, which we'll want to intercept to provide a reset header
+    if (response.getStatus() == 429 && !response.getHeaderNames().contains(Rate.RESET_HEADER)) {
+      response.setIntHeader(Rate.CAPACITY_HEADER, -1);
+      response.setIntHeader(Rate.REMAINING_HEADER, 0);
+      response.setDateHeader(Rate.RESET_HEADER, ZonedDateTime.now().plusSeconds(5).toEpochSecond());
+      response.setHeader(Rate.LEARNING_HEADER, "false");
+    }
   }
 
   private Object getPrincipal() {
