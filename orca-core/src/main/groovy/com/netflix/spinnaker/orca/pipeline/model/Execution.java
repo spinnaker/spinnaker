@@ -80,7 +80,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
       if (spinnakerUserOptional.isPresent() || spinnakerAccountsOptional.isPresent()) {
         return Optional.of(new AuthenticationDetails(
           spinnakerUserOptional.orElse(null),
-          spinnakerAccountsOptional.map(s -> s.split(",")).orElse(null)
+          spinnakerAccountsOptional.map(s -> s.split(",")).orElse(new String[0])
         ));
       }
 
