@@ -7,17 +7,17 @@ interface IClassicLaunchWhitelist {
 
 export interface IAWSProviderSettings extends IProviderSettings {
   defaults: {
-    account: string;
-    region: string;
-    iamRole: string;
+    account?: string;
+    region?: string;
+    iamRole?: string;
     subnetType?: string;
   };
-  defaultSecurityGroups: string[];
-  loadBalancers: {
+  defaultSecurityGroups?: string[];
+  loadBalancers?: {
     inferInternalFlagFromSubnet: boolean;
     certificateTypes?: string[];
   };
-  useAmiBlockDeviceMappings: boolean;
+  useAmiBlockDeviceMappings?: boolean;
   classicLaunchLockout?: number;
   classicLaunchWhitelist?: IClassicLaunchWhitelist[];
   metrics?: {
@@ -25,7 +25,7 @@ export interface IAWSProviderSettings extends IProviderSettings {
   };
 }
 
-export const AWSProviderSettings: IAWSProviderSettings = <IAWSProviderSettings>SETTINGS.providers.aws;
+export const AWSProviderSettings: IAWSProviderSettings = <IAWSProviderSettings>SETTINGS.providers.aws || { defaults: {} };
 if (AWSProviderSettings) {
   AWSProviderSettings.resetToOriginal = SETTINGS.resetToOriginal;
 }

@@ -22,12 +22,12 @@ export interface INetflixSettings extends ISpinnakerSettings {
       helpChannelName: string;
     }
   };
-  feedbackUrl: string;
+  feedbackUrl?: string;
   tableau?: {
     appSourceUrl: string;
     summarySourceUrl: string;
   };
-  whatsNew: {
+  whatsNew?: {
     gistId: string;
     fileName: string;
     accessToken?: string;
