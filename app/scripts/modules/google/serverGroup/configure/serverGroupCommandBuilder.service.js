@@ -249,6 +249,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         regional: false, // TODO(duftler): Externalize this default alongside defaultRegion and defaultZone.
         network: 'default',
         associatePublicIpAddress: true,
+        canIpForward: false,
         strategy: '',
         capacity: {
           min: 0,
@@ -330,6 +331,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         network: extractNetworkName(serverGroup),
         subnet: extractSubnetName(serverGroup),
         associatePublicIpAddress: determineAssociatePublicIPAddress(serverGroup),
+        canIpForward: serverGroup.canIpForward,
         instanceMetadata: {},
         tags: [],
         labels: {},

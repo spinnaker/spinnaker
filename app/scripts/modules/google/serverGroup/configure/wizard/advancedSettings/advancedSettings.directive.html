@@ -144,6 +144,24 @@
 </div>
 <div class="form-group">
   <div class="col-md-5 sm-label-right">
+    <b>Can IP Forward</b>
+    <help-field key="gce.serverGroup.canIpForward"></help-field>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="vm.command.canIpForward" ng-value="true" id="canIpForwardTrue"/>
+      Yes
+    </label>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="vm.command.canIpForward" ng-value="false" id="canIpForwardFalse"/>
+      No
+    </label>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-right">
     <b>Service Account</b>
     <help-field key="gce.instance.serviceAccount"></help-field>
   </div>

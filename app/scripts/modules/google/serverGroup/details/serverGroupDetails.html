@@ -155,6 +155,8 @@
         <dd ng-if="ctrl.serverGroup.subnet">{{ctrl.serverGroup.subnet}}</dd>
         <dt>Associate Public IP Address</dt>
         <dd>{{ctrl.serverGroup.associatePublicIPAddress}}</dd>
+        <dt>Can IP Forward</dt>
+        <dd>{{ctrl.serverGroup.canIpForward}}</dd>
         <dt>Startup Script</dt>
         <dd ng-if="ctrl.serverGroup.startupScript"><a href ng-click="ctrl.showStartupScript()">Show Startup Script</a></dd>
         <dd ng-if="!ctrl.serverGroup.startupScript">[none]</dd>
