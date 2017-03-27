@@ -15,6 +15,7 @@ export class PropertyPipelineStage implements IStage {
   public cmcTicket: string;
   public delete: boolean;
   public scope: Scope;
+  public rawScope: Scope;
   public persistedProperties: Property[] = [];
   public originalProperties: Property[] = [];
   public requisiteStageRefIds: (string | number)[] = [];
@@ -37,13 +38,14 @@ export class PropertyPipelineStage implements IStage {
     return stage;
   }
 
-  public static newPropertyStage(user: IUser, command: PropertyCommand, previousStage?: IStage): PropertyPipelineStage {
+  public static newPropertyStage(user: IUser, scope: Scope, command: PropertyCommand, previousStage?: IStage): PropertyPipelineStage {
     let property: Property = PropertyPipelineStage.clonePropertyForStage(user, command.property);
     property.propertyId = null;
 
-    let scope: Scope = command.scopeForSubmit();
+    let scopeForSubmit: Scope = scope.forSubmit(command.property.env);
 
-    let stage = new PropertyPipelineStage(property, scope, previousStage);
+    let stage = new PropertyPipelineStage(property, scopeForSubmit, previousStage);
+    stage.rawScope = scope; // This is so we can display the selected scope on the Review section of the wizard
     stage.delete = false;
     stage.description = `Create new property for ${property.key}`;
 
@@ -56,6 +58,7 @@ export class PropertyPipelineStage implements IStage {
     let property: Property = PropertyPipelineStage.clonePropertyForStage(user, command.property);
     let scope: Scope = command.originalScopeForSubmit();
     let stage = new PropertyPipelineStage(property, scope, previousStage);
+    stage.rawScope = command.originalScope; // This is so we can display the selected scope on the Review section of the wizard
     stage.delete = true;
     stage.description = `Deleting property for ${property.key}`;
     PropertyPipelineStage.addOriginalProperty(stage, command);
@@ -63,10 +66,11 @@ export class PropertyPipelineStage implements IStage {
     return stage;
   }
 
-  public static upsertPropertyStage(user: IUser, command: PropertyCommand, previousStage?: IStage): PropertyPipelineStage {
+  public static upsertPropertyStage(user: IUser, scope: Scope, command: PropertyCommand, previousStage?: IStage): PropertyPipelineStage {
     let property: Property = PropertyPipelineStage.clonePropertyForStage(user, command.property);
-    let scope: Scope = command.scopeForSubmit();
-    let stage = new PropertyPipelineStage(property, scope, previousStage);
+    let scopeForSubmit: Scope = scope.forSubmit(command.property.env);
+    let stage = new PropertyPipelineStage(property, scopeForSubmit, previousStage);
+    stage.rawScope = scope; // This is so we can display the selected scope on the Review section of the wizard
     stage.delete = command.type === PropertyCommandType.DELETE;
     stage.description = `Upserting property for ${property.key}`;
     PropertyPipelineStage.addOriginalProperty(stage, command);

@@ -28,7 +28,7 @@ export class FastPropertyScopeReadOnlyComponentController implements IComponentC
 
   public selectScope(scopeOption: Scope): void {
     this.selectedScope = scopeOption.copy();
-    this.command.scope = this.selectedScope;
+    this.command.scopes = [this.selectedScope];
   }
 
   public toggleEditScope(): void {
@@ -37,7 +37,7 @@ export class FastPropertyScopeReadOnlyComponentController implements IComponentC
 
   public removeNewScope(): void {
     this.selectedScope = null;
-    this.command.scope = this.command.originalScope.copy();
+    this.command.scopes = [this.command.originalScope.copy()];
   }
 }
 

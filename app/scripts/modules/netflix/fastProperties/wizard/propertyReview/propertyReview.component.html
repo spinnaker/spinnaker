@@ -23,24 +23,6 @@
       </div>
     </div>
 
-    <!--Scope-->
-    <div
-      class="col-md-6"
-      ng-if="$ctrl.command.scope">
-      <h4>Scope</h4>
-
-      <div>
-        <b>Category:</b> {{$ctrl.command.scope.getCategory()}}
-      </div>
-
-      <div>
-        <b>Scope:</b> {{$ctrl.command.scope.getBaseOfScope()}}
-      </div>
-
-      <div>
-        <b>Instances Impacted:</b> <b class="attention">{{$ctrl.command.scope.instanceCounts.up}}</b>
-      </div>
-    </div>
 
   </div>
 
@@ -55,6 +37,18 @@
         <li ng-repeat="stage in $ctrl.command.pipeline.stages">
           <b>{{stage.name}}</b>
           <span ng-if="stage.description">({{stage.description}})</span>
+
+          <div ng-if="stage.rawScope" style="margin-left: 15px">
+            <div>
+              <b>Scope:</b> {{stage.rawScope.getBaseOfScope()}}
+            </div>
+            <div>
+              <b>Category:</b> {{stage.rawScope.getCategory()}}
+            </div>
+            <div>
+              <b>Instances Impacted:</b> <b class="attention">{{stage.rawScope.instanceCounts.up}}</b>
+            </div>
+          </div>
         </li>
       </ul>
 

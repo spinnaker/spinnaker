@@ -47,7 +47,7 @@ describe('propertyCommand model', function () {
       selectedScope.appId = 'newApp';
 
       command.originalScope = origScope;
-      command.scope = selectedScope;
+      command.scopes = [selectedScope];
 
       expect(command.isMoveToNewScope()).toBe(true);
     });
@@ -64,7 +64,7 @@ describe('propertyCommand model', function () {
       selectedScope.instanceCounts = {up: 99};
 
       command.originalScope = origScope;
-      command.scope = selectedScope;
+      command.scopes = [selectedScope];
 
       expect(command.isMoveToNewScope()).toBe(false);
     });
@@ -77,7 +77,7 @@ describe('propertyCommand model', function () {
       scope.appId = 'mahe';
 
       command.originalScope = scope;
-      command.scope = scope;
+      command.scopes = [scope];
 
       expect(command.isMoveToNewScope()).toBe(false);
     });
@@ -89,7 +89,7 @@ describe('propertyCommand model', function () {
       scope.appId = 'mahe';
 
       command.originalScope = scope;
-      command.scope = null;
+      command.scopes = [];
 
       expect(command.isMoveToNewScope()).toBe(false);
     });
@@ -101,7 +101,7 @@ describe('propertyCommand model', function () {
       scope.appId = 'mahe';
 
       command.originalScope = null;
-      command.scope = scope;
+      command.scopes = [scope];
 
       expect(command.isMoveToNewScope()).toBe(false);
     });

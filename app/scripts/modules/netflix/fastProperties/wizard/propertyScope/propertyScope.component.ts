@@ -13,12 +13,17 @@ export class FastPropertyScopeComponentController implements IComponentControlle
 
   public selectScope(scopeOption: Scope) {
     this.selectedScope = scopeOption.copy();
-    this.command.scope = this.selectedScope;
+    this.command.scopes.push(this.selectedScope);
   }
 
-  public toggleEditScope() {
-    this.isEditing = !this.isEditing;
+  public toggleEditScope(scopeIndex: number): void {
+    let scope: Scope = this.command.scopes[scopeIndex];
+    let isEditing = scope.isEditing;
+    scope.isEditing = !isEditing;
+  }
 
+  public removeScope(scopeIndex: number): void {
+    this.command.scopes.splice(scopeIndex, 1);
   }
 }
 

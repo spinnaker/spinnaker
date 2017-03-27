@@ -1,5 +1,5 @@
 import './propertyStrategy.component.less';
-import { module } from 'angular';
+import { module, IComponentController, IComponentOptions, IScope } from 'angular';
 import { FAST_PROPERTY_PIPELINE_BUILDER_SERVICE, PropertyPipelineBuilderService} from '../propertyPipelineBuilder.service';
 import {PropertyCommand} from '../../domain/propertyCommand.model';
 import {PropertyPipeline} from '../../domain/propertyPipeline.domain';
@@ -7,7 +7,7 @@ import {PropertyCommandType} from '../../domain/propertyCommandType.enum';
 import {ForcePushStrategy, ManualStrategy, AcaStrategy} from '../../domain/propertyStrategy.domain';
 import {ACCOUNT_SERVICE, AccountService, IAccount } from 'core/account/account.service';
 
-export class FastPropertyStrategyComponentController implements ng.IComponentController {
+export class FastPropertyStrategyComponentController implements IComponentController {
   public command: PropertyCommand;
   public pipeline: PropertyPipeline;
   public recommendationText: string;
@@ -23,7 +23,7 @@ export class FastPropertyStrategyComponentController implements ng.IComponentCon
     ];
   }
 
-  constructor(private $scope: ng.IScope,
+  constructor(private $scope: IScope,
               private accountService: AccountService,
               private propertyPipelineBuilderService: PropertyPipelineBuilderService) {
 
@@ -39,7 +39,7 @@ export class FastPropertyStrategyComponentController implements ng.IComponentCon
 
   public $onInit() {
     this.$scope.$watchCollection('$ctrl.command.property', () => this.buildPropertyPipeline(this.command));
-    this.$scope.$watchCollection('$ctrl.command.scope', () => this.suggestStrategyAndBuildPipeline(this.command));
+    this.$scope.$watchCollection('$ctrl.command.scopes', () => this.suggestStrategyAndBuildPipeline(this.command));
     this.$scope.$watchCollection('$ctrl.command.strategy', () => this.buildPropertyPipeline(this.command));
     this.$scope.$watchCollection('$ctrl.command.strategy.configDetails', () => this.buildPropertyPipeline(this.command));
   }
@@ -59,7 +59,7 @@ export class FastPropertyStrategyComponentController implements ng.IComponentCon
   }
 
   private buildPropertyPipeline(command: PropertyCommand) {
-    if (command && command.scope && command.property && command.isReadyForPipeline()) {
+    if (command && command.scopes && command.property && command.isReadyForPipeline()) {
       this.propertyPipelineBuilderService.build(command)
         .then((pipeline: PropertyPipeline) => {
           this.pipeline = pipeline;
@@ -72,21 +72,21 @@ export class FastPropertyStrategyComponentController implements ng.IComponentCon
     if (command.isReadyForStrategy()) {
       if (command.type === PropertyCommandType.CREATE) {
         this.selectForcePush();
-        this.recommendationText = `The "Force Push" strategy is recommended for creating a new Fast Property that only affects ${command.scope.instanceCounts.up} running instances`;
+        this.recommendationText = `The "Force Push" strategy is recommended for creating a new Fast Property that only affects ${command.getCombinedInstanceCountsForAllScopes()} running instances`;
       }
       if (command.type === PropertyCommandType.UPDATE) {
         this.selectAca();
-        this.recommendationText = `The "ACA" strategy is recommended for updating a Fast Property that affects ${command.scope.instanceCounts.up} running instances`;
+        this.recommendationText = `The "ACA" strategy is recommended for updating a Fast Property that affects ${command.getCombinedInstanceCountsForAllScopes()} running instances`;
       }
       if (command.type === PropertyCommandType.DELETE) {
         this.selectManual();
-        this.recommendationText = `The "Manual" strategy is recommended for deleting a Fast Property that affects ${command.scope.instanceCounts.up} running instances`;
+        this.recommendationText = `The "Manual" strategy is recommended for deleting a Fast Property that affects ${command.getCombinedInstanceCountsForAllScopes()} running instances`;
       }
     }
   }
 }
 
-class FastPropertyStrategyComponent implements ng.IComponentOptions {
+class FastPropertyStrategyComponent implements IComponentOptions {
   public templateUrl: string = require('./propertyStrategy.component.html');
   public controller: any = FastPropertyStrategyComponentController;
   public bindings: any = {

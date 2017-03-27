@@ -103,7 +103,7 @@ export class FastPropertyScopeCategoryService {
   public impactCountForRegions(scope: Scope): ng.IPromise<IImpactCounts> {
     return this.fastPropertyReader.fetchImpactCountForScope(scope)
       .then((results: any) => {
-        return <IImpactCounts>{total: results.count, up: results.count};
+        return <IImpactCounts>{total: parseInt(results.count, 10), up: parseInt(results.count, 10)};
       });
   }
 

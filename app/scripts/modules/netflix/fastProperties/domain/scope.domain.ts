@@ -13,6 +13,7 @@ export class Scope {
   public asg: string;
   public serverId: string;
   public zone: string;
+  public isEditing: boolean;
   public instanceCounts: IImpactCounts = <IImpactCounts>{
     down: 0,
     up: 0,
@@ -71,6 +72,7 @@ export class Scope {
     copy.appIdList = this.appId ? this.appId.split(',').map(appName => appName.trim()) : [];
     delete copy.instanceCounts;
     delete copy.appId;
+    delete copy.isEditing;
     return copy;
   }
 

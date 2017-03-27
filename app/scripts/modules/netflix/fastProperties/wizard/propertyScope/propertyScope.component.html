@@ -3,6 +3,9 @@
     <div class="row" style="display: flex; flex-wrap: wrap">
 
       <p>Setting the <b>scope</b> of a property determines what instances will have access to a given property.</p>
+
+      <p><b>Properties can be applied to multiple scopes.</b></p>
+
       <p>
         Properties can be scoped to a <b>Region, Application, Cluster, ASG, or Instance</b>.  Properties can also be scoped
         <b>Globally</b> but it is considered bad practice unless absolutely necessary.
@@ -33,126 +36,137 @@
       <!--
        RIGHT COLUMN
        -->
-      <div class="col-md-5">
-        <div class="row" ng-if="$ctrl.selectedScope">
-          <div class="col-md-9">
-            <h4 ng-if="$ctrl.selectedScope.instanceCounts">
-              Impact Count:
-              <span class="attention">{{$ctrl.selectedScope.instanceCounts.up}}</span>
-            </h4>
-          </div>
-          <div class="col-md-3">
-            <a
-              href
-              class="btn btn-link"
-              ng-if="!$ctrl.isEditing"
-              ng-click="$ctrl.toggleEditScope()">
-              <i class="fa fa-edit"></i>
-            </a>
-          </div>
-        </div>
+      <div class="col-md-5" ng-if="$ctrl.command.scopes">
+        <div class="row"  ng-repeat="scope in $ctrl.command.scopes track by $index">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title" style="display: inline-block;">
+                Scope #{{$index + 1}}
+              </h4>
+                <a
+                  href
+                  class="btn btn-link btn-sm"
+                  ng-if="!scope.isEditing"
+                  ng-click="$ctrl.toggleEditScope($index)">
+                  <i class="fa fa-edit"></i>
+                </a>
+                <a
+                  href
+                  class="btn btn-link btn-sm pull-right"
+                  ng-click="$ctrl.removeScope($index)">
+                  <i class="fa fa-trash-o"></i>
+                </a>
+            </div>
+            <div class="panel-body">
 
-        <div>
-          <table class="table table-hover" style="margin-bottom: 5px" >
-            <tbody>
-            <tr ng-if="$ctrl.selectedScope.env">
-              <td><b>Env</b></td>
-              <td> {{$ctrl.selectedScope.env}} </td>
-            </tr>
-            <tr ng-if="$ctrl.selectedScope.appId">
-              <td><b>Apps</b></td>
-              <td>
-                <span ng-if="!$ctrl.isEditing">
-                  {{$ctrl.selectedScope.appId}}
-                </span>
-                <input
-                  class="form-control"
-                  ng-if="$ctrl.isEditing"
-                  type="text" ng-model="$ctrl.selectedScope.appId">
-              </td>
-            </tr>
-            <tr ng-if="$ctrl.selectedScope.region">
-              <td><b>Region</b></td>
-              <td>
-                <span ng-if="!$ctrl.isEditing">
-                  {{$ctrl.selectedScope.region}}
-                </span>
-                <input
-                  class="form-control"
-                  ng-if="$ctrl.isEditing"
-                  type="text" ng-model="$ctrl.selectedScope.region">
-              </td>
-            </tr>
-            <tr ng-if="$ctrl.selectedScope.stack">
-              <td><b>Stack</b></td>
-              <td>
-                <span ng-if="!$ctrl.isEditing">
-                  {{$ctrl.selectedScope.stack}}
-                </span>
-                <input
-                  class="form-control"
-                  ng-if="$ctrl.isEditing"
-                  type="text" ng-model="$ctrl.selectedScope.stack">
-              </td>
-            </tr>
-            <tr ng-if="$ctrl.selectedScope.cluster">
-              <td><b>Cluster</b></td>
-              <td>
-                <span ng-if="!$ctrl.isEditing">
-                  {{$ctrl.selectedScope.cluster}}
-                </span>
-                <input
-                  class="form-control"
-                  ng-if="$ctrl.isEditing"
-                  type="text" ng-model="$ctrl.selectedScope.cluster">
-              </td>
+              <table class="table table-hover" style="margin-bottom: 5px" >
+                <tbody>
+                <tr ng-if="scope.instanceCounts">
+                  <td><b>Impact Count</b></td>
+                  <td>
+                    <span class="attention">{{scope.instanceCounts.up}}</span>
+                  </td>
+                </tr>
+                <tr ng-if="scope.env">
+                  <td><b>Env</b></td>
+                  <td> {{scope.env}} </td>
+                </tr>
+                <tr ng-if="scope.appId">
+                  <td><b>Apps</b></td>
+                  <td>
+                    <span ng-if="!scope.isEditing">
+                      {{scope.appId}}
+                    </span>
+                    <input
+                      class="form-control"
+                      ng-if="scope.isEditing"
+                      type="text" ng-model="scope.appId">
+                  </td>
+                </tr>
+                <tr ng-if="scope.region">
+                  <td><b>Region</b></td>
+                  <td>
+                    <span ng-if="!scope.isEditing">
+                      {{scope.region}}
+                    </span>
+                    <input
+                      class="form-control"
+                      ng-if="scope.isEditing"
+                      type="text" ng-model="scope.region">
+                  </td>
+                </tr>
+                <tr ng-if="scope.stack">
+                  <td><b>Stack</b></td>
+                  <td>
+                    <span ng-if="!scope.isEditing">
+                      {{scope.stack}}
+                    </span>
+                    <input
+                      class="form-control"
+                      ng-if="scope.isEditing"
+                      type="text" ng-model="scope.stack">
+                  </td>
+                </tr>
+                <tr ng-if="scope.cluster">
+                  <td><b>Cluster</b></td>
+                  <td>
+                    <span ng-if="!scope.isEditing">
+                      {{scope.cluster}}
+                    </span>
+                    <input
+                      class="form-control"
+                      ng-if="scope.isEditing"
+                      type="text" ng-model="scope.cluster">
+                  </td>
 
-            </tr>
-            <tr ng-if="$ctrl.selectedScope.asg">
-              <td><b>ASG</b></td>
-              <td>
-                <span ng-if="!$ctrl.isEditing">
-                  {{$ctrl.selectedScope.asg}}
-                </span>
-                <input
-                  class="form-control"
-                  ng-if="$ctrl.isEditing"
-                  type="text" ng-model="$ctrl.selectedScope.asg">
-              </td>
-            </tr>
-            <tr ng-if="$ctrl.selectedScope.zone">
-              <td><b>Zone</b></td>
-              <td>
-                <span ng-if="!$ctrl.isEditing">
-                  {{$ctrl.selectedScope.zone}}
-                </span>
-                <input
-                  class="form-control"
-                  ng-if="$ctrl.isEditing"
-                  type="text" ng-model="$ctrl.selectedScope.zone">
-              </td>
-            </tr>
-            <tr ng-if="$ctrl.selectedScope.serverId">
-              <td><b>Instance</b></td>
-              <td>
-                <span ng-if="!$ctrl.isEditing">
-                  {{$ctrl.selectedScope.serverId}}
-                </span>
-                <input
-                  class="form-control"
-                  ng-if="$ctrl.isEditing"
-                  type="text" ng-model="$ctrl.selectedScope.serverId">
-              </td>
-            </tr>
-            </tbody>
-          </table>
-            <button
-              class="btn btn-primary btn-xs"
-              ng-if="$ctrl.isEditing"
-              ng-click="$ctrl.toggleEditScope()"
-              type="button">
-              Save Scope
-            </button>
+                </tr>
+                <tr ng-if="scope.asg">
+                  <td><b>ASG</b></td>
+                  <td>
+                    <span ng-if="!scope.isEditing">
+                      {{scope.asg}}
+                    </span>
+                    <input
+                      class="form-control"
+                      ng-if="scope.isEditing"
+                      type="text" ng-model="scope.asg">
+                  </td>
+                </tr>
+                <tr ng-if="scope.zone">
+                  <td><b>Zone</b></td>
+                  <td>
+                    <span ng-if="!scope.isEditing">
+                      {{scope.zone}}
+                    </span>
+                    <input
+                      class="form-control"
+                      ng-if="scope.isEditing"
+                      type="text" ng-model="scope.zone">
+                  </td>
+                </tr>
+                <tr ng-if="scope.serverId">
+                  <td><b>Instance</b></td>
+                  <td>
+                    <span ng-if="!scope.isEditing">
+                      {{scope.serverId}}
+                    </span>
+                    <input
+                      class="form-control"
+                      ng-if="scope.isEditing"
+                      type="text" ng-model="scope.serverId">
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+              <button
+                class="btn btn-primary btn-xs"
+                ng-if="scope.isEditing"
+                ng-click="$ctrl.toggleEditScope($index)"
+                type="button">
+                Save Scope
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
