@@ -356,7 +356,7 @@ class KubernetesApiConverter {
         containerBuilder = containerBuilder.withPostStart(toHandler(container.lifecycle.postStart))
       }
       if (container.lifecycle.preStop) {
-        containerBuilder = containerBuilder.withPostStart(toHandler(container.lifecycle.preStop))
+        containerBuilder = containerBuilder.withPreStop(toHandler(container.lifecycle.preStop))
       }
       containerBuilder = containerBuilder.endLifecycle()
     }
