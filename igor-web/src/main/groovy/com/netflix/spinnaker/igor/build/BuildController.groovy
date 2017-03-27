@@ -19,16 +19,13 @@ package com.netflix.spinnaker.igor.build
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
-import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildMasters
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
-import org.springframework.web.bind.annotation.ExceptionHandler
-import retrofit.RetrofitError
-import javax.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -36,6 +33,9 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 import org.yaml.snakeyaml.Yaml
+import retrofit.RetrofitError
+
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.ExecutorService
 
@@ -207,6 +207,11 @@ class BuildController {
                 String path = jenkinsService.getBuild(job, buildNumber).artifacts.find {
                     it.fileName == fileName
                 }?.relativePath
+
+                if (path == null) {
+                    log.error("Unable to get properties: Could not find build artifact matching requested filename '${fileName}' on '${master}' build '${buildNumber}")
+                    return map
+                }
 
                 def propertyStream = jenkinsService.getPropertyFile(job, buildNumber, path).body.in()
 
