@@ -202,7 +202,7 @@ def main():
   return citest.base.TestRunner.main(
       parser_inits=[AzureFront50TestScenario.initArgumentParser],
       default_binding_overrides=defaults,
-      test_case_list=[GoogleFront50Test])
+      test_case_list=[AzureFront50TestScenario])
 
 
 if __name__ == '__main__':
