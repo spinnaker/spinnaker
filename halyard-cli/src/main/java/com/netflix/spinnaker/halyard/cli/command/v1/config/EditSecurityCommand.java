@@ -78,7 +78,7 @@ public class EditSecurityCommand extends AbstractConfigCommand {
     security.setUiAddress(uiAddress);
     security.setApiAddress(apiAddress);
     security.setUiDomain(uiDomain);
-    security.setUiAddress(apiDomain);
+    security.setApiDomain(apiDomain);
 
     if (originalHash == security.hashCode()) {
       AnsiUi.failure("No changes supplied.");
