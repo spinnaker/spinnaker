@@ -12,6 +12,7 @@ import {APPLICATIONS_STATE_PROVIDER} from './application/applications.state.prov
 import {INFRASTRUCTURE_STATES} from './search/infrastructure/infrastructure.states';
 import {VERSION_CHECK_SERVICE} from './config/versionCheck.service';
 import {CORE_WIDGETS_MODULE} from './widgets';
+import {SETTINGS} from 'core/config/settings';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -61,7 +62,6 @@ module.exports = angular
     require('./cloudProvider/serviceDelegate.service.js'),
     require('./cluster/cluster.module.js'),
     VERSION_CHECK_SERVICE,
-    require('./config/settings.js'),
 
     require('./delivery/delivery.module.js'),
     require('./deploymentStrategy/deploymentStrategy.module.js'),
@@ -136,10 +136,10 @@ module.exports = angular
     CORE_WIDGETS_MODULE,
     require('./validation/validation.module.js'),
   ])
-  .run(function($rootScope, $log, $state, settings) {
+  .run(function($rootScope, $log, $state) {
     window.Spinner = Spinner;
 
-    $rootScope.feature = settings.feature;
+    $rootScope.feature = SETTINGS.feature;
 
     $rootScope.$state = $state; // TODO: Do we really need this?
 
@@ -177,8 +177,8 @@ module.exports = angular
   .run(function (cacheInitializer) {
     cacheInitializer.initialize();
   })
-  .config(function ($logProvider, settings) {
-    $logProvider.debugEnabled(settings.debugEnabled);
+  .config(function ($logProvider) {
+    $logProvider.debugEnabled(SETTINGS.debugEnabled);
   })
   .config(function($uibTooltipProvider) {
     $uibTooltipProvider.options({

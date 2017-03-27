@@ -1,13 +1,13 @@
 import {module} from 'angular';
 
+import {SETTINGS} from '../config/settings';
+
 class RenderIfFeatureController implements ng.IComponentController {
   public feature: string;
   public featureEnabled = false;
 
-  constructor(private settings: any) {}
-
   public $onInit(): void {
-    this.featureEnabled = this.feature && this.settings.feature[this.feature];
+    this.featureEnabled = this.feature && SETTINGS.feature[this.feature];
   }
 }
 
@@ -19,5 +19,5 @@ class RenderIfFeatureComponent implements ng.IComponentOptions {
 }
 
 export const RENDER_IF_FEATURE = 'spinnaker.core.renderIfFeature.directive';
-module(RENDER_IF_FEATURE, [require('core/config/settings.js')])
+module(RENDER_IF_FEATURE, [])
   .component('renderIfFeature', new RenderIfFeatureComponent());

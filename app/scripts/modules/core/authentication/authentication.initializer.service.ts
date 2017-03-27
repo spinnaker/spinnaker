@@ -6,6 +6,7 @@ import {IModalService, IModalStackService} from 'angular-ui-bootstrap';
 import {IDeckRootScope} from '../domain/deckRootScope';
 import {REDIRECT_SERVICE, RedirectService} from './redirect.service';
 import {AUTHENTICATION_SERVICE, AuthenticationService} from './authentication.service';
+import {SETTINGS} from 'core/config/settings';
 
 interface IAuthResponse {
   username: string;
@@ -17,7 +18,7 @@ export class AuthenticationInitializer {
   static get $inject(): string[] {
     return [
       '$location', '$rootScope', '$http', '$uibModal', '$uibModalStack',
-      'settings', 'redirectService', 'authenticationService'
+      'redirectService', 'authenticationService'
     ];
   }
 
@@ -29,13 +30,12 @@ export class AuthenticationInitializer {
               private $http: ng.IHttpService,
               private $uibModal: IModalService,
               private $uibModalStack: IModalStackService,
-              private settings: any,
               private redirectService: RedirectService,
               private authenticationService: AuthenticationService) {
   }
 
   private checkForReauthentication(): void {
-    this.$http.get(this.settings.authEndpoint)
+    this.$http.get(SETTINGS.authEndpoint)
       .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
           this.authenticationService.setAuthenticatedUser({
@@ -72,12 +72,12 @@ export class AuthenticationInitializer {
 
   private loginRedirect(): void {
     const callback: string = encodeURIComponent(this.$location.absUrl());
-    this.redirectService.redirect(`${this.settings.gateUrl}/auth/redirect?to=${callback}`);
+    this.redirectService.redirect(`${SETTINGS.gateUrl}/auth/redirect?to=${callback}`);
   }
 
   public authenticateUser() {
     this.$rootScope.authenticating = true;
-    this.$http.get(this.settings.authEndpoint)
+    this.$http.get(SETTINGS.authEndpoint)
       .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
           this.authenticationService.setAuthenticatedUser({
@@ -95,7 +95,7 @@ export class AuthenticationInitializer {
 
   public reauthenticateUser(): void {
     if (!this.userLoggedOut) {
-      this.$http.get(this.settings.authEndpoint)
+      this.$http.get(SETTINGS.authEndpoint)
         .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
           if (response.data.username) {
             this.authenticationService.setAuthenticatedUser({
@@ -119,7 +119,7 @@ export class AuthenticationInitializer {
         transformResponse: (response: string) => response,
       };
 
-      this.$http.get(`${this.settings.gateUrl}/auth/logout`, config)
+      this.$http.get(`${SETTINGS.gateUrl}/auth/logout`, config)
         .then(() => this.loggedOutSequence(), () => this.loggedOutSequence());
     }
   }
@@ -134,7 +134,6 @@ export class AuthenticationInitializer {
 export const AUTHENTICATION_INITIALIZER_SERVICE = 'spinnaker.authentication.initializer.service';
 module(AUTHENTICATION_INITIALIZER_SERVICE, [
   require('angular-ui-bootstrap'),
-  require('../config/settings'),
   REDIRECT_SERVICE,
   AUTHENTICATION_SERVICE,
   require('./loggedOut.modal.controller')

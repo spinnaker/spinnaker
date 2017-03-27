@@ -18,10 +18,9 @@ module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
   require('core/utils/selectOnDblClick.directive.js'),
-  require('core/config/settings.js'),
   require('amazon/instance/details/instance.details.controller.js'),
 ])
-  .controller('netflixAwsInstanceDetailsCtrl', function ($scope, $state, $uibModal, settings,
+  .controller('netflixAwsInstanceDetailsCtrl', function ($scope, $state, $uibModal,
                                                          instanceWriter, confirmationModalService, recentHistoryService,
                                                          accountService,
                                                          instanceReader, instance, app, $q, $controller) {
@@ -45,7 +44,6 @@ module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
       $scope: $scope,
       $state: $state,
       $uibModal: $uibModal,
-      settings: settings,
       instanceWriter: instanceWriter,
       confirmationModalService: confirmationModalService,
       recentHistoryService: recentHistoryService,

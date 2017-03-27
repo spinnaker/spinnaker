@@ -1,5 +1,4 @@
 import Spy = jasmine.Spy;
-import IProvideService = angular.auto.IProvideService;
 import {mock} from 'angular';
 
 import {PipelineConfigService} from '../services/pipelineConfig.service';
@@ -18,9 +17,9 @@ import {IStage} from 'core/domain/IStage';
 import {IPipeline} from 'core/domain/IPipeline';
 import {IServiceAccountAccessValidationConfig, ITriggerWithServiceAccount} from './serviceAccountAccess.validator';
 import {ServiceAccountService} from 'core/serviceAccount/serviceAccount.service';
+import {SETTINGS} from 'core/config/settings';
 
 describe('pipelineConfigValidator', () => {
-
   let pipeline: IPipeline,
       validate: () => void,
       validationResults: IPipelineValidationResults,
@@ -79,14 +78,9 @@ describe('pipelineConfigValidator', () => {
     )
   );
 
-  beforeEach(
-    mock.module(($provide: IProvideService) => {
-      return $provide.constant('settings', {
-        feature: {
-          fiatEnabled: true,
-        }
-      });
-  }));
+  beforeEach(function () {
+    SETTINGS.feature.fiatEnabled = true;
+  });
 
   beforeEach(mock.inject((_pipelineConfigValidator_: PipelineConfigValidator,
                           _pipelineConfig_: any,
@@ -107,6 +101,8 @@ describe('pipelineConfigValidator', () => {
       $rootScope.$new().$digest();
     };
   }));
+
+  afterEach(SETTINGS.resetToOriginal);
 
   describe('validation', () => {
 

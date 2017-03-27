@@ -1,9 +1,6 @@
 'use strict';
 
-
 describe('Controller: Applications', function() {
-
-
   beforeEach(
     window.module(
       require('./applications.controller'),
@@ -23,10 +20,9 @@ describe('Controller: Applications', function() {
 
     // Initialize the controller and a mock scope
     beforeEach(window.inject(function ($controller, $rootScope, $window, $q, $uibModal, $log, $filter, accountService,
-                                $state, $timeout, settings, applicationReader) {
+                                $state, $timeout, applicationReader) {
 
       this.$scope = $rootScope.$new();
-      this.settings = settings;
       this.$q = $q;
       this.accountService = accountService;
       this.applicationReader = applicationReader;

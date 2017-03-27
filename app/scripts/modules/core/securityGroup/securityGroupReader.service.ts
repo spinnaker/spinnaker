@@ -8,6 +8,7 @@ import {Application} from 'core/application/application.model';
 import {ISecurityGroup, ILoadBalancer, ServerGroup, IServerGroupUsage} from 'core/domain';
 import {SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService} from './securityGroupTransformer.service';
 import {ENTITY_TAGS_READ_SERVICE, EntityTagsReader} from 'core/entityTag/entityTags.read.service';
+import {SETTINGS} from 'core/config/settings';
 
 interface IRegionAccount {
   account: string;
@@ -286,7 +287,7 @@ export class SecurityGroupReader {
   }
 
   private addEntityTags(securityGroups: ISecurityGroup[]): ng.IPromise<ISecurityGroup[]> {
-    if (!this.settings.feature.entityTags) {
+    if (!SETTINGS.feature.entityTags) {
       return this.$q.when(securityGroups);
     }
     const entityIds = securityGroups.map(sg => sg.name);
@@ -304,7 +305,6 @@ export class SecurityGroupReader {
     return [
       '$log',
       '$q',
-      'settings',
       'searchService',
       'namingService',
       'API',
@@ -317,7 +317,6 @@ export class SecurityGroupReader {
 
   constructor(private $log: ng.ILogService,
               private $q: ng.IQService,
-              private settings: any,
               private searchService: any,
               private namingService: NamingService,
               private API: Api,

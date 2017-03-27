@@ -1,7 +1,9 @@
 import {get, has} from 'lodash';
 import {module} from 'angular';
+
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import {API_SERVICE, Api} from 'core/api/api.service';
+import {SETTINGS} from 'core/config/settings';
 
 interface IBaseImage {
   id: string;
@@ -17,14 +19,13 @@ interface IBaseOsOptions {
 
 export class BakeryService {
 
-  static get $inject() { return ['$q', 'API', 'accountService', 'settings']; }
+  static get $inject() { return ['$q', 'API', 'accountService']; }
 
-  public constructor(private $q: ng.IQService, private API: Api, private accountService: AccountService,
-                     private settings: any) {}
+  public constructor(private $q: ng.IQService, private API: Api, private accountService: AccountService) {}
 
   public getRegions(provider: string): ng.IPromise<string[]> {
-    if (has(this.settings, `providers.${provider}.bakeryRegions`)) {
-      return this.$q.when(get(this.settings, `providers.${provider}.bakeryRegions`));
+    if (has(SETTINGS, `providers.${provider}.bakeryRegions`)) {
+      return this.$q.when(get(SETTINGS, `providers.${provider}.bakeryRegions`));
     }
     return this.accountService.getUniqueAttributeForAllAccounts(provider, 'regions')
       .then((regions: string[]) => regions.sort());
@@ -58,5 +59,4 @@ export const BAKERY_SERVICE = 'spinnaker.core.pipeline.bakery.service';
 module(BAKERY_SERVICE, [
   API_SERVICE,
   ACCOUNT_SERVICE,
-  require('core/config/settings'),
 ]).service('bakeryService', BakeryService);

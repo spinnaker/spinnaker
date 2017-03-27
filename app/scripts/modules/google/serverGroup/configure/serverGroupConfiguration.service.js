@@ -9,6 +9,7 @@ import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+import {GCEProviderSettings} from '../../gce.settings';
 
 let angular = require('angular');
 
@@ -30,7 +31,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, networkReader, subnetReader,
-                                                          settings, gceCustomInstanceBuilderService, elSevenUtils,
+                                                          gceCustomInstanceBuilderService, elSevenUtils,
                                                           gceHttpHealthCheckReader, gceTagManager,
                                                           gceLoadBalancerSetTransformer) {
 
@@ -541,7 +542,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       command.regionalChanged = function regionalChanged() {
         var result = { dirty: {} };
         var filteredData = command.backingData.filtered;
-        var defaults = settings.providers.gce.defaults;
+        var defaults = GCEProviderSettings.defaults;
         if (command.regional) {
           command.zone = null;
         } else if (!command.zone) {

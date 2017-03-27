@@ -2,14 +2,14 @@
 
 let angular = require('angular');
 
+import {SETTINGS} from 'core/config/settings';
+
 module.exports = angular
-  .module('spinnaker.amazon.instance.report.reservation.read.service', [
-    require('core/config/settings.js'),
-  ])
-  .factory('reservationReportReader', function ($http, settings) {
+  .module('spinnaker.amazon.instance.report.reservation.read.service', [])
+  .factory('reservationReportReader', function ($http) {
 
     function getReservations() {
-      return $http.get([settings.gateUrl, 'reports', 'reservation', 'v2'].join('/'))
+      return $http.get([SETTINGS.gateUrl, 'reports', 'reservation', 'v2'].join('/'))
           .then((response) => response.data);
     }
 

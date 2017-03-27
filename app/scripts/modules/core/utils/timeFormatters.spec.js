@@ -1,10 +1,17 @@
 'use strict';
 
+import {SETTINGS} from 'core/config/settings';
+
 describe('Filter: timeFormatters', function() {
+  beforeEach(function () {
+    SETTINGS.defaultTimeZone = 'Etc/GMT+0';
+  });
 
   beforeEach(
     window.module('spinnaker.core.utils.timeFormatters')
   );
+
+  afterEach(SETTINGS.resetToOriginal);
 
   describe('timePickerTime', function() {
 
@@ -13,9 +20,8 @@ describe('Filter: timeFormatters', function() {
     describe('timePicker', function () {
       beforeEach(
         window.inject(
-          function($filter, settings) {
+          function($filter) {
             filter = $filter('timePickerTime');
-            settings.defaultTimeZone = 'Etc/GMT+0';
           }
         )
       );

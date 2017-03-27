@@ -9,6 +9,7 @@ import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+import {NetflixSettings} from '../../netflix.settings';
 
 require('../migrator.less');
 
@@ -16,7 +17,6 @@ module.exports = angular
   .module('spinnaker.migrator.pipeline.directive', [
     require('angular-ui-bootstrap'),
     require('amazon/vpc/vpc.read.service.js'),
-    require('core/config/settings.js'),
     SUBNET_READ_SERVICE,
     require('../migrator.service.js'),
     AUTO_SCROLL_DIRECTIVE,
@@ -43,7 +43,7 @@ module.exports = angular
       controllerAs: 'migratorActionCtrl',
     };
   })
-  .controller('PipelineMigratorActionCtrl', function ($scope, $uibModal, $state, vpcReader, settings) {
+  .controller('PipelineMigratorActionCtrl', function ($scope, $uibModal, $state) {
 
     $scope.showAction = false;
 
@@ -60,7 +60,7 @@ module.exports = angular
       };
     }
 
-    if (settings.feature.vpcMigrator) {
+    if (NetflixSettings.feature.vpcMigrator) {
       let migrated = $scope.application.pipelineConfigs.data.find(test => test.name === $scope.pipeline.name + ' - vpc0');
       if (migrated) {
         $scope.migrated = migrated;

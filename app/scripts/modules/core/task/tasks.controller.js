@@ -5,6 +5,7 @@ import _ from 'lodash';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 import {DISPLAYABLE_TASKS_FILTER} from './displayableTasks.filter';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
@@ -14,10 +15,9 @@ module.exports = angular.module('spinnaker.core.task.controller', [
   VIEW_STATE_CACHE_SERVICE,
   require('./task.write.service.js'),
   CONFIRMATION_MODAL_SERVICE,
-  DISPLAYABLE_TASKS_FILTER,
-  require('../config/settings.js'),
+  DISPLAYABLE_TASKS_FILTER
 ])
-  .controller('TasksCtrl', function ($scope, $state, $q, settings, app, viewStateCache, taskWriter, confirmationModalService) {
+  .controller('TasksCtrl', function ($scope, $state, $q, app, viewStateCache, taskWriter, confirmationModalService) {
 
     if (app.notFound) {
       return;
@@ -41,7 +41,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
       });
     }
 
-    $scope.tasksUrl = [settings.gateUrl, 'applications', application.name, 'tasks/'].join('/');
+    $scope.tasksUrl = [SETTINGS.gateUrl, 'applications', application.name, 'tasks/'].join('/');
     $scope.filterCountOptions = [10, 20, 30, 50, 100, 200];
 
     function initializeViewState() {

@@ -5,6 +5,7 @@ import _ from 'lodash';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
+import {GCEProviderSettings} from '../../gce.settings';
 
 let angular = require('angular');
 
@@ -15,8 +16,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
   require('./wizard/hiddenMetadataKeys.value.js'),
 ])
-  .factory('gceServerGroupCommandBuilder', function (settings, $q,
-                                                     accountService, instanceTypeService, namingService,
+  .factory('gceServerGroupCommandBuilder', function ($q, accountService, instanceTypeService, namingService,
                                                      gceCustomInstanceBuilderService,
                                                      gceServerGroupHiddenMetadataKeys) {
 
@@ -237,9 +237,9 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      var defaultCredentials = defaults.account || settings.providers.gce.defaults.account;
-      var defaultRegion = defaults.region || settings.providers.gce.defaults.region;
-      var defaultZone = defaults.zone || settings.providers.gce.defaults.zone;
+      var defaultCredentials = defaults.account || GCEProviderSettings.defaults.account;
+      var defaultRegion = defaults.region || GCEProviderSettings.defaults.region;
+      var defaultZone = defaults.zone || GCEProviderSettings.defaults.zone;
 
       var command = {
         application: application.name,

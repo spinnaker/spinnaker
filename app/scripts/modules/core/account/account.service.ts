@@ -4,6 +4,7 @@ import {module} from 'angular';
 import {Application} from 'core/application/application.model';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from '../cloudProvider/cloudProvider.registry';
+import {SETTINGS} from 'core/config/settings';
 
 export interface IRegion {
   account?: string;
@@ -47,12 +48,11 @@ export interface IAccountZone {
 export class AccountService {
 
   static get $inject() {
-    return ['$log', '$q', 'settings', 'cloudProviderRegistry', 'API'];
+    return ['$log', '$q', 'cloudProviderRegistry', 'API'];
   }
 
   constructor(private $log: ng.ILogService,
               private $q: ng.IQService,
-              private settings: any,
               private cloudProviderRegistry: CloudProviderRegistry,
               private API: Api) {
   }
@@ -185,8 +185,8 @@ export class AccountService {
           if (application.attributes.cloudProviders.length) {
             result = application.attributes.cloudProviders;
           } else {
-            if (this.settings.defaultProviders) {
-              result = this.settings.defaultProviders;
+            if (SETTINGS.defaultProviders) {
+              result = SETTINGS.defaultProviders;
             } else {
               result = available;
             }
@@ -204,7 +204,6 @@ export class AccountService {
 
 export const ACCOUNT_SERVICE = 'spinnaker.core.account.service';
 module(ACCOUNT_SERVICE, [
-  require('core/config/settings'),
   CLOUD_PROVIDER_REGISTRY,
   API_SERVICE
 ])

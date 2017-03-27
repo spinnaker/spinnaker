@@ -312,7 +312,7 @@ describe('executionTransformerService', function() {
       deployStage = { type: 'deploy', context: {
         deploymentDetails: [
           { jenkins: { number: 3, host: 'http://jenkinshost/', name: 'jobName' },
-            buildInfoUrl: "http://custom/url" }
+            buildInfoUrl: 'http://custom/url' }
         ]
       }};
       let execution = { stages: [ deployStage ] };

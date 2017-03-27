@@ -1,11 +1,12 @@
 import {module, IQService, IPromise} from 'angular';
-import {get, intersection} from 'lodash';
+import {intersection} from 'lodash';
 
 import {Application} from 'core/application/application.model';
 import {AccountService, ACCOUNT_SERVICE} from 'core/account/account.service';
 import {IAppengineAccount, IAppengineGitTrigger, IAppengineJenkinsTrigger, GitCredentialType, IAppengineServerGroup} from 'appengine/domain/index';
 import {IStage, IPipeline, IGitTrigger, IJenkinsTrigger} from 'core/domain/index';
 import {AppengineDeployDescription} from '../transformer';
+import {AppengineProviderSettings} from '../../appengine.settings';
 
 export interface IAppengineServerGroupCommand {
   application?: string;
@@ -40,7 +41,7 @@ interface IViewState {
 }
 
 export class AppengineServerGroupCommandBuilder {
-  static get $inject() { return ['$q', 'accountService', 'settings']; }
+  static get $inject() { return ['$q', 'accountService']; }
 
   private static getTriggerOptions(pipeline: IPipeline): Array<IAppengineGitTrigger | IAppengineJenkinsTrigger> {
     return (pipeline.triggers || [])
@@ -54,7 +55,7 @@ export class AppengineServerGroupCommandBuilder {
       });
   }
 
-  constructor(private $q: IQService, private accountService: AccountService, private settings: any) { }
+  constructor(private $q: IQService, private accountService: AccountService) { }
 
   public buildNewServerGroupCommand(app: Application,
                                     selectedProvider = 'appengine',
@@ -115,7 +116,7 @@ export class AppengineServerGroupCommandBuilder {
 
   private getCredentials(accounts: IAppengineAccount[], application: Application): string {
     let accountNames: string[] = (accounts || []).map((account) => account.name);
-    let defaultCredentials: string = get(this.settings, 'settings.providers.gce.defaults.account') as string;
+    let defaultCredentials: string = AppengineProviderSettings.defaults.account;
     let firstApplicationAccount: string = intersection(application.accounts || [], accountNames)[0];
 
     return accountNames.includes(defaultCredentials) ?

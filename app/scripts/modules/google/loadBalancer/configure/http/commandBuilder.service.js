@@ -5,6 +5,7 @@ import {HttpLoadBalancerTemplate, ListenerTemplate} from './templates';
 import {sessionAffinityModelToViewMap} from '../common/sessionAffinityNameMaps';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+import {GCEProviderSettings} from '../../../gce.settings';
 
 let angular = require('angular');
 
@@ -23,7 +24,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
                                                           gceCertificateReader,
                                                           gceHttpHealthCheckReader,
                                                           gceHttpLoadBalancerTransformer,
-                                                          loadBalancerReader, settings) {
+                                                          loadBalancerReader) {
 
     function buildCommand ({ originalLoadBalancer, isNew }) {
       originalLoadBalancer = _.cloneDeep(originalLoadBalancer);
@@ -67,7 +68,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
 
     function buildLoadBalancer (isNew, loadBalancer) {
       let loadBalancerTemplate =
-        new HttpLoadBalancerTemplate(_.get(settings, 'providers.gce.defaults.account') || null);
+        new HttpLoadBalancerTemplate(GCEProviderSettings.defaults.account || null);
 
       let mixinData;
       if (isNew) {

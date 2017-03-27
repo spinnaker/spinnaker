@@ -1,6 +1,8 @@
 'use strict';
 
 let angular = require('angular');
+
+import {SETTINGS} from 'core/config/settings';
 require('./loadBalancerSelector.directive.html');
 
 describe('Directive: GCE Load Balancers Selector', function() {
@@ -20,15 +22,14 @@ describe('Directive: GCE Load Balancers Selector', function() {
   beforeEach(window.inject(function(_gceServerGroupConfigurationService_,
                                     _cacheInitializer_,
                                     _infrastructureCaches_,
-                                    _momentService_,
-                                    settings) {
+                                    _momentService_) {
     gceServerGroupConfigurationService = _gceServerGroupConfigurationService_;
 
 
     const lastRefreshed = (new Date('2015-01-01T00:00:00')).getTime();
     _cacheInitializer_.refreshCache('loadBalancers');
     _infrastructureCaches_.get('loadBalancers').getStats = function() { return {ageMax: lastRefreshed}; };
-    var m = _momentService_.tz(lastRefreshed, settings.defaultTimeZone);
+    var m = _momentService_.tz(lastRefreshed, SETTINGS.defaultTimeZone);
     expectedTime = m.format('YYYY-MM-DD HH:mm:ss z');
 
     selector = angular.element('<gce-server-group-load-balancer-selector command="command" />');

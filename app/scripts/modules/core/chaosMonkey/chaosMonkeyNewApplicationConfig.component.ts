@@ -1,14 +1,13 @@
 import {module} from 'angular';
 
+import {SETTINGS} from 'core/config/settings';
+
 export class ChaosMonkeyNewApplicationConfigController {
-
-  static get $inject() { return ['settings']; }
-
   public enabled = false;
   public applicationConfig: any;
 
-  public constructor(settings: any) {
-    this.enabled = settings.feature && settings.feature.chaosMonkey;
+  public constructor() {
+    this.enabled = SETTINGS.feature.chaosMonkey;
     if (this.enabled) {
       this.applicationConfig.chaosMonkey = {
         enabled: this.enabled,
@@ -47,7 +46,5 @@ class ChaosMonkeyNewApplicationConfigComponent implements ng.IComponentOptions {
 }
 
 export const CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT = 'spinnaker.core.chaosMonkey.newApplication.config.component';
-module(CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT, [
-  require('../config/settings')
-])
+module(CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT, [])
 .component('chaosMonkeyNewApplicationConfig', new ChaosMonkeyNewApplicationConfigComponent());

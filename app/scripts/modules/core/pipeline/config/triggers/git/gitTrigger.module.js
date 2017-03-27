@@ -1,12 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
+
 import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
-    require('core/config/settings.js'),
     SERVICE_ACCOUNT_SERVICE,
   ])
   .config(function (pipelineConfigProvider) {
@@ -28,17 +29,17 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.git', [
       ]
     });
   })
-  .controller('GitTriggerCtrl', function (trigger, $scope, settings, serviceAccountService) {
+  .controller('GitTriggerCtrl', function (trigger, $scope, serviceAccountService) {
     this.trigger = trigger;
-    this.fiatEnabled = settings.feature.fiatEnabled;
+    this.fiatEnabled = SETTINGS.feature.fiatEnabled;
 
     serviceAccountService.getServiceAccounts().then(accounts => {
       this.serviceAccounts = accounts || [];
     });
     $scope.gitTriggerTypes = ['stash', 'github', 'bitbucket'];
 
-    if (settings && settings.gitSources) {
-      $scope.gitTriggerTypes = settings.gitSources;
+    if (SETTINGS.gitSources) {
+      $scope.gitTriggerTypes = SETTINGS.gitSources;
     }
 
     if ($scope.gitTriggerTypes.length == 1) {

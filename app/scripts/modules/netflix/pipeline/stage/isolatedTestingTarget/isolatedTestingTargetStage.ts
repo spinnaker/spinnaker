@@ -10,6 +10,7 @@ import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/c
 import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
 import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
 import {EDIT_VIP_MODAL_CONTROLLER} from './editVip.modal.controller';
+import {NetflixSettings} from '../../../netflix.settings';
 
 interface IVipOverride {
   oldVip: string;
@@ -248,11 +249,10 @@ module(ISOLATED_TESTING_TARGET_STAGE, [
   NAMING_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
-  SERVER_GROUP_READER,
-  require('core/config/settings.js'),
+  SERVER_GROUP_READER
 ])
-  .config((pipelineConfigProvider: any, settings: any) => {
-    if (settings.feature && settings.feature.netflixMode) {
+  .config((pipelineConfigProvider: any) => {
+    if (NetflixSettings.feature.netflixMode) {
       pipelineConfigProvider.registerStage({
         label: 'Isolated Testing Target',
         description: 'Launches a cluster with a unique VIP to allow for testing on an isolated cluster',

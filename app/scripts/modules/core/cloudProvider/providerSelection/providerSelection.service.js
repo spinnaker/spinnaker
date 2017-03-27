@@ -1,15 +1,16 @@
 'use strict';
 
 let angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular.module('spinnaker.providerSelection.service', [
   ACCOUNT_SERVICE,
-  require('../../config/settings.js'),
   CLOUD_PROVIDER_REGISTRY,
 ])
-  .factory('providerSelectionService', function($uibModal, $q, accountService, settings, cloudProviderRegistry) {
+  .factory('providerSelectionService', function($uibModal, $q, accountService, cloudProviderRegistry) {
     function selectProvider(application, feature) {
       return accountService.listProviders(application).then((providers) => {
 
@@ -41,7 +42,7 @@ module.exports = angular.module('spinnaker.providerSelection.service', [
         } else if (reducedProviders.length === 1) {
           provider = $q.when(reducedProviders[0]);
         } else {
-          provider = $q.when(settings.defaultProvider || 'aws');
+          provider = $q.when(SETTINGS.defaultProvider || 'aws');
         }
         return provider;
       });

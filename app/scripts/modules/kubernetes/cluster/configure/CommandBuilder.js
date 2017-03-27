@@ -1,15 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {KubernetesProviderSettings} from '../../kubernetes.settings';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.service', [
-  require('core/config/settings.js'),
-  ACCOUNT_SERVICE,
+  ACCOUNT_SERVICE
 ])
-  .factory('kubernetesClusterCommandBuilder', function (settings, accountService) {
+  .factory('kubernetesClusterCommandBuilder', function (accountService) {
     function attemptToSetValidAccount(application, defaultAccount, command) {
       return accountService.listAccounts('kubernetes').then(function(kubernetesAccounts) {
         var kubernetesAccountNames = _.map(kubernetesAccounts, 'name');
@@ -35,7 +36,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
     }
 
     function buildNewClusterCommand(application, defaults = {}) {
-      var defaultAccount = defaults.account || settings.providers.kubernetes.defaults.account;
+      var defaultAccount = defaults.account || KubernetesProviderSettings.defaults.account;
 
       var command = {
         account: defaultAccount,

@@ -1,7 +1,7 @@
 import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
+import {OpenStackProviderSettings} from '../../../openstack.settings';
 
 describe('Controller: openstackCreateSecurityGroupCtrl', function() {
-
   // load the controller's module
   beforeEach(
     window.module(
@@ -10,12 +10,13 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
     )
   );
 
+  afterEach(OpenStackProviderSettings.resetToOriginal);
+
   // Initialize the controller and a mock scope
   var testSuite;
-  beforeEach(window.inject(function ($controller, $rootScope, $q, settings, applicationModelBuilder) {
+  beforeEach(window.inject(function ($controller, $rootScope, $q, applicationModelBuilder) {
     testSuite = this;
-    this.settings = settings;
-    this.settings.providers.openstack.defaults.account = 'account1';
+    OpenStackProviderSettings.defaults.account = 'account1';
 
     this.testData = {
       securityGroupList: [

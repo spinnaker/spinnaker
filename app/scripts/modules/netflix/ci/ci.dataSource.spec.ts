@@ -3,32 +3,30 @@ import {mock} from 'angular';
 import {Application} from 'core/application/application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
-import IProvideService = angular.auto.IProvideService;
+import {NetflixSettings} from '../netflix.settings';
 
 describe('CI Data Source', function () {
+  beforeEach(function () {
+    NetflixSettings.feature.netflixMode = true;
+  });
+
   beforeEach(
     mock.module(
       require('./ci.dataSource'),
       APPLICATION_MODEL_BUILDER,
-      APPLICATION_DATA_SOURCE_REGISTRY,
-      function($provide: IProvideService) {
-        return $provide.constant('settings', {
-          feature: { netflixMode: true }
-        });
-      }
+      APPLICATION_DATA_SOURCE_REGISTRY
     )
   );
 
   beforeEach(
     mock.inject(
-      function(buildService: any, $httpBackend: ng.IHttpBackendService, settings: any, $q: ng.IQService,
+      function(buildService: any, $httpBackend: ng.IHttpBackendService, $q: ng.IQService,
                applicationModelBuilder: ApplicationModelBuilder, $rootScope: ng.IRootScopeService,
                applicationDataSourceRegistry: any) {
         this.buildService = buildService;
         this.applicationDataSourceRegistry = applicationDataSourceRegistry;
         this.$http = $httpBackend;
         this.$q = $q;
-        this.settings = settings;
         this.builder = applicationModelBuilder;
         this.$scope = $rootScope.$new();
         this.applicationModelBuilder = applicationModelBuilder;
@@ -36,6 +34,8 @@ describe('CI Data Source', function () {
       }
     )
   );
+
+  afterEach(NetflixSettings.resetToOriginal);
 
   describe('load builds', function () {
     it('only calls build service when all configuration values are present', function () {

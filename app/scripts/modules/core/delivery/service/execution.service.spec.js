@@ -1,10 +1,11 @@
 'use strict';
 
+import {SETTINGS} from 'core/config/settings';
+
 describe('Service: executionService', function () {
 
   var executionService;
   var $httpBackend;
-  var settings;
   var timeout;
   var $q;
 
@@ -15,10 +16,9 @@ describe('Service: executionService', function () {
   );
 
   beforeEach(
-    window.inject(function (_executionService_, _$httpBackend_, _settings_, _$timeout_, _$q_, ExecutionFilterModel) {
+    window.inject(function (_executionService_, _$httpBackend_, _$timeout_, _$q_, ExecutionFilterModel) {
       executionService = _executionService_;
       $httpBackend = _$httpBackend_;
-      settings = _settings_;
       timeout = _$timeout_;
       $q = _$q_;
       ExecutionFilterModel.sortFilter.count = 3;
@@ -34,8 +34,8 @@ describe('Service: executionService', function () {
     it('should wait until pipeline is not running, then resolve', function () {
       let completed = false;
       let executionId = 'abc';
-      let cancelUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
-      let checkUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
+      let cancelUrl = [ SETTINGS.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
+      let checkUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
       let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
@@ -54,7 +54,7 @@ describe('Service: executionService', function () {
     it('should propagate rejection from failed cancel', function () {
       let failed = false;
       let executionId = 'abc';
-      let cancelUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
+      let cancelUrl = [ SETTINGS.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
       let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectPUT(cancelUrl).respond(500, []);
@@ -69,8 +69,8 @@ describe('Service: executionService', function () {
     it('should wait until pipeline is missing, then resolve', function () {
       let completed = false;
       let executionId = 'abc';
-      let deleteUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
-      let checkUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
+      let deleteUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
+      let checkUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
       let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectDELETE(deleteUrl).respond(200, []);
@@ -89,7 +89,7 @@ describe('Service: executionService', function () {
     it('should propagate rejection from failed delete', function () {
       let failed = false;
       let executionId = 'abc';
-      let deleteUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
+      let deleteUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
       let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectDELETE(deleteUrl).respond(500, []);
@@ -104,8 +104,8 @@ describe('Service: executionService', function () {
     it('should wait until pipeline is PAUSED, then resolve', function () {
       let completed = false;
       let executionId = 'abc';
-      let pauseUrl = [ settings.gateUrl, 'pipelines', executionId, 'pause' ].join('/');
-      let singleExecutionUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
+      let pauseUrl = [ SETTINGS.gateUrl, 'pipelines', executionId, 'pause' ].join('/');
+      let singleExecutionUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
       let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectPUT(pauseUrl).respond(200, []);
@@ -127,8 +127,8 @@ describe('Service: executionService', function () {
     it('should wait until pipeline is RUNNING, then resolve', function () {
       let completed = false;
       let executionId = 'abc';
-      let pauseUrl = [ settings.gateUrl, 'pipelines', executionId, 'resume' ].join('/');
-      let singleExecutionUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
+      let pauseUrl = [ SETTINGS.gateUrl, 'pipelines', executionId, 'resume' ].join('/');
+      let singleExecutionUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
       let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectPUT(pauseUrl).respond(200, []);
@@ -150,7 +150,7 @@ describe('Service: executionService', function () {
 
     it('should resolve the promise if a 200 response is received with empty array', function() {
       let url = [
-          settings.gateUrl,
+          SETTINGS.gateUrl,
           'applications',
           'deck',
           'pipelines?limit=3',
@@ -174,7 +174,7 @@ describe('Service: executionService', function () {
 
     it('should reject the promise if a 429 response is received', function() {
       let url = [
-        settings.gateUrl,
+        SETTINGS.gateUrl,
         'applications',
         'deck',
         'pipelines?limit=3',
@@ -200,7 +200,7 @@ describe('Service: executionService', function () {
 
     it('resolves when the execution matches the closure', function () {
       let executionId = 'abc',
-          url = [settings.gateUrl, 'pipelines', executionId].join('/'),
+          url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/'),
           succeeded = false;
 
       $httpBackend.expectGET(url).respond(200, { thingToMatch: true });
@@ -216,7 +216,7 @@ describe('Service: executionService', function () {
 
     it('polls until the execution matches, then resolves', function () {
       let executionId = 'abc',
-          url = [settings.gateUrl, 'pipelines', executionId].join('/'),
+          url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/'),
           succeeded = false;
 
       $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
@@ -246,7 +246,7 @@ describe('Service: executionService', function () {
 
     it('rejects if execution retrieval fails', function () {
       let executionId = 'abc',
-          url = [settings.gateUrl, 'pipelines', executionId].join('/'),
+          url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/'),
           succeeded = false,
           failed = false;
 

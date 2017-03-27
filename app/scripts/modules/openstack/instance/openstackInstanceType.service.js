@@ -8,10 +8,9 @@ import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.serv
 
 module.exports = angular.module('spinnaker.openstack.instanceType.service', [
   API_SERVICE,
-  require('core/config/settings.js'),
   INFRASTRUCTURE_CACHE_SERVICE
 ])
-  .factory('openstackInstanceTypeService', function ($http, $q, settings, API, infrastructureCaches) {
+  .factory('openstackInstanceTypeService', function ($http, $q, API, infrastructureCaches) {
     var categories = [
       {
         type: 'custom',

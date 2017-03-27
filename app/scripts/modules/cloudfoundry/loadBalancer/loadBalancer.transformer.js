@@ -2,10 +2,12 @@
 
 import _ from 'lodash';
 
+import {CloudFoundryProviderSettings} from '../cf.settings';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
-  .factory('cfLoadBalancerTransformer', function ($q, settings) {
+  .factory('cfLoadBalancerTransformer', function ($q) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;
@@ -67,8 +69,8 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
         cloudProvider: 'cf',
         stack: '',
         detail: '',
-        credentials: settings.providers.cf ? settings.providers.cf.defaults.account : null,
-        region: settings.providers.cf ? settings.providers.cf.defaults.region : null,
+        credentials: CloudFoundryProviderSettings ? CloudFoundryProviderSettings.defaults.account : null,
+        region: CloudFoundryProviderSettings ? CloudFoundryProviderSettings.defaults.region : null,
       };
     }
 

@@ -3,6 +3,7 @@
 require('../migrator.less');
 import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
+import {NetflixSettings} from '../../netflix.settings';
 
 import _ from 'lodash';
 
@@ -12,7 +13,6 @@ module.exports = angular
   .module('spinnaker.migrator.directive', [
     require('angular-ui-bootstrap'),
     require('amazon/vpc/vpc.read.service.js'),
-    require('core/config/settings.js'),
     SUBNET_READ_SERVICE,
     require('../migrator.service.js'),
     AUTO_SCROLL_DIRECTIVE,
@@ -35,10 +35,10 @@ module.exports = angular
       controllerAs: 'migratorActionCtrl',
     };
   })
-  .controller('MigratorActionCtrl', function ($scope, $uibModal, vpcReader, settings) {
+  .controller('MigratorActionCtrl', function ($scope, $uibModal, vpcReader) {
 
     vpcReader.getVpcName($scope.serverGroup.vpcId).then(function (name) {
-      $scope.showAction = !name && settings.feature.vpcMigrator;
+      $scope.showAction = !name && NetflixSettings.feature.vpcMigrator;
     });
 
     this.previewMigration = function () {

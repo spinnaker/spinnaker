@@ -1,25 +1,27 @@
 'use strict';
 
-describe('titusServerGroupCommandBuilder', function() {
+import {TitusProviderSettings} from '../../titus.settings';
 
+describe('titusServerGroupCommandBuilder', function() {
   beforeEach(
     window.module(
       require('./ServerGroupCommandBuilder.js')
     )
   );
 
-  beforeEach(window.inject(function(titusServerGroupCommandBuilder, namingService, $q, $rootScope, _settings_) {
+  beforeEach(window.inject(function(titusServerGroupCommandBuilder, namingService, $q, $rootScope) {
     this.titusServerGroupCommandBuilder = titusServerGroupCommandBuilder;
     this.$scope = $rootScope;
     this.$q = $q;
-    this.settings = _settings_;
     this.namingService = namingService;
   }));
+
+  afterEach(TitusProviderSettings.resetToOriginal);
 
   describe('buildNewServerGroupCommand', function() {
     it('should initializes to default values', function () {
       var command = null;
-      this.settings.providers.titus.defaults.iamProfile = '{{application}}InstanceProfile';
+      TitusProviderSettings.defaults.iamProfile = '{{application}}InstanceProfile';
       this.titusServerGroupCommandBuilder.buildNewServerGroupCommand({ name: 'titusApp' }).then(function(result) {
         command = result;
       });

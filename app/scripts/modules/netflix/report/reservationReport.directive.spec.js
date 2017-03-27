@@ -1,6 +1,7 @@
 'use strict';
 
 import {matchers} from '../../../../../test/helpers/customMatchers';
+import {SETTINGS} from 'core/config/settings';
 
 describe('Directives: reservation report', function () {
 
@@ -11,16 +12,15 @@ describe('Directives: reservation report', function () {
     jasmine.addMatchers(matchers);
   });
 
-  beforeEach(window.inject(function ($rootScope, $compile, reservationReportReader, $httpBackend, settings, accountService, $q) {
+  beforeEach(window.inject(function ($rootScope, $compile, reservationReportReader, $httpBackend, accountService, $q) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
     this.reservationReportReader = reservationReportReader;
     this.$http = $httpBackend;
-    this.settings = settings;
 
     spyOn(accountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
 
-    this.$http.expectGET([this.settings.gateUrl, 'reports', 'reservation', 'v2'].join('/')).respond(200, {
+    this.$http.expectGET([SETTINGS.gateUrl, 'reports', 'reservation', 'v2'].join('/')).respond(200, {
       reservations: [
         { availabilityZone: 'us-east-1a', instanceType: 'm3.medium', os: 'LINUX', region: 'us-east-1',
           accounts: {

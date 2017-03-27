@@ -1,5 +1,7 @@
 'use strict';
 
+import {AWSProviderSettings} from '../../aws.settings';
+
 describe('awsServerGroupCommandBuilder', function() {
   const AccountServiceFixture = require('../../../../../../test/fixture/AccountServiceFixtures');
 
@@ -9,12 +11,11 @@ describe('awsServerGroupCommandBuilder', function() {
     )
   );
 
-  beforeEach(window.inject(function(awsServerGroupCommandBuilder, accountService, $q, $rootScope, subnetReader, instanceTypeService, _settings_) {
+  beforeEach(window.inject(function(awsServerGroupCommandBuilder, accountService, $q, $rootScope, subnetReader, instanceTypeService) {
     this.awsServerGroupCommandBuilder = awsServerGroupCommandBuilder;
     this.$scope = $rootScope;
     this.instanceTypeService = instanceTypeService;
     this.$q = $q;
-    this.settings = _settings_;
     spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when(AccountServiceFixture.preferredZonesByAccount));
     spyOn(accountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when(AccountServiceFixture.credentialsKeyedByAccount));
     spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
@@ -23,11 +24,13 @@ describe('awsServerGroupCommandBuilder', function() {
     );
   }));
 
+  afterEach(AWSProviderSettings.resetToOriginal);
+
   describe('buildNewServerGroupCommand', function() {
 
     it('initializes to default values, setting usePreferredZone flag to true', function () {
       var command = null;
-      this.settings.providers.aws.defaults.iamRole = '{{application}}IAMRole';
+      AWSProviderSettings.defaults.iamRole = '{{application}}IAMRole';
       this.awsServerGroupCommandBuilder.buildNewServerGroupCommand({name: 'appo', defaultCredentials: {}, defaultRegions: {}}, 'aws').then(function(result) {
         command = result;
       });

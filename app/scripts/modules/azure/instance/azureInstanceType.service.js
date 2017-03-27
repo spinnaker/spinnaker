@@ -8,10 +8,9 @@ import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.serv
 
 module.exports = angular.module('spinnaker.azure.instanceType.service', [
   API_SERVICE,
-  require('core/config/settings.js'),
   INFRASTRUCTURE_CACHE_SERVICE,
 ])
-  .factory('azureInstanceTypeService', function ($http, $q, settings, API, infrastructureCaches) {
+  .factory('azureInstanceTypeService', function ($http, $q, API, infrastructureCaches) {
 
     var m3 = {
       type: 'M3',

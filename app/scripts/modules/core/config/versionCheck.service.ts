@@ -1,5 +1,7 @@
 import {module} from 'angular';
 
+import {SETTINGS} from 'core/config/settings';
+
 interface IDeckVersion {
   version: string;
   created: number;
@@ -58,12 +60,11 @@ class VersionCheckService {
 
 export const VERSION_CHECK_SERVICE = 'spinnaker.core.config.versionCheck.service';
 module(VERSION_CHECK_SERVICE, [
-  require('./settings'),
   require('../widgets/notifier/notifier.service'),
   require('core/scheduler/scheduler.factory'),
 ]).service('versionCheckService', VersionCheckService)
-  .run((versionCheckService: VersionCheckService, settings: any) => {
-    if (settings.checkForUpdates) {
+  .run((versionCheckService: VersionCheckService) => {
+    if (SETTINGS.checkForUpdates) {
       versionCheckService.initialize();
     }
   });

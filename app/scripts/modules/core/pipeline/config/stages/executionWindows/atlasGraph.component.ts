@@ -3,6 +3,8 @@ import {has} from 'lodash';
 import {module} from 'angular';
 import {Subject} from 'rxjs';
 
+import {SETTINGS} from 'core/config/settings';
+
 interface IExecutionWindow {
   displayStart: Date;
   displayEnd: Date;
@@ -56,7 +58,7 @@ interface IChartData {
 
 interface IAtlasRegion {
   label: string;
-  url: string;
+  baseUrl: string;
 }
 
 interface IWindowData {
@@ -86,9 +88,9 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
   // Used to determine how tall to make the execution window bars - it's just the max of the SPS data
   private maxCount = 0;
 
-  static get $inject() { return ['$http', '$filter', 'settings']; }
+  static get $inject() { return ['$http', '$filter']; }
 
-  public constructor(private $http: ng.IHttpService, private $filter: any, private settings: any) {}
+  public constructor(private $http: ng.IHttpService, private $filter: any) {}
 
   public buildGraph(): void {
     if (!this.stage.restrictedExecutionWindow.atlasEnabled) {
@@ -143,7 +145,7 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
   }
 
   public $onInit(): void {
-    this.atlasEnabled = has(this.settings, 'executionWindow.atlas');
+    this.atlasEnabled = has(SETTINGS, 'executionWindow.atlas');
     if (!this.atlasEnabled) {
       return;
     }
@@ -202,7 +204,7 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
       }
     };
 
-    this.regions = this.settings.executionWindow.atlas.regions;
+    this.regions = SETTINGS.executionWindow.atlas.regions;
     this.buildGraph();
   }
 
@@ -251,7 +253,7 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
 
   private createWindow(window: IExecutionWindow, dayOffset: number): IWindowData {
     const today = new Date();
-    const zone: string = this.settings.defaultTimeZone || 'America/Los_Angeles';
+    const zone: string = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
 
     const start = momentTimezone.tz(today, zone)
         .hour(window.displayStart.getHours())
@@ -271,8 +273,8 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
   }
 
   private getAtlasUrl(): string {
-    let base: string = this.settings.executionWindow.atlas.regions.find((r: any) => r.label === this.stage.restrictedExecutionWindow.currentRegion).baseUrl;
-    return base + this.settings.executionWindow.atlas.url;
+    let base: string = SETTINGS.executionWindow.atlas.regions.find((r: IAtlasRegion) => r.label === this.stage.restrictedExecutionWindow.currentRegion).baseUrl;
+    return base + SETTINGS.executionWindow.atlas.url;
   }
 
 }
@@ -289,7 +291,7 @@ class AtlasGraphComponent implements ng.IComponentOptions {
       <div class="col-md-9 col-md-offset-1">
         <div class="checkbox">
           <label>
-            <input type="checkbox" ng-false-value="undefined" 
+            <input type="checkbox" ng-false-value="undefined"
                    ng-model="$ctrl.stage.restrictedExecutionWindow.atlasEnabled"
                    ng-change="$ctrl.toggleEnabled()"/>
             <strong> Show SPS graphs</strong>
@@ -301,7 +303,7 @@ class AtlasGraphComponent implements ng.IComponentOptions {
       <div class="form-group" style="margin-top: 20px">
         <div class="col-md-3 col-md-offset-1">
           Region
-          <select class="input-sm" ng-model="$ctrl.stage.restrictedExecutionWindow.currentRegion" 
+          <select class="input-sm" ng-model="$ctrl.stage.restrictedExecutionWindow.currentRegion"
                   ng-options="region.label as region.label for region in $ctrl.regions"
                   ng-change="$ctrl.buildGraph()"></select>
         </div>

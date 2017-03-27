@@ -1,17 +1,17 @@
 'use strict';
 
+import {SETTINGS} from 'core/config/settings';
+
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.notification.type.config', [
-    require('../config/settings')
-  ])
-  .provider('notificationTypeConfig', function(settings) {
+  .module('spinnaker.core.notification.type.config', [])
+  .provider('notificationTypeConfig', function() {
 
     var notificationTypes = [];
 
     function registerNotificationType(config) {
-      config.config = settings.notifications[config.key] || { enabled: true };
+      config.config = SETTINGS.notifications[config.key] || { enabled: true };
       notificationTypes.push(config);
     }
 

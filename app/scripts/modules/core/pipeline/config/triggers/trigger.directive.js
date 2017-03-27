@@ -1,10 +1,11 @@
 'use strict';
 
+import {SETTINGS} from 'core/config/settings';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerDirective', [
-  require('../pipelineConfigProvider'),
-  require('core/config/settings'),
+  require('../pipelineConfigProvider')
 ])
   .directive('trigger', function() {
     return {
@@ -22,11 +23,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
       }
     };
   })
-  .controller('TriggerCtrl', function($scope, $element, pipelineConfig, $compile, $controller, $templateCache, settings) {
+  .controller('TriggerCtrl', function($scope, $element, pipelineConfig, $compile, $controller, $templateCache) {
     var triggerTypes = pipelineConfig.getTriggerTypes();
     $scope.options = triggerTypes;
 
-    this.disableAutoTriggering = settings.disableAutoTriggering || [];
+    this.disableAutoTriggering = SETTINGS.disableAutoTriggering || [];
 
     this.removeTrigger = function(trigger) {
       var triggerIndex = $scope.pipeline.triggers.indexOf(trigger);

@@ -1,16 +1,11 @@
-import * as _ from 'lodash';
 import {module} from 'angular';
 import {
   APPLICATION_NAME_VALIDATOR,
   IApplicationNameValidator, ApplicationNameValidator
 } from 'core/application/modal/validation/applicationName.validator';
+import {AWSProviderSettings} from '../aws.settings';
 
 class AmazonApplicationNameValidator implements IApplicationNameValidator {
-
-  static get $inject() { return ['settings']; }
-
-  public constructor(private settings: any) {}
-
   private validateSpecialCharacters(name: string, errors: string[]): void {
     let pattern = /^[a-zA-Z_0-9.]*$/g;
     if (!pattern.test(name)) {
@@ -19,7 +14,7 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
   }
 
   private validateClassicLock(warnings: string[]): void {
-  let lockoutDate = _.get(this.settings, 'providers.aws.classicLaunchLockout');
+  let lockoutDate = AWSProviderSettings.classicLaunchLockout;
   if (lockoutDate && lockoutDate < new Date().getTime()) {
     warnings.push('New applications deployed to AWS are restricted to VPC; you cannot create server groups, ' +
       'load balancers, or security groups in EC2 Classic.');
@@ -89,7 +84,6 @@ export const AMAZON_APPLICATION_NAME_VALIDATOR = 'spinnaker.amazon.validation.ap
 
 module(AMAZON_APPLICATION_NAME_VALIDATOR, [
   APPLICATION_NAME_VALIDATOR,
-  require('core/config/settings')
 ])
   .service('awsApplicationNameValidator', AmazonApplicationNameValidator)
   .run((applicationNameValidator: ApplicationNameValidator, awsApplicationNameValidator: IApplicationNameValidator) => {

@@ -6,6 +6,7 @@ import {CHAOS_MONKEY_HELP} from './chaosMonkey.help';
 import {CHAOS_MONKEY_EXCEPTIONS_COMPONENT} from './chaosMonkeyExceptions.component';
 import {CONFIG_SECTION_FOOTER, IViewState} from '../application/config/footer/configSectionFooter.component';
 import {Application} from '../application/application.model';
+import {SETTINGS} from 'core/config/settings';
 
 import './chaosMonkeyConfig.component.less';
 
@@ -42,8 +43,6 @@ export class ChaosMonkeyConfigController implements ng.IComponentController {
     isDirty: false,
   };
 
-  public constructor(private settings: any) {}
-
   public $onInit(): void {
     if (this.application.notFound) {
       return;
@@ -51,7 +50,7 @@ export class ChaosMonkeyConfigController implements ng.IComponentController {
     this.config = new ChaosMonkeyConfig(this.application.attributes.chaosMonkey || {});
     this.viewState.originalConfig = _.cloneDeep(this.config);
     this.viewState.originalStringVal = toJson(this.viewState.originalConfig);
-    this.chaosEnabled = this.settings.feature && this.settings.feature.chaosMonkey;
+    this.chaosEnabled = SETTINGS.feature.chaosMonkey;
     this.groupingOptions = [
       { key: 'app', label: 'App' },
       { key: 'stack', label: 'Stack' },
@@ -74,7 +73,6 @@ class ChaosMonkeyConfigComponent implements ng.IComponentOptions {
 
 export const CHAOS_MONKEY_CONFIG_COMPONENT = 'spinnaker.core.chaosMonkey.config.component';
 module(CHAOS_MONKEY_CONFIG_COMPONENT, [
-  require('../config/settings'),
   CLUSTER_MATCHES_COMPONENT,
   CHAOS_MONKEY_EXCEPTIONS_COMPONENT,
   CHAOS_MONKEY_HELP,

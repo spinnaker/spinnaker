@@ -7,6 +7,7 @@ import {TABLEAU_STATES} from './tableau/tableau.states';
 import {ISOLATED_TESTING_TARGET_STAGE_MODULE} from './pipeline/stage/isolatedTestingTarget/isolatedTestingTargetStage.module';
 import {FEEDBACK_MODULE} from './feedback/feedback.module';
 import {AVAILABILITY_DIRECTIVE} from './availability/availability.directive';
+import {NetflixSettings} from './netflix.settings';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -43,18 +44,14 @@ module('spinnaker.netflix', [
   require('./application/netflixCreateApplicationModal.controller.js'),
   require('./application/netflixEditApplicationModal.controller.js'),
   require('./help/netflixHelpContents.registry.js'),
-
-  require('core/config/settings.js'),
-
   TABLEAU_STATES,
   require('./ci/ci.module'),
   APPLICATION_DATA_SOURCE_REGISTRY,
   CLOUD_PROVIDER_REGISTRY,
 ])
   .run((cloudProviderRegistry: CloudProviderRegistry,
-        applicationDataSourceRegistry: ApplicationDataSourceRegistry,
-        settings: any) => {
-    if (settings.feature && settings.feature.netflixMode) {
+        applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
+    if (NetflixSettings.feature.netflixMode) {
       cloudProviderRegistry.overrideValue(
         'aws',
         'instance.detailsTemplateUrl',

@@ -5,6 +5,7 @@ import _ from 'lodash';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
+import {CloudFoundryProviderSettings} from '../../cf.settings';
 
 let angular = require('angular');
 
@@ -13,8 +14,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
   INSTANCE_TYPE_SERVICE,
   NAMING_SERVICE,
 ])
-  .factory('cfServerGroupCommandBuilder', function (settings, $q,
-                                                     accountService, instanceTypeService, namingService) {
+  .factory('cfServerGroupCommandBuilder', function ($q, accountService, instanceTypeService, namingService) {
 
     function populateTags(instanceTemplateTags, command) {
       if (instanceTemplateTags && instanceTemplateTags.items) {
@@ -45,8 +45,8 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      var defaultCredentials = defaults.account || settings.providers.cf.defaults.account;
-      var defaultRegion = defaults.region || settings.providers.cf.defaults.region;
+      var defaultCredentials = defaults.account || CloudFoundryProviderSettings.defaults.account;
+      var defaultRegion = defaults.region || CloudFoundryProviderSettings.defaults.region;
 
       var command = {
         application: application.name,

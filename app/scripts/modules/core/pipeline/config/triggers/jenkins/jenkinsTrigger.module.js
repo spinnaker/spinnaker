@@ -2,6 +2,7 @@
 
 let angular = require('angular');
 import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
+import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins', [
   require('./jenkinsTriggerOptions.directive.js'),
@@ -47,10 +48,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
       selectorTemplate: require('./selectorTemplate.html'),
     };
   })
-  .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService, settings, serviceAccountService) {
+  .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService, serviceAccountService) {
 
     $scope.trigger = trigger;
-    this.fiatEnabled = settings.feature.fiatEnabled;
+    this.fiatEnabled = SETTINGS.feature.fiatEnabled;
     serviceAccountService.getServiceAccounts().then(accounts => {
       this.serviceAccounts = accounts || [];
     });

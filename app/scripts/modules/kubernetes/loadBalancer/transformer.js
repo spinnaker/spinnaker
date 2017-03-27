@@ -2,10 +2,12 @@
 
 import _ from 'lodash';
 
+import {KubernetesProviderSettings} from '../kubernetes.settings';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer', [])
-  .factory('kubernetesLoadBalancerTransformer', function ($q, settings) {
+  .factory('kubernetesLoadBalancerTransformer', function ($q) {
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = [];
@@ -48,8 +50,8 @@ module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer',
         stack: '',
         detail: '',
         serviceType: 'ClusterIP',
-        account: settings.providers.kubernetes ? settings.providers.kubernetes.defaults.account : null,
-        namespace: settings.providers.kubernetes ? settings.providers.kubernetes.defaults.namespace : null,
+        account: KubernetesProviderSettings.defaults.account,
+        namespace: KubernetesProviderSettings.defaults.namespace,
         ports: [
           {
             protocol: 'TCP',

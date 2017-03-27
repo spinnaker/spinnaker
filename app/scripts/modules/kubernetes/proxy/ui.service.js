@@ -2,15 +2,15 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.proxy.kubernetes.ui.service', [
-  require('core/config/settings.js'),
-])
-  .factory('kubernetesProxyUiService', function(settings) {
+import {KubernetesProviderSettings} from '../kubernetes.settings';
+
+module.exports = angular.module('spinnaker.proxy.kubernetes.ui.service', [])
+  .factory('kubernetesProxyUiService', function() {
     let apiPrefix = 'api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#';
 
     function getHost(accountName) {
-      let host = settings.providers.kubernetes.defaults.proxy;
-      let account = settings.providers.kubernetes[accountName];
+      let host = KubernetesProviderSettings.defaults.proxy;
+      let account = KubernetesProviderSettings[accountName];
 
       if (account && account.proxy) {
         host = account.proxy;

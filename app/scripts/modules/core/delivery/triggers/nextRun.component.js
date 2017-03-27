@@ -3,17 +3,17 @@
 const angular = require('angular');
 
 import {later} from 'core/utils/later/later';
+import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular
   .module('spinnaker.core.deliver.triggers.nextRun', [
-    require('../../utils/moment'),
-    require('../../config/settings'),
+    require('../../utils/moment')
   ])
   .component('nextRunTag', {
     bindings: {
       pipeline: '<'
     },
-    controller: function (momentService, settings) {
+    controller: function (momentService) {
 
       this.updateSchedule = () => {
         if (!this.pipeline) {
@@ -26,7 +26,7 @@ module.exports = angular
           let hours = parts[2];
           if (!isNaN(parseInt(hours))) {
             let allHours = hours.split('/');
-            let tz = settings.defaultTimeZone || 'America/Los_Angeles';
+            let tz = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
             var offset = momentService.tz.zone(tz).offset(new Date());
             if (offset) {
               offset /= 60;

@@ -16,7 +16,7 @@ describe('Controller: awsCloneServerGroup', function () {
   );
 
   beforeEach(function() {
-    window.inject(function ($controller, $rootScope, accountService, serverGroupWriter, awsImageReader, settings,
+    window.inject(function ($controller, $rootScope, accountService, serverGroupWriter, awsImageReader,
                      searchService, awsInstanceTypeService, v2modalWizardService, securityGroupReader, taskMonitorBuilder,
                      awsServerGroupConfigurationService, $q, subnetReader, keyPairsReader, loadBalancerReader) {
 
@@ -30,7 +30,6 @@ describe('Controller: awsCloneServerGroup', function () {
       this.securityGroupReader = securityGroupReader;
       this.awsServerGroupConfigurationService = awsServerGroupConfigurationService;
       this.taskMonitorBuilder = taskMonitorBuilder;
-      this.settings = settings;
       this.subnetReader = subnetReader;
       this.keyPairsReader = keyPairsReader;
       this.loadBalancerReader = loadBalancerReader;
@@ -94,7 +93,6 @@ describe('Controller: awsCloneServerGroup', function () {
       window.inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
-          settings: this.settings,
           $uibModalInstance: this.modalInstance,
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
@@ -212,7 +210,6 @@ describe('Controller: awsCloneServerGroup', function () {
       window.inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
-          settings: this.settings,
           $uibModalInstance: this.modalInstance,
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
@@ -367,7 +364,6 @@ describe('Controller: awsCloneServerGroup', function () {
       window.inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
-          settings: this.settings,
           $uibModalInstance: this.modalInstance,
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,

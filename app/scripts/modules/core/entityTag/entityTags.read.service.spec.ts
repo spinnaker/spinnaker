@@ -1,7 +1,7 @@
 import {mock} from 'angular';
 
 import {EntityTagsReader, ENTITY_TAGS_READ_SERVICE} from './entityTags.read.service';
-import IProvideService = angular.auto.IProvideService;
+import {SETTINGS} from 'core/config/settings';
 
 describe('entityTags reader', () => {
 
@@ -10,18 +10,20 @@ describe('entityTags reader', () => {
   let $timeout: ng.ITimeoutService;
   let $exceptionHandler: ng.IExceptionHandlerService;
   let service: EntityTagsReader;
-  let settings: any;
+
+  beforeEach(function () {
+    // Why do we have to clear the settings file? What setting is causing retries to not work?
+    Object.keys(SETTINGS).forEach(key => {
+      SETTINGS[key] = undefined;
+    });
+    SETTINGS.gateUrl = 'http://gate';
+    SETTINGS.entityTags = { maxUrlLength: 55 };
+  });
 
   beforeEach(mock.module(ENTITY_TAGS_READ_SERVICE));
 
-  beforeEach(mock.module(($exceptionHandlerProvider: ng.IExceptionHandlerProvider, $provide: IProvideService) => {
+  beforeEach(mock.module(($exceptionHandlerProvider: ng.IExceptionHandlerProvider) => {
     $exceptionHandlerProvider.mode('log');
-    return $provide.constant('settings', {
-      gateUrl: 'http://gate',
-      entityTags: {
-        maxUrlLength: 55,
-      },
-    });
   }));
 
   beforeEach(
@@ -29,18 +31,18 @@ describe('entityTags reader', () => {
                  _$q_: ng.IQService,
                  _$exceptionHandler_: ng.IExceptionHandlerService,
                  entityTagsReader: EntityTagsReader,
-                 _$timeout_: ng.ITimeoutService,
-                 _settings_: any) => {
+                 _$timeout_: ng.ITimeoutService) => {
       $http = $httpBackend;
       $q = _$q_;
       service = entityTagsReader;
-      settings = _settings_;
       $exceptionHandler = _$exceptionHandler_;
       $timeout = _$timeout_;
     }));
 
+  afterEach(SETTINGS.resetToOriginal);
+
   it('returns an empty list instead of failing if tags cannot be loaded', () => {
-    $http.whenGET(`${settings.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(400, 'bad request');
+    $http.whenGET(`${SETTINGS.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(400, 'bad request');
     let result: any = null;
     service.getAllEntityTags('serverGroups', ['a', 'b']).then(r => result = r);
     $http.flush();
@@ -63,11 +65,11 @@ describe('entityTags reader', () => {
   });
 
   it('retries server group fetch once on exceptions', () => {
-    $http.expectGET(`${settings.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(400, 'bad request');
+    $http.expectGET(`${SETTINGS.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(400, 'bad request');
     let result: any = null;
     service.getAllEntityTags('serverGroups', ['a', 'b']).then(r => result = r);
     $http.flush();
-    $http.expectGET(`${settings.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(200, []);
+    $http.expectGET(`${SETTINGS.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(200, []);
     $timeout.flush();
     $http.flush();
     expect(result).toEqual([]);

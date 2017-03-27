@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
+import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
@@ -30,7 +31,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
       restartable: true,
     });
   })
-  .controller('gceBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, settings, $uibModal) {
+  .controller('gceBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, $uibModal) {
 
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.region = 'global';
@@ -58,7 +59,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
         if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];
         }
-        $scope.viewState.roscoMode = settings.feature.roscoMode;
+        $scope.viewState.roscoMode = SETTINGS.feature.roscoMode;
         $scope.showAdvancedOptions = showAdvanced();
         $scope.viewState.loading = false;
       });

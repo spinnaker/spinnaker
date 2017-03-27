@@ -48,7 +48,6 @@ export class ServerGroupCommandBuilderService {
 
 export const SERVER_GROUP_COMMAND_BUILDER_SERVICE = 'spinnaker.core.serverGroup.configure.common.service';
 module(SERVER_GROUP_COMMAND_BUILDER_SERVICE, [
-  require('core/cloudProvider/serviceDelegate.service.js'),
-  require('core/config/settings.js')
+  require('core/cloudProvider/serviceDelegate.service.js')
 ])
   .service('serverGroupCommandBuilder', ServerGroupCommandBuilderService);

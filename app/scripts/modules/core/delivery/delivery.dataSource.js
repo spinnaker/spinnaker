@@ -1,6 +1,8 @@
 import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+import {SETTINGS} from 'core/config/settings';
+
 let angular = require('angular');
 
 module.exports = angular
@@ -8,10 +10,9 @@ module.exports = angular
     APPLICATION_DATA_SOURCE_REGISTRY,
     require('./service/execution.service'),
     PIPELINE_CONFIG_SERVICE,
-    require('../cluster/cluster.service'),
-    require('../config/settings'),
+    require('../cluster/cluster.service')
   ])
-  .run(function($q, applicationDataSourceRegistry, executionService, pipelineConfigService, clusterService, settings) {
+  .run(function($q, applicationDataSourceRegistry, executionService, pipelineConfigService, clusterService) {
 
     let addExecutions = (application, executions) => {
       executionService.transformExecutions(application, executions);
@@ -47,7 +48,7 @@ module.exports = angular
       application.getDataSource('serverGroups').dataUpdated();
     };
 
-    if (settings.feature && settings.feature.pipelines !== false) {
+    if (SETTINGS.feature.pipelines !== false) {
       applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
         optional: true,
         key: 'executions',

@@ -1,6 +1,7 @@
 'use strict';
 
 import {CONFIG_SECTION_FOOTER} from '../footer/configSectionFooter.component';
+import {SETTINGS} from 'core/config/settings';
 
 require('./applicationLinks.component.less');
 
@@ -11,7 +12,6 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.application.config.applicationLinks.component', [
     require('./editLinks.modal.controller'),
-    require('core/config/settings'),
     require('angular-ui-bootstrap'),
     CONFIG_SECTION_FOOTER,
   ])
@@ -20,14 +20,14 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./applicationLinks.component.html'),
-    controller: function($uibModal, settings) {
+    controller: function($uibModal) {
 
       let initialize = () => {
         if (this.application.notFound) {
           return;
         }
 
-        this.sections = _.cloneDeep(this.application.attributes.instanceLinks || settings.defaultInstanceLinks || []);
+        this.sections = _.cloneDeep(this.application.attributes.instanceLinks || SETTINGS.defaultInstanceLinks || []);
 
         this.viewState = {
           originalSections: _.cloneDeep(this.sections),
@@ -41,14 +41,14 @@ module.exports = angular
       };
 
       this.setDefaultLinkState = () => {
-        this.usingDefaultLinks = angular.toJson(this.sections) === angular.toJson(settings.defaultInstanceLinks);
-        this.defaultLinksConfigured = !!settings.defaultInstanceLinks;
+        this.usingDefaultLinks = angular.toJson(this.sections) === angular.toJson(SETTINGS.defaultInstanceLinks);
+        this.defaultLinksConfigured = !!SETTINGS.defaultInstanceLinks;
       };
 
       this.revert = initialize;
 
       this.useDefaultLinks = () => {
-        this.sections = _.cloneDeep(settings.defaultInstanceLinks);
+        this.sections = _.cloneDeep(SETTINGS.defaultInstanceLinks);
         this.configChanged();
       };
 

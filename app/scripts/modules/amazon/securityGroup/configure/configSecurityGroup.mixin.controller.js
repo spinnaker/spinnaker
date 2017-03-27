@@ -9,6 +9,7 @@ import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import {AWSProviderSettings} from '../../aws.settings';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.baseConfig.controller', [
@@ -19,7 +20,6 @@ module.exports = angular
     ACCOUNT_SERVICE,
     require('../../vpc/vpc.read.service'),
     V2_MODAL_WIZARD_SERVICE,
-    require('core/config/settings'),
     require('./ingressRuleGroupSelector.component'),
   ])
   .controller('awsConfigSecurityGroupMixin', function ($scope,
@@ -34,8 +34,7 @@ module.exports = angular
                                                        v2modalWizardService,
                                                        cacheInitializer,
                                                        infrastructureCaches,
-                                                       vpcReader,
-                                                       settings) {
+                                                       vpcReader) {
 
 
 
@@ -154,7 +153,7 @@ module.exports = angular
         });
         $scope.vpcs = available;
 
-        let lockoutDate = _.get(settings, 'providers.aws.classicLaunchLockout');
+        let lockoutDate = AWSProviderSettings.classicLaunchLockout;
         if (!securityGroup.id && lockoutDate) {
           let createTs = Number(_.get(application, 'attributes.createTs', 0));
           if (createTs >= lockoutDate) {

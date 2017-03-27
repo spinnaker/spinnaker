@@ -1,6 +1,7 @@
 'use strict';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {SETTINGS} from 'core/config/settings';
 
 describe('providerSelectionService: API', () => {
 
@@ -40,8 +41,8 @@ describe('providerSelectionService: API', () => {
     });
   });
 
-  beforeEach(() => {
-    window.spinnakerSettings.providers.testProvider = {
+  beforeEach(function () {
+    SETTINGS.providers.testProvider = {
       defaults: {
         account: 'testProviderAccount',
         region: 'testProviderRegion'
@@ -49,12 +50,14 @@ describe('providerSelectionService: API', () => {
     };
   });
 
+  afterEach(SETTINGS.resetToOriginal);
+
   let application, config;
   beforeEach(() => {
 
     hasValue = false;
     providers = [];
-    delete window.spinnakerSettings.defaultProvider;
+    delete SETTINGS.defaultProvider;
 
     application = {
       name: 'testApplication',
@@ -72,7 +75,7 @@ describe('providerSelectionService: API', () => {
   it('should use the specified, default provider if the requested provider cannot be found', () => {
 
     let provider = '';
-    window.spinnakerSettings.defaultProvider = 'defaultProvider';
+    SETTINGS.defaultProvider = 'defaultProvider';
 
     cloudProvider.registerProvider('fakeProvider', config);
     providerService.selectProvider(application, 'securityGroup').then((_provider) => {

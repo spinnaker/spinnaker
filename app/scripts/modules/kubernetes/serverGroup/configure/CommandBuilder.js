@@ -6,12 +6,11 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.service', [
-  require('core/config/settings.js'),
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
   require('../../cluster/cluster.kubernetes.module.js'),
 ])
-  .factory('kubernetesServerGroupCommandBuilder', function (settings, $q, accountService, namingService,
+  .factory('kubernetesServerGroupCommandBuilder', function ($q, accountService, namingService,
                                                             kubernetesClusterCommandBuilder) {
     function buildNewServerGroupCommand(application, defaults = {}) {
       var command = kubernetesClusterCommandBuilder.buildNewClusterCommand(application, defaults);

@@ -3,14 +3,14 @@
 const angular = require('angular');
 
 import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
+import {NetflixSettings} from '../netflix.settings';
 
 module.exports = angular
   .module('spinnaker.netflix.templateOverride.templateOverrides', [
-    OVERRIDE_REGISTRY,
-    require('core/config/settings.js'),
+    OVERRIDE_REGISTRY
   ])
-  .run(function(overrideRegistry, settings) {
-    if (settings.feature && settings.feature.netflixMode) {
+  .run(function(overrideRegistry) {
+    if (NetflixSettings.feature.netflixMode) {
       let templates = [
         { key: 'applicationConfigView', value: require('../application/applicationConfig.html') },
         { key: 'applicationAttributesDirective', value: require('../application/applicationAttributes.directive.html') },

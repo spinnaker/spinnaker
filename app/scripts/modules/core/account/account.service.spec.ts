@@ -2,11 +2,11 @@ import {mock} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {ACCOUNT_SERVICE, AccountService, IAccount} from 'core/account/account.service';
 import {CloudProviderRegistry} from '../cloudProvider/cloudProvider.registry';
+import {SETTINGS} from 'core/config/settings';
 
 describe('Service: accountService', () => {
 
   let $http: ng.IHttpBackendService;
-  let settings: any;
   let cloudProviderRegistry: CloudProviderRegistry;
   let API: Api;
   let accountService: AccountService;
@@ -16,16 +16,16 @@ describe('Service: accountService', () => {
   beforeEach(
     mock.inject(
       function ($httpBackend: ng.IHttpBackendService,
-                _settings_: any,
                 _cloudProviderRegistry_: CloudProviderRegistry,
                 _API_: Api,
                 _accountService_: AccountService) {
         $http = $httpBackend;
-        settings = _settings_;
         cloudProviderRegistry = _cloudProviderRegistry_;
         API = _API_;
         accountService = _accountService_;
       }));
+
+  afterEach(SETTINGS.resetToOriginal);
 
   it('should filter the list of accounts by provider when supplied', () => {
     $http.expectGET(`${API.baseUrl}/credentials`).respond(200, [
@@ -128,7 +128,7 @@ describe('Service: accountService', () => {
 
       const application: any = {attributes: { cloudProviders: [] }};
       const test: any = (result: string[]) => expect(result).toEqual(['cf', 'gce']);
-      settings.defaultProviders = ['gce', 'cf'];
+      SETTINGS.defaultProviders = ['gce', 'cf'];
       accountService.listProviders(application).then(test);
       $http.flush();
     });
@@ -137,7 +137,7 @@ describe('Service: accountService', () => {
 
       const application: any = {attributes: {cloudProviders: ['gce', 'cf', 'unicron']}};
       const test: any = (result: string[]) => expect(result).toEqual(['cf', 'gce']);
-      settings.defaultProviders = ['aws'];
+      SETTINGS.defaultProviders = ['aws'];
       accountService.listProviders(application).then(test);
       $http.flush();
     });
@@ -146,7 +146,7 @@ describe('Service: accountService', () => {
 
       const application: any = {attributes: {cloudProviders: ['lamp', 'ceiling', 'fan']}};
       const test: any = (result: string[]) => expect(result).toEqual([]);
-      settings.defaultProviders = 'aws';
+      SETTINGS.defaultProviders = ['foo'];
       accountService.listProviders(application).then(test);
       $http.flush();
     });
@@ -155,7 +155,7 @@ describe('Service: accountService', () => {
 
       const application: any = {attributes: { cloudProviders: [] }};
       const test: any = (result: string[]) => expect(result).toEqual(['aws', 'cf', 'gce']);
-      delete settings.defaultProviders;
+      delete SETTINGS.defaultProviders;
       accountService.listProviders(application).then(test);
       $http.flush();
     });

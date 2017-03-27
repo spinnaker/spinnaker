@@ -1,10 +1,10 @@
 'use strict';
 
+import {SETTINGS} from 'core/config/settings';
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentStage', [
-  require('core/config/settings.js'),
-])
+module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentStage', [])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Manual Judgment',
@@ -20,8 +20,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
       disableNotifications: true,
     });
   })
-  .controller('ManualJudgmentStageCtrl', function($scope, $uibModal, settings) {
-    $scope.authEnabled = settings.authEnabled;
+  .controller('ManualJudgmentStageCtrl', function($scope, $uibModal) {
+    $scope.authEnabled = SETTINGS.authEnabled;
     $scope.stage.notifications = $scope.stage.notifications || [];
     $scope.stage.judgmentInputs = $scope.stage.judgmentInputs || [];
     $scope.stage.failPipeline = ($scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline);

@@ -13,6 +13,7 @@ import {CommonGceLoadBalancerCtrl} from '../common/commonLoadBalancer.controller
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 import {LOAD_BALANCER_WRITE_SERVICE, LoadBalancerWriter} from 'core/loadBalancer/loadBalancer.write.service';
 import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
+import {GCEProviderSettings} from '../../../gce.settings';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
@@ -86,7 +87,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
                                   'loadBalancerWriter',
                                   'wizardSubFormValidation',
                                   'taskMonitorBuilder',
-                                  'settings',
                                   '$state',
                                   'infrastructureCaches']; }
 
@@ -100,7 +100,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
                private loadBalancerWriter: LoadBalancerWriter,
                private wizardSubFormValidation: any,
                private taskMonitorBuilder: TaskMonitorBuilder,
-               private settings: any,
                $state: IStateService,
                infrastructureCaches: InfrastructureCacheService) {
     super($scope, application, $uibModalInstance, $state, infrastructureCaches);
@@ -114,8 +113,8 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
           this.initializeEditMode();
         } else {
           this.loadBalancer = new InternalLoadBalancer(
-            this.settings.providers.gce
-            ? this.settings.providers.gce.defaults.region
+            GCEProviderSettings
+            ? GCEProviderSettings.defaults.region
             : null);
         }
 

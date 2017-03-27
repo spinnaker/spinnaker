@@ -1,5 +1,7 @@
 'use strict';
 
+import {SETTINGS} from 'core/config/settings';
+
 const angular = require('angular');
 
 module.exports = angular
@@ -7,8 +9,8 @@ module.exports = angular
     require('angulartics'),
     require('angulartics-google-analytics'),
   ])
-  .run(function ($window, settings) {
-    if (settings.analytics && settings.analytics.ga) {
-      $window.ga('create', settings.analytics.ga, 'auto');
+  .run(function ($window) {
+    if (SETTINGS.analytics.ga) {
+      $window.ga('create', SETTINGS.analytics.ga, 'auto');
     }
   });

@@ -1,12 +1,12 @@
 'use strict';
 
-describe('Controller: ApplicationProviderFieldsCtrl', function () {
+import _ from 'lodash';
+import {SETTINGS} from 'core/config/settings';
 
+describe('Controller: ApplicationProviderFieldsCtrl', function () {
   let controller,
     scope,
-    cloudProviderRegistry,
-    settings,
-    _ = require('lodash');
+    cloudProviderRegistry;
 
   beforeEach(
     window.module(
@@ -14,17 +14,12 @@ describe('Controller: ApplicationProviderFieldsCtrl', function () {
     )
   );
 
+  beforeEach(() => { SETTINGS.providers.aws.defaultPath = '/path/to/somewhere'; });
+
   beforeEach(
     window.inject(function ($rootScope, $controller, _cloudProviderRegistry_) {
       scope = $rootScope.$new(),
-      cloudProviderRegistry = _cloudProviderRegistry_,
-      settings = {
-        providers: {
-          aws: {
-            defaultPath: '/path/to/somewhere',
-          }
-        },
-      };
+      cloudProviderRegistry = _cloudProviderRegistry_;
 
       let application = {
         cloudProviders: [],
@@ -37,18 +32,17 @@ describe('Controller: ApplicationProviderFieldsCtrl', function () {
 
       spyOn(cloudProviderRegistry, 'getValue').and.returnValue('path/to/template');
       spyOn(cloudProviderRegistry, 'hasValue').and.returnValue(true);
-
       controller = $controller('ApplicationProviderFieldsCtrl', {
         $scope: scope,
-        cloudProviderRegistry: cloudProviderRegistry,
-        settings,
-        _,
+        cloudProviderRegistry: cloudProviderRegistry
       }, {
         application,
         cloudProviders,
       });
     })
   );
+
+  afterEach(SETTINGS.resetToOriginal);
 
   it('should instantiate the controller', function () {
     expect(controller).toBeDefined();
@@ -107,8 +101,7 @@ describe('Controller: ApplicationProviderFieldsCtrl', function () {
     });
 
     it('does not mutate the application if the path does not exist within the global provider settings', function() {
-
-      _.set(settings, 'providers.aws', undefined);
+      SETTINGS.providers.aws = undefined;
       let applicationBeforeFunctionCall = _.cloneDeep(controller.application);
 
       controller.initializeApplicationField('aws.defaultPath');
@@ -117,15 +110,13 @@ describe('Controller: ApplicationProviderFieldsCtrl', function () {
 
     });
 
-    it(`mutates the application to match the global provider settings 
+    it(`mutates the application to match the global provider settings
       if the setting has not been defined within the application`,
       function() {
+        controller.initializeApplicationField('aws.defaultPath');
 
-      controller.initializeApplicationField('aws.defaultPath');
-
-      expect(_.get(controller.application, 'providerSettings.aws.defaultPath')).toEqual('/path/to/somewhere');
-
-    });
+        expect(_.get(controller.application, 'providerSettings.aws.defaultPath')).toEqual('/path/to/somewhere');
+      });
 
   });
 

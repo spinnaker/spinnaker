@@ -4,16 +4,18 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
+import {OpenStackProviderSettings} from '../../openstack.settings';
+
 module.exports = angular.module('spinnaker.openstack.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),
 ])
-  .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader, subnetReader, loadBalancerReader, settings, namingService, applicationReader) {
+  .factory('openstackServerGroupCommandBuilder', function ($q, openstackImageReader, subnetReader, loadBalancerReader, namingService, applicationReader) {
 
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      var defaultCredentials = defaults.account || application.defaultCredentials.openstack || settings.providers.openstack.defaults.account;
-      var defaultRegion = defaults.region || application.defaultRegions.openstack || settings.providers.openstack.defaults.region;
+      var defaultCredentials = defaults.account || application.defaultCredentials.openstack || OpenStackProviderSettings.defaults.account;
+      var defaultRegion = defaults.region || application.defaultRegions.openstack || OpenStackProviderSettings.defaults.region;
 
       return $q.when({
           selectedProvider: 'openstack',
