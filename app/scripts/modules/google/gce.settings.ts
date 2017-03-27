@@ -2,13 +2,13 @@ import { IProviderSettings, SETTINGS } from 'core/config/settings';
 
 export interface IGCEProviderSettings extends IProviderSettings {
   defaults: {
-    account: string;
-    region: string;
-    zone: string;
+    account?: string;
+    region?: string;
+    zone?: string;
   };
 }
 
-export const GCEProviderSettings: IGCEProviderSettings = <IGCEProviderSettings>SETTINGS.providers.gce;
+export const GCEProviderSettings: IGCEProviderSettings = <IGCEProviderSettings>SETTINGS.providers.gce || { defaults: {} };
 if (GCEProviderSettings) {
   GCEProviderSettings.resetToOriginal = SETTINGS.resetToOriginal;
 }

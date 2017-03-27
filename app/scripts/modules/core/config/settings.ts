@@ -1,10 +1,8 @@
 import {cloneDeep, merge} from 'lodash';
 
 export interface IProviderSettings {
-  defaults: {
-    account: string;
-  };
-  resetToOriginal: () => void;
+  defaults: {};
+  resetToOriginal?: () => void;
 }
 
 interface INotificationSettings {

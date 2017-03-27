@@ -11,7 +11,7 @@ module.exports = angular
     var notificationTypes = [];
 
     function registerNotificationType(config) {
-      config.config = SETTINGS.notifications[config.key] || { enabled: true };
+      config.config = SETTINGS.notifications && SETTINGS.notifications[config.key] || { enabled: true };
       notificationTypes.push(config);
     }
 
