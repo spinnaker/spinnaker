@@ -38,20 +38,24 @@ class OkHttpClientConfigurationProperties {
 
   String secureRandomInstanceType = "NativePRNGNonBlocking"
 
-  List<String> tlsVersions = ["TLSv1.2", "TLSv1.1", "TLSv1"]
+  List<String> tlsVersions = ["TLSv1.2", "TLSv1.1"]
+  //Defaults from https://wiki.mozilla.org/Security/Server_Side_TLS#Modern_compatibility
+  // with some extra ciphers (non SHA384/256) to support TLSv1.1 and some non EC ciphers
   List<String> cipherSuites = [
-    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
-    "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+    "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+    "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
     "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
     "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-    "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+    "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384",
+    "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
+    "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
+    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
     "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+    "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
     "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
-    "TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
-    "TLS_ECDHE_RSA_WITH_RC4_128_SHA",
-    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-    "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
-    "TLS_DHE_RSA_WITH_AES_256_CBC_SHA"
+    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+    "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
   ]
 
   @Canonical

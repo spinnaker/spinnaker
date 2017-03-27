@@ -49,6 +49,9 @@ class TomcatConfiguration {
   EmbeddedServletContainerCustomizer containerCustomizer(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties,
                                                          TomcatConfigurationProperties tomcatConfigurationProperties,
                                                          SslExtensionConfigurationProperties sslExtensionConfigurationProperties) throws Exception {
+    System.setProperty("jdk.tls.rejectClientInitiatedRenegotiation", "true")
+    System.setProperty("jdk.tls.ephemeralDHKeySize", "2048")
+
     return { ConfigurableEmbeddedServletContainer container ->
       TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container
       //this will only handle the case where SSL is enabled on the main tomcat connector
@@ -58,6 +61,7 @@ class TomcatConfiguration {
           def handler = connector.getProtocolHandler()
           if (handler instanceof AbstractHttp11JsseProtocol) {
             if (handler.isSSLEnabled()) {
+              handler.setProperty("useServerCipherSuitesOrder", "true")
               handler.setProperty("sslEnabledProtocols", okHttpClientConfigurationProperties.tlsVersions.join(","))
               handler.setCiphers(okHttpClientConfigurationProperties.cipherSuites.join(","))
               handler.setSslImplementationName(BlacklistingSSLImplementation.name)
