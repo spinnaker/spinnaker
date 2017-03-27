@@ -29,7 +29,10 @@ function __get_google_metadata_value() {
 
 function __determine_default_bucket() {
   if [[ ! -z "${SPINNAKER_GOOGLE_PROJECT_ID}" ]]; then
-    echo "spinnaker-${SPINNAKER_GOOGLE_PROJECT_ID//google.com:/}"
+    # dot and colon are not valid bucket characters
+    # however they are valid project id names (e.g. google.com:)
+    # so replace those bad chars with '-'
+    echo "spinnaker-${SPINNAKER_GOOGLE_PROJECT_ID}" | tr ".:" "--"
   else
     echo ""
   fi
