@@ -29,6 +29,7 @@ from citest.base import (
 import citest.service_testing as sk
 import citest.service_testing.http_agent as http_agent
 import citest.aws_testing as aws
+import citest.azure_testing as az
 import citest.gcp_testing as gcp
 import citest.kube_testing as kube
 import citest.openstack_testing as os
@@ -175,6 +176,27 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
              ' use "gcloud auth activate-service-account".'
              ' This parameter is only used if the spinnaker host platform'
              ' is GCE.')
+
+  @classmethod
+  def _initAzureOperationConfigurationParameters(cls, parser, defaults):
+     """Initialize arguments for configuring operations for Azure.
+
+      parser: [argparse.ArgumentParser]
+      defaults: [dict] Default binding value overrides.
+         This is used to initialize the default commandline parameters.
+    """
+    parser.add_argument(
+        '--azure_subscription_id', default='',
+        help='The subscription id of your subscriptoin.')
+    parser.add_argument(
+        '--azure_tenant_id', default='',
+        help='The AAD tenant id.')
+    parser.add_argument(
+        '--azure_client_id', default='',
+        help='The service principal id.')
+    parser.add_argument(
+        '--azure_app_key', default='',
+        help='The service principal secret.')   
 
   @classmethod
   def _initGoogleOperationConfigurationParameters(cls, parser, defaults):
@@ -339,6 +361,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
     cls._initGoogleOperationConfigurationParameters(parser, defaults)
     cls._initAwsOperationConfigurationParameters(parser, defaults)
+    cls._initAzureOperationConfigurationParameters(parser, defaults)
     cls._initKubeOperationConfigurationParameters(parser, defaults)
     cls._initAppengineOperationConfigurationParameters(parser, defaults)
     cls._initOpenStackOperationConfigurationParameters(parser, defaults)
@@ -390,6 +413,11 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     cls._initObservationConfigurationParameters(parser, defaults=defaults)
 
   @property
+  def az_observer(self):
+    """The observer for inspecting GCE platform state, if configured."""
+    return self.__az_observer
+
+  @property
   def gcp_observer(self):
     """The observer for inspecting GCE platform state, if configured."""
     return self.__gcp_observer
@@ -428,6 +456,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     JournalLogger.begin_context('Configure Cloud Bindings')
     try:
       self.__init_google_bindings()
+      self.__init_azure_bindings()
       self.__init_aws_bindings()
       self.__init_kubernetes_bindings()
       self.__init_appengine_bindings()
