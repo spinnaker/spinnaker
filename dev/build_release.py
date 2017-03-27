@@ -50,6 +50,7 @@ import os
 import multiprocessing
 import multiprocessing.pool
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -228,6 +229,14 @@ class Builder(object):
     """
     gradle_root = self.determine_gradle_root(name)
     if self.__options.container_builder == 'gcb':
+      # Local .gradle dir stomps on GCB's .gradle directory when the gradle
+      # wrapper is installed, so we need to delete the local one.
+      # The .gradle dir is transient and will be recreated on the next gradle
+      # build, so this is OK.
+      gradle_cache = '{name}/.gradle'.format(name=name)
+      if os.path.isdir(gradle_cache):
+        # Tell rmtree to delete the directory even if it's non-empty.
+        shutil.rmtree(gradle_cache)
       return BackgroundProcess.spawn(
           'Build/publishing container image for {name} with'
           ' Google Container Builder...'.format(name=name),
