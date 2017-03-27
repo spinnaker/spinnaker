@@ -48,7 +48,7 @@ class DependentPipelineStarterSpec extends Specification {
       start(*_) >> {
         gotMDC.putAll(MDC.copyOfContextMap)
         def p = mapper.readValue(it[0], Map)
-        return new Pipeline.Builder().withName(p.name).withId(p.name).withTrigger(p.trigger).build()
+        return Pipeline.builder().withName(p.name).withId(p.name).withTrigger(p.trigger).build()
       }
     }
     def applicationContext = new StaticApplicationContext()
@@ -93,7 +93,7 @@ class DependentPipelineStarterSpec extends Specification {
       start(*_) >> {
         gotMDC.putAll(MDC.copyOfContextMap)
         def p = mapper.readValue(it[0], Map)
-        return new Pipeline.Builder().withName(p.name).withId(p.name).withTrigger(p.trigger).build()
+        return Pipeline.builder().withName(p.name).withId(p.name).withTrigger(p.trigger).build()
       }
     }
     def applicationContext = new StaticApplicationContext()

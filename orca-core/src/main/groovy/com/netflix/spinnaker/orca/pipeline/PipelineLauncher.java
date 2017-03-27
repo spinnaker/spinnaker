@@ -72,7 +72,7 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
   }
 
   @Override protected boolean shouldQueue(Pipeline execution) {
-    if (execution.getPipelineConfigId() == null || !execution.getLimitConcurrent()) {
+    if (execution.getPipelineConfigId() == null || !execution.isLimitConcurrent()) {
       return false;
     }
     return startTracker

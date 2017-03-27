@@ -73,15 +73,15 @@ class RetryableTaskTasklet extends TaskTasklet {
 
     if (stage.execution.status == ExecutionStatus.PAUSED) {
       // If the pipeline is PAUSED, ensure that the current stage and all running tasks are PAUSED
-      stage.self.status = ExecutionStatus.PAUSED
-      stage.self.tasks.findAll { it.status == ExecutionStatus.RUNNING }.each {
+      stage.status = ExecutionStatus.PAUSED
+      stage.tasks.findAll { it.status == ExecutionStatus.RUNNING }.each {
         it.status = ExecutionStatus.PAUSED
       }
       return new DefaultTaskResult(ExecutionStatus.PAUSED)
     } else if (stage.execution.status == ExecutionStatus.RUNNING) {
       // If the pipeline is RUNNING, ensure that the current stage and all paused tasks are RUNNING
-      stage.self.status = ExecutionStatus.RUNNING
-      stage.self.tasks.findAll { it.status == ExecutionStatus.PAUSED }.each {
+      stage.status = ExecutionStatus.RUNNING
+      stage.tasks.findAll { it.status == ExecutionStatus.PAUSED }.each {
         it.status = ExecutionStatus.RUNNING
       }
     }

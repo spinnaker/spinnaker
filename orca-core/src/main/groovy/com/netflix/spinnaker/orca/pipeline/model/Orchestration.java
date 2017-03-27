@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.model
+package com.netflix.spinnaker.orca.pipeline.model;
 
-import groovy.transform.CompileStatic
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@CompileStatic
-class Orchestration extends Execution<Orchestration> {
-  String description
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class Orchestration extends Execution<Orchestration> {
+  String description;
 }

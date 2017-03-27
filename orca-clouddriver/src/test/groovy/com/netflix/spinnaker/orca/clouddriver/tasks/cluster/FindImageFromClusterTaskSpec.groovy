@@ -43,7 +43,7 @@ class FindImageFromClusterTaskSpec extends Specification {
   @Unroll
   def "should output deployment details based on ImageSummary"() {
     given:
-      def pipe = new Pipeline.Builder()
+      def pipe = Pipeline.builder()
           .withApplication("contextAppName") // Should be ignored.
           .build()
       def stage = new Stage<>(pipe, "findImage", [
@@ -171,7 +171,7 @@ class FindImageFromClusterTaskSpec extends Specification {
 
   def "should resolve images via find if not all regions exist in source server group"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("contextAppName") // Should be ignored.
       .build()
     def stage = new Stage<>(pipe, "findImage", [
@@ -230,7 +230,7 @@ class FindImageFromClusterTaskSpec extends Specification {
 
   def "should resolve images via find if not all regions exist in source server group without build info"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("contextAppName") // Should be ignored.
       .build()
     def stage = new Stage<>(pipe, "findImage", [
@@ -289,7 +289,7 @@ class FindImageFromClusterTaskSpec extends Specification {
   def "should fallback to look up image from default bake account for AWS if not found in target account"() {
     given:
     task.defaultBakeAccount = 'bakery'
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("contextAppName") // Should be ignored.
       .build()
     def stage = new Stage<>(pipe, "findImage", [

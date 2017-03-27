@@ -43,7 +43,7 @@ class MonitorQuipTaskSpec extends Specification {
   @Unroll
   def "check different success statuses, servers return #status expect #executionStatus"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("foo")
       .build()
     def stage = new Stage<>(pipe, 'monitorQuip', [:])
@@ -80,7 +80,7 @@ class MonitorQuipTaskSpec extends Specification {
   @Unroll
   def "check different failure statuses, servers return #status, expect exception"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("foo")
       .build()
     def stage = new Stage<>(pipe, 'monitorQuip', [:])
@@ -112,7 +112,7 @@ class MonitorQuipTaskSpec extends Specification {
   @Unroll
   def "servers return non-200 responses"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("foo")
       .build()
     def stage = new Stage<>(pipe, 'monitorQuip', [:])
@@ -138,7 +138,7 @@ class MonitorQuipTaskSpec extends Specification {
 
   def "servers return bad data"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("foo")
       .build()
     def stage = new Stage<>(pipe, 'monitorQuip', [:])
@@ -165,7 +165,7 @@ class MonitorQuipTaskSpec extends Specification {
   @Unroll
   def "missing configuration"() {
     given:
-    def pipe = new Pipeline.Builder()
+    def pipe = Pipeline.builder()
       .withApplication("foo")
       .build()
     def stage = new Stage<>(pipe, 'monitorQuip', [:])

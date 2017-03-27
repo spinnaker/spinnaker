@@ -110,7 +110,7 @@ class RetryableTaskTaskletSpec extends Specification {
     def taskResult = tasklet.doExecuteTask(stage, chunkContext)
 
     then:
-    stage.self.status == PAUSED
+    stage.status == PAUSED
     taskResult.status == PAUSED
     stage.tasks*.status == [SUCCEEDED, PAUSED]
 
@@ -121,7 +121,7 @@ class RetryableTaskTaskletSpec extends Specification {
     then:
     1 * task.execute(_) >> { DefaultTaskResult.SUCCEEDED }
     taskResult.status == SUCCEEDED
-    stage.self.status == RUNNING
+    stage.status == RUNNING
     stage.tasks*.status == [SUCCEEDED, RUNNING]
   }
 
