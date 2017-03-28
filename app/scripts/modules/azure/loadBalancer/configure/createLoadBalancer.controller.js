@@ -8,12 +8,13 @@ import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.serv
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
   require('angular-ui-router'),
-  require('../loadBalancer.write.service.js'),
+  LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),
   V2_MODAL_WIZARD_SERVICE,
@@ -27,7 +28,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
   .controller('azureCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                       accountService, azureLoadBalancerTransformer,
                                                       infrastructureCaches, networkReader,
-                                                      v2modalWizardService, azureLoadBalancerWriter, taskMonitorBuilder,
+                                                      v2modalWizardService, loadBalancerWriter, taskMonitorBuilder,
                                                       namingService, application, loadBalancer, isNew) {
 
     var ctrl = this;
@@ -247,7 +248,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
             $scope.loadBalancer.probes[0].probePath = undefined;
           }
 
-          return azureLoadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
         }
       );
     };
