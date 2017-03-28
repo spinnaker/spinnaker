@@ -187,21 +187,23 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     """
 
     parser.add_argument(
-        '--azure_subscription_id', default='',
+        '--azure_subscription_id', dest='spinnaker_azure_subscription_id',
         help='The subscription id of your subscriptoin.')
     parser.add_argument(
-        '--azure_tenant_id', default='',
+        '--azure_tenant_id', dest='spinnaker_azure_tenant_id',
         help='The AAD tenant id.')
     parser.add_argument(
-        '--azure_client_id', default='',
+        '--azure_client_id', dest='spinnaker_azure_client_id',
         help='The service principal id.')
     parser.add_argument(
-        '--azure_app_key', default='',
-        help='The service principal secret.')   
+        '--azure_app_key', dest='spinnaker_azure_app_key',
+        help='The service principal secret.')
     parser.add_argument(
-        '--azure_location', default='',
-        help='The azure location to be used.')   
-
+        '--azure_location', dest='spinnaker_azure_location',
+        help='The azure location to be used.')
+    parser.add_argument(
+        '--azure_account_name', dest='spinnaker_azure_account_name',
+        help='The name of the account in spinnaker.')
 
   @classmethod
   def _initGoogleOperationConfigurationParameters(cls, parser, defaults):
@@ -214,32 +216,32 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
     parser.add_argument(
         '--spinnaker_google_account',
-        default=defaults.get('SPINNAKER_GOOGLE_ACCOUNT', None),
-        help='Spinnaker account name to use for test operations against GCE.'
+        default = defaults.get('SPINNAKER_GOOGLE_ACCOUNT', None),
+        help = 'Spinnaker account name to use for test operations against GCE.'
              ' Only used when managing resources on GCE.'
              ' If left empty then use the configured primary account.')
     parser.add_argument(
         '--gce_credentials',
-        dest='spinnaker_google_account',
-        help='DEPRECATED. Replaced by --spinnaker_google_account')
+        dest = 'spinnaker_google_account',
+        help = 'DEPRECATED. Replaced by --spinnaker_google_account')
     parser.add_argument(
-        '--managed_gce_project', dest='google_primary_managed_project_id',
-        help='GCE project to test instances in (when managing GCE).')
+        '--managed_gce_project', dest = 'google_primary_managed_project_id',
+        help = 'GCE project to test instances in (when managing GCE).')
     parser.add_argument(
         '--test_gce_zone',
-        default=defaults.get('TEST_GCE_ZONE', 'us-central1-f'),
-        help='The GCE zone to test generated instances in (when managing GCE).'
+        default = defaults.get('TEST_GCE_ZONE', 'us-central1-f'),
+        help = 'The GCE zone to test generated instances in (when managing GCE).'
              ' This implies the GCE region as well.')
     parser.add_argument(
         '--test_gce_region',
-        default=defaults.get('TEST_GCE_REGION', ''),
-        help='The GCE region to test generated instances in (when managing'
+        default = defaults.get('TEST_GCE_REGION', ''),
+        help = 'The GCE region to test generated instances in (when managing'
              ' GCE). If not specified, then derive it from --test_gce_zone.')
     parser.add_argument(
         '--test_gce_image_name',
-        default=defaults.get('TEST_GCE_IMAGE_NAME',
+        default = defaults.get('TEST_GCE_IMAGE_NAME',
                              'ubuntu-1404-trusty-v20160919'),
-        help='Default Google Compute Engine image name to use when'
+        help = 'Default Google Compute Engine image name to use when'
              ' creating test instances.')
 
   @classmethod
@@ -253,42 +255,42 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     # pylint: disable=line-too-long
     parser.add_argument(
         '--spinnaker_aws_account',
-        default=defaults.get('SPINNAKER_AWS_ACCOUNT', None),
-        help='Spinnaker account name to use for test operations against AWS.'
+        default = defaults.get('SPINNAKER_AWS_ACCOUNT', None),
+        help = 'Spinnaker account name to use for test operations against AWS.'
              ' Only used when managing resources on AWS.')
     parser.add_argument(
         '--aws_credentials',
-        dest='spinnaker_aws_account',
-        help='DEPRECATED. Replaced by --spinnaker_aws_account')
+        dest = 'spinnaker_aws_account',
+        help = 'DEPRECATED. Replaced by --spinnaker_aws_account')
 
     parser.add_argument(
-        '--aws_iam_role', default=defaults.get('AWS_IAM_ROLE', None),
-        help='Spinnaker IAM role name for test operations.'
+        '--aws_iam_role', default = defaults.get('AWS_IAM_ROLE', None),
+        help = 'Spinnaker IAM role name for test operations.'
              ' Only used when managing jobs running on AWS.')
     parser.add_argument(
         '--test_aws_zone',
-        default=defaults.get('TEST_AWS_ZONE', 'us-east-1c'),
-        help='The AWS zone to test generated instances in (when managing AWS).'
+        default = defaults.get('TEST_AWS_ZONE', 'us-east-1c'),
+        help = 'The AWS zone to test generated instances in (when managing AWS).'
              ' This implies the AWS region as well.')
     parser.add_argument(
         '--test_aws_region',
-        default=defaults.get('TEST_AWS_REGION', ''),
-        help='The GCE region to test generated instances in (when managing'
+        default = defaults.get('TEST_AWS_REGION', ''),
+        help = 'The GCE region to test generated instances in (when managing'
              ' AWS). If not specified, then derive it fro --test_aws_zone.')
     parser.add_argument(
         '--test_aws_ami',
-        default=defaults.get('TEST_AWS_AMI',
+        default = defaults.get('TEST_AWS_AMI',
                              'bitnami-tomcatstack-7.0.63-1-linux-ubuntu-14.04.1-x86_64-ebs'),
-        help='Default Amazon AMI to use when creating test instances.'
+        help = 'Default Amazon AMI to use when creating test instances.'
              ' The default image will listen on port 80.')
     parser.add_argument(
         '--test_aws_vpc_id',
-        default=defaults.get('TEST_AWS_VPC_ID', None),
-        help='Default AWS VpcId to use when creating test resources.')
+        default = defaults.get('TEST_AWS_VPC_ID', None),
+        help = 'Default AWS VpcId to use when creating test resources.')
     parser.add_argument(
         '--test_aws_security_group_id',
-        default=defaults.get('TEST_AWS_SECURITY_GROUP_ID', None),
-        help='Default AWS SecurityGroupId when creating test resources.')
+        default = defaults.get('TEST_AWS_SECURITY_GROUP_ID', None),
+        help = 'Default AWS SecurityGroupId when creating test resources.')
 
   @classmethod
   def _initKubeOperationConfigurationParameters(cls, parser, defaults):
@@ -300,15 +302,15 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     """
     parser.add_argument(
         '--spinnaker_kubernetes_account',
-        default=defaults.get('SPINNAKER_KUBERNETES_ACCOUNT', None),
-        help='Spinnaker account name to use for test operations against'
+        default = defaults.get('SPINNAKER_KUBERNETES_ACCOUNT', None),
+        help = 'Spinnaker account name to use for test operations against'
              ' Kubernetes. Only used when managing jobs running on'
              ' Kubernetes.')
 
     parser.add_argument(
         '--kube_credentials',
-        dest='spinnaker_kubernetes_account',
-        help='DEPRECATED. Replaced by --spinnaker_kubernetes_account')
+        dest = 'spinnaker_kubernetes_account',
+        help = 'DEPRECATED. Replaced by --spinnaker_kubernetes_account')
 
   @classmethod
   def _initAppengineOperationConfigurationParameters(cls, parser, defaults):
@@ -320,8 +322,8 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     """
     parser.add_argument(
         '--spinnaker_appengine_account',
-        default=defaults.get('SPINNAKER_APPENGINE_ACCOUNT', None),
-        help='Spinnaker account name to use for test operations against'
+        default = defaults.get('SPINNAKER_APPENGINE_ACCOUNT', None),
+        help = 'Spinnaker account name to use for test operations against'
              'App Engine. Only used when managing resources on App Engine.')
 
   @classmethod
@@ -335,18 +337,18 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     # pylint: disable=line-too-long
     parser.add_argument(
         '--spinnaker_os_account',
-        default=defaults.get('SPINNAKER_OS_ACCOUNT', None),
-        help='Spinnaker account name to use for test operations against OpenStack.'
+        default = defaults.get('SPINNAKER_OS_ACCOUNT', None),
+        help = 'Spinnaker account name to use for test operations against OpenStack.'
              'Only used when managing resources on OpenStack.')
     parser.add_argument(
         '--os_region_name',
-        default=defaults.get('OS_REGION_NAME', None),
-        help='The OpenStack region to test generated instances in (when managing'
+        default = defaults.get('OS_REGION_NAME', None),
+        help = 'The OpenStack region to test generated instances in (when managing'
              'OpenStack).')
     parser.add_argument(
         '--test_os_username',
-        default=defaults.get('TEST_OS_USERNAME', 'my-openstack-account'),
-        help='The OpenStack authentiaction username for test operations against OpenStack.')
+        default = defaults.get('TEST_OS_USERNAME', 'my-openstack-account'),
+        help = 'The OpenStack authentiaction username for test operations against OpenStack.')
 
   @classmethod
   def _initOperationConfigurationParameters(cls, parser, defaults):
@@ -357,12 +359,12 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
          This is used to initialize the default commandline parameters.
     """
     parser.add_argument(
-        '--test_stack', default=defaults.get('TEST_STACK', 'test'),
-        help='Default Spinnaker stack decorator.')
+        '--test_stack', default = defaults.get('TEST_STACK', 'test'),
+        help = 'Default Spinnaker stack decorator.')
 
     parser.add_argument(
-        '--test_app', default=defaults.get('TEST_APP', cls.__name__.lower()),
-        help='Default Spinnaker application name to use with test.')
+        '--test_app', default = defaults.get('TEST_APP', cls.__name__.lower()),
+        help = 'Default Spinnaker application name to use with test.')
 
     cls._initGoogleOperationConfigurationParameters(parser, defaults)
     cls._initAwsOperationConfigurationParameters(parser, defaults)
@@ -381,27 +383,27 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     """
     parser.add_argument(
         '--gce_credentials_path',
-        default=defaults.get('GCE_CREDENTIALS_PATH', None),
-        help='A path to the JSON file with credentials to use for observing'
+        default = defaults.get('GCE_CREDENTIALS_PATH', None),
+        help = 'A path to the JSON file with credentials to use for observing'
              ' tests run against Google Cloud Platform.')
 
     parser.add_argument(
-        '--aws_profile', default=defaults.get('AWS_PROFILE', None),
-        help='aws command-line tool --profile parameter when observing AWS.')
+        '--aws_profile', default = defaults.get('AWS_PROFILE', None),
+        help = 'aws command-line tool --profile parameter when observing AWS.')
 
     parser.add_argument(
         '--appengine_credentials_path',
-        default=defaults.get('APPENGINE_CREDENTIALS_PATH', None),
-        help='A path to the JSON file with credentials to use for observing'
+        default = defaults.get('APPENGINE_CREDENTIALS_PATH', None),
+        help = 'A path to the JSON file with credentials to use for observing'
              ' tests run against Google App Engine. Defaults to the value set for'
              '--gce_credentials_path, which defaults to application default credentials.')
 
     parser.add_argument(
-        '--os_cloud', default=defaults.get('OS_CLOUD', None),
-        help='Cloud name. OpenStack will look for a clouds.yaml file that contains a cloud configuration to use for authentication.')
+        '--os_cloud', default = defaults.get('OS_CLOUD', None),
+        help = 'Cloud name. OpenStack will look for a clouds.yaml file that contains a cloud configuration to use for authentication.')
 
   @classmethod
-  def initArgumentParser(cls, parser, defaults=None):
+  def initArgumentParser(cls, parser, defaults = None):
     """Initialize command line argument parser.
 
     Args:
@@ -410,12 +412,12 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
          This is used to initialize the default commandline parameters.
     """
     super(SpinnakerTestScenario, cls).initArgumentParser(
-        parser, defaults=defaults)
+        parser, defaults = defaults)
 
-    defaults = defaults or {}
-    cls._initSpinnakerLocationParameters(parser, defaults=defaults)
-    cls._initOperationConfigurationParameters(parser, defaults=defaults)
-    cls._initObservationConfigurationParameters(parser, defaults=defaults)
+    defaults=defaults or {}
+    cls._initSpinnakerLocationParameters(parser, defaults = defaults)
+    cls._initOperationConfigurationParameters(parser, defaults = defaults)
+    cls._initObservationConfigurationParameters(parser, defaults = defaults)
 
   @property
   def az_observer(self):
@@ -447,7 +449,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     """The observer for inspecting OpenStack platform state, if configured."""
     return self.__os_observer
 
-  def __init__(self, bindings, agent=None):
+  def __init__(self, bindings, agent = None):
     """Constructor
 
     Args:
@@ -456,7 +458,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       agent: [SpinnakerAgent] The Spinnaker agent to bind to the scenario.
     """
     super(SpinnakerTestScenario, self).__init__(bindings, agent)
-    agent = self.agent
+    agent=self.agent
     self.__update_bindings_with_subsystem_configuration(agent)
     JournalLogger.begin_context('Configure Cloud Bindings')
     try:
@@ -468,7 +470,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       self.__init_openstack_bindings()
       self._do_init_bindings()
     except:
-      logger = logging.getLogger(__name__)
+      logger=logging.getLogger(__name__)
       logger.exception('Failed to initialize spinnaker agent.')
       raise
     finally:
@@ -478,64 +480,64 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     pass
 
   def __init_aws_bindings(self):
-    context = ExecutionContext()
-    bindings = self.bindings  # base class made a copy
+    context=ExecutionContext()
+    bindings=self.bindings  # base class made a copy
     if not bindings['TEST_AWS_ZONE']:
-      bindings['TEST_AWS_ZONE'] = bindings['AWS_ZONE']
+      bindings['TEST_AWS_ZONE']=bindings['AWS_ZONE']
     if not bindings.get('TEST_AWS_REGION', ''):
-      bindings['TEST_AWS_REGION'] = bindings['TEST_AWS_ZONE'][:-1]
+      bindings['TEST_AWS_REGION']=bindings['TEST_AWS_ZONE'][:-1]
 
     if bindings.get('AWS_PROFILE'):
-      self.__aws_observer = aws.AwsAgent(
+      self.__aws_observer=aws.AwsAgent(
           bindings['AWS_PROFILE'], bindings['TEST_AWS_REGION'])
       if not bindings.get('TEST_AWS_VPC_ID', ''):
         # We need to figure out a specific aws vpc id to use.
-        logger = logging.getLogger(__name__)
+        logger=logging.getLogger(__name__)
         logger.info('Determine default AWS VpcId...')
-        vpc_list = self.__aws_observer.get_resource_list(
+        vpc_list=self.__aws_observer.get_resource_list(
             context,
-            root_key='Vpcs',
-            aws_command='describe-vpcs',
-            args=['--filters', 'Name=tag:Name,Values=defaultvpc'],
-            region=bindings['TEST_AWS_REGION'],
-            aws_module='ec2', profile=self.__aws_observer.profile)
+            root_key = 'Vpcs',
+            aws_command = 'describe-vpcs',
+            args = ['--filters', 'Name=tag:Name,Values=defaultvpc'],
+            region = bindings['TEST_AWS_REGION'],
+            aws_module = 'ec2', profile = self.__aws_observer.profile)
         if not vpc_list:
           raise ValueError('There is no vpc tagged as "defaultvpc"')
-        bindings['TEST_AWS_VPC_ID'] = vpc_list[0]['VpcId']
+        bindings['TEST_AWS_VPC_ID']=vpc_list[0]['VpcId']
         logger.info('Using discovered default VpcId=%s',
                     str(bindings['TEST_AWS_VPC_ID']))
 
       if not bindings.get('TEST_AWS_SECURITY_GROUP', ''):
         # We need to figure out a specific security group that is compatable
         # with the VpcId we are using.
-        logger = logging.getLogger(__name__)
+        logger=logging.getLogger(__name__)
         logger.info('Determine default AWS SecurityGroupId...')
-        sg_list = self.__aws_observer.get_resource_list(
+        sg_list=self.__aws_observer.get_resource_list(
             context,
-            root_key='SecurityGroups',
-            aws_command='describe-security-groups', args=[],
-            region=bindings['TEST_AWS_REGION'],
-            aws_module='ec2', profile=self.__aws_observer.profile)
+            root_key = 'SecurityGroups',
+            aws_command = 'describe-security-groups', args = [],
+            region = bindings['TEST_AWS_REGION'],
+            aws_module = 'ec2', profile = self.__aws_observer.profile)
         for entry in sg_list:
           if entry.get('VpcId', None) == bindings['TEST_AWS_VPC_ID']:
-            bindings['TEST_AWS_SECURITY_GROUP_ID'] = entry['GroupId']
+            bindings['TEST_AWS_SECURITY_GROUP_ID']=entry['GroupId']
             break
         logger.info('Using discovered default SecurityGroupId=%s',
                     str(bindings['TEST_AWS_SECURITY_GROUP_ID']))
     else:
-      self.__aws_observer = None
-      logger = logging.getLogger(__name__)
+      self.__aws_observer=None
+      logger=logging.getLogger(__name__)
       logger.warning(
           '--aws_profile was not set.'
           ' Therefore, we will not be able to observe Amazon Web Services.')
 
 
   def __init_azure_bindings(self):
-    bindings = self.bindings  # base class made a copy
+    bindings=self.bindings  # base class made a copy
     if not bindings.get('TEST_AZURE_LOCATION'):
-      bindings['TEST_AZURE_LOCATION'] = bindings['SPINNAKER_AZURE_DEFAULT_LOCATION']
+      bindings['TEST_AZURE_LOCATION']=bindings['SPINNAKER_AZURE_LOCATION']
     else:
-      self.__azure_observer = az.AzAgent(
+      self.__azure_observer=az.AzAgent(
         bindings['TEST_AZURE_LOCATION']
       )
 
@@ -614,15 +616,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         pass
       self.bindings[key] = value
     
-    if not self.bindings['SPINNAKER_AZURE_ACCOUNT']:
-      self.bindings['SPINNAKER_AZURE_ACCOUNT'] = (
+    if not self.bindings['SPINNAKER_AZURE_ACCOUNT_NAME']:
+      self.bindings['SPINNAKER_AZURE_ACCOUNT_NAME'] = (
         self.agent.deployed_config.get(
           'providers.azure.primaryCredentials.name', None)) 
-
-    if not self.bindings['SPINNAKER_AZURE_DEFAULT_LOCATION']:
-      self.bindings['SPINNAKER_AZURE_DEFAULT_LOCATION'] = (
-        self.agent.deployed_config.get(
-          'providers.azure.defaultRegion', None)) 
 
     if not self.bindings['SPINNAKER_GOOGLE_ACCOUNT']:
       self.bindings['SPINNAKER_GOOGLE_ACCOUNT'] = (

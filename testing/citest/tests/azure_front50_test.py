@@ -46,18 +46,6 @@ class AzureFront50TestScenario(sk.SpinnakerTestScenario):
     Args:
       parser: argparse.ArgumentParser
     """
-    parser.add_argument(
-        '--azure_subscription_id', default='',
-        help='The subscription id of your subscriptoin.')
-    parser.add_argument(
-        '--azure_tenant_id', default='',
-        help='The AAD tenant id.')
-    parser.add_argument(
-        '--azure_client_id', default='',
-        help='The service principal id.')
-    parser.add_argument(
-        '--azure_app_key', default='',
-        help='The service principal secret.')
 
     super(AzureFront50TestScenario, cls).initArgumentParser(
         parser, defaults=defaults)
@@ -111,7 +99,7 @@ class AzureFront50TestScenario(sk.SpinnakerTestScenario):
         "updateTs" : "1463667655844",
         "createTs" : "1463666817476",
         "platformHealthOnly" : False,
-        "cloudProviders" : "gce,aws"
+        "cloudProviders" : "azure"
     }
 
     self.initial_pipeline_spec = {
@@ -202,7 +190,7 @@ def main():
   return citest.base.TestRunner.main(
       parser_inits=[AzureFront50TestScenario.initArgumentParser],
       default_binding_overrides=defaults,
-      test_case_list=[AzureFront50TestScenario])
+      test_case_list=[AzureFront50Test])
 
 
 if __name__ == '__main__':
