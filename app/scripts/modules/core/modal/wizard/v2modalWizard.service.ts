@@ -23,16 +23,11 @@ export class V2ModalWizardService {
   public pageRegistry: WizardPage[] = [];
   public currentPage: WizardPage;
   public heading: string;
-  public pageOffset = -30;
 
   public constructor(private scrollToService: ScrollToService) {}
 
   public setHeading(heading: string): void {
     this.heading = heading;
-  }
-
-  public setPageOffset(offset: number): void {
-    this.pageOffset = offset;
   }
 
   public getPage(key: string): WizardPage {
@@ -65,7 +60,7 @@ export class V2ModalWizardService {
     }
 
     if (!skipScroll) {
-      this.scrollToService.scrollTo(`[waypoint="${page.key}"]`, '[waypoint-container]', 143 + this.pageOffset);
+      this.scrollToService.scrollTo(`[waypoint="${page.key}"]`, '[waypoint-container]', 143);
     }
   }
 
@@ -123,7 +118,6 @@ export class V2ModalWizardService {
     this.pageRegistry.length = 0;
     this.currentPage = null;
     this.heading = null;
-    this.pageOffset = -30;
   }
 
 }
