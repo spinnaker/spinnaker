@@ -17,6 +17,7 @@ package com.netflix.spinnaker.gate.ratelimit;
 
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.gate.config.RateLimiterConfiguration;
 import com.netflix.spinnaker.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,13 +38,13 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
   private static String UNKNOWN_PRINCIPAL = "unknown";
 
   RateLimiter rateLimiter;
-  boolean learning;
+  RateLimiterConfiguration rateLimiterConfiguration;
 
   private Counter throttlingCounter;
 
-  public RateLimitingInterceptor(RateLimiter rateLimiter, Registry registry, boolean learning) {
+  public RateLimitingInterceptor(RateLimiter rateLimiter, Registry registry, RateLimiterConfiguration rateLimiterConfiguration) {
     this.rateLimiter = rateLimiter;
-    this.learning = learning;
+    this.rateLimiterConfiguration = rateLimiterConfiguration;
     throttlingCounter = registry.counter("rateLimit.throttling");
   }
 
@@ -57,6 +58,8 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
     }
 
     Rate rate = rateLimiter.incrementAndGetRate(principal);
+
+    boolean learning = isLearning(principal);
 
     rate.assignHttpHeaders(response, learning);
 
@@ -112,5 +115,9 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
       return request.getRemoteAddr();
     }
     return ip;
+  }
+
+  private boolean isLearning(String principal) {
+    return !rateLimiterConfiguration.getEnforcing().contains(principal) && (rateLimiterConfiguration.getIgnoring().contains(principal) || rateLimiterConfiguration.isLearning());
   }
 }

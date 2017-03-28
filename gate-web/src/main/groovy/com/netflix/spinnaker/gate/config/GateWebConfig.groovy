@@ -45,6 +45,9 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
   Registry registry
 
   @Autowired(required = false)
+  RateLimiterConfiguration rateLimiterConfiguration
+
+  @Autowired(required = false)
   RateLimiter rateLimiter
 
   @Autowired
@@ -62,7 +65,7 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
     )
 
     if (rateLimiter != null) {
-      registry.addInterceptor(new RateLimitingInterceptor(rateLimiter, spectatorRegistry, rateLimitLearningMode))
+      registry.addInterceptor(new RateLimitingInterceptor(rateLimiter, spectatorRegistry, rateLimiterConfiguration))
     }
   }
 

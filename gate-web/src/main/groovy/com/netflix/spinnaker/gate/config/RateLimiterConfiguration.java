@@ -18,7 +18,9 @@ package com.netflix.spinnaker.gate.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -49,4 +51,31 @@ public class RateLimiterConfiguration {
    * rateSeconds than the default.
    */
   Map<String, Integer> capacityByPrincipal = new HashMap<>();
+
+  /**
+   * A list of principals whose capacities are being enforced. This
+   * setting will only be used when learning mode is ENABLED, allowing
+   * operators to incrementally enable rate limiting on a per-principal
+   * basis.
+   */
+  List<String> enforcing = new ArrayList<>();
+
+  /**
+   * A list of principals whose capacities are not being enforced. This
+   * setting will only be used when learning mode is DISABLED, allowing
+   * operators to enable learning-mode on a per-principal basis.
+   */
+  List<String> ignoring = new ArrayList<>();
+
+  public boolean isLearning() {
+    return learning;
+  }
+
+  public List<String> getEnforcing() {
+    return enforcing;
+  }
+
+  public List<String> getIgnoring() {
+    return ignoring;
+  }
 }
