@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -26,6 +28,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.PermissionEvaluator;
@@ -38,19 +41,37 @@ import retrofit.RetrofitError;
 
 import java.io.Serializable;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 @Component
 @Slf4j
-public class FiatPermissionEvaluator implements PermissionEvaluator {
+public class FiatPermissionEvaluator implements PermissionEvaluator, InitializingBean {
 
   @Autowired
   @Setter
   private FiatService fiatService;
 
+  @Autowired
+  @Setter
+  private FiatClientConfigurationProperties configProps;
+
   @Value("${services.fiat.enabled:false}")
   @Setter
   private String fiatEnabled;
+
+  private Cache<String, UserPermission.View> permissionsCache;
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    permissionsCache = CacheBuilder.newBuilder()
+        .maximumSize(configProps.getCache().getMaxEntries())
+        .expireAfterWrite(configProps.getCache().getExpiresAfterWriteSeconds(), TimeUnit.SECONDS)
+        .recordStats()
+        .build();
+  }
 
   @Override
   public boolean hasPermission(Authentication authentication,
@@ -73,8 +94,6 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
       return false;
     }
 
-
-    String username = getUsername(authentication);
     ResourceType r = ResourceType.parse(resourceType);
     Authorization a = null;
     // Service accounts don't have read/write authorizations.
@@ -89,9 +108,8 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
       }
     }
 
-    return isWholePermissionStored(authentication) ?
-        permissionContains(authentication, resourceName.toString(), r, a) :
-        isAuthorized(username, r, resourceName.toString(), a);
+    UserPermission.View permission = getPermission(getUsername(authentication));
+    return permissionContains(permission, resourceName.toString(), r, a);
   }
 
   private String getUsername(Authentication authentication) {
@@ -130,51 +148,51 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return true;
   }
 
+  public UserPermission.View getPermission(String username) {
+    UserPermission.View view = null;
+    if (StringUtils.isEmpty(username)) {
+      return null;
+    }
+
+    try {
+      AtomicBoolean cacheHit = new AtomicBoolean(true);
+      view = permissionsCache.get(username, () -> {
+        cacheHit.set(false);
+        return fiatService.getUserPermission(username);
+      });
+      log.debug("Fiat permission cache hit: " + cacheHit.get());
+    } catch (ExecutionException ee) {
+      String message = String.format("Cannot get whole user permission for user %s. Cause: %s",
+                                     username,
+                                     ee.getCause().getMessage());
+      if (log.isDebugEnabled()) {
+        log.debug(message, ee.getCause());
+      } else {
+        log.info(message);
+      }
+    }
+    return view;
+  }
+
   @SuppressWarnings("unused")
+  @Deprecated
   public boolean storeWholePermission() {
     if (!Boolean.valueOf(fiatEnabled)) {
       return true;
     }
 
-    String username = getUsername(SecurityContextHolder.getContext().getAuthentication());
-
-    UserPermission.View view;
-    try {
-      view = fiatService.getUserPermission(username);
-    } catch (RetrofitError re) {
-      String message = String.format("Cannot get whole user permission for user %s. Cause: %s",
-                                     username,
-                                     re.getMessage());
-      if (log.isDebugEnabled()) {
-        log.debug(message, re);
-      } else {
-        log.info(message);
-      }
-      return false;
-    }
-
-    PreAuthenticatedAuthenticationToken auth = new PreAuthenticatedAuthenticationToken(username,
-                                                                                       null,
-                                                                                       null);
-    auth.setDetails(view);
-
-    SecurityContext ctx = SecurityContextHolder.createEmptyContext();
-    ctx.setAuthentication(auth);
-    SecurityContextHolder.setContext(ctx);
-
-    return true;
+    val authentication = SecurityContextHolder.getContext().getAuthentication();
+    val permission = getPermission(getUsername(authentication));
+    return permission != null;
   }
 
-  private boolean isWholePermissionStored(Authentication authentication) {
-    return authentication.getDetails() != null &&
-        authentication.getDetails() instanceof UserPermission.View;
-  }
-
-  private boolean permissionContains(Authentication authentication,
+  private boolean permissionContains(UserPermission.View permission,
                                      String resourceName,
                                      ResourceType resourceType,
                                      Authorization authorization) {
-    UserPermission.View permission = (UserPermission.View) authentication.getDetails();
+    if (permission == null) {
+      return false;
+    }
 
     Function<Set<? extends Authorizable>, Boolean> containsAuth = resources ->
         resources

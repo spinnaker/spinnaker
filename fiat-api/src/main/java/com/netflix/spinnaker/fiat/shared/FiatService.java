@@ -76,13 +76,13 @@ public interface FiatService {
 
 
   /**
-   * Used specifically for SAML assertions that contain the users roles/groups.
+   * Used specifically for logins that contain the users roles/groups.
    * @param userId The user being logged in
-   * @param roles Optional collection of roles from the SAML provider
+   * @param roles Collection of roles from the identity provider
    * @return ignored.
    */
   @PUT("/roles/{userId}")
-  Response loginSAMLUser(@Path("userId") String userId, @Body Collection<String> roles);
+  Response loginWithRoles(@Path("userId") String userId, @Body Collection<String> roles);
 
   /**
    * @param userId The user being logged out

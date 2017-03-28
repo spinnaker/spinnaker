@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.shared;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.stereotype.Component;
 
 @Data
@@ -27,4 +28,14 @@ public class FiatClientConfigurationProperties {
   private boolean enabled;
 
   private String baseUrl;
+
+  @NestedConfigurationProperty
+  private PermissionsCache cache = new PermissionsCache();
+
+  @Data
+  class PermissionsCache {
+    private Integer maxEntries = 1000;
+
+    private Integer expiresAfterWriteSeconds = 20;
+  }
 }

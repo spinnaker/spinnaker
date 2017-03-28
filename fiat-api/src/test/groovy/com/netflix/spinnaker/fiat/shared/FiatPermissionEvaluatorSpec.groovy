@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.fiat.shared
 
+import com.netflix.spinnaker.fiat.model.UserPermission
+import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
-import retrofit.RetrofitError
-import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -29,13 +29,17 @@ class FiatPermissionEvaluatorSpec extends Specification {
   @Unroll
   def "should parse application name"() {
     setup:
+    FiatClientConfigurationProperties configProps = new FiatClientConfigurationProperties()
+    configProps.cache.maxEntries = 0
     FiatService fiatService = Mock(FiatService)
     FiatPermissionEvaluator evaluator = new FiatPermissionEvaluator(fiatEnabled: true,
-                                                                    fiatService: fiatService);
+                                                                    fiatService: fiatService,
+                                                                    configProps: configProps)
+    evaluator.afterPropertiesSet()
 
     Authentication authentication = new PreAuthenticatedAuthenticationToken("testUser",
                                                                             null,
-                                                                            new ArrayList<>());
+                                                                            new ArrayList<>())
 
     when:
     def result = evaluator.hasPermission(authentication,
@@ -44,23 +48,21 @@ class FiatPermissionEvaluatorSpec extends Specification {
                                          authorization)
 
     then:
-    1 * fiatService.hasAuthorization("testUser", resourceType.name(), resourceName, authorization) >> {
-      throw RetrofitError.httpError(
-          "/",
-          new Response("/", 404, "not found", Collections.emptyList(), null),
-          null,
-          null)
-    }
+    1 * fiatService.getUserPermission("testUser") >> new UserPermission.View(new UserPermission())
     !result
 
     when:
+
     result = evaluator.hasPermission(authentication,
                                      resource,
                                      resourceType.name(),
                                      authorization)
 
     then:
-    1 * fiatService.hasAuthorization("testUser", resourceType.name(), resourceName, authorization)
+    1 * fiatService.getUserPermission("testUser") >> new UserPermission.View(
+        new UserPermission(
+            applications: [new Application(name: "abc")]
+        ))
     result
 
     where:

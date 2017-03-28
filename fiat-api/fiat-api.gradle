@@ -27,6 +27,7 @@ dependencies {
   compileOnly spinnaker.dependency("retrofit")
   compileOnly spinnaker.dependency("retrofitJackson")
 
+  compile spinnaker.dependency("guava")
   compile spinnaker.dependency("springSecurityConfig")
   compile spinnaker.dependency("springSecurityCore")
   compile spinnaker.dependency("springSecurityWeb")
