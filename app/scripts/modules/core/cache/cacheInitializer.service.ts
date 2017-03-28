@@ -2,14 +2,14 @@ import * as moment from 'moment';
 import {cloneDeep, uniq} from 'lodash';
 import {module, noop} from 'angular';
 
-import {
-  APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/service/application.read.service';
+import {APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/service/application.read.service';
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {INFRASTRUCTURE_CACHE_CONFIG, IInfrastructureCacheConfig} from './infrastructureCacheConfig';
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from './infrastructureCaches.service';
 import {ICacheConfig} from './deckCache.service';
 import {SECURITY_GROUP_READER, SecurityGroupReader} from 'core/securityGroup/securityGroupReader.service';
+import {IGOR_SERVICE, IgorService} from 'core/ci/igor.service';
 
 interface IInitializers {
   [key: string]: any[];
@@ -91,7 +91,7 @@ export class CacheInitializerService {
               private accountService: AccountService,
               private securityGroupReader: SecurityGroupReader,
               private cloudProviderRegistry: CloudProviderRegistry,
-              private igorService: any,
+              private igorService: IgorService,
               private serviceDelegate: any) {}
 
   public initialize(): ng.IPromise<any[]> {
@@ -127,7 +127,7 @@ module(CACHE_INITIALIZER_SERVICE, [
   ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
   APPLICATION_READ_SERVICE,
-  require('../ci/jenkins/igor.service.js'),
+  IGOR_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
 ])

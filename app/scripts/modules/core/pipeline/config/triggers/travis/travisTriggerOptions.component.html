@@ -1,0 +1,32 @@
+<div class="form-group">
+  <label class="col-md-4 sm-label-right">Build</label>
+  <div class="col-md-6" ng-if="$ctrl.viewState.buildsLoading">
+    <p class="form-control-static text-center">
+      <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+    </p>
+  </div>
+  <div class="col-md-6" ng-if="$ctrl.viewState.loadError">Error loading builds!</div>
+  <div class="col-md-6" ng-if="!$ctrl.viewState.buildsLoading">
+    <div ng-if="!$ctrl.builds.length"><p class="form-control-static">No builds found</p></div>
+    <ui-select class="form-control input-sm"
+               ng-model="$ctrl.viewState.selectedBuild"
+               on-select="$ctrl.updateSelectedBuild($item)"
+               ng-if="$ctrl.builds.length">
+      <ui-select-match placeholder="Select...">
+        <span>
+          <strong>Build {{$select.selected.number}}</strong>
+          {{$select.selected | buildDisplayName}}
+          ({{$select.selected.timestamp | timestamp}})
+        </span>
+      </ui-select-match>
+      <ui-select-choices
+          repeat="build in $ctrl.builds | anyFieldFilter: {number: $select.search, fullDisplayName: $select.search, status: $select.search}">
+        <span>
+          <strong>Build {{build.number}}</strong>
+          {{build | buildDisplayName}}
+          ({{build.timestamp | timestamp}})
+          </span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>

@@ -1,6 +1,7 @@
 'use strict';
 
 import {RUN_AS_USER_SELECTOR_COMPONENT} from './runAsUserSelector.component';
+import {TRAVIS_TRIGGER} from './travis/travisTrigger.module';
 
 let angular = require('angular');
 
@@ -10,6 +11,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger', [
     require('./docker/dockerTrigger.module.js'),
     require('./git/gitTrigger.module.js'),
     require('./jenkins/jenkinsTrigger.module.js'),
+    TRAVIS_TRIGGER,
     require('./pipeline/pipelineTrigger.module.js'),
     require('./trigger.directive.js'),
     require('./triggers.directive.js'),

@@ -7,6 +7,7 @@ import {APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/serv
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 import {ICache} from 'core/cache/deckCache.service';
 import {SECURITY_GROUP_READER, SecurityGroupReader} from 'core/securityGroup/securityGroupReader.service';
+import {IGOR_SERVICE, IgorService} from 'core/ci/igor.service';
 
 interface IKeys {
   [key: string]: string[];
@@ -29,7 +30,7 @@ describe('Service: cacheInitializer', function () {
   let accountService: AccountService;
   let securityGroupReader: SecurityGroupReader;
   let applicationReader: ApplicationReader;
-  let igorService: any;
+  let igorService: IgorService;
 
   beforeEach(
     mock.module(
@@ -38,7 +39,7 @@ describe('Service: cacheInitializer', function () {
       ACCOUNT_SERVICE,
       SECURITY_GROUP_READER,
       APPLICATION_READ_SERVICE,
-      require('core/ci/jenkins/igor.service')
+      IGOR_SERVICE,
     ));
   beforeEach(
     mock.inject(function (_$q_: ng.IQService,
@@ -48,7 +49,7 @@ describe('Service: cacheInitializer', function () {
                           _accountService_: AccountService,
                           _securityGroupReader_: SecurityGroupReader,
                           _applicationReader_: ApplicationReader,
-                          _igorService_: any) {
+                          _igorService_: IgorService) {
       $q = _$q_;
       $root = _$rootScope_;
       cacheInitializer = _cacheInitializer_;

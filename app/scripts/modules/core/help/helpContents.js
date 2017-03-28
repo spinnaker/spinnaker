@@ -233,6 +233,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.quickPatchAsg.rollingPatch': '<p>Patch one instance at a time vs. all at once.</p>',
     'pipeline.config.quickPatchAsg.skipUpToDate': '<p>Skip instances which already have the requested version.</p>',
     'pipeline.config.jenkins.propertyFile': '<p>(Optional) Configures the name to the Jenkins artifact file used to pass in properties to later stages in the Spinnaker pipeline.</p>',
+    'pipeline.config.travis.job.isFiltered': '<p>Note that for performance reasons, not all jobs are displayed. Please use the search field to limit the number of jobs.</p>',
+    'pipeline.config.travis.propertyFile': '<p>(Optional) Configures the name to the Travis artifact file used to pass in properties to later stages in the Spinnaker pipeline.</p>',
     'pipeline.config.bake.package': '<p>The name of the package you want installed (without any version identifiers).</p>' +
     '<p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>' +
     '<p>If there are multiple packages (space separated), then they will be installed in the order they are entered.</p>',
@@ -270,6 +272,11 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'Spinnaker will mark the stage as SUCCEEDED and continue execution of the pipeline.',
     'pipeline.config.jenkins.markUnstableAsSuccessful.false': 'If Jenkins reports the build status as UNSTABLE, ' +
     'Spinnaker will mark the stage as FAILED; subsequent execution will be determined based on the configuration of the ' +
+    '<b>If build fails</b> option for this stage.',
+    'pipeline.config.travis.markUnstableAsSuccessful.true': 'If Travis reports the build status as UNSTABLE, ' +
+    'Spinnaker will mark the stage as SUCCEEDED and continue execution of the pipeline.',
+    'pipeline.config.travis.markUnstableAsSuccessful.false': 'If Travis reports the build status as UNSTABLE, ' +
+    'Spinnaker will mark the stage as TERMINAL; subsequent execution will be determined based on the configuration of the ' +
     '<b>If build fails</b> option for this stage.',
     'pipeline.config.canary.clusterPairs': '' +
     '<p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +
@@ -495,6 +502,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'titus.job.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the job to complete',
     'pipeline.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the pipeline to complete',
     'jenkins.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the jenkins job to complete',
+    'travis.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the Travis job to complete',
     'script.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the script to complete',
     'titus.bake.fromGitTrigger': 'If checked, gets git details from the specified git trigger. The pipeline will fail when ran manually',
     'titus.bake.repositoryUrl': 'Url to the git repository containing the code to create the Docker image from, <samp>ssh://git@stash.corp.netflix.com:7999/SPKR/orca.git</samp> or <samp>ssh://git@github.com/spinnaker/orca.git</samp>',

@@ -2,12 +2,13 @@
 
 let angular = require('angular');
 import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
+import {IGOR_SERVICE, BuildServiceType} from 'core/ci/igor.service';
 import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins', [
   require('./jenkinsTriggerOptions.directive.js'),
   require('../trigger.directive.js'),
-  require('core/ci/jenkins/igor.service.js'),
+  IGOR_SERVICE,
   SERVICE_ACCOUNT_SERVICE,
   require('../../pipelineConfigProvider.js'),
 ])
@@ -64,7 +65,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
     };
 
     function initializeMasters() {
-      igorService.listMasters().then(function (masters) {
+      igorService.listMasters(BuildServiceType.Jenkins).then(function (masters) {
         $scope.masters = masters;
         $scope.viewState.mastersLoaded = true;
         $scope.viewState.mastersRefreshing = false;
