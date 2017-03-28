@@ -1,5 +1,7 @@
 /* Common mixins extracted from Bootstrap */
 
+@import "./colors.less";
+
 .text-right() {
   text-align: right;
 }
@@ -40,4 +42,18 @@
     height: 100%;
     opacity: 1;
   }
+}
+
+.encircled() {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  line-height: 29px;
+  font-size: 14px;
+  border-radius: 50%;
+  margin-left: 5px;
+  background-color: @dark_blue_background;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  text-align: center;
 }

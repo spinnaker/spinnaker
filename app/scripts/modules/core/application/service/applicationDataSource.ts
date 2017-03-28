@@ -78,6 +78,16 @@ export class DataSourceConfig {
   public lazy = false;
 
   /**
+   * Determines whether the data source is listed directly to the left of the application name
+   */
+  public primary = false;
+
+  /**
+   * Represents a font-awesome icon to be displayed before the name of the tab
+   */
+  public icon: string;
+
+  /**
    * (Optional) Method used to populate the data source. The method must return a promise; the return value of the
    * promise will be passed to the data source's "onLoad" method.
    *
@@ -175,6 +185,16 @@ export class ApplicationDataSource {
    * See DataSourceConfig#optional
    */
   public optional = false;
+
+  /**
+   * See DataSourceConfig#icon
+   */
+  public icon: string;
+
+  /**
+   * See DataSourceConfig#primary
+   */
+  public primary = false;
 
   /**
    * See DataSourceConfig#description

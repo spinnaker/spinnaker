@@ -1,14 +1,13 @@
 <div class="filters-content">
   <div class="heading">
-    <h3>
-      Filters
-      <span class="btn btn-default btn-light"
-            analytics-on="click"
-            analytics-category="Pipelines"
-            analytics-event="Filter: clear all (side nav)"
-            ng-click="vm.clearFilters()">Clear All</span>
-    </h3>
-    <collapsible-section heading="Search" expanded="true" help-key="executions.search">
+    <span class="btn btn-default btn-xs"
+          is-visible="vm.tags.length > 0"
+          analytics-on="click"
+          analytics-category="Pipelines"
+          analytics-event="Filter: clear all (side nav)"
+          ng-click="vm.clearFilters()">Clear All</span>
+
+    <filter-section heading="Search" expanded="true" help-key="executions.search">
       <form class="form-horizontal" role="form">
         <div class="form-group nav-search">
           <input type="search" class="form-control input-sm" ng-model="sortFilter.filter"
@@ -20,11 +19,11 @@
                  ng-change="vm.updateExecutionGroups()" style="width: 85%; display: inline-block">
         </div>
       </form>
-    </collapsible-section>
+    </filter-section>
   </div>
   <div class="content">
 
-    <collapsible-section heading="Pipelines" expanded="true">
+    <filter-section heading="Pipelines" expanded="true">
       <div class="form"
            ng-model="vm.application.pipelineConfigs.data"
            ui-sortable="vm.pipelineSortOptions">
@@ -62,9 +61,9 @@
              ng-click="vm.disablePipelineReorder()">Done</a>
         </div>
       </div>
-    </collapsible-section>
+    </filter-section>
 
-    <collapsible-section heading="Status" expanded="true">
+    <filter-section heading="Status" expanded="true">
       <div class="form">
         <div class="checkbox">
           <label>
@@ -139,7 +138,7 @@
           </label>
         </div>
       </div>
-    </collapsible-section>
+    </filter-section>
 
   </div>
 </div>

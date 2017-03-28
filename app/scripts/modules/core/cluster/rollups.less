@@ -41,16 +41,10 @@ server-group {
   }
 }
 
-.rollup-summary {
-  background-color: @dark_blue_background;
-}
-
 .rollup-entry {
-  border: 1px solid #c4c4c4;
   padding: 0;
-  margin: 15px 0;
+  margin: 2px 0 23px;
   &:last-child {
-    background-color: #ffffff;
     padding-bottom: 5px;
   }
 
@@ -153,7 +147,6 @@ table.instances {
 .rollup-summary {
   font-size: 110%;
   margin: 0;
-  display: table;
   width: 100%;
 
   .tooltip {
@@ -180,33 +173,44 @@ table.instances {
 }
 
 .rollup-title-cell {
-  color: @lightest_grey;
+  display: flex;
+  height: 36px;
+  line-height: 36px;
+  font-size: 16px;
+  color: @default_link_hover;
+  .account-tag {
+    flex: 0 0 auto;
+    padding: 0 15px;
+    display: inline-block;
+    border-right: 1px solid @lightest_grey;
+    color: #ffffff;
+    background-color: #777;
+    text-transform: uppercase;
+    &.account-tag-prod {
+      background-color: @unhealthy_red;
+    }
+  }
+  .pod-center {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: space-between;
+    background-color: @pod_header_blue;
+    padding: 0 10px;
+    border-right: 1px solid @lightest_grey;
+    border-left: 1px solid @lightest_grey;
+    font-weight: 600;
+  }
+  health-counts {
+    flex: 0 0 auto;
+    background-color: @light_grey;
+    padding: 0 10px;
+    border-left: 1px solid @lightest_grey;
+  }
   &:active, &:hover, &:focus {
     text-decoration: none;
   }
   @media (min-width: 768px) and (max-width: 992px) {
     font-size: 85%;
-  }
-  h5 {
-    line-height: 39px;
-    min-height: 39px;
-    margin: 0;
-    font-size: 110%;
-    font-weight: 300;
-  }
-  .account-tag {
-    .small {
-      color: #ffffff;
-    }
-    background-color: #777;
-    padding: 0 15px;
-    display: inline-block;
-    margin-right: 10px;
-    text-transform: uppercase;
-    height: 39px;
-    &.account-tag-prod {
-      background-color: @unhealthy_red;
-    }
   }
   .instance-health-counts {
     padding-right: 10px;
@@ -365,11 +369,8 @@ load-balancers-tag {
 
 
 .rollup-details {
-  background-color: #ffffff;
+  background-color: @lightest_grey;
   padding: 0;
-  border-top: 1px solid #c4c4c4;
-  border-bottom-left-radius: 2px;
-  border-bottom-right-radius: 2px;
 
   .section-title {
     min-height: 24px;
@@ -380,32 +381,31 @@ load-balancers-tag {
 
   .clickable-row {
     background-color: #ffffff;
-    border: 2px solid transparent;
+    border: 1px solid @mid_light_grey;
+    margin: 5px 15px 0;
     &.active {
+      border-color: @glow-init;
       background-color: @active_pod_blue;
     }
     &:hover {
-      border: 2px solid @glow-init;
+      border-color: @glow-init;
     }
   }
   .permalinks {
-    border-top: 1px solid @mid_light_grey;
-    padding: 5px 10px 0;
     font-size: 80%;
   }
   .pod-subgroup {
     h6 {
       text-transform: uppercase;
       margin: 0;
-      padding: 10px 10px 5px 10px;
+      padding: 10px 10px 5px;
       &.heading-sticky {
-        background-color: #ffffff;
+        background-color: fade(@lightest_grey, 90%);
       }
     }
-    border: 2px solid transparent;
     .rollup-pod-server-group {
       .server-group-title {
-        background-color: #ffffff;
+        background-color: rgba(255, 255, 255, .90);
       }
       &.running {
         background-color: @active_pod_blue;
@@ -427,6 +427,7 @@ load-balancers-tag {
         }
       }
       &.active {
+        border-color: @glow-init;
         background-color: @active_pod_blue;
         .server-group-title {
           background-color: @active_pod_blue;
@@ -517,9 +518,6 @@ instances {
   .server-group-sequence {
     text-transform: uppercase;
     font-weight: 600;
-  }
-  .subgroup-title {
-    background-color: #ffffff;
   }
   .server-group-title, .subgroup-title {
     padding: 5px 10px 2px;

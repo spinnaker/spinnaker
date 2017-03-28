@@ -3,7 +3,7 @@
      ng-click="loadDetails($event)"
      ng-class="{active: $state.includes('**.loadBalancerDetails', {region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.cloudProvider})}">
 
-  <h6 sticky-header added-offset-height="39">
+  <h6 sticky-header added-offset-height="36">
     <span class="icon icon-elb"></span> {{loadBalancer.region | uppercase}}
     <entity-ui-tags component="loadBalancer"
                     application="application"

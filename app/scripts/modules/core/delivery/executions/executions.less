@@ -10,9 +10,14 @@ executions {
     margin-left: -8px;
     position: relative;
     z-index: 20;
-    padding: 20px 0 0 0;
-    margin-top: -20px;
+    padding: 30px 0 0 0;
+    margin-top: -30px;
     background-color: @lightest_grey;
+    h3 {
+      display: inline-block;
+      font-weight: 600;
+      margin-top: 0;
+    }
     .execution-filters {
       padding-bottom: 5px;
     }
@@ -37,20 +42,36 @@ executions {
 
 .executions {
   padding-top: 0 !important;
-  [sticky-headers] {
-    .heading-sticky {
-      margin-left: -15px;
+  &.showing-details {
+    execution-group {
+      .details-hidden {
+        opacity: 0.66;
+        &:hover {
+          opacity: 1;
+        }
+      }
     }
   }
   .permalinks {
     font-size: 80%;
+    flex: 0 0 100%;
+    text-align: right;
+    .permalinks-content {
+      display: inline-block;
+      width: 50%;
+      background-color: @pod_header_blue;
+    }
   }
 
   .execution {
-    padding: 0 10px;
     margin-bottom: 10px;
-    border: 1px solid @mid_light_grey;
-    background-color: #ffffff;
+    background-color: @lightest_grey;
+
+    .execution-overview {
+      padding: 10px;
+      background-color: #ffffff;
+      border: 1px solid @mid_light_grey;
+    }
   }
 }
 

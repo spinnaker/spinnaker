@@ -66,7 +66,7 @@ html {
     }
   }
   .table > tbody > tr.info > td {
-    background-color: @active_pod_blue;
+    background-color: @pod_header_blue;
   }
   .btn-link {
     &.link-inverse {
@@ -100,6 +100,9 @@ html {
       background-color: @spinnaker-link-hover;
       border-color: @spinnaker-link-hover;
     }
+  }
+  .select2-container .select2-choices .select2-search-field input, .select2-container .select2-choice, .select2-container .select2-choices {
+    font-family: 'Source Sans Pro', sans-serif;
   }
 }
 
@@ -139,11 +142,11 @@ html {
     .collapsible-section {
       h4 {
         margin: 0;
-        padding: 10px 15px 0;
+        padding: 10px 0 0;
         background-color: transparent;
       }
       .content-body {
-        padding-left: 35px;
+        padding-left: 20px;
         margin: 0;
       }
       border-bottom-width: 0;
@@ -204,15 +207,22 @@ html {
     }
   }
   .nav {
-    margin-left: -15px;
     overflow-x: hidden;
     transition: width 0.25s linear;
     position: relative;
     width: 39px;
-    .pin-unpin {
+    padding-top: 5px;
+    .pin, .unpin {
       position: absolute;
-      right: 5px;
+      right: 7px;
       top: 5px;
+      padding: 1px 3px;
+    }
+    .pin {
+      padding-left: 5px;
+    }
+    .unpin {
+      padding-right: 5px;
     }
     .content, .heading {
       margin-left: -260px;
@@ -276,6 +286,7 @@ html {
     margin: 0 25px;
     transition: width 0.25s linear;
     flex-direction: column;
+    width: 100%;
     @media (max-width:768px) {
       width: 90%;
     }
@@ -290,19 +301,19 @@ html {
     @media(min-width: 992px) {
       width: 900px;
       &.filters-expanded {
-        width: 740px;
+        width: 730px;
       }
     }
     @media(min-width: 1200px) {
-      width: 1050px;
+      width: 1090px;
       &.filters-expanded {
-        width: 830px;
+        width: 900px;
       }
     }
     @media(min-width: 1400px) {
-      width: 1320px;
+      width: 1290px;
       &.filters-expanded {
-        width: 1100px;
+        width: 1070px;
       }
     }
   }
@@ -318,6 +329,7 @@ html {
   border-top-right-radius: 0;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
+  border: 0;
 }
 
 .inactive-sort-key {
@@ -528,18 +540,21 @@ body > .container {
 
   .navbar-brand {
     color: #fff;
-    text-shadow: 0px 1px 1px #333;
+    text-shadow: none;
     font-weight: 200;
-    border-top: 4px solid transparent;
-    border-bottom: 4px solid transparent;
     height: 100%;
+    padding: 10px 30px 10px 0;
   }
 
   .navbar-nav > li > a {
-    border-top: 4px solid transparent;
-    border-bottom: 4px solid transparent;
     color: #fff;
     font-weight: 200;
+    padding: 10px 15px;
+    margin: 0 10px;
+    border: 0;
+    @media (max-width: 992px) {
+      padding: 10px;
+    }
 
     &:focus, &:hover {
       border-top-color: #eeeeee;
@@ -961,7 +976,7 @@ tfoot .add-new {
     color: #000000;
   }
   h4 {
-    padding: 10px 15px 0;
+    padding: 10px 5px 0;
     background-color: @secondary_panel_grey;
     margin: 0;
     .glyphicon {
@@ -976,7 +991,7 @@ tfoot .add-new {
   .content-body {
     .fade-in(0.15);
     .clearfix;
-    padding-left: 35px;
+    padding-left: 25px;
     ul {
       list-style-type: none;
       padding-left: 0;
@@ -1146,6 +1161,12 @@ body, html {
 }
 
 .spinnaker-container {
+  @media (min-width: 768px) and (max-width: 1200px) {
+    .container {
+      width: 100%;
+      padding: 0 10px;
+    }
+  }
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -1155,15 +1176,28 @@ body, html {
     border-radius: 0;
     margin-bottom: 0;
     z-index: 25;
+    min-height: 40px;
   }
   .spinnaker-content {
-    display: flex;
-    justify-content: center;
-    flex: 1 1 auto;
-    overflow-y: auto;
-    > .container {
+    height: calc(~"100% - 40px");
+    .page-header {
+      margin: 0;
+      border-bottom: none;
+      height: 80px;
+      padding: 0;
+      background-color: @pod_header_blue;
+      h2 {
+        margin-top: 10px;
+      }
+      @media (min-width: 768px) and (max-width: 1200px) {
+        height: auto;
+        min-height: 35px;
+      }
+    }
+    > [ui-view="main"] {
       display: flex;
       flex-direction: column;
+      height: 100%;
       padding: 0;
       margin: 0;
       @media (min-width: 768px) and (max-width: 992px) {
@@ -1172,8 +1206,10 @@ body, html {
       }
     }
     .scrollable-columns {
+      background-color: @lightest_grey;
       flex: 1 1 auto;
       display: flex;
+      padding-top: 30px;
       >div {
         display: flex;
         flex: 1 1 auto;
@@ -1182,7 +1218,7 @@ body, html {
       .insight {
         display: flex;
         flex: 0 0 auto;
-        padding: 20px 30px 0;
+        margin-left: 0;
         >div {
           display: flex;
         }

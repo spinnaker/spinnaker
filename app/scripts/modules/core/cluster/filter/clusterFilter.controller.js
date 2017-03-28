@@ -24,6 +24,8 @@ module.exports = angular.module('cluster', [
 
     var ctrl = this;
 
+    this.tags = ClusterFilterModel.tags;
+
     this.updateClusterGroups = () => {
       let { providerType, instanceType, account, availabilityZone, region } = dependentFilterService.digestDependentFilters({
         sortFilter: ClusterFilterModel.sortFilter,

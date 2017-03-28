@@ -16,18 +16,11 @@
 
 @import "../presentation/less/imports/commonImports.less";
 
-@media (min-width: 768px) {
-  .spinnaker-header .navbar-right {
-    margin-right: -45px;
-  }
-}
-
 .secondary-panel {
   > div {
     flex: 1 1 auto;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-top: 20px;
   }
   .nav {
     padding: 0 0 0 10px;
@@ -61,13 +54,11 @@
   }
   .nav-content {
     .header {
+      border-bottom: none;
+      padding: 0;
       position: relative;
       z-index: 10;
       background-color: @lightest_grey;
-      padding: 20px 15px 0 0;
-      @media (min-width: 708px) and (max-width: 992px) {
-        padding: 0;
-      }
       h3 {
         display: inline-block;
         font-weight: 600;
@@ -124,7 +115,7 @@
       }
     }
     .content {
-      padding: 0 25px 10px;
+      padding: 0 0 10px;
       @media (min-width: 708px) and (max-width: 992px) {
         padding: 0 5px;
       }

@@ -46,6 +46,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
         {
           title: application,
           view: 'home.project.application.insight.clusters',
+          type: 'application',
           params: { application: application, project: projectConfiguration.name}
         }
       ));

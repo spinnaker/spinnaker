@@ -3,80 +3,65 @@
 .application-header {
   margin-top: 0;
   margin-bottom: 0;
-  background-color: #f8f8f8;
+  display: flex;
   flex: 0 0 auto;
+  padding: 15px 15px 0;
   z-index: 5;
+  border: 0;
+  .header-right {
+    flex: 1 1 auto;
+    text-align: right;
+  }
   .application-name {
-    display: inline-block;
+    margin-right: 10px;
   }
   .page-button {
-    margin-top: 30px;
+    display: inline-block;
+    margin-top: 15px;
     @media (min-width: 708px) and (max-width: 1200px) {
       margin-top: 16px;
     }
     .btn-danger {
-      color: @unhealthy_red;
-      background-color: transparent;
+      background-color: @unhealthy_red;
       border-color: transparent;
       padding: 0 5px;
       font-size: 14px;
     }
   }
   h2 {
+    min-width: 200px;
+    margin-right: 50px;
+    font-weight: 700;
+    display: flex;
+    .fa {
+      .encircled;
+      margin-right: 5px;
+      width: 36px;
+      height: 36px;
+      line-height: 32px;
+      font-size: 16px;
+      margin-left: 0;
+    }
     @media (min-width: 708px) and (max-width: 1200px) {
       float: left;
       font-size: 160%;
       min-width: 120px;
       margin-right: 30px;
       margin-top: 15px;
+      .fa {
+        width: 28px;
+        height: 28px;
+        line-height: 24px;
+        font-size: 14px;
+      }
     }
-    min-width: 200px;
-    margin-right: 50px;
+
     a {
       font-size: 75%;
       display: inline-block;
       margin-right: 20px;
     }
-    font-weight: 700;
-    display: inline-block;
   }
-  ul {
-    @media (min-width: 992px) and (max-width: 1200px) {
-      li {
-        margin-top: 10px;
-        font-size: 90%;
-      }
-    }
-    @media (min-width: 708px) and (max-width: 992px) {
-      li {
-        margin-top: 10px;
-        font-size: 85%;
-      }
-    }
-    display: inline-block;
-    vertical-align: bottom;
-    text-transform: uppercase;
-    font-size: 110%;
-    & > li {
-      margin-left: 0;
-      & > a {
-        border-radius: 0;
-        border-bottom: 3px solid transparent;
-        transition: border-bottom-color .2s, background-color .2s, color .2s;
-      }
-    }
-    a.active {
-      color: @spinnaker-link-hover;
-      border-bottom: 3px solid @spinnaker-link-color;
-    }
-    a {
-      &:focus, &:hover {
-        border-bottom: 3px solid @spinnaker-link-hover;
-      }
-    }
-  }
-  border-bottom: 1px solid @mid_light_grey;
-  padding-bottom: 0;
 }
 
 .glyphicon-cloud {
@@ -99,7 +84,6 @@
 }
 
 .filter-tags {
-  border-top: 1px solid @mid_light_grey;
   padding: 5px 15px 0;
   .filter-tag {
     strong {

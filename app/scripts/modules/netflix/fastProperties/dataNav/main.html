@@ -1,36 +1,33 @@
-<div class="row page-header application-header ">
+<div class="page-header">
 
-  <div class="container">
+  <div class="container application-header">
 
-      <h2 data-purpose="view-header">Properties</h2>
+    <h2 data-purpose="view-header">Properties</h2>
 
-      <ul class="nav nav-pills">
-        <li>
-          <a ui-sref=".properties"
-             ng-class="{active: $state.includes('**.properties.**')}">
-            Active Properties
-          </a>
-        </li>
-        <li>
-          <a ui-sref=".executions"
-             ng-class="{active: $state.includes('**.executions.**')}">
-            Rollouts
-          </a>
-        </li>
-      </ul>
+    <div class="application-nav">
+      <div class="nav-section">
+        <a ui-sref=".properties"
+           ng-class="{active: $state.includes('**.properties.**')}">
+          Active Properties
+        </a>
+        <a ui-sref=".executions"
+           ng-class="{active: $state.includes('**.executions.**')}">
+          Rollouts
+        </a>
+      </div>
 
     </div>
   </div>
 </div>
 
-<div class="scrollable-columns">
-  <div class="col-md-12 secondary-panel">
-    <div class="row insight" ng-if="$state.includes('**.properties.**')">
+<div class="container scrollable-columns">
+  <div class="secondary-panel">
+    <div class="insight" ng-if="$state.includes('**.properties.**')">
       <div ui-view="master" class="nav-content" data-scroll-id="nav-content" style="width: 960px; height: 100%;"></div>
       <div ui-view="detail" class="detail-content" style="width: 350px;"></div>
     </div>
-    <div class="row" ng-if="$state.includes('**.executions.**')">
-      <div ui-view="master" class="nav-content" data-scroll-id="nav-content" ></div>
+    <div class="flex-fill" ng-if="$state.includes('**.executions.**')">
+      <div ui-view="master" class="nav-content flex-fill" data-scroll-id="nav-content"></div>
     </div>
   </div>
 </div>

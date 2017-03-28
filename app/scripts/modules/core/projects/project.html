@@ -1,26 +1,24 @@
 <div class="page-header project-header">
-  <div class="row" ng-if="!vm.project.notFound">
-    <div class="col-md-8">
-      <h2>
-        <span class="project-name">{{vm.project.name}} /</span>
-        <div class="project-view">
-          <a href class="nav-popover"
-             ng-click="vm.viewState.showMenu = !vm.viewState.showMenu"
-             ng-blur="vm.hideNavigationMenu()">
-            {{vm.viewState.navSelection.title}}
-            <span class="small glyphicon glyphicon-chevron-{{vm.viewState.showMenu ? 'up' : 'down'}}"></span>
-          </a>
-          <div class="nav-popover-menu list-group" ng-if="vm.viewState.showMenu">
-            <a href
-               class="list-group-item"
-               ng-repeat="option in vm.navOptions"
-               ng-mousedown="vm.viewState.navigating = true"
-               ng-click="vm.navigate(option)">{{option.title}}</a>
-          </div>
+  <div class="container" ng-if="!vm.project.notFound">
+    <h2>
+      <span class="project-name">{{vm.project.name}} /</span>
+      <div class="project-view">
+        <a href class="nav-popover"
+           ng-click="vm.viewState.showMenu = !vm.viewState.showMenu"
+           ng-blur="vm.hideNavigationMenu()">
+          {{vm.viewState.navSelection.title}}
+          <span class="small glyphicon glyphicon-chevron-{{vm.viewState.showMenu ? 'up' : 'down'}}"></span>
+        </a>
+        <div class="nav-popover-menu list-group" ng-if="vm.viewState.showMenu">
+          <a href
+             class="list-group-item"
+             ng-repeat="option in vm.navOptions"
+             ng-mousedown="vm.viewState.navigating = true"
+             ng-click="vm.navigate(option)">{{option.title}}</a>
         </div>
-      </h2>
-    </div>
-    <div class="col-md-4 text-right" ng-if="vm.viewState.dashboard">
+      </div>
+    </h2>
+    <div class="pull-right" ng-if="vm.viewState.dashboard">
       <a href ng-click="vm.configureProject()" class="btn btn-configure configure-project-link"><span class="glyphicon glyphicon-cog"></span> Project Configuration</a>
     </div>
   </div>

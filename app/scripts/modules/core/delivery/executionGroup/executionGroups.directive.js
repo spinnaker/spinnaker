@@ -21,7 +21,8 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ExecutionGroupsCtrl', function (ExecutionFilterModel) {
+  .controller('ExecutionGroupsCtrl', function (ExecutionFilterModel, $state) {
     this.groups = ExecutionFilterModel.groups;
     this.sortFilter = ExecutionFilterModel.sortFilter;
+    this.showingDetails = () => $state.includes('**.execution');
   });

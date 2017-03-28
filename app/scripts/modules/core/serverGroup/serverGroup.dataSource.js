@@ -58,6 +58,8 @@ module.exports = angular
       label: 'Clusters',
       sref: '.insight.clusters',
       optional: true,
+      primary: true,
+      icon: 'th-large',
       loader: loadServerGroups,
       onLoad: addServerGroups,
       providerField: 'type',

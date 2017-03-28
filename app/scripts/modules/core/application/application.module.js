@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+import {SECONDARY_APPLICATION_NAV_COMPONENT} from './nav/secondaryNav.component';
+
 module.exports = angular
   .module('spinnaker.application', [
     require('./application.controller.js'),
@@ -12,4 +14,5 @@ module.exports = angular
     require('./inferredApplicationWarning.service.js'),
     require('./config/appConfig.dataSource'),
     require('./nav/applicationNav.component'),
+    SECONDARY_APPLICATION_NAV_COMPONENT,
   ]);

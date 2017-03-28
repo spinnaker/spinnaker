@@ -45,6 +45,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
         stageFilter: (stage) => ['canaryDeployment', 'canary'].includes(stage.type),
         controller: 'CanaryStageCtrl',
         controllerAs: 'canaryStageCtrl',
+        accountExtractor: (stage) => (stage.context.clusterPairs || []).map(c => c.baseline.account),
         validators: [
           {
             type: 'stageBeforeType',

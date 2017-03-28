@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.cloneServerGr
       templateUrl: require('./cloneServerGroupStage.html'),
       executionDetailsUrl: require('./cloneServerGroupExecutionDetails.html'),
       executionStepLabelUrl: require('./cloneServerGroupStepLabel.html'),
+      accountExtractor: (stage) => stage.context.credentials,
       validators: [
         { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },

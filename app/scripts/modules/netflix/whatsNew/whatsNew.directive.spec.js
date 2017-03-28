@@ -32,8 +32,8 @@ describe('Directives: whatsNew', function () {
     return domNode.next();
   }
 
-  function getTimestamp(domNode) {
-    return domNode.find('span.timestamp');
+  function hasUnread(domNode) {
+    return domNode.find('a.unread').size() === 1;
   }
 
   describe('with content', function() {
@@ -56,8 +56,7 @@ describe('Directives: whatsNew', function () {
 
       domNode = createWhatsNew(this.compile, this.scope);
 
-      expect(getTimestamp(domNode).size()).toBe(1);
-      expect(getTimestamp(domNode).html().indexOf(this.expectedDate)).not.toBe(-1);
+      expect(hasUnread(domNode)).toBe(true);
     });
 
     it('should show updated label when view state has different lastUpdated value than file', function() {
@@ -73,8 +72,7 @@ describe('Directives: whatsNew', function () {
 
       domNode = createWhatsNew(this.compile, this.scope);
 
-      expect(getTimestamp(domNode).size()).toBe(1);
-      expect(getTimestamp(domNode).html().indexOf(this.expectedDate)).not.toBe(-1);
+      expect(hasUnread(domNode)).toBe(true);
     });
 
     it('should NOT show updated label when view state has same lastUpdated value as file', function() {
@@ -91,7 +89,7 @@ describe('Directives: whatsNew', function () {
 
       domNode = createWhatsNew(this.compile, this.scope);
 
-      expect(getTimestamp(domNode).size()).toBe(0);
+      expect(hasUnread(domNode)).toBe(false);
     });
 
     it('should open modal when clicked, update and cache view state, then hide timestamp label', function() {
@@ -112,7 +110,7 @@ describe('Directives: whatsNew', function () {
 
       domNode = createWhatsNew(this.compile, this.scope);
 
-      expect(getTimestamp(domNode).size()).toBe(1);
+      expect(hasUnread(domNode)).toBe(true);
       domNode.find('a').click();
       this.scope.$digest();
 
@@ -121,7 +119,7 @@ describe('Directives: whatsNew', function () {
       expect(writtenToCache.updateLastViewed).toBe(this.lastUpdated);
 
       this.scope.$digest();
-      expect(getTimestamp(domNode).size()).toBe(0);
+      expect(hasUnread(domNode)).toBe(false);
     });
   });
 

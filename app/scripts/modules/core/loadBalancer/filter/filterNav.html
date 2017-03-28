@@ -1,9 +1,7 @@
 <div class="heading">
-  <h3>
-    Filters
-    <span class="btn btn-default btn-light"
-          ng-click="loadBalancerFilters.clearFilters()">Clear All</span>
-  </h3>
+  <span class="btn btn-default btn-xs"
+        is-visible="loadBalancerFilters.tags.length > 0"
+        ng-click="loadBalancerFilters.clearFilters()">Clear All</span>
   <filter-section heading="Search" expanded="true" help-key="loadBalancer.search">
     <form class="form-horizontal" role="form">
       <div class="form-group nav-search">

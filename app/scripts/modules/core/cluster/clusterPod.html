@@ -1,32 +1,26 @@
 <div class="row rollup-entry sub-group">
   <div sticky-header class="rollup-summary">
-    <div class="container-fluid no-padding">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="rollup-title-cell">
-            <h5>
-              <div class="{{grouping.cluster.category}}">
-                <account-label-color account="{{parentHeading}}"></account-label-color>
-                <span class="glyphicon glyphicon-th"></span>
-                {{grouping.heading}}
-                <entity-ui-tags component="grouping"
-                                application="application"
-                                entity-type="cluster"
-                                page-location="pod"
-                                class="inverse"
-                                on-update="application.serverGroups.refresh()"></entity-ui-tags>
-                <health-counts container="grouping.cluster.instanceCounts"></health-counts>
-              </div>
-            </h5>
-          </div>
+    <div class="rollup-title-cell">
+      <account-label-color account="{{parentHeading}}"></account-label-color>
+      <div class="pod-center">
+        <div>
+          <span class="glyphicon glyphicon-th"></span>
+          {{grouping.heading}}
         </div>
+        <entity-ui-tags component="grouping"
+                        application="application"
+                        entity-type="cluster"
+                        page-location="pod"
+                        class="inverse"
+                        on-update="application.serverGroups.refresh()"></entity-ui-tags>
       </div>
+      <health-counts container="grouping.cluster.instanceCounts"></health-counts>
     </div>
   </div>
   <div class="rollup-details">
     <div class="pod-subgroup" ng-repeat="subgroup in grouping.subgroups">
       <h6 class="subgroup-title"
-          sticky-header added-offset-height="39">
+          sticky-header added-offset-height="36">
         {{subgroup.heading}}
         <entity-ui-tags component="subgroup"
                         application="application"
@@ -43,10 +37,6 @@
         has-discovery="grouping.hasDiscovery"
         has-load-balancers="grouping.hasLoadBalancers"
         parent-heading="subgroup.heading"></server-group>
-    </div>
-    <div class="permalinks text-right">
-      <a ng-href="{{permalink}}" target="_blank" analytics-on="click" analytics-category="Cluster Pod" analytics-event="Permalink clicked">Permalink</a>
-      <copy-to-clipboard text="{{host}}/{{permalink}}" tool-tip="Copy permalink to clipboard" analytics-label="Deep link to cluster"></copy-to-clipboard>
     </div>
   </div>
 </div>
