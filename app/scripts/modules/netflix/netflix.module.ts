@@ -5,6 +5,7 @@ import {
   ApplicationDataSourceRegistry
 } from 'core/application/service/applicationDataSource.registry';
 import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
+import {NETFLIX_APPLICATION_MODULE} from './application';
 import {BLESK_MODULE} from './blesk/blesk.module';
 import {EXCEPTION_HANDLER} from './exception/exceptionHandler';
 import {TABLEAU_STATES} from './tableau/tableau.states';
@@ -45,8 +46,7 @@ module('spinnaker.netflix', [
   require('./serverGroup/networking/networking.module.js'),
   require('./report/reservationReport.directive.js'),
 
-  require('./application/netflixCreateApplicationModal.controller.js'),
-  require('./application/netflixEditApplicationModal.controller.js'),
+  NETFLIX_APPLICATION_MODULE,
   require('./help/netflixHelpContents.registry.js'),
   TABLEAU_STATES,
   require('./ci/ci.module'),
