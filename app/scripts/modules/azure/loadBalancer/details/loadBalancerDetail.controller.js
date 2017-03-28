@@ -6,18 +6,19 @@ let angular = require('angular');
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller', [
   require('angular-ui-router'),
   SECURITY_GROUP_READER,
-  require('../loadBalancer.write.service.js'),
+  LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   require('core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('azureLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $uibModal, loadBalancer, app,
-                                                   securityGroupReader, confirmationModalService, azureLoadBalancerWriter, loadBalancerReader, $q) {
+                                                   securityGroupReader, confirmationModalService, loadBalancerWriter, loadBalancerReader, $q) {
 
     $scope.state = {
       loading: true
@@ -94,9 +95,15 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
         title: 'Deleting ' + loadBalancer.name,
       };
 
-      var submitMethod = function () {
-        return azureLoadBalancerWriter.deleteLoadBalancer(loadBalancer, app);
+      const command = {
+        cloudProvider: 'azure',
+        loadBalancerName: $scope.loadBalancer.name,
+        credentials: $scope.loadBalancer.account,
+        region: loadBalancer.region,
+        appName: app.name
       };
+
+      const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, app);
 
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',
@@ -108,6 +115,5 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
         submitMethod: submitMethod
       });
     };
-
   }
 );
