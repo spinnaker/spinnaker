@@ -71,6 +71,15 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
     application.executions.activate();
     application.pipelineConfigs.activate();
 
+    application.executions.onRefresh($scope, () => {
+      // if an execution was selected but is no longer present, navigate up
+      if ($state.params.executionId) {
+        if (application.getDataSource('executions').data.every(e => e.id !== $state.params.executionId)) {
+          $state.go('.^');
+        }
+      }
+    });
+
     $q.all([application.executions.ready(), application.pipelineConfigs.ready()]).then(() => {
       this.updateExecutionGroups();
       if ($stateParams.executionId) {
