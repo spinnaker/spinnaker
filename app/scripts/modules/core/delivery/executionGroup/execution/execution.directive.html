@@ -1,84 +1,85 @@
-<div class="execution" id="execution-{{::vm.execution.id}}">
-  <execution-status execution="::vm.execution"
-                    toggle-details="::vm.toggleDetails"
-                    showing-details="::vm.showDetails"
-                    standalone="::vm.standalone">
-  </execution-status>
-  <div class="execution-bar">
-    <div class="stages" ng-class="{'show-durations': vm.sortFilter.showStageDuration}">
-      <div ng-repeat="stage in ::vm.execution.stageSummaries"
-           class="clickable stage execution-marker"
-           ng-style="::{width: 100/vm.execution.stageSummaries.length + '%', 'background-color': stage.color}"
-           ng-class="['stage-type-' + stage.type.toLowerCase(), 'execution-marker-' + stage.status.toLowerCase(), vm.isActive($index) ? 'active' : '', stage.isRunning ? 'glowing' : '']"
-           uib-tooltip-template="::stage.labelTemplateUrl"
-           tooltip-title="(Click for details)"
-           tooltip-placement="bottom"
-           analytics-on="click"
-           analytics-category="Pipeline"
-           analytics-event="Stage clicked (bar)"
-           ng-click="vm.toggleDetails({executionId: vm.execution.id, index: $index})">
-        <span class="duration">{{stage.runningTimeInMs | duration}}</span>
+<div class="execution" id="execution-{{::vm.execution.id}}" ng-class="vm.showDetails() ? 'show-details' : 'details-hidden'">
+  <div class="execution-overview">
+    <execution-status execution="::vm.execution"
+                      toggle-details="::vm.toggleDetails"
+                      showing-details="::vm.showDetails"
+                      standalone="::vm.standalone">
+    </execution-status>
+    <div class="execution-bar">
+      <div class="stages" ng-class="{'show-durations': vm.sortFilter.showStageDuration}">
+        <div ng-repeat="stage in ::vm.execution.stageSummaries"
+             class="clickable stage execution-marker"
+             ng-style="::{width: 100/vm.execution.stageSummaries.length + '%', 'background-color': stage.color}"
+             ng-class="['stage-type-' + stage.type.toLowerCase(), 'execution-marker-' + stage.status.toLowerCase(), vm.isActive($index) ? 'active' : '', stage.isRunning ? 'glowing' : '']"
+             uib-tooltip-template="::stage.labelTemplateUrl"
+             tooltip-title="(Click for details)"
+             tooltip-placement="bottom"
+             analytics-on="click"
+             analytics-category="Pipeline"
+             analytics-event="Stage clicked (bar)"
+             ng-click="vm.toggleDetails({executionId: vm.execution.id, index: $index})">
+          <span class="duration">{{stage.runningTimeInMs | duration}}</span>
+        </div>
+        <div ng-if="::!vm.execution.stageSummaries.length" class="text-center">
+          No stages found.
+          <a target="_blank"
+             analytics-on="click"
+             analytics-category="Pipeline"
+             analytics-event="Execution source clicked (no stages found)"
+             ng-href="{{vm.pipelinesUrl + vm.execution.id}}">Source</a>
+        </div>
       </div>
-      <div ng-if="::!vm.execution.stageSummaries.length" class="text-center">
-        No stages found.
-        <a target="_blank"
-           analytics-on="click"
-           analytics-category="Pipeline"
-           analytics-event="Execution source clicked (no stages found)"
-           ng-href="{{vm.pipelinesUrl + vm.execution.id}}">Source</a>
+      <div class="execution-summary">
+        Status: <span class="status execution-status execution-status-{{::vm.execution.status.toLowerCase()}}">{{::vm.execution.status}}</span>
+        <span ng-if="::vm.execution.cancellationReason" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ ::vm.execution.cancellationReason }}"></span>
+        <span ng-if="::vm.execution.canceledBy">
+          by {{::vm.execution.canceledBy}} &mdash; {{::vm.execution.endTime | timestamp}}
+        </span>
+        <span ng-if="::vm.restartDetails">
+          Restarted by {{::vm.restartDetails.restartedBy}} &mdash; {{::vm.restartDetails.restartTime | timestamp}}
+        </span>
+        <span class="pull-right">Duration: {{vm.execution.runningTimeInMs | duration}}</span>
       </div>
     </div>
-    <div class="execution-summary">
-      Status: <span class="status execution-status execution-status-{{::vm.execution.status.toLowerCase()}}">{{::vm.execution.status}}</span>
-      <span ng-if="::vm.execution.cancellationReason" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ ::vm.execution.cancellationReason }}"></span>
-      <span ng-if="::vm.execution.canceledBy">
-        by {{::vm.execution.canceledBy}} &mdash; {{::vm.execution.endTime | timestamp}}
-      </span>
-      <span ng-if="::vm.restartDetails">
-        Restarted by {{::vm.restartDetails.restartedBy}} &mdash; {{::vm.restartDetails.restartTime | timestamp}}
-      </span>
-      <span class="pull-right">Duration: {{vm.execution.runningTimeInMs | duration}}</span>
+    <div class="execution-actions">
+      <a href
+         ng-if="::vm.execution.isRunning"
+         analytics-on="click"
+         analytics-category="Pipeline"
+         analytics-event="Execution pause clicked"
+         ng-click="vm.pauseExecution(); $event.stopPropagation();"
+         uib-tooltip="Pause execution">
+        <span class="glyphicon glyphicon-pause"></span>
+      </a>
+      <a href
+         ng-if="::vm.execution.isPaused"
+         analytics-on="click"
+         analytics-category="Pipeline"
+         analytics-event="Execution resume clicked"
+         ng-click="vm.resumeExecution(); $event.stopPropagation();"
+         uib-tooltip="Resume execution">
+        <span class="glyphicon glyphicon-play"></span>
+      </a>
+      <a href
+         ng-if="::!vm.execution.isActive"
+         analytics-on="click"
+         analytics-category="Pipeline"
+         analytics-event="Execution delete clicked"
+         ng-click="vm.deleteExecution(); $event.stopPropagation();"
+         uib-tooltip="Delete execution">
+        <span class="glyphicon glyphicon-trash"></span>
+      </a>
+      <a href
+         ng-if="::vm.execution.isActive"
+         analytics-on="click"
+         analytics-category="Pipeline"
+         analytics-event="Execution cancel clicked"
+         ng-click="vm.cancelExecution(); $event.stopPropagation();"
+         uib-tooltip="Cancel execution">
+        <span class="glyphicon glyphicon-remove-circle"></span>
+      </a>
     </div>
   </div>
-  <div class="execution-actions">
-    <a href
-       ng-if="::vm.execution.isRunning"
-       analytics-on="click"
-       analytics-category="Pipeline"
-       analytics-event="Execution pause clicked"
-       ng-click="vm.pauseExecution(); $event.stopPropagation();"
-       uib-tooltip="Pause execution">
-      <span class="glyphicon glyphicon-pause"></span>
-    </a>
-    <a href
-       ng-if="::vm.execution.isPaused"
-       analytics-on="click"
-       analytics-category="Pipeline"
-       analytics-event="Execution resume clicked"
-       ng-click="vm.resumeExecution(); $event.stopPropagation();"
-       uib-tooltip="Resume execution">
-      <span class="glyphicon glyphicon-play"></span>
-    </a>
-    <a href
-       ng-if="::!vm.execution.isActive"
-       analytics-on="click"
-       analytics-category="Pipeline"
-       analytics-event="Execution delete clicked"
-       ng-click="vm.deleteExecution(); $event.stopPropagation();"
-       uib-tooltip="Delete execution">
-      <span class="glyphicon glyphicon-trash"></span>
-    </a>
-    <a href
-       ng-if="::vm.execution.isActive"
-       analytics-on="click"
-       analytics-category="Pipeline"
-       analytics-event="Execution cancel clicked"
-       ng-click="vm.cancelExecution(); $event.stopPropagation();"
-       uib-tooltip="Cancel execution">
-      <span class="glyphicon glyphicon-remove-circle"></span>
-    </a>
-  </div>
-
   <div ng-if="vm.showDetails()" class="execution-graph">
     <pipeline-graph ng-if="vm.execution.parallel"
                     execution="vm.execution"
@@ -88,13 +89,11 @@
     </pipeline-graph>
   </div>
 
-  <div ng-if="vm.showDetails()" class="execution-details">
-    <div class="row">
-      <execution-details execution="::vm.execution" application="::vm.application" standalone="::vm.standalone">
-      </execution-details>
-    </div>
-    <div class="row permalinks text-right">
-      <div class="col-md-12">
+  <div ng-if="vm.showDetails()" class="execution-details-container">
+    <execution-details execution="::vm.execution" application="::vm.application" standalone="::vm.standalone">
+    </execution-details>
+    <div class="permalinks">
+      <div class="permalinks-content">
         <a target="_blank"
            analytics-on="click"
            analytics-category="Pipeline"

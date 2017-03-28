@@ -1,23 +1,47 @@
-<div class="row insight" ng-if="!vm.application.notFound"
+<div class="insight" ng-if="!vm.application.notFound"
      ng-class="vm.InsightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'">
-  <div class="nav"
-       ng-mouseover="vm.InsightFilterStateModel.hoverFilters()"
-       ng-mouseleave="vm.InsightFilterStateModel.exitFilters()"
-      >
+  <div class="nav">
     <h3 class="filters-placeholder">
-      <a href ng-click="vm.InsightFilterStateModel.pinFilters(true)"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+      <a href
+         class="btn btn-xs btn-default pin"
+         ng-click="vm.InsightFilterStateModel.pinFilters(true)" uib-tooltip="Show filters">
+        <i class="fa fa-forward"></i>
+      </a>
     </h3>
     <a href
-       class="btn btn-xs btn-default pull-right pin-unpin"
+       class="btn btn-xs btn-default pull-right unpin"
        ng-click="vm.InsightFilterStateModel.pinFilters(!vm.InsightFilterStateModel.filtersPinned)"
        ng-show="vm.InsightFilterStateModel.filtersExpanded"
         >
-      <span class="small glyphicon glyphicon-pushpin"></span> {{vm.InsightFilterStateModel.filtersPinned ? 'Unpin' : 'Pin'}}
+      <i class="fa fa-backward" uib-tooltip="Hide filters"></i>
     </a>
     <execution-filters ng-if="!vm.viewState.loading" application="vm.application"></execution-filters>
   </div>
   <div class="full-content" data-scroll-id="nav-content" ng-class="{'filters-expanded': vm.InsightFilterStateModel.filtersExpanded}">
     <div class="execution-groups-header" ng-if="!vm.viewState.loading">
+      <h3>Pipelines</h3>
+      <div class="form-group pull-right">
+        <a href class="btn btn-sm btn-primary"
+           analytics-on="click"
+           analytics-category="Pipelines"
+           analytics-event="Trigger Pipeline (top level)"
+           ng-click="vm.triggerPipeline()"
+           ng-disabled="vm.viewState.triggeringExecution">
+            <span ng-if="vm.viewState.triggeringExecution" class="pulsing">
+              <span class="glyphicon glyphicon-asterisk glyphicon-spinning visible-md-inline visible-sm-inline" uib-tooltip="Starting Execution"></span>
+              <span class="glyphicon glyphicon-asterisk glyphicon-spinning visible-lg-inline"></span>
+              <span class="visible-xl-inline">Starting Execution</span>&hellip;
+            </span>
+          <span ng-if="!vm.viewState.triggeringExecution">
+              <span class="glyphicon glyphicon-play visible-lg-inline"></span>
+              <span class="glyphicon glyphicon-play visible-md-inline visible-sm-inline" uib-tooltip="Start Manual Execution"></span>
+              <span class="visible-xl-inline">Start Manual Execution</span>
+            </span>
+        </a>
+      </div>
+      <div class="pull-right">
+        <create-new application="application"></create-new>
+      </div>
       <form class="form-inline execution-filters">
         <div class="form-group" ng-if="vm.filter.groupBy" style="margin-right: 20px">
           <a class="btn btn-xs btn-default" href
@@ -71,28 +95,6 @@
                    analytics-label="{{vm.filter.showStageDuration}}">
             stage durations
           </label>
-        </div>
-        <div class="form-group pull-right">
-          <a href class="btn btn-sm btn-primary"
-             analytics-on="click"
-             analytics-category="Pipelines"
-             analytics-event="Trigger Pipeline (top level)"
-             ng-click="vm.triggerPipeline()"
-             ng-disabled="vm.viewState.triggeringExecution">
-            <span ng-if="vm.viewState.triggeringExecution" class="pulsing">
-              <span class="glyphicon glyphicon-asterisk glyphicon-spinning visible-md-inline visible-sm-inline" uib-tooltip="Starting Execution"></span>
-              <span class="glyphicon glyphicon-asterisk glyphicon-spinning visible-lg-inline"></span>
-              <span class="visible-xl-inline">Starting Execution</span>&hellip;
-            </span>
-            <span ng-if="!vm.viewState.triggeringExecution">
-              <span class="glyphicon glyphicon-play visible-lg-inline"></span>
-              <span class="glyphicon glyphicon-play visible-md-inline visible-sm-inline" uib-tooltip="Start Manual Execution"></span>
-              <span class="visible-xl-inline">Start Manual Execution</span>
-            </span>
-          </a>
-        </div>
-        <div class="pull-right">
-          <create-new application="application"></create-new>
         </div>
       </form>
       <filter-tags tags="vm.tags" tag-cleared="vm.updateExecutionGroups(true)" clear-filters="vm.clearFilters()"></filter-tags>

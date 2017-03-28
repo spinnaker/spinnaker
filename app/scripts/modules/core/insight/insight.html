@@ -1,17 +1,18 @@
 <div class="row insight" ng-if="!insightTarget.notFound" ng-class="InsightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'">
-  <div class="nav"
-       ng-mouseover="InsightFilterStateModel.hoverFilters()"
-       ng-mouseleave="InsightFilterStateModel.exitFilters()"
-      >
+  <div class="nav">
     <h3 class="filters-placeholder">
-      <a href ng-click="InsightFilterStateModel.pinFilters(true)"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+      <a href
+         class="btn btn-xs btn-default pin"
+         ng-click="InsightFilterStateModel.pinFilters(true)" uib-tooltip="Show filters">
+        <i class="fa fa-forward"></i>
+      </a>
     </h3>
     <a href
-       class="btn btn-xs btn-default pull-right pin-unpin"
+       class="btn btn-xs btn-default pull-right unpin"
        ng-click="InsightFilterStateModel.pinFilters(!InsightFilterStateModel.filtersPinned)"
        ng-show="InsightFilterStateModel.filtersExpanded"
         >
-      <span class="small glyphicon glyphicon-pushpin"></span> {{InsightFilterStateModel.filtersPinned ? 'Unpin' : 'Pin'}}
+      <i class="fa fa-backward" uib-tooltip="Hide filters"></i>
     </a>
     <div ui-view="nav" class="filters-content"></div>
   </div>

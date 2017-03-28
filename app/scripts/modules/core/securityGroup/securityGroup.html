@@ -3,7 +3,7 @@
      ng-click="loadDetails($event)"
      ng-class="{active: $state.includes('**.securityGroupDetails', {region: securityGroup.region, accountId: securityGroup.accountName, name: securityGroup.name, vpcId: securityGroup.vpcId, provider: securityGroup.provider})}">
 
-  <h6 sticky-header added-offset-height="39">
+  <h6 sticky-header added-offset-height="36">
     <span class="glyphicon glyphicon-transfer"></span>
     {{heading | uppercase}}
     <entity-ui-tags component="securityGroup"

@@ -101,12 +101,12 @@ pipeline-graph {
         }
         div.execution-stage-label {
           & > div {
-            padding: 5px;
-            margin: -5px;
+            padding: 3px;
+            margin: -3px;
             display: inline-block;
-            color: @lightest_grey;
-            background-color: @dark_blue_background;
-            border-radius: 4px;
+            color: #ffffff;
+            background-color: @spinnaker-link-color;
+            border-radius: 2px;
             text-shadow: none;
             transition: 0.10s all;
           }
@@ -125,9 +125,9 @@ pipeline-graph {
 }
 
 .execution-graph {
-  margin: 0 -10px;
-  padding: 10px 10px 0 10px;
+  margin: 0 20px;
+  padding: 10px 10px 20px 10px;
   background-color: @secondary_panel_grey;
-  border-top: 1px solid @mid_light_grey;
-  border-bottom: 1px solid @mid_light_grey;
+  border: 1px solid @mid_light_grey;
+  border-top: none;
 }

@@ -16,40 +16,64 @@
 
 @import "../presentation/less/imports/commonImports.less";
 
-.project-header.page-header {
-  margin-top: 0;
-  margin-bottom: 0;
-  padding-bottom: 0;
-  flex: 0 0 auto;
+.spinnaker-container .spinnaker-content {
+  .project-header.page-header {
+    height: 50px;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    flex: 0 0 auto;
 
-  .nav-popover-menu {
-    z-index: 25;
-  }
-
-  .project-name {
-    font-weight: 700;
-  }
-  .project-view {
-    position: relative;
-    display: inline-block;
-  }
-
-  .configure-project-link {
-    margin: 20px 0 5px;
-    color: @configure-link-color;
-    font-size: 120%;
-  }
-}
-
-.project-details {
-  .application-header {
     h2 {
-      margin-top: 10px;
-      min-width: 20px;
-      margin-right: 0;
-      .application-name {
-        display: none;
+      display: inline-block;
+    }
+
+    .nav-popover-menu {
+      z-index: 25;
+    }
+
+    .project-name {
+      font-weight: 300;
+    }
+    .project-view {
+      position: relative;
+      display: inline-block;
+    }
+
+    .configure-project-link {
+      margin: 10px 0 5px;
+      color: @configure-link-color;
+      font-size: 120%;
+    }
+  }
+  .project-details {
+    .application-header {
+      padding-top: 0;
+      h2 {
+        margin-top: 0;
+        min-width: 20px;
+        margin-right: 0;
+        .application-name, .fa {
+          display: none;
+        }
+        a {
+          margin-right: 0;
+        }
       }
+      a {
+        padding: 5px 15px 10px;
+      }
+      secondary-application-nav {
+        a {
+          padding: 10px;
+        }
+      }
+      .page-button {
+        margin-top: 0;
+      }
+    }
+    .page-header {
+      height: 40px; //application header override
     }
   }
 }

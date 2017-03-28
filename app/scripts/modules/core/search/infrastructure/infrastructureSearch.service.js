@@ -30,12 +30,14 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           displayName: 'Applications',
           displayFormatter: simpleField('application'),
           order: 1,
+          icon: 'window-maximize',
         },
         clusters: {
           displayName: 'Clusters',
           displayFormatter: simpleField('cluster'),
           order: 2,
           hideIfEmpty: true,
+          icon: 'th',
         },
         serverGroups: {
           displayName: 'Server Groups',
@@ -44,6 +46,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           },
           order: 3,
           hideIfEmpty: true,
+          icon: 'th-large',
         },
         instances: {
           displayName: 'Instances',
@@ -53,6 +56,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           },
           order: 4,
           hideIfEmpty: true,
+          icon: 'hdd-o'
         },
         loadBalancers: {
           displayName: 'Load Balancers',
@@ -62,6 +66,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           },
           order: 5,
           hideIfEmpty: true,
+          iconClass: 'icon icon-elb',
         },
         securityGroups: {
           displayName: 'Security Groups',
@@ -70,6 +75,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           },
           order: 6,
           hideIfEmpty: true,
+          icon: 'exchange',
         }
       };
 
@@ -123,7 +129,10 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           deferred.resolve(Object.keys(tmp).map(function(cat) {
             let config = searchConfig[cat];
             return {
+              id: cat,
               category: config.displayName,
+              icon: config.icon,
+              iconClass: config.iconClass,
               order: config.order,
               hideIfEmpty: config.hideIfEmpty,
               results: tmp[cat],
@@ -140,6 +149,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         formatRouteResult: function(type, params) {
           return formatResult(type, params, true);
         },
+        getCategoryConfig: (category) => searchConfig[category],
       };
     };
   });

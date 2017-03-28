@@ -35,7 +35,7 @@ export class StickyHeaderController implements ng.IComponentController {
     this.$scrollableContainer = this.$element.closest('[sticky-headers]');
     this.isSticky = false;
     this.notifyOnly = this.$attrs.notifyOnly === 'true';
-    this.positionHeader = throttle(this.positionHeader, 100);
+    this.positionHeader = throttle(this.positionHeader, 50);
 
     if (!this.$scrollableContainer.length) {
       this.$log.warn('No parent container with attribute "sticky-header"; headers will not stick.');
@@ -71,19 +71,19 @@ export class StickyHeaderController implements ng.IComponentController {
       return;
     }
 
-    const containerTop = this.$scrollableContainer.offset().top,
-          top = sectionTop - containerTop - this.addedOffsetHeight;
+    const containerTop = this.$scrollableContainer.offset().top + this.addedOffsetHeight,
+          top = sectionTop - containerTop;
 
-    if (top < 0 && bottom > containerTop + this.addedOffsetHeight) {
+    if (top < 0 && bottom > containerTop) {
       const headingRect = this.$element.get(0).getBoundingClientRect(),
             headingWidth = headingRect.width,
             headingHeight = this.$element.outerHeight(true);
 
-      let topBase = containerTop + this.addedOffsetHeight,
+      let topBase = containerTop,
           zIndex = 5;
 
       if (containerTop + headingHeight > bottom) {
-        topBase = bottom - headingHeight + this.addedOffsetHeight;
+        topBase = bottom - headingHeight;
         zIndex = 4;
       }
 

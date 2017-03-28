@@ -36,6 +36,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
           }
         },
       ],
+      accountExtractor: (stage) => (stage.context.clusters || []).map(c => c.account),
       strategy: true,
     });
   })

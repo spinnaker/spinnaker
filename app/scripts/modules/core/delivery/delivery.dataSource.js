@@ -51,6 +51,8 @@ module.exports = angular
     if (SETTINGS.feature.pipelines !== false) {
       applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
         optional: true,
+        primary: true,
+        icon: 'tasks',
         key: 'executions',
         label: 'Pipelines',
         sref: '.pipelines.executions',

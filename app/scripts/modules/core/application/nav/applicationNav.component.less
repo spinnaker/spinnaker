@@ -1,0 +1,66 @@
+@import "~core/presentation/less/imports/commonImports.less";
+
+application-nav, secondary-application-nav, .application-nav {
+  display: inline-block;
+  .nav-section {
+    display: inline-block;
+  }
+  .ds-icon {
+    padding-right: 5px;
+    font-size: 90%;
+  }
+  .badge {
+    border-radius: 3px;
+    background-color: @spinnaker-link-color;
+    padding: 3px 6px;
+    margin-bottom: 3px;
+  }
+  a {
+    display: inline-block;
+    text-transform: uppercase;
+    padding: 15px 15px 25px;
+    font-size: 18px;
+    position: relative;
+    &.active, &:focus, &:hover {
+      text-decoration: none;
+      background-color: transparent;
+      color: @default_link_hover;
+      .badge {
+        background-color: @default_link_hover;
+      }
+      &:after {
+        content: ' ';
+        width: 0;
+        height: 0;
+        border-left: 12px solid transparent;
+        border-right: 12px solid transparent;
+        border-bottom: 12px solid @lightest_grey;
+        position: absolute;
+        left: calc(~"50% - 12px");
+        bottom: 0;
+      }
+    }
+  }
+}
+
+application-nav {
+  a {
+    font-size: 18px;
+    font-weight: 600;
+    @media (max-width: 1200px) {
+      font-size: 14px;
+      padding: 15px 10px 13px 10px;
+    }
+  }
+}
+
+secondary-application-nav {
+  a {
+    font-size: 14px;
+    padding: 18px 10px 27px;
+    @media (max-width: 1200px) {
+      font-size: 12px;
+      padding: 15px 10px 13px 10px;
+    }
+  }
+}

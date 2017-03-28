@@ -1,36 +1,33 @@
-<div class="col-md-12">
-  <div class="row clickable"
+<div ng-class="vm.isShowingDetails() ? 'showing-details' : 'details-hidden'">
+  <div class="clickable execution-group-header"
        sticky-header
-       added-offset-height="-6"
+       added-offset-height="-3"
        analytics-on="click"
        analytics-category="Pipeline"
        analytics-event="Group {{vm.viewState.open ? 'collapsed' : 'expanded'}}"
        analytics-label="{{vm.group.heading}}"
        ng-click="vm.toggle()"
        ng-if="vm.group.heading">
-    <div class="col-md-12 execution-group-heading" ng-class="vm.viewState.isRetired  || vm.pipelineConfig.disabled ? 'inactive' : 'active'">
-      <div class="row">
-        <div class="col-md-5 col-sm-5">
-          <h4 class="execution-group-title">
-            <span class="glyphicon"
-                  ng-class="{'glyphicon-chevron-right': !vm.viewState.open, 'glyphicon-chevron-down': vm.viewState.open}">
-            </span>
-            <span class="execution-group-title">
-              {{ vm.group.heading }}
-              <span ng-if="vm.pipelineConfig.description" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ vm.pipelineConfig.description }}"></span>
-              <span ng-if="vm.pipelineConfig.disabled">(disabled)</span>
-              <span ng-if="vm.group.runningExecutions.length" class="badge">
-                {{vm.group.runningExecutions.length}}
-              </span>
-            </span>
-          </h4>
-        </div>
-        <div class="col-md-7 col-sm-7 text-right execution-group-actions" ng-if="vm.viewState.canConfigure">
+    <div class="execution-group-heading" ng-class="vm.viewState.isRetired  || vm.pipelineConfig.disabled ? 'inactive' : 'active'">
+      <span class="glyphicon pipeline-toggle"
+            ng-class="{'glyphicon-chevron-right': !vm.viewState.open, 'glyphicon-chevron-down': vm.viewState.open}">
+      </span>
+      <div class="shadowed">
+        <account-label-color ng-repeat="account in vm.deploymentAccounts" account="{{account}}"></account-label-color>
+        <h4 class="execution-group-title">
+          {{ vm.group.heading }}
+          <span ng-if="vm.pipelineConfig.description" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ vm.pipelineConfig.description }}"></span>
+          <span ng-if="vm.pipelineConfig.disabled">(disabled)</span>
+          <span ng-if="vm.group.runningExecutions.length" class="badge">
+            {{vm.group.runningExecutions.length}}
+          </span>
+        </h4>
+        <div class="text-right execution-group-actions" ng-if="vm.viewState.canConfigure">
           <triggers-tag is-visible="!vm.pipelineConfig.disabled" pipeline="vm.pipelineConfig"></triggers-tag>
           <next-run-tag ng-if="!vm.pipelineConfig.disabled" pipeline="vm.pipelineConfig"></next-run-tag>
           <h4>
             <a href
-               class="btn btn-xs btn-link link-inverse"
+               class="btn btn-xs btn-link"
                analytics-on="click"
                analytics-category="Pipeline"
                analytics-event="Configure pipeline button clicked"
@@ -42,7 +39,7 @@
           </h4>
           <h4 ng-if="vm.viewState.canTriggerPipelineManually" is-visible="!vm.pipelineConfig.disabled">
             <a href
-               class="btn btn-xs btn-link link-inverse"
+               class="btn btn-xs btn-link"
                analytics-on="click"
                analytics-category="Pipeline"
                analytics-event="Trigger pipeline button clicked"
@@ -60,8 +57,8 @@
       </div>
     </div>
   </div>
-  <div class="row execution-groups" ng-if="vm.viewState.open">
-    <div class="col-md-12 execution-group-container">
+  <div class="execution-groups" ng-if="vm.viewState.open">
+    <div class="execution-group-container">
       <div ng-if="!vm.group.executions.length" style="padding-bottom: 10px">
         <em>No executions found matching the selected filters.</em>
       </div>
@@ -70,4 +67,3 @@
     </div>
   </div>
 </div>
-

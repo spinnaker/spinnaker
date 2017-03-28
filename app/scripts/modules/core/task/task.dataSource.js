@@ -41,6 +41,8 @@ module.exports = angular
       onLoad: addTasks,
       afterLoad: runningTasksLoaded,
       lazy: true,
+      primary: true,
+      icon: 'list',
     }));
 
     applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({

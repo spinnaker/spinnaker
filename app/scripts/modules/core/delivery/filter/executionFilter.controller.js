@@ -15,6 +15,7 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
   .controller('ExecutionFilterCtrl', function ($scope, $rootScope, $q, pipelineConfigService,
                                                executionFilterService, ExecutionFilterModel, $analytics) {
 
+    this.tags = ExecutionFilterModel.tags;
     $scope.sortFilter = ExecutionFilterModel.sortFilter;
 
     this.viewState = {

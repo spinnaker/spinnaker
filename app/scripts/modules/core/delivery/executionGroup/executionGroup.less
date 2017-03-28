@@ -4,22 +4,61 @@
   padding: 10px 30px 0;
 }
 
+.execution-group-header {
+  .shadowed {
+    display: flex;
+    flex: 1 1 auto;
+    background-color: @pod_header_blue;
+    align-items: center;
+  }
+  &.clickable.heading-sticky {
+    box-shadow: none;
+    .shadowed {
+      box-shadow: 0px 8px 6px -6px @mid_lighter_grey;
+    }
+  }
+  .clearfix();
+}
+
 .execution-group-heading {
+  display: flex;
+  padding: 0;
   margin-top: 3px;
-  background-color: @dark_blue_background;
-  color: rgb(248, 248, 248);
-  border: 2px solid @lightest_grey;
-  border-radius: 3px;
-  box-shadow: 0 8px 6px -6px @lightest_grey;
+  color: @default_link_hover;
+  height: 37px;
+  .pipeline-toggle {
+    background-color: @lightest_grey;
+    display: inline-block;
+    padding: 10px 10px 10px 0;
+    height: 36px;
+    flex: 0 0 auto;
+  }
   a {
-    font-weight: 300;
+    font-weight: 600;
+  }
+  .account-tag {
+    flex: 0 0 auto;
+    padding: 0 15px;
+    height: 37px;
+    line-height: 37px;
+    display: inline-block;
+    border-right: 1px solid @lightest_grey;
+    color: #ffffff;
+    background-color: #777;
+    text-transform: uppercase;
+    min-width: 72px;
+    text-align: center;
+    &.account-tag-prod {
+      background-color: @unhealthy_red;
+    }
   }
   h4 {
-    font-weight: 300;
+    font-weight: 600;
     font-size: 16px;
     display: inline-block;
-    vertical-align: top;
-    margin: 6px 0;
+    flex: 1 1 auto;
+    padding: 0 10px;
+    margin: 0;
     .disabled {
       color: @mid_lighter_grey;
     }
@@ -40,11 +79,15 @@
     }
   }
   .badge {
-    background-color: @lighter_grey;
-    color: @mid_grey;
+    background-color: @default_link_hover;
+    color: @lightest_grey;
+    border-radius: 3px;
   }
   &.inactive {
-    background-color: lighten(@dark_blue_background, 40%);
+    color: tint(@default_link_hover, 50%);
+    .shadowed, .execution-group-actions {
+      background-color: tint(@pod_header_blue, 50%);
+    }
     .label-retired {
       background-color: transparent;
       color: @light_grey;
@@ -56,13 +99,12 @@
 
 .triggers-toggle, next-run-tag {
   display: inline-block;
-  font-weight: 300;
+  font-weight: 400;
   font-size: 85%;
-  margin: 9px 0 0 0;
   position: relative;
-  color: @healthy_green;
+  color: @healthy_green_border;
   &.disabled {
-    color: @mid_light_grey;
+    color: @mid_grey;
   }
 }
 
@@ -72,6 +114,8 @@ next-run-tag {
 }
 
 .execution-group-actions {
+  background-color: @pod_header_blue;
+  flex: 0 0 auto;
   h4 {
     margin-left: 20px;
     @media (min-width: 1200px) {
@@ -82,11 +126,4 @@ next-run-tag {
 
 execution-group {
   display: block;
-}
-
-h4 {
-  &.execution-group-title {
-    padding-left: 0;
-    margin-top: 8px;
-  }
 }

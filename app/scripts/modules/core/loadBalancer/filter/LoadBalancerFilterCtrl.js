@@ -19,6 +19,8 @@ module.exports = angular.module('spinnaker.core.loadBalancer.filter.controller',
     $scope.application = app;
     $scope.sortFilter = LoadBalancerFilterModel.sortFilter;
 
+    this.tags = LoadBalancerFilterModel.tags;
+
     var ctrl = this;
 
     this.updateLoadBalancerGroups = () => {

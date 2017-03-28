@@ -85,9 +85,21 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       execution.currentStages = getCurrentStages(execution);
       addStageWidths(execution);
       addBuildInfo(execution);
+      addDeploymentTargets(execution);
       //let end = window.performance.now();
       //totalTime += (end-start);
       //console.warn('tt:', totalTime, '(this)', (end-start));
+    }
+
+    function addDeploymentTargets(execution) {
+      const targets = [];
+      execution.stages.map(stage => {
+        const stageConfig = pipelineConfig.getStageConfig(stage);
+        if (stageConfig && stageConfig.accountExtractor) {
+          targets.push(stageConfig.accountExtractor(stage));
+        }
+      });
+      execution.deploymentTargets = _.uniq(_.flattenDeep(targets)).sort();
     }
 
     function siblingStageSorter(a, b) {

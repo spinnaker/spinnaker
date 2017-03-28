@@ -23,6 +23,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
         executionLabelTemplateUrl: require('./propertyExecutionLabel.html'),
         controller: 'PropertyStageCtrl',
         controllerAs: 'propertyStage',
+        accountExtractor: (stage) => stage.context.scope.env,
         validators: [
           { type: 'requiredField', fieldName: 'email' },
         ],

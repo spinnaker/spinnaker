@@ -1,11 +1,33 @@
 @import "../../presentation/less/imports/commonImports.less";
 
 execution {
-  .execution-details {
+  execution-details {
+    width: 100%;
+  }
+  .execution-details-container {
     background-color: #ffffff;
-    padding: 0 10px 0 15px;
-    margin: 0 -5px;
-
+    padding: 0 0 0 20px;
+    margin: -20px 50px 0;
+    border: 1px solid @mid_light_grey;
+    box-shadow: 0 0 4px 2px fade(@spinnaker-link-color, 10%);
+    border-radius: 1px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    .execution-details {
+      display: flex;
+      align-items: stretch;
+      flex-wrap: wrap;
+      .stage-summary, .stage-details {
+        flex: 0 0 50%;
+        min-width: 400px;
+      }
+      .stage-details {
+        padding-left: 20px;
+        background-color: @pod_header_blue;
+        box-shadow: none;
+      }
+    }
     th {
       font-weight: 600;
     }
@@ -23,20 +45,21 @@ execution {
         border-bottom-width: 0;
         font-weight: 600;
         color: @text-color;
-        background-color: @mid_light_grey;
+        background-color: @lightest_grey;
         &:hover {
           background-color: @mid_lighter_grey;
           transition: background-color 0.15s;
         }
         &.active {
-          background-color: @lightest_grey;
+          color: #ffffff;
+          background-color: @spinnaker-link-color;
         }
       }
     }
 
     .step-section-details {
-      background-color: @lightest_grey;
       padding: 15px;
+      margin-bottom: 5px;
     }
 
     .execution-details-summary {
@@ -52,6 +75,7 @@ execution {
       .btn-group {
         margin-left: 20px;
         text-transform: none;
+        margin-right: 10px;
       }
     }
 
@@ -75,13 +99,22 @@ execution {
     }
     h5 {
       font-weight: 600;
-      padding-bottom: 10px;
+      padding-bottom: 0;
     }
     .stage-name {
       margin-top: 5px;
     }
-    .well {
+    .well, .alert-info {
       margin-top: 10px;
+      background-color: @lightest_grey;
+      padding: 10px;
+      border: 1px solid @spinnaker-link-color;
+      border-radius: 2px;
+      color: @text-color;
+    }
+    .alert-danger {
+      border: 1px solid @unhealthy_red_border;
+      color: @text-color;
     }
   }
 

@@ -4,19 +4,17 @@
       <div class="row clickable" ng-click="vm.toggle()">
         <div class="col-md-12">
           <div class="rollup-title-cell">
-            <h5>
-              <collapsible-account-tag account="{{vm.cluster.account}}" state="vm.state"></collapsible-account-tag>
+            <collapsible-account-tag account="{{vm.cluster.account}}" state="vm.state"></collapsible-account-tag>
+            <div class="pod-center">
               <span class="cluster-name">{{vm.clusterLabel}}</span>
-              <span class="pull-right">
-                <span class="cluster-health">
-                  {{vm.cluster.applications.length}} Application<span ng-if="vm.cluster.applications.length !== 1">s</span>
-                </span>
-                <span class="cluster-health">
-                  {{vm.instanceCounts.total}} Instances
-                </span>
-                <health-counts container="vm.instanceCounts"></health-counts>
-              </span>
-            </h5>
+            </div>
+            <span class="cluster-health">
+                {{vm.cluster.applications.length}} Application<span ng-if="vm.cluster.applications.length !== 1">s</span>
+            </span>
+            <span class="cluster-health">
+                {{vm.instanceCounts.total}} Instances
+            </span>
+            <health-counts container="vm.instanceCounts"></health-counts>
           </div>
         </div>
       </div>

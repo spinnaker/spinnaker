@@ -1,72 +1,66 @@
-<div class="container applications global-search-header">
-  <div class="row">
-    <div class="col-md-3">
-      <h2 data-purpose="view-header">Applications</h2>
-    </div>
-    <div class="col-md-4 col-sm-12">
-      <form class="form form-horizontal">
-        <div class="form-group">
-          <div class="col-md-12">
-            <input type="search"
-                   placeholder="Search applications"
-                   class="form-control input-md"
-                   focus
-                   ng-model="viewState.applicationFilter"
-                   ng-change="ctrl.filterApplications()"/>
-          </div>
-        </div>
-      </form>
-    </div>
-    <div class="col-md-offset-3 col-md-2 pull-right">
-      <insight-menu data-purpose="applications-menu"
-                    actions="menuActions"
-                    right-align="true">
-      </insight-menu>
+<div class="infrastructure">
+  <div class="infrastructure-section search-header">
+    <div class="container">
+      <h2 class="header-section">
+        <span class="search-label">Applications</span>
+        <input type="search"
+               placeholder="Search applications"
+               class="form-control input-md"
+               focus
+               ng-model="viewState.applicationFilter"
+               ng-change="ctrl.filterApplications()"/>
+      </h2>
+      <div class="header-actions">
+        <insight-menu data-purpose="applications-menu"
+                      actions="menuActions"
+                      right-align="true">
+        </insight-menu>
+      </div>
     </div>
   </div>
-</div>
-<div class="row">
-  <div class="col-md-12">
+  <div class="container">
     <h2 ng-if="!applicationsLoaded" class="text-center" style="margin-bottom: 250px">
       <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
     </h2>
-    <table ng-if="applicationsLoaded" class="table table-hover">
-      <thead>
-        <tr>
-          <th width="20%" sort-toggle key="name" label="Name" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
-          <th width="20%" sort-toggle key="createTs" label="Created" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
-          <th width="20%" sort-toggle key="updateTs" label="Updated" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
-          <th width="25%" sort-toggle key="email" label="Owner" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
-          <th sort-toggle key="accounts" label="Account(s)" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="clickable" ng-repeat="application in ctrl.resultPage()" ui-sref=".application.insight.clusters({ application: application.name.toLowerCase() })">
-          <td>
-            <a href ui-sref=".application.insight.clusters({ application: application.name.toLowerCase() })">
-              {{ application.name.toLowerCase() }}
-            </a>
-          </td>
-          <td>
-            {{ application.createTs | timestamp }}
-          </td>
-          <td>
-            {{ application.updateTs | timestamp }}
-          </td>
-          <td>
-            {{ application.email }}
-          </td>
-          <td>
-            {{ application.accounts }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <uib-pagination ng-if="applicationsLoaded"
-                items-per-page="pagination.itemsPerPage"
-                total-items="filteredApplications.length"
-                max-size="pagination.maxSize"
-                ng-model="pagination.currentPage"
-      ></uib-pagination>
+    <div class="infrastructure-section">
+      <table ng-if="applicationsLoaded" class="table table-hover">
+        <thead>
+          <tr>
+            <th width="20%" sort-toggle key="name" label="Name" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+            <th width="20%" sort-toggle key="createTs" label="Created" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+            <th width="20%" sort-toggle key="updateTs" label="Updated" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+            <th width="25%" sort-toggle key="email" label="Owner" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+            <th sort-toggle key="accounts" label="Account(s)" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="clickable" ng-repeat="application in ctrl.resultPage()" ui-sref=".application.insight.clusters({ application: application.name.toLowerCase() })">
+            <td>
+              <a href ui-sref=".application.insight.clusters({ application: application.name.toLowerCase() })">
+                {{ application.name.toLowerCase() }}
+              </a>
+            </td>
+            <td>
+              {{ application.createTs | timestamp }}
+            </td>
+            <td>
+              {{ application.updateTs | timestamp }}
+            </td>
+            <td>
+              {{ application.email }}
+            </td>
+            <td>
+              {{ application.accounts }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <uib-pagination ng-if="applicationsLoaded"
+                  items-per-page="pagination.itemsPerPage"
+                  total-items="filteredApplications.length"
+                  max-size="pagination.maxSize"
+                  ng-model="pagination.currentPage"
+        ></uib-pagination>
+    </div>
   </div>
 </div>

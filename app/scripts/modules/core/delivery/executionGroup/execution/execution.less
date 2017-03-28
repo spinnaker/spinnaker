@@ -106,20 +106,6 @@ execution-status {
           display: inline-block;
         }
         min-width: 50px;
-        border-left-color: #FFFFFF;
-        &.active {
-          border-color: #222222;
-
-          &:first-child {
-            border-left-width: 1px;
-          }
-          &:last-child {
-            border-right-width: 1px;
-          }
-          & + .stage {
-            border-left-color: transparent;
-          }
-        }
       }
     }
   }
@@ -134,6 +120,7 @@ execution-status {
     color: #000000;
     font-size: 90%;
     border: 1px solid transparent;
+    border-left-color: #FFFFFF;
     &:hover, &.active {
       opacity: 1;
     }
@@ -147,6 +134,9 @@ execution-status {
       }
       &:last-child {
         border-right-width: 1px;
+      }
+      & + .stage {
+        border-left-color: transparent;
       }
     }
     &.glowing {

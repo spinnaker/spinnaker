@@ -1,6 +1,7 @@
 'use strict';
 
 let angular = require('angular');
+import {flatten, uniq} from 'lodash';
 
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 
@@ -13,6 +14,7 @@ module.exports = angular
     require('../triggers/triggersTag.directive.js'),
     require('../triggers/nextRun.component'),
     require('./execution/execution.directive.js'),
+    require('../service/executions.transformer.service'),
     PIPELINE_CONFIG_SERVICE,
   ])
   .directive('executionGroup', function() {
@@ -28,12 +30,14 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('executionGroupCtrl', function($scope, $timeout, $state, $stateParams, $uibModal, executionService,
+  .controller('executionGroupCtrl', function($scope, $timeout, $state, $stateParams, $uibModal, executionService, executionsTransformer,
                                              collapsibleSectionStateCache, ExecutionFilterModel, pipelineConfigService) {
     this.showDetails = function(executionId) {
       return executionId === $stateParams.executionId &&
         $state.includes('**.execution.**');
     };
+
+    this.deploymentAccounts = uniq(flatten(this.group.executions.map(e => e.deploymentTargets))).sort();
 
     this.isShowingDetails = () => this.group.executions
       .map((execution) => execution.id)

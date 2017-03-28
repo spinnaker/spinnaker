@@ -1,6 +1,6 @@
 <div class="execution-details-summary">
   <h5 class="execution-details-title">
-    {{stageSummary.name || stageSummary.type }} Details
+    Stage details: {{stageSummary.name || stageSummary.type }}
 
     <div ng-if="(!stage.isRunning && !stage.isCompleted) && ctrl.isRestartable(stage)" uib-dropdown class="btn-group pull-right">
       <button type="button"
@@ -27,7 +27,7 @@
   <table class="table">
     <thead>
     <tr>
-      <th width="40%">Step</th>
+      <th width="30%">Step</th>
       <th>Started</th>
       <th>Duration</th>
       <th>Status</th>

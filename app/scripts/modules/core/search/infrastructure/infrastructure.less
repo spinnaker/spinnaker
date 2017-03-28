@@ -22,12 +22,52 @@
   flex: 1 1 auto;
   overflow-y: auto;
   overflow-x: hidden;
-  .global-search-header {
+  .search-header {
+    background-color: @pod_header_blue;
     flex: 0 0 auto;
+    .fa-search {
+      .encircled
+    }
+    .search-label {
+      display: inline-block;
+      padding: 0 20px 0 5px;
+    }
+    .container {
+      display: flex;
+      justify-content: space-between;
+      .header-section {
+        display: flex;
+        align-items: center;
+        flex: 1 1 auto;
+      }
+    }
+    input {
+      display: inline-block;
+      max-width: 600px;
+      font-weight: 400;
+      &::-webkit-input-placeholder {
+        font-size: 14px;
+      }
+    }
+    .header-actions {
+      flex: 0 0 auto;
+      margin: 21px 0;
+      .dropdown-toggle {
+        background-color: transparent;
+        border: none;
+        font-size: 18px;
+      }
+    }
+  }
+  .input-group-search {
+    margin-top: 20px;
+  }
+  h2 {
+    font-weight: 600;
+    margin-top: 15px;
   }
   h3 {
     font-weight: 600;
-    margin-left: 0;
   }
   h4.no-results {
     padding: 30px 0;
@@ -39,16 +79,17 @@
     margin-bottom: 10px;
   }
   .infrastructure-section {
-    border-bottom: 1px solid @mid_light_grey;
     overflow-y: auto;
     overflow-x: hidden;
   }
   .summary {
-    background-color: @dark_blue_background;
-    color: @lightest_grey;
+    background-color: @pod_header_blue;
     text-transform: uppercase;
-    padding: 8px 12px;
     font-weight: 600;
+    padding: 0 10px;
+    margin-bottom: 3px;
+    height: 33px;
+    line-height: 35px;
   }
   .projects-summary {
     margin-bottom: 15px;
@@ -87,10 +128,28 @@
         &:hover, &:focus {
           background-color: #ffffff;
         }
+        &:first-child {
+          border-top: none;
+        }
       }
     }
   }
   .category {
     margin: 0 0 15px 0;
+    background-color: transparent;
+    border-bottom: 2px solid @mid_lighter_grey;
+    border-radius: 0;
+    .category-icon {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      line-height: 29px;
+      border-radius: 50%;
+      margin-left: 5px;
+      background-color: @dark_blue_background;
+      border: 2px solid #ffffff;
+      color: #ffffff;
+      text-align: center;
+    }
   }
 }

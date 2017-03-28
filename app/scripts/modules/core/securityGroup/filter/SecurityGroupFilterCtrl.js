@@ -19,6 +19,8 @@ module.exports = angular.module('securityGroup.filter.controller', [
     $scope.application = app;
     $scope.sortFilter = SecurityGroupFilterModel.sortFilter;
 
+    this.tags = SecurityGroupFilterModel.tags;
+
     var ctrl = this;
 
     this.updateSecurityGroups = function() {

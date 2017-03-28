@@ -1,4 +1,4 @@
-<div class="row pipelines executions">
+<div class="row pipelines executions" ng-class="{'showing-details': vm.showingDetails()}">
   <div class="row" ng-if="vm.viewState.initializationError">
     <h4 class="text-center">There was a server error loading pipelines. Please try again later.</h4>
   </div>

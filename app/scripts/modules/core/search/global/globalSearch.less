@@ -1,10 +1,20 @@
 @import "../../presentation/less/imports/commonImports.less";
 
 .global-search {
-  margin-top: 6px;
+  .navbar-form {
+    margin: 5px;
+    input[type="search"] {
+      width: 200px;
+    }
+  }
+  .glyphicon-search {
+    color: @link-color;
+  }
   .dropdown-menu {
-    min-width: 206px;
-    top: 51px;
+    min-width: 202px;
+    top: 34px;
+    margin-right: 19px;
+    border-radius: 0;
     z-index: 10000;
     li {
       color: #999;
@@ -59,9 +69,6 @@
   top: 48px;
   margin-top: 10px;
   border-bottom: 1px solid @mid_light_grey;
-  .input-md, .dropdown {
-    margin: 20px 0 10px;
-  }
   h2 {
     font-weight: 700;
   }
