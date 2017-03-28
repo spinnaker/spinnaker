@@ -428,6 +428,9 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         return populateDisksFromPipeline(extendedCommand.disks, extendedCommand).then(function() {
           var instanceMetadata = extendedCommand.instanceMetadata;
           extendedCommand.loadBalancers = extractLoadBalancersFromMetadata(instanceMetadata);
+          extendedCommand.backendServiceMetadata = instanceMetadata['backend-service-names']
+            ? instanceMetadata['backend-service-names'].split(',')
+            : [];
           extendedCommand.instanceMetadata = {};
           populateCustomMetadata(instanceMetadata, extendedCommand);
           populateAutoHealingPolicy(pipelineCluster, extendedCommand);
