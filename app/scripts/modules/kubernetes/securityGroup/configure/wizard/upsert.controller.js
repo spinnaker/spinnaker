@@ -17,14 +17,13 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
   ACCOUNT_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
-  require('core/search/search.service.js'),
   require('../../../namespace/selectField.directive.js'),
   require('../../transformer.js'),
 ])
   .controller('kubernetesUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
                                                                   application, securityGroup,
                                                                   accountService, kubernetesSecurityGroupTransformer, securityGroupReader, loadBalancerReader,
-                                                                  searchService, v2modalWizardService, securityGroupWriter, taskMonitorBuilder) {
+                                                                  v2modalWizardService, securityGroupWriter, taskMonitorBuilder) {
     var ctrl = this;
     $scope.isNew = !securityGroup.edit;
     $scope.securityGroup = securityGroup;

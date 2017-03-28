@@ -1,13 +1,14 @@
 'use strict';
 
 import {Observable, Subject} from 'rxjs';
+import {SEARCH_SERVICE} from 'core/search/search.service';
 let angular = require('angular');
 
 import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 
 module.exports = angular.module('spinnaker.infrastructure.search.service', [
   URL_BUILDER_SERVICE,
-  require('../../search/search.service'),
+  SEARCH_SERVICE,
   require('../../cloudProvider/serviceDelegate.service'),
 ])
   .factory('infrastructureSearchService', function($q, searchService, urlBuilderService, serviceDelegate) {

@@ -16,7 +16,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     ACCOUNT_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
-    require('core/search/search.service.js'),
     require('../../transformer.js'),
     require('../../../region/regionSelectField.directive.js'),
     require('../../../subnet/subnetSelectField.directive.js'),
