@@ -188,6 +188,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     parser.add_argument(
         '--azure_subscription_id', default='',
         help='The subscription id of your subscriptoin.')
+    # Damien - I'm not sure that we need the subscription ID
     parser.add_argument(
         '--azure_tenant_id', default='',
         help='The AAD tenant id.')
@@ -414,7 +415,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
   @property
   def az_observer(self):
-    """The observer for inspecting GCE platform state, if configured."""
+    """The observer for inspecting Azure platform state, if configured."""
     return self.__az_observer
 
   @property
@@ -523,6 +524,69 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       logger.warning(
           '--aws_profile was not set.'
           ' Therefore, we will not be able to observe Amazon Web Services.')
+
+  def __init_azure_bindings(self):
+    #### 03/27 - TO COMPLETE WITH AZURE COMMANDS ####
+    context = ExecutionContext()
+    bindings = self.bindings  # base class made a copy
+    # if not bindings['TEST_AWS_ZONE']:
+    #   bindings['TEST_AWS_ZONE'] = bindings['AWS_ZONE']
+    # if not bindings.get('TEST_AWS_REGION', ''):
+    #   bindings['TEST_AWS_REGION'] = bindings['TEST_AWS_ZONE'][:-1]
+
+    if not bindings['TEST_AZURE_RGROUP']:
+      bindings['TEST_AZURE_RGROUP'] = bindings['AZURE_RGROUP']
+    if not bindings.get('TEST_AZURE_LOCATION', ''):
+      bindings['TEST_AZURE_LOCATION'] = bindings['TEST_AZURE_RGROUP'][:-1]
+
+    if bindings.get('AZURE_LOCATION'):
+      self.__azure_observer = az.AzAgent(
+        bindings['AZURE_LOCATION'])
+    
+
+    if bindings.get('AWS_PROFILE'):
+      
+      if not bindings.get('TEST_AWS_VPC_ID', ''):
+        # We need to figure out a specific aws vpc id to use.
+        logger = logging.getLogger(__name__)
+        logger.info('Determine default AWS VpcId...')
+        vpc_list = self.__aws_observer.get_resource_list(
+            context,
+            root_key='Vpcs',
+            aws_command='describe-vpcs',
+            args=['--filters', 'Name=tag:Name,Values=defaultvpc'],
+            region=bindings['TEST_AWS_REGION'],
+            aws_module='ec2', profile=self.__aws_observer.profile)
+        if not vpc_list:
+          raise ValueError('There is no vpc tagged as "defaultvpc"')
+        bindings['TEST_AWS_VPC_ID'] = vpc_list[0]['VpcId']
+        logger.info('Using discovered default VpcId=%s',
+                    str(bindings['TEST_AWS_VPC_ID']))
+
+      if not bindings.get('TEST_AWS_SECURITY_GROUP', ''):
+        # We need to figure out a specific security group that is compatable
+        # with the VpcId we are using.
+        logger = logging.getLogger(__name__)
+        logger.info('Determine default AWS SecurityGroupId...')
+        sg_list = self.__aws_observer.get_resource_list(
+            context,
+            root_key='SecurityGroups',
+            aws_command='describe-security-groups', args=[],
+            region=bindings['TEST_AWS_REGION'],
+            aws_module='ec2', profile=self.__aws_observer.profile)
+        for entry in sg_list:
+          if entry.get('VpcId', None) == bindings['TEST_AWS_VPC_ID']:
+            bindings['TEST_AWS_SECURITY_GROUP_ID'] = entry['GroupId']
+            break
+        logger.info('Using discovered default SecurityGroupId=%s',
+                    str(bindings['TEST_AWS_SECURITY_GROUP_ID']))
+    else:
+      self.__aws_observer = None
+      logger = logging.getLogger(__name__)
+      logger.warning(
+          '--aws_profile was not set.'
+          ' Therefore, we will not be able to observe Amazon Web Services.')
+
 
   def __init_google_bindings(self):
     bindings = self.bindings  # base class made a copy
