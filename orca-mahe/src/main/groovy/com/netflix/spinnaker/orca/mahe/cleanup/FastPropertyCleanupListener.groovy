@@ -49,31 +49,31 @@ class FastPropertyCleanupListener implements ExecutionListener {
 
 
     if (executionStatus in [ExecutionStatus.TERMINAL, ExecutionStatus.CANCELED] || execution.context.rollback) {
-      execution.with {
-        switch (context.propertyAction) {
+      execution.stages.each { stage ->
+        switch (stage.context.propertyAction) {
           case PropertyAction.CREATE.toString():
-            context.propertyIdList.each { prop ->
-              log.info("Rolling back the creation of: ${prop.propertyId} on execution ${id} by deleting")
+            stage.context.propertyIdList.each { prop ->
+              log.info("Rolling back the creation of: ${prop.propertyId} on execution ${execution.id} by deleting")
               Response response = mahe.deleteProperty(prop.propertyId, "spinnaker rollback", extractEnvironment(prop.propertyId))
-              resolveRollbackResponse(response, context.propertyAction.toString(), prop)
+              resolveRollbackResponse(response, stage.context.propertyAction.toString(), prop)
             }
             break
           case PropertyAction.UPDATE.toString():
-            context.originalProperties.each { prop ->
-              log.info("Rolling back the ${context.propertyAction} of: ${prop.property.propertyId} on execution ${id} by upserting")
+            stage.context.originalProperties.each { prop ->
+              log.info("Rolling back the ${stage.context.propertyAction} of: ${prop.property.propertyId} on execution ${execution.id} by upserting")
               Response response = mahe.upsertProperty(prop)
-              resolveRollbackResponse(response, context.propertyAction.toString(), prop.property)
+              resolveRollbackResponse(response, stage.context.propertyAction.toString(), prop.property)
             }
             break;
           case PropertyAction.DELETE.toString():
-            context.originalProperties.each { prop ->
+            stage.context.originalProperties.each { prop ->
               if(prop.property.propertyId) {
                 prop.property.remove('propertyId')
               }
-              log.info("Rolling back the ${context.propertyAction} of: ${prop.property.key}|${prop.property.value} on execution ${id} by re-creating")
+              log.info("Rolling back the ${stage.context.propertyAction} of: ${prop.property.key}|${prop.property.value} on execution ${execution.id} by re-creating")
 
               Response response = mahe.upsertProperty(prop)
-              resolveRollbackResponse(response, context.propertyAction.toString(), prop.property)
+              resolveRollbackResponse(response, stage.context.propertyAction.toString(), prop.property)
             }
         }
       }
