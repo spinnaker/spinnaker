@@ -185,7 +185,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       defaults: [dict] Default binding value overrides.
          This is used to initialize the default commandline parameters.
     """
-    
+
     parser.add_argument(
         '--azure_subscription_id', default='',
         help='The subscription id of your subscriptoin.')
@@ -198,6 +198,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     parser.add_argument(
         '--azure_app_key', default='',
         help='The service principal secret.')   
+    parser.add_argument(
+        '--azure_location', default='',
+        help='The azure location to be used.')   
+
 
   @classmethod
   def _initGoogleOperationConfigurationParameters(cls, parser, defaults):
@@ -525,21 +529,16 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
           '--aws_profile was not set.'
           ' Therefore, we will not be able to observe Amazon Web Services.')
 
-  def __init_azure_bindings(self):
-    #### 03/27 - What do we need in the dictionary ####
-    # A bindings is a dictionary used to bind configuration parameters for the test
-    bindings = self.bindings  # base class made a copy
 
+  def __init_azure_bindings(self):
+    bindings = self.bindings  # base class made a copy
     if not bindings.get('TEST_AZURE_LOCATION'):
-      bindings['TEST_AZURE_LOCATION'] = bindings['AZURE_LOCATION']
+      bindings['TEST_AZURE_LOCATION'] = bindings['SPINNAKER_AZURE_DEFAULT_LOCATION']
     else:
       self.__azure_observer = az.AzAgent(
         bindings['TEST_AZURE_LOCATION']
       )
-      # Damien - Not sure that we need to pass the ressource group ? 
-    
 
-    
 
   def __init_google_bindings(self):
     bindings = self.bindings  # base class made a copy
@@ -615,11 +614,15 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         pass
       self.bindings[key] = value
     
-    ######## TODO: Verify the provider name for Azure
-    if not self.bindings['AZURE_SERVICE_PRINCIPAL']:
-      self.bindings['AZURE_SERVICE_PRINCIPAL'] = (
+    if not self.bindings['SPINNAKER_AZURE_ACCOUNT']:
+      self.bindings['SPINNAKER_AZURE_ACCOUNT'] = (
         self.agent.deployed_config.get(
           'providers.azure.primaryCredentials.name', None)) 
+
+    if not self.bindings['SPINNAKER_AZURE_DEFAULT_LOCATION']:
+      self.bindings['SPINNAKER_AZURE_DEFAULT_LOCATION'] = (
+        self.agent.deployed_config.get(
+          'providers.azure.defaultRegion', None)) 
 
     if not self.bindings['SPINNAKER_GOOGLE_ACCOUNT']:
       self.bindings['SPINNAKER_GOOGLE_ACCOUNT'] = (
