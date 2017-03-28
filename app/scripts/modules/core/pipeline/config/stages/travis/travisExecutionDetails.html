@@ -1,5 +1,5 @@
 <div ng-controller="TravisExecutionDetailsCtrl as ctrl">
-  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <execution-details-section-nav sections="ctrl.configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="ctrl.detailsSection === 'travisConfig'">
     <div class="row">
       <div class="col-md-{{ctrl.stage.context.buildInfo.testResults ? 6 : 12}}">
