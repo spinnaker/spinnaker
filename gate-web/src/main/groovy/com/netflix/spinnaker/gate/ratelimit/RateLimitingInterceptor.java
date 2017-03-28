@@ -49,7 +49,7 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-    String principal = getPrincipal().toString();
+    String principal = getPrincipal(request).toString();
     if (UNKNOWN_PRINCIPAL.equals(principal)) {
       // Occurs when Spring decides to dispatch to /error after we send the initial 429.
       // Pass through so that the JSON error body gets rendered.
@@ -90,7 +90,7 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
     }
   }
 
-  private Object getPrincipal() {
+  private Object getPrincipal(HttpServletRequest request) {
     SecurityContext context = SecurityContextHolder.getContext();
     Authentication authentication = context.getAuthentication();
 
@@ -103,6 +103,14 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
     }
 
     log.warn("Unknown principal type, assuming anonymous");
-    return "anonymous";
+    return "anonymous-" + sourceIpAddress(request);
+  }
+
+  private String sourceIpAddress(HttpServletRequest request) {
+    String ip = request.getHeader("X-FORWARDED-FOR");
+    if (ip == null) {
+      return request.getRemoteAddr();
+    }
+    return ip;
   }
 }

@@ -74,6 +74,10 @@ public class RedisRateLimiter implements RateLimiter {
   }
 
   private int getCapacity(Jedis jedis, String name) {
+    if (name.startsWith("anonymous")) {
+      name = "anonymous";
+    }
+
     String capacity = jedis.get(getRedisCapacityKey(name));
     if (capacity != null) {
       try {

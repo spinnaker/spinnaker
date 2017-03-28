@@ -128,4 +128,21 @@ class RedisRateLimiterSpec extends Specification {
     cleanup:
     jedis.close()
   }
+
+  def 'should use same capacity override for all anonymous principals'() {
+    given:
+    RedisRateLimiter subject = new RedisRateLimiter((JedisPool) embeddedRedis.pool, 3, 1, [
+      'anonymous': 5
+    ])
+
+    Jedis jedis = embeddedRedis.pool.resource
+
+    expect:
+    subject.getCapacity(jedis, 'foo') == 3
+    subject.getCapacity(jedis, 'anonymous') == 5
+    subject.getCapacity(jedis, 'anonymous-10.10.10.10') == 5
+
+    cleanup:
+    jedis.close()
+  }
 }
