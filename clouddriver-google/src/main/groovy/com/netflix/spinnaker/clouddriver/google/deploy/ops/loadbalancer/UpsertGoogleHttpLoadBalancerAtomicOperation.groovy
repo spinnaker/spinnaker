@@ -500,13 +500,13 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
    * @param loadBalancerName
    * @param backendService
    */
-  private static void fixBackendMetadata(Compute compute,
-                                         GoogleNamedAccountCredentials credentials,
-                                         String project,
-                                         AtomicOperationsRegistry atomicOperationsRegistry,
-                                         OrchestrationProcessor orchestrationProcessor,
-                                         String loadBalancerName,
-                                         GoogleBackendService backendService) {
+  private void fixBackendMetadata(Compute compute,
+                                  GoogleNamedAccountCredentials credentials,
+                                  String project,
+                                  AtomicOperationsRegistry atomicOperationsRegistry,
+                                  OrchestrationProcessor orchestrationProcessor,
+                                  String loadBalancerName,
+                                  GoogleBackendService backendService) {
     backendService.backends.each { GoogleLoadBalancedBackend backend ->
       def groupName = Utils.getLocalName(backend.serverGroupUrl)
       def groupRegion = Utils.getRegionFromGroupUrl(backend.serverGroupUrl)
