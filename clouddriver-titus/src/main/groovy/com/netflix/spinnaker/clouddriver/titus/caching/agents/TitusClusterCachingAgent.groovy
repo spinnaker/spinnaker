@@ -136,6 +136,10 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
 
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
+
+    // make onDemand operation a noop in titus
+    return null
+
     if (!data.containsKey("serverGroupName")) {
       return null
     }
