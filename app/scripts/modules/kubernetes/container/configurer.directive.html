@@ -262,4 +262,14 @@
     <kubernetes-security-context-selector component="container">
     </kubernetes-security-context-selector>
   </collapsible-section>
+  <collapsible-section heading="Lifecycle Hooks" expanded="false" subsection="true">
+    <kubernetes-lifecycle-hook-configurer on-handler-change="containerController.setPostStartHandler(handler)"
+                                          handler="container.lifecycle.postStart">
+      PostStart <help-field key="kubernetes.containers.lifecycle.postStart"></help-field>
+    </kubernetes-lifecycle-hook-configurer>
+    <kubernetes-lifecycle-hook-configurer on-handler-change="containerController.setPreStopHandler(handler)"
+                                          handler="container.lifecycle.preStop">
+      PreStop <help-field key="kubernetes.containers.lifecycle.preStop"></help-field>
+    </kubernetes-lifecycle-hook-configurer>
+  </collapsible-section>
 </form>

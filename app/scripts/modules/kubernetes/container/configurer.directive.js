@@ -2,8 +2,11 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.kubernetes.container.configurer.directive', [])
-  .directive('kubernetesContainerConfigurer', function () {
+import {KUBERNETES_LIFECYCLE_HOOK_CONFIGURER} from './lifecycleHook.component';
+
+module.exports = angular.module('spinnaker.kubernetes.container.configurer.directive', [
+  KUBERNETES_LIFECYCLE_HOOK_CONFIGURER,
+]).directive('kubernetesContainerConfigurer', function () {
     return {
       restrict: 'E',
       templateUrl: require('./configurer.directive.html'),
@@ -53,4 +56,18 @@ module.exports = angular.module('spinnaker.kubernetes.container.configurer.direc
 
     this.protocols = ['TCP', 'UDP'];
     this.maxPort = 65535;
+
+    this.setPostStartHandler = function(handler) {
+      if (!$scope.container.lifecycle) {
+        $scope.container.lifecycle = {};
+      }
+      $scope.container.lifecycle.postStart = handler;
+    };
+
+    this.setPreStopHandler = function(handler) {
+      if (!$scope.container.lifecycle) {
+        $scope.container.lifecycle = {};
+      }
+      $scope.container.lifecycle.preStop = handler;
+    };
   });

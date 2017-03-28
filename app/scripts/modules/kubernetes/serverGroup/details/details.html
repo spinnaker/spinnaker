@@ -203,6 +203,14 @@
           <dt>Timeout</dt>
           <dd>{{container.livenessProbe.timeoutSeconds}}</dd>
         </div>
+        <div ng-if="container.lifecycle.postStart">
+          <b style="border-bottom: 1px solid #c4c4c4; margin-top: 3px;">PostStart Hook</b><br>
+          <kubernetes-lifecycle-hook-details handler="container.lifecycle.postStart"></kubernetes-lifecycle-hook-details>
+        </div>
+        <div ng-if="container.lifecycle.preStop">
+          <b style="border-bottom: 1px solid #c4c4c4; margin-top: 3px;">PreStop Hook</b><br>
+          <kubernetes-lifecycle-hook-details handler="container.lifecycle.preStop"></kubernetes-lifecycle-hook-details>
+        </div>
     </dl>
       </collapsible-section>
     <collapsible-section heading="Labels" ng-if="serverGroup.labels">

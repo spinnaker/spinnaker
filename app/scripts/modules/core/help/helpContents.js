@@ -398,6 +398,17 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     '<p><b>NEVER</b>: Never pulls the image, regardless of if it is present or not.</p>',
     'kubernetes.containers.cpu': '(Optional) The relative CPU shares to allocate this container. If set, it is multiplied by 1024, then ' +
     'passed to Docker as the --cpu-shares flag. Otherwise the default of 1 (1024) is used',
+    'kubernetes.containers.lifecycle.postStart': 'Called immediately after a container is created. If the handler fails, the container is terminated ' +
+    'and restarted according to its restart policy.',
+    'kubernetes.containers.lifecycle.preStop': 'Called immediately before a container is terminated. The container is terminated after the handler completes. ' +
+    'The reason for termination is passed to the handler. Regardless of the outcome of the handler, the container is eventually terminated.',
+    'kubernetes.containers.execAction.command': 'Command to execute inside the container. The working directory for the command is root within the container\'s filesystem. ' +
+    'An exit status of 0 is treated as live/healthy; non-zero is unhealthy.',
+    'kubernetes.containers.httpGetAction.path': 'Path to access on the HTTP server',
+    'kubernetes.containers.httpGetAction.port': 'Number of the port to access on the container.',
+    'kubernetes.containers.httpGetAction.host': 'Host name to connect to, defaults to the pod IP.',
+    'kubernetes.containers.httpGetAction.uriScheme': 'Scheme to use for connecting to the host.',
+    'kubernetes.containers.httpGetAction.httpHeaders': 'Custom headers to set in the request.',
     'kubernetes.containers.memory': '(Optional) The relative memory in megabytes to allocate this container. If set, it is converted to an integer ' +
     'and passed to Docker as the --memory flag',
     'kubernetes.containers.requests': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +

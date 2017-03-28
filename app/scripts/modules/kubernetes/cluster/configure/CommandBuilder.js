@@ -88,7 +88,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
     function buildClusterCommandFromExisting(application, existing, mode) {
       mode = mode || 'clone';
 
-      var command = existing.deployDescription;
+      var command = _.cloneDeep(existing.deployDescription);
 
       command.groupByRegistry = groupByRegistry;
       command.cloudProvider = 'kubernetes';
