@@ -43,11 +43,11 @@ class JenkinsStage implements StageDefinitionBuilder, RestartableStage, Cancella
   @Override
   <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder
-      .withTask("startJenkinsJob", StartJenkinsJobTask.class)
-      .withTask("waitForJenkinsJobStart", MonitorQueuedJenkinsJobTask.class)
+      .withTask("start${getType().capitalize()}Job", StartJenkinsJobTask.class)
+      .withTask("waitFor${getType().capitalize()}JobStart", MonitorQueuedJenkinsJobTask.class)
 
     if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().equalsIgnoreCase("false")) {
-      builder.withTask("monitorJenkinsJob", MonitorJenkinsJobTask.class);
+      builder.withTask("monitor${getType().capitalize()}Job", MonitorJenkinsJobTask.class)
     }
   }
 
