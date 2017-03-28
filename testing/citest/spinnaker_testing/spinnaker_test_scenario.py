@@ -204,7 +204,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     parser.add_argument(
         '--azure_account_name', dest='spinnaker_azure_account_name',
         help='The name of the account in spinnaker.')
-
+    parser.add_argument(
+        '--azure_storage_account_key', dest='spinnaker_azure_storage_account_key',
+        help='The key used to access storage account used by front50.')
+    
   @classmethod
   def _initGoogleOperationConfigurationParameters(cls, parser, defaults):
     """Initialize arguments for configuring operations for google.
