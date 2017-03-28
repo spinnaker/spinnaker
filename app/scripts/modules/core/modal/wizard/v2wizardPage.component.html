@@ -1,10 +1,7 @@
 <div class="modal-page"
      ng-if="$ctrl.state.rendered"
      waypoint="{{$ctrl.key}}">
-  <div class="wizard-subheading"
-       sticky-header
-       added-offset-height="{{$ctrl.pageOffset}}"
-      >
+  <div class="wizard-subheading" sticky-header>
     <h4 ng-class="{ default: !$ctrl.state.done, current: $ctrl.state.current, done: $ctrl.state.done, dirty: $ctrl.state.dirty }">{{$ctrl.label}}</h4>
   </div>
   <div class="wizard-page-body" ng-transclude></div>

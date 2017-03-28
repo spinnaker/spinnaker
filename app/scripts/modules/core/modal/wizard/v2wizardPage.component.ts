@@ -70,12 +70,6 @@ export class WizardPageController implements ng.IComponentController {
    */
   public state: WizardPageState;
 
-  /**
-   * Offset to add to the heading when making them sticky
-   * @type {number}
-   */
-  public pageOffset = 0;
-
   static get $inject() { return ['$scope', 'v2modalWizardService']; }
 
   public constructor(private $scope: ng.IScope, private v2modalWizardService: any) {}
@@ -91,7 +85,6 @@ export class WizardPageController implements ng.IComponentController {
       required: this.mandatory,
       markCompleteOnView: this.markCompleteOnView
     };
-    this.pageOffset = this.v2modalWizardService.pageOffset;
     this.v2modalWizardService.registerPage(this.key, this.label, this.state);
     this.$scope.$on('$destroy', () => this.v2modalWizardService.setRendered(this.key, false));
   }

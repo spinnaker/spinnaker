@@ -7,7 +7,6 @@ module.exports = angular.module('spinnaker.core.cluster.pod.directive', [
   require('./serverGroup.sequence.filter.js'),
   URL_BUILDER_SERVICE,
   require('../serverGroup/serverGroup.directive.js'),
-  require('../utils/stickyHeader/stickyHeader.directive.js'),
 ])
   .directive('clusterPod', function(urlBuilderService) {
     return {

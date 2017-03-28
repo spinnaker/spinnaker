@@ -26,10 +26,6 @@ export class V2ModalWizard implements ng.IComponentController {
       });
     });
 
-    if (this.notReallyModal) {
-      this.wizard.setPageOffset(0);
-    }
-
     this.wizard.setHeading(this.heading);
   }
 
